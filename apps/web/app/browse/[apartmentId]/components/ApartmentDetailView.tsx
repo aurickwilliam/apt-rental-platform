@@ -37,16 +37,62 @@ export default async function ApartmentDetailView({
 }) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Batch 1: auth state and apartment details are independent of each other.
+  const [userResult, apartmentResult] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('apartments')
+      .select(`
+        *,
+        apartment_images(url, url_thumb, is_cover)
+      `)
+      .eq('id', apartmentId)
+      .eq('is_hidden_by_admin', false)
+      .is('deleted_at', null)
+      .single(),
+  ]);
 
-  const { data: currentUser } = user
-    ? await supabase
-        .from("users")
-        .select("id, roles, account_status")
-        .eq("user_id", user.id)
-        .maybeSingle()
-    : { data: null };
+  const user = userResult.data.user;
+  const { data: apartment, error } = apartmentResult;
 
+  if (error || !apartment) {
+    // handle not found
+    return <div>Apartment not found.</div>;
+  }
+
+  // Batch 2: profile, landlord, and related apartments only need the
+  // results above, so they run together.
+  const [profileResult, landlordResult, relatedResult] = await Promise.all([
+    user
+      ? supabase
+          .from("users")
+          .select("id, roles, account_status")
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    apartment.landlord_id
+      ? supabase
+          .from('users')
+          .select('first_name, last_name, mobile_number, avatar_url')
+          .eq('id', apartment.landlord_id)
+          .filter('roles', 'cs', '{landlord}')
+          .single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from('apartments')
+      .select('id, name, city, monthly_rent, average_rating, apartment_images(url, url_thumb, is_cover)')
+      .eq('city', apartment.city)
+      .neq('id', apartmentId)
+      .eq('is_hidden_by_admin', false)
+      .is('deleted_at', null)
+      .limit(10),
+  ]);
+
+  const { data: currentUser } = profileResult;
+  const { data: landlord } = landlordResult;
+  const { data: related } = relatedResult;
+
+  // Batch 3: the pending-application check needs the profile id above.
   // Apply Now opens the start-of-application modal for tenants; everyone
   // else goes to the apply route, which redirects them (sign-in / browse).
   const isTenant = !!currentUser?.roles?.includes("tenant");
@@ -69,56 +115,24 @@ export default async function ApartmentDetailView({
         }
       : null;
 
-  // Fetch apartment details along with images
-  const { data: apartment, error } = await supabase
-    .from('apartments')
-    .select(`
-      *,
-      apartment_images(url, is_cover)
-    `)
-    .eq('id', apartmentId)
-    .eq('is_hidden_by_admin', false)
-    .is('deleted_at', null)
-    .single();
-
   // Fetch Lease Agreement URL if it exists
   const leaseUrl = apartment?.lease_agreement_url ?? null;
 
-  // Fetch landlord details if landlord_id exists
-  const { data: landlord } = apartment?.landlord_id
-    ? await supabase
-        .from('users')
-        .select('first_name, last_name, mobile_number, avatar_url')
-        .eq('id', apartment.landlord_id)
-        .filter('roles', 'cs', '{landlord}')
-        .single()
-    : { data: null };
-
-  if (error || !apartment) {
-    // handle not found
-    return <div>Apartment not found.</div>;
-  }
-
   const images = apartment.apartment_images?.map((img) => img.url) ?? ['/default/default-thumbnail.jpeg'];
+  const thumbImages = apartment.apartment_images?.map((img) => img.url_thumb ?? img.url) ?? ['/default/default-thumbnail.jpeg'];
 
   // Fetch Related Apartments same city
-  const { data: related } = await supabase
-    .from('apartments')
-    .select('id, name, city, monthly_rent, average_rating, apartment_images(url, is_cover)')
-    .eq('city', apartment.city)
-    .neq('id', apartmentId)
-    .eq('is_hidden_by_admin', false)
-    .is('deleted_at', null)
-    .limit(10);
-
-  const relatedMapped = (related ?? []).map((apt) => ({
-    id: apt.id,
-    name: apt.name,
-    city: apt.city,
-    monthly_rent: apt.monthly_rent,
-    average_rating: apt.average_rating ?? 0,
-    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
-  }));
+  const relatedMapped = (related ?? []).map((apt) => {
+    const cover = apt.apartment_images?.find((img) => img.is_cover);
+    return {
+      id: apt.id,
+      name: apt.name,
+      city: apt.city,
+      monthly_rent: apt.monthly_rent,
+      average_rating: apt.average_rating ?? 0,
+      image: cover?.url_thumb ?? cover?.url ?? '/default/default-thumbnail.jpeg',
+    };
+  });
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 w-full min-w-0 overflow-x-clip">
@@ -131,7 +145,7 @@ export default async function ApartmentDetailView({
       </div>
 
       <div className="my-4">
-        <ImageHeader imageUrl={images} name={apartment.name} />
+        <ImageHeader imageUrl={images} thumbnailUrl={thumbImages} name={apartment.name} />
       </div>
 
       <div className="w-full flex flex-col lg:flex-row gap-8 lg:gap-5 min-w-0">

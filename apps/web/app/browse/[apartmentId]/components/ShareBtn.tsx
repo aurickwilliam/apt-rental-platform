@@ -9,6 +9,7 @@ export default function ShareBtn() {
       variant="tertiary"
       size="md"
       isIconOnly
+      aria-label="Share this apartment"
     >
       <IconShare size={20} />
     </Button>

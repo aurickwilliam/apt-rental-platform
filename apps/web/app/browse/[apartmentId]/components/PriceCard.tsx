@@ -13,11 +13,18 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { formatPesoDisplay } from "@repo/utils";
+import dynamic from "next/dynamic";
 import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
-import ApplyStartModal, {
-  type ApplyStartApartment,
-  type ApplyStartViewer,
+import type {
+  ApplyStartApartment,
+  ApplyStartViewer,
 } from "../apply/components/ApplyStartModal";
+
+// Split from the initial bundle: the apply flow only loads when opened.
+const ApplyStartModal = dynamic(
+  () => import("../apply/components/ApplyStartModal"),
+  { ssr: false },
+);
 
 interface PriceCardProps {
   price: number;

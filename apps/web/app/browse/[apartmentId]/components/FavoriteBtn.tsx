@@ -54,6 +54,7 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
         variant="tertiary"
         size="md"
         isIconOnly
+        aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
         isPending={isSaving}
         isDisabled={loading}
         onPress={handleToggleFavorite}

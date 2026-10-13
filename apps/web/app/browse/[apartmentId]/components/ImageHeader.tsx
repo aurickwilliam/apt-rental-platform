@@ -8,14 +8,19 @@ import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 
 interface ImageHeaderProps {
   imageUrl: string[];
+  thumbnailUrl?: string[];
   name: string;
 }
 
-export default function ImageHeader({ imageUrl, name }: ImageHeaderProps) {
+export default function ImageHeader({ imageUrl, thumbnailUrl, name }: ImageHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const availableImages = imageUrl.filter(Boolean);
-  const photos = (availableImages.length ? availableImages : ["/default/default-thumbnail.jpeg"]).map((url) => ({ url }));
+  const availableThumbs = (thumbnailUrl ?? []).filter(Boolean);
+  const photos = (availableImages.length ? availableImages : ["/default/default-thumbnail.jpeg"]).map((url, index) => ({
+    url,
+    thumbnailUrl: availableThumbs[index] ?? url,
+  }));
 
   function openGallery(index: number) {
     setActiveIndex(index);
@@ -26,13 +31,13 @@ export default function ImageHeader({ imageUrl, name }: ImageHeaderProps) {
     <>
       <div className="relative flex h-60 sm:h-96 lg:h-128 w-full gap-2 sm:gap-5 min-w-0">
         <button type="button" className={`relative h-full overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary ${photos.length > 1 ? "w-2/3" : "w-full"}`} onClick={() => openGallery(0)} aria-label={`View photos of ${name}`}>
-          <Image src={photos[0].url} alt={`${name} cover`} fill unoptimized className="object-cover transition hover:brightness-90" />
+          <Image src={photos[0].url} alt={`${name} cover`} fill priority sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover transition hover:brightness-90" />
         </button>
         {photos.length > 1 ? (
           <div className="flex w-1/3 flex-col gap-2 sm:gap-5 min-w-0">
             {photos.slice(1, 3).map((photo, offset) => (
               <button key={`${photo.url}-${offset}`} type="button" onClick={() => openGallery(offset + 1)} className="relative min-h-0 flex-1 overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-primary" aria-label={`View photo ${offset + 2} of ${name}`}>
-                <Image src={photo.url} alt={`${name} photo ${offset + 2}`} fill unoptimized className="object-cover transition hover:brightness-90" />
+                <Image src={photo.thumbnailUrl ?? photo.url} alt={`${name} photo ${offset + 2}`} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover transition hover:brightness-90" />
               </button>
             ))}
           </div>
