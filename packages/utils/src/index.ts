@@ -21,3 +21,18 @@ export {
   type CardFormErrors,
   validateCardInfo,
 } from './validateCardNumber';
+export {
+  type PasswordErrorReason,
+  PasswordError,
+  type AuthErrorLike,
+  toPasswordErrorReason,
+  describeAuthError,
+  toPasswordError,
+} from './passwordErrors';
+export { type AuthIdentityUser, hasEmailPasswordIdentity } from './authIdentity';
+export {
+  RECOVERY_CODE_LENGTH,
+  RECOVERY_RESEND_COOLDOWN_SECONDS,
+  normalizeRecoveryEmail,
+  isRecoveryCodeFormat,
+} from './passwordRecovery';

@@ -1,13 +1,12 @@
-import { View, Text, Pressable } from 'react-native'
-import Ionicons from '@expo/vector-icons/build/Ionicons';
+import { Keyboard, View, Text } from 'react-native'
 import { useEffect, useRef, useState } from 'react';
 import { Redirect, useNavigation, useRouter } from 'expo-router';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import AppInput from '@/components/inputs/AppInput';
+import NewPasswordFields from '@/components/inputs/NewPasswordFields';
 import ErrorDialog from '@/components/display/ErrorDialog';
 
-import { Button, FieldError, Label, Spinner, TextField } from 'heroui-native';
+import { Button, Spinner } from 'heroui-native';
 
 import { usePasswordValidation } from '@repo/hooks';
 import { useColors } from '@/hooks/useTheme';
@@ -16,11 +15,10 @@ import { clearQueryClient } from '@/utils/queryClient';
 import {
   endPasswordRecovery,
   hasActiveRecoverySession,
-  PasswordRecoveryError,
   updateRecoveredPassword,
 } from '@/service/auth/passwordRecoveryService';
+import { PasswordError } from "@repo/utils";
 
-import { IconEye, IconEyeOff } from '@tabler/icons-react-native';
 
 type SessionCheck = 'checking' | 'valid' | 'invalid';
 
@@ -35,8 +33,6 @@ export default function ResetPassword() {
   const resetRecovery = usePasswordRecoveryStore((state) => state.reset);
 
   const [submitted, setSubmitted] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [sessionCheck, setSessionCheck] = useState<SessionCheck>('checking');
   const [saving, setSaving] = useState(false);
   const [serverPasswordError, setServerPasswordError] = useState<string | null>(null);
@@ -149,6 +145,9 @@ export default function ResetPassword() {
   // Handle form submission
   const handleSubmit = async () => {
     if (saving || sessionCheck !== 'valid') return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
     setSubmitted(true);
 
     if (!isPasswordValid) {
@@ -161,7 +160,7 @@ export default function ResetPassword() {
       await updateRecoveredPassword(password);
       await finishRecovery();
     } catch (err) {
-      if (!(err instanceof PasswordRecoveryError)) {
+      if (!(err instanceof PasswordError)) {
         // Log the type only: an unexpected message could echo the password.
         console.error('Password reset failed:', err instanceof Error ? err.name : typeof err);
         setError(GENERIC_ERROR);
@@ -190,169 +189,17 @@ export default function ResetPassword() {
         </Text>
       </View>
 
-      <View className="flex gap-3 mt-5">
-        {/* Password Field */}
-        <TextField isRequired isInvalid={!!getError("password")}>
-          <Label>Password:</Label>
-          <View className="w-full flex-row items-center">
-            <AppInput
-              placeholder="Create a password"
-              secureTextEntry={!showPassword}
-              className="flex-1 pr-10"
-              value={password}
-              onChangeText={handlePasswordChange}
-            />
-
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-3"
-            >
-              {showPassword ? (
-                <IconEyeOff size={18} color={colors.textSecondary} />
-              ) : (
-                <IconEye size={18} color={colors.textSecondary} />
-              )}
-            </Pressable>
-          </View>
-
-          {!!getError("password") && (
-            <FieldError>{getError("password")}</FieldError>
-          )}
-        </TextField>
-
-        {/* Confirm Password Field */}
-        <TextField isRequired isInvalid={!!getError("confirmPassword")}>
-          <Label>Confirm Password:</Label>
-          <View className="w-full flex-row items-center">
-            <AppInput
-              placeholder="Confirm your password"
-              secureTextEntry={!showConfirmPassword}
-              className="flex-1 pr-10"
-              value={confirmPassword}
-              onChangeText={(value) => {
-                setConfirmPassword(value);
-              }}
-            />
-
-            <Pressable
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3"
-            >
-              {showConfirmPassword ? (
-                <IconEyeOff size={18} color={colors.textSecondary} />
-              ) : (
-                <IconEye size={18} color={colors.textSecondary} />
-              )}
-            </Pressable>
-          </View>
-
-          {!!getError("confirmPassword") && (
-            <FieldError>{getError("confirmPassword")}</FieldError>
-          )}
-        </TextField>
-
-        {/* Password Checker */}
-        <View className="flex-col gap-1 mt-5">
-          <Text className="text-foreground font-nunitoSemiBold mb-2">
-            Your password must contain:
-          </Text>
-
-          {/* Minimum Length of 8 Char */}
-          <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.minLength ? "checkmark-circle" : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.minLength
-                  ? colors.success
-                  : colors.textSecondary
-              }
-            />
-            <Text className="text-foreground font-inter">
-              At least 8 characters
-            </Text>
-          </View>
-
-          {/* At least one lowercase letter (a–z) */}
-          <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasLowercase
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasLowercase
-                  ? colors.success
-                  : colors.textSecondary
-              }
-            />
-            <Text className="text-foreground font-inter">
-              At least one lowercase letter (a–z)
-            </Text>
-          </View>
-
-          {/* At least one uppercase letter (A–Z) */}
-          <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasUppercase
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasUppercase
-                  ? colors.success
-                  : colors.textSecondary
-              }
-            />
-            <Text className="text-foreground font-inter">
-              At least one uppercase letter (A–Z)
-            </Text>
-          </View>
-
-          {/* At least one number (0–9) */}
-          <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasNumber ? "checkmark-circle" : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasNumber
-                  ? colors.success
-                  : colors.textSecondary
-              }
-            />
-            <Text className="text-foreground font-inter">
-              At least one number (0–9)
-            </Text>
-          </View>
-
-          {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
-          <View className="flex-row items-center gap-2">
-            <Ionicons
-              name={
-                passwordRequirements.hasSpecialChar
-                  ? "checkmark-circle"
-                  : "remove"
-              }
-              size={24}
-              color={
-                passwordRequirements.hasSpecialChar
-                  ? colors.success
-                  : colors.textSecondary
-              }
-            />
-            <Text className="text-foreground font-inter">
-              at least one special character (e.g. ! @ # $ % ^ & *)
-            </Text>
-          </View>
-        </View>
+      <View className="mt-5">
+        <NewPasswordFields
+          password={password}
+          confirmPassword={confirmPassword}
+          onPasswordChange={handlePasswordChange}
+          onConfirmPasswordChange={setConfirmPassword}
+          requirements={passwordRequirements}
+          passwordError={getError('password')}
+          confirmPasswordError={getError('confirmPassword')}
+          isDisabled={saving}
+        />
       </View>
 
       <View className="flex-1" />

@@ -2,10 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import RecoveryCodeVerification from "@/app/(auth)/forgot-password/otp-verification";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import {
-  PasswordRecoveryError,
-  RECOVERY_RESEND_COOLDOWN_SECONDS,
-} from "@/service/auth/passwordRecoveryService";
+import { PasswordError, RECOVERY_RESEND_COOLDOWN_SECONDS } from "@repo/utils";
 
 const mockRequest = jest.fn();
 const mockVerify = jest.fn();
@@ -20,7 +17,7 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-jest.mock("heroui-native", () => require("./heroUINativeStub"));
+jest.mock("heroui-native", () => require("../support/heroUINativeStub"));
 
 jest.mock("@repo/supabase", () => ({ supabase: {} }));
 
@@ -108,7 +105,7 @@ describe("Recovery code screen", () => {
   });
 
   it("shows invalid or expired codes inline and clears the input", async () => {
-    mockVerify.mockRejectedValueOnce(new PasswordRecoveryError("invalid_or_expired_code"));
+    mockVerify.mockRejectedValueOnce(new PasswordError("invalid_or_expired_code"));
     render(<RecoveryCodeVerification />);
 
     enterCode(CODE);
@@ -119,7 +116,7 @@ describe("Recovery code screen", () => {
   });
 
   it("opens the error dialog for unexpected failures", async () => {
-    mockVerify.mockRejectedValueOnce(new PasswordRecoveryError("network"));
+    mockVerify.mockRejectedValueOnce(new PasswordError("network"));
     render(<RecoveryCodeVerification />);
 
     enterCode(CODE);
@@ -174,7 +171,7 @@ describe("Recovery code screen", () => {
 
   it("shows the server's rate limit when resending", async () => {
     jest.useFakeTimers();
-    mockRequest.mockRejectedValueOnce(new PasswordRecoveryError("rate_limited"));
+    mockRequest.mockRejectedValueOnce(new PasswordError("rate_limited"));
     render(<RecoveryCodeVerification />);
 
     for (let second = 0; second < RECOVERY_RESEND_COOLDOWN_SECONDS; second += 1) {

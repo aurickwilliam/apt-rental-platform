@@ -5,9 +5,8 @@ import {
   ImageSourcePropType,
 } from "react-native";
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import ScreenWrapper from "components/layout/ScreenWrapper";
+import ScreenWrapper, { type ScreenWrapperScrollRef } from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import DropdownField from "components/inputs/DropdownField";
 import DateField from "@/components/inputs/DateField";
@@ -95,7 +94,7 @@ export default function EditProfile() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Scroll-to-error refs
-  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const contentRef = useRef<View>(null);
   const fieldPositions = useRef<Partial<Record<keyof FormErrors, number>>>({});
 
@@ -232,7 +231,7 @@ export default function EditProfile() {
       const firstError = fieldOrder.find((field) => errs[field]);
       const y = firstError ? fieldPositions.current[firstError] : undefined;
       if (y !== undefined) {
-        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true);
+        scrollRef.current?.scrollTo({ x: 0, y: Math.max(y - 16, 0), animated: true });
       }
     }
 

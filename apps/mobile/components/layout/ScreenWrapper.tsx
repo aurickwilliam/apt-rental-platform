@@ -1,17 +1,26 @@
 import { ReactNode, forwardRef } from "react";
 import {
   View,
-  Platform,
   RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import {
+  KeyboardAwareScrollView,
+  type KeyboardAwareScrollViewRef,
+} from "react-native-keyboard-controller";
 
 import { Spinner } from "heroui-native";
 
 import { useColors } from "hooks/useTheme";
+
+// Space kept between the focused input and the top of the keyboard.
+const KEYBOARD_BOTTOM_OFFSET = 50;
+
+// Ref to a scrollable ScreenWrapper: a ScrollView (scrollTo, scrollToEnd, ...).
+// Screens import this instead of the keyboard library.
+export type ScreenWrapperScrollRef = KeyboardAwareScrollViewRef;
 
 interface ScreenWrapperProps {
   children: ReactNode;
@@ -34,7 +43,7 @@ const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
   </TouchableWithoutFeedback>
 );
 
-const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
+const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
   function ScreenWrapper(
     {
       children,
@@ -69,9 +78,7 @@ const ScreenWrapper = forwardRef<KeyboardAwareScrollView, ScreenWrapperProps>(
         {scrollable ? (
           <KeyboardAwareScrollView
             ref={ref}
-            extraHeight={Platform.OS === "ios" ? 50 : 100}
-            enableOnAndroid={true}
-            enableAutomaticScroll={true}
+            bottomOffset={KEYBOARD_BOTTOM_OFFSET}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             refreshControl={

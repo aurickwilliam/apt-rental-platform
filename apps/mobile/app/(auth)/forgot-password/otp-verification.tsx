@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { Keyboard, View, Text, Pressable } from "react-native";
 import { useRef, useState } from "react";
 import { Redirect, useRouter } from "expo-router";
 
@@ -21,12 +21,14 @@ import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
-  PasswordRecoveryError,
-  RECOVERY_CODE_LENGTH,
-  RECOVERY_RESEND_COOLDOWN_SECONDS,
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "@/service/auth/passwordRecoveryService";
+import {
+  PasswordError,
+  RECOVERY_CODE_LENGTH,
+  RECOVERY_RESEND_COOLDOWN_SECONDS,
+} from "@repo/utils";
 
 // Errors shown under the code input; anything else opens the error dialog.
 const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);
@@ -63,15 +65,18 @@ export default function RecoveryCodeVerification() {
   };
 
   const showError = (err: unknown) => {
-    if (err instanceof PasswordRecoveryError && INLINE_CODE_ERRORS.has(err.reason)) {
+    if (err instanceof PasswordError && INLINE_CODE_ERRORS.has(err.reason)) {
       setCodeError(err.message);
       return;
     }
-    setError(err instanceof PasswordRecoveryError ? err.message : GENERIC_ERROR);
+    setError(err instanceof PasswordError ? err.message : GENERIC_ERROR);
   };
 
   const handleVerify = async (value: string = code) => {
     if (verifying || value.length < RECOVERY_CODE_LENGTH) return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
 
     setVerifying(true);
     setCodeError(null);

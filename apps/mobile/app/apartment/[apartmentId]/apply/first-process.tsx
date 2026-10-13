@@ -1,9 +1,8 @@
 import { View, Text } from 'react-native'
-import type { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DropdownField from 'components/inputs/DropdownField'
 import DateField from '@/components/inputs/DateField'
@@ -63,7 +62,7 @@ export default function FirstProcess() {
     formatPesoDisplay(tenantInformation.monthlyIncome)
   );
 
-  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const contentRef = useRef<View>(null);
   const groupOffsets = useRef<Partial<Record<string, number>>>({});
   const fieldPositions = useRef<Partial<Record<keyof FieldErrors, number>>>({});
@@ -187,7 +186,7 @@ export default function FirstProcess() {
           ? fieldPositions.current[firstInvalidField]
           : undefined
       if (y !== undefined) {
-        scrollRef.current?.scrollToPosition(0, Math.max(y - 16, 0), true)
+        scrollRef.current?.scrollTo({ x: 0, y: Math.max(y - 16, 0), animated: true })
       }
     }
 

@@ -2,14 +2,14 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import ForgotPassword from "@/app/(auth)/forgot-password/index";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
-import { PasswordRecoveryError } from "@/service/auth/passwordRecoveryService";
+import { PasswordError } from "@repo/utils";
 
 const mockRequest = jest.fn();
 const mockRouter = { push: jest.fn(), back: jest.fn() };
 
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
 
-jest.mock("heroui-native", () => require("./heroUINativeStub"));
+jest.mock("heroui-native", () => require("../support/heroUINativeStub"));
 
 jest.mock("@repo/supabase", () => ({ supabase: {} }));
 
@@ -96,7 +96,7 @@ describe("Forgot password email screen", () => {
   });
 
   it("surfaces server errors and stays on the screen", async () => {
-    mockRequest.mockRejectedValueOnce(new PasswordRecoveryError("rate_limited"));
+    mockRequest.mockRejectedValueOnce(new PasswordError("rate_limited"));
     render(<ForgotPassword />);
 
     enterEmail(EMAIL);
@@ -108,7 +108,7 @@ describe("Forgot password email screen", () => {
   });
 
   it("shows an email Supabase rejects under the field", async () => {
-    mockRequest.mockRejectedValueOnce(new PasswordRecoveryError("invalid_email"));
+    mockRequest.mockRejectedValueOnce(new PasswordError("invalid_email"));
     render(<ForgotPassword />);
 
     enterEmail(EMAIL);

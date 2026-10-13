@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { Keyboard, View, Text } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -18,12 +18,11 @@ import {
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
-import { isValidEmail } from "@repo/utils";
+import { isValidEmail, PasswordError } from "@repo/utils";
 
 import { useColors } from "hooks/useTheme";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
-  PasswordRecoveryError,
   requestPasswordRecovery,
 } from "@/service/auth/passwordRecoveryService";
 
@@ -52,6 +51,9 @@ export default function ForgotPassword() {
 
   const handleSendCode = async () => {
     if (loading) return;
+    // Close the keyboard before this screen may navigate away, so no focused
+    // field is unmounted while the keyboard is still attached to it.
+    Keyboard.dismiss();
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
@@ -69,10 +71,10 @@ export default function ForgotPassword() {
       setRecoveryEmail(trimmedEmail);
       router.push("/forgot-password/otp-verification");
     } catch (err) {
-      if (err instanceof PasswordRecoveryError && err.reason === "invalid_email") {
+      if (err instanceof PasswordError && err.reason === "invalid_email") {
         setEmailError(err.message);
       } else {
-        setError(err instanceof PasswordRecoveryError ? err.message : "Something went wrong. Please try again.");
+        setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

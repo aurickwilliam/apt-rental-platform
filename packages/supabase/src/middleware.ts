@@ -2,6 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./types";
 import { isPendingOnboarding } from "./pending-onboarding";
+import {
+  isBackgroundRequest,
+  isRecoveryPath,
+  isSupabaseAuthCookie,
+  readRecoveryMarker,
+  RECOVERY_CACHE_CONTROL,
+  RECOVERY_MARKER_COOKIE,
+  recoveryRouteDecision,
+} from "./password-recovery";
 
 const ROLE_ROUTES: Record<string, string[]> = {
   tenant: ["/tenant"],
@@ -15,6 +24,27 @@ interface UserRolesProfile { roles: string[] }
 
 function defaultRole(roles: string[]): string | undefined {
   return ["admin", "landlord", "tenant"].find((role) => roles.includes(role));
+}
+
+// Expires a cookie on the root path, where both the Auth cookies and the
+// recovery marker live (a bare delete would target the request's path).
+function expireCookie(response: NextResponse, name: string) {
+  response.cookies.set(name, "", { path: "/", maxAge: 0 });
+}
+
+// A fresh redirect drops cookies written to the pass-through response (e.g.
+// by signOut), so copy them over.
+function redirectWithCookies(
+  request: NextRequest,
+  from: NextResponse,
+  pathname: string,
+): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  const response = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+  return response;
 }
 
 export async function updateSession(request: NextRequest) {
@@ -69,6 +99,58 @@ export async function updateSession(request: NextRequest) {
     console.warn("Failed to fetch user in middleware", userError);
   }
 
+  const pathname = request.nextUrl.pathname;
+
+  // Password recovery: a session created by a recovery code may only be used
+  // on the reset page. Runs before every other rule so it never reaches a portal.
+  const recovery = recoveryRouteDecision({
+    marker: readRecoveryMarker(request.cookies.get(RECOVERY_MARKER_COOKIE)?.value, Date.now()),
+    hasUser: user !== null,
+    pathname,
+    isBackgroundRequest: isBackgroundRequest((name) => request.headers.get(name)),
+  });
+  const hasRecoveryState =
+    request.cookies.has(RECOVERY_MARKER_COOKIE) || isRecoveryPath(pathname);
+
+  if (recovery.action === "no_content") {
+    const response = new NextResponse(null, { status: 204 });
+    response.headers.set("Cache-Control", RECOVERY_CACHE_CONTROL);
+    return response;
+  }
+
+  if (recovery.action === "end_session") {
+    const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+    if (signOutError) {
+      const { name, code, status } = signOutError as { name?: string; code?: string; status?: number };
+      console.warn("Password recovery sign-out failed in middleware", { name, code, status });
+    }
+    const response = redirectWithCookies(request, supabaseResponse, recovery.to);
+    // Backstop: signOut keeps the cookies when it cannot read the session.
+    request.cookies.getAll().forEach(({ name }) => {
+      if (isSupabaseAuthCookie(name)) expireCookie(response, name);
+    });
+    expireCookie(response, RECOVERY_MARKER_COOKIE);
+    response.headers.set("Cache-Control", RECOVERY_CACHE_CONTROL);
+    return response;
+  }
+
+  if (recovery.action === "redirect") {
+    const response = redirectWithCookies(request, supabaseResponse, recovery.to);
+    if (recovery.clearMarker) expireCookie(response, RECOVERY_MARKER_COOKIE);
+    response.headers.set("Cache-Control", RECOVERY_CACHE_CONTROL);
+    return response;
+  }
+
+  if (recovery.action === "clear_marker") {
+    expireCookie(supabaseResponse, RECOVERY_MARKER_COOKIE);
+  }
+
+  if (hasRecoveryState) {
+    supabaseResponse.headers.set("Cache-Control", RECOVERY_CACHE_CONTROL);
+  }
+
+  if (recovery.action === "allow") return supabaseResponse;
+
   // Pages that anyone can access without logging in
   const publicRoutes = [
     "/",
@@ -77,6 +159,7 @@ export async function updateSession(request: NextRequest) {
     "/sign-in",
     "/sign-up",
     "/sign-up-form",
+    "/forgot-password",
     "/auth/callback",
     "/suspended",
     "/about",
@@ -92,10 +175,9 @@ export async function updateSession(request: NextRequest) {
     "/cookies"
   ];
 
-  // Pages that logged-in users should be redirected away from
-  const authRoutes = ["/sign-in", "/sign-up", "/sign-up-form"];
-
-  const pathname = request.nextUrl.pathname;
+  // Pages that logged-in users should be redirected away from. An active
+  // recovery session on the reset page returned above.
+  const authRoutes = ["/sign-in", "/sign-up", "/sign-up-form", "/forgot-password"];
 
   const isPublicRoute = publicRoutes.some((route) =>
     route === "/" ? pathname === "/" : pathname.startsWith(route),
