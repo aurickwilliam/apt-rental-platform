@@ -175,7 +175,7 @@ export default function QuickActionsSection({
   const resetActions = () => setDraftIds([...DEFAULT_TENANT_QUICK_ACTION_IDS]);
 
   return (
-    <View className="mt-5">
+    <View className="mt-3">
       <View className="flex-row items-center justify-between">
         <Text className="text-foreground text-lg font-nunitoSemiBold">Quick Actions</Text>
         <Button
@@ -189,7 +189,7 @@ export default function QuickActionsSection({
         </Button>
       </View>
 
-      <View className="mt-3 flex-row flex-wrap">
+      <View className="mt-2 flex-row flex-wrap">
         {displayedActions.map((action) => (
           <QuickActionButton
             key={action.id}

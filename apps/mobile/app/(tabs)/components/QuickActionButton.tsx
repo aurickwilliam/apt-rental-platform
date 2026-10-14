@@ -21,7 +21,7 @@ export default function QuickActionButton({
   const isFiveColumnLayout = columns === 5;
 
   return (
-    <View className={`${columns === 5 ? "w-1/5" : "w-1/4"} px-1 mb-3`}>
+    <View className={`${columns === 5 ? "w-1/5" : "w-1/4 mb-3"} px-1`}>
       <TouchableOpacity
         className="flex items-center justify-center gap-1.5"
         onPress={onPress}

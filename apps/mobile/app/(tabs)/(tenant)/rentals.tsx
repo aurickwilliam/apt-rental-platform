@@ -306,13 +306,13 @@ export default function Rentals() {
         />
 
         {/* Payment Summary Card */}
-        <View className="mt-5">
+        <View className="mt-3">
           <PaymentSummaryCard
             periodMonth={formatDate(rent.periodStart, "month")}
             periodYear={formatDate(rent.periodStart, "year")}
             status={rent.status}
             totalRent={rent.monthlyRent}
-            dueDate={formatDate(rent.dueDate, "short")}
+            dueDate={formatDate(rent.dueDate, "medium")}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
           />
@@ -337,7 +337,7 @@ export default function Rentals() {
         />
 
         {landlord && (
-          <View className="mt-5">
+          <View className="mt-3">
             <LandlordCard
               fullName={landlordFullName}
               profilePictureUrl={landlord.avatar_url}
@@ -348,7 +348,7 @@ export default function Rentals() {
         )}
 
         {/* Maintenance */}
-        <View className="mt-5">
+        <View className="mt-3">
           <MaintenanceSection
             requests={maintenanceRequests}
             onOpenRequest={handleOpenMaintenanceRequest}
