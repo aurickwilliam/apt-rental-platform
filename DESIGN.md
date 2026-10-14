@@ -58,13 +58,17 @@ All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mapp
 | Token | Light | Dark | Notes |
 |---|---|---|---|
 | `white` | `#FFFFFF` | `#121212` | Card/surface base |
-| `surface` (`--background` web) | `#F8F9FA` | `#1E1E1E` | Page background |
+| `surface` (`--background` web) | `#F8F9FA` | `#1E1E1E` | Shared palette / web page background; not the mobile default |
+| `bg-background` (mobile) | `#FFFFFF` | `oklch(12% 0.005 285.823)` | Default screen and navigation background |
+| `bg-grouped-background` (mobile) | `#F8F9FA` | Same as mobile `bg-background` | Optional backdrop behind grouped settings / card sections |
 | `surfaceRaised` | — | `#2A2A2A` | Mobile elevated surface |
 | `bg-surface` (mobile) | `oklch(100% 0 0)` | `oklch(0.2103 0.0059 285.89)` | Card/screen surface token |
 | `surface-secondary` (mobile) | `oklch(0.9524 0.0013 286.37)` | `oklch(0.227 0.004 285)` | Sheets, dropdowns, sticky footers |
 | `surface-tertiary` (mobile) | `oklch(0.9373 0.0013 286.37)` | `oklch(0.26 0.004 285)` | Skeletons, muted fills |
 | `backdrop` (mobile) | `oklch(0% 0 0 / 20%)` | `oklch(0% 0 0 / 40%)` | Sheet/dialog overlays |
 | web `--card` | `#FFFFFF` | `oklch(0.205 0 0)` | shadcn card token |
+
+Mobile is predominantly white in light mode: main screens, forms and details use `bg-background`; cards remain `bg-surface` with existing hairline borders. Use `ScreenWrapper background="grouped"` (or `bg-grouped-background` for a section) only where off-white helps separate grouped content, such as Settings. Keep spacing and typography as the primary hierarchy; do not add heavy shadows. Secondary/tertiary fills, disabled fields, skeletons, brand headers, status panels, image viewers and receipts retain their intentional backgrounds. Dark mode and the web's off-white default are unchanged.
 
 ### Text & neutral
 

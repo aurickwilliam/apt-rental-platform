@@ -10,7 +10,6 @@ import StandardHeader from '@/components/layout/StandardHeader'
 import { IconPlus } from '@tabler/icons-react-native'
 
 import { EMPTY_STATE_IMAGES } from 'constants/images'
-import { useColors } from '@/hooks/useTheme'
 import PaymentMethodCard, { type PaymentMethod } from './components/PaymentMethodCard'
 
 const INITIAL_PAYMENT_METHODS: PaymentMethod[] = [
@@ -21,7 +20,6 @@ const INITIAL_PAYMENT_METHODS: PaymentMethod[] = [
 
 export default function Index() {
   const router = useRouter();
-  const { colors } = useColors();
   const [paymentMethods, setPaymentMethods] = useState(INITIAL_PAYMENT_METHODS);
 
   const handleDelete = (id: number) => {
@@ -45,7 +43,6 @@ export default function Index() {
         />
       }
       className='p-5'
-      backgroundColor={colors.surface}
     >
       {/* Description */}
       <Text className='text-muted text-sm font-inter'>

@@ -37,6 +37,7 @@
   --color-rating: #FBBF24;
 
   /* Neutral */
+  --color-grouped-background: #F8F9FA;
   --color-gray-100: #E5E7EB;
   --color-gray-200: #D1D5DB;
   --color-gray-300: #BDBDBD;
@@ -82,7 +83,8 @@
 @layer theme {
   @variant light {
     /* Background */
-    --background: oklch(0.9702 0 0);
+    --background: var(--white);
+    --color-grouped-background: #F8F9FA;
     --foreground: var(--eclipse);
 
     /* Surfaces */
@@ -141,6 +143,7 @@
   @variant dark {
     /* Background */
     --background: oklch(12% 0.005 285.823);
+    --color-grouped-background: var(--background);
     --foreground: var(--snow);
 
     /* Surfaces */

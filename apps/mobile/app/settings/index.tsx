@@ -183,6 +183,7 @@ export default function Index() {
 
   return (
     <ScreenWrapper
+      background="grouped"
       scrollable
       bottomPadding={50}
       header={<StandardHeader title='Settings' />}
