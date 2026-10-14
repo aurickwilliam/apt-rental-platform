@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import Animated, {
@@ -35,6 +36,8 @@ import ChatBubble, {
   playReactionHaptic,
 } from '@/app/chat/components/ChatBubble';
 import HoldMenu, { type HoldMenuData } from '@/app/chat/components/HoldMenu';
+import HoldStack from '@/app/chat/components/HoldStack';
+import ReactionStrip from '@/app/chat/components/ReactionStrip';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
@@ -42,32 +45,16 @@ import ChatEmptyState from './components/ChatEmptyState';
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 import ChatBlockedNotice from './components/ChatBlockedNotice';
 
-import { Button, Spinner } from 'heroui-native';
+import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { computeHoldLayout } from '@/app/chat/components/holdLayout';
 import { useBlockStatus, useChat } from 'hooks/chat';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
-
-function glideHoldShift(
-  shift: SharedValue<number>,
-  prevIdRef: { current: string | null },
-  holdId: string | null,
-  target: number
-) {
-  // Fresh open starts at the origin; later passes (e.g. measured card
-  // height) glide from the current position instead of jumping back.
-  if (prevIdRef.current !== holdId) {
-    prevIdRef.current = holdId;
-    shift.value = 0;
-  }
-  shift.value = withTiming(target, { duration: 200 });
-}
 
 function setScrollButtonVisibility(
   opacity: SharedValue<number>,
@@ -113,6 +100,7 @@ function generateStagedId() {
 
 export default function ChatScreen() {
   const { colors, isDark } = useColors();
+  const { toast } = useToast();
   const { height: screenH } = useWindowDimensions();
 
   const flatListRef = useRef<FlatList>(null);
@@ -131,7 +119,6 @@ export default function ChatScreen() {
     height: number;
   } | null>(null);
   // Measured card height (estimate until onLayout reports the real one).
-  const [menuH, setMenuH] = useState(400);
   const insets = useSafeAreaInsets();
   const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
   const [pickerTargetId, setPickerTargetId] = useState<string | null>(null);
@@ -286,9 +273,9 @@ export default function ChatScreen() {
     ? (messages.find((m) => m.id === activeHold.id) ?? null)
     : null;
 
-  // The menu centers itself in the usable viewport; the elevated clone keeps
-  // the bubble's original position and moves ONLY on menu/viewport collision
-  // (see holdLayout.ts). Unmeasured anchors fall back to viewport center.
+  // The held message is stacked with its reaction pill and actions card and
+  // centered in the usable viewport (see HoldStack / holdLayout.ts). An
+  // unmeasured anchor starts from the viewport center.
   const usableTop = headerHeight + 8;
   const usableBottom = screenH - insets.bottom - 90;
   const bubbleOrigTop =
@@ -297,31 +284,6 @@ export default function ChatScreen() {
         ? usableTop + (usableBottom - usableTop - activeHold.height) / 2
         : activeHold.pageY - rootY
       : 0;
-  const layout =
-    activeHold && activeMsg
-      ? computeHoldLayout(
-          {
-            pageX: activeHold.pageX,
-            pageY: bubbleOrigTop,
-            width: activeHold.width,
-            height: activeHold.height,
-          },
-          menuH,
-          { screenH, usableTop, usableBottom }
-        )
-      : null;
-
-  // Glide the clone from its original position to the fallback position only
-  // when a move is required; zero distance means no visible movement.
-  const holdShift = useSharedValue(0);
-  const holdShiftStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: holdShift.value }],
-  }));
-  const shiftTarget = layout ? layout.bubbleTop - bubbleOrigTop : 0;
-  const prevHoldId = useRef<string | null>(null);
-  useEffect(() => {
-    glideHoldShift(holdShift, prevHoldId, activeHold?.id ?? null, shiftTarget);
-  }, [activeHold, shiftTarget, holdShift]);
 
   const holdData: HoldMenuData | null = activeMsg
     ? {
@@ -355,32 +317,20 @@ export default function ChatScreen() {
     setActiveHold(null);
   }, [activeMsg, handleReply]);
 
+  // A static import: loading expo-clipboard on demand failed in development
+  // ("Requiring unknown module") and fell back to an alert without copying.
   const handleHoldCopy = useCallback(async () => {
     if (!activeMsg?.message) return;
     const text = activeMsg.message;
     setActiveHold(null);
     try {
-      let copied = false;
-      try {
-        const Clipboard = await import('expo-clipboard');
-        if (Clipboard?.setStringAsync) {
-          await Clipboard.setStringAsync(text);
-          copied = true;
-        }
-      } catch {
-        // native module missing — fall through to web fallback
-      }
-      if (!copied && typeof navigator !== 'undefined' && (navigator as unknown as { clipboard?: { writeText?: (t: string) => Promise<void> } }).clipboard?.writeText) {
-        await (navigator as unknown as { clipboard: { writeText: (t: string) => Promise<void> } }).clipboard.writeText(text);
-        copied = true;
-      }
-      if (!copied) {
-        Alert.alert('Copied', text);
-      }
-    } catch {
+      await Clipboard.setStringAsync(text);
+      toast.show({ variant: 'success', label: 'Message copied' });
+    } catch (error) {
+      console.error('[chat] Failed to copy message:', error);
       Alert.alert('Copy failed', 'Unable to copy message.');
     }
-  }, [activeMsg]);
+  }, [activeMsg, toast]);
 
   const handleHoldUnsend = useCallback(() => {
     if (!activeMsg) return;
@@ -699,51 +649,47 @@ export default function ChatScreen() {
         >
           <BlurBackdrop isDark={isDark} />
         </Pressable>
-        {activeMsg && holdData && (
-          <>
-            <Animated.View
-              pointerEvents="none"
-              className="absolute inset-x-0 px-4"
-              style={[{ top: bubbleOrigTop, zIndex: 10, elevation: 10 }, holdShiftStyle]}
-            >
-              <View className={`max-w-[80%] ${activeMsg.isSent ? 'self-end' : 'self-start'}`}>
-                <ChatBubbleContent
-                  message={activeMsg.message}
-                  messageType={activeMsg.messageType}
-                  attachmentUrl={activeMsg.attachmentUrl}
-                  attachmentPath={activeMsg.attachmentPath}
-                  thumbnailUrl={activeMsg.thumbnailUrl}
-                  thumbnailPath={activeMsg.thumbnailPath}
-                  isSent={activeMsg.isSent}
-                  replyTo={activeMsg.replyTo}
-                  replyDeleted={activeMsg.replyDeleted}
-                  otherUserName={otherUserName}
-                  reactions={activeMsg.reactions}
-                  interactive={false}
-                />
-              </View>
-            </Animated.View>
-            <View
-              pointerEvents="box-none"
-              className="absolute inset-x-0 px-6"
-              style={{ top: layout?.menuTop ?? 0, zIndex: 20, elevation: 20 }}
-              onLayout={(e) => {
-                const h = Math.round(e.nativeEvent.layout.height);
-                setMenuH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
-              }}
-            >
-              <View className={activeMsg.isSent ? 'self-end' : 'self-start'}>
-                <HoldMenu
-                  data={holdData}
-                  onSelectReaction={handleHoldReact}
+        {activeMsg && holdData && activeHold && (
+          <HoldStack
+            key={activeMsg.id}
+            isSent={activeMsg.isSent}
+            bubbleOrigTop={bubbleOrigTop}
+            bubbleHeight={activeHold.height}
+            viewport={{ screenH, usableTop, usableBottom }}
+            reactions={
+              holdData.canReact ? (
+                <ReactionStrip
+                  myReaction={holdData.myReaction}
+                  onSelect={handleHoldReact}
                   onOpenFullPicker={handleHoldPicker}
-                  onReply={handleHoldReply}
-                  onCopy={handleHoldCopy}
-                  onUnsend={handleHoldUnsend}
                 />
-              </View>
-            </View>
-          </>
+              ) : null
+            }
+            bubble={
+              <ChatBubbleContent
+                message={activeMsg.message}
+                messageType={activeMsg.messageType}
+                attachmentUrl={activeMsg.attachmentUrl}
+                attachmentPath={activeMsg.attachmentPath}
+                thumbnailUrl={activeMsg.thumbnailUrl}
+                thumbnailPath={activeMsg.thumbnailPath}
+                isSent={activeMsg.isSent}
+                replyTo={activeMsg.replyTo}
+                replyDeleted={activeMsg.replyDeleted}
+                otherUserName={otherUserName}
+                reactions={activeMsg.reactions}
+                interactive={false}
+              />
+            }
+            menu={
+              <HoldMenu
+                data={holdData}
+                onReply={handleHoldReply}
+                onCopy={handleHoldCopy}
+                onUnsend={handleHoldUnsend}
+              />
+            }
+          />
         )}
       </View>
     )}

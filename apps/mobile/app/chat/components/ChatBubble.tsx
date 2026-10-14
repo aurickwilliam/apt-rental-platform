@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Keyboard, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
@@ -76,10 +77,8 @@ export interface ChatBubbleContentProps {
 const DOUBLE_TAP_WINDOW_MS = 300;
 
 export function playReactionHaptic() {
-  // Lazy + fire-and-forget, mirroring the expo-clipboard/expo-blur handling below.
-  import('expo-haptics')
-    .then((m) => m?.impactAsync?.(m?.ImpactFeedbackStyle?.Light))
-    .catch(() => {});
+  // Fire-and-forget; haptics are optional on unsupported devices.
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 /**
