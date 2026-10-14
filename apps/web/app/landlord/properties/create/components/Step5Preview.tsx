@@ -23,11 +23,11 @@ import { PERKS } from "../../../../components/inputs/perks";
 
 import type { ApartmentFormData } from "../page";
 
-// Dynamically imported — Leaflet requires a browser environment (no SSR)
-const MapPreview = dynamic(() => import("./MapPreview"), {
+// Dynamically imported — Google Maps requires a browser environment (no SSR)
+const GoogleMapPreview = dynamic(() => import("../../components/GoogleMapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-56 rounded-2xl bg-grey-100 animate-pulse border border-grey-200" />
+    <div className="w-full h-72 rounded-2xl bg-grey-100 animate-pulse border border-grey-200" />
   ),
 });
 
@@ -189,10 +189,11 @@ export default function Step5Preview({ formData }: Props) {
 
             <div>
               <h3 className="text-lg font-medium mb-3">Location</h3>
-              <MapPreview
+              <GoogleMapPreview
                 latitude={formData.latitude}
                 longitude={formData.longitude}
-                address={fullAddress}
+                readOnly
+                showHeader={false}
               />
             </div>
           </div>

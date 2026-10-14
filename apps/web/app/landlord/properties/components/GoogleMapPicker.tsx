@@ -38,6 +38,10 @@ interface GoogleMapsNamespace {
       center: GoogleLatLngLiteral;
       zoom: number;
       mapTypeControl?: boolean;
+      mapTypeControlOptions?: {
+        style?: unknown;
+        position?: number;
+      };
       streetViewControl?: boolean;
       fullscreenControl?: boolean;
     },
@@ -51,6 +55,8 @@ interface GoogleMapsNamespace {
     clearInstanceListeners(instance: unknown): void;
     trigger(instance: unknown, eventName: string): void;
   };
+  ControlPosition: Record<string, number>;
+  MapTypeControlStyle: Record<string, unknown>;
 }
 
 function getGoogleMaps(): GoogleMapsNamespace | null {
@@ -92,10 +98,11 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
 interface Props {
   latitude: number | null;
   longitude: number | null;
-  onPick: (lat: number, lng: number) => void;
+  onPick?: (lat: number, lng: number) => void;
   error?: string;
   showHeader?: boolean;
   mapHeightClass?: string;
+  readOnly?: boolean;
 }
 
 type Status = "loading" | "ready" | "missing-key" | "error";
@@ -107,6 +114,7 @@ export default function GoogleMapPicker({
   error,
   showHeader = true,
   mapHeightClass = "h-80",
+  readOnly = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
@@ -144,27 +152,33 @@ export default function GoogleMapPicker({
           center: initial,
           zoom: initialCoords.latitude != null && initialCoords.longitude != null ? 15 : 13,
           mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: maps.MapTypeControlStyle.DEFAULT,
+            position: maps.ControlPosition.LEFT_BOTTOM,
+          },
           streetViewControl: false,
           fullscreenControl: false,
         });
         mapRef.current = map;
 
         map.addListener("click", (e: GoogleMapMouseEvent) => {
-          if (!e.latLng) return;
-          onPickRef.current(e.latLng.lat(), e.latLng.lng());
+          if (readOnly || !e.latLng) return;
+          onPickRef.current?.(e.latLng.lat(), e.latLng.lng());
         });
 
         if (initialCoords.latitude != null && initialCoords.longitude != null) {
           const marker = new maps.Marker({
             position: { lat: initialCoords.latitude, lng: initialCoords.longitude },
             map,
-            draggable: true,
+            draggable: !readOnly,
           });
-          marker.addListener("dragend", () => {
-            const pos = marker.getPosition();
-            if (!pos) return;
-            onPickRef.current(pos.lat(), pos.lng());
-          });
+          if (!readOnly) {
+            marker.addListener("dragend", () => {
+              const pos = marker.getPosition();
+              if (!pos) return;
+              onPickRef.current?.(pos.lat(), pos.lng());
+            });
+          }
           markerRef.current = marker;
         }
 
@@ -177,7 +191,7 @@ export default function GoogleMapPicker({
     return () => {
       cancelled = true;
     };
-  }, [apiKey, initialCoords]);
+  }, [apiKey, initialCoords, readOnly]);
 
   useEffect(() => {
     const maps = getGoogleMaps();
@@ -200,15 +214,17 @@ export default function GoogleMapPicker({
     if (marker) {
       marker.setPosition(position);
     } else {
-      const next = new maps.Marker({ position, map, draggable: true });
-      next.addListener("dragend", () => {
-        const pos = next.getPosition();
-        if (!pos) return;
-        onPickRef.current(pos.lat(), pos.lng());
-      });
+      const next = new maps.Marker({ position, map, draggable: !readOnly });
+      if (!readOnly) {
+        next.addListener("dragend", () => {
+          const pos = next.getPosition();
+          if (!pos) return;
+          onPickRef.current?.(pos.lat(), pos.lng());
+        });
+      }
       markerRef.current = next;
     }
-  }, [latitude, longitude, status]);
+  }, [latitude, longitude, readOnly, status]);
 
   useEffect(() => {
     return () => {
