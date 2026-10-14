@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/rentals.tsx": {
-    "mtime": 1791948817.907441,
-    "ast_hash": "d601b8ca57b04671ab41e871b1b83c8a",
+    "mtime": 1791949559.761269,
+    "ast_hash": "ccd74d2dd89c31f32d22a739546d1d07",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
@@ -1235,8 +1235,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ScreenWrapper.tsx": {
-    "mtime": 1791871813.5367124,
-    "ast_hash": "c0d3bc9a425b95595a33420eea2478f0",
+    "mtime": 1791949440.275074,
+    "ast_hash": "72ceef02ff5ceb82d1361fe8b2eee9ed",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/StandardHeader.tsx": {
@@ -2975,8 +2975,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791949271.592318,
-    "ast_hash": "d7f1c594ec039aad4dcf51d213310911",
+    "mtime": 1791949940.6622214,
+    "ast_hash": "8b46d2e84613af0c4d617f30c2e0c1a7",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3945,8 +3945,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/RentalsSkeleton.tsx": {
-    "mtime": 1791948874.6776972,
-    "ast_hash": "c82b2f66de83778c8a68f6920dcc3d1d",
+    "mtime": 1791949940.6618896,
+    "ast_hash": "9656e17206f72fff3877ed0fe26468cd",
     "semantic_hash": ""
   },
   "supabase/migrations/20260830000000_payment_notification_tenant_name.sql": {
@@ -7175,8 +7175,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/RentalHero.tsx": {
-    "mtime": 1791949245.2738464,
-    "ast_hash": "5c64fe091b340c52f68d0558d6f5dbba",
+    "mtime": 1791949940.6615334,
+    "ast_hash": "ff3bc148ada9b381368bd223acf500d3",
     "semantic_hash": ""
   },
   "apps/mobile/service/apartments/coverImage.test.ts": {
@@ -7187,6 +7187,11 @@
   "apps/mobile/service/apartments/coverImage.ts": {
     "mtime": 1791948715.9211116,
     "ast_hash": "cceac073648df7dee7654d8d9307c3ca",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/useLightStatusBar.ts": {
+    "mtime": 1791949440.2818456,
+    "ast_hash": "b497cf93009667e02eaaa98f5086be55",
     "semantic_hash": ""
   }
 }
