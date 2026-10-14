@@ -26,7 +26,7 @@ Authority order (conflicts resolve to the lowest number):
 
 | # | Source | Authority |
 |---|---|---|
-| 1 | `packages/constants` — `colors.ts`, `typography.ts` | Design tokens |
+| 1 | `packages/constants` — `colors.ts`, `typography.ts`; mobile neutral roles in `apps/mobile/constants/theme.ts` | Design tokens |
 | 2 | `apps/web/app/globals.css`, `apps/mobile/app/global.css` | Token mapping (Tailwind/HeroUI theme) |
 | 3 | Shared components (per-app `components/`) | Component patterns |
 | 4 | HeroUI (`@heroui/react`) / HeroUI Native (`heroui-native`) | Primitive implementation & behavior |
@@ -37,7 +37,7 @@ Authority order (conflicts resolve to the lowest number):
 
 ## 3. Brand & Color
 
-All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mappings in both `globals.css` files.
+All values exact. Shared light/dark pairs from `packages/constants/src/colors.ts`; mobile neutral roles from `apps/mobile/constants/theme.ts`; mappings in both `globals.css` files.
 
 ### Brand
 
@@ -59,16 +59,20 @@ All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mapp
 |---|---|---|---|
 | `white` | `#FFFFFF` | `#121212` | Card/surface base |
 | `surface` (`--background` web) | `#F8F9FA` | `#1E1E1E` | Shared palette / web page background; not the mobile default |
-| `bg-background` (mobile) | `#FFFFFF` | `oklch(12% 0.005 285.823)` | Default screen and navigation background |
-| `bg-grouped-background` (mobile) | `#F8F9FA` | Same as mobile `bg-background` | Optional backdrop behind grouped settings / card sections |
+| `bg-background` (mobile) | `#F5F7FB` | `#121212` | Cool-gray screen and navigation background |
+| `bg-grouped-background` (mobile) | Same as mobile `bg-background` | Same as mobile `bg-background` | Grouped settings / card-section backdrop |
 | `surfaceRaised` | — | `#2A2A2A` | Mobile elevated surface |
-| `bg-surface` (mobile) | `oklch(100% 0 0)` | `oklch(0.2103 0.0059 285.89)` | Card/screen surface token |
-| `surface-secondary` (mobile) | `oklch(0.9524 0.0013 286.37)` | `oklch(0.227 0.004 285)` | Sheets, dropdowns, sticky footers |
-| `surface-tertiary` (mobile) | `oklch(0.9373 0.0013 286.37)` | `oklch(0.26 0.004 285)` | Skeletons, muted fills |
+| `bg-surface` (mobile) | `#FFFFFF` | `#1E1E1E` | Default card surface |
+| `surface-secondary` (mobile) | `#F1F3F5` | `#242424` | Sheets, dropdowns, sticky footers |
+| `surface-tertiary` (mobile) | `#E9ECEF` | `#2A2A2A` | Skeletons, neutral icon tiles, muted fills |
+| `bg-overlay` (mobile) | `#FFFFFF` | `#242424` | Dialogs, white cards on grouped backgrounds, nested cards |
+| `border` (mobile) | `#E5EAF2` | `#3D3D3D` | Subtle decorative hairline card borders |
 | `backdrop` (mobile) | `oklch(0% 0 0 / 20%)` | `oklch(0% 0 0 / 40%)` | Sheet/dialog overlays |
 | web `--card` | `#FFFFFF` | `oklch(0.205 0 0)` | shadcn card token |
 
-Mobile is predominantly white in light mode: main screens, forms and details use `bg-background`; cards remain `bg-surface` with existing hairline borders. Use `ScreenWrapper background="grouped"` (or `bg-grouped-background` for a section) only where off-white helps separate grouped content, such as Settings. Keep spacing and typography as the primary hierarchy; do not add heavy shadows. Secondary/tertiary fills, disabled fields, skeletons, brand headers, status panels, image viewers and receipts retain their intentional backgrounds. Dark mode and the web's off-white default are unchanged.
+Mobile light mode uses a soft cool-gray `bg-background` (`#F5F7FB`) behind white `bg-surface` cards with subtle `#E5EAF2` hairline borders. Main screens, forms, details and navigation inherit the same background. `ScreenWrapper background="grouped"` (or `bg-grouped-background` for a section) uses the same cool-gray backdrop; grouped Settings cards remain white via `bg-overlay`. Nested cards may also use `bg-overlay`. Keep spacing and typography as the primary hierarchy; do not add heavy shadows. Brand buttons, status panels, image viewers and receipts retain their intentional backgrounds. Dark mode has separate screen, card and muted-fill layers; web is unchanged.
+
+Mobile inline colors come from `apps/mobile/constants/theme.ts` through `useColors()`; CSS maps the same surface roles in `apps/mobile/app/global.css`, with parity and contrast tests in `constants/theme.test.ts`. Shared `COLORS` stays unchanged for web and brand/status values. Mobile secondary text (`textSecondary`, `gray500`, `text-muted`) is `#626B73` / `#9CA3AF`, readable on all neutral fills (at least 4.5:1). Light `text-accent` retains the deeper blue `#2F5FE0` for readable labels on cards and screen backgrounds; the primary button fill remains `#376BF5`. Decorative surface boundaries need not reach text contrast ratios.
 
 ### Text & neutral
 
@@ -81,7 +85,7 @@ Mobile is predominantly white in light mode: main screens, forms and details use
 | `gray200` | `#D1D5DB` | `#2A2A2A` | Borders (`--border` web), dividers |
 | `gray100` | `#E5E7EB` | `#1E1E1E` | Muted fills, hairline dividers |
 
-Mobile `gray-500` is redefined to `#6C757D` (not Tailwind default `#6B7280`). Web's `grey-*` is a separate shifted scale (`grey-700 #6C757D` … `grey-200 #E5E7EB`) — prefer `gray-*`/COLORS tokens.
+Mobile `gray-500` is `#626B73` (dark `#9CA3AF`), matching mobile secondary text. Web's `grey-*` is a separate shifted scale (`grey-700 #6C757D` … `grey-200 #E5E7EB`) — prefer `gray-*`/COLORS tokens.
 
 ### Semantic
 

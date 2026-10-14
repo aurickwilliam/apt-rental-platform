@@ -37,12 +37,12 @@
   --color-rating: #FBBF24;
 
   /* Neutral */
-  --color-grouped-background: #F8F9FA;
+  --color-grouped-background: #F5F7FB;
   --color-gray-100: #E5E7EB;
   --color-gray-200: #D1D5DB;
   --color-gray-300: #BDBDBD;
   --color-gray-400: #9CA3AF;
-  --color-gray-500: #6C757D;
+  --color-gray-500: #626B73;
 
   /* Semantic */
   --color-success: #22C55E;
@@ -83,16 +83,16 @@
 @layer theme {
   @variant light {
     /* Background */
-    --background: var(--white);
-    --color-grouped-background: #F8F9FA;
-    --foreground: var(--eclipse);
+    --background: #F5F7FB;
+    --color-grouped-background: #F5F7FB;
+    --foreground: #333333;
 
     /* Surfaces */
     --surface: var(--white);
     --surface-foreground: var(--foreground);
-    --surface-secondary: oklch(0.9524 0.0013 286.37);
+    --surface-secondary: #F1F3F5;
     --surface-secondary-foreground: var(--foreground);
-    --surface-tertiary: oklch(0.9373 0.0013 286.37);
+    --surface-tertiary: #E9ECEF;
     --surface-tertiary-foreground: var(--foreground);
 
     /* Overlay */
@@ -101,7 +101,7 @@
     --backdrop: oklch(0% 0 0 / 20%);
 
     /* Brand */
-    --accent: var(--color-primary);
+    --accent: var(--color-primary-light-foreground);
     --accent-foreground: oklch(1 0 0);
     --color-secondary: #0369A1;
     --color-secondary-light: #E0F2FE;
@@ -122,40 +122,40 @@
 
     /* Fields */
     --field-background: var(--white);
-    --field-foreground: var(--eclipse);
-    --field-placeholder: oklch(0.5517 0.0138 285.94);
+    --field-foreground: var(--foreground);
+    --field-placeholder: var(--muted);
     --field-border: oklch(0.88 0.005 264);
     --field-border-width: 1px;
     --field-shadow: none;
 
     /* Misc */
-    --muted: oklch(0.5517 0.0138 285.94);
-    --default: oklch(94% 0.001 286.375);
-    --default-foreground: var(--eclipse);
-    --border: oklch(90% 0.004 286.32);
+    --muted: #626B73;
+    --default: var(--surface-tertiary);
+    --default-foreground: var(--foreground);
+    --border: #E5EAF2;
     --separator: oklch(74% 0.004 286.32);
     --focus: var(--color-primary);
     --link: var(--foreground);
     --segment: var(--white);
-    --segment-foreground: var(--eclipse);
+    --segment-foreground: var(--foreground);
   }
 
   @variant dark {
     /* Background */
-    --background: oklch(12% 0.005 285.823);
+    --background: #121212;
     --color-grouped-background: var(--background);
-    --foreground: var(--snow);
+    --foreground: #F0F0F0;
 
     /* Surfaces */
-    --surface: oklch(0.2103 0.0059 285.89);
+    --surface: #1E1E1E;
     --surface-foreground: var(--foreground);
-    --surface-secondary: oklch(0.227 0.004 285);
+    --surface-secondary: #242424;
     --surface-secondary-foreground: var(--foreground);
-    --surface-tertiary: oklch(0.26 0.004 285);
+    --surface-tertiary: #2A2A2A;
     --surface-tertiary-foreground: var(--foreground);
 
     /* Overlay */
-    --overlay: oklch(0.2103 0.0059 285.89);
+    --overlay: #242424;
     --overlay-foreground: var(--foreground);
     --backdrop: oklch(0% 0 0 / 40%);
 
@@ -176,18 +176,18 @@
     --color-warning-text: var(--color-dark-warning-text);
 
     /* Fields */
-    --field-background: oklch(0.2103 0.0059 285.89);
+    --field-background: var(--surface);
     --field-foreground: var(--foreground);
-    --field-placeholder: oklch(0.55 0.01 285);
+    --field-placeholder: var(--muted);
     --field-border: oklch(0.35 0.02 264);
     --field-border-width: 1px;
     --field-shadow: none;
 
     /* Misc */
-    --muted: oklch(0.55 0.01 285);
-    --default: oklch(27.4% 0.006 286.033);
-    --default-foreground: var(--snow);
-    --border: oklch(28% 0.006 286.033);
+    --muted: #9CA3AF;
+    --default: var(--surface-tertiary);
+    --default-foreground: var(--foreground);
+    --border: #3D3D3D;
     --separator: oklch(40% 0.006 286.033);
     --focus: var(--color-dark-primary);
     --link: var(--foreground);
@@ -201,6 +201,7 @@
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
     --color-primary-light-foreground: var(--color-dark-primary-light-foreground);
+    --color-gray-500: var(--muted);
   }
 }
 

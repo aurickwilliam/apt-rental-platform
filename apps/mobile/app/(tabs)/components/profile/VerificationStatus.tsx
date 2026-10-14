@@ -106,7 +106,7 @@ export default function VerificationStatus({
         )}
 
         {accountStatus === 'pending' && (
-          <Card.Description className='text-gray-400 font-inter text-sm'>
+          <Card.Description className='text-muted font-inter text-sm'>
             Your documents are currently under review. We will notify you once
             the verification process is complete.
           </Card.Description>
@@ -114,12 +114,12 @@ export default function VerificationStatus({
 
         {accountStatus === 'verified' && (
           <>
-            <Card.Description className='text-gray-400 font-inter text-sm'>
+            <Card.Description className='text-muted font-inter text-sm'>
               You have successfully been verified as a tenant. You can now apply
               for rental properties on our platform.
             </Card.Description>
             {dateVerified && (
-              <Card.Description className='text-gray-400 font-inter text-sm'>
+              <Card.Description className='text-muted font-inter text-sm'>
                 Last Verified: {dateVerified}
               </Card.Description>
             )}
@@ -128,7 +128,7 @@ export default function VerificationStatus({
 
         {accountStatus === 'unverified' && (
           <>
-            <Card.Description className='text-gray-400 font-inter text-sm'>
+            <Card.Description className='text-muted font-inter text-sm'>
               Your account has not been verified yet. Please submit your
               documents to get verified.
             </Card.Description>

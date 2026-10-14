@@ -195,7 +195,7 @@ export default function Index() {
             {section.title}
           </Text>
 
-          <ListGroup className="shadow-none border border-border">
+          <ListGroup className="bg-overlay shadow-none border border-border">
             {section.items.map((item, iIndex) => (
               <View key={item.title}>
                 {iIndex > 0 && <Separator className='mx-4' />}
