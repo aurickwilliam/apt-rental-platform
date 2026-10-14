@@ -266,7 +266,6 @@ export default async function ApartmentDetailView({
             landlordId={apartment.landlord_id ?? null}
             landlordName={`${landlord?.first_name ?? ""} ${landlord?.last_name ?? ""}`}
             landlordAvatarUrl={landlord?.avatar_url ?? ""}
-            landlordContactInfo={landlord?.mobile_number ?? ""}
             apartmentId={apartment.id}
             apartmentName={apartment.name ?? ""}
           />

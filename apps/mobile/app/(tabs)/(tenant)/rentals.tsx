@@ -24,7 +24,6 @@ import EmptyState from 'components/display/EmptyState';
 import {
   IconAlertCircle,
   IconLink,
-  IconUser,
   IconReceipt,
   IconSettings,
   IconHelpCircle,
@@ -330,19 +329,10 @@ export default function Rentals() {
           </View>
         </View>
 
-        {/* Landlord Information */}
         {landlord && (
-          <View className="mt-5 flex gap-3">
-            <View className="flex-row items-center justify-start gap-2">
-              <IconUser size={24} color={colors.textPrimary} />
-              <Text className="text-foreground text-lg font-nunitoSemiBold">
-                Landlord Information
-              </Text>
-            </View>
+          <View className="mt-5">
             <LandlordCard
               fullName={landlordFullName}
-              email={landlord.email ?? "No email provided"}
-              phoneNumber={landlord.mobile_number ?? "No number provided"}
               profilePictureUrl={landlord.avatar_url}
               onPress={handleViewLandlordProfile}
               onMessagePress={handleMessageLandlord}

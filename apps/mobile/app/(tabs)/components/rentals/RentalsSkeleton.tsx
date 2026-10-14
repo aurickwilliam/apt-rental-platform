@@ -67,42 +67,28 @@ export default function RentalsSkeleton() {
         </View>
       </View>
 
-      {/* Landlord Information */}
-      <View className="flex gap-3">
-        <View className="flex-row items-center gap-2">
-          <Skeleton className="size-6 rounded-md" />
-          <Skeleton className="h-5 w-40 rounded-md" />
+      <View className="flex-row items-center gap-3 border border-border rounded-3xl p-3">
+        <Skeleton className="size-12 rounded-full" />
+        <View className="flex-1 gap-2">
+          <Skeleton className="h-4 w-32 rounded-md" />
+          <Skeleton className="h-3 w-20 rounded-md" />
         </View>
-        <View className="flex-row items-center gap-3 border border-border rounded-3xl p-3">
-          <Skeleton className="size-12 rounded-full" />
-          <View className="flex-1 gap-2">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <Skeleton className="h-3 w-40 rounded-md" />
-          </View>
-          <Skeleton className="size-10 rounded-full" />
-        </View>
+        <Skeleton className="size-10 rounded-full" />
       </View>
 
-      {/* Maintenance: header, recent requests, request button */}
-      <View className="flex gap-3">
+      {/* Maintenance card */}
+      <View className="gap-4 rounded-3xl border border-border bg-surface p-4">
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Skeleton className="size-6 rounded-md" />
-            <Skeleton className="h-5 w-32 rounded-md" />
-          </View>
-          <Skeleton className="h-4 w-14 rounded-md" />
+          <Skeleton className="h-5 w-32 rounded-md" />
+          <Skeleton className="h-7 w-16 rounded-full" />
         </View>
-        {Array.from({ length: 2 }).map((_, i) => (
-          <View key={i} className="border border-border rounded-3xl p-4 gap-3 bg-surface">
-            <View className="flex-row justify-between items-start gap-3">
-              <View className="flex-1 gap-2">
-                <Skeleton className="h-4 w-32 rounded-md" />
-                <Skeleton className="h-3 w-24 rounded-md" />
-              </View>
-              <Skeleton className="h-6 w-20 rounded-full" />
-            </View>
+        <View className="flex-row items-center gap-3">
+          <Skeleton className="size-16 rounded-2xl" />
+          <View className="flex-1 gap-2">
+            <Skeleton className="h-4 w-44 rounded-md" />
+            <Skeleton className="h-3 w-52 rounded-md" />
           </View>
-        ))}
+        </View>
         <Skeleton className="h-12 w-full rounded-full" />
       </View>
     </View>
