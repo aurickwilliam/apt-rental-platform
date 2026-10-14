@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
+import { BlurTargetView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -105,6 +106,8 @@ export default function ChatScreen() {
 
   const flatListRef = useRef<FlatList>(null);
   const rootRef = useRef<View>(null);
+  // The chat content the hold backdrop blurs (needed for the Android blur).
+  const blurTargetRef = useRef<View>(null);
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -502,6 +505,7 @@ export default function ChatScreen() {
 
   return (
     <View ref={rootRef} collapsable={false} className="flex-1">
+    <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
     <ScreenWrapper
       dismissKeyboardOnTouch={false}
       header={
@@ -634,6 +638,7 @@ export default function ChatScreen() {
         onSelect={handleGifSelected}
       />
     </ScreenWrapper>
+    </BlurTargetView>
     {activeHold !== null && (
       <View
         className="absolute inset-0"
@@ -647,7 +652,7 @@ export default function ChatScreen() {
           className="absolute inset-0"
           style={{ zIndex: 0, elevation: 0 }}
         >
-          <BlurBackdrop isDark={isDark} />
+          <BlurBackdrop isDark={isDark} blurTarget={blurTargetRef} />
         </Pressable>
         {activeMsg && holdData && activeHold && (
           <HoldStack

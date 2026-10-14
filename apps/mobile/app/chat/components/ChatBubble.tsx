@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Keyboard, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -221,32 +222,27 @@ function getReplySnippet(reply: ReplyPreview): string {
   }
 }
 
-export function BlurBackdrop({ isDark }: { isDark: boolean }) {
-  const [BlurViewComp, setBlurViewComp] = useState<React.ComponentType<any> | null>(null);
+interface BlurBackdropProps {
+  isDark: boolean;
+  /** The content to blur. Required on Android, where the blur samples this view. */
+  blurTarget: RefObject<View | null>;
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    import('expo-blur')
-      .then((m) => {
-        if (!cancelled && m?.BlurView) setBlurViewComp(() => m.BlurView as React.ComponentType<any>);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (BlurViewComp) {
-    return (
-      <BlurViewComp
-        tint={isDark ? 'dark' : 'light'}
-        intensity={60}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        pointerEvents="none"
-      />
-    );
-  }
-  return null;
+/**
+ * Frosted backdrop behind a held message. Android only blurs when given a
+ * `BlurTargetView` and a blur method; without them it draws a plain tint.
+ */
+export function BlurBackdrop({ isDark, blurTarget }: BlurBackdropProps) {
+  return (
+    <BlurView
+      tint={isDark ? 'dark' : 'light'}
+      intensity={60}
+      blurTarget={blurTarget}
+      blurMethod="dimezisBlurViewSdk31Plus"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      pointerEvents="none"
+    />
+  );
 }
 
 /** Pure bubble body shared by the list row and the elevated clone above the backdrop. */
