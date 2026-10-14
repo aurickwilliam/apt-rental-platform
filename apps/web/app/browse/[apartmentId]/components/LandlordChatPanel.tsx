@@ -33,7 +33,6 @@ interface LandlordChatPanelProps {
   landlordId: string | null;
   landlordName: string;
   landlordAvatarUrl?: string | null;
-  landlordContactInfo: string;
   apartmentId: string;
   apartmentName: string;
 }
@@ -43,7 +42,6 @@ export default function LandlordChatPanel({
   landlordId,
   landlordName,
   landlordAvatarUrl,
-  landlordContactInfo,
   apartmentId,
   apartmentName,
 }: LandlordChatPanelProps) {
@@ -85,7 +83,6 @@ export default function LandlordChatPanel({
       <LandlordCard
         name={landlordName}
         avatarUrl={landlordAvatarUrl}
-        contactInfo={landlordContactInfo}
         onMessagePress={handleMessagePress}
         isMessageDisabled={isMissingLandlord}
         messageDisabledReason={

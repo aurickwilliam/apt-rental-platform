@@ -15,7 +15,6 @@ import UserAvatar from "@/app/components/profile/UserAvatar";
 interface LandlordCardProps {
   name: string;
   avatarUrl?: string | null;
-  contactInfo: string;
   onMessagePress?: () => void;
   isMessageDisabled?: boolean;
   messageDisabledReason?: string;
@@ -36,7 +35,6 @@ const getInitials = (value: string) => {
 export default function LandlordCard({
   name,
   avatarUrl,
-  contactInfo,
   onMessagePress,
   isMessageDisabled = false,
   messageDisabledReason = "",
@@ -60,7 +58,7 @@ export default function LandlordCard({
             {displayName}
           </Card.Title>
           <Card.Description className="text-grey-500">
-            {contactInfo}
+            Landlord
           </Card.Description>
         </div>
 

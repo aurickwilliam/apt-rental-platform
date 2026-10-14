@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 
 import { Button, LinkButton } from "heroui-native";
 
-import { IconHammer } from "@tabler/icons-react-native";
+import { IconPlus, IconTool } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 import type { MaintenanceRequest } from "@/hooks/maintenance-requests";
@@ -33,36 +33,53 @@ export default function MaintenanceSection({
 }: MaintenanceSectionProps) {
   const { colors } = useColors();
   const recentRequests = requests.slice(0, RECENT_REQUEST_COUNT);
-  const hasOpenRequest = requests.some(isOpen);
+  const activeRequests = requests.filter(isOpen);
+  const hasOpenRequest = activeRequests.length > 0;
 
   return (
-    <View className="gap-3">
+    <View className="gap-4 rounded-3xl border border-border bg-surface p-4">
       <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          <IconHammer size={24} color={colors.textPrimary} />
-          <Text className="text-foreground text-lg font-nunitoSemiBold">
-            Maintenance
+        <Text className="text-foreground text-lg font-nunitoSemiBold">
+          Maintenance
+        </Text>
+        <View className="rounded-full bg-surface-tertiary px-3 py-1">
+          <Text className="text-sm font-nunitoSemiBold text-foreground">
+            {activeRequests.length} Active
           </Text>
         </View>
-        {requests.length > 0 && (
-          <LinkButton onPress={onViewAll}>
-            <LinkButton.Label className="text-accent">View all</LinkButton.Label>
-          </LinkButton>
-        )}
       </View>
 
       {recentRequests.length === 0 ? (
-        <Text className="text-muted font-inter text-sm">
-          No maintenance requests yet. Report an issue and your landlord will be notified.
-        </Text>
+        <View className="flex-row items-center gap-3">
+          <View className="size-12 items-center justify-center rounded-2xl bg-surface-tertiary">
+            <IconTool size={24} color={colors.textPrimary} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-nunitoSemiBold text-foreground">
+              No maintenance requests
+            </Text>
+            <Text className="text-xs font-inter text-muted">
+              Report an issue with your rental.
+            </Text>
+          </View>
+        </View>
       ) : (
-        recentRequests.map((request) => (
-          <MaintenanceRequestCard
-            key={request.id}
-            request={request}
-            onPress={() => onOpenRequest(request)}
-          />
-        ))
+        <View className="gap-3">
+          {recentRequests.map((request) => (
+            <MaintenanceRequestCard
+              key={request.id}
+              request={request}
+              onPress={() => onOpenRequest(request)}
+            />
+          ))}
+          {requests.length > 0 && (
+            <LinkButton className="self-end" onPress={onViewAll}>
+              <LinkButton.Label className="text-accent">
+                View all
+              </LinkButton.Label>
+            </LinkButton>
+          )}
+        </View>
       )}
 
       {hasOpenRequest ? (
@@ -70,8 +87,8 @@ export default function MaintenanceSection({
           You can file a new request once your open one is resolved.
         </Text>
       ) : (
-        <Button onPress={onRequestMaintenance}>
-          <IconHammer size={20} color={colors.secondaryForeground} />
+        <Button size="sm" onPress={onRequestMaintenance}>
+          <IconPlus size={20} color={colors.secondaryForeground} />
           <Button.Label>Request Maintenance</Button.Label>
         </Button>
       )}
