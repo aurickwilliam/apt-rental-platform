@@ -1,31 +1,24 @@
-import { sortUnreadFirst } from './chat';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+
+import Chat from './chat';
 
 import type { ConversationWithMeta } from '@/service/chat/conversationService';
 
+const MY_ID = 'tenant-1';
+const LANDLORD_ID = 'landlord-1';
+const APARTMENT_ID = 'apt-1';
+
+const mockPush = jest.fn();
+let mockConversations: ConversationWithMeta[] = [];
+let mockTenancy: unknown = null;
+
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }));
 
-jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
-  function SwipeableStub({ children }: { children: React.ReactNode }) {
-    return React.createElement(View, null, children);
-  }
-  return {
-    __esModule: true,
-    default: SwipeableStub,
-  };
-});
-
-jest.mock('@tabler/icons-react-native', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
-  function MockIcon() {
-    return React.createElement(View);
-  }
-  return { IconCheck: MockIcon };
-});
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 
 jest.mock('components/layout/ScreenWrapper', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -33,10 +26,47 @@ jest.mock('components/layout/ScreenWrapper', () => {
   function ScreenWrapperStub({ children }: { children: React.ReactNode }) {
     return React.createElement(View, null, children);
   }
-  return {
-    __esModule: true,
-    default: ScreenWrapperStub,
-  };
+  return { __esModule: true, default: ScreenWrapperStub };
+});
+
+jest.mock('@/app/(tabs)/components/chat/ConversationRow', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  function ConversationRowStub({ conversation }: { conversation: ConversationWithMeta }) {
+    return React.createElement(Text, null, `row:${conversation.other_user_name}`);
+  }
+  return { __esModule: true, default: ConversationRowStub };
+});
+
+jest.mock('@/app/(tabs)/components/chat/MessageCard', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  function MessageCardStub({ name, lastMessage, onPress }: { name: string; lastMessage: string; onPress: () => void }) {
+    return React.createElement(
+      Pressable,
+      { onPress, accessibilityRole: 'button', accessibilityLabel: `shortcut:${name}` },
+      React.createElement(Text, null, lastMessage)
+    );
+  }
+  return { __esModule: true, default: MessageCardStub };
+});
+
+jest.mock('@/app/(tabs)/components/chat/ConversationListHeader', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  function HeaderStub() {
+    return React.createElement(Text, null, 'Messages');
+  }
+  return { __esModule: true, default: HeaderStub };
+});
+
+jest.mock('@/app/(tabs)/components/chat/ConversationListState', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  function StateStub(props: { variant: string; title?: string }) {
+    return React.createElement(Text, null, props.title ?? props.variant);
+  }
+  return { __esModule: true, default: StateStub };
 });
 
 jest.mock('@/app/(tabs)/components/CustomTabBar', () => ({
@@ -44,130 +74,106 @@ jest.mock('@/app/(tabs)/components/CustomTabBar', () => ({
   FLOATING_TAB_BAR_BOTTOM_OFFSET: 0,
 }));
 
-jest.mock('constants/images', () => ({
-  EMPTY_STATE_IMAGES: { emptyMessage: null },
+jest.mock('@/hooks/useTheme', () => ({
+  useColors: () => ({ colors: { primary: '#376BF5', gray500: '#6C757D' }, isDark: false }),
 }));
 
-jest.mock('@/hooks/useTheme', () => ({
-  useColors: () => ({
-    colors: { primary: '#376BF5', gray500: '#6C757D' },
-    isDark: false,
-  }),
+jest.mock('@/hooks/auth', () => ({
+  useCurrentUserId: () => MY_ID,
 }));
 
 jest.mock('@/hooks/chat', () => ({
   useConversations: () => ({
-    conversations: [],
+    conversations: mockConversations,
     loading: false,
-    refreshing: false,
     error: null,
-    refetch: jest.fn(),
+    refetch: jest.fn().mockResolvedValue(undefined),
     markConversationRead: jest.fn(),
   }),
 }));
 
 jest.mock('@/hooks/tenancy', () => ({
-  useTenancy: () => ({ tenancy: null, refreshing: false, refetch: jest.fn() }),
+  useTenancy: () => ({ tenancy: mockTenancy, refetch: jest.fn().mockResolvedValue(undefined) }),
 }));
 
-// heroui-native ships untranspiled ESM that Jest cannot parse — stub the used
-// primitives. This file only exercises the sort helper, so inert stubs suffice.
-jest.mock('heroui-native', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+// heroui-native ships untranspiled ESM that Jest cannot parse.
+jest.mock('heroui-native', () => ({ Separator: () => null }));
 
-  const Passthrough = function Passthrough({
-    children,
-  }: {
-    children?: React.ReactNode;
-  }) {
-    return React.createElement(View, null, children);
-  };
+jest.mock('@repo/supabase', () => ({ supabase: {} }));
 
-  const ButtonMock = function ButtonMock({
-    children,
-  }: {
-    children?: React.ReactNode;
-  }) {
-    return React.createElement(View, null, children);
-  };
-  ButtonMock.Label = Passthrough;
-
-  const SearchFieldMock = function SearchFieldMock({
-    children,
-  }: {
-    children?: React.ReactNode;
-  }) {
-    return React.createElement(View, null, children);
-  };
-  SearchFieldMock.Group = Passthrough;
-  SearchFieldMock.SearchIcon = function SearchIcon() {
-    return null;
-  };
-  SearchFieldMock.Input = function SearchInput() {
-    return null;
-  };
-  SearchFieldMock.ClearButton = function ClearButton() {
-    return null;
-  };
-
+function makeConversation(overrides: Partial<ConversationWithMeta>): ConversationWithMeta {
   return {
-    Button: ButtonMock,
-    SearchField: SearchFieldMock,
-    Separator: () => null,
-    Spinner: () => null,
-  };
-});
-
-function makeConversation(
-  conversationKey: string,
-  unreadCount: number
-): ConversationWithMeta {
-  return {
-    conversation_key: conversationKey,
-    other_user_id: `user-${conversationKey}`,
-    other_user_name: `User ${conversationKey}`,
+    conversation_key: 'key',
+    other_user_id: 'someone',
+    other_user_name: 'Someone',
     other_user_avatar: null,
     other_user_phone: null,
-    apartment_id: `apt-${conversationKey}`,
-    apartment_name: `Apartment ${conversationKey}`,
+    apartment_id: 'apt-x',
+    apartment_name: 'Somewhere',
     last_message: 'hello',
     last_message_type: 'text',
     last_message_time: '2026-01-01T00:00:00Z',
-    unread_count: unreadCount,
+    unread_count: 0,
     last_sender_id: null,
     last_sender_is_me: false,
     conversation_type: 'inquiry',
+    ...overrides,
   };
 }
 
-describe('sortUnreadFirst', () => {
-  it('moves unread conversations first, preserving order within groups', () => {
-    const input = [
-      makeConversation('read-1', 0),
-      makeConversation('unread-1', 2),
-      makeConversation('read-2', 0),
-      makeConversation('unread-2', 1),
+const activeTenancy = {
+  landlord: { id: LANDLORD_ID, first_name: 'Lara', last_name: 'Cruz', avatar_url: null },
+  apartment: { id: APARTMENT_ID, name: 'Sunrise Loft' },
+};
+
+beforeEach(() => {
+  mockPush.mockClear();
+  mockConversations = [];
+  mockTenancy = null;
+});
+
+describe('tenant Messages tab', () => {
+  it('offers a shortcut to message the current landlord before any chat exists', () => {
+    mockTenancy = activeTenancy;
+
+    render(<Chat />);
+
+    expect(screen.getByText('Current Landlord')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('shortcut:Lara Cruz'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/chat/[conversationId]',
+      params: expect.objectContaining({
+        otherUserId: LANDLORD_ID,
+        apartmentId: APARTMENT_ID,
+        apartmentTitle: 'Sunrise Loft',
+      }),
+    });
+    expect(JSON.stringify(mockPush.mock.calls[0][0])).not.toContain('Phone');
+  });
+
+  it('shows the real conversation instead of the shortcut once one exists', () => {
+    mockTenancy = activeTenancy;
+    mockConversations = [
+      makeConversation({
+        conversation_key: 'landlord-chat',
+        other_user_id: LANDLORD_ID,
+        other_user_name: 'Lara Cruz',
+        apartment_id: APARTMENT_ID,
+      }),
+      makeConversation({ conversation_key: 'other-chat', other_user_name: 'Other Landlord' }),
     ];
 
-    expect(sortUnreadFirst(input).map((c) => c.conversation_key)).toEqual([
-      'unread-1',
-      'unread-2',
-      'read-1',
-      'read-2',
-    ]);
+    render(<Chat />);
+
+    expect(screen.getByText('row:Lara Cruz')).toBeTruthy();
+    expect(screen.queryByLabelText('shortcut:Lara Cruz')).toBeNull();
+    expect(screen.getByText('Other Conversations (1)')).toBeTruthy();
   });
 
-  it('keeps the existing order when nothing is unread', () => {
-    const input = [makeConversation('a', 0), makeConversation('b', 0)];
+  it('shows the empty state with no tenancy and no conversations', () => {
+    render(<Chat />);
 
-    expect(sortUnreadFirst(input).map((c) => c.conversation_key)).toEqual([
-      'a',
-      'b',
-    ]);
-  });
-
-  it('handles an empty list', () => {
-    expect(sortUnreadFirst([])).toEqual([]);
+    expect(screen.getByText('No Messages Yet')).toBeTruthy();
   });
 });

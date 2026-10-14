@@ -88,8 +88,6 @@ function useRouteParams() {
     otherUserId: string;
     otherUserName?: string;
     otherUserAvatar?: string;
-    otherUserPhone?: string;
-    otherUserPhoneNumber?: string;
     apartmentId?: string;
     apartmentTitle?: string;
   }>();
@@ -103,7 +101,6 @@ function useRouteParams() {
     otherUserId: normalize(raw.otherUserId) ?? '',
     otherUserName: normalize(raw.otherUserName),
     otherUserAvatar: normalize(raw.otherUserAvatar),
-    otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
     apartmentId: apartmentIdRaw || null,
     apartmentTitle: normalize(raw.apartmentTitle),
   };
@@ -148,7 +145,6 @@ export default function ChatScreen() {
     otherUserId,
     otherUserName: routedName,
     otherUserAvatar: routedAvatar,
-    otherUserPhoneNumber,
     apartmentId,
     apartmentTitle,
   } = useRouteParams();
@@ -158,6 +154,7 @@ export default function ChatScreen() {
     chatMessage,
     otherUserName,
     otherUserAvatar,
+    otherUserPhoneNumber,
     loading,
     loadingMore,
     hasMore,
@@ -559,7 +556,7 @@ export default function ChatScreen() {
           <ChatHeader
             name={otherUserName}
             profilePicture={otherUserAvatar ?? undefined}
-            phoneNumber={otherUserPhoneNumber}
+            phoneNumber={otherUserPhoneNumber ?? undefined}
             apartmentTitle={apartmentTitle ?? undefined}
           />
         </View>

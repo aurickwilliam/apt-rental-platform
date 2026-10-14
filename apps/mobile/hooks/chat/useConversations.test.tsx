@@ -2,7 +2,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 
-import { useConversations, getConversationsQueryKey } from "./useConversations";
+import {
+  CONVERSATIONS_LOAD_ERROR_MESSAGE,
+  useConversations,
+  getConversationsQueryKey,
+} from "./useConversations";
 import { beginViewingConversation } from "./conversationReadState";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
@@ -349,6 +353,30 @@ describe("useConversations", () => {
       )?.unread_count,
     ).toBe(2);
     expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+    unmount();
+  });
+
+  it("shows a friendly message and logs the raw error when loading fails", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const rawError = { code: "42501", message: "permission denied for function" };
+    mockFetchConversations.mockRejectedValue(rawError);
+    const { QueryWrapper } = createWrapper();
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+
+    await waitFor(() => expect(result.current.error).toBe(CONVERSATIONS_LOAD_ERROR_MESSAGE), {
+      timeout: 5000,
+    });
+    expect(result.current.error).not.toContain("permission");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[conversations] Failed to load conversations:",
+      rawError,
+    );
 
     consoleSpy.mockRestore();
     unmount();

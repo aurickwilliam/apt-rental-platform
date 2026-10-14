@@ -294,7 +294,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 
 **Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated. **Exception:** the notification schema (2026-08-14 onward) is tracked in `supabase/migrations/`; the 2026-08-13 chat/image DDL (attachment URL, RPC v2, thumbs) was applied to the live DB and its migration files later removed from the repo — see debt D17.
 
-**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_portal_conversations(p_portal)` for the mobile lists; `get_conversations_v2` kept unchanged for older app builds; v1 superseded and stripped of direct anon grants).
+**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_portal_conversations(p_portal)` for the mobile lists; `get_conversations_v2` kept unchanged for older app builds, recorded in migration `20261014083034_record_get_conversations_v2`; v1 superseded and stripped of direct anon grants).
 
 ### 5.1 Patterns
 
@@ -462,6 +462,9 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 - **Cache**: one React Query entry per portal, `["conversations", myId, portal]`; read-state helpers update every portal's entry through the `["conversations", myId]` prefix. Realtime INSERT/DELETE merge into the cache on channel `chat-list:{myId}:{portal}`; unknown conversations (including the other portal's) trigger a refetch.
 - **Mark read**: swipe / accessibility "Mark read" clears the badge optimistically, persists via `markMessagesAsRead`, and restores the badge if the update fails.
 - **Fallback**: `PGRST202` (RPC missing on the project) falls back to the legacy, non-portal-scoped list.
+- **Screens**: both tabs are virtualized (`SectionList` tenant / `FlatList` landlord) with shared `ConversationListHeader` / `ConversationListState`; filtering, unread-first sorting and chat route params live in `service/chat/conversationList.ts`. Search ignores surrounding spaces. The pull-to-refresh spinner reflects only a user pull (`usePullToRefresh`), and load errors show a fixed friendly message while the raw error is logged.
+- **Tenant shortcut**: with an active tenancy but no conversation yet, "Current Landlord" shows a card that opens a new chat with the landlord about that apartment.
+- **Route params**: `/chat/[conversationId]` never receives contact details; the chat screen loads the other user's phone number with their profile (`fetchOtherUserProfile`).
 
 ### 8.3 Web messages
 

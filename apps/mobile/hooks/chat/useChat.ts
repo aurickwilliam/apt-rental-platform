@@ -52,6 +52,8 @@ export function useChat({
   const [otherUserAvatar, setOtherUserAvatar] = useState<string | null>(
     initialOtherUserAvatar ?? null
   );
+  // Loaded with the profile, never passed through route params (PII).
+  const [otherUserPhoneNumber, setOtherUserPhoneNumber] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -599,6 +601,7 @@ export function useChat({
     setNextCursor(null);
     setMessages([]);
     setReplyTarget(null);
+    setOtherUserPhoneNumber(null);
 
     async function init() {
       if (!myId) {
@@ -628,6 +631,7 @@ export function useChat({
           if (!initialOtherUserAvatarRef.current && otherProfile.avatarUrl) {
             setOtherUserAvatar(otherProfile.avatarUrl);
           }
+          setOtherUserPhoneNumber(otherProfile.phoneNumber);
         }
 
         setMessages((current) => mergeChatMessages(current, page.messages, 'older'));
@@ -657,6 +661,7 @@ export function useChat({
     chatMessage,
     otherUserName,
     otherUserAvatar,
+    otherUserPhoneNumber,
     loading,
     loadingMore,
     hasMore,

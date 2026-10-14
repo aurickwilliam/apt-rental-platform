@@ -78,7 +78,6 @@ export default function ApartmentScreen() {
         otherUserId: landlord.id,
         otherUserName: fullName || "Landlord",
         otherUserAvatar: landlord.avatar_url ?? "",
-        otherUserPhoneNumber: landlord.mobile_number ?? "",
         apartmentId,
         apartmentTitle: apartment?.name,
       },

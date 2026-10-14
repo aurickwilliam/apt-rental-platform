@@ -17,18 +17,9 @@ import {
 
 export { getConversationsQueryKey };
 
-function getErrorMessage(error: unknown): string | null {
-  if (!error) return null;
-  if (error instanceof Error) return error.message;
-  if (
-    typeof error === "object" &&
-    "message" in error &&
-    typeof (error as { message?: unknown }).message === "string"
-  ) {
-    return (error as { message: string }).message;
-  }
-  return "An unexpected error occurred.";
-}
+// Shown instead of raw database/network errors, which are logged.
+export const CONVERSATIONS_LOAD_ERROR_MESSAGE =
+  "We couldn't load your messages. Check your connection and try again.";
 
 type NewChatRow = {
   sender_id: string;
@@ -235,13 +226,17 @@ export function useConversations(role: ConversationRole) {
     [myId, queryClient, queryKey]
   );
 
-  const error = getErrorMessage(currentUserQuery.error ?? conversationsQuery.error);
+  const loadError = currentUserQuery.error ?? conversationsQuery.error;
+
+  useEffect(() => {
+    if (loadError) console.error("[conversations] Failed to load conversations:", loadError);
+  }, [loadError]);
 
   return {
     conversations: conversationsQuery.data ?? [],
     loading: currentUserQuery.isLoading || conversationsQuery.isLoading,
     refreshing: conversationsQuery.isFetching && !conversationsQuery.isLoading,
-    error,
+    error: loadError ? CONVERSATIONS_LOAD_ERROR_MESSAGE : null,
     refetch: conversationsQuery.refetch,
     markConversationRead,
   };

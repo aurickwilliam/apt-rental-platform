@@ -1,51 +1,51 @@
-import { View, Text, Image } from 'react-native'
-import { useCallback, useState } from 'react'
+import { FlatList, RefreshControl } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+import { Tabs } from 'heroui-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import ConversationRow from '@/app/(tabs)/components/chat/ConversationRow'
-
-import { Button, SearchField, Tabs, Spinner } from 'heroui-native'
-
-import { EMPTY_STATE_IMAGES } from 'constants/images'
+import ConversationListHeader from '@/app/(tabs)/components/chat/ConversationListHeader'
+import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
 
 import { useConversations } from '@/hooks/chat'
 import { useColors } from '@/hooks/useTheme'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { filterConversations, getChatRouteParams } from '@/service/chat/conversationList'
 import type { ConversationWithMeta } from '@/service/chat/conversationService'
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar'
 
+const LIST_HORIZONTAL_PADDING = 20;
+
+type ConversationFilter = 'Tenant' | 'Inquiries';
+
 export default function Chat() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedFilter, setSelectedFilter] = useState<'Tenant' | 'Inquiries'>('Tenant');
+  const [selectedFilter, setSelectedFilter] = useState<ConversationFilter>('Tenant');
 
-  const { conversations, loading, refreshing, error, refetch, markConversationRead } =
+  const { conversations, loading, error, refetch, markConversationRead } =
     useConversations('landlord');
 
-  const handleRefresh = useCallback(() => {
-    void refetch();
-  }, [refetch]);
+  // The spinner shows only for a pull, never for background refetches.
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
-  const filteredConversations = conversations.filter((c) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      c.other_user_name.toLowerCase().includes(q) ||
-      (c.apartment_name ?? '').toLowerCase().includes(q) ||
-      (c.last_message ?? '').toLowerCase().includes(q);
+  const isSearching = searchQuery.trim().length > 0;
 
-    const matchesType =
-      selectedFilter === 'Tenant'
-        ? c.conversation_type === 'tenant'
-        : c.conversation_type === 'inquiry';
-
-    return matchesSearch && matchesType;
-  });
-
-  const handleMessageToggle = (filter: 'Tenant' | 'Inquiries') => {
-    setSelectedFilter(filter);
-  }
+  const filteredConversations = useMemo(
+    () =>
+      filterConversations(conversations, searchQuery).filter((conversation) =>
+        selectedFilter === 'Tenant'
+          ? conversation.conversation_type === 'tenant'
+          : conversation.conversation_type === 'inquiry'
+      ),
+    [conversations, searchQuery, selectedFilter]
+  );
 
   const handleMarkRead = useCallback(
     (conversationKey: string) => {
@@ -54,170 +54,122 @@ export default function Chat() {
     [markConversationRead]
   );
 
-  const handleChatPress = (conversation: ConversationWithMeta) => {
-    // The chat screen marks the conversation read once it's on screen.
-    router.push({
-      pathname: '/chat/[conversationId]',
-      params: {
-        conversationId: conversation.conversation_key,
-        otherUserId: conversation.other_user_id,
-        otherUserName: conversation.other_user_name,
-        otherUserAvatar: conversation.other_user_avatar ?? '',
-        otherUserPhoneNumber: conversation.other_user_phone ?? '',
-        apartmentId: conversation.apartment_id ?? '',
-        apartmentTitle: conversation.apartment_name ?? '',
-      },
-    });
-  };
+  // The chat screen marks the conversation read once it's on screen.
+  const handleChatPress = useCallback(
+    (conversation: ConversationWithMeta) => {
+      router.push({ pathname: '/chat/[conversationId]', params: getChatRouteParams(conversation) });
+    },
+    [router]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: ConversationWithMeta }) => (
+      <ConversationRow
+        conversation={item}
+        onOpen={handleChatPress}
+        onMarkRead={handleMarkRead}
+      />
+    ),
+    [handleChatPress, handleMarkRead]
+  );
+
+  const hasConversations = conversations.length > 0;
+
+  const listEmpty = loading ? (
+    <ConversationListState variant='loading' />
+  ) : error ? (
+    <ConversationListState
+      variant='illustrated'
+      title='Something went wrong'
+      description={error}
+      actionLabel='Retry'
+      onAction={() => void onRefresh()}
+    />
+  ) : !hasConversations ? (
+    <ConversationListState
+      variant='illustrated'
+      title='No Messages Yet'
+      description='Start a conversation with a tenant to see your messages here.'
+    />
+  ) : isSearching ? (
+    <ConversationListState
+      variant='compact'
+      title='No results found'
+      description={`No conversations match "${searchQuery.trim()}". Try a different name, property, or message.`}
+    />
+  ) : (
+    <ConversationListState
+      variant='compact'
+      title={`No ${selectedFilter} Messages`}
+      description='Try switching filters to view your other conversations.'
+    />
+  );
 
   return (
-    <ScreenWrapper
-      className='p-5'
-      scrollable
-      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
-    >
-      {/* Title Messages */}
-      <Text className='text-primary text-3xl font-nunitoBold'>
-        Messages
-      </Text>
-
-      {/* Search Box */}
-      {conversations.length > 0 && (
-        <View className='mt-3'>
-          <SearchField value={searchQuery} onChange={setSearchQuery}>
-            <SearchField.Group>
-              <SearchField.SearchIcon />
-              <SearchField.Input
-                placeholder='Search messages...'
-                className='flex-1 shadow-none'
-              />
-              <SearchField.ClearButton />
-            </SearchField.Group>
-          </SearchField>
-        </View>
-      )}
-
-      {/* List of Messages */}
-      {
-        loading ? (
-          <View className='flex-1 items-center justify-center mt-20'>
-            <Spinner size="sm" color={colors.primary} />
-          </View>
-        ) : error ? (
-          <View className='flex-1 items-center justify-center'>
-            <View className='aspect-square size-64'>
-              <Image
-                source={EMPTY_STATE_IMAGES.emptyMessage}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
-            </View>
-            <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
-              Something went wrong
-            </Text>
-            <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
-              {error}
-            </Text>
-            <Button className='mt-4 bg-primary' onPress={handleRefresh}>
-              <Text className='text-white font-nunitoSemiBold'>Retry</Text>
-            </Button>
-          </View>
-        ) : conversations.length === 0 ? (
-          <View className='flex-1 items-center justify-center'>
-            {/* Empty State Illustration */}
-            <View className='aspect-square size-64'>
-              <Image
-                source={EMPTY_STATE_IMAGES.emptyMessage}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
-            </View>
-
-            <Text className='text-2xl text-accent font-nunitoBold mb-2 mt-5'>
-              No Messages Yet
-            </Text>
-            <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
-              Start a conversation with a tenant to see your messages here.
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* Group Button */}
-            <Tabs
-              value={selectedFilter}
-              onValueChange={(value) => handleMessageToggle(value as 'Tenant' | 'Inquiries')}
-              variant="primary"
-            >
-              <Tabs.List className="w-full mt-3">
-                <Tabs.Indicator />
-                <Tabs.Trigger value="Tenant" className="w-1/2">
-                  {({ isSelected }) => (
+    <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
+      <FlatList
+        data={loading || error ? [] : filteredConversations}
+        keyExtractor={(item) => item.conversation_key}
+        renderItem={renderItem}
+        ListHeaderComponent={
+          <ConversationListHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            showSearch={hasConversations}
+          >
+            {hasConversations && !loading && !error && (
+              <Tabs
+                value={selectedFilter}
+                onValueChange={(value) => setSelectedFilter(value as ConversationFilter)}
+                variant="primary"
+              >
+                <Tabs.List className="w-full my-3">
+                  <Tabs.Indicator />
+                  <Tabs.Trigger value="Tenant" className="w-1/2">
+                    {({ isSelected }) => (
                       <Tabs.Label
                         style={{ color: isSelected ? colors.primary : colors.gray500 }}
                         className='font-nunitoBold'
                       >
                         Tenant
                       </Tabs.Label>
-                  )}
-                </Tabs.Trigger>
+                    )}
+                  </Tabs.Trigger>
 
-                <Tabs.Trigger value="Inquiries" className="flex-1">
-                  {({ isSelected }) => (
+                  <Tabs.Trigger value="Inquiries" className="flex-1">
+                    {({ isSelected }) => (
                       <Tabs.Label
                         style={{ color: isSelected ? colors.primary : colors.gray500 }}
                         className='font-nunitoBold'
                       >
                         Inquiries
                       </Tabs.Label>
-                  )}
-                </Tabs.Trigger>
-              </Tabs.List>
-            </Tabs>
-
-            {filteredConversations.length === 0 ? (
-              <View className='flex-1 items-center justify-center mt-10'>
-                {searchQuery.trim().length > 0 ? (
-                  <>
-                    <Text className='text-lg text-accent font-nunitoSemiBold mb-2'>
-                      No results found
-                    </Text>
-                    <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
-                      No conversations match &quot;{searchQuery}&quot;. Try a different name, property, or message.
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Text className='text-lg text-accent font-nunitoSemiBold mb-2'>
-                      No {selectedFilter} Messages
-                    </Text>
-                    <Text className='text-base text-gray-500 font-nunitoSemiBold text-center px-10'>
-                      Try switching filters to view your other conversations.
-                    </Text>
-                  </>
-                )}
-              </View>
-            ) : (
-              <View className='flex-1 mt-3'>
-                {/* Render the list of messages */}
-                {filteredConversations.map((message) => (
-                  <ConversationRow
-                    key={message.conversation_key}
-                    conversation={message}
-                    onOpen={handleChatPress}
-                    onMarkRead={handleMarkRead}
-                  />
-                ))}
-              </View>
+                    )}
+                  </Tabs.Trigger>
+                </Tabs.List>
+              </Tabs>
             )}
-          </>
-        )
-      }
+          </ConversationListHeader>
+        }
+        ListEmptyComponent={listEmpty}
+        keyboardShouldPersistTaps='handled'
+        keyboardDismissMode='on-drag'
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: LIST_HORIZONTAL_PADDING,
+          paddingHorizontal: LIST_HORIZONTAL_PADDING,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void onRefresh()}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+      />
     </ScreenWrapper>
   )
 }

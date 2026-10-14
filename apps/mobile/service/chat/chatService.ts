@@ -84,6 +84,7 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
+  phoneNumber: string | null;
 };
 
 export type Conversation = {
@@ -616,7 +617,7 @@ export async function getPortalConversations(
 export async function fetchOtherUserProfile(otherUserId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
-    .select('id, first_name, last_name, avatar_url')
+    .select('id, first_name, last_name, avatar_url, mobile_number')
     .eq('id', otherUserId)
     .maybeSingle();
 
@@ -628,6 +629,7 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
     firstName: data.first_name ?? '',
     lastName: data.last_name ?? '',
     avatarUrl: data.avatar_url ?? null,
+    phoneNumber: data.mobile_number?.trim() || null,
   };
 }
 
