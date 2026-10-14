@@ -26,6 +26,12 @@ jest.mock('expo-video', () => {
   };
 });
 
+// Gesture + Reanimated wrapper; the swipe itself is exercised on device.
+jest.mock('./SwipeToReply', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
     colors: {
@@ -354,5 +360,26 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       'opacity-0'
     );
     expect(screen.getByText('Hold me')).toBeTruthy();
+  });
+
+  it('offers a Reply accessibility action that starts a reply', () => {
+    const onReply = jest.fn();
+    render(<ChatBubble message="Reply to me" messageType="text" onReply={onReply} />);
+
+    const row = screen.UNSAFE_getByProps({ delayLongPress: 350 });
+    expect(row.props.accessibilityActions).toEqual([{ name: 'reply', label: 'Reply' }]);
+
+    fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'reply' } });
+    expect(onReply).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no Reply action while the message is still sending', () => {
+    render(
+      <ChatBubble message="Sending" messageType="text" isPending onReply={jest.fn()} />
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({ delayLongPress: 350 }).props.accessibilityActions
+    ).toBeUndefined();
   });
 });

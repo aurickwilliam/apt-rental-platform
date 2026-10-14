@@ -2,7 +2,6 @@ import {
   View,
   Pressable,
   KeyboardAvoidingView,
-  FlatList,
   Keyboard,
   Alert,
   LayoutChangeEvent,
@@ -10,6 +9,8 @@ import {
   type ViewToken,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+// Gesture-handler's list: a plain RN list cancels the bubbles' swipe-to-reply on Android.
+import { FlatList } from 'react-native-gesture-handler';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { BlurTargetView } from 'expo-blur';
@@ -487,6 +488,7 @@ export default function ChatScreen() {
         reactions={item.reactions}
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
+        onReply={() => handleReply(item)}
         hidden={activeHold?.id === item.id}
         onImagePress={setSelectedImage}
         onMediaLoadError={(mediaKind) => {
@@ -498,6 +500,7 @@ export default function ChatScreen() {
       otherUserName,
       handleToggleReaction,
       handleHoldFor,
+      handleReply,
       activeHold,
       retryChatMediaOnce,
     ]
