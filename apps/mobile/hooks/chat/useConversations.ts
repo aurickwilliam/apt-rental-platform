@@ -52,7 +52,7 @@ export function useConversations(role: ConversationRole) {
   const currentUserQuery = useCurrentUser();
   const myId = currentUserQuery.data?.id ?? null;
 
-  const queryKey = useMemo(() => getConversationsQueryKey(myId), [myId]);
+  const queryKey = useMemo(() => getConversationsQueryKey(myId, role), [myId, role]);
 
   const conversationsQuery = useQuery({
     queryKey,
@@ -162,9 +162,12 @@ export function useConversations(role: ConversationRole) {
     // async): reuse it instead of re-registering on the joined channel. The
     // live callback closes over the same myId-scoped key, so behavior is
     // identical; this run takes over teardown ownership.
+    // The portal is part of the identity: each portal's list has its own
+    // cache entry, so a reused channel must write to the same one.
+    const channelName = `chat-list:${myId}:${role}`;
     const existing = supabase
       .getChannels()
-      .find((channel) => channel.topic === `realtime:chat-list:${myId}`);
+      .find((channel) => channel.topic === `realtime:${channelName}`);
     if (existing) {
       channelRef.current = existing;
       return () => {
@@ -176,7 +179,7 @@ export function useConversations(role: ConversationRole) {
     }
 
     const channel = supabase
-      .channel(`chat-list:${myId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -205,7 +208,7 @@ export function useConversations(role: ConversationRole) {
         void supabase.removeChannel(channel);
       }
     };
-  }, [myId, queryClient, queryKey]);
+  }, [myId, queryClient, queryKey, role]);
 
   // Clears the badge right away, then saves the read state; a failed save
   // puts the badge back so the list never shows a read that didn't happen.

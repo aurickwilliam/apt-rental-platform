@@ -54,7 +54,7 @@ let appStateListener: ((state: AppStateStatus) => void) | undefined;
 
 function renderReadSync() {
   const client = createMobileQueryClient();
-  client.setQueryData(getConversationsQueryKey(MY_ID), [seedConversation]);
+  client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), [seedConversation]);
 
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
@@ -66,7 +66,7 @@ function renderReadSync() {
   );
 
   const cachedUnread = () =>
-    client.getQueryData<ConversationWithMeta[]>(getConversationsQueryKey(MY_ID))?.[0]
+    client.getQueryData<ConversationWithMeta[]>(getConversationsQueryKey(MY_ID, "tenant"))?.[0]
       .unread_count;
 
   return { ...hook, client, cachedUnread };
@@ -112,6 +112,22 @@ describe("useConversationReadSync", () => {
     });
 
     expect(mockMarkMessagesAsRead).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it("clears the badge in every portal's cached list", () => {
+    const { result, client, unmount } = renderReadSync();
+    client.setQueryData(getConversationsQueryKey(MY_ID, "landlord"), [seedConversation]);
+
+    act(() => {
+      result.current.handleIncomingMessage();
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(
+      client.getQueryData<ConversationWithMeta[]>(getConversationsQueryKey(MY_ID, "landlord"))?.[0]
+        .unread_count,
+    ).toBe(0);
     unmount();
   });
 

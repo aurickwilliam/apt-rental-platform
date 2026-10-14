@@ -1527,6 +1527,24 @@ export type Database = {
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
       get_my_suspension_status: { Args: never; Returns: Json }
+      get_portal_conversations: {
+        Args: { p_portal: string }
+        Returns: {
+          apartment_id: string
+          apartment_name: string
+          conversation_key: string
+          conversation_type: string
+          last_message: string
+          last_message_time: string
+          last_message_type: string
+          last_sender_id: string
+          other_user_avatar: string
+          other_user_id: string
+          other_user_name: string
+          other_user_phone: string
+          unread_count: number
+        }[]
+      }
       get_search_section_page: {
         Args: {
           p_after?: Json

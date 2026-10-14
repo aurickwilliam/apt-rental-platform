@@ -11,7 +11,7 @@ import {
 import {
   beginViewingConversation,
   clearCachedUnreadCount,
-  getConversationsQueryKey,
+  getUserConversationsQueryPrefix,
 } from "./conversationReadState";
 
 // Groups a burst of incoming messages into one read update.
@@ -63,8 +63,7 @@ export function useConversationReadSync({
       })
       .finally(() => {
         void queryClient.invalidateQueries({
-          queryKey: getConversationsQueryKey(myId),
-          exact: true,
+          queryKey: getUserConversationsQueryPrefix(myId),
           refetchType: "none",
         });
       });

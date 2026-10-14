@@ -1,9 +1,16 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { ConversationWithMeta } from "@/service/chat/conversationService";
+import type {
+  ConversationRole,
+  ConversationWithMeta,
+} from "@/service/chat/conversationService";
 
-export const getConversationsQueryKey = (myId: string | null) =>
+/** Every cached conversation list of a user (one per portal). */
+export const getUserConversationsQueryPrefix = (myId: string | null) =>
   ["conversations", myId] as const;
+
+export const getConversationsQueryKey = (myId: string | null, role: ConversationRole) =>
+  [...getUserConversationsQueryPrefix(myId), role] as const;
 
 // Conversations currently on screen (chat focused, app in the foreground).
 // Counted so a conversation pushed twice stays "viewed" until both close.
@@ -36,8 +43,8 @@ export function isViewingConversation(conversationKey: string): boolean {
 }
 
 /**
- * Zeroes a conversation's unread badge in the cached list and returns the
- * count it had, so a failed server update can put it back.
+ * Zeroes a conversation's unread badge in the user's cached lists and returns
+ * the count it had, so a failed server update can put it back.
  */
 export function clearCachedUnreadCount(
   queryClient: QueryClient,
@@ -46,12 +53,12 @@ export function clearCachedUnreadCount(
 ): number {
   let previousUnread = 0;
 
-  queryClient.setQueryData<ConversationWithMeta[]>(
-    getConversationsQueryKey(myId),
+  queryClient.setQueriesData<ConversationWithMeta[]>(
+    { queryKey: getUserConversationsQueryPrefix(myId) },
     (current) =>
       current?.map((conversation) => {
         if (conversation.conversation_key !== conversationKey) return conversation;
-        previousUnread = conversation.unread_count;
+        previousUnread = Math.max(previousUnread, conversation.unread_count);
         return conversation.unread_count === 0
           ? conversation
           : { ...conversation, unread_count: 0 };
@@ -70,8 +77,8 @@ export function restoreCachedUnreadCount(
 ): void {
   if (previousUnread <= 0) return;
 
-  queryClient.setQueryData<ConversationWithMeta[]>(
-    getConversationsQueryKey(myId),
+  queryClient.setQueriesData<ConversationWithMeta[]>(
+    { queryKey: getUserConversationsQueryPrefix(myId) },
     (current) =>
       current?.map((conversation) =>
         conversation.conversation_key === conversationKey

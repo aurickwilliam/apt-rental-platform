@@ -98,7 +98,7 @@ export type Conversation = {
   last_message_type: MessageType | null;
   last_message_time: string;
   unread_count: number;
-  /** Authoritative sender of the latest message — provided by get_conversations_v2. */
+  /** Authoritative sender of the latest message — provided by get_portal_conversations. */
   last_sender_id: string | null;
   conversation_type: 'tenant' | 'inquiry';
 };
@@ -591,13 +591,18 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
 }
 
 /**
- * Hardened conversation list: zero-argument RPC whose caller identity is
- * derived from auth.uid() server-side, so no user ID is ever client-supplied.
- * Returns authoritative last_sender_id / last_message_type / conversation_type,
- * removing the need for the client-side chat/tenancies metadata scan.
+ * Conversation list for one portal. The caller's identity comes from
+ * auth.uid() server-side, so no user ID is ever client-supplied. Chats about
+ * the caller's own apartments belong to the landlord portal, others to the
+ * tenant portal; chats with no apartment appear in both. Returns authoritative
+ * last_sender_id / last_message_type / conversation_type.
  */
-export async function getConversationsV2(): Promise<Conversation[]> {
-  const { data, error } = await supabase.rpc('get_conversations_v2');
+export async function getPortalConversations(
+  portal: 'tenant' | 'landlord'
+): Promise<Conversation[]> {
+  const { data, error } = await supabase.rpc('get_portal_conversations', {
+    p_portal: portal,
+  });
 
   if (error) throw error;
 

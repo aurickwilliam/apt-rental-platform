@@ -169,7 +169,7 @@ describe("useConversations", () => {
   /** Validates: m7 — realtime INSERT merges into the cached list (front) */
   it("merges a realtime INSERT into the cached conversations list", async () => {
     const { client, QueryWrapper } = createWrapper();
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
     const { result, unmount } = renderHook(
       () => useConversations("tenant"),
@@ -203,7 +203,7 @@ describe("useConversations", () => {
   /** Validates: m7 — own-message INSERT does not bump unread count */
   it("does not bump unread_count when I sent the message", async () => {
     const { client, QueryWrapper } = createWrapper();
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
     const { result, unmount } = renderHook(
       () => useConversations("tenant"),
@@ -235,7 +235,7 @@ describe("useConversations", () => {
 
   it("does not bump unread_count for the conversation on screen", async () => {
     const { client, QueryWrapper } = createWrapper();
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
     const endViewing = beginViewingConversation("other-1:apt-1");
 
     const { result, unmount } = renderHook(
@@ -270,7 +270,7 @@ describe("useConversations", () => {
   it("invalidates the query when the INSERT targets an unknown conversation", async () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
     const { unmount } = renderHook(
       () => useConversations("tenant"),
@@ -290,7 +290,7 @@ describe("useConversations", () => {
 
     await waitFor(() =>
       expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: getConversationsQueryKey(MY_ID),
+        queryKey: getConversationsQueryKey(MY_ID, "tenant"),
         exact: true,
       }),
     );
@@ -301,7 +301,7 @@ describe("useConversations", () => {
   /** Validates: m7 — markConversationRead zeroes only the targeted conversation */
   it("marks a single conversation read", async () => {
     const { client, QueryWrapper } = createWrapper();
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
     const { result, unmount } = renderHook(
       () => useConversations("tenant"),
@@ -330,7 +330,7 @@ describe("useConversations", () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockMarkMessagesAsRead.mockRejectedValueOnce(new Error("offline"));
     const { client, QueryWrapper } = createWrapper();
-    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
     const { result, unmount } = renderHook(
       () => useConversations("tenant"),
@@ -391,7 +391,7 @@ describe("useConversations", () => {
 
     unmount();
     expect(mockRemoveChannel).toHaveBeenCalledWith(
-      expect.objectContaining({ topic: `realtime:chat-list:${MY_ID}` }),
+      expect.objectContaining({ topic: `realtime:chat-list:${MY_ID}:tenant` }),
     );
   });
 
@@ -399,7 +399,7 @@ describe("useConversations", () => {
    *  is reused, not re-registered (registering on a joined channel throws) */
   it("reuses a live channel with the same identity instead of re-subscribing", async () => {
     const existingChannel = {
-      topic: `realtime:chat-list:${MY_ID}`,
+      topic: `realtime:chat-list:${MY_ID}:tenant`,
       on: jest.fn().mockReturnThis(),
       subscribe: jest.fn().mockReturnThis(),
     };
