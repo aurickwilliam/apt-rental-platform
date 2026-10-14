@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791990130.877465,
-    "ast_hash": "f7f7e73084b4ff136c0d770fe319bbb1",
+    "mtime": 1791990699.6953042,
+    "ast_hash": "c8e273fabbf332ccb7b770c8646f22b3",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -525,8 +525,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.tsx": {
-    "mtime": 1791989146.9670374,
-    "ast_hash": "1eda79984e4f68e8221851a9d876b482",
+    "mtime": 1791990657.0527966,
+    "ast_hash": "474891f7bac1829dbb398dd57eb9275a",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791990397.5068245,
-    "ast_hash": "2223ead2403b6433ca62f8ce62b61e84",
+    "mtime": 1791990794.1555502,
+    "ast_hash": "26214a8d6d40a4cd7fde74fdc3c2e1f7",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3360,8 +3360,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.test.tsx": {
-    "mtime": 1791989181.643054,
-    "ast_hash": "ddc49f2239a390d85755ab214ff87634",
+    "mtime": 1791990715.9250097,
+    "ast_hash": "5cb15b9c4ea1c0e9d5a1914593794f65",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useDocumentUrls.test.tsx": {
@@ -7480,8 +7480,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/SwipeToReply.tsx": {
-    "mtime": 1791989126.324042,
-    "ast_hash": "5211c39fdcb86a9a583011f3578603ab",
+    "mtime": 1791990657.0531206,
+    "ast_hash": "880d58aaa94dcf8af6b306f47f5dafd5",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.test.tsx": {
@@ -7522,6 +7522,21 @@
   "apps/mobile/service/chat/chatApartmentService.ts": {
     "mtime": 1791990019.01992,
     "ast_hash": "af958c9a4f6d64d33133fce68eb23150",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/TimestampRevealRow.tsx": {
+    "mtime": 1791990641.352725,
+    "ast_hash": "4981cf9c813a233b86c9becad6c04c71",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/timestampReveal.test.ts": {
+    "mtime": 1791990715.930233,
+    "ast_hash": "d6ddde69465d37e5c4e4de621ab54c6a",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/timestampReveal.ts": {
+    "mtime": 1791990641.349293,
+    "ast_hash": "2142ea5eb09cd3807b5d0250d9a2e4c8",
     "semantic_hash": ""
   }
 }
