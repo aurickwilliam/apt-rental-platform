@@ -2045,9 +2045,9 @@
     "semantic_hash": "cf5eafcacbdfc836c723822bcab9e380"
   },
   "apps/web/app/landlord/messages/page.tsx": {
-    "mtime": 1787060341.959717,
-    "ast_hash": "d75f9470f07261ee5ca3215f9e0db268",
-    "semantic_hash": "d75f9470f07261ee5ca3215f9e0db268"
+    "mtime": 1791965593.6805193,
+    "ast_hash": "135452617de5bdf48afa67e3ff58db78",
+    "semantic_hash": ""
   },
   "apps/web/app/landlord/page.tsx": {
     "mtime": 1779525581.1776521,
@@ -2220,8 +2220,8 @@
     "semantic_hash": "84baf6048c259e15d30d602187160665"
   },
   "apps/web/app/tenant/messages/page.tsx": {
-    "mtime": 1788409087.1541252,
-    "ast_hash": "14e72dc6c04606af372b22214a84af17",
+    "mtime": 1791965570.3599267,
+    "ast_hash": "f1ef74a08dc18147b0596d4630e50c9f",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/DashboardCard.tsx": {
@@ -2970,8 +2970,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791965375.6068866,
-    "ast_hash": "da9b91bc5258d9996501cf86ef0c457a",
+    "mtime": 1791965634.6258953,
+    "ast_hash": "846a95350069b2ec381ae609a302fbc5",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -7262,6 +7262,16 @@
   "supabase/migrations/20261014080714_get_portal_conversations.sql": {
     "mtime": 1791965147.0273073,
     "ast_hash": "7dfbbca0235c1b4769a9c1ef07047690",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/conversation-contacts.test.mjs": {
+    "mtime": 1791965593.687002,
+    "ast_hash": "340a5fc84f1499eacfb7fb612989feff",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/conversation-contacts.ts": {
+    "mtime": 1791965560.1258457,
+    "ast_hash": "60d4bbe7d1273d51345467b971ad638c",
     "semantic_hash": ""
   }
 }
