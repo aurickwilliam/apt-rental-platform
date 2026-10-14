@@ -29,14 +29,13 @@ import {
 } from "@/service/payments/paymongoService";
 import {
   createCashPayment,
-  getCurrentRentStatus,
   periodMonthLabel,
 } from "@/service/payments/paymentService";
 import { usePayments } from "@/hooks/payments";
 import { useCurrentUser } from "@/hooks/auth";
 import { useTenancy } from "@/hooks/tenancy/useTenancy";
 
-import { validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
