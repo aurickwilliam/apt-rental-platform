@@ -95,6 +95,9 @@ export default function Step5Preview({ formData }: Props) {
     .map((id) => PERKS[id])
     .filter(Boolean);
 
+  const securityDepositAmount = formData.security_deposit_months * formData.monthly_rent;
+  const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="mb-2">
@@ -214,8 +217,8 @@ export default function Step5Preview({ formData }: Props) {
                   {/* Rows */}
                   {[
                     { label: "Monthly Rent", amount: formData.monthly_rent },
-                    { label: "Security Deposit", amount: formData.security_deposit },
-                    { label: "Advance Rent", amount: formData.monthly_rent },
+                    { label: "Security Deposit", amount: securityDepositAmount },
+                    { label: "Advance Rent", amount: advanceRentAmount },
                   ].map(({ label, amount }) => (
                     <div key={label} className="flex justify-between text-sm">
                       <span className="text-grey-500">{label}</span>
@@ -230,8 +233,8 @@ export default function Step5Preview({ formData }: Props) {
                     <span className="font-bold text-primary">
                       {formatPesoDisplay(
                         formData.monthly_rent +
-                        formData.security_deposit +
-                        formData.monthly_rent
+                        securityDepositAmount +
+                        advanceRentAmount
                       )}
                     </span>
                   </div>

@@ -1,8 +1,9 @@
 "use client";
 import { useRef } from "react";
-import { NumberField, Button, Label, Description, FieldError } from "@heroui/react";
+import { NumberField, Button, Label, Description, FieldError, Select, ListBox } from "@heroui/react";
 import { IconFileText, IconUpload, IconX } from "@tabler/icons-react";
 import type { ApartmentFormData, FormErrors } from "../page";
+import { MIN_MONTHLY_RENT } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
@@ -11,7 +12,9 @@ interface Props {
 }
 
 export default function Step3Pricing({ formData, updateForm, errors }: Props) {
-  const total = formData.monthly_rent + formData.security_deposit + formData.advance_rent;
+  const securityDepositAmount = formData.security_deposit_months * formData.monthly_rent;
+  const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
+  const total = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
   const leaseAgreementRef = useRef<HTMLInputElement>(null);
 
   const handleLeaseAgreement = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +36,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
 
       <div className="flex flex-col gap-4">
         <NumberField
-          minValue={0}
+          minValue={MIN_MONTHLY_RENT}
           value={formData.monthly_rent}
           onChange={(value) => updateForm({ monthly_rent: value })}
           isInvalid={!!errors.monthly_rent}
@@ -49,39 +52,68 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           <FieldError>{errors.monthly_rent}</FieldError>
         </NumberField>
 
-        <NumberField
-          minValue={0}
-          value={formData.security_deposit}
-          onChange={(value) => updateForm({ security_deposit: value })}
-          isInvalid={!!errors.security_deposit}
-        >
-          <Label>Security Deposit</Label>
-          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-            <NumberField.Input className="w-full" />
-          </NumberField.Group>
-          <Description className="text-grey-500">
-            Typically 1–2 months of rent. Refundable upon move-out.
-          </Description>
-          <FieldError>{errors.security_deposit}</FieldError>
-        </NumberField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Select
+            placeholder="Select months"
+            value={String(formData.security_deposit_months)}
+            onChange={(value) => updateForm({ security_deposit_months: Number(value) })}
+            isInvalid={!!errors.security_deposit_months}
+            className="w-full"
+          >
+            <Label>Security Deposit</Label>
+            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <FieldError>{errors.security_deposit_months}</FieldError>
+            <Select.Popover>
+              <ListBox>
+                {[
+                  { value: 0, label: "None" },
+                  { value: 1, label: "1 month" },
+                  { value: 2, label: "2 months" },
+                ].map((option) => (
+                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="hover:bg-light-blue!">
+                    {option.label}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+          <p className="text-grey-500 text-xs mt-1">Optional — 1 to 2 months of rent. Refundable upon move-out.</p>
+        </div>
 
-        <NumberField
-          minValue={0}
-          value={formData.advance_rent}
-          onChange={(value) => updateForm({ advance_rent: value })}
-          isInvalid={!!errors.advance_rent}
-        >
-          <Label>Advance Rent</Label>
-          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-            <NumberField.Input className="w-full" />
-          </NumberField.Group>
-          <Description className=" text-grey-500">
-            Payment made upfront, typically applied to the first or last month(s) of the lease.
-          </Description>
-          <FieldError>{errors.advance_rent}</FieldError>
-        </NumberField>
+        <div>
+          <Select
+            placeholder="Select months"
+            value={String(formData.advance_rent_months)}
+            onChange={(value) => updateForm({ advance_rent_months: Number(value) })}
+            isInvalid={!!errors.advance_rent_months}
+            className="w-full"
+          >
+            <Label>Advance Rent</Label>
+            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <FieldError>{errors.advance_rent_months}</FieldError>
+            <Select.Popover>
+              <ListBox>
+                {[
+                  { value: 0, label: "None" },
+                  { value: 1, label: "1 month" },
+                ].map((option) => (
+                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="hover:bg-light-blue!">
+                    {option.label}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+          <p className="text-grey-500 text-xs mt-1">Optional — up to 1 month of rent, applied to the first or last month(s).</p>
+        </div>
+      </div>
       </div>
 
       {/* Move-in cost summary — only show when values are set */}
@@ -101,13 +133,13 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             <div className="flex justify-between text-sm">
               <span className="text-grey-500">Security Deposit</span>
               <span className="font-medium">
-                ₱ {formData.security_deposit.toLocaleString()}
+                ₱ {securityDepositAmount.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-grey-500">Advance Rent</span>
               <span className="font-medium">
-                ₱ {formData.advance_rent.toLocaleString()}
+                ₱ {advanceRentAmount.toLocaleString()}
               </span>
             </div>
           </div>

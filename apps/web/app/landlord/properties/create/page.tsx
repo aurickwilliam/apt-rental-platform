@@ -39,8 +39,8 @@ export type ApartmentFormData = {
   isPinConfirmed: boolean;
   // Step 3
   monthly_rent: number;
-  security_deposit: number;
-  advance_rent: number;
+  security_deposit_months: number;
+  advance_rent_months: number;
   lease_agreement: File | null;
   // Step 4
   description: string;
@@ -68,8 +68,8 @@ const INITIAL_FORM: ApartmentFormData = {
   longitude: null,
   isPinConfirmed: false,
   monthly_rent: 0,
-  security_deposit: 0,
-  advance_rent: 0,
+  security_deposit_months: 0,
+  advance_rent_months: 0,
   lease_agreement: null,
   description: "",
   amenities: [],
@@ -84,6 +84,9 @@ const STEPS = [
 ];
 
 export type FormErrors = Partial<Record<keyof ApartmentFormData, string>>;
+
+/** Minimum monthly rent in pesos. */
+export const MIN_MONTHLY_RENT = 1000;
 
 /** `{apartmentId}/{timestamp}-{random}.{ext}`: unique per upload, never reused. */
 function uniqueStoragePath(apartmentId: string, fileName: string): string {
@@ -158,6 +161,7 @@ export default function CreateApartmentPage() {
     // Check any errors before submitting
     const stepErrors = {
       ...validateStep(2, formData),
+      ...validateStep(3, formData),
       ...validateStep(4, formData),
     };
     if (Object.keys(stepErrors).length > 0) {
@@ -177,8 +181,8 @@ export default function CreateApartmentPage() {
           name: formData.name,
           description: formData.description,
           monthly_rent: formData.monthly_rent,
-          security_deposit: formData.security_deposit,
-          advance_rent: formData.advance_rent,
+          security_deposit: formData.security_deposit_months * formData.monthly_rent,
+          advance_rent: formData.advance_rent_months * formData.monthly_rent,
           type: formData.type,
           street_address: formData.street_address,
           barangay: formData.barangay,
@@ -335,9 +339,9 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 3) {
-      if (data.monthly_rent <= 0) errors.monthly_rent = "Monthly rent must be greater than 0.";
-      if (data.security_deposit < 0) errors.security_deposit = "Cannot be negative.";
-      if (data.advance_rent < 0) errors.advance_rent = "Cannot be negative.";
+      if (data.monthly_rent < MIN_MONTHLY_RENT) errors.monthly_rent = `Monthly rent must be at least ₱${MIN_MONTHLY_RENT.toLocaleString()}.`;
+      if (![0, 1, 2].includes(data.security_deposit_months)) errors.security_deposit_months = "Security deposit must be none, 1 month, or 2 months.";
+      if (![0, 1].includes(data.advance_rent_months)) errors.advance_rent_months = "Advance rent can be at most 1 month.";
       if (!data.lease_agreement) errors.lease_agreement = "Lease agreement document is required.";
     }
 
