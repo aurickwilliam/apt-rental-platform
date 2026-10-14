@@ -453,12 +453,13 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Checkbox.Control className="mt-0.5 size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
                 <Checkbox.Indicator className="[&_svg]:text-white!" />
               </Checkbox.Control>
-              <div>
+              <div className="flex flex-col">
                 <Label className="cursor-pointer text-sm text-foreground">
-                  I confirm that the pin location on the map is correct
+                  I confirm that the pin location on the map is correct{" "}
+                  <span className="text-danger">*</span>
                 </Label>
                 {errors.isPinConfirmed && (
-                  <Description className="mt-0.5 text-xs text-danger">
+                  <Description className="mt-0.5 block text-xs text-danger">
                     {errors.isPinConfirmed}
                   </Description>
                 )}

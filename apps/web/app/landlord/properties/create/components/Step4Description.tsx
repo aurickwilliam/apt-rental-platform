@@ -46,7 +46,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
         />
 
         {/* Description / Character counter slot */}
-        <Description>{`${formData.description.length} characters`}</Description>
+        <Description className="text-muted-foreground">{`${formData.description.length} characters`}</Description>
         
         {/* Error feedback slot */}
         <FieldError>{errors.description}</FieldError>
