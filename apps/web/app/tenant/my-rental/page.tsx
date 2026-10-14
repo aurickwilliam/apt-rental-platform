@@ -122,6 +122,7 @@ export default function MyRental() {
   const {
     applications,
     loading: applicationsLoading,
+    error: applicationsError,
   } = useTenantApplications();
   const historyDialog = useOverlayState();
   const hasApplications = !applicationsLoading && applications.length > 0;
@@ -192,17 +193,30 @@ export default function MyRental() {
   }
 
   if (!tenancy) {
+    if (applicationsLoading) {
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 py-20 flex justify-center">
+            <Spinner color="accent" />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <House size={20} className="text-primary" />
-              <h2 className="text-lg font-semibold text-card-foreground">My Rental</h2>
+          {hasApplications || applicationsError ? (
+            <ApplicationsList />
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <House size={20} className="text-primary" />
+                <h2 className="text-lg font-semibold text-card-foreground">My Rental</h2>
+              </div>
+              <TenancyEmptyState />
             </div>
-            <TenancyEmptyState />
-          </div>
-          {hasApplications && <ApplicationsList />}
+          )}
         </div>
       </div>
     );
