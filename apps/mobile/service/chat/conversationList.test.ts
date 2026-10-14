@@ -149,25 +149,24 @@ describe('groupConversations', () => {
 });
 
 describe('buildConversationListItems', () => {
-  it('adds a separator after pinned rows and an archived row at the end', () => {
+  it('adds a separator between pinned rows and the rest', () => {
     const items = buildConversationListItems({
       pinned: [toConversationItem(makeConversation('p'), true)],
       others: [makeConversation('o')],
-      archivedCount: 2,
     });
 
-    expect(items.map((item) => item.key)).toEqual(['p', 'separator', 'o', 'archived']);
+    expect(items.map((item) => item.key)).toEqual(['p', 'separator', 'o']);
     expect(items[0]).toMatchObject({ kind: 'conversation', isPinLocked: true });
-    expect(items[3]).toMatchObject({ kind: 'archived', count: 2 });
   });
 
-  it('has no separator without pinned rows, and no archived row when none are archived', () => {
-    const items = buildConversationListItems({
-      pinned: [],
-      others: [makeConversation('o')],
-      archivedCount: 0,
-    });
-
-    expect(items.map((item) => item.key)).toEqual(['o']);
+  it('has no separator without pinned rows or without other rows', () => {
+    expect(
+      buildConversationListItems({ pinned: [], others: [makeConversation('o')] }).map((item) => item.key)
+    ).toEqual(['o']);
+    expect(
+      buildConversationListItems({ pinned: [toConversationItem(makeConversation('p'))], others: [] }).map(
+        (item) => item.key
+      )
+    ).toEqual(['p']);
   });
 });

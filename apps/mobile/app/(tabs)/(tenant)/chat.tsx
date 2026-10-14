@@ -107,11 +107,7 @@ export default function Chat() {
       });
     }
 
-    return buildConversationListItems({
-      pinned,
-      others: groups.others,
-      archivedCount: groups.archived.length,
-    });
+    return buildConversationListItems({ pinned, others: groups.others });
   }, [apartment, conversations, isCurrentLandlordConversation, isSearching, landlord, myId, searchQuery]);
 
   // The chat screen marks the conversation read once it's on screen.
@@ -149,11 +145,10 @@ export default function Chat() {
         item={item}
         onOpen={handleChatPress}
         handlers={rowHandlers}
-        onOpenArchived={handleOpenArchived}
         onStartLandlordChat={handleStartLandlordChat}
       />
     ),
-    [handleChatPress, handleOpenArchived, handleStartLandlordChat, rowHandlers]
+    [handleChatPress, handleStartLandlordChat, rowHandlers]
   );
 
   const listEmpty = loading ? (
@@ -193,6 +188,7 @@ export default function Chat() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             showSearch={conversations.length > 0}
+            onOpenArchived={handleOpenArchived}
           />
         }
         ListHeaderComponentStyle={{ marginBottom: 8 }}

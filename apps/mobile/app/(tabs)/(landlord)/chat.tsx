@@ -73,16 +73,10 @@ export default function Chat() {
     const groups = groupConversations(
       isSearching ? ofSelectedType.map((c) => ({ ...c, is_archived: false })) : ofSelectedType
     );
-    // The archived row counts both filters: the archived screen lists them all.
-    const archivedCount = isSearching
-      ? 0
-      : conversations.filter((conversation) => conversation.is_archived).length;
-
     return {
       items: buildConversationListItems({
         pinned: groups.pinned.map((conversation) => toConversationItem(conversation)),
         others: groups.others,
-        archivedCount,
       }),
       filteredCount: groups.pinned.length + groups.others.length,
     };
@@ -106,15 +100,14 @@ export default function Chat() {
         item={item}
         onOpen={handleChatPress}
         handlers={rowHandlers}
-        onOpenArchived={handleOpenArchived}
       />
     ),
-    [handleChatPress, handleOpenArchived, rowHandlers]
+    [handleChatPress, rowHandlers]
   );
 
   const hasConversations = conversations.length > 0;
 
-  // Shown above the archived row when the selected filter has no chats.
+  // Shown when the selected filter has no chats.
   const filterEmptyState = !isSearching && hasConversations && filteredCount === 0 ? (
     <ConversationListState
       variant='compact'
@@ -160,6 +153,7 @@ export default function Chat() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             showSearch={hasConversations}
+            onOpenArchived={handleOpenArchived}
           >
             {hasConversations && !loading && !error && (
               <Tabs
@@ -193,7 +187,6 @@ export default function Chat() {
                 </Tabs.List>
               </Tabs>
             )}
-            {items.length > 0 ? filterEmptyState : null}
           </ConversationListHeader>
         }
         ListEmptyComponent={listEmpty}

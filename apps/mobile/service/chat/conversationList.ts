@@ -113,8 +113,7 @@ export type ConversationListItem =
       apartmentId: string;
       apartmentName: string;
     }
-  | { kind: "separator"; key: "separator" }
-  | { kind: "archived"; key: "archived"; count: number };
+  | { kind: "separator"; key: "separator" };
 
 export function toConversationItem(
   conversation: ConversationWithMeta,
@@ -124,25 +123,20 @@ export function toConversationItem(
 }
 
 /**
- * Pinned rows, then a separator, then the rest, then an "Archived chats" row
- * when there are any. No section headers (Messenger-style).
+ * Pinned rows, then a separator, then the rest. No section headers
+ * (Messenger-style); archived chats open from the header's archive button.
  */
 export function buildConversationListItems({
   pinned,
   others,
-  archivedCount,
 }: {
   pinned: ConversationListItem[];
   others: ConversationWithMeta[];
-  archivedCount: number;
 }): ConversationListItem[] {
   const items: ConversationListItem[] = [...pinned];
-  if (pinned.length > 0 && (others.length > 0 || archivedCount > 0)) {
+  if (pinned.length > 0 && others.length > 0) {
     items.push({ kind: "separator", key: "separator" });
   }
   items.push(...others.map((conversation) => toConversationItem(conversation)));
-  if (archivedCount > 0) {
-    items.push({ kind: "archived", key: "archived", count: archivedCount });
-  }
   return items;
 }

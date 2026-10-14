@@ -62,8 +62,6 @@ jest.mock('@/app/(tabs)/components/chat/ConversationListRow', () => {
         );
       case 'separator':
         return React.createElement(Text, null, 'separator');
-      case 'archived':
-        return React.createElement(Text, null, `archived:${item.count}`);
     }
   }
   return { __esModule: true, default: RowStub };
@@ -76,9 +74,13 @@ jest.mock('@/app/(tabs)/components/chat/ConversationActionOverlays', () => ({
 
 jest.mock('@/app/(tabs)/components/chat/ConversationListHeader', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
-  function HeaderStub() {
-    return React.createElement(Text, null, 'Messages');
+  const { Pressable, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  function HeaderStub({ onOpenArchived }: { onOpenArchived?: () => void }) {
+    return React.createElement(
+      Pressable,
+      { accessibilityLabel: 'Archived chats', onPress: onOpenArchived },
+      React.createElement(Text, null, 'Messages')
+    );
   }
   return { __esModule: true, default: HeaderStub };
 });
@@ -155,7 +157,7 @@ const activeTenancy = {
 
 function renderedRows(): string[] {
   return screen
-    .getAllByText(/^(row:|shortcut|separator|archived:)/)
+    .getAllByText(/^(row:|shortcut|separator)/)
     .map((node) => String(node.props.children));
 }
 
@@ -184,7 +186,7 @@ describe('tenant Messages tab', () => {
     expect(screen.queryByText('Current Landlord')).toBeNull();
   });
 
-  it('puts user-pinned chats after the landlord and archived chats behind a row', () => {
+  it('puts user-pinned chats after the landlord and leaves archived chats out', () => {
     mockTenancy = activeTenancy;
     mockConversations = [
       makeConversation({ conversation_key: 'a', other_user_name: 'Archived One', is_archived: true }),
@@ -205,8 +207,15 @@ describe('tenant Messages tab', () => {
       'row:Pinned One',
       'separator',
       'row:Other',
-      'archived:1',
     ]);
+  });
+
+  it('opens archived chats from the header button', () => {
+    render(<Chat />);
+
+    fireEvent.press(screen.getByLabelText('Archived chats'));
+
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/chat/archived', params: { portal: 'tenant' } });
   });
 
   it('offers a pinned shortcut to message the current landlord before any chat exists', () => {
