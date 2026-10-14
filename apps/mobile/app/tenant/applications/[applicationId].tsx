@@ -312,7 +312,7 @@ export default function ApplicationApartment() {
 
       {application?.status === "closed" && application.rejected_reason && (
         <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
-          <Text className="text-sm font-nunitoSemiBold text-secondary mb-1">
+          <Text className="text-sm font-nunitoSemiBold text-foreground mb-1">
             Application Closed
           </Text>
           <Text className="text-sm text-foreground">

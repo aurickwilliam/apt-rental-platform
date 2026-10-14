@@ -238,7 +238,7 @@ export default function Upload() {
         isOpen={isLegalOpen}
         onOpenChange={setIsLegalOpen}
         title="Legal notice"
-        titleIcon={<IconAlertTriangle size={20} color={colors.warning} />}
+        titleIcon={<IconAlertTriangle size={20} color={colors.warningText} />}
       >
         <Text className="text-muted text-sm font-inter leading-relaxed">
           By uploading your documents, you certify that all information is true

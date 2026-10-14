@@ -139,7 +139,7 @@ export default function AuthForm({ next }: { next?: string }) {
 
               <Link
                 href="/forgot-password"
-                className="text-sm text-right text-secondary dark:text-[#FFA500] underline"
+                className="text-sm text-right text-brand underline"
               >
                 Forgot Password?
               </Link>

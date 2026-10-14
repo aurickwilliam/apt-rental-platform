@@ -210,7 +210,7 @@ export default function RecoveryCodeVerification() {
           </Text>
         )}
         {!!resendNotice && (
-          <Text className="text-success text-sm font-inter mt-3 text-center">
+          <Text className="text-success-text text-sm font-inter mt-3 text-center">
             {resendNotice}
           </Text>
         )}

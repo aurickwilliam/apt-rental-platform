@@ -105,7 +105,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: {
                 </Tabs.Tab>
 
                 {/* Landlord Tab */}
-                <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary dark:data-[selected=true]:text-[#FFA500]">
+                <Tabs.Tab id="landlord" className="data-[selected=true]:text-sky">
                   <Tabs.Separator />
                   <span className="flex items-center gap-1.5">
                     <Building size={15} />

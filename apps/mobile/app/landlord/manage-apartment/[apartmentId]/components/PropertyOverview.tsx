@@ -136,10 +136,10 @@ export default function PropertyOverview({
 
         {is_verified && (
           <View className="flex-row items-center gap-1">
-            <IconShieldCheck size={20} color={colors.success} />
+            <IconShieldCheck size={20} color={colors.successText} />
             <Text
               className="text-base font-nunitoSemiBold"
-              style={{ color: colors.success }}>
+              style={{ color: colors.successText }}>
               Verified
             </Text>
           </View>

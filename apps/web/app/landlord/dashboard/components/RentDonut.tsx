@@ -17,7 +17,7 @@ import ChartEmptyState from "./ChartEmptyState";
 
 const rentConfig = {
   paid:    { label: "Paid",    color: COLORS.light.primary },
-  pending: { label: "Pending", color: COLORS.light.secondary },
+  pending: { label: "Pending", color: COLORS.light.chartSky },
   overdue: { label: "Overdue", color: COLORS.light.danger },
 } satisfies ChartConfig;
 
