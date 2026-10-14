@@ -4,6 +4,8 @@ import {
   RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -35,6 +37,8 @@ interface ScreenWrapperProps {
   refreshing?: boolean;
   onRefresh?: () => void | Promise<void>;
   dismissKeyboardOnTouch?: boolean;
+  // Scrollable only: scroll position updates (throttled to ~60fps).
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
@@ -58,6 +62,7 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
       refreshing = false,
       onRefresh,
       dismissKeyboardOnTouch = true,
+      onScroll,
     },
     ref,
   ) {
@@ -81,6 +86,8 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
             bottomOffset={KEYBOARD_BOTTOM_OFFSET}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={onScroll ? 16 : undefined}
             refreshControl={
               onRefresh ? (
                 <RefreshControl
