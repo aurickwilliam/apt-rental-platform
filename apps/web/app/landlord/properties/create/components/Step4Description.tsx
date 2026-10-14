@@ -25,7 +25,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
         <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
           Description & Amenities
         </h2>
-        <p className="text-grey-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           Describe your property and highlight what makes it special.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
           onChange={(e) => updateForm({ description: e.target.value })}
           variant="primary"
           rows={6}
-          className="w-full rounded-lg border border-grey-300 shadow-none outline-none ring-0 focus:border-grey-300 focus:ring-0 data-[focus-visible=true]:border-grey-300 data-[focus-visible=true]:ring-0"
+          className="w-full rounded-lg border border-border bg-card text-foreground shadow-none outline-none ring-0 placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/20 data-[focus-visible=true]:border-primary data-[focus-visible=true]:ring-1 data-[focus-visible=true]:ring-primary/20"
         />
 
         {/* Description / Character counter slot */}
@@ -55,7 +55,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
       {/* Amenities picker */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-grey-700"}`}>
+          <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-foreground"}`}>
             Amenities <span className="text-danger">*</span>
           </p>
           {formData.amenities.length > 0 && (
@@ -81,12 +81,12 @@ export default function Step4Description({ formData, updateForm, errors }: Props
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer text-left ${
                   selected
                     ? "border-primary bg-primary/5 text-primary"
-                    : "border-grey-200 hover:border-grey-300 text-grey-700"
+                    : "border-border hover:border-primary/50 text-foreground"
                 }`}
               >
                 <Icon
                   size={18}
-                  className={`shrink-0 ${selected ? "text-primary" : "text-grey-500"}`}
+                  className={`shrink-0 ${selected ? "text-primary" : "text-muted-foreground"}`}
                 />
                 <span className="text-sm font-medium leading-tight">{perk.name}</span>
               </button>

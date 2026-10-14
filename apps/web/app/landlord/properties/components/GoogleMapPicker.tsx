@@ -266,7 +266,7 @@ export default function GoogleMapPicker({
           <p className="text-sm font-medium">
             Pin Location <span className="text-danger">*</span>
           </p>
-          <p className="text-xs text-grey-400 mb-1">
+          <p className="text-xs text-muted-foreground mb-1">
             Click anywhere on the map to drop a pin on your property&apos;s exact location.
           </p>
         </>
@@ -274,18 +274,18 @@ export default function GoogleMapPicker({
 
       <div
         className={`relative w-full ${mapHeightClass} overflow-hidden rounded-lg border transition ${
-          error ? "border-danger" : "border-grey-300"
+          error ? "border-danger" : "border-border"
         }`}
       >
         {status === "missing-key" ? (
-          <div className="w-full h-full flex items-center justify-center bg-grey-100 p-4 text-center">
-            <p className="text-xs text-grey-500">
+          <div className="w-full h-full flex items-center justify-center bg-muted p-4 text-center">
+            <p className="text-xs text-muted-foreground">
               Google Maps API key is missing. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable
               map pinning — or enter coordinates manually.
             </p>
           </div>
         ) : status === "error" ? (
-          <div className="w-full h-full flex items-center justify-center bg-grey-100 p-4 text-center">
+          <div className="w-full h-full flex items-center justify-center bg-muted p-4 text-center">
             <p className="text-xs text-danger">
               Google Maps failed to load. Check your connection and API key, or enter
               coordinates manually.
@@ -294,7 +294,7 @@ export default function GoogleMapPicker({
         ) : (
           <>
             {status === "loading" && (
-              <div className="w-full h-full bg-grey-100 animate-pulse" aria-label="Loading map" />
+              <div className="w-full h-full bg-muted animate-pulse" aria-label="Loading map" />
             )}
             <div ref={containerRef} className="w-full h-full" />
           </>
@@ -302,7 +302,7 @@ export default function GoogleMapPicker({
       </div>
 
       {latitude != null && longitude != null && (
-        <p className="text-xs text-grey-400">
+        <p className="text-xs text-muted-foreground">
           📍 {latitude.toFixed(6)}, {longitude.toFixed(6)}
         </p>
       )}

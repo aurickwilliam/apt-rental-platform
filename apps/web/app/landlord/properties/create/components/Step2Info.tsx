@@ -51,14 +51,14 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
           Apartment Info
         </h2>
-        <p className="text-grey-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           Tell tenants about the property details.
         </p>
       </div>
 
       {/* Property type & specs */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-grey-700">Property Details</p>
+        <p className="text-sm font-semibold text-foreground">Property Details</p>
         <div className="grid grid-cols-2 gap-4">
           <Select
             value={formData.type ?? null}
@@ -68,7 +68,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Property Type</Label>
-            <Select.Trigger className="rounded-lg border border-border data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+            <Select.Trigger className="rounded-lg border border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -92,7 +92,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Furnished Type</Label>
-            <Select.Trigger className="rounded-lg border border-border data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+            <Select.Trigger className="rounded-lg border border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -212,7 +212,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Label>Floor Level</Label>
             
             <Select.Trigger 
-              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
+              className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
             >
               <Select.Value />
               <Select.Indicator />
@@ -247,7 +247,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Label>Lease Duration</Label>
             
             <Select.Trigger 
-              className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
+              className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary"
             >
               <Select.Value />
               <Select.Indicator />
@@ -275,7 +275,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
       {/* Address */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-grey-700">Address</p>
+        <p className="text-sm font-semibold text-foreground">Address</p>
 
         <TextField 
           isRequired 
@@ -286,6 +286,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             placeholder="e.g. 123 Rizal Ave."
             value={formData.street_address}
             onChange={(e) => updateForm({ street_address: e.target.value })}
+            className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
           />
           <FieldError>{errors.street_address}</FieldError>
         </TextField>
@@ -299,6 +300,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Input
               value={formData.barangay}
               onChange={(e) => updateForm({ barangay: e.target.value })}
+              className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
             />
             <FieldError>{errors.barangay}</FieldError>
           </TextField>
@@ -312,7 +314,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>City</Label>
-            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -330,7 +332,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
           <TextField isRequired isInvalid={!!errors.province} isDisabled>
             <Label>Province</Label>
-            <Input value="Metro Manila" />
+            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
             <FieldError>{errors.province}</FieldError>
           </TextField>
 
@@ -349,6 +351,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
                 const onlyNums = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
                 updateForm({ zip_code: onlyNums });
               }}
+              className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
             />
             <FieldError>{errors.zip_code}</FieldError>
           </TextField>
@@ -358,7 +361,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
       {/* Map Coordinates */}
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-sm font-semibold text-grey-700">
+          <p className="text-sm font-semibold text-foreground">
             Map Coordinates{" "}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -426,7 +429,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
                 <Checkbox.Indicator className="[&_svg]:text-white!" />
               </Checkbox.Control>
               <div>
-                <Label className="cursor-pointer text-sm text-grey-700">
+                <Label className="cursor-pointer text-sm text-foreground">
                   I confirm that the pin location on the map is correct
                 </Label>
                 {errors.isPinConfirmed && (

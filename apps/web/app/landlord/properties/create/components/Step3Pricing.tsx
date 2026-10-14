@@ -29,7 +29,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
         <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
           Pricing
         </h2>
-        <p className="text-grey-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           Set your rental rate and required deposit.
         </p>
       </div>
@@ -42,11 +42,11 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           isInvalid={!!errors.monthly_rent}
         >
           <Label>Monthly Rent</Label>
-          <NumberField.Group className="rounded-lg border border-grey-300 focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2">
-            <span className="text-grey-400 text-sm pointer-events-none">₱</span>
-            <NumberField.Input className="w-full" />
+          <NumberField.Group className="rounded-lg border border-border focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2 bg-card">
+            <span className="text-muted-foreground text-sm pointer-events-none">₱</span>
+            <NumberField.Input className="w-full bg-transparent text-foreground" />
           </NumberField.Group>
-          <Description className="text-grey-500">
+          <Description className="text-muted-foreground">
             The base monthly rental rate tenants will see on the listing.
           </Description>
           <FieldError>{errors.monthly_rent}</FieldError>
@@ -62,7 +62,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Security Deposit</Label>
-            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -81,7 +81,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               </ListBox>
             </Select.Popover>
           </Select>
-          <p className="text-grey-500 text-xs mt-1">Optional — 1 to 2 months of rent. Refundable upon move-out.</p>
+          <p className="text-muted-foreground text-xs mt-1">Optional — 1 to 2 months of rent. Refundable upon move-out.</p>
         </div>
 
         <div>
@@ -93,7 +93,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Advance Rent</Label>
-            <Select.Trigger className="rounded-lg border cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -111,40 +111,40 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               </ListBox>
             </Select.Popover>
           </Select>
-          <p className="text-grey-500 text-xs mt-1">Optional — up to 1 month of rent, applied to the first or last month(s).</p>
+          <p className="text-muted-foreground text-xs mt-1">Optional — up to 1 month of rent, applied to the first or last month(s).</p>
         </div>
       </div>
       </div>
 
       {/* Move-in cost summary — only show when values are set */}
       {formData.monthly_rent > 0 && (
-        <div className="bg-grey-50 border border-grey-200 rounded-2xl p-5 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-grey-700">
+        <div className="bg-muted border border-border rounded-2xl p-5 flex flex-col gap-3">
+          <p className="text-sm font-semibold text-foreground">
             Estimated Move-in Cost
           </p>
 
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm">
-              <span className="text-grey-500">Monthly Rent</span>
+              <span className="text-muted-foreground">Monthly Rent</span>
               <span className="font-medium">
                 ₱ {formData.monthly_rent.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-grey-500">Security Deposit</span>
+              <span className="text-muted-foreground">Security Deposit</span>
               <span className="font-medium">
                 ₱ {securityDepositAmount.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-grey-500">Advance Rent</span>
+              <span className="text-muted-foreground">Advance Rent</span>
               <span className="font-medium">
                 ₱ {advanceRentAmount.toLocaleString()}
               </span>
             </div>
           </div>
 
-          <div className="border-t border-grey-200 pt-3 flex justify-between text-sm font-semibold">
+          <div className="border-t border-border pt-3 flex justify-between text-sm font-semibold">
             <span>Total</span>
             <span className="text-primary">₱ {total.toLocaleString()}</span>
           </div>
@@ -156,7 +156,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
         <p className="text-sm font-medium mb-1">
           Lease Agreement Document <span className="text-danger">*</span>
         </p>
-        <p className="text-xs text-grey-500 mb-3">
+        <p className="text-xs text-muted-foreground mb-3">
           Upload a sample lease agreement for potential tenants to review. (PDF or DOCX)
         </p>
 
@@ -175,10 +175,10 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
                 <IconFileText size={20} />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-grey-800 line-clamp-1">
+                <span className="text-sm font-medium text-foreground line-clamp-1">
                   {formData.lease_agreement.name}
                 </span>
-                <span className="text-xs text-grey-500">
+                <span className="text-xs text-muted-foreground">
                   {Math.round(formData.lease_agreement.size / 1024)} KB
                 </span>
               </div>
@@ -206,15 +206,15 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             className={`w-full h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition ${
               errors.lease_agreement
                 ? "border-danger bg-danger/5"
-                : "border-grey-300 hover:border-primary hover:bg-primary/5"
+                : "border-border hover:border-primary hover:bg-primary/5"
             }`}
             onClick={() => leaseAgreementRef.current?.click()}
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <IconUpload size={18} className="text-primary" />
             </div>
-            <p className="text-grey-600 font-medium text-sm">Click to upload doc</p>
-            <p className="text-grey-400 text-xs mt-1">PDF, DOCX up to 10MB</p>
+            <p className="text-foreground font-medium text-sm">Click to upload doc</p>
+            <p className="text-muted-foreground text-xs mt-1">PDF, DOCX up to 10MB</p>
           </div>
         )}
 

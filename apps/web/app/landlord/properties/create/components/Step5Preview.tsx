@@ -27,7 +27,7 @@ import type { ApartmentFormData } from "../page";
 const GoogleMapPreview = dynamic(() => import("../../components/GoogleMapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-72 rounded-2xl bg-grey-100 animate-pulse border border-grey-200" />
+    <div className="w-full h-72 rounded-2xl bg-muted animate-pulse border border-border" />
   ),
 });
 
@@ -121,12 +121,12 @@ export default function Step5Preview({ formData }: Props) {
             <div>
               <h1 className="text-3xl font-medium font-noto-serif text-primary">
                 {formData.name || (
-                  <span className="text-grey-300">Untitled Listing</span>
+                  <span className="text-muted-foreground">Untitled Listing</span>
                 )}
               </h1>
-              <h3 className="text-grey-600 mt-1 text-sm">
+              <h3 className="text-muted-foreground mt-1 text-sm">
                 {fullAddress || (
-                  <span className="text-grey-300">No address provided</span>
+                  <span className="text-muted-foreground">No address provided</span>
                 )}
               </h3>
             </div>
@@ -144,8 +144,8 @@ export default function Step5Preview({ formData }: Props) {
                 { icon: IconArmchair, label: formData.furnished_type || "—" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex gap-2 items-center">
-                  <Icon size={20} className="text-grey-700 shrink-0" />
-                  <span className="text-sm font-medium text-grey-700">{label}</span>
+                  <Icon size={20} className="text-muted-foreground shrink-0" />
+                  <span className="text-sm font-medium text-foreground">{label}</span>
                 </div>
               ))}
             </div>
@@ -155,9 +155,9 @@ export default function Step5Preview({ formData }: Props) {
             {/* Description */}
             <div>
               <h3 className="text-lg font-medium mb-2">Description</h3>
-              <p className="text-grey-700 whitespace-pre-line text-sm leading-relaxed">
+              <p className="text-foreground whitespace-pre-line text-sm leading-relaxed">
                 {formData.description || (
-                  <span className="text-grey-300">No description yet.</span>
+                  <span className="text-muted-foreground">No description yet.</span>
                 )}
               </p>
             </div>
@@ -200,7 +200,7 @@ export default function Step5Preview({ formData }: Props) {
 
           {/* Right column — price card */}
           <div className="w-1/3 flex flex-col gap-5">
-            <Card className="border border-grey-300">
+            <Card className="border border-border">
               <Card.Header>
                 <h2 className="text-3xl font-noto-serif font-medium text-primary">
                   {formatPesoDisplay(formData.monthly_rent)}
@@ -209,9 +209,9 @@ export default function Step5Preview({ formData }: Props) {
               </Card.Header>
 
               <Card.Content>
-                <div className="flex flex-col gap-3 bg-darker-white p-4 rounded-lg">
+                <div className="flex flex-col gap-3 bg-muted p-4 rounded-lg">
                   {/* Header */}
-                  <span className="text-sm font-semibold text-grey-800">
+                  <span className="text-sm font-semibold text-foreground">
                     Estimated Move-in Cost
                   </span>
 
@@ -222,7 +222,7 @@ export default function Step5Preview({ formData }: Props) {
                     { label: "Advance Rent", amount: advanceRentAmount },
                   ].map(({ label, amount }) => (
                     <div key={label} className="flex justify-between text-sm">
-                      <span className="text-grey-500">{label}</span>
+                      <span className="text-muted-foreground">{label}</span>
                       <span className="font-medium">{formatPesoDisplay(amount)}</span>
                     </div>
                   ))}
@@ -230,7 +230,7 @@ export default function Step5Preview({ formData }: Props) {
                   {/* Divider + Total */}
                   <Separator />
                   <div className="flex justify-between text-sm">
-                    <span className="font-bold text-grey-800">Total</span>
+                    <span className="font-bold text-foreground">Total</span>
                     <span className="font-bold text-primary">
                       {formatPesoDisplay(
                         formData.monthly_rent +

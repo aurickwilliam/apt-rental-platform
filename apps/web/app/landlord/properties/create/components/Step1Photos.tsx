@@ -51,7 +51,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
         <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
           Photos & Title
         </h2>
-        <p className="text-grey-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           Add a cover photo and additional images, then give your listing a name.
         </p>
       </div>
@@ -65,9 +65,9 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
         <Label>Listing Title</Label>
         <Input
           placeholder="e.g. Cozy 1BR Studio near BGC"
-          className="rounded-lg"
+          className="rounded-lg bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
         />
-        <Description>This is the first thing tenants will see.</Description>
+        <Description className="text-muted-foreground">This is the first thing tenants will see.</Description>
         <FieldError>{errors.name}</FieldError>
       </TextField>
 
@@ -115,15 +115,15 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
             className={`w-full h-72 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition ${
               errors.thumbnail
                 ? "border-danger bg-danger/5"
-                : "border-grey-300 hover:border-primary hover:bg-primary/5"
+                : "border-border hover:border-primary hover:bg-primary/5"
             }`}
             onClick={() => thumbnailRef.current?.click()}
           >
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                <IconUpload size={22} className="text-primary" />
             </div>
-            <p className="text-grey-600 font-medium text-sm">Click to upload cover photo</p>
-            <p className="text-grey-400 text-xs mt-1">PNG, JPG up to 10MB</p>
+            <p className="text-foreground font-medium text-sm">Click to upload cover photo</p>
+            <p className="text-muted-foreground text-xs mt-1">PNG, JPG up to 10MB</p>
           </div>
         )}
 
@@ -170,24 +170,24 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
 
           {/* Add more */}
           <div
-            className="h-32 border-2 border-dashed border-grey-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition"
+            className="h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition"
             onClick={() => additionalRef.current?.click()}
           >
-            <IconPhotoPlus size={20} className="text-grey-400 mb-1" />
-            <p className="text-grey-400 text-xs">Add photo</p>
+            <IconPhotoPlus size={20} className="text-muted-foreground mb-1" />
+            <p className="text-muted-foreground text-xs">Add photo</p>
           </div>
         </div>
 
         <div className="flex items-center justify-between mt-2">
           {formData.additionalPhotos.length > 0 ? (
-            <p className="text-xs text-grey-400">
+            <p className="text-xs text-muted-foreground">
               {formData.additionalPhotos.length} photo{formData.additionalPhotos.length !== 1 ? "s" : ""} added
               {formData.additionalPhotos.length < 2 && (
                 <span className="text-warning ml-1">— add {2 - formData.additionalPhotos.length} more</span>
               )}
             </p>
           ) : (
-            <p className="text-xs text-grey-400">Minimum 3 additional photos required</p>
+            <p className="text-xs text-muted-foreground">Minimum 3 additional photos required</p>
           )}
         </div>
 
