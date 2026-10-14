@@ -190,7 +190,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/chat.tsx": {
-    "mtime": 1791979309.2020757,
+    "mtime": 1791988622.8301692,
     "ast_hash": "c1aa90e9baa0f9be31d8e3b140ed7f98",
     "semantic_hash": ""
   },
@@ -215,7 +215,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/chat.tsx": {
-    "mtime": 1791979309.2019467,
+    "mtime": 1791988609.6233242,
     "ast_hash": "92b9b7f98fb1ce2eb7b67682326a016d",
     "semantic_hash": ""
   },
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791988022.4621475,
-    "ast_hash": "4db0c481eb5288e5585fdb77c87aa944",
+    "mtime": 1791988859.14193,
+    "ast_hash": "ddf7bf13e9ba3ea05de8ef940e7fc9cf",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -525,8 +525,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.tsx": {
-    "mtime": 1791988022.4626708,
-    "ast_hash": "81f2a8d89dafb7bcaffafe579aa079b0",
+    "mtime": 1791988859.1413085,
+    "ast_hash": "645124044469e86244cee7843b5ab76b",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791988443.3183482,
-    "ast_hash": "6152e67ab41f793d21a82d2ec3a40bf5",
+    "mtime": 1791988902.5565696,
+    "ast_hash": "7cbbeb8e867299cb7ad041b4ed197ed1",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -7270,8 +7270,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationListState.tsx": {
-    "mtime": 1791966473.6073916,
-    "ast_hash": "1f15cb0a559d70ac548d18ce8a108088",
+    "mtime": 1791988595.1007025,
+    "ast_hash": "1349972ac6dc0674be743a5ee172ed79",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationMoreSheet.test.tsx": {
@@ -7472,6 +7472,11 @@
   "apps/mobile/app/chat/components/HoldStack.tsx": {
     "mtime": 1791987529.1969683,
     "ast_hash": "b2bb0189f4514ece3c344320e619185d",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/chat/ConversationListSkeleton.tsx": {
+    "mtime": 1791988595.0689955,
+    "ast_hash": "eac182b8c67b930f5cf8d53f68901cbc",
     "semantic_hash": ""
   }
 }
