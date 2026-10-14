@@ -1,6 +1,6 @@
 "use client";
 
-import { Hammer } from "lucide-react";
+import { IconTools as Hammer } from "@tabler/icons-react";
 
 export default function MaintenanceEmptyState() {
   return (

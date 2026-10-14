@@ -15,7 +15,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
-import { ArrowLeft, Mail, MapPin, Phone, FileText, Eye, Check, X, ShieldCheck } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";

@@ -2,7 +2,7 @@
 import Image from "next/image";
 
 import { Button, Chip, Dropdown, Table } from "@heroui/react";
-import { Star, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import { STATUS_COLOR } from "./propertyConstants";
 import type { Property } from "./propertyTypes";

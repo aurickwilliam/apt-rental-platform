@@ -1,5 +1,5 @@
 import { Modal, Button } from "@heroui/react";
-import { CircleAlert } from "lucide-react";
+import { IconAlertCircle as CircleAlert } from "@tabler/icons-react";
 
 interface ErrorModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 "use client";
 import { Breadcrumbs, Card, Chip, Separator } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Building2, CheckCircle2, ShieldCheck, Globe2 } from "lucide-react";
+import { IconBuilding as Building2, IconCircleCheck as CheckCircle2, IconShieldCheck as ShieldCheck, IconGlobe as Globe2 } from "@tabler/icons-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Button } from "@heroui/react";
-import { CheckCircle2, AlertCircle, XCircle, Download, Share2 } from "lucide-react";
+import { IconCircleCheck as CheckCircle2, IconAlertCircle as AlertCircle, IconCircleX as XCircle, IconDownload as Download, IconShare as Share2 } from "@tabler/icons-react";
 import { formatPesoDisplay } from "../utils";
 import type { PaymentStatus } from "../types";
 import ZigzagEdge from "./ZigzagEdge";

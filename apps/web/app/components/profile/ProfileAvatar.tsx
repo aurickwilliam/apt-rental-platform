@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Avatar, Button, Spinner } from "@heroui/react";
-import { Camera } from "lucide-react";
+import { IconCamera as Camera } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
 

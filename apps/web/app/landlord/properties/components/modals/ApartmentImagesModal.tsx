@@ -9,9 +9,10 @@ import {
   Chip,
 } from "@heroui/react";
 
-import { X, ImagePlus, Star } from "lucide-react";
+import { IconX as X, IconPhotoPlus as ImagePlus, IconStar as Star } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
+import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
 
 type ApartmentImage = {
   id:       string;
@@ -38,6 +39,7 @@ export default function ApartmentImagesModal({
   const [localImages, setLocalImages] = useState<ApartmentImage[]>(images);
   const [uploading, setUploading]     = useState(false);
   const [deleting, setDeleting]       = useState<string | null>(null);
+  const [imagePendingDelete, setImagePendingDelete] = useState<ApartmentImage | null>(null);
   const fileInputRef                  = useRef<HTMLInputElement>(null);
 
   // Take new images from the parent without an effect round-trip.
@@ -135,12 +137,13 @@ export default function ApartmentImagesModal({
   };
 
   return (
-    <Modal>
-      <Modal.Backdrop
-        isOpen={isOpen}
-        onOpenChange={(open) => !open && handleDone()}
-        className="z-99"
-      >
+    <>
+      <Modal>
+        <Modal.Backdrop
+          isOpen={isOpen}
+          onOpenChange={(open) => !open && handleDone()}
+          className="z-99"
+        >
         <Modal.Container
           size="lg"
           scroll="inside"
@@ -156,29 +159,31 @@ export default function ApartmentImagesModal({
 
             <Modal.Body className="flex flex-col gap-4">
               {/* Upload area */}
-              <div
-                className="relative border-2 border-dashed border-default-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
+              <Button
+                type="button"
+                variant="tertiary"
+                className="h-auto w-full rounded-xl border-2 border-dashed border-default-200 p-6 hover:border-primary focus-visible:border-primary"
+                onPress={() => fileInputRef.current?.click()}
+                isDisabled={uploading}
+                aria-describedby="upload-images-description"
               >
-                <ImagePlus size={28} className="text-grey-400" />
-                <p className="text-sm text-grey-500 font-medium">Click to upload images</p>
-                <p className="text-xs text-grey-400">JPEG, PNG, WEBP · Max 5MB each</p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  className="hidden"
-                  onChange={handleUpload}
-                />
-              </div>
+                <span className="flex flex-col items-center gap-2">
+                  <ImagePlus size={28} className="text-grey-400" aria-hidden="true" />
+                  <span className="text-sm text-grey-500 font-medium">Upload images</span>
+                  <span id="upload-images-description" className="text-xs text-grey-400">JPEG, PNG, WEBP · Max 5MB each</span>
+                </span>
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="hidden"
+                onChange={handleUpload}
+              />
 
               {uploading && (
-                <p className="text-sm text-primary text-center animate-pulse">Uploading...</p>
+                <p className="text-sm text-primary text-center animate-pulse" aria-live="polite">Uploading…</p>
               )}
 
               {/* Image grid */}
@@ -189,7 +194,7 @@ export default function ApartmentImagesModal({
               ) : (
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   {localImages.map((image) => (
-                    <div key={image.id} className="relative group rounded-xl overflow-hidden aspect-video">
+                    <div key={image.id} className="relative group rounded-xl overflow-hidden aspect-video focus-within:ring-2 focus-within:ring-primary">
                       <Image src={image.url} alt="Apartment" fill unoptimized className="object-cover" />
 
                       {/* Cover badge */}
@@ -206,7 +211,7 @@ export default function ApartmentImagesModal({
                       )}
 
                       {/* Overlay on hover */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         {!image.is_cover && (
                           <Button
                             size="sm" 
@@ -217,14 +222,15 @@ export default function ApartmentImagesModal({
                             Set Cover
                           </Button>
                         )}
-                        <Button
-                          isIconOnly 
-                          size="sm" 
-                          className="bg-danger/90"
-                          isPending={deleting === image.id}
-                          onPress={() => handleDelete(image)}
-                        >
-                          <X size={14} className="text-white" />
+                          <Button
+                            isIconOnly 
+                            size="sm" 
+                            className="bg-danger/90"
+                            aria-label="Delete apartment image"
+                            isDisabled={deleting !== null}
+                            onPress={() => setImagePendingDelete(image)}
+                          >
+                            <X size={14} className="text-white" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>
@@ -240,7 +246,20 @@ export default function ApartmentImagesModal({
             </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+        </Modal.Backdrop>
+      </Modal>
+      <RemovePhotoConfirmModal
+        isOpen={imagePendingDelete !== null}
+        title="Delete image?"
+        description="This permanently removes the image from this property."
+        confirmLabel="Delete image"
+        isRemoving={deleting !== null}
+        onClose={() => setImagePendingDelete(null)}
+        onConfirm={() => {
+          if (!imagePendingDelete) return;
+          void handleDelete(imagePendingDelete).then(() => setImagePendingDelete(null));
+        }}
+      />
+    </>
   );
 }

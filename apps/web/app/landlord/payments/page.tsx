@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
-import { ArrowLeft, Banknote, Receipt, SlidersHorizontal } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
 import type { PaymentRecord } from "@/service/paymentService";

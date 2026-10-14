@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
-import { ArrowLeft, UserRoundKey, Building, Sparkles } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconKey as UserRoundKey, IconBuilding as Building, IconSparkles as Sparkles } from "@tabler/icons-react";
 
 import Link from "next/link";
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@heroui/react";
-import { Home } from "lucide-react";
+import { IconHome as Home } from "@tabler/icons-react";
 
 type TenancyEmptyStateProps = {
   description?: string;
