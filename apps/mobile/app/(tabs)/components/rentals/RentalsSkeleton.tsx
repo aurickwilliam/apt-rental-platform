@@ -53,14 +53,11 @@ export default function RentalsSkeleton() {
 
       {/* Quick Actions */}
       <View className="flex gap-3">
-        <View className="flex-row items-center gap-2">
-          <Skeleton className="size-6 rounded-md" />
-          <Skeleton className="h-5 w-32 rounded-md" />
-        </View>
+        <Skeleton className="h-5 w-32 rounded-md" />
         <View className="flex-row flex-wrap">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <View key={i} className="w-1/4 px-2 mb-4 items-center gap-2">
-              <Skeleton className="aspect-square w-full rounded-2xl" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <View key={i} className="w-1/5 px-1 mb-3 items-center gap-1.5">
+              <Skeleton className="size-12 rounded-xl" />
               <Skeleton className="h-3 w-16 rounded-md" />
             </View>
           ))}

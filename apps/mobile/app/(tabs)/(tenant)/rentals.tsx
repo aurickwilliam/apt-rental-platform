@@ -1,14 +1,14 @@
 import { View, Text, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useRouter, type Href } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
-import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
+import QuickActionsSection from '@/app/(tabs)/components/rentals/QuickActionsSection';
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceSection from '../components/rentals/MaintenanceSection';
@@ -23,11 +23,6 @@ import EmptyState from 'components/display/EmptyState';
 
 import {
   IconAlertCircle,
-  IconLink,
-  IconReceipt,
-  IconSettings,
-  IconHelpCircle,
-  IconClipboardText,
 } from "@tabler/icons-react-native";
 
 import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
@@ -45,18 +40,7 @@ import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from 
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
-interface QuickAction {
-  label: string;
-  icon: ComponentProps<typeof QuickActionButton>['icon'];
-  href: Href;
-}
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { label: "View Receipts", icon: IconReceipt, href: "/tenant/payment/history" },
-  { label: "View Applications", icon: IconClipboardText, href: "/tenant/applications" },
-  { label: "Settings", icon: IconSettings, href: "/settings" },
-  { label: "FAQ", icon: IconHelpCircle, href: "/settings/faq" },
-];
+import type { TenantQuickActionId } from '@/service/tenancy/quickActionsPreference';
 
 interface TabScreenProps {
   children: ReactNode;
@@ -269,6 +253,41 @@ export default function Rentals() {
       router.push(`/profile/landlord/${landlord.id}`);
     };
 
+    const handleQuickActionPress = (actionId: TenantQuickActionId) => {
+      switch (actionId) {
+        case 'receipts':
+          handleViewPaymentHistory();
+          return;
+        case 'applications':
+          handleViewApplications();
+          return;
+        case 'repairs':
+          handleRequestMaintenance();
+          return;
+        case 'repair-history':
+          handleViewHistory();
+          return;
+        case 'my-rental':
+          handleViewDescription();
+          return;
+        case 'message-landlord':
+          handleMessageLandlord();
+          return;
+        case 'passport':
+          router.push('/document-id');
+          return;
+        case 'favorites':
+          router.push('/tenant/favorites');
+          return;
+        case 'settings':
+          router.push('/settings');
+          return;
+        case 'faq':
+          router.push('/settings/faq');
+          return;
+      }
+    };
+
     return (
       <TabScreen
         refreshing={refreshing}
@@ -310,24 +329,12 @@ export default function Rentals() {
         )}
 
         {/* Quick Actions */}
-        <View className="flex mt-5">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconLink size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Quick Actions
-            </Text>
-          </View>
-          <View className="mt-5 flex-row flex-wrap">
-            {QUICK_ACTIONS.map((action) => (
-              <QuickActionButton
-                key={action.label}
-                label={action.label}
-                icon={action.icon}
-                onPress={() => router.push(action.href)}
-              />
-            ))}
-          </View>
-        </View>
+        <QuickActionsSection
+          authUserId={profile?.user_id}
+          isVerifiedAccount={profile?.account_status === 'verified'}
+          hasLandlord={!!landlord}
+          onActionPress={handleQuickActionPress}
+        />
 
         {landlord && (
           <View className="mt-5">
