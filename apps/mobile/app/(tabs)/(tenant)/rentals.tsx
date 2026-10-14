@@ -38,12 +38,11 @@ import { useLightStatusBar } from '@/hooks/useLightStatusBar';
 import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
 import { usePayments } from '@/hooks/payments';
-import { getCurrentRentStatus } from '@/service/payments/paymentService';
 import { buildConversationKey } from '@/service/chat/chatService';
 
 import { Button } from 'heroui-native';
 
-import { formatAddress, formatDate, formatFullName } from '@repo/utils';
+import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 

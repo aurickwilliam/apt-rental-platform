@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
 import { Banknote, CalendarDays, House, MapPin, User, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
 import { formatLeaseDate, periodMonthLabel } from "./utils";
-import { paidAmountForPeriod, resolvePaymentPeriod, createCashPayment } from "@/service/paymentService";
+import { createCashPayment } from "@/service/paymentService";
 import { createCardPayment, createCheckoutSession, PaymongoError } from "@/service/paymongoService";
 import { usePayments } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
@@ -58,7 +58,13 @@ function PaymentContent() {
 
   const apartment = tenancy?.apartment ?? null;
   const landlord = tenancy?.landlord ?? null;
-  const monthlyRent = tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0;
+  // The period being billed now, same rule as mobile and the server's rent
+  // reminders: starts with the lease, due on the tenancy's due day.
+  const period = getCurrentRentStatus(
+    tenancy ? { ...tenancy, currentPayment } : null,
+    paymentsQuery.data ?? [],
+  );
+  const { monthlyRent } = period;
 
   // Pending maintenance fees ride on top of this period's rent.
   const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
@@ -90,20 +96,12 @@ function PaymentContent() {
   const feesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
   const totalDue = monthlyRent + feesTotal;
 
-  const period = useMemo(
-    () =>
-      resolvePaymentPeriod(
-        currentPayment?.period_start ?? null,
-        currentPayment?.period_end ?? null,
-        currentPayment?.due_date ?? null,
-      ),
-    [currentPayment?.period_start, currentPayment?.period_end, currentPayment?.due_date],
-  );
   const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
   const yearLabel = period.periodStart.slice(0, 4);
 
   // Full-amount policy: rent + pending fees are always billed whole. A fully
-  // paid period cannot be paid again (prevents double-payment/overpay).
+  // paid period cannot be paid again (prevents double-payment/overpay). With
+  // no pending fees this is the shared `period.isFullyPaid`.
   const isPeriodPaid =
     totalDue > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= totalDue;
 
