@@ -2,7 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import Chat from './chat';
 
+import type { ConversationListItem } from '@/service/chat/conversationList';
 import type { ConversationWithMeta } from '@/service/chat/conversationService';
+import { DEFAULT_CONVERSATION_PREFERENCES } from '@/service/chat/conversationPreferences';
 
 const MY_ID = 'tenant-1';
 const LANDLORD_ID = 'landlord-1';
@@ -20,6 +22,11 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+jest.mock('react-native-gesture-handler', () => {
+  const { FlatList, RefreshControl } = jest.requireActual<typeof import('react-native')>('react-native');
+  return { FlatList, RefreshControl };
+});
+
 jest.mock('components/layout/ScreenWrapper', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { View } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -29,27 +36,43 @@ jest.mock('components/layout/ScreenWrapper', () => {
   return { __esModule: true, default: ScreenWrapperStub };
 });
 
-jest.mock('@/app/(tabs)/components/chat/ConversationRow', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
-  function ConversationRowStub({ conversation }: { conversation: ConversationWithMeta }) {
-    return React.createElement(Text, null, `row:${conversation.other_user_name}`);
-  }
-  return { __esModule: true, default: ConversationRowStub };
-});
-
-jest.mock('@/app/(tabs)/components/chat/MessageCard', () => {
+// Renders each row as text describing its kind, so the list order is testable.
+jest.mock('@/app/(tabs)/components/chat/ConversationListRow', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { Pressable, Text } = jest.requireActual<typeof import('react-native')>('react-native');
-  function MessageCardStub({ name, lastMessage, onPress }: { name: string; lastMessage: string; onPress: () => void }) {
-    return React.createElement(
-      Pressable,
-      { onPress, accessibilityRole: 'button', accessibilityLabel: `shortcut:${name}` },
-      React.createElement(Text, null, lastMessage)
-    );
+  function RowStub({
+    item,
+    onStartLandlordChat,
+  }: {
+    item: ConversationListItem;
+    onStartLandlordChat?: (item: ConversationListItem) => void;
+  }) {
+    switch (item.kind) {
+      case 'conversation':
+        return React.createElement(
+          Text,
+          null,
+          `row:${item.conversation.other_user_name}${item.isPinLocked ? ':locked' : ''}`
+        );
+      case 'landlord-shortcut':
+        return React.createElement(
+          Pressable,
+          { accessibilityLabel: `shortcut:${item.landlordName}`, onPress: () => onStartLandlordChat?.(item) },
+          React.createElement(Text, null, 'shortcut')
+        );
+      case 'separator':
+        return React.createElement(Text, null, 'separator');
+      case 'archived':
+        return React.createElement(Text, null, `archived:${item.count}`);
+    }
   }
-  return { __esModule: true, default: MessageCardStub };
+  return { __esModule: true, default: RowStub };
 });
+
+jest.mock('@/app/(tabs)/components/chat/ConversationActionOverlays', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('@/app/(tabs)/components/chat/ConversationListHeader', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -89,15 +112,18 @@ jest.mock('@/hooks/chat', () => ({
     error: null,
     refetch: jest.fn().mockResolvedValue(undefined),
     markConversationRead: jest.fn(),
+    updatePreferences: jest.fn(),
+    setBlocked: jest.fn(),
+  }),
+  useConversationRowActions: () => ({
+    rowHandlers: { openMore: jest.fn(), togglePin: jest.fn(), toggleArchive: jest.fn() },
+    overlays: {},
   }),
 }));
 
 jest.mock('@/hooks/tenancy', () => ({
   useTenancy: () => ({ tenancy: mockTenancy, refetch: jest.fn().mockResolvedValue(undefined) }),
 }));
-
-// heroui-native ships untranspiled ESM that Jest cannot parse.
-jest.mock('heroui-native', () => ({ Separator: () => null }));
 
 jest.mock('@repo/supabase', () => ({ supabase: {} }));
 
@@ -117,6 +143,7 @@ function makeConversation(overrides: Partial<ConversationWithMeta>): Conversatio
     last_sender_id: null,
     last_sender_is_me: false,
     conversation_type: 'inquiry',
+    ...DEFAULT_CONVERSATION_PREFERENCES,
     ...overrides,
   };
 }
@@ -126,6 +153,12 @@ const activeTenancy = {
   apartment: { id: APARTMENT_ID, name: 'Sunrise Loft' },
 };
 
+function renderedRows(): string[] {
+  return screen
+    .getAllByText(/^(row:|shortcut|separator|archived:)/)
+    .map((node) => String(node.props.children));
+}
+
 beforeEach(() => {
   mockPush.mockClear();
   mockConversations = [];
@@ -133,12 +166,54 @@ beforeEach(() => {
 });
 
 describe('tenant Messages tab', () => {
-  it('offers a shortcut to message the current landlord before any chat exists', () => {
+  it('pins the current landlord on top, then a separator, with no section headers', () => {
+    mockTenancy = activeTenancy;
+    mockConversations = [
+      makeConversation({ conversation_key: 'other', other_user_name: 'Other Landlord' }),
+      makeConversation({
+        conversation_key: 'landlord-chat',
+        other_user_id: LANDLORD_ID,
+        other_user_name: 'Lara Cruz',
+        apartment_id: APARTMENT_ID,
+      }),
+    ];
+
+    render(<Chat />);
+
+    expect(renderedRows()).toEqual(['row:Lara Cruz:locked', 'separator', 'row:Other Landlord']);
+    expect(screen.queryByText('Current Landlord')).toBeNull();
+  });
+
+  it('puts user-pinned chats after the landlord and archived chats behind a row', () => {
+    mockTenancy = activeTenancy;
+    mockConversations = [
+      makeConversation({ conversation_key: 'a', other_user_name: 'Archived One', is_archived: true }),
+      makeConversation({ conversation_key: 'p', other_user_name: 'Pinned One', is_pinned: true, pinned_at: '2026-01-02T00:00:00Z' }),
+      makeConversation({
+        conversation_key: 'landlord-chat',
+        other_user_id: LANDLORD_ID,
+        other_user_name: 'Lara Cruz',
+        apartment_id: APARTMENT_ID,
+      }),
+      makeConversation({ conversation_key: 'o', other_user_name: 'Other' }),
+    ];
+
+    render(<Chat />);
+
+    expect(renderedRows()).toEqual([
+      'row:Lara Cruz:locked',
+      'row:Pinned One',
+      'separator',
+      'row:Other',
+      'archived:1',
+    ]);
+  });
+
+  it('offers a pinned shortcut to message the current landlord before any chat exists', () => {
     mockTenancy = activeTenancy;
 
     render(<Chat />);
 
-    expect(screen.getByText('Current Landlord')).toBeTruthy();
     fireEvent.press(screen.getByLabelText('shortcut:Lara Cruz'));
 
     expect(mockPush).toHaveBeenCalledWith({
@@ -150,25 +225,6 @@ describe('tenant Messages tab', () => {
       }),
     });
     expect(JSON.stringify(mockPush.mock.calls[0][0])).not.toContain('Phone');
-  });
-
-  it('shows the real conversation instead of the shortcut once one exists', () => {
-    mockTenancy = activeTenancy;
-    mockConversations = [
-      makeConversation({
-        conversation_key: 'landlord-chat',
-        other_user_id: LANDLORD_ID,
-        other_user_name: 'Lara Cruz',
-        apartment_id: APARTMENT_ID,
-      }),
-      makeConversation({ conversation_key: 'other-chat', other_user_name: 'Other Landlord' }),
-    ];
-
-    render(<Chat />);
-
-    expect(screen.getByText('row:Lara Cruz')).toBeTruthy();
-    expect(screen.queryByLabelText('shortcut:Lara Cruz')).toBeNull();
-    expect(screen.getByText('Other Conversations (1)')).toBeTruthy();
   });
 
   it('shows the empty state with no tenancy and no conversations', () => {

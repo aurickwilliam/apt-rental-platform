@@ -11,6 +11,7 @@ import { beginViewingConversation } from "./conversationReadState";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
 import type { ConversationWithMeta } from "@/service/chat/conversationService";
+import { DEFAULT_CONVERSATION_PREFERENCES } from "@/service/chat/conversationPreferences";
 
 const MY_ID = "user-1";
 const mockUseCurrentUser = jest.fn();
@@ -19,6 +20,7 @@ const mockChannelFn = jest.fn();
 const mockRemoveChannel = jest.fn();
 const mockGetChannels = jest.fn();
 const mockMarkMessagesAsRead = jest.fn();
+const mockSetConversationPreference = jest.fn();
 let chatInsertCallback:
   | ((payload: { new?: unknown }) => void)
   | undefined;
@@ -43,9 +45,12 @@ jest.mock("@repo/supabase", () => ({
   },
 }));
 
-jest.mock("@/service/chat/chatService", () => ({
-  ...jest.requireActual("@/service/chat/chatService"),
-  markMessagesAsRead: (...args: unknown[]) => mockMarkMessagesAsRead(...args),
+jest.mock("@/service/chat/conversationActionsService", () => ({
+  ...jest.requireActual("@/service/chat/conversationActionsService"),
+  markConversationRead: (...args: unknown[]) => mockMarkMessagesAsRead(...args),
+  setConversationPreference: (...args: unknown[]) => mockSetConversationPreference(...args),
+  blockUser: jest.fn(),
+  unblockUser: jest.fn(),
 }));
 
 jest.mock("@/service/chat/conversationService", () => ({
@@ -69,6 +74,7 @@ const seedConversations: ConversationWithMeta[] = [
     last_sender_id: null,
     last_message_type: "text",
     conversation_type: "tenant",
+    ...DEFAULT_CONVERSATION_PREFERENCES,
   },
   {
     other_user_id: "other-2",
@@ -85,6 +91,7 @@ const seedConversations: ConversationWithMeta[] = [
     last_sender_id: null,
     last_message_type: "text",
     conversation_type: "inquiry",
+    ...DEFAULT_CONVERSATION_PREFERENCES,
   },
 ];
 
@@ -109,6 +116,7 @@ beforeEach(() => {
   });
   mockFetchConversations.mockResolvedValue(seedConversations);
   mockMarkMessagesAsRead.mockResolvedValue(undefined);
+  mockSetConversationPreference.mockResolvedValue(undefined);
   mockGetChannels.mockReturnValue([]);
   mockChannelFn.mockImplementation((name: string) => {
     const channel = {
@@ -325,7 +333,7 @@ describe("useConversations", () => {
         )?.unread_count,
       ).toBe(0),
     );
-    expect(mockMarkMessagesAsRead).toHaveBeenCalledWith(MY_ID, "other-2", "apt-2");
+    expect(mockMarkMessagesAsRead).toHaveBeenCalledWith({ otherUserId: "other-2", apartmentId: "apt-2" });
 
     unmount();
   });
@@ -379,6 +387,101 @@ describe("useConversations", () => {
     );
 
     consoleSpy.mockRestore();
+    unmount();
+  });
+
+  it("archives optimistically and saves the change", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+    await waitFor(() => expect(result.current.conversations).toHaveLength(2));
+
+    const pinned = { ...result.current.conversations[0], is_pinned: true };
+    await act(async () => {
+      await result.current.updatePreferences(pinned, { archived: true });
+    });
+
+    await waitFor(() =>
+      expect(result.current.conversations[0]).toMatchObject({ is_archived: true, is_pinned: false }),
+    );
+    expect(mockSetConversationPreference).toHaveBeenCalledWith(
+      { otherUserId: "other-1", apartmentId: "apt-1" },
+      { archived: true },
+    );
+
+    unmount();
+  });
+
+  it("puts the preference back and rethrows when saving fails", async () => {
+    mockSetConversationPreference.mockRejectedValueOnce(new Error("offline"));
+    const { client, QueryWrapper } = createWrapper();
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+    await waitFor(() => expect(result.current.conversations).toHaveLength(2));
+
+    await act(async () => {
+      await expect(
+        result.current.updatePreferences(result.current.conversations[0], { pinned: true }),
+      ).rejects.toThrow("offline");
+    });
+
+    await waitFor(() =>
+      expect(result.current.conversations[0]).toMatchObject({ is_pinned: false, pinned_at: null }),
+    );
+
+    unmount();
+  });
+
+  it("brings an archived conversation back when a new message arrives", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), [
+      { ...seedConversations[0], is_archived: true },
+      seedConversations[1],
+    ]);
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+    await waitFor(() => expect(chatInsertCallback).toBeDefined());
+
+    await fireChatInsert({
+      sender_id: "other-1",
+      receiver_id: MY_ID,
+      apartment_id: "apt-1",
+      message: "are you there?",
+      message_type: "text",
+      created_at: "2026-01-01T00:05:00Z",
+    });
+
+    await waitFor(() =>
+      expect(result.current.conversations[0]).toMatchObject({
+        other_user_id: "other-1",
+        is_archived: false,
+      }),
+    );
+
+    unmount();
+  });
+
+  it("does not open a realtime channel when subscribe is false", async () => {
+    const { QueryWrapper } = createWrapper();
+
+    const { unmount } = renderHook(
+      () => useConversations("tenant", { subscribe: false }),
+      { wrapper: QueryWrapper },
+    );
+    await act(async () => {});
+
+    expect(mockChannelFn).not.toHaveBeenCalled();
     unmount();
   });
 

@@ -29,12 +29,57 @@ export function filterConversations(
   );
 }
 
+/** Unread messages, or marked unread by the user. */
+export function hasUnread(conversation: ConversationWithMeta): boolean {
+  return conversation.unread_count > 0 || conversation.marked_unread;
+}
+
 /** Unread conversations first; newest-first order preserved within each group. */
 export function sortUnreadFirst(conversations: ConversationWithMeta[]): ConversationWithMeta[] {
   return [
-    ...conversations.filter((conversation) => conversation.unread_count > 0),
-    ...conversations.filter((conversation) => conversation.unread_count <= 0),
+    ...conversations.filter(hasUnread),
+    ...conversations.filter((conversation) => !hasUnread(conversation)),
   ];
+}
+
+export type ConversationGroups = {
+  /** Always-pinned first (e.g. the current landlord), then newest pin first. */
+  pinned: ConversationWithMeta[];
+  /** Everything else that isn't archived, unread first. */
+  others: ConversationWithMeta[];
+  /** Archived, newest first. */
+  archived: ConversationWithMeta[];
+};
+
+/**
+ * Splits a list into the Messages groups. A conversation `isAlwaysPinned`
+ * matches stays pinned on top even if it was archived.
+ */
+export function groupConversations(
+  conversations: ConversationWithMeta[],
+  isAlwaysPinned: (conversation: ConversationWithMeta) => boolean = () => false
+): ConversationGroups {
+  const alwaysPinned: ConversationWithMeta[] = [];
+  const userPinned: ConversationWithMeta[] = [];
+  const unpinned: ConversationWithMeta[] = [];
+  const archived: ConversationWithMeta[] = [];
+
+  for (const conversation of conversations) {
+    if (isAlwaysPinned(conversation)) alwaysPinned.push(conversation);
+    else if (conversation.is_archived) archived.push(conversation);
+    else if (conversation.is_pinned) userPinned.push(conversation);
+    else unpinned.push(conversation);
+  }
+
+  userPinned.sort(
+    (a, b) => new Date(b.pinned_at ?? 0).getTime() - new Date(a.pinned_at ?? 0).getTime()
+  );
+
+  return {
+    pinned: [...alwaysPinned, ...userPinned],
+    others: sortUnreadFirst(unpinned),
+    archived,
+  };
 }
 
 export function getChatRouteParams(conversation: ConversationWithMeta): ChatRouteParams {
@@ -46,4 +91,58 @@ export function getChatRouteParams(conversation: ConversationWithMeta): ChatRout
     apartmentId: conversation.apartment_id ?? "",
     apartmentTitle: conversation.apartment_name ?? "",
   };
+}
+
+/** One row of a Messages list. */
+export type ConversationListItem =
+  | {
+      kind: "conversation";
+      key: string;
+      conversation: ConversationWithMeta;
+      /** Pinned by the app (current landlord): Pin/Archive are disabled. */
+      isPinLocked: boolean;
+    }
+  | {
+      /** Current landlord before any message: starts the conversation. */
+      kind: "landlord-shortcut";
+      key: string;
+      conversationId: string;
+      landlordId: string;
+      landlordName: string;
+      landlordAvatar: string | null;
+      apartmentId: string;
+      apartmentName: string;
+    }
+  | { kind: "separator"; key: "separator" }
+  | { kind: "archived"; key: "archived"; count: number };
+
+export function toConversationItem(
+  conversation: ConversationWithMeta,
+  isPinLocked = false
+): ConversationListItem {
+  return { kind: "conversation", key: conversation.conversation_key, conversation, isPinLocked };
+}
+
+/**
+ * Pinned rows, then a separator, then the rest, then an "Archived chats" row
+ * when there are any. No section headers (Messenger-style).
+ */
+export function buildConversationListItems({
+  pinned,
+  others,
+  archivedCount,
+}: {
+  pinned: ConversationListItem[];
+  others: ConversationWithMeta[];
+  archivedCount: number;
+}): ConversationListItem[] {
+  const items: ConversationListItem[] = [...pinned];
+  if (pinned.length > 0 && (others.length > 0 || archivedCount > 0)) {
+    items.push({ kind: "separator", key: "separator" });
+  }
+  items.push(...others.map((conversation) => toConversationItem(conversation)));
+  if (archivedCount > 0) {
+    items.push({ kind: "archived", key: "archived", count: archivedCount });
+  }
+  return items;
 }

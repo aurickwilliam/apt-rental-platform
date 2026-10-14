@@ -4,14 +4,23 @@ import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { fetchConversationsWithMetadata } from "@/service/chat/conversationService";
-import { markMessagesAsRead, toMessageType } from "@/service/chat/chatService";
+import { toMessageType } from "@/service/chat/chatService";
+import {
+  blockUser,
+  markConversationRead as markConversationReadOnServer,
+  setConversationPreference,
+  unblockUser,
+  type ConversationPreferenceChange,
+} from "@/service/chat/conversationActionsService";
 
 import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conversationService";
 
 import {
   clearCachedUnreadCount,
   getConversationsQueryKey,
+  getUserConversationsQueryPrefix,
   isViewingConversation,
+  patchCachedConversation,
   restoreCachedUnreadCount,
 } from "./conversationReadState";
 
@@ -38,7 +47,44 @@ type OldChatRow = {
   created_at: string;
 };
 
-export function useConversations(role: ConversationRole) {
+export const getBlockStatusQueryKey = (myId: string | null, otherUserId: string) =>
+  ["block-status", myId, otherUserId] as const;
+
+/** The cached-list fields a preference change sets (mirrors the RPC rules). */
+export function getPreferencePatch(
+  change: ConversationPreferenceChange
+): Partial<ConversationWithMeta> {
+  const patch: Partial<ConversationWithMeta> = {};
+  if (change.pinned !== undefined) {
+    patch.is_pinned = change.pinned;
+    patch.pinned_at = change.pinned ? new Date().toISOString() : null;
+    if (change.pinned) patch.is_archived = false;
+  }
+  if (change.archived !== undefined) {
+    patch.is_archived = change.archived;
+    if (change.archived) {
+      patch.is_pinned = false;
+      patch.pinned_at = null;
+    }
+  }
+  if (change.muted !== undefined) patch.is_muted = change.muted;
+  if (change.markedUnread !== undefined) patch.marked_unread = change.markedUnread;
+  return patch;
+}
+
+interface UseConversationsOptions {
+  /**
+   * Keep the realtime channel for this list. A second screen showing the same
+   * portal's list (e.g. archived chats over the tab) passes false and relies
+   * on the tab's channel, so the channel is never registered twice.
+   */
+  subscribe?: boolean;
+}
+
+export function useConversations(
+  role: ConversationRole,
+  { subscribe = true }: UseConversationsOptions = {}
+) {
   const queryClient = useQueryClient();
   const currentUserQuery = useCurrentUser();
   const myId = currentUserQuery.data?.id ?? null;
@@ -64,7 +110,7 @@ export function useConversations(role: ConversationRole) {
   // before the next run chained .on() onto it (the reported
   // "cannot add postgres_changes callbacks ... after subscribe()" crash).
   useEffect(() => {
-    if (!myId) return;
+    if (!myId || !subscribe) return;
 
     const handleInsert = (payload: { new: unknown }) => {
       const row = payload.new as NewChatRow;
@@ -100,6 +146,8 @@ export function useConversations(role: ConversationRole) {
           last_message_type: toMessageType(row.message_type),
           last_message_time: row.created_at,
           last_sender_is_me: row.sender_id === myId,
+          // The server brings an archived conversation back on a new message.
+          is_archived: false,
           unread_count: countsAsUnread
             ? (next[index].unread_count ?? 0) + 1
             : next[index].unread_count,
@@ -199,7 +247,7 @@ export function useConversations(role: ConversationRole) {
         void supabase.removeChannel(channel);
       }
     };
-  }, [myId, queryClient, queryKey, role]);
+  }, [myId, queryClient, queryKey, role, subscribe]);
 
   // Clears the badge right away, then saves the read state; a failed save
   // puts the badge back so the list never shows a read that didn't happen.
@@ -212,18 +260,85 @@ export function useConversations(role: ConversationRole) {
         ?.find((c) => c.conversation_key === conversationKey);
       if (!conversation) return;
 
-      const previousUnread = clearCachedUnreadCount(queryClient, myId, conversationKey);
+      const previousReadState = clearCachedUnreadCount(queryClient, myId, conversationKey);
 
       try {
-        await markMessagesAsRead(myId, conversation.other_user_id, conversation.apartment_id);
+        await markConversationReadOnServer({
+          otherUserId: conversation.other_user_id,
+          apartmentId: conversation.apartment_id,
+        });
       } catch (markError) {
         console.error("[conversations] Failed to mark conversation as read:", markError);
-        restoreCachedUnreadCount(queryClient, myId, conversationKey, previousUnread);
+        restoreCachedUnreadCount(queryClient, myId, conversationKey, previousReadState);
       } finally {
         void queryClient.invalidateQueries({ queryKey, exact: true, refetchType: "none" });
       }
     },
     [myId, queryClient, queryKey]
+  );
+
+  // Pin / archive / mute / mark unread: the list updates right away and is
+  // put back (and the error rethrown for the screen to show) if saving fails.
+  const updatePreferences = useCallback(
+    async (conversation: ConversationWithMeta, change: ConversationPreferenceChange) => {
+      if (!myId) return;
+
+      const previous = patchCachedConversation(
+        queryClient,
+        myId,
+        conversation.conversation_key,
+        getPreferencePatch(change)
+      );
+
+      try {
+        await setConversationPreference(
+          { otherUserId: conversation.other_user_id, apartmentId: conversation.apartment_id },
+          change
+        );
+      } catch (saveError) {
+        if (previous) {
+          patchCachedConversation(queryClient, myId, conversation.conversation_key, previous);
+        }
+        throw saveError;
+      } finally {
+        void queryClient.invalidateQueries({
+          queryKey: getUserConversationsQueryPrefix(myId),
+          refetchType: "none",
+        });
+      }
+    },
+    [myId, queryClient]
+  );
+
+  // Blocking is per person, so every conversation with them updates.
+  const setBlocked = useCallback(
+    async (otherUserId: string, blocked: boolean) => {
+      if (!myId) return;
+
+      const setBlockedInCache = (value: boolean) =>
+        queryClient.setQueriesData<ConversationWithMeta[]>(
+          { queryKey: getUserConversationsQueryPrefix(myId) },
+          (current) =>
+            current?.map((conversation) =>
+              conversation.other_user_id === otherUserId
+                ? { ...conversation, blocked_by_me: value }
+                : conversation
+            )
+        );
+
+      setBlockedInCache(blocked);
+      try {
+        await (blocked ? blockUser(otherUserId) : unblockUser(otherUserId));
+      } catch (blockError) {
+        setBlockedInCache(!blocked);
+        throw blockError;
+      } finally {
+        void queryClient.invalidateQueries({
+          queryKey: getBlockStatusQueryKey(myId, otherUserId),
+        });
+      }
+    },
+    [myId, queryClient]
   );
 
   const loadError = currentUserQuery.error ?? conversationsQuery.error;
@@ -239,5 +354,7 @@ export function useConversations(role: ConversationRole) {
     error: loadError ? CONVERSATIONS_LOAD_ERROR_MESSAGE : null,
     refetch: conversationsQuery.refetch,
     markConversationRead,
+    updatePreferences,
+    setBlocked,
   };
 }

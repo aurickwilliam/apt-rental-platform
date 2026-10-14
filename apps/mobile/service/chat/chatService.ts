@@ -87,6 +87,8 @@ export type UserProfile = {
   phoneNumber: string | null;
 };
 
+import type { ConversationPreferences } from './conversationPreferences';
+
 export type Conversation = {
   conversation_key: string;
   other_user_id: string;
@@ -103,6 +105,7 @@ export type Conversation = {
   last_sender_id: string | null;
   conversation_type: 'tenant' | 'inquiry';
 };
+
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -248,24 +251,6 @@ export async function insertMessage(params: {
 
   if (error) throw error;
   return data;
-}
-
-export async function markMessagesAsRead(
-  currentUserId: string,
-  otherUserId: string,
-  apartmentId: string | null
-) {
-  let query = supabase
-    .from('chat')
-    .update({ is_read: true })
-    .eq('receiver_id', currentUserId)
-    .eq('sender_id', otherUserId)
-    .eq('is_read', false);
-
-  query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
-
-  const { error } = await query;
-  if (error) throw error;
 }
 
 export async function deleteChatMessage(params: {
@@ -600,14 +585,14 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
  */
 export async function getPortalConversations(
   portal: 'tenant' | 'landlord'
-): Promise<Conversation[]> {
+): Promise<(Conversation & Partial<ConversationPreferences>)[]> {
   const { data, error } = await supabase.rpc('get_portal_conversations', {
     p_portal: portal,
   });
 
   if (error) throw error;
 
-  return (data as Conversation[]).sort(
+  return (data as (Conversation & Partial<ConversationPreferences>)[]).sort(
     (a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
   );
 }

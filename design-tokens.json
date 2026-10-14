@@ -37,7 +37,10 @@
       "warningText": "#92400E",
       "danger": "#E50914",
       "dangerMid": "#FF4B4B",
-      "dangerLight": "#FDA4AF"
+      "dangerLight": "#FDA4AF",
+      "actionMore": "#6B7280",
+      "actionPin": "#D97706",
+      "actionArchive": "#7C3AED"
     },
     "dark": {
       "white": "#121212",
@@ -66,7 +69,10 @@
       "warningText": "#FDE047",
       "danger": "#F87171",
       "dangerMid": "#FCA5A5",
-      "dangerLight": "#2D1515"
+      "dangerLight": "#2D1515",
+      "actionMore": "#6B7280",
+      "actionPin": "#D97706",
+      "actionArchive": "#7C3AED"
     },
     "status": {
       "light": {

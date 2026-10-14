@@ -7,12 +7,30 @@ import {
   type Conversation,
   type MessageType,
 } from "./chatService";
+import {
+  DEFAULT_CONVERSATION_PREFERENCES,
+  type ConversationPreferences,
+} from "./conversationPreferences";
 
-export type ConversationWithMeta = Conversation & {
-  last_sender_is_me?: boolean;
-  last_message_type?: string | null;
-  conversation_type?: "tenant" | "inquiry";
-};
+export type ConversationWithMeta = Conversation &
+  ConversationPreferences & {
+    last_sender_is_me?: boolean;
+    last_message_type?: string | null;
+    conversation_type?: "tenant" | "inquiry";
+  };
+
+function toConversationPreferences(
+  row: Partial<ConversationPreferences>
+): ConversationPreferences {
+  return {
+    is_pinned: row.is_pinned ?? false,
+    pinned_at: row.pinned_at ?? null,
+    is_archived: row.is_archived ?? false,
+    is_muted: row.is_muted ?? false,
+    marked_unread: row.marked_unread ?? false,
+    blocked_by_me: row.blocked_by_me ?? false,
+  };
+}
 
 export type ConversationRole = "tenant" | "landlord";
 
@@ -95,6 +113,7 @@ async function fetchLegacyConversationsWithMetadata(
 
     return {
       ...conv,
+      ...DEFAULT_CONVERSATION_PREFERENCES,
       conversation_type:
         activeTenantConversations?.has(conversationKey) === true ? "tenant" : "inquiry",
       last_sender_is_me: lastSenderIsMeByConversation[conversationKey] ?? false,
@@ -112,6 +131,7 @@ export async function fetchConversationsWithMetadata(
 
     return rows.map((conv) => ({
       ...conv,
+      ...toConversationPreferences(conv),
       last_sender_is_me: conv.last_sender_id === myId,
       last_message_type: toMessageType(conv.last_message_type) ?? "text",
     }));

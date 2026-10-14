@@ -1,12 +1,19 @@
+import type { ComponentProps } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import ConversationRow from './ConversationRow';
 
 import type { ConversationWithMeta } from '@/service/chat/conversationService';
+import { DEFAULT_CONVERSATION_PREFERENCES } from '@/service/chat/conversationPreferences';
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
-    colors: { gray500: '#6C757D' },
+    colors: {
+      gray500: '#6C757D',
+      actionMore: '#6B7280',
+      actionPin: '#D97706',
+      actionArchive: '#7C3AED',
+    },
     isDark: false,
   }),
 }));
@@ -18,9 +25,15 @@ jest.mock('@tabler/icons-react-native', () => {
     return React.createElement(View);
   }
   return {
-    IconCheck: MockIcon,
-    IconPhoto: MockIcon,
+    IconArchive: MockIcon,
+    IconArchiveOff: MockIcon,
+    IconBellOff: MockIcon,
+    IconDots: MockIcon,
     IconGif: MockIcon,
+    IconPhoto: MockIcon,
+    IconPin: MockIcon,
+    IconPinFilled: MockIcon,
+    IconPinnedOff: MockIcon,
     IconPlayerPlayFilled: MockIcon,
   };
 });
@@ -81,21 +94,22 @@ jest.mock('heroui-native', () => {
   };
 });
 
-// Render left actions inline so the Mark read button is tappable in tests.
+// Render the right actions inline so the swipe buttons are tappable in tests.
+const mockClose = jest.fn();
 jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { View } = jest.requireActual<typeof import('react-native')>('react-native');
   function SwipeableStub({
     children,
-    renderLeftActions,
+    renderRightActions,
   }: {
     children: React.ReactNode;
-    renderLeftActions?: () => React.ReactNode;
+    renderRightActions?: (p: unknown, t: unknown, m: { close: () => void }) => React.ReactNode;
   }) {
     return React.createElement(
       View,
       null,
-      renderLeftActions?.(),
+      renderRightActions?.(null, null, { close: mockClose }),
       children
     );
   }
@@ -105,7 +119,7 @@ jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
   };
 });
 
-function makeConversation(unreadCount: number): ConversationWithMeta {
+function makeConversation(overrides: Partial<ConversationWithMeta> = {}): ConversationWithMeta {
   return {
     conversation_key: 'user-9:apt-9',
     other_user_id: 'user-9',
@@ -117,56 +131,71 @@ function makeConversation(unreadCount: number): ConversationWithMeta {
     last_message: 'Is parking included?',
     last_message_type: 'text',
     last_message_time: '2026-01-01T00:00:00Z',
-    unread_count: unreadCount,
+    unread_count: 0,
     last_sender_id: null,
     last_sender_is_me: false,
     conversation_type: 'inquiry',
+    ...DEFAULT_CONVERSATION_PREFERENCES,
+    ...overrides,
   };
 }
 
+function renderRow(
+  conversation: ConversationWithMeta,
+  props: Partial<ComponentProps<typeof ConversationRow>> = {}
+) {
+  const handlers = {
+    onOpen: jest.fn(),
+    onMore: jest.fn(),
+    onTogglePin: jest.fn(),
+    onToggleArchive: jest.fn(),
+  };
+  render(<ConversationRow conversation={conversation} {...handlers} {...props} />);
+  return handlers;
+}
+
+beforeEach(() => {
+  mockClose.mockClear();
+});
+
 describe('ConversationRow', () => {
   it('opens the conversation on press', () => {
-    const onOpen = jest.fn();
-    render(
-      <ConversationRow
-        conversation={makeConversation(0)}
-        onOpen={onOpen}
-        onMarkRead={jest.fn()}
-      />
-    );
+    const { onOpen } = renderRow(makeConversation());
 
-    fireEvent.press(
-      screen.getByLabelText('Chat with Ben Cruz about Harbor View')
-    );
+    fireEvent.press(screen.getByLabelText('Chat with Ben Cruz about Harbor View'));
 
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
-  it('reveals Mark read for unread rows and marks read on press', () => {
-    const onMarkRead = jest.fn();
-    render(
-      <ConversationRow
-        conversation={makeConversation(2)}
-        onOpen={jest.fn()}
-        onMarkRead={onMarkRead}
-      />
-    );
+  it('shows More, Pin and Archive and closes the row after an action', () => {
+    const conversation = makeConversation();
+    const { onMore, onTogglePin, onToggleArchive } = renderRow(conversation);
 
-    fireEvent.press(screen.getByText('Mark read'));
+    fireEvent.press(screen.getByLabelText('More'));
+    fireEvent.press(screen.getByLabelText('Pin'));
+    fireEvent.press(screen.getByLabelText('Archive'));
 
-    expect(onMarkRead).toHaveBeenCalledTimes(1);
-    expect(onMarkRead).toHaveBeenCalledWith('user-9:apt-9');
+    expect(onMore).toHaveBeenCalledWith(conversation);
+    expect(onTogglePin).toHaveBeenCalledWith(conversation);
+    expect(onToggleArchive).toHaveBeenCalledWith(conversation);
+    expect(mockClose).toHaveBeenCalledTimes(3);
   });
 
-  it('renders no Mark read action for read rows', () => {
-    render(
-      <ConversationRow
-        conversation={makeConversation(0)}
-        onOpen={jest.fn()}
-        onMarkRead={jest.fn()}
-      />
-    );
+  it('offers Unpin and Unarchive for pinned or archived chats', () => {
+    renderRow(makeConversation({ is_pinned: true }));
+    expect(screen.getByLabelText('Unpin')).toBeTruthy();
 
-    expect(screen.queryByText('Mark read')).toBeNull();
+    renderRow(makeConversation({ is_archived: true }));
+    expect(screen.getByLabelText('Unarchive')).toBeTruthy();
+  });
+
+  it('disables Pin and Archive for the always-pinned landlord chat', () => {
+    const { onTogglePin, onToggleArchive } = renderRow(makeConversation(), { isPinLocked: true });
+
+    const unpin = screen.getByLabelText('Unpin');
+    expect(unpin.props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByLabelText('Archive').props.accessibilityState).toEqual({ disabled: true });
+    expect(onTogglePin).not.toHaveBeenCalled();
+    expect(onToggleArchive).not.toHaveBeenCalled();
   });
 });

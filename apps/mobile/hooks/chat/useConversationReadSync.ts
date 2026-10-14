@@ -3,10 +3,8 @@ import { AppState } from "react-native";
 import { useIsFocused } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  buildConversationKey,
-  markMessagesAsRead,
-} from "@/service/chat/chatService";
+import { buildConversationKey } from "@/service/chat/chatService";
+import { markConversationRead } from "@/service/chat/conversationActionsService";
 
 import {
   beginViewingConversation,
@@ -57,7 +55,7 @@ export function useConversationReadSync({
       myId,
       buildConversationKey(myId, otherUserId, apartmentId)
     );
-    markMessagesAsRead(myId, otherUserId, apartmentId)
+    markConversationRead({ otherUserId, apartmentId })
       .catch((error: unknown) => {
         console.error("[chat] Failed to mark conversation as read:", error);
       })

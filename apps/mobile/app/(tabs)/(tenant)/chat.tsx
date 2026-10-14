@@ -1,56 +1,38 @@
-import { View, Text, SectionList } from 'react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// Gesture-aware scroll pieces: on Android a plain ScrollView claims the touch
-// on slight vertical drift and cancels the rows' swipe-to-mark-read.
-import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
-
-import { Separator } from 'heroui-native';
+// Gesture-aware list pieces: on Android a plain FlatList claims the touch on
+// slight vertical drift and cancels the rows' swipe actions.
+import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 
 import { formatFullName } from '@repo/utils';
 
 import ScreenWrapper from 'components/layout/ScreenWrapper';
-import ConversationRow from '@/app/(tabs)/components/chat/ConversationRow';
 import ConversationListHeader from '@/app/(tabs)/components/chat/ConversationListHeader';
+import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRow';
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState';
-import MessageCard from '@/app/(tabs)/components/chat/MessageCard';
+import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays';
 
 import { useCurrentUserId } from '@/hooks/auth';
-import { useConversations } from '@/hooks/chat';
+import { useConversationRowActions, useConversations } from '@/hooks/chat';
 import { useTenancy } from '@/hooks/tenancy';
 import { useColors } from '@/hooks/useTheme';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { buildConversationKey } from '@/service/chat/chatService';
 import {
+  buildConversationListItems,
   filterConversations,
   getChatRouteParams,
-  sortUnreadFirst,
+  groupConversations,
+  toConversationItem,
+  type ConversationListItem,
 } from '@/service/chat/conversationList';
 import type { ConversationWithMeta } from '@/service/chat/conversationService';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
 const LIST_HORIZONTAL_PADDING = 20;
 
-/** Current landlord with no messages yet: a shortcut that starts the chat. */
-type LandlordShortcut = {
-  conversationId: string;
-  landlordId: string;
-  landlordName: string;
-  landlordAvatar: string | null;
-  apartmentId: string;
-  apartmentName: string;
-};
-
-type ConversationListItem =
-  | { kind: 'conversation'; conversation: ConversationWithMeta }
-  | { kind: 'landlord-shortcut'; shortcut: LandlordShortcut };
-
-type ConversationSection = {
-  key: 'current' | 'others';
-  title: string;
-  data: ConversationListItem[];
-};
+type LandlordShortcutItem = Extract<ConversationListItem, { kind: 'landlord-shortcut' }>;
 
 export default function Chat() {
   const router = useRouter();
@@ -67,7 +49,16 @@ export default function Chat() {
     error,
     refetch: refetchConversations,
     markConversationRead,
+    updatePreferences,
+    setBlocked,
   } = useConversations('tenant');
+
+  const { rowHandlers, overlays } = useConversationRowActions({
+    role: 'tenant',
+    markConversationRead,
+    updatePreferences,
+    setBlocked,
+  });
 
   const refreshAll = useCallback(
     () => Promise.all([refetchConversations(), refetchTenancy()]),
@@ -80,6 +71,7 @@ export default function Chat() {
   const landlord = tenancy?.landlord ?? null;
   const apartment = tenancy?.apartment ?? null;
 
+  // The current landlord's conversation is always pinned on top.
   const isCurrentLandlordConversation = useCallback(
     (conversation: ConversationWithMeta) =>
       Boolean(landlord?.id && apartment?.id) &&
@@ -88,59 +80,39 @@ export default function Chat() {
     [apartment?.id, landlord?.id]
   );
 
-  const sections = useMemo<ConversationSection[]>(() => {
+  const items = useMemo<ConversationListItem[]>(() => {
     const filtered = filterConversations(conversations, searchQuery);
-    const currentLandlordConversation = filtered.find(isCurrentLandlordConversation) ?? null;
 
-    const landlordShortcut: LandlordShortcut | null =
-      !isSearching &&
-      myId &&
-      landlord?.id &&
-      apartment?.id &&
-      !conversations.some(isCurrentLandlordConversation)
-        ? {
-            conversationId: buildConversationKey(myId, landlord.id, apartment.id),
-            landlordId: landlord.id,
-            landlordName: formatFullName(landlord) || 'Your landlord',
-            landlordAvatar: landlord.avatar_url,
-            apartmentId: apartment.id,
-            apartmentName: apartment.name ?? '',
-          }
-        : null;
+    // Search covers archived chats too, so they're listed with the rest.
+    const groups = groupConversations(
+      isSearching ? filtered.map((c) => ({ ...c, is_archived: false })) : filtered,
+      isCurrentLandlordConversation
+    );
 
-    const currentItems: ConversationListItem[] = currentLandlordConversation
-      ? [{ kind: 'conversation', conversation: currentLandlordConversation }]
-      : landlordShortcut
-        ? [{ kind: 'landlord-shortcut', shortcut: landlordShortcut }]
-        : [];
+    const pinned = groups.pinned.map((conversation) =>
+      toConversationItem(conversation, isCurrentLandlordConversation(conversation))
+    );
 
-    const otherItems: ConversationListItem[] = sortUnreadFirst(
-      filtered.filter(
-        (conversation) =>
-          conversation.conversation_key !== currentLandlordConversation?.conversation_key
-      )
-    ).map((conversation) => ({ kind: 'conversation', conversation }));
-
-    const nextSections: ConversationSection[] = [];
-    if (currentItems.length > 0) {
-      nextSections.push({ key: 'current', title: 'Current Landlord', data: currentItems });
-    }
-    if (otherItems.length > 0) {
-      nextSections.push({
-        key: 'others',
-        title: `Other Conversations (${otherItems.length})`,
-        data: otherItems,
+    const hasLandlordConversation = conversations.some(isCurrentLandlordConversation);
+    if (!isSearching && myId && landlord?.id && apartment?.id && !hasLandlordConversation) {
+      pinned.unshift({
+        kind: 'landlord-shortcut',
+        key: 'landlord-shortcut',
+        conversationId: buildConversationKey(myId, landlord.id, apartment.id),
+        landlordId: landlord.id,
+        landlordName: formatFullName(landlord) || 'Your landlord',
+        landlordAvatar: landlord.avatar_url,
+        apartmentId: apartment.id,
+        apartmentName: apartment.name ?? '',
       });
     }
-    return nextSections;
-  }, [apartment, conversations, isCurrentLandlordConversation, isSearching, landlord, myId, searchQuery]);
 
-  const handleMarkRead = useCallback(
-    (conversationKey: string) => {
-      void markConversationRead(conversationKey);
-    },
-    [markConversationRead]
-  );
+    return buildConversationListItems({
+      pinned,
+      others: groups.others,
+      archivedCount: groups.archived.length,
+    });
+  }, [apartment, conversations, isCurrentLandlordConversation, isSearching, landlord, myId, searchQuery]);
 
   // The chat screen marks the conversation read once it's on screen.
   const handleChatPress = useCallback(
@@ -151,7 +123,7 @@ export default function Chat() {
   );
 
   const handleStartLandlordChat = useCallback(
-    (shortcut: LandlordShortcut) => {
+    (shortcut: LandlordShortcutItem) => {
       router.push({
         pathname: '/chat/[conversationId]',
         params: {
@@ -167,44 +139,21 @@ export default function Chat() {
     [router]
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: ConversationListItem }) =>
-      item.kind === 'conversation' ? (
-        <ConversationRow
-          conversation={item.conversation}
-          onOpen={handleChatPress}
-          onMarkRead={handleMarkRead}
-        />
-      ) : (
-        <View className='-mx-5'>
-          <MessageCard
-            name={item.shortcut.landlordName}
-            apartmentName={item.shortcut.apartmentName}
-            lastMessage='Send your landlord a message'
-            timestamp=''
-            profilePictureUrl={item.shortcut.landlordAvatar ?? undefined}
-            onPress={() => handleStartLandlordChat(item.shortcut)}
-          />
-        </View>
-      ),
-    [handleChatPress, handleMarkRead, handleStartLandlordChat]
-  );
+  const handleOpenArchived = useCallback(() => {
+    router.push({ pathname: '/chat/archived', params: { portal: 'tenant' } });
+  }, [router]);
 
-  const renderSectionHeader = useCallback(
-    ({ section }: { section: ConversationSection }) =>
-      section.key === 'current' ? (
-        <Text className='text-base font-nunitoBold text-accent my-2' accessibilityRole='header'>
-          {section.title}
-        </Text>
-      ) : (
-        <View>
-          {sections[0]?.key === 'current' && <Separator className='my-3' />}
-          <Text className='text-base font-nunitoBold text-gray-500 mb-1' accessibilityRole='header'>
-            {section.title}
-          </Text>
-        </View>
-      ),
-    [sections]
+  const renderItem = useCallback(
+    ({ item }: { item: ConversationListItem }) => (
+      <ConversationListRow
+        item={item}
+        onOpen={handleChatPress}
+        handlers={rowHandlers}
+        onOpenArchived={handleOpenArchived}
+        onStartLandlordChat={handleStartLandlordChat}
+      />
+    ),
+    [handleChatPress, handleOpenArchived, handleStartLandlordChat, rowHandlers]
   );
 
   const listEmpty = loading ? (
@@ -235,15 +184,10 @@ export default function Chat() {
 
   return (
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
-      <SectionList
-        sections={loading || error ? [] : sections}
-        keyExtractor={(item) =>
-          item.kind === 'conversation' ? item.conversation.conversation_key : item.shortcut.conversationId
-        }
+      <FlatList
+        data={loading || error ? [] : items}
+        keyExtractor={(item) => item.key}
         renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={false}
-        renderScrollComponent={(scrollProps) => <ScrollView {...scrollProps} />}
         ListHeaderComponent={
           <ConversationListHeader
             searchQuery={searchQuery}
@@ -251,6 +195,7 @@ export default function Chat() {
             showSearch={conversations.length > 0}
           />
         }
+        ListHeaderComponentStyle={{ marginBottom: 8 }}
         ListEmptyComponent={listEmpty}
         keyboardShouldPersistTaps='handled'
         keyboardDismissMode='on-drag'
@@ -270,6 +215,8 @@ export default function Chat() {
           />
         }
       />
+
+      <ConversationActionOverlays {...overlays} />
     </ScreenWrapper>
   );
 }

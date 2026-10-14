@@ -40,13 +40,14 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
+import ChatBlockedNotice from './components/ChatBlockedNotice';
 
 import { Button, Spinner } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
 import { computeHoldLayout } from '@/app/chat/components/holdLayout';
-import { useChat } from 'hooks/chat';
+import { useBlockStatus, useChat } from 'hooks/chat';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
@@ -179,6 +180,8 @@ export default function ChatScreen() {
     initialOtherUserName: routedName,
     initialOtherUserAvatar: routedAvatar,
   });
+
+  const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
 
   const handleVisibleMessagesRef = useRef(handleVisibleMessages);
   useEffect(() => {
@@ -616,6 +619,19 @@ export default function ChatScreen() {
         )}
 
         <View className="px-3 py-2">
+          {blockedByMe || blockedMe ? (
+            <ChatBlockedNotice
+              otherUserName={otherUserName}
+              blockedByMe={blockedByMe}
+              isUnblocking={isUnblocking}
+              onUnblock={() => {
+                unblock().catch((error: unknown) => {
+                  console.error('[chat] Failed to unblock:', error);
+                  Alert.alert("Couldn't unblock", 'Check your connection and try again.');
+                });
+              }}
+            />
+          ) : (
           <ChatBox
             chatValue={chatMessage}
             onChatValueChange={handleChatMessageChange}
@@ -631,6 +647,7 @@ export default function ChatScreen() {
             onClearReply={clearReply}
             otherUserName={otherUserName}
           />
+          )}
         </View>
         <Animated.View
           pointerEvents={isNearBottom ? 'none' : 'auto'}

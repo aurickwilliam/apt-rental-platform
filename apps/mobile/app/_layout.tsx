@@ -140,6 +140,7 @@ export default function RootLayout() {
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="chat/[conversationId]" />
+                  <Stack.Screen name="chat/archived" />
                   <Stack.Screen name="tenant" />
                   <Stack.Screen name="apartment/[apartmentId]" />
                   <Stack.Screen name="(notification)" />

@@ -19,6 +19,8 @@ jest.mock('@tabler/icons-react-native', () => {
     IconPhoto: MockIcon,
     IconGif: MockIcon,
     IconPlayerPlayFilled: MockIcon,
+    IconBellOff: MockIcon,
+    IconPinFilled: MockIcon,
   };
 });
 
@@ -79,8 +81,8 @@ describe('MessageCard', () => {
 
     const name = screen.getByText('Ana Santos');
     expect(name).toBeTruthy();
-    // Name flexes so the timestamp pins to the row's right edge.
-    expect(name.props.className).toContain('flex-1');
+    // Long names shrink (truncate) so the icons and timestamp stay visible.
+    expect(name.props.className).toContain('shrink');
     expect(screen.getByText('Sun Residences')).toBeTruthy();
     expect(
       screen.getByText('Hello, is the unit still available?')
@@ -168,27 +170,34 @@ describe('MessageCard', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('exposes Mark as read as an accessibility action only when unread', () => {
-    const onMarkRead = jest.fn();
-    const { rerender } = render(
-      <MessageCard {...baseProps} unreadCount={2} onMarkRead={onMarkRead} />
+  it('runs the swipe actions as accessibility actions', () => {
+    const onMore = jest.fn();
+    const onPin = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        actions={[
+          { name: 'more', label: 'More options', onPress: onMore },
+          { name: 'togglePin', label: 'Pin', onPress: onPin },
+        ]}
+      />
     );
 
-    const row = screen.getByLabelText(
-      'Chat with Ana Santos about Sun Residences, 2 unread messages'
-    );
-    fireEvent(row, 'onAccessibilityAction', {
-      nativeEvent: { actionName: 'markRead' },
-    });
-    expect(onMarkRead).toHaveBeenCalledTimes(1);
+    const row = screen.getByLabelText('Chat with Ana Santos about Sun Residences');
+    fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'togglePin' } });
+    fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'unknown' } });
 
-    rerender(<MessageCard {...baseProps} unreadCount={0} onMarkRead={onMarkRead} />);
-    const readRow = screen.getByLabelText(
-      'Chat with Ana Santos about Sun Residences'
-    );
-    fireEvent(readRow, 'onAccessibilityAction', {
-      nativeEvent: { actionName: 'markRead' },
-    });
-    expect(onMarkRead).toHaveBeenCalledTimes(1);
+    expect(onPin).toHaveBeenCalledTimes(1);
+    expect(onMore).not.toHaveBeenCalled();
+  });
+
+  it('announces marked unread, pinned and muted states', () => {
+    render(<MessageCard {...baseProps} isMarkedUnread isPinned isMuted />);
+
+    expect(
+      screen.getByLabelText(
+        'Chat with Ana Santos about Sun Residences, marked unread, pinned, muted'
+      )
+    ).toBeTruthy();
   });
 });

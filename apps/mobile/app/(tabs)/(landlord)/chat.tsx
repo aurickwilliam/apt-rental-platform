@@ -2,20 +2,28 @@ import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
-// slight vertical drift and cancels the rows' swipe-to-mark-read.
+// slight vertical drift and cancels the rows' swipe actions.
 import { FlatList, RefreshControl } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import ConversationRow from '@/app/(tabs)/components/chat/ConversationRow'
 import ConversationListHeader from '@/app/(tabs)/components/chat/ConversationListHeader'
+import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRow'
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
+import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays'
 
-import { useConversations } from '@/hooks/chat'
+import { useConversationRowActions, useConversations } from '@/hooks/chat'
 import { useColors } from '@/hooks/useTheme'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
-import { filterConversations, getChatRouteParams } from '@/service/chat/conversationList'
+import {
+  buildConversationListItems,
+  filterConversations,
+  getChatRouteParams,
+  groupConversations,
+  toConversationItem,
+  type ConversationListItem,
+} from '@/service/chat/conversationList'
 import type { ConversationWithMeta } from '@/service/chat/conversationService'
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar'
 
@@ -31,30 +39,54 @@ export default function Chat() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<ConversationFilter>('Tenant');
 
-  const { conversations, loading, error, refetch, markConversationRead } =
-    useConversations('landlord');
+  const {
+    conversations,
+    loading,
+    error,
+    refetch,
+    markConversationRead,
+    updatePreferences,
+    setBlocked,
+  } = useConversations('landlord');
+
+  const { rowHandlers, overlays } = useConversationRowActions({
+    role: 'landlord',
+    markConversationRead,
+    updatePreferences,
+    setBlocked,
+  });
 
   // The spinner shows only for a pull, never for background refetches.
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   const isSearching = searchQuery.trim().length > 0;
 
-  const filteredConversations = useMemo(
-    () =>
-      filterConversations(conversations, searchQuery).filter((conversation) =>
-        selectedFilter === 'Tenant'
-          ? conversation.conversation_type === 'tenant'
-          : conversation.conversation_type === 'inquiry'
-      ),
-    [conversations, searchQuery, selectedFilter]
-  );
+  const { items, filteredCount } = useMemo(() => {
+    const filtered = filterConversations(conversations, searchQuery);
+    const ofSelectedType = filtered.filter((conversation) =>
+      selectedFilter === 'Tenant'
+        ? conversation.conversation_type === 'tenant'
+        : conversation.conversation_type === 'inquiry'
+    );
 
-  const handleMarkRead = useCallback(
-    (conversationKey: string) => {
-      void markConversationRead(conversationKey);
-    },
-    [markConversationRead]
-  );
+    // Search covers archived chats too, so they're listed with the rest.
+    const groups = groupConversations(
+      isSearching ? ofSelectedType.map((c) => ({ ...c, is_archived: false })) : ofSelectedType
+    );
+    // The archived row counts both filters: the archived screen lists them all.
+    const archivedCount = isSearching
+      ? 0
+      : conversations.filter((conversation) => conversation.is_archived).length;
+
+    return {
+      items: buildConversationListItems({
+        pinned: groups.pinned.map((conversation) => toConversationItem(conversation)),
+        others: groups.others,
+        archivedCount,
+      }),
+      filteredCount: groups.pinned.length + groups.others.length,
+    };
+  }, [conversations, isSearching, searchQuery, selectedFilter]);
 
   // The chat screen marks the conversation read once it's on screen.
   const handleChatPress = useCallback(
@@ -64,18 +96,32 @@ export default function Chat() {
     [router]
   );
 
+  const handleOpenArchived = useCallback(() => {
+    router.push({ pathname: '/chat/archived', params: { portal: 'landlord' } });
+  }, [router]);
+
   const renderItem = useCallback(
-    ({ item }: { item: ConversationWithMeta }) => (
-      <ConversationRow
-        conversation={item}
+    ({ item }: { item: ConversationListItem }) => (
+      <ConversationListRow
+        item={item}
         onOpen={handleChatPress}
-        onMarkRead={handleMarkRead}
+        handlers={rowHandlers}
+        onOpenArchived={handleOpenArchived}
       />
     ),
-    [handleChatPress, handleMarkRead]
+    [handleChatPress, handleOpenArchived, rowHandlers]
   );
 
   const hasConversations = conversations.length > 0;
+
+  // Shown above the archived row when the selected filter has no chats.
+  const filterEmptyState = !isSearching && hasConversations && filteredCount === 0 ? (
+    <ConversationListState
+      variant='compact'
+      title={`No ${selectedFilter} Messages`}
+      description='Try switching filters to view your other conversations.'
+    />
+  ) : null;
 
   const listEmpty = loading ? (
     <ConversationListState variant='loading' />
@@ -100,18 +146,14 @@ export default function Chat() {
       description={`No conversations match "${searchQuery.trim()}". Try a different name, property, or message.`}
     />
   ) : (
-    <ConversationListState
-      variant='compact'
-      title={`No ${selectedFilter} Messages`}
-      description='Try switching filters to view your other conversations.'
-    />
+    filterEmptyState
   );
 
   return (
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <FlatList
-        data={loading || error ? [] : filteredConversations}
-        keyExtractor={(item) => item.conversation_key}
+        data={loading || error ? [] : items}
+        keyExtractor={(item) => item.key}
         renderItem={renderItem}
         ListHeaderComponent={
           <ConversationListHeader
@@ -151,6 +193,7 @@ export default function Chat() {
                 </Tabs.List>
               </Tabs>
             )}
+            {items.length > 0 ? filterEmptyState : null}
           </ConversationListHeader>
         }
         ListEmptyComponent={listEmpty}
@@ -172,6 +215,8 @@ export default function Chat() {
           />
         }
       />
+
+      <ConversationActionOverlays {...overlays} />
     </ScreenWrapper>
   )
 }

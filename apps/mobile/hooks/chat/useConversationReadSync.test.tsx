@@ -9,6 +9,7 @@ import { createMobileQueryClient } from "@/utils/queryClient";
 import { buildConversationKey } from "@/service/chat/chatService";
 
 import type { ConversationWithMeta } from "@/service/chat/conversationService";
+import { DEFAULT_CONVERSATION_PREFERENCES } from "@/service/chat/conversationPreferences";
 
 const MY_ID = "user-1";
 const OTHER_ID = "other-1";
@@ -28,9 +29,8 @@ jest.mock("expo-router", () => ({
   useIsFocused: () => mockIsFocused,
 }));
 
-jest.mock("@/service/chat/chatService", () => ({
-  ...jest.requireActual("@/service/chat/chatService"),
-  markMessagesAsRead: (...args: unknown[]) => mockMarkMessagesAsRead(...args),
+jest.mock("@/service/chat/conversationActionsService", () => ({
+  markConversationRead: (...args: unknown[]) => mockMarkMessagesAsRead(...args),
 }));
 
 const seedConversation: ConversationWithMeta = {
@@ -48,6 +48,7 @@ const seedConversation: ConversationWithMeta = {
   last_sender_id: OTHER_ID,
   last_message_type: "text",
   conversation_type: "tenant",
+  ...DEFAULT_CONVERSATION_PREFERENCES,
 };
 
 let appStateListener: ((state: AppStateStatus) => void) | undefined;
@@ -93,7 +94,7 @@ describe("useConversationReadSync", () => {
   it("marks the conversation read and clears the list badge when it comes on screen", () => {
     const { cachedUnread, unmount } = renderReadSync();
 
-    expect(mockMarkMessagesAsRead).toHaveBeenCalledWith(MY_ID, OTHER_ID, APARTMENT_ID);
+    expect(mockMarkMessagesAsRead).toHaveBeenCalledWith({ otherUserId: OTHER_ID, apartmentId: APARTMENT_ID });
     expect(cachedUnread()).toBe(0);
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(true);
 

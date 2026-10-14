@@ -1,6 +1,15 @@
-import { filterConversations, getChatRouteParams, sortUnreadFirst } from './conversationList';
+import {
+  buildConversationListItems,
+  filterConversations,
+  getChatRouteParams,
+  groupConversations,
+  hasUnread,
+  sortUnreadFirst,
+  toConversationItem,
+} from './conversationList';
 
 import type { ConversationWithMeta } from './conversationService';
+import { DEFAULT_CONVERSATION_PREFERENCES } from '@/service/chat/conversationPreferences';
 
 function makeConversation(
   conversationKey: string,
@@ -21,6 +30,7 @@ function makeConversation(
     last_sender_id: null,
     last_sender_is_me: false,
     conversation_type: 'inquiry',
+    ...DEFAULT_CONVERSATION_PREFERENCES,
     ...overrides,
   };
 }
@@ -98,5 +108,66 @@ describe('getChatRouteParams', () => {
       apartmentTitle: 'Apartment 1',
     });
     expect(JSON.stringify(params)).not.toContain('0917');
+  });
+});
+
+describe('hasUnread', () => {
+  it('counts unread messages and manual "mark unread"', () => {
+    expect(hasUnread(makeConversation('a', { unread_count: 1 }))).toBe(true);
+    expect(hasUnread(makeConversation('b', { marked_unread: true }))).toBe(true);
+    expect(hasUnread(makeConversation('c'))).toBe(false);
+  });
+});
+
+describe('groupConversations', () => {
+  it('splits pinned (newest pin first), others (unread first) and archived', () => {
+    const groups = groupConversations([
+      makeConversation('old-pin', { is_pinned: true, pinned_at: '2026-01-01T00:00:00Z' }),
+      makeConversation('read'),
+      makeConversation('archived', { is_archived: true }),
+      makeConversation('new-pin', { is_pinned: true, pinned_at: '2026-01-03T00:00:00Z' }),
+      makeConversation('marked', { marked_unread: true }),
+    ]);
+
+    expect(groups.pinned.map((c) => c.conversation_key)).toEqual(['new-pin', 'old-pin']);
+    expect(groups.others.map((c) => c.conversation_key)).toEqual(['marked', 'read']);
+    expect(groups.archived.map((c) => c.conversation_key)).toEqual(['archived']);
+  });
+
+  it('keeps an always-pinned conversation on top even when archived', () => {
+    const groups = groupConversations(
+      [
+        makeConversation('pin', { is_pinned: true, pinned_at: '2026-01-03T00:00:00Z' }),
+        makeConversation('landlord', { is_archived: true }),
+      ],
+      (conversation) => conversation.conversation_key === 'landlord'
+    );
+
+    expect(groups.pinned.map((c) => c.conversation_key)).toEqual(['landlord', 'pin']);
+    expect(groups.archived).toEqual([]);
+  });
+});
+
+describe('buildConversationListItems', () => {
+  it('adds a separator after pinned rows and an archived row at the end', () => {
+    const items = buildConversationListItems({
+      pinned: [toConversationItem(makeConversation('p'), true)],
+      others: [makeConversation('o')],
+      archivedCount: 2,
+    });
+
+    expect(items.map((item) => item.key)).toEqual(['p', 'separator', 'o', 'archived']);
+    expect(items[0]).toMatchObject({ kind: 'conversation', isPinLocked: true });
+    expect(items[3]).toMatchObject({ kind: 'archived', count: 2 });
+  });
+
+  it('has no separator without pinned rows, and no archived row when none are archived', () => {
+    const items = buildConversationListItems({
+      pinned: [],
+      others: [makeConversation('o')],
+      archivedCount: 0,
+    });
+
+    expect(items.map((item) => item.key)).toEqual(['o']);
   });
 });
