@@ -465,7 +465,7 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 
 ### 8.3 Web messages
 
-- **Contacts & unread**: computed server-side in `page.tsx` (unread counts keyed `{senderId}:{apartmentId|'none'}`), passed as props to the client `MessageClient`.
+- **Contacts & unread**: computed server-side in `page.tsx` from `get_portal_conversations` (`'tenant'` / `'landlord'`, same portal split as mobile §8.2a) plus active tenancies, which stay pinned even before any message; `lib/conversation-contacts.ts` merges them (keys `{otherUserId}:{apartmentId|'none'}`). Passed as props to the client `MessageClient`.
 - **Unread badge**: `postgres_changes` INSERT on `chat` filtered `receiver_id=eq.me` on channels `tenant-unread:{id}` / `landlord-unread:{id}`.
 - **Live conversation**: `postgres_changes` INSERT filtered `sender_id=eq.contact` on channel `conversation:{sortedIds}` (no apartment in the name) + presence for typing (no heartbeat).
 - **Sending**: optimistic insert with `crypto.randomUUID()`; text only — **no attachments, no GIFs on web**.
