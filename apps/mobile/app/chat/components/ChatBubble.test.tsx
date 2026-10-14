@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import ChatBubble, { ChatBubbleContent } from './ChatBubble';
@@ -407,4 +408,38 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     rerender(<ChatBubble message="Hi" messageType="text" isSent showSenderAvatar />);
     expect(screen.queryByTestId('sender-avatar')).toBeNull();
   });
+
+  it('shrinks the corners where same-sender bubbles meet', () => {
+    // The text bubble is the nearest ancestor with an explicit corner radius.
+    const bubbleCorners = (text: string) => {
+      let node = screen.getByText(text).parent;
+      while (node) {
+        const style = StyleSheet.flatten(node.props.style) ?? {};
+        if ('borderTopLeftRadius' in style || 'borderTopRightRadius' in style) return style;
+        node = node.parent;
+      }
+      return {};
+    };
+
+    const { rerender } = render(
+      <ChatBubbleContent message="Middle" messageType="text" isSent groupPosition="middle" />
+    );
+    expect(bubbleCorners('Middle')).toMatchObject({
+      borderTopRightRadius: 6,
+      borderBottomRightRadius: 6,
+    });
+
+    rerender(<ChatBubbleContent message="Top" messageType="text" groupPosition="first" />);
+    expect(bubbleCorners('Top')).toMatchObject({
+      borderTopLeftRadius: 24,
+      borderBottomLeftRadius: 6,
+    });
+
+    rerender(<ChatBubbleContent message="Alone" messageType="text" isSent />);
+    expect(bubbleCorners('Alone')).toMatchObject({
+      borderTopRightRadius: 24,
+      borderBottomRightRadius: 24,
+    });
+  });
 });
+

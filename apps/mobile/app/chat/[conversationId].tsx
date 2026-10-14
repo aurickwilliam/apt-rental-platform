@@ -46,7 +46,11 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
-import { SENDER_AVATAR_GUTTER, showsSenderAvatar } from './components/bubbleGrouping';
+import {
+  SENDER_AVATAR_GUTTER,
+  getBubbleGroupPosition,
+  showsSenderAvatar,
+} from './components/bubbleGrouping';
 import {
   TIMESTAMP_REVEAL_WIDTH,
   TimestampRevealContext,
@@ -556,6 +560,7 @@ export default function ChatScreen() {
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
         onReply={() => handleReply(item)}
+        groupPosition={getBubbleGroupPosition(messages, index)}
         showSenderAvatar={showsSenderAvatar(messages, index)}
         otherUserAvatar={otherUserAvatar}
         onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
@@ -784,6 +789,10 @@ export default function ChatScreen() {
                 otherUserName={otherUserName}
                 reactions={activeMsg.reactions}
                 interactive={false}
+                groupPosition={getBubbleGroupPosition(
+                  messages,
+                  messages.findIndex((m) => m.id === activeMsg.id)
+                )}
               />
             }
             menu={

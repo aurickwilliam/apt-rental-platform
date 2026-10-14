@@ -19,13 +19,15 @@ import { useColors } from '@/hooks/useTheme';
 import { isEmojiOnly } from '@/service/chat/chatService';
 
 import { HEART_REACTION } from './reactionEmojis';
+import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
 import SenderAvatar from './SenderAvatar';
 import SwipeToReply from './SwipeToReply';
 import TimestampRevealRow from './TimestampRevealRow';
 import { formatRevealTime } from './timestampReveal';
 
-/** The row's `mb-4`, so the revealed time centers on the bubble. */
-const ROW_BOTTOM_MARGIN = 16;
+/** Gap below a bubble: tight inside a same-sender run, else `mb-4`. */
+const ROW_GAP = 16;
+const GROUPED_ROW_GAP = 4;
 
 interface ChatBubbleProps {
   id?: string;
@@ -54,6 +56,8 @@ interface ChatBubbleProps {
     width: number;
     height: number;
   }) => void;
+  /** Place in a run of same-sender messages: joined corners and a tighter gap. */
+  groupPosition?: BubbleGroupPosition;
   /** Received bubbles: the sender's avatar beside the last bubble of a run. */
   showSenderAvatar?: boolean;
   otherUserAvatar?: string | null;
@@ -86,9 +90,25 @@ export interface ChatBubbleContentProps {
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
   onLongPress?: () => void;
   onReact?: (emoji: string) => void;
+  /** Place in a run of same-sender messages; shrinks the joining corners of text bubbles. */
+  groupPosition?: BubbleGroupPosition;
 }
 
 const DOUBLE_TAP_WINDOW_MS = 300;
+
+/** Text bubble corners: `rounded-3xl`, shrinking where same-sender bubbles meet. */
+const BUBBLE_RADIUS = 24;
+const JOINED_CORNER_RADIUS = 6;
+
+function getGroupedCornerStyle(isSent: boolean, position: BubbleGroupPosition) {
+  const joinsAbove = position === 'middle' || position === 'last';
+  const joinsBelow = position === 'middle' || position === 'first';
+  const top = joinsAbove ? JOINED_CORNER_RADIUS : BUBBLE_RADIUS;
+  const bottom = joinsBelow ? JOINED_CORNER_RADIUS : BUBBLE_RADIUS;
+  return isSent
+    ? { borderTopRightRadius: top, borderBottomRightRadius: bottom }
+    : { borderTopLeftRadius: top, borderBottomLeftRadius: bottom };
+}
 
 export function playReactionHaptic() {
   // Fire-and-forget; haptics are optional on unsupported devices.
@@ -277,6 +297,7 @@ export function ChatBubbleContent({
   onMediaLoadError,
   onLongPress,
   onReact,
+  groupPosition = 'single',
 }: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -409,7 +430,10 @@ export function ChatBubbleContent({
           <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : (
-        <View className={`relative px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}>
+        <View
+          className={`relative px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}
+          style={getGroupedCornerStyle(isSent, groupPosition)}
+        >
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
           <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
@@ -438,6 +462,7 @@ export default function ChatBubble({
   onReact,
   onHold,
   onReply,
+  groupPosition = 'single',
   showSenderAvatar = false,
   otherUserAvatar,
   onSenderAvatarPress,
@@ -459,6 +484,8 @@ export default function ChatBubble({
 
   const canReact = !isPending && !!onReact;
   const canReply = !isPending && !!onReply;
+  // A reaction badge hangs below its bubble, so it keeps the full gap.
+  const rowGap = continuesBelow(groupPosition) && reactions.length === 0 ? GROUPED_ROW_GAP : ROW_GAP;
 
   const handleSwipeReply = useCallback(() => onReply?.(), [onReply]);
 
@@ -502,12 +529,12 @@ export default function ChatBubble({
     <TimestampRevealRow
       isSent={isSent}
       time={isPending ? '' : formatRevealTime(createdAt)}
-      bottomInset={ROW_BOTTOM_MARGIN}
+      bottomInset={rowGap}
     >
       <View className={isSent ? undefined : 'flex-row items-end'}>
         {/* Received rows keep the avatar's gutter so a run's bubbles line up. */}
         {!isSent && (
-          <View className="w-8 mr-2 mb-4">
+          <View className="w-8 mr-2" style={{ marginBottom: rowGap }}>
             {showSenderAvatar && (
               <SenderAvatar
                 name={otherUserName}
@@ -520,7 +547,8 @@ export default function ChatBubble({
         <View
           ref={rowRef}
           collapsable={false}
-          className={`${isSent ? 'max-w-[80%]' : 'max-w-[75%]'} mb-4 ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+          className={`${isSent ? 'max-w-[80%]' : 'max-w-[75%]'} ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+          style={{ marginBottom: rowGap }}
         >
           <SwipeToReply
             isSent={isSent}
@@ -557,6 +585,7 @@ export default function ChatBubble({
                 onMediaLoadError={onMediaLoadError}
                 onLongPress={handleLongPress}
                 onReact={onReact}
+                groupPosition={groupPosition}
               />
             </Pressable>
           </SwipeToReply>
