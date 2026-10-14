@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791989146.967201,
-    "ast_hash": "96958da9b807ad214786cd437ec8d1cf",
+    "mtime": 1791989564.7381043,
+    "ast_hash": "a0d7f4b8f7bfeec6e53c0421b922466c",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
-    "mtime": 1789659998.85988,
-    "ast_hash": "2719772077e154898aa1ee0c3d081bbb",
+    "mtime": 1791989725.8353896,
+    "ast_hash": "2f61a5a99efee8ca77b7a4055a139b02",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatHeader.tsx": {
@@ -1375,8 +1375,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChat.ts": {
-    "mtime": 1791966423.2352626,
-    "ast_hash": "2468d890c43908642d0fd8eeeb291f2a",
+    "mtime": 1791989564.7386076,
+    "ast_hash": "d4192ccde3f789a19583e5833ae131b0",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChatChannel.ts": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791989278.9804623,
-    "ast_hash": "ea0a288fbf38cddb989babcfffd6cb4b",
+    "mtime": 1791989725.8442209,
+    "ast_hash": "fcf166d59292b2978d0084c9785cd7ab",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3640,8 +3640,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/chatService.ts": {
-    "mtime": 1791968833.7981193,
-    "ast_hash": "153ba97c3df50d9693a080383e5cadd2",
+    "mtime": 1791989564.7390442,
+    "ast_hash": "6e4030bf2b66be2d4f690ec34aeec5b3",
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/conversationService.test.ts": {
@@ -7330,8 +7330,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversationRowActions.ts": {
-    "mtime": 1791985981.4057887,
-    "ast_hash": "6ec0efc252e88f6a983f03e23cfc3f0a",
+    "mtime": 1791989564.7387977,
+    "ast_hash": "96e89b6b1266d7fb56b7b3c9319a55ca",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/usePullToRefresh.test.ts": {
@@ -7482,6 +7482,21 @@
   "apps/mobile/app/chat/components/SwipeToReply.tsx": {
     "mtime": 1791989126.324042,
     "ast_hash": "5211c39fdcb86a9a583011f3578603ab",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/ChatEmptyState.test.tsx": {
+    "mtime": 1791989657.7876918,
+    "ast_hash": "cc3bc08758c9e32976d6eae9d038e55f",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/chat/chatRoutes.test.ts": {
+    "mtime": 1791989504.5120304,
+    "ast_hash": "af7e4052a704790948b51df47b02d344",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/chat/chatRoutes.ts": {
+    "mtime": 1791989504.5102205,
+    "ast_hash": "09489982ecc03ec41d5396ef47d36504",
     "semantic_hash": ""
   }
 }
