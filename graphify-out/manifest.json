@@ -515,13 +515,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791991327.5840166,
-    "ast_hash": "9a2cb94500272c3ae2907fad78eaf355",
+    "mtime": 1791992114.341022,
+    "ast_hash": "f76b287f09d6c87cfa473311106aa610",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
-    "mtime": 1789659998.8591568,
-    "ast_hash": "3ca3666a2fe914d7f8a2fb2a68f0f63f",
+    "mtime": 1791992114.3406584,
+    "ast_hash": "a664eef9be065cfd97644d4c1948861f",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.tsx": {
@@ -1370,8 +1370,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/index.ts": {
-    "mtime": 1791990022.882061,
-    "ast_hash": "95ff26425d97e7f65e76abe9a02a34b5",
+    "mtime": 1791991700.8817947,
+    "ast_hash": "3f8a0db98ce8ab7995df0a93da00ce3e",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChat.ts": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791991381.1176891,
-    "ast_hash": "d4bc6c2a075f2cfa1d66381c9613aa6d",
+    "mtime": 1791992148.1860409,
+    "ast_hash": "8ae99da098bfce08947a517932fde835",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -7552,6 +7552,26 @@
   "apps/mobile/app/chat/components/bubbleGrouping.ts": {
     "mtime": 1791991269.8625507,
     "ast_hash": "2efe8fbb4587c826e68a70cea42a9a02",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/emojiPicker.test.ts": {
+    "mtime": 1791991700.8759804,
+    "ast_hash": "bc310f4142bb2a4e1298f382a0684fd3",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/emojiPicker.ts": {
+    "mtime": 1791991700.8738923,
+    "ast_hash": "cb0e5845f1f8a21982a42fdfb83e5257",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/chat/useEmojiRecents.ts": {
+    "mtime": 1791991700.8813784,
+    "ast_hash": "072e341dca8b4ea90697d92440f1e9bf",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/chat/emojiRecentsStorage.ts": {
+    "mtime": 1791991700.8793044,
+    "ast_hash": "35a93fdf15c007c92f29235b3fd2922d",
     "semantic_hash": ""
   }
 }
