@@ -441,5 +441,12 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       borderBottomRightRadius: 24,
     });
   });
-});
 
+  it('shows "Seen" only on the bubble that asks for it', () => {
+    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+    expect(screen.getByText('Seen')).toBeTruthy();
+
+    rerender(<ChatBubble message="Sent" messageType="text" isSent />);
+    expect(screen.queryByText('Seen')).toBeNull();
+  });
+});

@@ -19,6 +19,8 @@ interface ConversationReadSyncOptions {
   myId: string | null;
   otherUserId: string;
   apartmentId: string | null;
+  /** Called once the server has marked the conversation read. */
+  onMarkedRead?: () => void;
 }
 
 /**
@@ -31,6 +33,7 @@ export function useConversationReadSync({
   myId,
   otherUserId,
   apartmentId,
+  onMarkedRead,
 }: ConversationReadSyncOptions) {
   const queryClient = useQueryClient();
   const isFocused = useIsFocused();
@@ -39,6 +42,10 @@ export function useConversationReadSync({
   const isViewing = isFocused && isAppActive && myId !== null;
   const isViewingRef = useRef(isViewing);
   const pendingReadRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onMarkedReadRef = useRef(onMarkedRead);
+  useEffect(() => {
+    onMarkedReadRef.current = onMarkedRead;
+  }, [onMarkedRead]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
@@ -56,6 +63,7 @@ export function useConversationReadSync({
       buildConversationKey(myId, otherUserId, apartmentId)
     );
     markConversationRead({ otherUserId, apartmentId })
+      .then(() => onMarkedReadRef.current?.())
       .catch((error: unknown) => {
         console.error("[chat] Failed to mark conversation as read:", error);
       })

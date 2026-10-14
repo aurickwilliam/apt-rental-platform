@@ -46,6 +46,8 @@ export type Message = {
   replyTo?: ReplyPreview | null;
   replyDeleted?: boolean;
   reactions: MessageReaction[];
+  /** Sent messages only: the other person has read it (drives "Seen"). */
+  isRead?: boolean;
 };
 
 /** A message freshly sent through sendChatAttachments — carries the original
@@ -162,7 +164,7 @@ export async function fetchMessagePage(params: {
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to'
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to, is_read'
     )
     .or(
       `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
@@ -689,6 +691,7 @@ export async function mapMessages(
       replyTo,
       replyDeleted,
       reactions: reactionsByMessageId.get(m.id) ?? [],
+      isRead: m.is_read === true,
     };
   });
 }

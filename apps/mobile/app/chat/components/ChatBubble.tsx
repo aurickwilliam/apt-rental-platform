@@ -58,6 +58,8 @@ interface ChatBubbleProps {
   }) => void;
   /** Place in a run of same-sender messages: joined corners and a tighter gap. */
   groupPosition?: BubbleGroupPosition;
+  /** Sent bubbles: "Seen" under the newest message the other person has read. */
+  showSeen?: boolean;
   /** Received bubbles: the sender's avatar beside the last bubble of a run. */
   showSenderAvatar?: boolean;
   otherUserAvatar?: string | null;
@@ -463,6 +465,7 @@ export default function ChatBubble({
   onHold,
   onReply,
   groupPosition = 'single',
+  showSeen = false,
   showSenderAvatar = false,
   otherUserAvatar,
   onSenderAvatarPress,
@@ -589,6 +592,14 @@ export default function ChatBubble({
               />
             </Pressable>
           </SwipeToReply>
+          {showSeen && (
+            <Text
+              className="self-end mt-1 mr-1 text-[11px] font-inter text-gray-500"
+              accessibilityLabel="Seen"
+            >
+              Seen
+            </Text>
+          )}
         </View>
       </View>
     </TimestampRevealRow>

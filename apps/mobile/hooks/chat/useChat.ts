@@ -27,6 +27,7 @@ import { mergeChatMessages } from '../../service/chat/chatPagination';
 
 import { useChatChannel, type ReactionBroadcast } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';
+import { getNewestReceivedCreatedAt, markSentReadUpTo } from '@/service/chat/readReceipts';
 import { useConversationReadSync } from './useConversationReadSync';
 
 type Options = {
@@ -79,10 +80,19 @@ export function useChat({
 
   // ─── Realtime channel ───────────────────────────────────────────────────────
 
+  // After the server marks the chat read, tell the sender's open chat how far
+  // we read (the newest of their messages we have) so their "Seen" updates live.
+  const broadcastReadRef = useRef<((readUpTo: string) => void) | null>(null);
+  const handleMarkedRead = useCallback(() => {
+    const readUpTo = getNewestReceivedCreatedAt(messagesRef.current);
+    if (readUpTo) broadcastReadRef.current?.(readUpTo);
+  }, []);
+
   const { handleIncomingMessage } = useConversationReadSync({
     myId,
     otherUserId,
     apartmentId,
+    onMarkedRead: handleMarkedRead,
   });
 
   // The channel only delivers the other user's messages.
@@ -123,7 +133,11 @@ export function useChat({
     );
   }, []);
 
-  const { broadcast, broadcastDelete, broadcastReaction, trackPresence } = useChatChannel({
+  const handleMessagesRead = useCallback((readUpTo: string) => {
+    setMessages((prev) => markSentReadUpTo(prev, readUpTo));
+  }, []);
+
+  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
@@ -131,7 +145,15 @@ export function useChat({
     onOtherUserTypingChange: handleOtherUserTypingChange,
     onMessageDeleted: handleMessageDeleted,
     onReactionChange: handleReactionChange,
+    onMessagesRead: handleMessagesRead,
   });
+
+  useEffect(() => {
+    broadcastReadRef.current = (readUpTo: string) => {
+      if (!myIdRef.current) return;
+      broadcastRead({ reader_id: myIdRef.current, apartment_id: apartmentId, read_up_to: readUpTo });
+    };
+  }, [apartmentId, broadcastRead]);
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
 

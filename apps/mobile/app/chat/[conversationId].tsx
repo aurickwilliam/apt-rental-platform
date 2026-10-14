@@ -47,6 +47,7 @@ import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
 import { useEmojiPickerSettings } from './components/emojiPicker';
+import { getSeenMessageId } from '@/service/chat/readReceipts';
 import {
   SENDER_AVATAR_GUTTER,
   getBubbleGroupPosition,
@@ -548,6 +549,9 @@ export default function ChatScreen() {
     [selectedImage]
   );
 
+  // "Seen" sits under the newest of my messages the other person has read.
+  const seenMessageId = useMemo(() => getSeenMessageId(messages), [messages]);
+
   const renderItem = useCallback(
     ({ item, index }: { item: Message; index: number }) => (
       <ChatBubble
@@ -571,6 +575,7 @@ export default function ChatScreen() {
         onHold={handleHoldFor(item)}
         onReply={() => handleReply(item)}
         groupPosition={getBubbleGroupPosition(messages, index)}
+        showSeen={item.id === seenMessageId}
         showSenderAvatar={showsSenderAvatar(messages, index)}
         otherUserAvatar={otherUserAvatar}
         onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
@@ -587,6 +592,7 @@ export default function ChatScreen() {
       handleHoldFor,
       handleReply,
       messages,
+      seenMessageId,
       otherUserAvatar,
       portal,
       otherUserId,
@@ -640,7 +646,14 @@ export default function ChatScreen() {
                     contentContainerStyle={
                       messages.length === 0
                         ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
-                        : { flexGrow: 1, padding: 16, paddingBottom: 10 + listTopInset }
+                        : {
+                            flexGrow: 1,
+                            paddingHorizontal: 16,
+                            // Inverted: paddingTop is the gap above the chat box, which
+                            // the newest bubble's own bottom gap already provides.
+                            paddingTop: 0,
+                            paddingBottom: 10 + listTopInset,
+                          }
                     }
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
