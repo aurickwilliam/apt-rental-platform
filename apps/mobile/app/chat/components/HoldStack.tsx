@@ -20,6 +20,8 @@ interface HoldStackProps {
   bubbleOrigTop: number;
   bubbleHeight: number;
   viewport: HoldViewport;
+  /** Extra start offset so the lifted bubble lines up with its row (received avatar gutter). */
+  startInset?: number;
   /** Reaction pill, or null when the message can't be reacted to. */
   reactions: ReactNode | null;
   bubble: ReactNode;
@@ -37,6 +39,7 @@ export default function HoldStack({
   bubbleOrigTop,
   bubbleHeight,
   viewport,
+  startInset = 0,
   reactions,
   bubble,
   menu,
@@ -98,7 +101,7 @@ export default function HoldStack({
           <Animated.View
             onLayout={measure(setReactionsH)}
             className={side}
-            style={[overlayStyle, { transformOrigin: `${horizontalOrigin} bottom` }]}
+            style={[overlayStyle, { marginLeft: startInset, transformOrigin: `${horizontalOrigin} bottom` }]}
           >
             {reactions}
           </Animated.View>
@@ -110,7 +113,9 @@ export default function HoldStack({
         className="absolute inset-x-0 px-4"
         style={[{ top: bubbleOrigTop, zIndex: 10, elevation: 10 }, bubbleStyle]}
       >
-        <View className={`max-w-[80%] ${side}`}>{bubble}</View>
+        <View className={`max-w-[80%] ${side}`} style={{ marginLeft: startInset }}>
+          {bubble}
+        </View>
       </Animated.View>
 
       <View
@@ -121,7 +126,7 @@ export default function HoldStack({
         <Animated.View
           onLayout={measure(setMenuH)}
           className={side}
-          style={[overlayStyle, { transformOrigin: `${horizontalOrigin} top` }]}
+          style={[overlayStyle, { marginLeft: startInset, transformOrigin: `${horizontalOrigin} top` }]}
         >
           {menu}
         </Animated.View>

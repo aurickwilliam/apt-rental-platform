@@ -46,6 +46,7 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
+import { SENDER_AVATAR_GUTTER, showsSenderAvatar } from './components/bubbleGrouping';
 import {
   TIMESTAMP_REVEAL_WIDTH,
   TimestampRevealContext,
@@ -534,7 +535,7 @@ export default function ChatScreen() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: Message }) => (
+    ({ item, index }: { item: Message; index: number }) => (
       <ChatBubble
         id={item.id}
         message={item.message}
@@ -555,6 +556,9 @@ export default function ChatScreen() {
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
         onReply={() => handleReply(item)}
+        showSenderAvatar={showsSenderAvatar(messages, index)}
+        otherUserAvatar={otherUserAvatar}
+        onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
         hidden={activeHold?.id === item.id}
         onImagePress={setSelectedImage}
         onMediaLoadError={(mediaKind) => {
@@ -567,6 +571,11 @@ export default function ChatScreen() {
       handleToggleReaction,
       handleHoldFor,
       handleReply,
+      messages,
+      otherUserAvatar,
+      portal,
+      otherUserId,
+      handleViewProfile,
       activeHold,
       retryChatMediaOnce,
     ]
@@ -751,6 +760,7 @@ export default function ChatScreen() {
             bubbleOrigTop={bubbleOrigTop}
             bubbleHeight={activeHold.height}
             viewport={{ screenH, usableTop, usableBottom }}
+            startInset={activeMsg.isSent ? 0 : SENDER_AVATAR_GUTTER}
             reactions={
               holdData.canReact ? (
                 <ReactionStrip

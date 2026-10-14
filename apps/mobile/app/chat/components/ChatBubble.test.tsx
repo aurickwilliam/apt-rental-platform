@@ -31,6 +31,14 @@ jest.mock('./SwipeToReply', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
+jest.mock('./SenderAvatar', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: 'sender-avatar' }),
+  };
+});
 jest.mock('./TimestampRevealRow', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -385,5 +393,18 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(
       screen.UNSAFE_getByProps({ delayLongPress: 350 }).props.accessibilityActions
     ).toBeUndefined();
+  });
+
+  it("shows the sender's avatar only where asked, and never on sent bubbles", () => {
+    const { rerender } = render(
+      <ChatBubble message="Hi" messageType="text" showSenderAvatar />
+    );
+    expect(screen.getByTestId('sender-avatar')).toBeTruthy();
+
+    rerender(<ChatBubble message="Hi" messageType="text" />);
+    expect(screen.queryByTestId('sender-avatar')).toBeNull();
+
+    rerender(<ChatBubble message="Hi" messageType="text" isSent showSenderAvatar />);
+    expect(screen.queryByTestId('sender-avatar')).toBeNull();
   });
 });
