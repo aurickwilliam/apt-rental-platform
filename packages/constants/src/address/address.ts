@@ -254,7 +254,11 @@ export const CAMANAVA_CITIES = [
   "Valenzuela",
 ] as const;
 
+export type CamanavaCity = (typeof CAMANAVA_CITIES)[number];
+
+export function isCamanavaCity(city: string): city is CamanavaCity {
+  return (CAMANAVA_CITIES as readonly string[]).includes(city);
+}
+
 // Browse sentinel + the CAMANAVA corridor, in display order.
 export const CAMANAVA_FILTER_OPTIONS = ["CAMANAVA", ...CAMANAVA_CITIES] as const;
-
-export type CamanavaCity = (typeof CAMANAVA_CITIES)[number];
