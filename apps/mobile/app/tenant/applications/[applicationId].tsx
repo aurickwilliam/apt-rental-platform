@@ -509,11 +509,11 @@ export default function ApplicationApartment() {
         <>
           <Button
             className="mt-5"
-            variant="danger"
+            variant="danger-soft"
             isDisabled={cancelling || responding}
             onPress={() => setCancelDialogOpen(true)}
           >
-            <IconBan size={20} color={colors.secondaryForeground} />
+            <IconBan size={20} color={colors.danger} />
             <Button.Label>Cancel Application</Button.Label>
           </Button>
 
