@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/chat.tsx": {
-    "mtime": 1791966525.6299937,
-    "ast_hash": "d9eb879f6dec90bda57e24e7b3e0cf0a",
+    "mtime": 1791967319.0184238,
+    "ast_hash": "b04ba51c16e82d75a17b27803b1afb43",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(landlord)/dashboard.tsx": {
@@ -220,8 +220,8 @@
     "semantic_hash": "79dc349c3beee06ce05c6f1567269c34"
   },
   "apps/mobile/app/(tabs)/(tenant)/chat.tsx": {
-    "mtime": 1791966503.8776581,
-    "ast_hash": "57c18b6608fc429c3c51f1746c7646e6",
+    "mtime": 1791967319.018055,
+    "ast_hash": "e7b4f43b9213add6ca612b220169a8b4",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/profile.tsx": {
@@ -4360,7 +4360,7 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationRow.tsx": {
-    "mtime": 1789659998.8576257,
+    "mtime": 1791967359.9347048,
     "ast_hash": "0bbd52dfac019572321731c9d0c1beda",
     "semantic_hash": ""
   },
