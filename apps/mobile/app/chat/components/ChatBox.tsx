@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Keyboard, Pressable, ScrollView, TextInput as RNTextInput, View, Text } from 'react-native';
 import { Image } from 'expo-image';
-import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
+import { EmojiKeyboard, type EmojiType } from 'rn-emoji-keyboard';
 
 import {
   IconSend,
@@ -19,6 +19,13 @@ import { Button, TextField, InputGroup, Menu } from 'heroui-native';
 
 import { useColors } from '@/hooks/useTheme';
 import type { PickedChatAsset, MessageType, Message } from '@/service/chat/chatService';
+
+import {
+  EMOJI_PANEL_HEIGHT,
+  insertAtSelection,
+  useEmojiPickerSettings,
+  type TextSelection,
+} from './emojiPicker';
 
 /** A locally-picked attachment sitting in the review strip, not yet sent. */
 export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageType };
@@ -56,6 +63,9 @@ interface ChatBoxProps {
   replyTarget?: Message | null;
   onClearReply?: () => void;
   otherUserName?: string;
+  /** The inline emoji panel; owned by the screen so a tap on the chat closes it. */
+  isEmojiPickerOpen: boolean;
+  onEmojiPickerOpenChange: (open: boolean) => void;
 }
 
 const ATTACHMENT_OPTIONS = [
@@ -97,13 +107,23 @@ export default function ChatBox({
   replyTarget = null,
   onClearReply,
   otherUserName,
+  isEmojiPickerOpen,
+  onEmojiPickerOpenChange,
 }: ChatBoxProps) {
   const { colors } = useColors();
 
   const inputRef = useRef<RNTextInput>(null);
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<boolean>(false);
+  // Last cursor position in the input, so picked emoji land where the user was typing.
+  const selectionRef = useRef<TextSelection | null>(null);
+  // Latest text, updated straight away on each pick: quick taps land before
+  // the parent re-renders with the new value.
+  const valueRef = useRef(chatValue);
+  useEffect(() => {
+    valueRef.current = chatValue;
+  }, [chatValue]);
+  const emojiPickerSettings = useEmojiPickerSettings();
 
   useEffect(() => {
     if (replyTarget) {
@@ -124,16 +144,21 @@ export default function ChatBox({
 
   const handleToggleEmojiPicker = () => {
     if (isEmojiPickerOpen) {
-      setIsEmojiPickerOpen(false);
+      onEmojiPickerOpenChange(false);
       inputRef.current?.focus();
       return;
     }
     Keyboard.dismiss();
-    setIsEmojiPickerOpen(true);
+    onEmojiPickerOpenChange(true);
   };
 
   const handleEmojiSelected = ({ emoji }: EmojiType) => {
-    onChatValueChange(chatValue + emoji);
+    const { text, cursor } = insertAtSelection(valueRef.current, selectionRef.current, emoji);
+    valueRef.current = text;
+    selectionRef.current = { start: cursor, end: cursor };
+    onChatValueChange(text);
+    // Keep the caret after the emoji for when the keyboard comes back.
+    requestAnimationFrame(() => inputRef.current?.setSelection(cursor, cursor));
   };
 
   return (
@@ -246,7 +271,7 @@ export default function ChatBox({
           className="flex-1"
           onFocus={() => {
             setIsFocused(true);
-            setIsEmojiPickerOpen(false);
+            onEmojiPickerOpenChange(false);
             onFocus?.();
           }}
           onBlur={() => {
@@ -280,6 +305,9 @@ export default function ChatBox({
               value={chatValue}
               numberOfLines={1}
               onChangeText={onChatValueChange}
+              onSelectionChange={(event) => {
+                selectionRef.current = event.nativeEvent.selection;
+              }}
               placeholder={hasPending ? 'Add a caption...' : chatPlaceholder}
               className="rounded-full border"
             />
@@ -299,11 +327,18 @@ export default function ChatBox({
         </TextField>
       </View>
 
-      <EmojiPicker
-        open={isEmojiPickerOpen}
-        onClose={() => setIsEmojiPickerOpen(false)}
-        onEmojiSelected={handleEmojiSelected}
-      />
+      {/* Inline panel in the keyboard's place: the message stays visible and it
+          stays open for several picks until the keyboard button or the input. */}
+      {isEmojiPickerOpen && (
+        <View style={{ height: EMOJI_PANEL_HEIGHT }}>
+          <EmojiKeyboard
+            {...emojiPickerSettings}
+            onEmojiSelected={handleEmojiSelected}
+            disableSafeArea
+            styles={{ container: { borderRadius: 0, shadowOpacity: 0, elevation: 0 } }}
+          />
+        </View>
+      )}
     </>
   );
 }

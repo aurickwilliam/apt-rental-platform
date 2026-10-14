@@ -7,3 +7,4 @@ export { useConversations } from './useConversations';
 export { useConversationRowActions } from './useConversationRowActions';
 export { useBlockStatus } from './useBlockStatus';
 export { useChatApartment } from './useChatApartment';
+export { useEmojiRecents } from './useEmojiRecents';

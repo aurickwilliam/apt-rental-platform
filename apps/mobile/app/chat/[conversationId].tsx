@@ -46,6 +46,7 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
+import { useEmojiPickerSettings } from './components/emojiPicker';
 import {
   SENDER_AVATAR_GUTTER,
   getBubbleGroupPosition,
@@ -63,7 +64,7 @@ import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { useBlockStatus, useChat, useChatApartment } from 'hooks/chat';
+import { useBlockStatus, useChat, useChatApartment, useEmojiRecents } from 'hooks/chat';
 import { usePortalStore } from '@/stores/usePortalStore';
 import {
   getChatApartmentRoute,
@@ -199,6 +200,11 @@ export default function ChatScreen() {
 
   const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
 
+  // Emoji pickers (chat box panel and reaction "+") share recents and styling.
+  useEmojiRecents();
+  const emojiPickerSettings = useEmojiPickerSettings();
+  const [isEmojiPanelOpen, setIsEmojiPanelOpen] = useState(false);
+
   // The active portal says who the other person is (tenant portal → landlord).
   const portal = usePortalStore((state) => state.portal);
   const router = useRouter();
@@ -317,7 +323,11 @@ export default function ChatScreen() {
   // Any scroll, keyboard pop, or list growth while the hold stack is open dismisses it.
   const handleScrollBeginDrag = useCallback(() => {
     setActiveHold(null);
+    setIsEmojiPanelOpen(false);
   }, []);
+
+  // Touching the conversation closes the chat box's emoji panel (Messenger style).
+  const closeEmojiPanel = useCallback(() => setIsEmojiPanelOpen(false), []);
 
   useEffect(() => {
     if (!activeHold) return;
@@ -615,7 +625,11 @@ export default function ChatScreen() {
           ) : (
             <TimestampRevealContext.Provider value={timestampRevealContext}>
               <GestureDetector gesture={timestampSwipe}>
-                <View className="flex-1" collapsable={false}>
+                <View
+                  className="flex-1"
+                  collapsable={false}
+                  onTouchStart={isEmojiPanelOpen ? closeEmojiPanel : undefined}
+                >
                   <FlatList
                     inverted
                     ref={flatListRef}
@@ -704,6 +718,8 @@ export default function ChatScreen() {
             replyTarget={replyTarget}
             onClearReply={clearReply}
             otherUserName={otherUserName}
+            isEmojiPickerOpen={isEmojiPanelOpen}
+            onEmojiPickerOpenChange={setIsEmojiPanelOpen}
           />
           )}
         </View>
@@ -808,6 +824,8 @@ export default function ChatScreen() {
       </View>
     )}
     <EmojiPicker
+      {...emojiPickerSettings}
+      expandable
       open={isReactionPickerOpen}
       onClose={() => {
         setIsReactionPickerOpen(false);
