@@ -44,6 +44,7 @@ import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
+import ChatApartmentCard from './components/ChatApartmentCard';
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 import ChatBlockedNotice from './components/ChatBlockedNotice';
 
@@ -51,7 +52,7 @@ import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { useBlockStatus, useChat } from 'hooks/chat';
+import { useBlockStatus, useChat, useChatApartment } from 'hooks/chat';
 import { usePortalStore } from '@/stores/usePortalStore';
 import {
   getChatApartmentRoute,
@@ -188,6 +189,14 @@ export default function ChatScreen() {
     if (!portal || !otherUserId) return;
     router.push(getChatProfileRoute(portal, otherUserId, apartmentId));
   }, [apartmentId, otherUserId, portal, router]);
+  // Inquiry chats float the apartment under the header; the list pads its
+  // top edge by the card's height so the oldest messages stay reachable.
+  const chatApartment = useChatApartment(apartmentId, otherUserId);
+  const [apartmentCardHeight, setApartmentCardHeight] = useState(0);
+  const handleApartmentCardLayout = useCallback((event: LayoutChangeEvent) => {
+    setApartmentCardHeight(Math.round(event.nativeEvent.layout.height));
+  }, []);
+  const listTopInset = chatApartment ? apartmentCardHeight : 0;
   const handleViewApartment = useCallback(() => {
     if (!portal || !apartmentId) return;
     router.push(getChatApartmentRoute(portal, apartmentId));
@@ -546,57 +555,70 @@ export default function ChatScreen() {
         behavior="padding"
         keyboardVerticalOffset={headerHeight}
       >
-        {loading ? (
-          <ChatLoadingSkeleton />
-        ) : (
-          <View className="flex-1">
-            <FlatList
-              inverted
-              ref={flatListRef}
-              className="flex-1"
-              data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={renderItem}
-              contentContainerStyle={
-                messages.length === 0
-                  ? { flexGrow: 1, justifyContent: 'center' }
-                  : { flexGrow: 1, padding: 16, paddingBottom: 10 }
-              }
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-              nestedScrollEnabled
-              ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
-              ListFooterComponent={
-                <>
-                  {loadingMore && (
-                    <View className="py-3 items-center">
-                      <Spinner size="sm" color={colors.primary} />
-                    </View>
-                  )}
-                  <ChatEmptyState
-                    otherUserName={otherUserName}
-                    otherUserAvatar={otherUserAvatar ?? undefined}
-                    apartmentTitle={apartmentTitle}
-                    otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
-                    isVerified={otherUserIsVerified}
-                    hasMessages={messages.length > 0}
-                    onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
-                    onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
-                  />
-                </>
-              }
-              onContentSizeChange={handleContentSizeChange}
-              onViewableItemsChanged={onViewableItemsChanged}
-              onEndReached={hasMore ? loadOlderMessages : undefined}
-              onEndReachedThreshold={0.2}
-              onScroll={handleScroll}
-              onScrollBeginDrag={handleScrollBeginDrag}
-              scrollEventThrottle={16}
-            />
-          </View>
-        )}
+        <View className="flex-1">
+          {loading ? (
+            <View className="flex-1" style={{ paddingTop: listTopInset }}>
+              <ChatLoadingSkeleton />
+            </View>
+          ) : (
+            <View className="flex-1">
+              <FlatList
+                inverted
+                ref={flatListRef}
+                className="flex-1"
+                data={messages}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+                contentContainerStyle={
+                  messages.length === 0
+                    ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
+                    : { flexGrow: 1, padding: 16, paddingBottom: 10 + listTopInset }
+                }
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                nestedScrollEnabled
+                ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+                ListFooterComponent={
+                  <>
+                    {loadingMore && (
+                      <View className="py-3 items-center">
+                        <Spinner size="sm" color={colors.primary} />
+                      </View>
+                    )}
+                    <ChatEmptyState
+                      otherUserName={otherUserName}
+                      otherUserAvatar={otherUserAvatar ?? undefined}
+                      apartmentTitle={apartmentTitle}
+                      otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
+                      isVerified={otherUserIsVerified}
+                      hasMessages={messages.length > 0}
+                      onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
+                      onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
+                    />
+                  </>
+                }
+                onContentSizeChange={handleContentSizeChange}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onEndReached={hasMore ? loadOlderMessages : undefined}
+                onEndReachedThreshold={0.2}
+                onScroll={handleScroll}
+                onScrollBeginDrag={handleScrollBeginDrag}
+                scrollEventThrottle={16}
+              />
+            </View>
+          )}
+          {chatApartment && (
+            <View className="absolute inset-x-0 top-0" pointerEvents="box-none">
+              <ChatApartmentCard
+                apartment={chatApartment}
+                onPress={handleViewApartment}
+                onLayout={handleApartmentCardLayout}
+              />
+            </View>
+          )}
+        </View>
 
         <View className="px-3 py-2">
           {blockedByMe || blockedMe ? (
