@@ -7,11 +7,11 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
-import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
 import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
-import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
+import MaintenanceSection from '../components/rentals/MaintenanceSection';
+import RentalHero from '../components/rentals/RentalHero';
 import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
 import {
   getRentalsLayoutToRemember,
@@ -24,9 +24,6 @@ import {
   IconAlertCircle,
   IconLink,
   IconUser,
-  IconFileText,
-  IconHammer,
-  IconMapPinFilled,
   IconReceipt,
   IconSettings,
   IconHelpCircle,
@@ -36,13 +33,13 @@ import {
 import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
-import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
+import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
 import { usePayments } from '@/hooks/payments';
 import { getCurrentRentStatus } from '@/service/payments/paymentService';
 import { buildConversationKey } from '@/service/chat/chatService';
 
-import { Button, Separator } from 'heroui-native';
+import { Button } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName } from '@repo/utils';
 
@@ -95,11 +92,10 @@ export default function Rentals() {
   } = useTenancy();
   const { profile } = useProfile();
   const {
-    latestRequest,
-    isFinal,
+    requests: maintenanceRequests,
     loading: maintenanceLoading,
     refetch: refetchMaintenance,
-  } = useMaintenanceRequests({
+  } = useMaintenanceRequestHistory({
     apartmentId: tenancy?.apartment.id,
   });
   const {
@@ -176,7 +172,12 @@ export default function Rentals() {
       pathname: '/tenant/maintenance-history',
       params: { apartmentId: tenancy?.apartment.id },
     });
-  const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
+  const handleOpenMaintenanceRequest = (request: MaintenanceRequest) =>
+    router.push({
+      pathname: '/tenant/maintenance-details',
+      params: { requestId: request.id, apartmentId: request.apartment_id },
+    });
+  const handleViewDescription = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
   const handleViewApplications = () => router.push('/tenant/applications');
@@ -201,7 +202,6 @@ export default function Rentals() {
     // The landlord join can come back null (e.g. a profile RLS hides), so the
     // landlord section is skipped rather than crashing the whole tab.
     const landlordFullName = landlord ? formatFullName(landlord) : '';
-    const address = formatAddress(apartment);
 
     const handleMessageLandlord = () => {
       if (!landlord || !profile || !apartment?.id) return;
@@ -229,19 +229,17 @@ export default function Rentals() {
 
     return (
       <TabScreen refreshing={refreshing} onRefresh={onRefresh}>
-        {/* Apartment Header */}
-        <View className="flex-row items-center justify-between gap-2">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconMapPinFilled size={30} color={colors.primary} />
-            <Text className="text-accent text-2xl font-nunitoBold">
-              {apartment.name}
-            </Text>
-          </View>
-          <NotificationBellButton route="/tenant-notif" />
-        </View>
+        {/* Apartment photo, name and address */}
+        <RentalHero
+          name={apartment.name}
+          address={formatAddress(apartment)}
+          imageUrl={apartment.cover_url}
+          onViewDescription={handleViewDescription}
+          topRight={<NotificationBellButton route="/tenant-notif" tone="onImage" />}
+        />
 
         {/* Payment Summary Card */}
-        <View className="mt-3">
+        <View className="mt-5">
           <PaymentSummaryCard
             periodMonth={formatDate(rent.periodStart, "month")}
             periodYear={formatDate(rent.periodStart, "year")}
@@ -303,91 +301,15 @@ export default function Rentals() {
           </View>
         )}
 
-        {/* Apartment Description */}
-        <View className="mt-5 flex gap-3">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconFileText size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Apartment Description
-            </Text>
-          </View>
-          <ApartmentDescriptionCard
-            apartmentName={apartment.name}
-            apartmentAddress={address}
-            leaseStartMonth={formatDate(tenancy.lease_start, "month")}
-            leaseStartYear={formatDate(tenancy.lease_start, "year")}
-            leaseEndMonth={
-              tenancy.lease_end
-                ? formatDate(tenancy.lease_end, "month")
-                : "Ongoing"
-            }
-            leaseEndYear={
-              tenancy.lease_end
-                ? formatDate(tenancy.lease_end, "year")
-                : ""
-            }
-            monthlyRent={rent.monthlyRent}
-            onPressViewMore={handleViewMoreDetails}
+        {/* Maintenance */}
+        <View className="mt-5">
+          <MaintenanceSection
+            requests={maintenanceRequests}
+            onOpenRequest={handleOpenMaintenanceRequest}
+            onViewAll={handleViewHistory}
+            onRequestMaintenance={handleRequestMaintenance}
           />
         </View>
-
-        {latestRequest ? (
-          <>
-            <Separator className="my-4" />
-            <View className="flex gap-3">
-              <View className="flex-row items-center justify-start gap-2">
-                <IconHammer size={24} color={colors.textPrimary} />
-                <Text className="text-foreground text-lg font-nunitoSemiBold">
-                  {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
-                </Text>
-              </View>
-
-              <MaintenanceRequestCard
-                request={latestRequest}
-                onPress={() => {
-                  router.push({
-                    pathname: "/tenant/maintenance-details",
-                    params: {
-                      requestId: latestRequest.id,
-                      apartmentId: apartment.id,
-                    },
-                  });
-                }}
-              />
-
-              <View className="flex-row gap-3 mt-1">
-                <Button
-                  className="flex-1"
-                  variant="secondary"
-                  onPress={handleViewHistory}
-                  size='sm'
-                >
-                  <Button.Label>View History</Button.Label>
-                </Button>
-
-                {isFinal && (
-                  <Button
-                    className="flex-1"
-                    onPress={handleRequestMaintenance}
-                    size='sm'
-                  >
-                    <IconHammer size={18} color={colors.secondaryForeground} />
-                    <Button.Label>Request Again</Button.Label>
-                  </Button>
-                )}
-              </View>
-            </View>
-          </>
-        ) : (
-          <>
-            <Separator className='my-4' />
-
-            <Button onPress={handleRequestMaintenance}>
-              <IconHammer size={20} color={colors.secondaryForeground} />
-              <Button.Label>Request Maintenance Issue</Button.Label>
-            </Button>
-          </>
-        )}
       </TabScreen>
     );
   }

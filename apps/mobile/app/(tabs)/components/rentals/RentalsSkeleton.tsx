@@ -1,16 +1,23 @@
 import { View } from "react-native";
 import { Skeleton } from "heroui-native";
 
+import { useRentalHeroHeight } from "./RentalHero";
+
+// Mirrors the rental page: photo, payment summary, quick actions, landlord,
+// maintenance.
 export default function RentalsSkeleton() {
+  const heroHeight = useRentalHeroHeight();
+
   return (
     <View className="flex gap-5">
-      {/* Header */}
-      <View className="flex-row items-center justify-between gap-2">
-        <View className="flex-row items-center gap-2">
-          <Skeleton className="size-7 rounded-full" />
-          <Skeleton className="h-7 w-36 rounded-lg" />
+      {/* Apartment photo with name, address and button */}
+      <View className="rounded-3xl overflow-hidden" style={{ height: heroHeight }}>
+        <Skeleton className="absolute inset-0 rounded-3xl" />
+        <View className="absolute left-4 right-4 bottom-4 gap-2">
+          <Skeleton className="h-6 w-40 rounded-lg" />
+          <Skeleton className="h-3.5 w-56 rounded-md" />
+          <Skeleton className="h-9 w-36 rounded-full mt-1" />
         </View>
-        <Skeleton className="size-10 rounded-full" />
       </View>
 
       {/* Payment Summary Card — compact: header + 2 icon rows */}
@@ -76,40 +83,26 @@ export default function RentalsSkeleton() {
         </View>
       </View>
 
-      {/* Apartment Description */}
+      {/* Maintenance: header, recent requests, request button */}
       <View className="flex gap-3">
-        <View className="flex-row items-center gap-2">
-          <Skeleton className="size-6 rounded-md" />
-          <Skeleton className="h-5 w-48 rounded-md" />
-        </View>
-        <View className="w-full bg-surface rounded-3xl p-4 border border-border gap-3">
-          <View className="gap-2">
-            <Skeleton className="h-5 w-40 rounded-md" />
-            <Skeleton className="h-3 w-full rounded-md" />
-            <Skeleton className="h-3 w-3/4 rounded-md" />
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2">
+            <Skeleton className="size-6 rounded-md" />
+            <Skeleton className="h-5 w-32 rounded-md" />
           </View>
-          <View className="flex-row gap-3 mt-2">
-            <View className="flex w-1/2 gap-2">
-              <Skeleton className="h-3 w-20 rounded-md" />
-              <Skeleton className="h-4 w-24 rounded-md" />
-            </View>
-            <View className="flex w-1/2 gap-2">
-              <Skeleton className="h-3 w-20 rounded-md" />
-              <Skeleton className="h-4 w-24 rounded-md" />
+          <Skeleton className="h-4 w-14 rounded-md" />
+        </View>
+        {Array.from({ length: 2 }).map((_, i) => (
+          <View key={i} className="border border-border rounded-3xl p-4 gap-3 bg-surface">
+            <View className="flex-row justify-between items-start gap-3">
+              <View className="flex-1 gap-2">
+                <Skeleton className="h-4 w-32 rounded-md" />
+                <Skeleton className="h-3 w-24 rounded-md" />
+              </View>
+              <Skeleton className="h-6 w-20 rounded-full" />
             </View>
           </View>
-          <View className="gap-2 mt-2">
-            <Skeleton className="h-3 w-24 rounded-md" />
-            <Skeleton className="h-4 w-28 rounded-md" />
-          </View>
-          <Skeleton className="h-9 w-full rounded-full mt-2" />
-        </View>
-      </View>
-
-      {/* Maintenance: a separator and the "Request Maintenance Issue" button,
-          not a request card, which only tenants with a request get. */}
-      <View className="gap-4">
-        <Skeleton className="h-px w-full" />
+        ))}
         <Skeleton className="h-12 w-full rounded-full" />
       </View>
     </View>
