@@ -11,7 +11,7 @@ import MessageCard from './MessageCard'
 type LandlordShortcutItem = Extract<ConversationListItem, { kind: 'landlord-shortcut' }>;
 
 export interface ConversationRowHandlers {
-  openMore: (conversation: ConversationWithMeta) => void;
+  openMore: (conversation: ConversationWithMeta, options: { isPinLocked: boolean }) => void;
   togglePin: (conversation: ConversationWithMeta) => void;
   toggleArchive: (conversation: ConversationWithMeta) => void;
 }

@@ -15,6 +15,8 @@ import type {
 } from "@/service/chat/conversationService";
 
 type MoreAction =
+  | "togglePin"
+  | "toggleArchive"
   | "toggleRead"
   | "viewProfile"
   | "viewApartment"
@@ -59,6 +61,7 @@ export function useConversationRowActions({
 
   const [moreTarget, setMoreTarget] = useState<ConversationWithMeta | null>(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isMorePinLocked, setIsMorePinLocked] = useState(false);
   const [reportTarget, setReportTarget] = useState<ConversationWithMeta | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [isReporting, setIsReporting] = useState(false);
@@ -86,10 +89,14 @@ export function useConversationRowActions({
     [toast, updatePreferences]
   );
 
-  const openMore = useCallback((conversation: ConversationWithMeta) => {
-    setMoreTarget(conversation);
-    setIsMoreOpen(true);
-  }, []);
+  const openMore = useCallback(
+    (conversation: ConversationWithMeta, { isPinLocked }: { isPinLocked: boolean }) => {
+      setMoreTarget(conversation);
+      setIsMorePinLocked(isPinLocked);
+      setIsMoreOpen(true);
+    },
+    []
+  );
 
   const togglePin = useCallback(
     (conversation: ConversationWithMeta) => {
@@ -175,6 +182,12 @@ export function useConversationRowActions({
       setIsMoreOpen(false);
 
       switch (action) {
+        case "togglePin":
+          togglePin(conversation);
+          return;
+        case "toggleArchive":
+          toggleArchive(conversation);
+          return;
         case "toggleRead":
           if (hasUnread(conversation)) {
             void markConversationRead(conversation.conversation_key);
@@ -211,7 +224,15 @@ export function useConversationRowActions({
           return;
       }
     },
-    [markConversationRead, openApartment, openProfile, runPreferenceChange, unblock]
+    [
+      markConversationRead,
+      openApartment,
+      openProfile,
+      runPreferenceChange,
+      toggleArchive,
+      togglePin,
+      unblock,
+    ]
   );
 
   const submitReport = useCallback(
@@ -260,6 +281,7 @@ export function useConversationRowActions({
     overlays: {
       moreTarget,
       isMoreOpen,
+      isMorePinLocked,
       onMoreOpenChange: setIsMoreOpen,
       onSelectMoreAction: selectMoreAction,
       reportTarget,

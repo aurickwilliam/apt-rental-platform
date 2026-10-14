@@ -38,6 +38,12 @@ jest.mock('@tabler/icons-react-native', () => {
   };
 });
 
+const mockImpactAsync = jest.fn().mockResolvedValue(undefined);
+jest.mock('expo-haptics', () => ({
+  impactAsync: (...args: unknown[]) => mockImpactAsync(...args),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
+
 // heroui-native ships untranspiled ESM that Jest cannot parse — stub the used
 // primitives with real Pressable/View hosts so press and a11y queries work.
 jest.mock('heroui-native', () => {
@@ -156,6 +162,7 @@ function renderRow(
 
 beforeEach(() => {
   mockClose.mockClear();
+  mockImpactAsync.mockClear();
 });
 
 describe('ConversationRow', () => {
@@ -175,10 +182,21 @@ describe('ConversationRow', () => {
     fireEvent.press(screen.getByLabelText('Pin'));
     fireEvent.press(screen.getByLabelText('Archive'));
 
-    expect(onMore).toHaveBeenCalledWith(conversation);
+    expect(onMore).toHaveBeenCalledWith(conversation, { isPinLocked: false });
     expect(onTogglePin).toHaveBeenCalledWith(conversation);
     expect(onToggleArchive).toHaveBeenCalledWith(conversation);
     expect(mockClose).toHaveBeenCalledTimes(3);
+  });
+
+  it('opens the options on hold, with a light haptic', () => {
+    const conversation = makeConversation();
+    const { onMore, onOpen } = renderRow(conversation, { isPinLocked: true });
+
+    fireEvent(screen.getByLabelText('Chat with Ben Cruz about Harbor View, pinned'), 'onLongPress');
+
+    expect(onMore).toHaveBeenCalledWith(conversation, { isPinLocked: true });
+    expect(mockImpactAsync).toHaveBeenCalledWith('light');
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   it('offers Unpin and Unarchive for pinned or archived chats', () => {

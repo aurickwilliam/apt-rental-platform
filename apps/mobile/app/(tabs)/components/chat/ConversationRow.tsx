@@ -12,6 +12,8 @@ import {
   type Icon,
 } from '@tabler/icons-react-native'
 
+import * as Haptics from 'expo-haptics'
+
 import { PressableFeedback } from 'heroui-native'
 
 import { getRelativeTime } from '@repo/utils'
@@ -30,7 +32,7 @@ const DISABLED_ACTION_OPACITY = 0.4;
 interface ConversationRowProps {
   conversation: ConversationWithMeta;
   onOpen: (conversation: ConversationWithMeta) => void;
-  onMore: (conversation: ConversationWithMeta) => void;
+  onMore: (conversation: ConversationWithMeta, options: { isPinLocked: boolean }) => void;
   onTogglePin: (conversation: ConversationWithMeta) => void;
   onToggleArchive: (conversation: ConversationWithMeta) => void;
   /**
@@ -93,8 +95,18 @@ export default function ConversationRow({
   const pinLabel = isPinned ? 'Unpin' : 'Pin';
   const archiveLabel = isArchived ? 'Unarchive' : 'Archive';
 
+  const openMore = () => onMore(conversation, { isPinLocked });
+
+  // Holding the row opens the same options as the More button.
+  const handleLongPress = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
+      /* Haptics are optional on unsupported devices. */
+    });
+    openMore();
+  };
+
   const cardActions: MessageCardAction[] = [
-    { name: 'more', label: 'More options', onPress: () => onMore(conversation) },
+    { name: 'more', label: 'More options', onPress: openMore },
     ...(isPinLocked
       ? []
       : [
@@ -109,26 +121,26 @@ export default function ConversationRow({
     swipeable: SwipeableMethods
   ) => {
     // Close the row first so it doesn't stay open after the action.
-    const run = (action: (conversation: ConversationWithMeta) => void) => () => {
+    const run = (action: () => void) => () => {
       swipeable.close();
-      action(conversation);
+      action();
     };
 
     return (
       <View className='flex-row items-center pr-2'>
-        <SwipeAction label='More' icon={IconDots} color={colors.actionMore} onPress={run(onMore)} />
+        <SwipeAction label='More' icon={IconDots} color={colors.actionMore} onPress={run(openMore)} />
         <SwipeAction
           label={pinLabel}
           icon={isPinned ? IconPinnedOff : IconPin}
           color={colors.actionPin}
-          onPress={run(onTogglePin)}
+          onPress={run(() => onTogglePin(conversation))}
           isDisabled={isPinLocked}
         />
         <SwipeAction
           label={archiveLabel}
           icon={isArchived ? IconArchiveOff : IconArchive}
           color={colors.actionArchive}
-          onPress={run(onToggleArchive)}
+          onPress={run(() => onToggleArchive(conversation))}
           isDisabled={isPinLocked}
         />
       </View>
@@ -156,6 +168,7 @@ export default function ConversationRow({
           isMuted={conversation.is_muted}
           profilePictureUrl={conversation.other_user_avatar ?? undefined}
           onPress={() => onOpen(conversation)}
+          onLongPress={handleLongPress}
           actions={cardActions}
         />
       </ReanimatedSwipeable>

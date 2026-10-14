@@ -9,6 +9,7 @@ import ReportUserDialog from './ReportUserDialog'
 export default function ConversationActionOverlays({
   moreTarget,
   isMoreOpen,
+  isMorePinLocked,
   onMoreOpenChange,
   onSelectMoreAction,
   reportTarget,
@@ -28,6 +29,7 @@ export default function ConversationActionOverlays({
       <ConversationMoreSheet
         conversation={moreTarget}
         isOpen={isMoreOpen}
+        isPinLocked={isMorePinLocked}
         onOpenChange={onMoreOpenChange}
         onSelect={onSelectMoreAction}
       />

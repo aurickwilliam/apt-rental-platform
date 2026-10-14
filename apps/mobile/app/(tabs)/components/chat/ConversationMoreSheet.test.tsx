@@ -16,6 +16,8 @@ jest.mock('@tabler/icons-react-native', () => {
     return React.createElement(View);
   }
   return {
+    IconArchive: MockIcon,
+    IconArchiveOff: MockIcon,
     IconBan: MockIcon,
     IconBell: MockIcon,
     IconBellOff: MockIcon,
@@ -23,6 +25,8 @@ jest.mock('@tabler/icons-react-native', () => {
     IconFlag: MockIcon,
     IconMail: MockIcon,
     IconMailOpened: MockIcon,
+    IconPin: MockIcon,
+    IconPinnedOff: MockIcon,
     IconUser: MockIcon,
   };
 });
@@ -91,6 +95,8 @@ it('shows only the options without the name or apartment header, keeping all act
   expect(screen.queryByText('Ben Cruz')).toBeNull();
   expect(screen.queryByText('Harbor View')).toBeNull();
   expect(screen.getAllByRole('button').map((button) => button.props.accessibilityLabel)).toEqual([
+    'Pin',
+    'Archive',
     'Mark as unread',
     'View profile',
     'View apartment',
@@ -101,4 +107,33 @@ it('shows only the options without the name or apartment header, keeping all act
 
   fireEvent.press(screen.getByRole('button', { name: 'View apartment' }));
   expect(onSelect).toHaveBeenCalledWith('viewApartment', conversation);
+});
+
+it('runs Pin and Archive from the sheet', () => {
+  const onSelect = jest.fn();
+  render(
+    <ConversationMoreSheet conversation={conversation} isOpen onOpenChange={jest.fn()} onSelect={onSelect} />
+  );
+
+  fireEvent.press(screen.getByRole('button', { name: 'Pin' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Archive' }));
+
+  expect(onSelect).toHaveBeenNthCalledWith(1, 'togglePin', conversation);
+  expect(onSelect).toHaveBeenNthCalledWith(2, 'toggleArchive', conversation);
+});
+
+it('disables Unpin and Archive for the always-pinned landlord chat', () => {
+  render(
+    <ConversationMoreSheet
+      conversation={conversation}
+      isOpen
+      isPinLocked
+      onOpenChange={jest.fn()}
+      onSelect={jest.fn()}
+    />
+  );
+
+  expect(screen.getByRole('button', { name: 'Unpin' }).props.accessibilityState).toEqual({ disabled: true });
+  expect(screen.getByRole('button', { name: 'Archive' }).props.accessibilityState).toEqual({ disabled: true });
+  expect(screen.getByRole('button', { name: 'Mark as unread' }).props.accessibilityState).toEqual({ disabled: false });
 });

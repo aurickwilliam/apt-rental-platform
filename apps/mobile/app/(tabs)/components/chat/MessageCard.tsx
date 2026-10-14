@@ -31,6 +31,9 @@ function getLastMessageDisplay(
   }
 }
 
+// Same hold delay as chat bubbles.
+const LONG_PRESS_DELAY_MS = 350;
+
 /** A row action screen readers can run without swiping. */
 export interface MessageCardAction {
   name: string;
@@ -52,6 +55,8 @@ interface MessageCardProps {
   isPinned?: boolean;
   isMuted?: boolean;
   onPress?: () => void;
+  /** Hold the card (opens the conversation's options). */
+  onLongPress?: () => void;
   /** Touch-free mirror of the swipe actions (screen readers can't swipe). */
   actions?: MessageCardAction[];
 }
@@ -69,6 +74,7 @@ export default function MessageCard({
   isPinned = false,
   isMuted = false,
   onPress,
+  onLongPress,
   actions = [],
 }: MessageCardProps) {
   const { colors } = useColors();
@@ -97,10 +103,12 @@ export default function MessageCard({
   return (
     <PressableFeedback
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={LONG_PRESS_DELAY_MS}
       className='overflow-hidden rounded-3xl'
       accessibilityRole='button'
       accessibilityLabel={`Chat with ${name} about ${apartmentName}${unreadLabel}${stateLabel}`}
-      accessibilityHint='Opens conversation'
+      accessibilityHint={onLongPress ? 'Opens conversation. Hold for more options' : 'Opens conversation'}
       accessibilityActions={
         actions.length > 0
           ? actions.map(({ name: actionName, label }) => ({ name: actionName, label }))
