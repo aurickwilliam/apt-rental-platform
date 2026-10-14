@@ -50,7 +50,7 @@ export default function LandlordCard({
   return (
     <PressableFeedback onPress={onPress} className="rounded-3xl">
       <PressableFeedback.Highlight />
-      <Card className="border border-border shadow-none rounded-3xl">
+      <Card className="bg-surface border border-border shadow-none rounded-3xl">
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (

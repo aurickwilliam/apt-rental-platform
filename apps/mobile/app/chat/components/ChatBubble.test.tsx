@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import ChatBubble, { ChatBubbleContent } from './ChatBubble';
@@ -25,6 +26,24 @@ jest.mock('expo-video', () => {
     },
   };
 });
+
+// Gesture + Reanimated wrapper; the swipe itself is exercised on device.
+jest.mock('./SwipeToReply', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+jest.mock('./SenderAvatar', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: 'sender-avatar' }),
+  };
+});
+jest.mock('./TimestampRevealRow', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
@@ -354,5 +373,80 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       'opacity-0'
     );
     expect(screen.getByText('Hold me')).toBeTruthy();
+  });
+
+  it('offers a Reply accessibility action that starts a reply', () => {
+    const onReply = jest.fn();
+    render(<ChatBubble message="Reply to me" messageType="text" onReply={onReply} />);
+
+    const row = screen.UNSAFE_getByProps({ delayLongPress: 350 });
+    expect(row.props.accessibilityActions).toEqual([{ name: 'reply', label: 'Reply' }]);
+
+    fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'reply' } });
+    expect(onReply).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no Reply action while the message is still sending', () => {
+    render(
+      <ChatBubble message="Sending" messageType="text" isPending onReply={jest.fn()} />
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({ delayLongPress: 350 }).props.accessibilityActions
+    ).toBeUndefined();
+  });
+
+  it("shows the sender's avatar only where asked, and never on sent bubbles", () => {
+    const { rerender } = render(
+      <ChatBubble message="Hi" messageType="text" showSenderAvatar />
+    );
+    expect(screen.getByTestId('sender-avatar')).toBeTruthy();
+
+    rerender(<ChatBubble message="Hi" messageType="text" />);
+    expect(screen.queryByTestId('sender-avatar')).toBeNull();
+
+    rerender(<ChatBubble message="Hi" messageType="text" isSent showSenderAvatar />);
+    expect(screen.queryByTestId('sender-avatar')).toBeNull();
+  });
+
+  it('shrinks the corners where same-sender bubbles meet', () => {
+    // The text bubble is the nearest ancestor with an explicit corner radius.
+    const bubbleCorners = (text: string) => {
+      let node = screen.getByText(text).parent;
+      while (node) {
+        const style = StyleSheet.flatten(node.props.style) ?? {};
+        if ('borderTopLeftRadius' in style || 'borderTopRightRadius' in style) return style;
+        node = node.parent;
+      }
+      return {};
+    };
+
+    const { rerender } = render(
+      <ChatBubbleContent message="Middle" messageType="text" isSent groupPosition="middle" />
+    );
+    expect(bubbleCorners('Middle')).toMatchObject({
+      borderTopRightRadius: 6,
+      borderBottomRightRadius: 6,
+    });
+
+    rerender(<ChatBubbleContent message="Top" messageType="text" groupPosition="first" />);
+    expect(bubbleCorners('Top')).toMatchObject({
+      borderTopLeftRadius: 24,
+      borderBottomLeftRadius: 6,
+    });
+
+    rerender(<ChatBubbleContent message="Alone" messageType="text" isSent />);
+    expect(bubbleCorners('Alone')).toMatchObject({
+      borderTopRightRadius: 24,
+      borderBottomRightRadius: 24,
+    });
+  });
+
+  it('shows "Seen" only on the bubble that asks for it', () => {
+    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+    expect(screen.getByText('Seen')).toBeTruthy();
+
+    rerender(<ChatBubble message="Sent" messageType="text" isSent />);
+    expect(screen.queryByText('Seen')).toBeNull();
   });
 });

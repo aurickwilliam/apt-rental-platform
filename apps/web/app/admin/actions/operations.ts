@@ -68,3 +68,26 @@ export async function setApartmentVisibility(formData: FormData): Promise<Operat
   revalidatePath("/admin/analytics");
   return {};
 }
+
+export async function resolveUserReport(formData: FormData): Promise<OperationResult> {
+  await requireAdmin();
+  const parsed = input(formData);
+  if (!("id" in parsed)) return parsed;
+  const decision = formData.get("decision");
+  if (decision !== "resolve" && decision !== "dismiss") return { error: "Invalid decision." };
+
+  // The RPC authorizes the caller from auth.uid() and writes the audit row.
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_resolve_user_report", {
+    p_report_id: parsed.id,
+    p_status: decision === "resolve" ? "resolved" : "dismissed",
+    p_note: parsed.reason,
+  });
+  if (error) {
+    console.error("Admin report review failed", error);
+    return { error: "The report could not be updated. Refresh and try again." };
+  }
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin/activity");
+  return {};
+}

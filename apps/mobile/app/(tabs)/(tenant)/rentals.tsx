@@ -241,7 +241,6 @@ export default function Rentals() {
           otherUserId: landlord.id,
           otherUserName: landlordFullName,
           otherUserAvatar: landlord.avatar_url ?? '',
-          otherUserPhoneNumber: landlord.mobile_number ?? '',
           apartmentId: apartment.id,
           apartmentTitle: apartment.name,
         },

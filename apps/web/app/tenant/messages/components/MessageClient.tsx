@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
+import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact } from "./types";
@@ -26,6 +27,11 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
   const [isThreadOpen, setIsThreadOpen] = useState(false);
 
   const contacts = [...myLandlordContacts, ...pastInquiryContacts];
+  const conversationKeys = useMemo(
+    () => [...myLandlordContacts, ...pastInquiryContacts].map((contact) => contact.conversationKey),
+    [myLandlordContacts, pastInquiryContacts]
+  );
+  const refreshIfNewConversation = useNewConversationRefresh(conversationKeys);
 
   // Reset local contact state when the server sends new lists (React's
   // "adjust state on prop change" pattern; no effect round-trip).
@@ -110,6 +116,8 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
           if (conversationKey === selectedConversationKey) {
             return;
           }
+          // A chat that started while the page was open: reload the lists.
+          if (refreshIfNewConversation(conversationKey)) return;
           incrementUnreadForContact(conversationKey);
         }
       )
@@ -118,7 +126,7 @@ export default function MessagesClient({ myLandlord, pastInquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId, incrementUnreadForContact, selectedConversationKey, supabase]);
+  }, [currentUserId, incrementUnreadForContact, refreshIfNewConversation, selectedConversationKey, supabase]);
 
   const activeContact =
     contacts.find((contact) => contact.conversationKey === selectedConversationKey) ??

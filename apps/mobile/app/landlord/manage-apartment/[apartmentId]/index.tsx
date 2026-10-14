@@ -132,7 +132,6 @@ export default function Index() {
         otherUserId: tenant.id,
         otherUserName: tenant.fullName,
         otherUserAvatar: tenant.avatarUrl ?? '',
-        otherUserPhoneNumber: tenant.mobileNumber,
         apartmentId,
         apartmentTitle: apartment?.name,
       },

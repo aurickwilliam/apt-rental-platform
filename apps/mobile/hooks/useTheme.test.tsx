@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react-native";
 import { Uniwind, useUniwind } from "uniwind";
 
-import { COLORS } from "@repo/constants";
+import { MOBILE_COLORS } from "../constants/theme";
 
 import { useThemeHydrationStore, useThemeStore } from "../stores/useThemeStore";
 import { useColors, useTheme, useThemePreference, useThemeSync } from "./useTheme";
@@ -24,11 +24,11 @@ describe("theme hooks", () => {
   describe("useColors / useTheme", () => {
     it("derives the palette from Uniwind's resolved theme", () => {
       const { result, rerender } = renderHook(() => useColors());
-      expect(result.current).toEqual({ colors: COLORS.light, isDark: false });
+      expect(result.current).toEqual({ colors: MOBILE_COLORS.light, isDark: false });
 
       resolveTo("dark");
       rerender({});
-      expect(result.current).toEqual({ colors: COLORS.dark, isDark: true });
+      expect(result.current).toEqual({ colors: MOBILE_COLORS.dark, isDark: true });
     });
 
     it("follows a device change while System is selected, ignoring the stored preference", () => {

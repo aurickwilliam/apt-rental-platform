@@ -28,6 +28,7 @@ interface ScreenWrapperProps {
   children: ReactNode;
   className?: string;
   backgroundColor?: string;
+  background?: "default" | "grouped";
   header?: ReactNode;
   footer?: ReactNode;
   scrollable?: boolean;
@@ -53,6 +54,7 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
       children,
       className = "",
       backgroundColor,
+      background = "default",
       header,
       footer,
       scrollable = false,
@@ -72,7 +74,11 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
     const containerStyle = backgroundColor
       ? { flex: 1, backgroundColor }
       : { flex: 1 };
-    const containerClassName = backgroundColor ? "" : "bg-background";
+    const containerClassName = backgroundColor
+      ? ""
+      : background === "grouped"
+        ? "bg-grouped-background"
+        : "bg-background";
 
     const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 

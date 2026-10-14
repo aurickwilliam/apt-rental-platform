@@ -294,7 +294,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 
 **Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated. **Exception:** the notification schema (2026-08-14 onward) is tracked in `supabase/migrations/`; the 2026-08-13 chat/image DDL (attachment URL, RPC v2, thumbs) was applied to the live DB and its migration files later removed from the repo — see debt D17.
 
-**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_conversations_v2`; v1 superseded and stripped of direct anon grants).
+**Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_portal_conversations(p_portal)` for the mobile lists; `get_conversations_v2` kept unchanged for older app builds, recorded in migration `20261014083034_record_get_conversations_v2`; v1 superseded and stripped of direct anon grants).
 
 ### 5.1 Patterns
 
@@ -416,12 +416,12 @@ sequenceDiagram
 
 ## 8. Chat Architecture
 
-There is no `conversations` table. A conversation is **an ordered pair of users plus an optional `apartment_id`** (an apartment-scoped thread is an inquiry; a non-apartment thread is a tenancy thread). Conversation metadata is served by the `get_conversations` RPC; message rows live in `chat` (`sender_id`, `receiver_id`, `apartment_id`, `message`, `message_type`, `is_read`, `read_at`, `group_id`, timestamps).
+There is no `conversations` table. A conversation is **an ordered pair of users plus an optional `apartment_id`** (an apartment-scoped thread is an inquiry; a non-apartment thread is a tenancy thread). Conversation metadata is served by the `get_portal_conversations(p_portal)` RPC (see §8.2a); message rows live in `chat` (`sender_id`, `receiver_id`, `apartment_id`, `message`, `message_type`, `is_read`, `read_at`, `group_id`, timestamps).
 
 ```mermaid
 flowchart LR
     subgraph Mobile["Mobile (apps/mobile)"]
-        MC[(chat rows)] --> LS[Chat list tabs<br/>postgres_changes chat-list:myId]
+        MC[(chat rows)] --> LS[Chat list tabs<br/>postgres_changes chat-list:myId:portal]
         CONV[Conversation screen<br/>useChat]
         CONV --> BC[Broadcast channel<br/>chat:msg:{key}]
         CONV --> PC[Presence channel<br/>chat:presence:{key}]
@@ -442,7 +442,7 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 | Format | Used by | Shape |
 |---|---|---|
 | Realtime channel key | Mobile `useChatChannel` | `chat:{apartmentId\|'none'}:{sortedUserIds}` (IDs sorted so both sides agree) |
-| RPC / route key | `get_conversations`, chat-list screens, **web** | `{otherUserId}:{apartmentId\|'none'}` |
+| RPC / route key | `get_conversations` (v1), **web** | `{otherUserId}:{apartmentId\|'none'}` |
 
 ### 8.2 Mobile conversation screen
 
@@ -453,15 +453,28 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 - **Optimistic sends**: text messages get a `temp-{ts}` id and a "Sending…" bubble; replaced in place by the server row, rolled back (text restored to input) on error.
 - **Attachments**: `expo-image-picker` (images/videos, 10 max, 60 s video cap); staged previews; **3-concurrent worker-pool uploads** to `chat-images` (25 MB cap); video thumbnails via `expo-video-thumbnails`; batch insert with a shared `group_id`; per-file failures filtered out; **GIFs reference the Giphy URL directly via the `url` column (`externalUrl`) — no download-then-re-upload** (debt D10 resolved); video playback failures hand off into the shared attachment retry path.
 - **List**: inverted `FlatList` (newest first) with `maintainVisibleContentPosition`, auto-scroll-to-bottom within 150 px threshold, scroll-to-bottom button; history loads at the visual top edge with a loading indicator; no virtualization beyond FlatList defaults.
-- **Statuses**: `is_read` boolean set on open/read; **no delivered/read receipts**; `read_at` is written on web but never on mobile.
+- **Statuses**: `is_read` boolean; **no delivered/read receipts**; `read_at` is written on web but never on mobile. Mobile marks a conversation read while it is *on screen* (chat focused and app in the foreground — `useConversationReadSync`): when it comes into view and, debounced 500 ms, as messages arrive; a pending update is flushed on leave. On-screen conversations are tracked in `conversationReadState.ts` so the list's realtime handler does not count their messages as unread.
 - **Teardown**: channels removed on unmount.
+
+### 8.2a Mobile conversation lists
+
+- **Source**: `get_portal_conversations(p_portal)` (`'tenant' | 'landlord'`), caller from `auth.uid()`. A chat about an apartment the caller owns belongs to the landlord portal, otherwise to the tenant portal; chats with no apartment (or a missing apartment row) appear in both. This keeps dual-role users' tenant and landlord chats apart.
+- **Cache**: one React Query entry per portal, `["conversations", myId, portal]`; read-state helpers update every portal's entry through the `["conversations", myId]` prefix. Realtime INSERT/DELETE merge into the cache on channel `chat-list:{myId}:{portal}`; unknown conversations (including the other portal's) trigger a refetch.
+- **Row actions**: swiping a row left reveals More / Pin / Archive (`ConversationRow`); More, or holding the row (light haptic), opens `ConversationMoreSheet` (pin/unpin, archive/unarchive — disabled on the always-pinned landlord chat — mark read/unread, view profile, view apartment, mute/unmute, report, block/unblock). `useConversationRowActions` wires toasts, navigation, `ReportUserDialog` and the block `ConfirmDialog` (`ConversationActionOverlays`). Preference changes (`useConversations().updatePreferences`) and blocks (`setBlocked`) update every portal's cached list optimistically and roll back if the RPC fails.
+- **Preferences** (`conversation_preferences`, one row per owner + other user + apartment|none): pinned (+`pinned_at`), archived, muted, marked unread — returned by `get_portal_conversations` and written only through `set_conversation_preference` (archiving unpins, pinning unarchives). A new message unarchives the conversation for both people (trigger), muted conversations create no notification (`notify_chat_message`), and `mark_conversation_read` (called when the chat is on screen and from "Mark as read") marks messages read and clears "marked unread".
+- **Order**: pinned (tenant: current landlord first, always pinned; Pin/Archive disabled on it), separator, others (unread or marked unread first); an icon-only archive button at the top right of the "Messages" title opens `app/chat/archived.tsx` (`useConversations(portal, { subscribe: false })`, reusing the tab's realtime channel). Search also covers archived chats.
+- **Block / report**: `user_blocks` (messaging only) is enforced by the `guard_chat_blocks` BEFORE INSERT trigger in both directions. `block_user` refuses while the two people share an active tenancy (any apartment, either role); `get_portal_conversations` returns `in_active_tenancy` so the sheet shows Block disabled with a note (Report and Mute stay available; Unblock is always allowed); the chat screen swaps the message box for `ChatBlockedNotice` (`useBlockStatus` → `get_block_status`). `report_user` stores a `user_reports` row (only for people the reporter has messaged; one open report per pair); admins review them at web `/admin/reports` (`admin_resolve_user_report`, audited as `USER_REPORT_RESOLVED` / `USER_REPORT_DISMISSED`).
+- **Fallback**: `PGRST202` (RPC missing on the project) falls back to the legacy, non-portal-scoped list.
+- **Screens**: both tabs are virtualized `FlatList`s from `react-native-gesture-handler` (so row swipes win over vertical scroll on Android) built from `buildConversationListItems`; filtering, grouping, sorting and chat route params live in `service/chat/conversationList.ts`. Search ignores surrounding spaces. The pull-to-refresh spinner reflects only a user pull (`usePullToRefresh`), and load errors show a fixed friendly message while the raw error is logged.
+- **Tenant shortcut**: with an active tenancy but no conversation yet, a pinned landlord card opens a new chat about that apartment.
+- **Route params**: `/chat/[conversationId]` never receives contact details; the chat screen loads the other user's phone number with their profile (`fetchOtherUserProfile`).
 
 ### 8.3 Web messages
 
-- **Contacts & unread**: computed server-side in `page.tsx` (unread counts keyed `{senderId}:{apartmentId|'none'}`), passed as props to the client `MessageClient`.
-- **Unread badge**: `postgres_changes` INSERT on `chat` filtered `receiver_id=eq.me` on channels `tenant-unread:{id}` / `landlord-unread:{id}`.
+- **Contacts & unread**: computed server-side in `page.tsx` from `get_portal_conversations` (`'tenant'` / `'landlord'`, same portal split as mobile §8.2a) plus active tenancies, which stay pinned even before any message; `lib/conversation-contacts.ts` merges them (keys `{otherUserId}:{apartmentId|'none'}`). Passed as props to the client `MessageClient`.
+- **Unread badge**: `postgres_changes` INSERT on `chat` filtered `receiver_id=eq.me` on channels `tenant-unread:{id}` / `landlord-unread:{id}`. A message in a conversation the page doesn't list yet (a chat that started while it was open) triggers a debounced `router.refresh()` (`use-new-conversation-refresh`) so the server re-builds the lists. Contacts without a photo render initials (`resolveContactAvatar`); no third-party placeholder avatars.
 - **Live conversation**: `postgres_changes` INSERT filtered `sender_id=eq.contact` on channel `conversation:{sortedIds}` (no apartment in the name) + presence for typing (no heartbeat).
-- **Sending**: optimistic insert with `crypto.randomUUID()`; text only — **no attachments, no GIFs on web**.
+- **Sending**: optimistic insert with `crypto.randomUUID()`; text only — **no attachments, no GIFs on web**. A refused insert (e.g. a blocked conversation) removes the optimistic message and shows the database message in an `ErrorBanner` for that conversation. Pin/archive/mute are mobile-only for now.
 - Both tenant and landlord variants are near-identical (one file each for the shared conversation view; `browse/[apartmentId]/LandlordChatPanel` reuses the tenant `ConversationView`).
 
 ### 8.4 Attachments lifecycle (mobile only)

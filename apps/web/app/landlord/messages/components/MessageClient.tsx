@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
+import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact, TabKey } from "./types";
@@ -36,6 +37,12 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     setSyncedInquiries(inquiries);
     setInquiryContacts(inquiries);
   }
+
+  const conversationKeys = useMemo(
+    () => [...currentTenantContacts, ...inquiryContacts].map((contact) => contact.conversationKey),
+    [currentTenantContacts, inquiryContacts]
+  );
+  const refreshIfNewConversation = useNewConversationRefresh(conversationKeys);
 
   const markContactAsRead = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {
@@ -107,6 +114,8 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
           if (conversationKey === activeContact?.conversationKey) {
             return;
           }
+          // A chat that started while the page was open: reload the lists.
+          if (refreshIfNewConversation(conversationKey)) return;
           incrementUnreadForContact(conversationKey);
         }
       )
@@ -115,7 +124,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, supabase]);
+  }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, refreshIfNewConversation, supabase]);
 
   const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
