@@ -8,7 +8,7 @@ import {
   Button,
   Alert,
 } from "@heroui/react";
-import { Briefcase, Zap, Users, TrendingUp, Target } from "lucide-react";
+import { IconBriefcase as Briefcase, IconBolt as Zap, IconUsers as Users, IconTrendingUp as TrendingUp, IconTarget as Target } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
 const fadeUp = {
@@ -273,3 +273,4 @@ export default function CareersPage() {
     </div>
   );
 }
+

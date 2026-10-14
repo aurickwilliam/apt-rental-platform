@@ -1,7 +1,7 @@
 // apps/web/app/(main)/tos/components/TosHero.tsx
 import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Scale } from "lucide-react";
+import { IconScale as Scale } from "@tabler/icons-react";
 import { fadeUp } from "../data/animations";
 
 export default function TosHero() {

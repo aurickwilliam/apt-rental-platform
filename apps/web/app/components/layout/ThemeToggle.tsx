@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { IconSun as Sun, IconMoon as Moon } from "@tabler/icons-react";
 import { Button } from "@heroui/react";
 
 import { useHydrated } from "@/hooks/use-hydrated";

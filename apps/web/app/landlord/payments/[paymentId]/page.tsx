@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Modal, Spinner, useOverlayState } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
 import { methodLabel, periodMonthLabel } from "@/app/tenant/payment/utils";
 import ReceiptView from "@/app/tenant/payment/components/ReceiptView";
 import { useLandlordPayment, useLandlordPaymentConfirmation } from "@/hooks/use-landlord-payments";

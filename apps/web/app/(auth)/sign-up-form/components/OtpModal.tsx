@@ -1,5 +1,5 @@
 import { Modal, Button, InputOTP, REGEXP_ONLY_DIGITS } from "@heroui/react";
-import { Mail } from "lucide-react";
+import { IconMail as Mail } from "@tabler/icons-react";
 
 interface OtpModalProps {
   isOpen: boolean;

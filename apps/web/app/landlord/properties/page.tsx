@@ -1,5 +1,5 @@
 import { createClient } from "@repo/supabase/server";
-import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
+import { IconHome as House, IconDoorEnter as DoorOpen, IconDoorExit as DoorClosed, IconCurrencyPeso as PhilippinePeso } from "@tabler/icons-react";
 import PropertiesTableSection from "./components/PropertiesTableSection";
 import PropertyActions from "./components/PropertyActions";
 

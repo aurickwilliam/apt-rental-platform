@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
-import { Banknote, CalendarDays, House, MapPin, User, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { IconCashBanknote as Banknote, IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconUser as User, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { Button } from '@heroui/react'
 
-import { SearchIcon } from 'lucide-react';
+import { IconSearch as SearchIcon } from "@tabler/icons-react";
 
 export default function StartBrowsingBtn() {
   return (

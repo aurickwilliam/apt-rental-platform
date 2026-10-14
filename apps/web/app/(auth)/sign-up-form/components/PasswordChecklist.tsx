@@ -1,4 +1,4 @@
-import { Minus, CircleCheck, CircleX } from "lucide-react";
+import { IconMinus as Minus, IconCircleCheck as CircleCheck, IconCircleX as CircleX } from "@tabler/icons-react";
 
 interface PasswordChecklistProps {
   password: string;

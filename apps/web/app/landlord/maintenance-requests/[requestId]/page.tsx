@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Card, Chip, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
-import { ArrowLeft, Hammer, MapPin, Phone } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconTools as Hammer, IconMapPin as MapPin, IconPhone as Phone } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import {

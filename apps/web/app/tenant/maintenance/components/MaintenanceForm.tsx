@@ -17,7 +17,7 @@ import {
   ToggleButtonGroup,
   toast,
 } from "@heroui/react";
-import { UploadCloud, X, ImageIcon } from "lucide-react";
+import { IconUpload as UploadCloud, IconX as X, IconPhoto as ImageIcon } from "@tabler/icons-react";
 import { CATEGORIES, FORM_LIMITS } from "../data/maintenance-data";
 import { useSubmitMaintenanceRequest } from "@/hooks/use-submit-maintenance-request";
 import type { MaintenanceUrgency } from "@/service/maintenanceService";

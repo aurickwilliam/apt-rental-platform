@@ -1,4 +1,4 @@
-import { House, HandCoins, TrendingUp, PhilippinePeso } from "lucide-react";
+import { IconHome as House, IconCoins as HandCoins, IconTrendingUp as TrendingUp, IconCurrencyPeso as PhilippinePeso } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 

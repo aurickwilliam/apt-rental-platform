@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-import type { LucideIcon } from "lucide-react";
+import type { Icon as LucideIcon } from "@tabler/icons-react";
 import {
   IconArrowsExchange,
   IconBuilding,
@@ -37,31 +37,7 @@ import {
 } from "@tabler/icons-react";
 
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import {
-  ArrowLeftRight,
-  LogOut,
-  ChevronsUpDown,
-  Search,
-  Settings,
-  Sun,
-  House,
-  FileText,
-  Heart,
-  Wrench,
-  MessageCircle,
-  Moon,
-  LayoutDashboard,
-  Building2,
-  FileCheckCorner,
-  Banknote,
-  MessagesSquare,
-  Users,
-  UserRound,
-  ShieldCheck,
-  History,
-  ChartBar,
-  Menu,
-} from "lucide-react";
+import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar, IconMenu2 as Menu } from "@tabler/icons-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -833,3 +809,4 @@ export function MobileSidebarNavigation(props: MobileSidebarNavigationProps) {
 }
 
 export default AppSidebar;
+

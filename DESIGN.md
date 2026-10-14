@@ -186,9 +186,9 @@ Minimal — flat + hairline border is the aesthetic.
 | Platform | Standard | Legacy (⚠) |
 |---|---|---|
 | Mobile | `@tabler/icons-react-native` | — (migrated 2026-08-29, 0 files; `lucide-react-native` removed) |
-| Web | `lucide-react` + `@tabler/icons-react` (both accepted) | — |
+| Web | `@tabler/icons-react` | — |
 
-The web admin portal uses `@tabler/icons-react` exclusively, including shared navigation when rendered for admin. Tenant and landlord portal sidebars also use `@tabler/icons-react` (mirrored from admin); Lucide remains accepted for page content.
+The web uses `@tabler/icons-react` exclusively, including shared navigation and page content. Tenant and landlord portal sidebars mirror the admin portal's Tabler icons.
 
 Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocused outline 1.8); header actions 24–26; section icons 24; inline/button 16–20; metadata 12–18; empty-state 64 (tenant bare primary) / 32–48 (landlord, in gray circle); status 18–26 (receipt check 48). Filled variants for active/selected; neutral `gray500`/`textPrimary`, emphasis `primary`/`secondary`. Never add a new icon library.
 

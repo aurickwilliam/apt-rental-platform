@@ -9,7 +9,7 @@ import { Contact, Message } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { createClient } from "@repo/supabase/browser";
-import { ChevronLeft, MessageSquare } from "lucide-react";
+import { IconChevronLeft as ChevronLeft, IconMessage as MessageSquare } from "@tabler/icons-react";
 
 interface ConversationViewProps {
   activeContact: Contact | null;

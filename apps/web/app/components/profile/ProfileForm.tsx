@@ -18,7 +18,7 @@ import {
   useOverlayState,
 } from "@heroui/react";
 
-import { Lock } from "lucide-react";
+import { IconLock as Lock } from "@tabler/icons-react";
 
 import {
   IconId,

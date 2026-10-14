@@ -1,7 +1,7 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import { ChevronRight } from "lucide-react";
+import type { Icon as LucideIcon } from "@tabler/icons-react";
+import { IconChevronRight as ChevronRight } from "@tabler/icons-react";
 
 interface QuickActionButtonProps {
   title: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@heroui/react";
-import { MapPin } from "lucide-react";
+import { IconMapPin as MapPin } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
 const fadeUp = {
