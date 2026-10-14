@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
 import { APARTMENT_FLOOR_AREA, APARTMENT_ROOM_LIMITS, isCamanavaCity } from "@repo/constants";
 import { useUser } from "@/hooks/use-user";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { IconArrowLeft, IconCircleCheck } from "@tabler/icons-react";
 
 
 import Step1Photos from "./components/Step1Photos";
@@ -356,7 +356,7 @@ export default function CreateApartmentPage() {
           onPress={router.back}
           variant="outline"
         >
-          <ArrowLeft size={20} />
+          <IconArrowLeft size={20} />
           Back
         </Button>
       </div>
@@ -389,7 +389,7 @@ export default function CreateApartmentPage() {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {isDone ? <CheckCircle size={16} /> : num}
+                      {isDone ? <IconCircleCheck size={16} /> : num}
                     </div>
                     {/* line after */}
                     <div

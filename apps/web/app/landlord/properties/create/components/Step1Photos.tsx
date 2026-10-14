@@ -4,7 +4,7 @@ import NextImage from "next/image";
 
 import { Button, Input, TextField, Label, FieldError, Description } from "@heroui/react";
 
-import { Upload, X, ImagePlus } from "lucide-react";
+import { IconPhotoPlus, IconUpload, IconX } from "@tabler/icons-react";
 
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -99,7 +99,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
               className="absolute top-3 right-3 bg-black/60 text-white hover:bg-black/80"
               onPress={() => updateForm({ thumbnail: null })}
             >
-              <X size={14} />
+              <IconX size={14} />
             </Button>
             <Button
               size="sm"
@@ -120,7 +120,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
             onClick={() => thumbnailRef.current?.click()}
           >
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-              <Upload size={22} className="text-primary" />
+               <IconUpload size={22} className="text-primary" />
             </div>
             <p className="text-grey-600 font-medium text-sm">Click to upload cover photo</p>
             <p className="text-grey-400 text-xs mt-1">PNG, JPG up to 10MB</p>
@@ -163,7 +163,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
                 className="absolute top-1.5 right-1.5 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
                 onPress={() => removeAdditional(i)}
               >
-                <X size={12} />
+                <IconX size={12} />
               </Button>
             </div>
           ))}
@@ -173,7 +173,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
             className="h-32 border-2 border-dashed border-grey-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition"
             onClick={() => additionalRef.current?.click()}
           >
-            <ImagePlus size={20} className="text-grey-400 mb-1" />
+            <IconPhotoPlus size={20} className="text-grey-400 mb-1" />
             <p className="text-grey-400 text-xs">Add photo</p>
           </div>
         </div>

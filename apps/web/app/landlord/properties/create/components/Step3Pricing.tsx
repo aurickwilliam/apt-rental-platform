@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import { NumberField, Button, Label, Description, FieldError } from "@heroui/react";
-import { Upload, X, FileText } from "lucide-react";
+import { IconFileText, IconUpload, IconX } from "@tabler/icons-react";
 import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
@@ -140,7 +140,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           <div className="flex items-center justify-between p-4 border border-primary/20 bg-primary/5 rounded-2xl">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <FileText size={20} />
+                <IconFileText size={20} />
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-grey-800 line-clamp-1">
@@ -165,7 +165,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
                 variant="danger-soft"
                 onPress={() => updateForm({ lease_agreement: null })}
               >
-                <X size={16} />
+                <IconX size={16} />
               </Button>
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             onClick={() => leaseAgreementRef.current?.click()}
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-              <Upload size={18} className="text-primary" />
+              <IconUpload size={18} className="text-primary" />
             </div>
             <p className="text-grey-600 font-medium text-sm">Click to upload doc</p>
             <p className="text-grey-400 text-xs mt-1">PDF, DOCX up to 10MB</p>

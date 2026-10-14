@@ -7,7 +7,17 @@ import { formatPesoDisplay } from "@repo/utils";
 
 import { Separator, Button, Card } from "@heroui/react";
 
-import { House, BedDouble, Bath, Expand, Flag, Users, Layers, CalendarClock, Armchair } from "lucide-react";
+import {
+  IconArmchair,
+  IconBath,
+  IconBed,
+  IconCalendarClock,
+  IconFlag,
+  IconHome,
+  IconLayersIntersect,
+  IconRulerMeasure,
+  IconUsers,
+} from "@tabler/icons-react";
 
 import { PERKS } from "../../../../components/inputs/perks";
 
@@ -121,14 +131,14 @@ export default function Step5Preview({ formData }: Props) {
             {/* Quick stats grid */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-4">
               {[
-                { icon: House, label: formData.type || "—" },
-                { icon: BedDouble, label: `${formData.no_bedrooms} Bedroom${formData.no_bedrooms !== 1 ? "s" : ""}` },
-                { icon: Bath, label: `${formData.no_bathrooms} Bathroom${formData.no_bathrooms !== 1 ? "s" : ""}` },
-                { icon: Expand, label: `${formData.area_sqm} sqm` },
-                { icon: Users, label: `Max ${formData.max_occupants ?? "—"} Occupant${formData.max_occupants !== 1 ? "s" : ""}` },
-                { icon: Layers, label: formData.floor_level ? `Floor ${formData.floor_level}` : "—" },
-                { icon: CalendarClock, label: formData.lease_duration || "—" },
-                { icon: Armchair, label: formData.furnished_type || "—" },
+                { icon: IconHome, label: formData.type || "—" },
+                { icon: IconBed, label: `${formData.no_bedrooms} Bedroom${formData.no_bedrooms !== 1 ? "s" : ""}` },
+                { icon: IconBath, label: `${formData.no_bathrooms} Bathroom${formData.no_bathrooms !== 1 ? "s" : ""}` },
+                { icon: IconRulerMeasure, label: `${formData.area_sqm} sqm` },
+                { icon: IconUsers, label: `Max ${formData.max_occupants ?? "—"} Occupant${formData.max_occupants !== 1 ? "s" : ""}` },
+                { icon: IconLayersIntersect, label: formData.floor_level ? `Floor ${formData.floor_level}` : "—" },
+                { icon: IconCalendarClock, label: formData.lease_duration || "—" },
+                { icon: IconArmchair, label: formData.furnished_type || "—" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex gap-2 items-center">
                   <Icon size={20} className="text-grey-700 shrink-0" />
@@ -233,7 +243,7 @@ export default function Step5Preview({ formData }: Props) {
                   Apply Now
                 </Button>
                 <Button variant="tertiary" fullWidth isDisabled>
-                  <Flag size={16} />
+                  <IconFlag size={16} />
                   Report
                 </Button>
               </Card.Footer>
