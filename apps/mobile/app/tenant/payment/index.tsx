@@ -1,230 +1,245 @@
-import { View, ActivityIndicator, Text } from 'react-native'
-import { useState } from 'react'
-import { useRouter } from 'expo-router'
-import * as Linking from 'expo-linking'
-import { Button } from 'heroui-native'
-import { IconCircleCheckFilled } from '@tabler/icons-react-native'
+import { View, ActivityIndicator, Text } from "react-native";
+import { useState } from "react";
+import { useRouter } from "expo-router";
+import * as Linking from "expo-linking";
+import { Button } from "heroui-native";
+import { IconCircleCheckFilled } from "@tabler/icons-react-native";
 
-import ScreenWrapper from '@/components/layout/ScreenWrapper'
-import StandardHeader from '@/components/layout/StandardHeader'
-import DetailField from '@/components/display/DetailField'
-import ErrorDialog from '@/components/display/ErrorDialog'
-import EmptyState from '@/components/display/EmptyState'
-import { useColors } from '@/hooks/useTheme'
-import PaymentSummaryCard from './components/PaymentSummaryCard'
-import PaymentMethodSelector, { type PaymentMethod } from './components/PaymentMethodSelector'
-import PaymentFooter from './components/PaymentFooter'
-import { type CardInformation } from './components/CardPaymentForm'
-import { validateCashPayment, type CashPaymentErrors } from './components/CashPaymentForm'
+import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import StandardHeader from "@/components/layout/StandardHeader";
+import DetailField from "@/components/display/DetailField";
+import ErrorDialog from "@/components/display/ErrorDialog";
+import EmptyState from "@/components/display/EmptyState";
+import { useColors } from "@/hooks/useTheme";
+import PaymentSummaryCard from "./components/PaymentSummaryCard";
+import PaymentMethodSelector, {
+  type PaymentMethod,
+} from "./components/PaymentMethodSelector";
+import PaymentFooter from "./components/PaymentFooter";
+import { type CardInformation } from "./components/CardPaymentForm";
+import {
+  validateCashPayment,
+  type CashPaymentErrors,
+} from "./components/CashPaymentForm";
 
 import {
   createCardPayment,
   createCheckoutSession,
   PaymongoError,
-} from '@/service/payments/paymongoService'
+} from "@/service/payments/paymongoService";
 import {
   createCashPayment,
-  paidAmountForPeriod,
+  getCurrentRentStatus,
   periodMonthLabel,
-  resolvePaymentPeriod,
-} from '@/service/payments/paymentService'
-import { usePayments } from '@/hooks/payments'
-import { useCurrentUser } from '@/hooks/auth'
-import { useTenancy } from '@/hooks/tenancy/useTenancy'
+} from "@/service/payments/paymentService";
+import { usePayments } from "@/hooks/payments";
+import { useCurrentUser } from "@/hooks/auth";
+import { useTenancy } from "@/hooks/tenancy/useTenancy";
 
-import { validateCardInfo, type CardFormErrors } from '@repo/utils'
+import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 
 const INITIAL_CARD: CardInformation = {
-  cardNumber: '',
-  expiryDate: '',
-  cardholderName: '',
-  cvv: '',
+  cardNumber: "",
+  expiryDate: "",
+  cardholderName: "",
+  cvv: "",
   isPaymentSaved: false,
   isCardNumberValid: false,
-}
+};
 
 const toIsoDate = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const formatLeaseDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  const date = new Date(`${iso.slice(0, 10)}T00:00:00`)
-  if (Number.isNaN(date.getTime())) return iso
-  return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric'
-  }).format(date)
-}
+  if (!iso) return "—";
+  const date = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
 
 export default function PaymentCheckout() {
-  const router = useRouter()
-  const { colors } = useColors()
+  const router = useRouter();
+  const { colors } = useColors();
 
-  const [activePaymentMethod, setActivePaymentMethod] = useState<PaymentMethod | null>(null)
-  const [cardInformation, setCardInformation] = useState<CardInformation>(INITIAL_CARD)
-  const [cardErrors, setCardErrors] = useState<CardFormErrors>({})
-  const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null)
-  const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({})
-  const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [activePaymentMethod, setActivePaymentMethod] =
+    useState<PaymentMethod | null>(null);
+  const [cardInformation, setCardInformation] =
+    useState<CardInformation>(INITIAL_CARD);
+  const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
+  const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null);
+  const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
+  const [paymentError, setPaymentError] = useState<{
+    message: string;
+    title?: string;
+  } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const { data: currentUser } = useCurrentUser()
-  const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
+  const { data: currentUser } = useCurrentUser();
+  const {
+    tenancy,
+    loading: tenancyLoading,
+    error: tenancyError,
+    refetch,
+  } = useTenancy();
   // Kept only for the already-paid guard — rent is always billed in full.
-  const paymentsQuery = usePayments(tenancy?.id ?? null)
+  const paymentsQuery = usePayments(tenancy?.id ?? null);
 
-  const apartment = tenancy?.apartment ?? null
-  const landlord = tenancy?.landlord ?? null
-  const monthlyRent = tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0
-  const landlordName = landlord?.first_name || landlord?.last_name
-    ? `${landlord?.first_name ?? ''} ${landlord?.last_name ?? ''}`.trim()
-    : '—'
+  const apartment = tenancy?.apartment ?? null;
+  const landlord = tenancy?.landlord ?? null;
+  const landlordName =
+    landlord?.first_name || landlord?.last_name
+      ? `${landlord?.first_name ?? ""} ${landlord?.last_name ?? ""}`.trim()
+      : "—";
 
-  const period = resolvePaymentPeriod(
-    tenancy?.currentPayment?.period_start ?? null,
-    tenancy?.currentPayment?.period_end ?? null,
-    tenancy?.currentPayment?.due_date ?? null
-  )
-  const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart)
-  const yearLabel = period.periodStart.slice(0, 4)
   // Full-amount policy: rent is always billed whole. A fully paid period
   // cannot be paid again (prevents double-payment/overpay).
-  const isPeriodFullyPaid =
-    monthlyRent > 0 &&
-    paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent
+  const period = getCurrentRentStatus(tenancy, paymentsQuery.data ?? []);
+  const { monthlyRent, isFullyPaid: isPeriodFullyPaid } = period;
+  const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
+  const yearLabel = period.periodStart.slice(0, 4);
 
-  const clearCardError = () => setCardErrors({})
-  const clearCashErrors = () => setCashErrors({})
+  const clearCardError = () => setCardErrors({});
+  const clearCashErrors = () => setCashErrors({});
 
   const handleCardInformationChange = (patch: Partial<CardInformation>) => {
-    setCardInformation((prev) => ({ ...prev, ...patch }))
-    clearCardError()
-  }
+    setCardInformation((prev) => ({ ...prev, ...patch }));
+    clearCardError();
+  };
 
   const handleGoToSuccess = (referenceId: string) => {
-    router.push(`/tenant/payment/success?referenceId=${referenceId}`)
-  }
+    router.push(`/tenant/payment/success?referenceId=${referenceId}`);
+  };
 
   const handleGoHome = () => {
-    router.replace('/(tabs)/(tenant)/rentals')
-  }
+    router.replace("/(tabs)/(tenant)/rentals");
+  };
 
   const handlePay = async () => {
     if (!activePaymentMethod) {
       setPaymentError({
-        message: 'Please select a payment method before proceeding.',
-        title: 'No Payment Method',
-      })
-      return
+        message: "Please select a payment method before proceeding.",
+        title: "No Payment Method",
+      });
+      return;
     }
 
     if (!tenancy || !apartment) {
       setPaymentError({
-        message: 'No active rental found on this account.',
-        title: 'No Active Rental',
-      })
-      return
+        message: "No active rental found on this account.",
+        title: "No Active Rental",
+      });
+      return;
     }
 
-    const referenceId = `pay_${Date.now().toString(36)}`
-    const paymentDescription = `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`
+    const referenceId = `pay_${Date.now().toString(36)}`;
+    const paymentDescription = `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
     const periodFields = {
       tenancyId: tenancy.id,
       periodStart: period.periodStart,
       periodEnd: period.periodEnd,
       dueDate: period.dueDate,
-    }
+    };
 
-    if (activePaymentMethod === 'GCash' || activePaymentMethod === 'Maya' || activePaymentMethod === 'QRPh') {
-      setIsProcessing(true)
+    if (
+      activePaymentMethod === "GCash" ||
+      activePaymentMethod === "Maya" ||
+      activePaymentMethod === "QRPh"
+    ) {
+      setIsProcessing(true);
       try {
-        const methodMap: Record<string, 'gcash' | 'maya' | 'qrph'> = {
-          GCash: 'gcash',
-          Maya: 'maya',
-          QRPh: 'qrph',
-        }
+        const methodMap: Record<string, "gcash" | "maya" | "qrph"> = {
+          GCash: "gcash",
+          Maya: "maya",
+          QRPh: "qrph",
+        };
         const session = await createCheckoutSession({
           referenceId,
           amount: monthlyRent,
           description: paymentDescription,
-          redirectBaseUrl: Linking.createURL('/tenant/payment/verify'),
+          redirectBaseUrl: Linking.createURL("/tenant/payment/verify"),
           method: methodMap[activePaymentMethod],
           ...periodFields,
-        })
+        });
         // Directly open PayMongo hosted page — no intermediate e-wallet-redirect screen.
         // PayMongo will redirect back to /tenant/payment/verify?sessionId=...
         // where verify.tsx (blue + Spinner) handles verification.
         try {
-          await Linking.openURL(session.checkoutUrl)
+          await Linking.openURL(session.checkoutUrl);
         } catch {
           setPaymentError({
-            message: 'Unable to open checkout. Please try again.',
-            title: 'Checkout Failed',
-          })
+            message: "Unable to open checkout. Please try again.",
+            title: "Checkout Failed",
+          });
         }
       } catch (error) {
         setPaymentError({
-          message: error instanceof PaymongoError
-            ? error.reason
-            : 'Unable to start your payment. Please try again.',
-        })
+          message:
+            error instanceof PaymongoError
+              ? error.reason
+              : "Unable to start your payment. Please try again.",
+        });
       } finally {
-        setIsProcessing(false)
+        setIsProcessing(false);
       }
-    } else if (activePaymentMethod === 'Debit/Credit-Card') {
-      const errors = validateCardInfo(cardInformation)
+    } else if (activePaymentMethod === "Debit/Credit-Card") {
+      const errors = validateCardInfo(cardInformation);
       if (Object.keys(errors).length > 0) {
-        setCardErrors(errors)
-        return
+        setCardErrors(errors);
+        return;
       }
 
-      const [expMonth, expYear] = cardInformation.expiryDate.split('/')
+      const [expMonth, expYear] = cardInformation.expiryDate.split("/");
 
-      setIsProcessing(true)
+      setIsProcessing(true);
       try {
         const result = await createCardPayment({
           referenceId,
           amount: monthlyRent,
           description: paymentDescription,
           card: {
-            number: cardInformation.cardNumber.replace(/\s/g, ''),
+            number: cardInformation.cardNumber.replace(/\s/g, ""),
             expMonth: Number(expMonth),
             expYear: Number(`20${expYear}`),
             cvc: cardInformation.cvv,
             name: cardInformation.cardholderName,
           },
           ...periodFields,
-        })
+        });
 
-        if (result.status === 'succeeded') {
-          handleGoToSuccess(referenceId)
+        if (result.status === "succeeded") {
+          handleGoToSuccess(referenceId);
         } else {
           setPaymentError({
-            message: result.failureReason ?? 'Your payment could not be completed.',
-          })
+            message:
+              result.failureReason ?? "Your payment could not be completed.",
+          });
         }
       } catch (error) {
         setPaymentError({
-          message: error instanceof PaymongoError
-            ? error.reason
-            : 'Payment failed. Please try again.',
-        })
+          message:
+            error instanceof PaymongoError
+              ? error.reason
+              : "Payment failed. Please try again.",
+        });
       } finally {
-        setIsProcessing(false)
+        setIsProcessing(false);
       }
-    } else if (activePaymentMethod === 'Cash') {
-      const errors = validateCashPayment({ paymentDate: cashPaymentDate })
+    } else if (activePaymentMethod === "Cash") {
+      const errors = validateCashPayment({ paymentDate: cashPaymentDate });
       if (Object.keys(errors).length > 0) {
-        setCashErrors(errors)
-        return
+        setCashErrors(errors);
+        return;
       }
 
-      setIsProcessing(true)
+      setIsProcessing(true);
       try {
         await createCashPayment({
           referenceId,
@@ -236,64 +251,74 @@ export default function PaymentCheckout() {
           periodStart: period.periodStart,
           periodEnd: period.periodEnd,
           dueDate: period.dueDate,
-        })
-        handleGoToSuccess(referenceId)
+        });
+        handleGoToSuccess(referenceId);
       } catch {
         setPaymentError({
-          message: 'Could not record your cash payment. Please try again.',
-        })
+          message: "Could not record your cash payment. Please try again.",
+        });
       } finally {
-        setIsProcessing(false)
+        setIsProcessing(false);
       }
     }
-  }
+  };
 
   if (tenancyLoading) {
     return (
-      <ScreenWrapper header={<StandardHeader title='Rent Payment' />}>
-        <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size='large' />
+      <ScreenWrapper header={<StandardHeader title="Rent Payment" />}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" />
         </View>
       </ScreenWrapper>
-    )
+    );
   }
 
   if (tenancyError || !tenancy || !apartment) {
     return (
-      <ScreenWrapper header={<StandardHeader title='Rent Payment' />} className='p-5'>
-        <View className='flex-1 items-center justify-center gap-4'>
-          <Text className='text-foreground text-lg font-nunitoSemiBold text-center'>
-            {tenancyError ?? 'No active rental found on this account.'}
+      <ScreenWrapper
+        header={<StandardHeader title="Rent Payment" />}
+        className="p-5"
+      >
+        <View className="flex-1 items-center justify-center gap-4">
+          <Text className="text-foreground text-lg font-nunitoSemiBold text-center">
+            {tenancyError ?? "No active rental found on this account."}
           </Text>
-          <Button onPress={() => { void refetch() }}>
+          <Button
+            onPress={() => {
+              void refetch();
+            }}
+          >
             <Button.Label>Try Again</Button.Label>
           </Button>
         </View>
       </ScreenWrapper>
-    )
+    );
   }
 
   if (isPeriodFullyPaid) {
     return (
-      <ScreenWrapper header={<StandardHeader title='Rent Payment' />} className='p-5'>
-        <View className='flex-1 justify-center'>
+      <ScreenWrapper
+        header={<StandardHeader title="Rent Payment" />}
+        className="p-5"
+      >
+        <View className="flex-1 justify-center">
           <EmptyState
             icon={<IconCircleCheckFilled size={32} color={colors.success} />}
-            title='Rent Already Paid'
+            title="Rent Already Paid"
             description={`Your rent for ${monthLabel} ${yearLabel} has been paid in full. No further payment is needed.`}
           />
-          <Button className='mt-4' onPress={handleGoHome}>
+          <Button className="mt-4" onPress={handleGoHome}>
             <Button.Label>Go to Home</Button.Label>
           </Button>
         </View>
       </ScreenWrapper>
-    )
+    );
   }
 
   return (
     <ScreenWrapper
       scrollable
-      header={<StandardHeader title='Rent Payment' />}
+      header={<StandardHeader title="Rent Payment" />}
       footer={
         <PaymentFooter
           totalPayment={monthlyRent}
@@ -301,18 +326,26 @@ export default function PaymentCheckout() {
           isProcessing={isProcessing}
         />
       }
-      className='p-5'
+      className="p-5"
     >
-      <View className='flex gap-3'>
-        <DetailField label='Apartment Name' value={apartment.name} />
+      <View className="flex gap-3">
+        <DetailField label="Apartment Name" value={apartment.name} />
         <DetailField
-          label='Address'
-          value={[apartment.street_address, apartment.barangay, apartment.city].filter(Boolean).join(', ')}
+          label="Address"
+          value={[apartment.street_address, apartment.barangay, apartment.city]
+            .filter(Boolean)
+            .join(", ")}
         />
-        <DetailField label='Landlord Name' value={landlordName} />
-        <View className='flex-row'>
-          <DetailField label='Lease Start' value={formatLeaseDate(tenancy.lease_start)} />
-          <DetailField label='Lease End' value={formatLeaseDate(tenancy.lease_end)} />
+        <DetailField label="Landlord Name" value={landlordName} />
+        <View className="flex-row">
+          <DetailField
+            label="Lease Start"
+            value={formatLeaseDate(tenancy.lease_start)}
+          />
+          <DetailField
+            label="Lease End"
+            value={formatLeaseDate(tenancy.lease_end)}
+          />
         </View>
       </View>
 
@@ -329,16 +362,19 @@ export default function PaymentCheckout() {
         onCardInformationChange={handleCardInformationChange}
         cardErrors={cardErrors}
         cashPaymentDate={cashPaymentDate}
-        onCashPaymentDateChange={(date) => { setCashPaymentDate(date); clearCashErrors() }}
+        onCashPaymentDateChange={(date) => {
+          setCashPaymentDate(date);
+          clearCashErrors();
+        }}
         cashErrors={cashErrors}
       />
 
       <ErrorDialog
         isOpen={paymentError !== null}
         onClose={() => setPaymentError(null)}
-        message={paymentError?.message ?? ''}
-        title={paymentError?.title ?? 'Payment Failed'}
+        message={paymentError?.message ?? ""}
+        title={paymentError?.title ?? "Payment Failed"}
       />
     </ScreenWrapper>
-  )
+  );
 }

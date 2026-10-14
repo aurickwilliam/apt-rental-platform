@@ -205,6 +205,58 @@ export function resolvePaymentPeriod(
   }
 }
 
+// The parts of a tenancy the rent status needs (structural, so callers can
+// pass a CurrentTenancy without this service depending on the tenancy one).
+export interface RentStatusTenancy {
+  monthly_rent: number | null
+  apartment: { monthly_rent: number | null }
+  currentPayment: {
+    status: string
+    period_start: string | null
+    period_end: string | null
+    due_date: string | null
+  } | null
+}
+
+export interface CurrentRentStatus {
+  monthlyRent: number
+  periodStart: string
+  periodEnd: string
+  dueDate: string
+  // Paid payments for this period cover the full rent. The payment screen uses
+  // this as its double-payment guard.
+  isFullyPaid: boolean
+  // What the tenant sees: also Paid when the tenancy's own current payment for
+  // this period is marked paid, before the payment list has caught up.
+  status: 'Paid' | 'Pending'
+}
+
+// Rent status for the period being billed now (rent is always billed whole).
+export function getCurrentRentStatus(
+  tenancy: RentStatusTenancy | null,
+  payments: PaymentRecord[]
+): CurrentRentStatus {
+  const monthlyRent = tenancy?.monthly_rent ?? tenancy?.apartment.monthly_rent ?? 0
+  const currentPayment = tenancy?.currentPayment ?? null
+  const period = resolvePaymentPeriod(
+    currentPayment?.period_start ?? null,
+    currentPayment?.period_end ?? null,
+    currentPayment?.due_date ?? null
+  )
+
+  const isFullyPaid =
+    monthlyRent > 0 && paidAmountForPeriod(payments, period.periodStart) >= monthlyRent
+  const isCurrentPaymentPaid =
+    currentPayment?.period_start === period.periodStart && currentPayment.status === 'paid'
+
+  return {
+    monthlyRent,
+    ...period,
+    isFullyPaid,
+    status: isFullyPaid || isCurrentPaymentPaid ? 'Paid' : 'Pending',
+  }
+}
+
 // "Month Day" label for a billing period (e.g. "August 5").
 export function periodMonthLabel(sourceDate: string | null): string {
   if (!sourceDate) return '—'

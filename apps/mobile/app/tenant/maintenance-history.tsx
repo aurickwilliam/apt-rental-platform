@@ -1,12 +1,12 @@
-import { View, Text, FlatList } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Spinner } from 'heroui-native';
+import { View, Text, FlatList } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Spinner } from "heroui-native";
 
-import ScreenWrapper from 'components/layout/ScreenWrapper';
-import MaintenanceRequestCard from '@/app/(tabs)/components/rentals/MaintenanceRequestCard';
-import { useMaintenanceRequestHistory } from '@/hooks/maintenance-requests';
-import { useColors } from '@/hooks/useTheme';
-import StandardHeader from '@/components/layout/StandardHeader';
+import ScreenWrapper from "components/layout/ScreenWrapper";
+import MaintenanceRequestCard from "@/app/(tabs)/components/rentals/MaintenanceRequestCard";
+import { useMaintenanceRequestHistory } from "@/hooks/maintenance-requests";
+import { useColors } from "@/hooks/useTheme";
+import StandardHeader from "@/components/layout/StandardHeader";
 
 export default function MaintenanceHistory() {
   const router = useRouter();
@@ -28,9 +28,8 @@ export default function MaintenanceHistory() {
   return (
     <ScreenWrapper
       className="p-5"
-      header={<StandardHeader title='Maintenance Request History' />}
+      header={<StandardHeader title="Maintenance Request History" />}
     >
-
       <FlatList
         data={requests}
         keyExtractor={(item) => item.id}
@@ -40,8 +39,8 @@ export default function MaintenanceHistory() {
             request={item}
             onPress={() =>
               router.push({
-                pathname: '/tenant/maintenance-details',
-                params: { request: JSON.stringify(item) },
+                pathname: "/tenant/maintenance-details",
+                params: { requestId: item.id, apartmentId: item.apartment_id },
               })
             }
           />

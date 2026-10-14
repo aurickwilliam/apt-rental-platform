@@ -25,6 +25,7 @@ import {
 } from "@/hooks/applications";
 import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
+import { buildConversationKey } from "@/service/chat/chatService";
 
 import { formatAddress, formatPesoDisplay, formatDate } from "@repo/utils";
 
@@ -145,9 +146,13 @@ export default function ApplicationApartment() {
     const landlord = apartment?.landlord;
     if (!landlord || !profile || !apartmentId) return;
 
-    const userA = profile.id < landlord.id ? profile.id : landlord.id;
-    const userB = profile.id < landlord.id ? landlord.id : profile.id;
-    const conversationId = `${userA}-${userB}-${apartmentId}`;
+    // The chat screen finds the thread from the two users and the apartment;
+    // the route id is the same conversation key the chat list uses.
+    const conversationId = buildConversationKey(
+      profile.id,
+      landlord.id,
+      apartmentId,
+    );
 
     router.push({
       pathname: "/chat/[conversationId]",

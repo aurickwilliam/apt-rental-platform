@@ -1,5 +1,5 @@
-import { View } from 'react-native'
-import { Skeleton } from 'heroui-native'
+import { View } from "react-native";
+import { Skeleton } from "heroui-native";
 
 export default function RentalsSkeleton() {
   return (
@@ -106,28 +106,12 @@ export default function RentalsSkeleton() {
         </View>
       </View>
 
-      {/* Maintenance Request */}
-      <View className="flex gap-3">
-        <View className="flex-row items-center gap-2">
-          <Skeleton className="size-6 rounded-md" />
-          <Skeleton className="h-5 w-52 rounded-md" />
-        </View>
-        <View className="border border-border rounded-3xl p-4 gap-3 bg-surface">
-          <View className="flex-row justify-between items-start gap-3">
-            <View className="flex-1 gap-2">
-              <Skeleton className="h-4 w-32 rounded-md" />
-              <Skeleton className="h-3 w-24 rounded-md" />
-            </View>
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </View>
-          <Skeleton className="h-3 w-40 rounded-md" />
-          <Skeleton className="h-8 w-full rounded-xl" />
-        </View>
-        <View className="flex-row gap-3">
-          <Skeleton className="h-9 flex-1 rounded-full" />
-          <Skeleton className="h-9 flex-1 rounded-full" />
-        </View>
+      {/* Maintenance: a separator and the "Request Maintenance Issue" button,
+          not a request card, which only tenants with a request get. */}
+      <View className="gap-4">
+        <Skeleton className="h-px w-full" />
+        <Skeleton className="h-12 w-full rounded-full" />
       </View>
     </View>
-  )
+  );
 }

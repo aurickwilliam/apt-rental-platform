@@ -3,6 +3,7 @@ import {
   fetchPaymentByReferenceId,
   fetchPayments,
   formatReferenceId,
+  getCurrentRentStatus,
   methodLabel,
   paidAmountForPeriod,
   paymentStatusLabel,
@@ -204,5 +205,79 @@ describe('createCashPayment', () => {
     })
     expect(result.status).toBe('pending')
     expect(result.method).toBe('cash')
+  })
+})
+
+describe('getCurrentRentStatus', () => {
+  const paid = (amount: number, periodStart: string): PaymentRecord => ({
+    ...(ROW as unknown as PaymentRecord),
+    amount,
+    status: 'paid',
+    period_start: periodStart,
+  })
+
+  const tenancy = (overrides: Partial<Parameters<typeof getCurrentRentStatus>[0]> = {}) => ({
+    monthly_rent: 10000,
+    apartment: { monthly_rent: 12000 },
+    currentPayment: null,
+    ...overrides,
+  })
+
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-10-14T09:00:00'))
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  it('bills the current month, due on the 5th, when there is no current payment', () => {
+    expect(getCurrentRentStatus(tenancy(), [])).toEqual({
+      monthlyRent: 10000,
+      periodStart: '2026-10-01',
+      periodEnd: '2026-10-31',
+      dueDate: '2026-10-05',
+      isFullyPaid: false,
+      status: 'Pending',
+    })
+  })
+
+  it("falls back to the apartment's rent when the tenancy has none", () => {
+    expect(getCurrentRentStatus(tenancy({ monthly_rent: null }), []).monthlyRent).toBe(12000)
+  })
+
+  it('is paid once paid payments for the period cover the rent', () => {
+    const status = getCurrentRentStatus(tenancy(), [paid(4000, '2026-10-01'), paid(6000, '2026-10-01')])
+
+    expect(status.isFullyPaid).toBe(true)
+    expect(status.status).toBe('Paid')
+  })
+
+  it('ignores payments for other periods and partial amounts', () => {
+    const status = getCurrentRentStatus(tenancy(), [paid(10000, '2026-09-01'), paid(5000, '2026-10-01')])
+
+    expect(status.isFullyPaid).toBe(false)
+    expect(status.status).toBe('Pending')
+  })
+
+  it("shows Paid from the tenancy's current payment before the payment list catches up", () => {
+    const status = getCurrentRentStatus(
+      tenancy({
+        currentPayment: {
+          status: 'paid',
+          period_start: '2026-10-01',
+          period_end: '2026-10-31',
+          due_date: '2026-10-05',
+        },
+      }),
+      []
+    )
+
+    expect(status.isFullyPaid).toBe(false)
+    expect(status.status).toBe('Paid')
+  })
+
+  it('never counts rent as paid when the rent is zero', () => {
+    expect(getCurrentRentStatus(tenancy({ monthly_rent: 0, apartment: { monthly_rent: 0 } }), []).isFullyPaid).toBe(false)
   })
 })
