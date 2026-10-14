@@ -1,15 +1,21 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { fetchConversationsWithMetadata } from "@/service/chat/conversationService";
-import { toMessageType } from "@/service/chat/chatService";
+import { markMessagesAsRead, toMessageType } from "@/service/chat/chatService";
 
 import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conversationService";
 
-export const getConversationsQueryKey = (myId: string | null) =>
-  ["conversations", myId] as const;
+import {
+  clearCachedUnreadCount,
+  getConversationsQueryKey,
+  isViewingConversation,
+  restoreCachedUnreadCount,
+} from "./conversationReadState";
+
+export { getConversationsQueryKey };
 
 function getErrorMessage(error: unknown): string | null {
   if (!error) return null;
@@ -92,16 +98,20 @@ export function useConversations(role: ConversationRole) {
           return current;
         }
 
+        // A message arriving in the chat on screen is read as it lands.
+        const countsAsUnread =
+          row.sender_id !== myId &&
+          !isViewingConversation(next[index].conversation_key);
+
         const updated = {
           ...next[index],
           last_message: row.message,
           last_message_type: toMessageType(row.message_type),
           last_message_time: row.created_at,
           last_sender_is_me: row.sender_id === myId,
-          unread_count:
-            row.sender_id !== myId
-              ? (next[index].unread_count ?? 0) + 1
-              : next[index].unread_count,
+          unread_count: countsAsUnread
+            ? (next[index].unread_count ?? 0) + 1
+            : next[index].unread_count,
         };
 
         next.splice(index, 1);
@@ -197,13 +207,30 @@ export function useConversations(role: ConversationRole) {
     };
   }, [myId, queryClient, queryKey]);
 
-  const markConversationRead = (conversationKey: string) => {
-    queryClient.setQueryData<ConversationWithMeta[]>(queryKey, (current) =>
-      current?.map((c) =>
-        c.conversation_key === conversationKey ? { ...c, unread_count: 0 } : c
-      )
-    );
-  };
+  // Clears the badge right away, then saves the read state; a failed save
+  // puts the badge back so the list never shows a read that didn't happen.
+  const markConversationRead = useCallback(
+    async (conversationKey: string) => {
+      if (!myId) return;
+
+      const conversation = queryClient
+        .getQueryData<ConversationWithMeta[]>(queryKey)
+        ?.find((c) => c.conversation_key === conversationKey);
+      if (!conversation) return;
+
+      const previousUnread = clearCachedUnreadCount(queryClient, myId, conversationKey);
+
+      try {
+        await markMessagesAsRead(myId, conversation.other_user_id, conversation.apartment_id);
+      } catch (markError) {
+        console.error("[conversations] Failed to mark conversation as read:", markError);
+        restoreCachedUnreadCount(queryClient, myId, conversationKey, previousUnread);
+      } finally {
+        void queryClient.invalidateQueries({ queryKey, exact: true, refetchType: "none" });
+      }
+    },
+    [myId, queryClient, queryKey]
+  );
 
   const error = getErrorMessage(currentUserQuery.error ?? conversationsQuery.error);
 

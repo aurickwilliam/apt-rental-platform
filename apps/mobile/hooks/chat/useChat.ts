@@ -14,7 +14,6 @@ import {
   fetchMessagePage,
   fetchOtherUserProfile,
   insertMessage,
-  markMessagesAsRead,
   resolveMessageType,
   sendChatAttachments,
   upsertChatReaction,
@@ -28,6 +27,7 @@ import { mergeChatMessages } from '../../service/chat/chatPagination';
 
 import { useChatChannel, type ReactionBroadcast } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';
+import { useConversationReadSync } from './useConversationReadSync';
 
 type Options = {
   conversationId: string;
@@ -76,9 +76,20 @@ export function useChat({
 
   // ─── Realtime channel ───────────────────────────────────────────────────────
 
-  const handleNewMessage = useCallback((msg: Message) => {
-    setMessages((prev) => mergeChatMessages(prev, [msg], 'newest'));
-  }, []);
+  const { handleIncomingMessage } = useConversationReadSync({
+    myId,
+    otherUserId,
+    apartmentId,
+  });
+
+  // The channel only delivers the other user's messages.
+  const handleNewMessage = useCallback(
+    (msg: Message) => {
+      setMessages((prev) => mergeChatMessages(prev, [msg], 'newest'));
+      handleIncomingMessage();
+    },
+    [handleIncomingMessage]
+  );
 
   const handleOtherUserTypingChange = useCallback((isTyping: boolean) => {
     setOtherUserIsTyping((prev) => (prev === isTyping ? prev : isTyping));
@@ -622,7 +633,6 @@ export function useChat({
         setMessages((current) => mergeChatMessages(current, page.messages, 'older'));
         setNextCursor(page.nextCursor);
         setHasMore(page.nextCursor !== null);
-        markMessagesAsRead(myId, otherUserId, apartmentId).catch(console.error);
       } catch (err) {
         console.error('Chat init error:', err);
       } finally {

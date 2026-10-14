@@ -78,15 +78,13 @@ export default function Chat() {
 
   const handleMarkRead = useCallback(
     (conversationKey: string) => {
-      markConversationRead(conversationKey);
+      void markConversationRead(conversationKey);
     },
     [markConversationRead]
   );
 
   const handleChatPress = (conversation: ConversationWithMeta) => {
-    // Optimistically clear the badge before navigating
-    markConversationRead(conversation.conversation_key);
-
+    // The chat screen marks the conversation read once it's on screen.
     router.push({
       pathname: '/chat/[conversationId]',
       params: {

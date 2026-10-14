@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 
 import { useConversations, getConversationsQueryKey } from "./useConversations";
+import { beginViewingConversation } from "./conversationReadState";
 import { createMobileQueryClient } from "@/utils/queryClient";
 
 import type { ConversationWithMeta } from "@/service/chat/conversationService";
@@ -13,6 +14,7 @@ const mockFetchConversations = jest.fn();
 const mockChannelFn = jest.fn();
 const mockRemoveChannel = jest.fn();
 const mockGetChannels = jest.fn();
+const mockMarkMessagesAsRead = jest.fn();
 let chatInsertCallback:
   | ((payload: { new?: unknown }) => void)
   | undefined;
@@ -35,6 +37,11 @@ jest.mock("@repo/supabase", () => ({
     removeChannel: (...args: unknown[]) => mockRemoveChannel(...args),
     getChannels: () => mockGetChannels(),
   },
+}));
+
+jest.mock("@/service/chat/chatService", () => ({
+  ...jest.requireActual("@/service/chat/chatService"),
+  markMessagesAsRead: (...args: unknown[]) => mockMarkMessagesAsRead(...args),
 }));
 
 jest.mock("@/service/chat/conversationService", () => ({
@@ -97,6 +104,7 @@ beforeEach(() => {
     error: null,
   });
   mockFetchConversations.mockResolvedValue(seedConversations);
+  mockMarkMessagesAsRead.mockResolvedValue(undefined);
   mockGetChannels.mockReturnValue([]);
   mockChannelFn.mockImplementation((name: string) => {
     const channel = {
@@ -225,6 +233,39 @@ describe("useConversations", () => {
     unmount();
   });
 
+  it("does not bump unread_count for the conversation on screen", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+    const endViewing = beginViewingConversation("other-1:apt-1");
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+
+    await waitFor(() => expect(chatInsertCallback).toBeDefined());
+
+    await fireChatInsert({
+      sender_id: "other-1",
+      receiver_id: MY_ID,
+      apartment_id: "apt-1",
+      message: "seen live",
+      message_type: "text",
+      created_at: "2026-01-01T00:02:00Z",
+    });
+
+    await waitFor(() =>
+      expect(result.current.conversations[0]).toMatchObject({
+        other_user_id: "other-1",
+        last_message: "seen live",
+        unread_count: 0,
+      }),
+    );
+
+    endViewing();
+    unmount();
+  });
+
   /** Validates: m7 — unknown conversation triggers a refetch, not a corrupt merge */
   it("invalidates the query when the INSERT targets an unknown conversation", async () => {
     const { client, QueryWrapper } = createWrapper();
@@ -280,7 +321,36 @@ describe("useConversations", () => {
         )?.unread_count,
       ).toBe(0),
     );
+    expect(mockMarkMessagesAsRead).toHaveBeenCalledWith(MY_ID, "other-2", "apt-2");
 
+    unmount();
+  });
+
+  it("puts the unread badge back when saving the read state fails", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockMarkMessagesAsRead.mockRejectedValueOnce(new Error("offline"));
+    const { client, QueryWrapper } = createWrapper();
+    client.setQueryData(getConversationsQueryKey(MY_ID), seedConversations);
+
+    const { result, unmount } = renderHook(
+      () => useConversations("tenant"),
+      { wrapper: QueryWrapper },
+    );
+
+    await waitFor(() => expect(chatInsertCallback).toBeDefined());
+
+    await act(async () => {
+      await result.current.markConversationRead("other-2:apt-2");
+    });
+
+    expect(
+      result.current.conversations.find(
+        (c) => c.conversation_key === "other-2:apt-2",
+      )?.unread_count,
+    ).toBe(2);
+    expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
     unmount();
   });
 
