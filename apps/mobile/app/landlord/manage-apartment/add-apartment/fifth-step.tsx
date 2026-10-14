@@ -26,7 +26,7 @@ import LandlordCard from "components/cards/LandlordCard";
 
 import { Button, Dialog, Spinner } from "heroui-native";
 
-import { IconMapPin, IconMap, IconHome, IconStarFilled, IconBed, IconBath, IconMaximize, IconBuilding, IconSquareCheck, IconUser, IconFileText, IconUsers, IconBuildingSkyscraper, IconCalendar } from '@tabler/icons-react-native';
+import { IconMapPin, IconMap, IconHome, IconStarFilled, IconBed, IconBath, IconMaximize, IconBuilding, IconSquareCheck, IconFileText, IconUsers, IconBuildingSkyscraper, IconCalendar } from '@tabler/icons-react-native';
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
@@ -444,15 +444,7 @@ export default function FifthStep() {
         </View>
       </View>
 
-      {/* Landlord Card */}
-      <View className="flex-row items-center gap-2 mt-10 px-5">
-        <IconUser size={26} color={colors.textPrimary} />
-        <Text className="font-nunitoSemiBold text-lg text-foreground">
-          Meet Your Rental Owner
-        </Text>
-      </View>
-
-      <View className="px-5 mt-3">
+      <View className="mt-10 px-5">
         {isLoading ? (
           <View className="h-40 items-center justify-center">
             <Spinner size="sm" color={colors.primary} />
@@ -460,8 +452,6 @@ export default function FifthStep() {
         ) : profile ? (
           <LandlordCard
             fullName={`${profile.first_name} ${profile.last_name}`}
-            email={profile.email ?? ""}
-            phoneNumber={profile.mobile_number ?? ""}
             profilePictureUrl={profile.avatar_url}
           />
         ) : null}

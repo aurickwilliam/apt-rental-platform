@@ -288,8 +288,6 @@ export default function ApplicationApartment() {
         <View className="mt-5">
           <LandlordCard
             fullName={formatFullName(apartment.landlord)}
-            email={apartment.landlord.email ?? "No email provided"}
-            phoneNumber={apartment.landlord.mobile_number}
             profilePictureUrl={apartment.landlord.avatar_url}
             onPress={handleViewLandlordProfile}
             onMessagePress={handleMessageLandlord}

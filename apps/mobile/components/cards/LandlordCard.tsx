@@ -12,8 +12,6 @@ import {
 
 interface LandlordCardProps {
   fullName: string;
-  email: string;
-  phoneNumber?: string;
   profilePictureUrl?: string | null;
   withRentalInfo?: boolean;
   averageRating?: number;
@@ -40,8 +38,6 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
 
 export default function LandlordCard({
   fullName,
-  email,
-  phoneNumber,
   profilePictureUrl,
   withRentalInfo = false,
   averageRating = 0.0,
@@ -68,13 +64,13 @@ export default function LandlordCard({
             <InitialsAvatar fullName={fullName} />
           )}
 
-          {/* Name + Email */}
+          {/* Name + role */}
           <View className="flex-1">
             <Text className="text-foreground font-nunitoSemiBold text-base" numberOfLines={1}>
               {fullName}
             </Text>
             <Text className="text-gray-500 font-inter text-xs" numberOfLines={1}>
-              {email}
+              Landlord
             </Text>
 
             {withRentalInfo && (

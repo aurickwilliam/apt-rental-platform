@@ -1,6 +1,7 @@
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useTenantApplications } from '@/hooks/applications';
+import type { TenantApplication } from '@/hooks/applications';
 
 import ApplicationStatusCard from './ApplicationStatusCard';
 import ApplicationsEmptyState from './ApplicationsEmptyState';
@@ -10,11 +11,18 @@ interface ApplicationsListProps {
   // Show the skeleton even if applications have loaded, while the parent
   // still waits for the rest of the page.
   isLoading?: boolean;
+  applicationsOverride?: TenantApplication[];
+  isEmptyFiltered?: boolean;
 }
 
 // No section header: the Rentals page title already sits directly above.
-export default function ApplicationsList({ isLoading = false }: ApplicationsListProps) {
-  const { applications, loading } = useTenantApplications();
+export default function ApplicationsList({
+  isLoading = false,
+  applicationsOverride,
+  isEmptyFiltered = false,
+}: ApplicationsListProps) {
+  const { applications: loadedApplications, loading } = useTenantApplications();
+  const applications = applicationsOverride ?? loadedApplications;
 
   if (isLoading || loading) {
     return (
@@ -26,7 +34,19 @@ export default function ApplicationsList({ isLoading = false }: ApplicationsList
     );
   }
 
-  if (applications.length === 0) return <ApplicationsEmptyState />;
+  if (applications.length === 0) {
+    if (isEmptyFiltered) {
+      return (
+        <View className="flex-1 items-center justify-center gap-2 py-20">
+          <Text className="text-center text-xl font-nunitoBold text-foreground">No Matching Applications</Text>
+          <Text className="px-8 text-center text-base font-inter text-muted">
+            Try changing your filters to see more applications.
+          </Text>
+        </View>
+      );
+    }
+    return <ApplicationsEmptyState />;
+  }
 
   return (
     <View className="flex gap-3">
