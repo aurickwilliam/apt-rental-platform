@@ -2640,8 +2640,8 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1791449211.9815733,
-    "ast_hash": "92c7407c6ac637c99d920974a0535aef",
+    "mtime": 1791965313.8429375,
+    "ast_hash": "870502e8c67365bf3e4c91dc8c1a0d0d",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -2970,8 +2970,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791903391.0587883,
-    "ast_hash": "0732605d0d04f1ec1f0ce790fd7dca3b",
+    "mtime": 1791965375.6068866,
+    "ast_hash": "da9b91bc5258d9996501cf86ef0c457a",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -3415,13 +3415,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversations.test.tsx": {
-    "mtime": 1791963811.84929,
-    "ast_hash": "0396b24ffce890b9b04bc0c1acd0e893",
+    "mtime": 1791965289.072568,
+    "ast_hash": "b467c0aee2c5f576cd27ab300c9ef208",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversations.ts": {
-    "mtime": 1791963730.1037629,
-    "ast_hash": "47dcec25d14b7ac263376247f9806838",
+    "mtime": 1791965289.0723267,
+    "ast_hash": "027fa60dae15f6d186439b366d673084",
     "semantic_hash": ""
   },
   ".opencode/plans/gaps-3-4-5.md": {
@@ -3655,18 +3655,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/chatService.ts": {
-    "mtime": 1789659998.863862,
-    "ast_hash": "b68d58112be9f6c953b6026bb66d21f3",
+    "mtime": 1791965279.4679186,
+    "ast_hash": "5afabc762df0b74c430f084f4d43224d",
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/conversationService.test.ts": {
-    "mtime": 1787060342.3079524,
-    "ast_hash": "fc7d237b0847d0636d5bb778c93cc9b6",
+    "mtime": 1791965297.7208855,
+    "ast_hash": "437525b597d4c579dc11b786ea837ee4",
     "semantic_hash": ""
   },
   "apps/mobile/service/chat/conversationService.ts": {
-    "mtime": 1787060342.3080196,
-    "ast_hash": "1a584586e74ecf03820a6717dbfb37c8",
+    "mtime": 1791965279.468506,
+    "ast_hash": "84167007d7c040f2038ffa986bb97cc7",
     "semantic_hash": ""
   },
   "apps/mobile/service/dashboard/dashboardService.test.ts": {
@@ -7245,18 +7245,23 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/conversationReadState.ts": {
-    "mtime": 1791963718.4634223,
-    "ast_hash": "23f3ca1e0a4eee537ef01d68ae560e71",
+    "mtime": 1791965279.4687312,
+    "ast_hash": "5bf085669c331829a8c62ef7da28aab4",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversationReadSync.test.tsx": {
-    "mtime": 1791963811.8548732,
-    "ast_hash": "1d32194356618563b4abcf7063908078",
+    "mtime": 1791965390.5765207,
+    "ast_hash": "3fd860c94888b206a65de5c9141059f0",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversationReadSync.ts": {
-    "mtime": 1791963759.728809,
-    "ast_hash": "158591faf5219da56e02389d0082b434",
+    "mtime": 1791965279.4688787,
+    "ast_hash": "0706225c9cb46407a7432707635fa975",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261014080714_get_portal_conversations.sql": {
+    "mtime": 1791965147.0273073,
+    "ast_hash": "7dfbbca0235c1b4769a9c1ef07047690",
     "semantic_hash": ""
   }
 }
