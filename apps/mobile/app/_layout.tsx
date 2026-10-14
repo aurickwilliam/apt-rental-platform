@@ -14,7 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
-import { HeroUINativeProvider } from "heroui-native";
+import { HeroUINativeProvider, useThemeColor } from "heroui-native";
 
 import * as WebBrowser from "expo-web-browser";
 
@@ -61,6 +61,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   const router = useRouter();
   const { isDark } = useColors();
+  const backgroundColor = useThemeColor("background");
   // Applies the saved appearance (incl. System); false until it has loaded
   const themeReady = useThemeSync();
   // True once navigation has left the "/" boot screen (index) — the
@@ -81,8 +82,10 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(getSplashBackground(isDark));
-  }, [isDark]);
+    SystemUI.setBackgroundColorAsync(
+      navigatedAway ? backgroundColor : getSplashBackground(isDark),
+    );
+  }, [backgroundColor, isDark, navigatedAway]);
 
   useEffect(() => {
     const {
@@ -121,7 +124,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor }}>
       {/* Required by ScreenWrapper's KeyboardAwareScrollView */}
       <KeyboardProvider>
       <QueryProvider>
@@ -130,16 +133,18 @@ export default function RootLayout() {
           <PortalProvider>
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <BottomSheetModalProvider>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, backgroundColor }}>
                 <Stack
                   screenOptions={{
                     headerShown: false,
+                    contentStyle: { backgroundColor },
                   }}
                 >
                   <Stack.Screen name="index" />
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="chat/[conversationId]" />
+                  <Stack.Screen name="chat/archived" />
                   <Stack.Screen name="tenant" />
                   <Stack.Screen name="apartment/[apartmentId]" />
                   <Stack.Screen name="(notification)" />

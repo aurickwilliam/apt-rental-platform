@@ -78,7 +78,6 @@ export default function PublicTenantProfile() {
         otherUserId: resolvedTenantId,
         otherUserName: profile.fullName,
         otherUserAvatar: profile.avatarUrl ?? '',
-        otherUserPhoneNumber: profile.phoneNumber,
         apartmentId: resolvedApartmentId,
       },
     })

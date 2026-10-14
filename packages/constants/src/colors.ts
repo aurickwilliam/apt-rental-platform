@@ -40,6 +40,12 @@ export const COLORS = {
     danger: '#E50914',
     dangerMid: '#FF4B4B',
     dangerLight: '#FDA4AF',
+
+    // Conversation swipe actions (filled circles with white icons, labels
+    // below in text color; each fill is at least 3:1 against white).
+    actionMore: '#6B7280',
+    actionPin: '#D97706',
+    actionArchive: '#7C3AED',
   },
 
   dark: {
@@ -77,6 +83,10 @@ export const COLORS = {
     danger: '#F87171',
     dangerMid: '#FCA5A5',
     dangerLight: '#2D1515',
+
+    actionMore: '#6B7280',
+    actionPin: '#D97706',
+    actionArchive: '#7C3AED',
   },
 }
 

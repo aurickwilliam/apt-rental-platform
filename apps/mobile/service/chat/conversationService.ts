@@ -2,27 +2,46 @@ import { supabase } from "@repo/supabase";
 
 import {
   getConversations,
-  getConversationsV2,
+  getPortalConversations,
   toMessageType,
   type Conversation,
   type MessageType,
 } from "./chatService";
+import {
+  DEFAULT_CONVERSATION_PREFERENCES,
+  type ConversationPreferences,
+} from "./conversationPreferences";
 
-export type ConversationWithMeta = Conversation & {
-  last_sender_is_me?: boolean;
-  last_message_type?: string | null;
-  conversation_type?: "tenant" | "inquiry";
-};
+export type ConversationWithMeta = Conversation &
+  ConversationPreferences & {
+    last_sender_is_me?: boolean;
+    last_message_type?: string | null;
+    conversation_type?: "tenant" | "inquiry";
+  };
+
+function toConversationPreferences(
+  row: Partial<ConversationPreferences>
+): ConversationPreferences {
+  return {
+    is_pinned: row.is_pinned ?? false,
+    pinned_at: row.pinned_at ?? null,
+    is_archived: row.is_archived ?? false,
+    is_muted: row.is_muted ?? false,
+    marked_unread: row.marked_unread ?? false,
+    blocked_by_me: row.blocked_by_me ?? false,
+    in_active_tenancy: row.in_active_tenancy ?? false,
+  };
+}
 
 export type ConversationRole = "tenant" | "landlord";
 
 /**
  * PostgREST error code for "could not find the function in the schema cache".
- * Raised when get_conversations_v2 does not exist yet because the migration
- * has not reached this client's project (deployment-order condition) — the
- * only situation where the legacy path is allowed to run.
+ * Raised when get_portal_conversations does not exist yet because the
+ * migration has not reached this client's project (deployment-order
+ * condition) — the only situation where the legacy path is allowed to run.
  */
-const V2_UNAVAILABLE_CODE = "PGRST202";
+const PORTAL_RPC_UNAVAILABLE_CODE = "PGRST202";
 
 function getConversationMetaKey(otherUserId: string, apartmentId: string | null): string {
   return `${otherUserId}:${apartmentId ?? "none"}`;
@@ -36,10 +55,10 @@ type ChatMetadataRow = {
 };
 
 /**
- * Legacy fallback: the pre-v2 conversation list. Calls the original RPC and
- * scans chat/tenancies rows for last-sender / last-message-type metadata.
- * Kept verbatim as the temporary compatibility path for clients running
- * before the get_conversations_v2 migration is deployed.
+ * Legacy fallback: the original conversation list RPC plus a scan of
+ * chat/tenancies rows for last-sender / last-message-type metadata. Not
+ * portal-scoped. Kept as the temporary compatibility path for projects
+ * without the get_portal_conversations migration.
  */
 async function fetchLegacyConversationsWithMetadata(
   myId: string,
@@ -95,6 +114,7 @@ async function fetchLegacyConversationsWithMetadata(
 
     return {
       ...conv,
+      ...DEFAULT_CONVERSATION_PREFERENCES,
       conversation_type:
         activeTenantConversations?.has(conversationKey) === true ? "tenant" : "inquiry",
       last_sender_is_me: lastSenderIsMeByConversation[conversationKey] ?? false,
@@ -108,18 +128,19 @@ export async function fetchConversationsWithMetadata(
   role: ConversationRole
 ): Promise<ConversationWithMeta[]> {
   try {
-    const rows = await getConversationsV2();
+    const rows = await getPortalConversations(role);
 
     return rows.map((conv) => ({
       ...conv,
+      ...toConversationPreferences(conv),
       last_sender_is_me: conv.last_sender_id === myId,
       last_message_type: toMessageType(conv.last_message_type) ?? "text",
     }));
   } catch (error) {
     const code = (error as { code?: string }).code;
-    if (code === V2_UNAVAILABLE_CODE) {
+    if (code === PORTAL_RPC_UNAVAILABLE_CODE) {
       console.warn(
-        "[conversations] get_conversations_v2 is not deployed yet; using legacy list."
+        "[conversations] get_portal_conversations is not deployed yet; using legacy list."
       );
       return fetchLegacyConversationsWithMetadata(myId, role);
     }

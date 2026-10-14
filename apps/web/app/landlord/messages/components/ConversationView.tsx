@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { ScrollShadow, Spinner } from "@heroui/react";
 
 import MessageInput from "./MessageInput";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { Contact, Message } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
@@ -49,6 +50,8 @@ export default function ConversationView({
 }: ConversationViewProps) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>([]);
+  // Keyed by conversation so a send error never shows in another chat.
+  const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isContactTyping, setIsContactTyping] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -205,6 +208,7 @@ export default function ConversationView({
       updated_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
+    setSendError(null);
 
     const { error } = await supabase.from("chat").insert({
       sender_id: currentUserId,
@@ -217,6 +221,8 @@ export default function ConversationView({
     if (error) {
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
       console.error("Failed to send:", error.message);
+      // Database messages are user-facing (e.g. a blocked conversation).
+      setSendError({ key: activeContact.conversationKey, message: error.message });
     }
   };
 
@@ -336,6 +342,16 @@ export default function ConversationView({
           </div>
         )}
       </ScrollShadow>
+
+      {sendError?.key === activeContact.conversationKey ? (
+
+        <div className="px-4">
+
+          <ErrorBanner message={sendError.message} />
+
+        </div>
+
+      ) : null}
 
       <MessageInput 
         onSend={handleSend} 

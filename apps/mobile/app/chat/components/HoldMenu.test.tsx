@@ -13,6 +13,28 @@ jest.mock('@/hooks/useTheme', () => ({
   }),
 }));
 
+// heroui-native ships untranspiled ESM that Jest cannot parse — stub the used
+// primitives with real Pressable/View hosts so press and a11y queries work.
+jest.mock('heroui-native', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable, Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
+  function Passthrough({ children }: { children?: React.ReactNode }) {
+    return React.createElement(View, null, children);
+  }
+  function ListGroupMock({ children }: { children?: React.ReactNode }) {
+    return React.createElement(View, null, children);
+  }
+  ListGroupMock.Item = function Item({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) {
+    return React.createElement(Pressable, props, children);
+  };
+  ListGroupMock.ItemPrefix = Passthrough;
+  ListGroupMock.ItemContent = Passthrough;
+  ListGroupMock.ItemTitle = function ItemTitle({ children }: { children?: React.ReactNode }) {
+    return React.createElement(Text, null, children);
+  };
+  return { ListGroup: ListGroupMock, Separator: () => null };
+});
+
 jest.mock('@tabler/icons-react-native', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { View } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -37,8 +59,6 @@ function renderMenu(overrides: Partial<HoldMenuData> = {}, handlers = {}) {
   return render(
     <HoldMenu
       data={{ ...baseData, ...overrides }}
-      onSelectReaction={noop}
-      onOpenFullPicker={noop}
       onReply={noop}
       onCopy={noop}
       onUnsend={noop}
@@ -48,39 +68,30 @@ function renderMenu(overrides: Partial<HoldMenuData> = {}, handlers = {}) {
 }
 
 describe('HoldMenu', () => {
-  it('renders reactions, timestamp, and all actions — never the message', () => {
+  it('renders the timestamp and all actions, without reactions or the message', () => {
     renderMenu();
 
-    expect(screen.getByLabelText('React with ❤️')).toBeTruthy();
+    // Reactions live in their own pill above the message (HoldStack).
+    expect(screen.queryByLabelText('React with ❤️')).toBeNull();
     expect(screen.getByText('Jul 8, 2026 at 7:49 PM')).toBeTruthy();
     expect(screen.getByText('Reply')).toBeTruthy();
     expect(screen.getByText('Copy')).toBeTruthy();
     expect(screen.getByText('Unsend')).toBeTruthy();
   });
 
-  it('fires reaction select, reply, copy, and unsend', () => {
-    const onSelectReaction = jest.fn();
+  it('fires reply, copy, and unsend', () => {
     const onReply = jest.fn();
     const onCopy = jest.fn();
     const onUnsend = jest.fn();
-    renderMenu({}, { onSelectReaction, onReply, onCopy, onUnsend });
+    renderMenu({}, { onReply, onCopy, onUnsend });
 
-    fireEvent.press(screen.getByLabelText('React with 😂'));
     fireEvent.press(screen.getByText('Reply'));
     fireEvent.press(screen.getByText('Copy'));
     fireEvent.press(screen.getByText('Unsend'));
 
-    expect(onSelectReaction).toHaveBeenCalledWith('😂');
     expect(onReply).toHaveBeenCalledTimes(1);
     expect(onCopy).toHaveBeenCalledTimes(1);
     expect(onUnsend).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides the reaction row when reactions are not allowed', () => {
-    renderMenu({ canReact: false });
-
-    expect(screen.queryByLabelText('React with ❤️')).toBeNull();
-    expect(screen.getByText('Reply')).toBeTruthy();
   });
 
   it('disables copy for non-text messages', () => {

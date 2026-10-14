@@ -79,7 +79,6 @@ export function buildNotificationDeepLink(
         params: {
           conversationId: key,
           otherUserId,
-          otherUserPhoneNumber: "",
           apartmentId: parsed.apartmentId ?? "",
           apartmentTitle: "",
         },

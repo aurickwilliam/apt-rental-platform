@@ -173,7 +173,6 @@ export default function ApplicationApartment() {
         otherUserId: landlord.id,
         otherUserName: formatFullName(landlord),
         otherUserAvatar: landlord.avatar_url ?? "",
-        otherUserPhoneNumber: landlord.mobile_number,
         apartmentId,
         apartmentTitle: apartment?.name,
       },

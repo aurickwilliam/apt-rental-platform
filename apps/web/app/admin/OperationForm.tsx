@@ -6,7 +6,7 @@ import type { OperationResult } from "./actions/operations";
 
 interface OperationFormProps {
   id: string;
-  decision: "suspend" | "reactivate" | "hide" | "restore";
+  decision: "suspend" | "reactivate" | "hide" | "restore" | "resolve" | "dismiss";
   onSubmit: (formData: FormData) => Promise<OperationResult>;
   label?: string;
 }
@@ -16,6 +16,14 @@ const COPY = {
   reactivate: "This account will be allowed to sign in again.",
   hide: "This listing will disappear from public discovery. Existing tenancy, payment, and verification history will remain available.",
   restore: "This listing will become visible in discovery again, subject to its normal availability status.",
+  resolve: "The report will be closed as handled. Suspend or hide content separately if needed; the note is kept in the activity log.",
+  dismiss: "The report will be closed with no action. The note is kept in the activity log.",
+};
+
+// Report decisions record a review note rather than a change reason.
+const NOTE_LABEL: Partial<Record<OperationFormProps["decision"], string>> = {
+  resolve: "Review note",
+  dismiss: "Review note",
 };
 
 export default function OperationForm({ id, decision, onSubmit, label }: OperationFormProps) {
@@ -27,7 +35,10 @@ export default function OperationForm({ id, decision, onSubmit, label }: Operati
   return (
     <>
       {error && <p role="alert" className="mb-3 text-sm text-danger">{error}</p>}
-      <Button variant={decision === "hide" || decision === "suspend" ? "danger-soft" : "primary"} onPress={() => { setError(null); setOpen(true); }}>
+      <Button
+        variant={decision === "hide" || decision === "suspend" ? "danger-soft" : decision === "dismiss" ? "secondary" : "primary"}
+        onPress={() => { setError(null); setOpen(true); }}
+      >
         {buttonLabel}
       </Button>
       <Modal isOpen={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
@@ -54,8 +65,8 @@ export default function OperationForm({ id, decision, onSubmit, label }: Operati
               }}>
                 <Modal.Body className="space-y-4">
                   <p className="text-sm text-muted-foreground">{COPY[decision]}</p>
-                  <TextArea name="reason" required minLength={3} maxLength={500} aria-label="Reason for this change" placeholder="Reason for this change…">
-                    <Label>Reason *</Label>
+                  <TextArea name="reason" required minLength={3} maxLength={500} aria-label={NOTE_LABEL[decision] ?? "Reason for this change"} placeholder={`${NOTE_LABEL[decision] ?? "Reason for this change"}…`}>
+                    <Label>{NOTE_LABEL[decision] ?? "Reason"} *</Label>
                   </TextArea>
                   {error && <p role="alert" className="text-sm text-danger">{error}</p>}
                 </Modal.Body>

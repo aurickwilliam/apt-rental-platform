@@ -26,7 +26,7 @@ Authority order (conflicts resolve to the lowest number):
 
 | # | Source | Authority |
 |---|---|---|
-| 1 | `packages/constants` — `colors.ts`, `typography.ts` | Design tokens |
+| 1 | `packages/constants` — `colors.ts`, `typography.ts`; mobile neutral roles in `apps/mobile/constants/theme.ts` | Design tokens |
 | 2 | `apps/web/app/globals.css`, `apps/mobile/app/global.css` | Token mapping (Tailwind/HeroUI theme) |
 | 3 | Shared components (per-app `components/`) | Component patterns |
 | 4 | HeroUI (`@heroui/react`) / HeroUI Native (`heroui-native`) | Primitive implementation & behavior |
@@ -37,7 +37,7 @@ Authority order (conflicts resolve to the lowest number):
 
 ## 3. Brand & Color
 
-All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mappings in both `globals.css` files.
+All values exact. Shared light/dark pairs from `packages/constants/src/colors.ts`; mobile neutral roles from `apps/mobile/constants/theme.ts`; mappings in both `globals.css` files.
 
 ### Brand
 
@@ -51,19 +51,28 @@ All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mapp
 | `chartSky` ✅ | `#0891B2` | `#0891B2` | Chart series beside `primary` (sky `#0369A1` is too close to brand blue to tell apart; cyan passes the CVD and normal-vision checks in both themes) |
 | `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars only; rating numbers stay text colors (yellow text fails contrast) |
 | `secondaryForeground` | `#FFFFFF` | `#FFFFFF` | White foreground (icons/text on filled buttons) |
+| `actionMore` / `actionPin` / `actionArchive` ✅ (mobile) | `#6B7280` / `#D97706` / `#7C3AED` | same | Conversation swipe actions only: filled circles with white icons (≥3:1), label below in text color |
 
 ### Surfaces & backgrounds
 
 | Token | Light | Dark | Notes |
 |---|---|---|---|
 | `white` | `#FFFFFF` | `#121212` | Card/surface base |
-| `surface` (`--background` web) | `#F8F9FA` | `#1E1E1E` | Page background |
+| `surface` (`--background` web) | `#F8F9FA` | `#1E1E1E` | Shared palette / web page background; not the mobile default |
+| `bg-background` (mobile) | `#F5F7FB` | `#121212` | Cool-gray screen and navigation background |
+| `bg-grouped-background` (mobile) | Same as mobile `bg-background` | Same as mobile `bg-background` | Grouped settings / card-section backdrop |
 | `surfaceRaised` | — | `#2A2A2A` | Mobile elevated surface |
-| `bg-surface` (mobile) | `oklch(100% 0 0)` | `oklch(0.2103 0.0059 285.89)` | Card/screen surface token |
-| `surface-secondary` (mobile) | `oklch(0.9524 0.0013 286.37)` | `oklch(0.227 0.004 285)` | Sheets, dropdowns, sticky footers |
-| `surface-tertiary` (mobile) | `oklch(0.9373 0.0013 286.37)` | `oklch(0.26 0.004 285)` | Skeletons, muted fills |
+| `bg-surface` (mobile) | `#FFFFFF` | `#1E1E1E` | Default card surface |
+| `surface-secondary` (mobile) | `#F1F3F5` | `#242424` | Sheets, dropdowns, sticky footers |
+| `surface-tertiary` (mobile) | `#E9ECEF` | `#2A2A2A` | Skeletons, neutral icon tiles, muted fills |
+| `bg-overlay` (mobile) | `#FFFFFF` | `#242424` | Dialogs, white cards on grouped backgrounds, nested cards |
+| `border` (mobile) | `#E5EAF2` | `#3D3D3D` | Subtle decorative hairline card borders |
 | `backdrop` (mobile) | `oklch(0% 0 0 / 20%)` | `oklch(0% 0 0 / 40%)` | Sheet/dialog overlays |
 | web `--card` | `#FFFFFF` | `oklch(0.205 0 0)` | shadcn card token |
+
+Mobile light mode uses a soft cool-gray `bg-background` (`#F5F7FB`) behind white `bg-surface` cards with subtle `#E5EAF2` hairline borders. Main screens, forms, details and navigation inherit the same background. `ScreenWrapper background="grouped"` (or `bg-grouped-background` for a section) uses the same cool-gray backdrop; grouped Settings cards remain white via `bg-overlay`. Nested cards may also use `bg-overlay`. Keep spacing and typography as the primary hierarchy; do not add heavy shadows. Brand buttons, status panels, image viewers and receipts retain their intentional backgrounds. Dark mode has separate screen, card and muted-fill layers; web is unchanged.
+
+Mobile inline colors come from `apps/mobile/constants/theme.ts` through `useColors()`; CSS maps the same surface roles in `apps/mobile/app/global.css`, with parity and contrast tests in `constants/theme.test.ts`. Shared `COLORS` stays unchanged for web and brand/status values. Mobile secondary text (`textSecondary`, `gray500`, `text-muted`) is `#626B73` / `#9CA3AF`, readable on all neutral fills (at least 4.5:1). Light `text-accent` retains the deeper blue `#2F5FE0` for readable labels on cards and screen backgrounds; the primary button fill remains `#376BF5`. Decorative surface boundaries need not reach text contrast ratios.
 
 ### Text & neutral
 
@@ -76,7 +85,7 @@ All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mapp
 | `gray200` | `#D1D5DB` | `#2A2A2A` | Borders (`--border` web), dividers |
 | `gray100` | `#E5E7EB` | `#1E1E1E` | Muted fills, hairline dividers |
 
-Mobile `gray-500` is redefined to `#6C757D` (not Tailwind default `#6B7280`). Web's `grey-*` is a separate shifted scale (`grey-700 #6C757D` … `grey-200 #E5E7EB`) — prefer `gray-*`/COLORS tokens.
+Mobile `gray-500` is `#626B73` (dark `#9CA3AF`), matching mobile secondary text. Web's `grey-*` is a separate shifted scale (`grey-700 #6C757D` … `grey-200 #E5E7EB`) — prefer `gray-*`/COLORS tokens.
 
 ### Semantic
 
@@ -249,7 +258,9 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Grid/list toggle (web):** document and favorites collections offer `isIconOnly size="sm"` buttons (`primary` = active, `ghost` = inactive, `aria-pressed`) with `IconLayoutGrid`/`IconLayoutList`; list rows are `rounded-2xl border p-3` with a `size-16 rounded-lg` thumbnail, title + meta, status chip, chevron
 - **Web:** shadcn `Table` on `bg-darker-white`, header `text-[11px] tracking-wider`, rows `hover:bg-default-50` cursor-pointer, thumbs `w-12 h-12 rounded-lg`; search grids `grid-cols-1 sm:2 lg:4 gap-3`
 - **Admin list filters (web)** ✅: shared parts in `app/admin/_components/filters/`, all HeroUI. Toolbar: `SearchField` (visually hidden label) plus an icon-only refresh `Button` on the left; **Filters** on the right (`Popover` with a `Badge` count; every choice is a selectable `TagGroup` pill group (`FilterPillGroup`: default-size `rounded-full px-3` tags, selected = solid `bg-primary` + white text, `multiple` or `single` with `disallowEmptySelection`), mirroring the mobile filter sheet; a custom date range adds a `DateRangePicker`; footer has ghost Reset and primary Apply) and **Sort** (`Dropdown` single selection). Below it, right-aligned under the Filters button, a `TagGroup` of removable active-filter tags with a ghost "Clear all" (hidden when no filters are on). Under the table, `AdminListFooter` centers the `Pagination` and right-aligns the "Showing X–Y of N" `Description`. Search applies as you type (debounced); sort and tag removal apply at once; popover changes apply on Apply. Applied filters update the toolbar instantly while results load; `PendingList` dims the current results and fades in a small spinner after a short delay (no full overlay). Sortable table headers (`Table.SortableColumnHeader`) share the Sort dropdown's URL value. All filter state lives in the URL
-- **Chat:** `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`; inverted list (newest at bottom) with history paged in 30-message keyset loads at the top edge — loading indicator at the history edge, never a full-screen spinner
+- **Messages list (mobile)** ✅: Messenger-style, no section headers. Pinned chats on top (tenant: the current landlord first, always pinned with a filled pin icon by the name), a `Separator`, then the rest (unread first). Archived chats open from an icon-only `ghost` `IconArchive` (26, `gray500`) button at the top right of the "Messages" title. Rows (`ConversationRow`) swipe **left** to reveal three actions: 56pt filled circles with white 24px icons and a `text-xs` label below (`actionMore` More, `actionPin` Pin/Unpin, `actionArchive` Archive/Unarchive); actions close the row; disabled actions are 40% opacity. The same actions are exposed as card accessibility actions. Holding a row (350 ms, light haptic) or tapping "More" opens an options-only `BottomSheet` (no name/apartment header or header divider, `min-h-14` icon rows: Pin/Unpin and Archive/Unarchive first — disabled at 40% opacity on the always-pinned landlord chat — then read state, profile, apartment, mute, and destructive Report/Block in `text-danger`). Muted rows show `IconBellOff` 14; marked-unread rows show a `size-3.5` accent dot on the avatar and bold text. While loading, the list shows six `ConversationListSkeleton` rows (HeroUI `SkeletonGroup`) shaped like a row: `size-16` avatar circle, name + time, apartment and message lines
+- **Chat emoji:** the chat box's emoji button swaps the keyboard for an inline 300pt `rn-emoji-keyboard` `EmojiKeyboard` panel under the input (message stays visible; stays open for several picks; the keyboard button or tapping the input returns the keyboard, and touching or scrolling the conversation closes it) and inserts at the cursor, replacing any selection. The reaction "+" uses the same library's expandable `EmojiPicker` sheet. Both share `useEmojiPickerSettings`: a Recently used tab (saved on the device in AsyncStorage), a search bar, categories on top, and app colors in light and dark (`surface` panel, `surfaceSecondary` category bar and search, `primary` active icon on `primaryLight` / dark `surfaceTertiary`).
+- **Chat:** inquiry chats (no active tenancy between the two at that apartment, either portal) float an apartment strip (`ChatApartmentCard`) under the header while messages scroll beneath: full width and flush with the header, `bg-background border-b border-border` `PressableFeedback`, `px-4 py-2.5` row with a `size-14 rounded-xl` cover thumbnail (`IconBuilding` on `bg-surface-tertiary` fallback), name `text-sm font-nunitoSemiBold`, "Barangay, City" `text-xs text-gray-500`, rent `font-nunitoBold text-primary` + "/ month", `IconChevronRight` 18; tapping opens the apartment, and the list pads its top edge by the card's height. The start of every conversation shows an intro card (`ChatEmptyState`): `size-24` avatar with a 2px `border-border` ring, name `text-xl font-nunitoBold` with a filled `IconRosetteDiscountCheckFilled` 20 in `primary` when the account is verified, a `text-sm text-gray-500` context line "Landlord · Apartment" / "Tenant · Apartment" (from the active portal), small `tertiary` rounded-full "View profile" / "View apartment" buttons (16px `textPrimary` icons), and a `text-xs text-gray-500` `IconShieldCheck` payment-safety line. `ChatBubble` `max-w-[80%] mb-4`, sent `self-end` / received `self-start`; "Seen" (`text-[11px] font-inter text-gray-500`, right-aligned under the bubble) marks the newest sent message the other person has read, hidden once they reply (`getSeenMessageId`); it loads from `chat.is_read` and updates live through the chat channel's `messages_read` broadcast; consecutive bubbles from the same sender form a run (Messenger style): the gap inside a run tightens to 4pt (the full 16pt stays below a bubble with a reaction badge) and text bubbles shrink the sender-side corners where they meet to 6pt (`rounded-3xl` 24pt elsewhere; first/middle/last via `getBubbleGroupPosition`, also on the held clone); received bubbles sit after a 40pt gutter (`w-8 mr-2`) holding the sender's `size-8` avatar (`SenderAvatar`, HeroUI `Avatar` with initials fallback, taps open their profile) beside only the newest bubble of each consecutive run, bottom-aligned, with received bubbles capped at `max-w-[75%]` (the held clone shifts by the same gutter); inverted list (newest at bottom) with history paged in 30-message keyset loads at the top edge — loading indicator at the history edge, never a full-screen spinner; swiping a bubble toward the middle (received → right, sent → left, like Messenger; `SwipeToReply`) starts a reply: the bubble follows the finger up to 80pt with resistance past 56pt, a 32pt `bg-surface-tertiary` reply-arrow circle fades in behind it, a light haptic marks the 56pt threshold and the bubble springs back on release (also a "Reply" accessibility action; not on messages still sending); swiping the chat left (anywhere except a sent bubble, whose swipe left is a reply) shows every bubble's send time iMessage-style while held: sent bubbles slide up to 72pt left, each time fades in at the right edge (`text-[11px] font-inter text-gray-500`, e.g. "4:39 PM", hidden while sending), and everything springs back on release (`TimestampRevealRow`); holding a bubble (350 ms, light haptic) blurs the chat (expo-blur; on Android the chat is wrapped in a `BlurTargetView` and the backdrop uses `blurMethod="dimezisBlurViewSdk31Plus"`, plain tint below Android 12) and shows a centered stack — quick-reaction pill (`ReactionStrip`: HeroUI `Surface` `rounded-full shadow-lg` with icon-only ghost `Button`s, current reaction `bg-accent/15`) above, the lifted bubble, and the actions card (`HoldMenu`: HeroUI `ListGroup` with the timestamp then Reply, Copy, Unsend items (`py-2.5`), one `Separator mx-4` under the timestamp only, disabled items 40% opacity, Unsend in `text-danger`) below — aligned to the bubble's side. The bubble springs from its place in the chat to the center and the pill/card scale in from its side (`HoldStack`; no motion with Reduce Motion)
 - **Notifications:** `NotificationCard` (mobile) — `Card bg-surface rounded-3xl border p-4 shadow-none`; type icon 20 tinted by type + title `text-base` (`font-nunitoBold` unread / `font-nunitoSemiBold` read) + message + footer time `text-sm text-muted`; unread adds `border-primary/30` + 10px `bg-primary` dot; tap marks read + deep-links. Screen header: filter `DropdownButton` (All/Payment/Message/Maintenance/Apartment/System) + "Mark all read" text button (shown while unread > 0)
 - Empty lists use the Empty State pattern (§15), never blank space
 
