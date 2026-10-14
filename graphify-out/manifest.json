@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791989564.7381043,
-    "ast_hash": "a0d7f4b8f7bfeec6e53c0421b922466c",
+    "mtime": 1791990130.877465,
+    "ast_hash": "f7f7e73084b4ff136c0d770fe319bbb1",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -1370,8 +1370,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/index.ts": {
-    "mtime": 1791968716.6042798,
-    "ast_hash": "c57ad6d0904b29c3d3c87e60a4debf0c",
+    "mtime": 1791990022.882061,
+    "ast_hash": "95ff26425d97e7f65e76abe9a02a34b5",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useChat.ts": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791989725.8442209,
-    "ast_hash": "fcf166d59292b2978d0084c9785cd7ab",
+    "mtime": 1791990397.5068245,
+    "ast_hash": "2223ead2403b6433ca62f8ce62b61e84",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -7497,6 +7497,31 @@
   "apps/mobile/service/chat/chatRoutes.ts": {
     "mtime": 1791989504.5102205,
     "ast_hash": "09489982ecc03ec41d5396ef47d36504",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/ChatApartmentCard.test.tsx": {
+    "mtime": 1791990183.3875363,
+    "ast_hash": "b47c9a1beb4f8b3d2e2aab1b71fafa43",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/ChatApartmentCard.tsx": {
+    "mtime": 1791990397.5064023,
+    "ast_hash": "d56b81a1b0be33600fdc29dfdc7c8237",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/chat/useChatApartment.ts": {
+    "mtime": 1791990019.0218012,
+    "ast_hash": "3a42bef407a88cbc5dfbc99019a18b99",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/chat/chatApartmentService.test.ts": {
+    "mtime": 1791990201.8355184,
+    "ast_hash": "ca02932c20ea03f057776022dd36c330",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/chat/chatApartmentService.ts": {
+    "mtime": 1791990019.01992,
+    "ast_hash": "af958c9a4f6d64d33133fce68eb23150",
     "semantic_hash": ""
   }
 }
