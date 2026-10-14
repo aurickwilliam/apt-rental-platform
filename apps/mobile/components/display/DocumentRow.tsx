@@ -55,10 +55,10 @@ export default function DocumentRow({
       <Text className="text-foreground font-nunitoSemiBold">{label}</Text>
       {verified ? (
         <View className="flex-row items-center gap-0.5">
-          <IconShieldCheck size={14} color={colors.success} />
+          <IconShieldCheck size={14} color={colors.successText} />
           <Text
             className="text-xs font-nunitoSemiBold"
-            style={{ color: colors.success }}
+            style={{ color: colors.successText }}
           >
             Verified
           </Text>

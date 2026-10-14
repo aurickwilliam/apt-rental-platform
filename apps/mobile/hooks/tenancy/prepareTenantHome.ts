@@ -2,10 +2,10 @@ import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 import { fetchTenancy } from "@/service/tenancy/tenancyService";
 import { fetchTenantApplications } from "@/service/applications/tenantApplicationsService";
-import { fetchLatestMaintenanceRequest } from "@/service/maintenance-requests/maintenanceService";
+import { fetchMaintenanceRequestHistory } from "@/service/maintenance-requests/maintenanceService";
 import { fetchPayments } from "@/service/payments/paymentService";
 import { getTenantApplicationsQueryKey } from "@/hooks/applications/useTenantApplications";
-import { getLatestMaintenanceRequestQueryKey } from "@/hooks/maintenance-requests/useMaintenanceRequests";
+import { getMaintenanceRequestHistoryQueryKey } from "@/hooks/maintenance-requests/useMaintenanceRequestHistory";
 import { getPaymentsQueryKey } from "@/hooks/payments/usePayments";
 
 import { getTenancyQueryKey } from "./useTenancy";
@@ -40,8 +40,8 @@ async function prefetchRentalsData(queryClient: QueryClient, tenantId: string): 
 
   const apartmentId = tenancy.apartment.id;
   await Promise.all([
-    prefetchOrReset(queryClient, getLatestMaintenanceRequestQueryKey(apartmentId), () =>
-      fetchLatestMaintenanceRequest(apartmentId),
+    prefetchOrReset(queryClient, getMaintenanceRequestHistoryQueryKey(apartmentId), () =>
+      fetchMaintenanceRequestHistory(apartmentId),
     ),
     prefetchOrReset(queryClient, getPaymentsQueryKey(tenancy.id), () => fetchPayments(tenancy.id)),
   ]);

@@ -41,11 +41,11 @@ export default function PropertyCard({
     },
     occupied: {
       backgroundColor: colors.successLight,
-      color: colors.success,
+      color: colors.successText,
     },
     under_maintenance: {
       backgroundColor: colors.warningLight,
-      color: colors.warning,
+      color: colors.warningText,
     },
     unverified: {
       backgroundColor: colors.gray200,

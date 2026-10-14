@@ -109,7 +109,7 @@ export default function ApartmentHeroSection({
           </View>
 
           <View className='flex-row items-center mt-5 gap-2'>
-            <IconStarFilled size={20} color={colors.secondary}  />
+            <IconStarFilled size={20} color={colors.rating}  />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
               No ratings yet
             </Text>

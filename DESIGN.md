@@ -12,7 +12,7 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).
 
-**Visual identity:** primary blue `#376BF5` + secondary orange `#FFA500` on both platforms and both themes; clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
+**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons, yellow `#FBBF24` for star ratings only (mobile and web ✅); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
 
 **Mobile-first:** the Expo app is the primary product; web mirrors its palette and semantics. Design mobile-first, adapt to web.
 
@@ -45,9 +45,12 @@ All values exact. Light/dark pairs from `packages/constants/src/colors.ts`; mapp
 |---|---|---|---|
 | `primary` | `#376BF5` | `#5B8BF7` | Buttons, links, active states, accent surfaces |
 | `primaryLight` | `#EFF6FF` | `#1A2340` | Tinted backgrounds (role chips, info accents) |
-| `secondary` | `#FFA500` | `#FFA500` | Headline titles, CTAs, stars, highlights |
-| `secondaryForeground` | `#FFFFFF` | `#FFFFFF` | Text on secondary surfaces |
-| `secondaryLight` | `#FFF3E0` | `#2E2212` | Tinted orange backgrounds (landlord chips) |
+| `primaryLightForeground` (mobile `--color-primary-light-foreground`, web `--secondary-foreground`) ✅ | `#2F5FE0` | `#5B8BF7` | Soft blue secondary-button label on `primaryLight` (5.0:1 / 4.8:1). Brand `#376BF5` on `#EFF6FF` is only 4.2:1, so the light label is one step deeper |
+| `sky` (mobile `--color-secondary`, web `--sky`) ✅ | `#0369A1` | `#7DD3FC` | Second blue: landlord role (chip, role tab), accordion underline, highlights. Never a fill behind white text in dark mode |
+| `skyLight` (mobile `--color-secondary-light`, web `--sky-light`) | `#E0F2FE` | `#0C2A3D` | Sky tints (landlord chip; sky label 5.2:1 / 8.9:1) |
+| `chartSky` ✅ | `#0891B2` | `#0891B2` | Chart series beside `primary` (sky `#0369A1` is too close to brand blue to tell apart; cyan passes the CVD and normal-vision checks in both themes) |
+| `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars only; rating numbers stay text colors (yellow text fails contrast) |
+| `secondaryForeground` | `#FFFFFF` | `#FFFFFF` | White foreground (icons/text on filled buttons) |
 
 ### Surfaces & backgrounds
 
@@ -81,12 +84,13 @@ Mobile `gray-500` is redefined to `#6C757D` (not Tailwind default `#6B7280`). We
 |---|---|---|---|
 | `success` / `successLight` | `#22C55E` / `#E6F4EA` | `#4ADE80` / `#14291E` | Paid, verified, approved |
 | `warning` / `warningLight` | `#FACC15` / `#FFF8E1` | `#FDE047` / `#2A2410` | Pending, partial |
+| `successText` / `warningText` (mobile `text-success-text` / `text-warning-text`) ✅ | `#166534` / `#92400E` | `#4ADE80` / `#FDE047` | Status text and the icon beside it (Verified, Visit confirmed, Pending Verification, property status chips, receipt titles). The base `success` / `warning` are fills and dots only: as text they are 2.3:1 / 1.5:1 on white; these are 6.3–7.1:1. Dark keeps the bright values. On mobile, `warningLight` / `successLight` switch to their dark values in dark mode |
 | `danger` / `dangerMid` / `dangerLight` | `#E50914` / `#FF4B4B` / `#FDA4AF` | `#F87171` / `#FCA5A5` / `#2D1515` | Destructive, errors, rejected |
 | web `--destructive` | `#E50914` | `oklch(0.704 0.191 22.216)` | Destructive actions |
 
 ### Web-only theme (`apps/web/app/globals.css`)
 
-`:root`: `--radius 0.625rem`, `--background #F8F9FA`, `--foreground #333333`, `--card #FFFFFF`, `--primary #376BF5`, `--secondary #FFA500`, `--muted #E5E7EB`, `--muted-foreground #6C757D`, `--accent #EFF6FF`, `--destructive #E50914`, `--border #D1D5DB`, `--ring #376BF5`. HeroUI themed purely by `--heroui-primary/--heroui-secondary/--heroui-focus` (no `HeroUIProvider` config); dark mode keeps `--primary #376BF5`.
+`:root`: `--radius 0.625rem`, `--background #F8F9FA`, `--foreground #333333`, `--card #FFFFFF`, `--primary #376BF5`, `--brand #376BF5` (dark `#5B8BF7`; `text-brand` for headings and links, like mobile `text-accent`), `--secondary #EFF6FF` / `--secondary-foreground #2F5FE0` / `--secondary-hover #E2ECFE` (soft blue; dark `#1A2340` / `#5B8BF7` / `#1C2647`), `--sky #0369A1` / `--sky-light #E0F2FE` (dark `#7DD3FC` / `#0C2A3D`), `--color-rating #FBBF24`, `--muted #E5E7EB`, `--muted-foreground #6C757D`, `--accent #EFF6FF`, `--destructive #E50914`, `--border #D1D5DB`, `--ring #376BF5`. HeroUI themed purely by `--heroui-primary/--heroui-focus` (no `HeroUIProvider` config); dark mode keeps `--primary #376BF5`.
 
 ⚠ Undefined legacy tokens: `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `mediumGrey`, `COLORS.redHead`; tenant pages' one-off `zinc-*` palette (§24.2, §24.5).
 
@@ -117,7 +121,7 @@ Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile class
 | Primary mobile role headers | `text-3xl` | 30px |
 | Web page H1 | `text-5xl` | 48px |
 
-**Conventions:** mobile screen titles and big stat values `font-nunitoBold` (`text-xl`+; e.g. `text-secondary text-3xl font-nunitoBold`); section headers `text-foreground text-lg font-nunitoSemiBold` + 24px icon; card titles `text-base/xl font-nunitoSemiBold`, labels `text-muted text-sm font-nunitoSemiBold`; web headers `text-5xl text-secondary font-bold` + `text-sm text-muted-foreground` subtitle; labels HeroUI `Label` (web), required `*` in `text-danger`; web eyebrows/table headers `text-[11px] uppercase tracking-wider`; money `font-nunitoSemiBold` (line items) / `font-nunitoBold` (totals, stat values) in `text-primary`/`text-accent` via `formatPesoDisplay`; chat `text-sm leading-6` (body copy, `font-inter`).
+**Conventions:** mobile screen titles and big stat values `font-nunitoBold` (`text-xl`+; e.g. `text-accent text-3xl font-nunitoBold`; brand blue, not orange); section headers `text-foreground text-lg font-nunitoSemiBold` + 24px icon; card titles `text-base/xl font-nunitoSemiBold`, labels `text-muted text-sm font-nunitoSemiBold`; web headers `text-5xl text-brand font-bold` + `text-sm text-muted-foreground` subtitle; labels HeroUI `Label` (web), required `*` in `text-danger`; web eyebrows/table headers `text-[11px] uppercase tracking-wider`; money `font-nunitoSemiBold` (line items) / `font-nunitoBold` (totals, stat values) in `text-primary`/`text-accent` via `formatPesoDisplay`; chat `text-sm leading-6` (body copy, `font-inter`).
 
 ⚠ Do NOT use `font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold` (no font loaded — silent fallback). New families require `typography.ts` + both `globals.css` + mobile font loading.
 
@@ -187,15 +191,15 @@ Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocus
 
 | Variant | Usage |
 |---|---|
-| `primary` (default) | Apply Now, Pay, Save, Verify, next steps |
-| `secondary` | Cancel-in-dialog fallback, Skip, Search submit (web) |
+| `primary` (default) | Apply Now, Pay, Save, Verify, next steps. Mobile fill is always brand `#376BF5` (white text 4.6:1), also in dark mode |
+| `secondary` | Supporting actions (View Description, View More Details; web also Cancel-in-dialog fallback, Skip, Search submit). Soft blue on both platforms: `primaryLight` fill, no border, `primaryLightForeground` label (mobile rules in `apps/mobile/app/global.css`, web `.button--secondary` in `apps/web/app/globals.css`). On a blue card, the main action is a white button with brand-blue text (Pay Now) |
 | `tertiary` | Quiet in-content actions: Clear All, quick actions, row menus |
 | `outline` | Bordered actions: browse CTAs, select triggers |
 | `danger` / `danger-soft` | Delete, Reject, Logout dropdown item |
 | `ghost` | Icon/utility: navbar, back, theme toggle, favorite, closes |
 | Disabled / Loading | `isDisabled`; `isPending` + `Spinner size="sm" color="current"` |
 
-Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-col` (web quick actions). Mobile composes `<Button.Label>`; icons in buttons 16–26px.
+Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-col` (web quick actions). Mobile composes `<Button.Label>`; icons in buttons 16–26px. Mobile button labels (HeroUI `Button` and `LinkButton`) are Nunito SemiBold app-wide via the `.button__label` rule in `apps/mobile/app/global.css`, so a label needs no font class (never set Inter on one).
 
 **⚠ Legacy** (`apps/mobile/components/buttons/`): `PillButton` (h-14/h-12 pill, still in verify-account/document-id/payment flows; references undefined `redHead-*`/`grey-500` tokens), `OptionButton` (p-4 rounded-xl row + chevron), `RadioButton`, `CheckBox`. Never copy; migrate call sites when touched.
 
@@ -267,7 +271,8 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Stack:** `headerShown: false` globally; screens render their own:
   - `StandardHeader` ✅: `bg-accent`, `paddingTop: insets.top + 20`, `pb-5 px-4`, centered `font-nunitoBold text-lg` white, back chevron 24
   - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-nunitoSemiBold`, sub `text-xs /70`
-  - Inline role headers ✅ (tab screens): icon/logo + `text-secondary text-2xl/3xl font-nunitoSemiBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
+  - Inline role headers ✅ (tab screens): icon/logo + `text-accent text-2xl/3xl font-nunitoBold` + bell ghost (`IconBell 26 gray500`) — bell opens the role-aware notification center (`(notification)/tenant-notif` / `landlord-notif`)
+  - Tenant Rentals with an active tenancy ✅ replaces the header with `RentalHero`: an edge-to-edge cover photo that extends under the status bar (status-bar height + about a quarter of the screen, min 200px), square corners, filled map pin, dark top/bottom scrim (`expo-linear-gradient`), white name (`text-2xl font-nunitoBold`) + address, an underlined white "View Description" `LinkButton`, and the bell in `tone="onImage"` (white on `bg-black/35`) at the top right below the status bar. Status-bar icons are white while the photo is behind them (`useLightStatusBar`, focus-scoped) and switch back, with a page-colored strip behind the status bar, once it scrolls away or is pulled down. Below it: Payment Summary, pending-applications card (when any), Quick Actions, Landlord, Maintenance (3 most recent requests, "View all", Request Maintenance unless one is open)
 - Tabs — tenant: Rentals / Search / Chat / Profile; landlord: Dashboard / Units / Chat / Profile
 - Mobile sign-in is role-neutral (no Tenant/Landlord tabs). Role tabs remain on sign-up; Google users signing in with an incomplete profile choose their account type on the profile-completion screen instead.
 - Dual-role mobile profiles offer a light-blue switch button directly above Logout to switch between authorized Tenant and Landlord portals (single-role profiles do not show it): `variant="secondary"` with a 15% tint of `colors.primary` (`${colors.primary}26`) as the fill and a 1px `${colors.primary}80` border, `IconSwitchHorizontal` 18 in `colors.primary` and a `font-nunitoSemiBold` label. The tint is derived from the theme primary so it stays visible on both the light and dark page background; the fixed `#EFF6FF` (`primaryLight`) was too close to the page colour.
@@ -287,7 +292,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 - **Dialog** ✅: `Portal > Overlay > Content`, `Close variant="ghost"` top-right; backdrop 20%/40%
   - `ConfirmDialog` ✅: footer `justify-end gap-3` — `ghost sm` cancel + `sm` confirm (default `danger`)
-  - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success`, dismiss `secondary sm`
+  - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success-text`, dismiss `secondary sm`
   - `RejectDialog` ✅: `TextField` + `TextArea numberOfLines={3}`, footer `secondary` Cancel / `danger-soft` Reject (both `flex-1`)
 - **BottomSheet** ✅: snapPoints `["85%"]` (filters) / `["50%","75%"]` (DropdownField); `enableOverDrag false`; handle `bg-[#D0D0D0] w-10`; `bg-surface rounded-t-[20px]`; sticky header `border-b border-border`; sticky footer `border-t pt-3` (Apply `flex-1 sm` + Clear All `tertiary sm`)
 - **Legacy RN `Modal`** ⚠ (fade, `rgba(0,0,0,0.3)` backdrop): MoveInCost, DateField iOS picker, video — migrate when touched
@@ -365,7 +370,7 @@ No breakpoints; `useWindowDimensions` math (grid card = `(width − 32 − 8) / 
 
 1. **Trustworthy** — verification affordances everywhere, explicit payment breakdowns, transparent pricing
 2. **Clean & spacious** — hairline borders over shadows, generous `p-4`+, flat surfaces
-3. **Friendly** — rounded geometry, orange warmth, welcoming copy
+3. **Friendly** — rounded geometry, soft blue and sky accents, welcoming copy
 4. **Consistent** — one token set per platform, repeated card anatomy, same semantics across apps
 5. **Professional** — restrained motion, muted secondary text, uppercase micro-labels, structured forms
 6. **Mobile-first** — large touch targets (`h-12`+ inputs), bottom sheets over menus, floating affordances

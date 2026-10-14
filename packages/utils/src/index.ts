@@ -42,3 +42,15 @@ export {
   type PasswordChangeErrorField,
   getPasswordChangeErrorField,
 } from './passwordChange';
+export {
+  DEFAULT_RENT_DUE_DAY,
+  type PaymentPeriod,
+  type PaymentPeriodLease,
+  type RentPeriodPayment,
+  type RentStatusTenancy,
+  type CurrentRentStatus,
+  paidAmountForPeriod,
+  resolvePaymentPeriod,
+  nextPaymentPeriod,
+  getCurrentRentStatus,
+} from './rentPeriod';

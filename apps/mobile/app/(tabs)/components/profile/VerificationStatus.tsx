@@ -42,15 +42,15 @@ export default function VerificationStatus({
   const STATUS_CONFIG: StatusConfig = {
     verified: {
       text: 'Verified Tenant',
-      style: 'text-success',
+      style: 'text-success-text',
       icon: IconCircleCheck,
-      iconColor: colors.success,
+      iconColor: colors.successText,
     },
     pending: {
       text: 'Pending Verification',
-      style: 'text-warning',
+      style: 'text-warning-text',
       icon: IconAlertCircle,
-      iconColor: colors.warning,
+      iconColor: colors.warningText,
     },
     rejected: {
       text: 'Rejected',

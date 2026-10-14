@@ -77,7 +77,7 @@ export default function RatingsPage() {
             Overall Rating
           </Text>
 
-          <Text className='text-secondary text-8xl font-nunitoBold leading-tight'>
+          <Text className='text-accent text-8xl font-nunitoBold leading-tight'>
             {overallRating.toFixed(1)}
           </Text>
 

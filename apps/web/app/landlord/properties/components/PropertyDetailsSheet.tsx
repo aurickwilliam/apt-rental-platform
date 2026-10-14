@@ -432,7 +432,7 @@ export default function PropertyDetailsSheet({
                               size="sm"
                               variant="ghost"
                               onPress={() => setDescriptionModalOpen(true)}
-                              className="text-secondary dark:text-[#FFA500]"
+                              className="text-brand"
                             >
                               View all
                             </Button>
@@ -455,7 +455,7 @@ export default function PropertyDetailsSheet({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-secondary dark:text-[#FFA500]"
+                              className="text-brand"
                               onPress={() => setAmenitiesModalOpen(true)}
                             >
                               View all

@@ -1,5 +1,7 @@
 import { supabase } from "@repo/supabase";
 
+import { coverImageUrl, type ApartmentImageRow } from "@/service/apartments/coverImage";
+
 export interface TenancyApartment {
   id: string;
   name: string;
@@ -20,6 +22,8 @@ export interface TenancyApartment {
   max_occupants: number | null;
   lease_duration: string | null;
   lease_agreement_url: string | null;
+  // Full-size cover photo (public CDN URL), or null when the listing has none.
+  cover_url: string | null;
 }
 
 export interface TenancyLandlord {
@@ -45,13 +49,19 @@ export interface CurrentTenancy {
   lease_start: string;
   lease_end: string | null;
   monthly_rent: number | null;
+  // Day of the month rent falls due (server source of truth, default 5).
+  rent_due_day: number;
   status: string;
   apartment: TenancyApartment;
   landlord: TenancyLandlord | null;
   currentPayment: TenancyPayment | null;
 }
 
-type TenancyWithoutPayment = Omit<CurrentTenancy, "currentPayment">;
+type TenancyRow = Omit<CurrentTenancy, "currentPayment" | "apartment"> & {
+  apartment: Omit<TenancyApartment, "cover_url"> & {
+    apartment_images: ApartmentImageRow[] | null;
+  };
+};
 
 export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | null> {
   const { data: tenancyData, error: tenancyError } = await supabase
@@ -61,12 +71,14 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
       lease_start,
       lease_end,
       monthly_rent,
+      rent_due_day,
       status,
       apartment:apartments (
         id, name, street_address, barangay, city, province, zip_code, monthly_rent,
         type, no_bedrooms, no_bathrooms, area_sqm, amenities, description,
         furnished_type, floor_level, max_occupants, lease_duration,
-        lease_agreement_url
+        lease_agreement_url,
+        apartment_images ( url, url_thumb, is_cover, created_at )
       ),
       landlord:users!tenancies_landlord_id_fkey (
         id, first_name, last_name, email, mobile_number, avatar_url
@@ -89,8 +101,12 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
 
   if (paymentError) throw paymentError;
 
+  const { apartment: apartmentRow, ...tenancy } = tenancyData as unknown as TenancyRow;
+  const { apartment_images: apartmentImages, ...apartment } = apartmentRow;
+
   return {
-    ...(tenancyData as unknown as TenancyWithoutPayment),
+    ...tenancy,
+    apartment: { ...apartment, cover_url: coverImageUrl(apartmentImages, "full") },
     currentPayment: paymentData as TenancyPayment | null,
   };
 }

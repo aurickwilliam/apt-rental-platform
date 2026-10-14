@@ -25,7 +25,7 @@ export default function StepTwo() {
 
           {/* Question and Description */}
           <View className="flex gap-3">
-            <Text className="text-secondary text-2xl font-nunitoMedium">
+            <Text className="text-accent text-2xl font-nunitoMedium">
               Got a budget in mind for your place?
             </Text>
 

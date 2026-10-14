@@ -28,7 +28,7 @@ export default function StepThree() {
 
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
-            <Text className="text-secondary text-2xl font-nunitoMedium">
+            <Text className="text-accent text-2xl font-nunitoMedium">
               How many bedrooms are you looking for?
             </Text>
 

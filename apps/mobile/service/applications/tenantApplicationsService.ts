@@ -2,6 +2,7 @@ import { supabase } from '@repo/supabase';
 
 import type { ApplicationStatus } from '@/hooks/applications';
 import { resolveApplicationDocumentUrls } from '@/service/media/privateMediaResolver';
+import { coverImageUrl, type ApartmentImageRow } from '@/service/apartments/coverImage';
 
 export type ApplicationDocument = {
   label: string;
@@ -90,26 +91,6 @@ type ApplicationRow = {
   };
 };
 
-type ApartmentImageRow = {
-  url: string;
-  url_thumb: string | null;
-  is_cover: boolean | null;
-  created_at: string | null;
-};
-
-// The cover image, else the earliest upload; its thumbnail when one exists.
-function pickThumbnailUrl(images: ApartmentImageRow[] | null): string | null {
-  if (!images || images.length === 0) return null;
-
-  const image =
-    images.find((candidate) => candidate.is_cover) ??
-    [...images].sort(
-      (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
-    )[0];
-
-  return image.url_thumb || image.url;
-}
-
 async function fetchTenantApplications(tenantId: string): Promise<TenantApplication[]> {
   const { data: rows, error: fetchError } = await supabase
     .from('rental_application')
@@ -156,7 +137,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       ...application,
       status: item.status as ApplicationStatus,
       documents,
-      apartments: { ...apartment, thumbnail_url: pickThumbnailUrl(apartment_images) },
+      apartments: { ...apartment, thumbnail_url: coverImageUrl(apartment_images, 'thumb') },
     };
   });
 
