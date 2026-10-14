@@ -38,7 +38,7 @@ export default function RatingsSection({
   return (
     <>
       <SectionHeader
-        icon={<IconStarFilled size={26} color={colors.secondary} />}
+        icon={<IconStarFilled size={26} color={colors.rating} />}
         title="Ratings"
         action={
           hasReviews && onSeeAll ? <SeeAllButton onPress={onSeeAll} /> : undefined

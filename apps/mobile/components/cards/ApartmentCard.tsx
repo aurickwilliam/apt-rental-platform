@@ -144,7 +144,7 @@ export default function ApartmentCard({
                 {formatPesoDisplay(monthlyRent)}
               </Text>
               <View className="flex-row items-center justify-center gap-1">
-                <IconStarFilled size={isGrid ? 16 : 18} color={colors.secondary} />
+                <IconStarFilled size={isGrid ? 16 : 18} color={colors.rating} />
                 <Text
                   className={`mr-1 text-foreground font-inter ${isGrid ? "text-[12px]" : "text-base"}`}
                 >

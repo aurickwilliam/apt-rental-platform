@@ -113,7 +113,7 @@ export default function StepFive() {
 
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
-            <Text className="text-secondary text-2xl font-nunitoMedium">
+            <Text className="text-accent text-2xl font-nunitoMedium">
               What is your rental preferences?
             </Text>
             <Text className="text-foreground text-base font-inter">

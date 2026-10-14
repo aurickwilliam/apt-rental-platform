@@ -80,7 +80,7 @@ export default function LandlordCard({
             {withRentalInfo && (
               <View className="flex-row items-center gap-4 mt-1">
                 <View className="flex-row items-center gap-1">
-                  <IconStarFilled size={12} color={colors.secondary} />
+                  <IconStarFilled size={12} color={colors.rating} />
                   <Text className="text-foreground text-xs font-inter">
                     {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
                   </Text>

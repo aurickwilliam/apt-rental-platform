@@ -70,7 +70,7 @@ export default function VisitRequestCalendar({
           const bgColor = isSelected
             ? colors.primary
             : hasRequest
-              ? colors.secondary
+              ? colors.sky
               : colors.surface;
 
           const textColor = isSelected || hasRequest

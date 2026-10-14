@@ -230,7 +230,7 @@ export default function RateApartment() {
         >
           <StarIcon
             size={STAR_SIZE}
-            color={isFull || isHalf ? colors.secondary : colors.gray300}
+            color={isFull || isHalf ? colors.rating : colors.gray300}
           />
         </TouchableOpacity>
       );
@@ -330,7 +330,7 @@ export default function RateApartment() {
           <View className='flex-row gap-2'>
             <IconStarFilled
               size={22}
-              color={colors.secondary}
+              color={colors.rating}
             />
             <Text className='text-foreground text-base font-nunitoSemiBold'>
               {(apartment.average_rating ?? 0).toFixed(1)} ({apartment.no_ratings})
@@ -365,7 +365,7 @@ export default function RateApartment() {
             Overall Rating
           </Text>
 
-          <Text className='text-secondary text-5xl font-nunitoBold mt-2 leading-tight'>
+          <Text className='text-accent text-5xl font-nunitoBold mt-2 leading-tight'>
             {rating.toFixed(1)}
           </Text>
 

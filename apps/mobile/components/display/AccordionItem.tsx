@@ -78,7 +78,7 @@ export default function AccordionItem({
       <Animated.View 
         style={[{ 
           height: 2, 
-          backgroundColor: colors.secondary, 
+          backgroundColor: colors.sky, 
           borderRadius: 2 
         }, animatedUnderlineStyle]} 
       />

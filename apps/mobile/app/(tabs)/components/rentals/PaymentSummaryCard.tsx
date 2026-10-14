@@ -1,12 +1,14 @@
 import { View, Text } from "react-native";
 
-import { useColors } from "hooks/useTheme";
 import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
 import { formatPesoDisplay } from "@repo/utils";
+import { COLORS } from "@repo/constants";
 
 import { Button, Chip } from "heroui-native";
 import {
   IconCalendarMonth,
+  IconCircleCheck,
+  IconClock,
   IconCoin,
   IconCreditCard,
   IconHistory,
@@ -31,11 +33,12 @@ export default function PaymentSummaryCard({
   onPayNowPress,
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
-  const { colors } = useColors();
   const palette = useStatusChipStyles();
 
   const isPending = status === "Pending";
   const statusStyle = isPending ? palette.warning : palette.success;
+  // Same icons as the application status chips.
+  const StatusIcon = isPending ? IconClock : IconCircleCheck;
 
   return (
     <View className="bg-accent rounded-3xl p-4 border border-white/10">
@@ -50,6 +53,7 @@ export default function PaymentSummaryCard({
           variant="soft"
           style={statusChipSurface(statusStyle)}
         >
+          <StatusIcon size={14} color={statusStyle.textColor} />
           <Chip.Label
             className="font-nunitoSemiBold text-sm"
             style={{ color: statusStyle.textColor }}
@@ -109,16 +113,16 @@ export default function PaymentSummaryCard({
           <Button
             size="sm"
             onPress={onPayNowPress}
-            className={`flex-1 bg-secondary`}
+            className="flex-1 bg-white"
           >
+            {/* Brand blue in both modes: the lighter dark-mode blue is too
+                faint on white. */}
             <IconCreditCard
               size={16}
-              color={colors.secondaryForeground}
+              color={COLORS.light.primary}
               strokeWidth={2}
             />
-            <Button.Label
-              style={{ color: colors.secondaryForeground}}
-            >
+            <Button.Label style={{ color: COLORS.light.primary }}>
               Pay Now
             </Button.Label>
           </Button>
