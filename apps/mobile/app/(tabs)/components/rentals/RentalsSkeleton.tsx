@@ -10,13 +10,13 @@ export default function RentalsSkeleton() {
 
   return (
     <View className="flex gap-5">
-      {/* Apartment photo with name, address and button */}
-      <View className="rounded-3xl overflow-hidden" style={{ height: heroHeight }}>
-        <Skeleton className="absolute inset-0 rounded-3xl" />
-        <View className="absolute left-4 right-4 bottom-4 gap-2">
+      {/* Apartment photo (edge to edge) with name, address and link */}
+      <View className="-mx-5 overflow-hidden" style={{ height: heroHeight }}>
+        <Skeleton className="absolute inset-0 rounded-none" />
+        <View className="absolute left-5 right-5 bottom-5 gap-2">
           <Skeleton className="h-6 w-40 rounded-lg" />
           <Skeleton className="h-3.5 w-56 rounded-md" />
-          <Skeleton className="h-9 w-36 rounded-full mt-1" />
+          <Skeleton className="h-3.5 w-28 rounded-md mt-1" />
         </View>
       </View>
 

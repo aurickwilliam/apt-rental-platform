@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native'
+import { View, Text, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, type Href } from 'expo-router'
 import { useEffect, useState } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
@@ -11,7 +12,7 @@ import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceSection from '../components/rentals/MaintenanceSection';
-import RentalHero from '../components/rentals/RentalHero';
+import RentalHero, { useRentalHeroHeight } from '../components/rentals/RentalHero';
 import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
 import {
   getRentalsLayoutToRemember,
@@ -33,6 +34,7 @@ import {
 import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
+import { useLightStatusBar } from '@/hooks/useLightStatusBar';
 import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
 import { usePayments } from '@/hooks/payments';
@@ -62,21 +64,47 @@ interface TabScreenProps {
   children: ReactNode;
   refreshing?: boolean;
   onRefresh?: () => Promise<void>;
+  // Content starts at the very top (under the status bar), for the photo hero.
+  edgeToEdge?: boolean;
+  // Edge to edge only: paint the page background behind the status bar so
+  // scrolled content doesn't run under the clock.
+  showStatusBarBackdrop?: boolean;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 // The scrollable tab-page shell every Rentals state shares, clearing the
 // floating tab bar.
-function TabScreen({ children, refreshing, onRefresh }: TabScreenProps) {
+function TabScreen({
+  children,
+  refreshing,
+  onRefresh,
+  edgeToEdge = false,
+  showStatusBarBackdrop = false,
+  onScroll,
+}: TabScreenProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScreenWrapper
+    <View className="flex-1">
+      <ScreenWrapper
       scrollable
-      className="p-5"
+      className={edgeToEdge ? "px-5 pb-5" : "p-5"}
+      noTopPadding={edgeToEdge}
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
       onRefresh={onRefresh}
+      onScroll={onScroll}
     >
       {children}
     </ScreenWrapper>
+      {edgeToEdge && showStatusBarBackdrop && (
+        <View
+          pointerEvents="none"
+          className="absolute top-0 left-0 right-0 bg-background"
+          style={{ height: insets.top }}
+        />
+      )}
+    </View>
   );
 }
 
@@ -182,10 +210,26 @@ export default function Rentals() {
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
   const handleViewApplications = () => router.push('/tenant/applications');
 
+  // White status-bar icons only while the photo is behind them: not once it
+  // has scrolled away, and not while a pull-to-refresh drags it below the
+  // status bar (the light page shows above it then).
+  const insets = useSafeAreaInsets();
+  const heroHeight = useRentalHeroHeight();
+  const [isPastHero, setIsPastHero] = useState(false);
+  const [isHeroPulledDown, setIsHeroPulledDown] = useState(false);
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const isPast = offsetY > heroHeight - insets.top;
+    const isPulledDown = offsetY < -insets.top / 2;
+    if (isPast !== isPastHero) setIsPastHero(isPast);
+    if (isPulledDown !== isHeroPulledDown) setIsHeroPulledDown(isPulledDown);
+  };
+  useLightStatusBar(view === 'tenancy' && !isPastHero && !isHeroPulledDown);
+
   // Loading a rental (the applications skeleton is drawn by the shell below)
   if (view === 'loading' && skeleton !== 'applications') {
     return (
-      <TabScreen>
+      <TabScreen edgeToEdge={skeleton === 'tenancy'}>
         {skeleton === 'tenancy' && <RentalsSkeleton />}
       </TabScreen>
     );
@@ -228,7 +272,13 @@ export default function Rentals() {
     };
 
     return (
-      <TabScreen refreshing={refreshing} onRefresh={onRefresh}>
+      <TabScreen
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        edgeToEdge
+        showStatusBarBackdrop={isPastHero}
+        onScroll={handleScroll}
+      >
         {/* Apartment photo, name and address */}
         <RentalHero
           name={apartment.name}
