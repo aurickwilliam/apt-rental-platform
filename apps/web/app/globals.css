@@ -9,8 +9,9 @@
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
 
+  /* Soft blue (DESIGN.md §9): light blue fill, brand-blue label, no border. */
   .button--secondary {
-    @apply bg-secondary text-white hover:bg-[#e59400];
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary-hover;
   }
 
   .button--tertiary {
@@ -114,8 +115,7 @@ body[data-scroll-locked] [role="option"] {
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
   --color-light-blue: #EFF6FF;
-  --color-secondary: #FFA500;
-  --color-rating: #FFA500;
+  --color-rating: #FBBF24;
   --color-darker-white: #F8F9FA;
   --color-black: #333333;
   --color-grey-700: #6C757D;
@@ -132,7 +132,6 @@ body[data-scroll-locked] [role="option"] {
   --color-red-200: #FDA4AF;
 
   --heroui-primary: var(--primary);
-  --heroui-secondary: var(--secondary);
 
   --heroui-focus: var(--primary);
 }
@@ -155,6 +154,10 @@ body[data-scroll-locked] [role="option"] {
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-brand: var(--brand);
+  --color-sky: var(--sky);
+  --color-sky-light: var(--sky-light);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -189,8 +192,15 @@ body[data-scroll-locked] [role="option"] {
   --popover-foreground: #333333;
   --primary: #376BF5;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFA500;
-  --secondary-foreground: #FFFFFF;
+  /* Brand-blue text (headings, links); brightens in dark mode like mobile's text-accent */
+  --brand: #376BF5;
+  /* Soft blue: secondary buttons (label 5.0:1 on the fill) */
+  --secondary: #EFF6FF;
+  --secondary-foreground: #2F5FE0;
+  --secondary-hover: #E2ECFE;
+  /* Sky, the second blue: landlord role, highlights */
+  --sky: #0369A1;
+  --sky-light: #E0F2FE;
   --muted: #E5E7EB;
   --muted-foreground: #6C757D;
   --accent: #EFF6FF;
@@ -223,8 +233,12 @@ body[data-scroll-locked] [role="option"] {
   --popover-foreground: oklch(0.985 0 0);
   --primary: #376BF5;
   --primary-foreground: #FFFFFF;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
+  --brand: #5B8BF7;
+  --secondary: #1A2340;
+  --secondary-foreground: #5B8BF7;
+  --secondary-hover: #1C2647;
+  --sky: #7DD3FC;
+  --sky-light: #0C2A3D;
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);

@@ -26,11 +26,12 @@
   /* Brand */
   --color-primary: #376BF5;
   --color-primary-light: #EFF6FF;
+  /* Soft blue secondary-button label (on primary-light) */
+  --color-primary-light-foreground: #2F5FE0;
   /* Secondary is sky, the second blue (light values; dark overrides below) */
   --color-secondary: #0369A1;
   --color-secondary-foreground: #FFFFFF;
   --color-secondary-light: #E0F2FE;
-  --color-secondary-border: #0284C7;
 
   /* Star ratings */
   --color-rating: #FBBF24;
@@ -57,9 +58,9 @@
   --color-dark-surface-raised: #2A2A2A;
   --color-dark-primary: #5B8BF7;
   --color-dark-primary-light: #1A2340;
+  --color-dark-primary-light-foreground: #5B8BF7;
   --color-dark-secondary: #7DD3FC;
   --color-dark-secondary-light: #0C2A3D;
-  --color-dark-secondary-border: #38BDF8;
   --color-dark-gray-100: #1E1E1E;
   --color-dark-gray-200: #2A2A2A;
   --color-dark-gray-300: #3D3D3D;
@@ -97,8 +98,8 @@
     --accent-foreground: oklch(1 0 0);
     --color-secondary: #0369A1;
     --color-secondary-light: #E0F2FE;
-    --color-secondary-border: #0284C7;
     --color-primary-light: #EFF6FF;
+    --color-primary-light-foreground: #2F5FE0;
 
     /* Semantic */
     --success: var(--color-success);
@@ -180,10 +181,10 @@
     /* Sky (secondary) brightens in dark mode */
     --color-secondary: var(--color-dark-secondary);
     --color-secondary-light: var(--color-dark-secondary-light);
-    --color-secondary-border: var(--color-dark-secondary-border);
 
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
+    --color-primary-light-foreground: var(--color-dark-primary-light-foreground);
   }
 }
 
@@ -224,16 +225,14 @@
   background-color: var(--color-primary);
 }
 
-/* Secondary buttons are a sky outline (DESIGN.md §9): surface fill, 1.5px
-   sky border, sky label. */
+/* Secondary buttons are soft blue (DESIGN.md §9): primary-light fill, no
+   border, brand-blue label (5.0:1 light / 4.8:1 dark). */
 .button__root--variant-secondary {
-  background-color: var(--surface);
-  border-width: 1.5px;
-  border-color: var(--color-secondary-border);
+  background-color: var(--color-primary-light);
 }
 
 .button__label--variant-secondary {
-  color: var(--color-secondary);
+  color: var(--color-primary-light-foreground);
 }
 
 /* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold

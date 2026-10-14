@@ -16,7 +16,7 @@ import Panel from "./Panel";
 
 const growthConfig = {
   users: { label: "New users", color: "var(--primary)" },
-  apartments: { label: "New listings", color: COLORS.light.secondary },
+  apartments: { label: "New listings", color: COLORS.light.chartSky },
 } satisfies ChartConfig;
 
 interface PlatformGrowthPanelProps {
