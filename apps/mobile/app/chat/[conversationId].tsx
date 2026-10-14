@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   type ViewToken,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 // Gesture-handler's list: a plain RN list cancels the bubbles' swipe-to-reply on Android.
 import { FlatList } from 'react-native-gesture-handler';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
@@ -52,6 +52,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
 import { useBlockStatus, useChat } from 'hooks/chat';
+import { usePortalStore } from '@/stores/usePortalStore';
+import {
+  getChatApartmentRoute,
+  getChatProfileRoute,
+  getOtherPartyLabel,
+} from '@/service/chat/chatRoutes';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
@@ -147,6 +153,7 @@ export default function ChatScreen() {
     otherUserName,
     otherUserAvatar,
     otherUserPhoneNumber,
+    otherUserIsVerified,
     loading,
     loadingMore,
     hasMore,
@@ -173,6 +180,18 @@ export default function ChatScreen() {
   });
 
   const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
+
+  // The active portal says who the other person is (tenant portal → landlord).
+  const portal = usePortalStore((state) => state.portal);
+  const router = useRouter();
+  const handleViewProfile = useCallback(() => {
+    if (!portal || !otherUserId) return;
+    router.push(getChatProfileRoute(portal, otherUserId, apartmentId));
+  }, [apartmentId, otherUserId, portal, router]);
+  const handleViewApartment = useCallback(() => {
+    if (!portal || !apartmentId) return;
+    router.push(getChatApartmentRoute(portal, apartmentId));
+  }, [apartmentId, portal, router]);
 
   const handleVisibleMessagesRef = useRef(handleVisibleMessages);
   useEffect(() => {
@@ -560,7 +579,11 @@ export default function ChatScreen() {
                     otherUserName={otherUserName}
                     otherUserAvatar={otherUserAvatar ?? undefined}
                     apartmentTitle={apartmentTitle}
+                    otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
+                    isVerified={otherUserIsVerified}
                     hasMessages={messages.length > 0}
+                    onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
+                    onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
                   />
                 </>
               }

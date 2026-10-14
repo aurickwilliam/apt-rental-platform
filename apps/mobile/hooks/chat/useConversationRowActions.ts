@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "expo-router";
 import { useToast } from "heroui-native";
 
+import { getChatApartmentRoute, getChatProfileRoute } from "@/service/chat/chatRoutes";
 import { hasUnread } from "@/service/chat/conversationList";
 import {
   reportUser,
@@ -120,24 +121,9 @@ export function useConversationRowActions({
 
   const openProfile = useCallback(
     (conversation: ConversationWithMeta) => {
-      // In the tenant portal the other person is a landlord, and vice versa.
-      if (role === "tenant") {
-        router.push({
-          pathname: "/profile/landlord/[landlordId]",
-          params: {
-            landlordId: conversation.other_user_id,
-            ...(conversation.apartment_id ? { apartmentId: conversation.apartment_id } : {}),
-          },
-        });
-      } else {
-        router.push({
-          pathname: "/profile/tenant/[tenantId]",
-          params: {
-            tenantId: conversation.other_user_id,
-            ...(conversation.apartment_id ? { apartmentId: conversation.apartment_id } : {}),
-          },
-        });
-      }
+      router.push(
+        getChatProfileRoute(role, conversation.other_user_id, conversation.apartment_id ?? null)
+      );
     },
     [role, router]
   );
@@ -145,17 +131,7 @@ export function useConversationRowActions({
   const openApartment = useCallback(
     (conversation: ConversationWithMeta) => {
       if (!conversation.apartment_id) return;
-      if (role === "tenant") {
-        router.push({
-          pathname: "/apartment/[apartmentId]",
-          params: { apartmentId: conversation.apartment_id },
-        });
-      } else {
-        router.push({
-          pathname: "/landlord/manage-apartment/[apartmentId]",
-          params: { apartmentId: conversation.apartment_id },
-        });
-      }
+      router.push(getChatApartmentRoute(role, conversation.apartment_id));
     },
     [role, router]
   );

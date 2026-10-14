@@ -85,6 +85,7 @@ export type UserProfile = {
   lastName: string;
   avatarUrl: string | null;
   phoneNumber: string | null;
+  isVerified: boolean;
 };
 
 import type { ConversationPreferences } from './conversationPreferences';
@@ -602,7 +603,7 @@ export async function getPortalConversations(
 export async function fetchOtherUserProfile(otherUserId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
-    .select('id, first_name, last_name, avatar_url, mobile_number')
+    .select('id, first_name, last_name, avatar_url, mobile_number, account_status')
     .eq('id', otherUserId)
     .maybeSingle();
 
@@ -615,6 +616,7 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
     lastName: data.last_name ?? '',
     avatarUrl: data.avatar_url ?? null,
     phoneNumber: data.mobile_number?.trim() || null,
+    isVerified: data.account_status === 'verified',
   };
 }
 
