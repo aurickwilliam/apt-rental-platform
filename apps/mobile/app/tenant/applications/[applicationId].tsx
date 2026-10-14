@@ -65,14 +65,7 @@ export default function ApplicationApartment() {
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
   const chipConfig = status ? getStatusStyle(status) : null;
-  const chipStatusStyle =
-    chipConfig?.chipColor === "success"
-      ? palette.success
-      : chipConfig?.chipColor === "warning"
-        ? palette.warning
-        : chipConfig?.chipColor === "danger"
-          ? palette.danger
-          : palette.neutral;
+  const chipStatusStyle = chipConfig?.chipStyle ?? palette.neutral;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);

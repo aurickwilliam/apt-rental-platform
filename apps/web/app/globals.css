@@ -31,6 +31,17 @@
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
   }
 
+  /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
+     light background token, so descriptions and the close icon were nearly
+     invisible. Use the app's muted text color instead. */
+  .toast__description {
+    @apply text-muted-foreground;
+  }
+
+  .toast__close-button {
+    @apply cursor-pointer text-muted-foreground hover:text-foreground;
+  }
+
   .toggle-button[data-selected="true"] {
     @apply bg-blue-500 text-white border-blue-500;
   }
