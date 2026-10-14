@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791990699.6953042,
-    "ast_hash": "c8e273fabbf332ccb7b770c8646f22b3",
+    "mtime": 1791991022.158467,
+    "ast_hash": "269140a27d75b7e4f72cd269b214f9ad",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -525,8 +525,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.tsx": {
-    "mtime": 1791990657.0527966,
-    "ast_hash": "474891f7bac1829dbb398dd57eb9275a",
+    "mtime": 1791991131.212316,
+    "ast_hash": "3f9090a1124dc1457b1b91eea937dcbe",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791990794.1555502,
-    "ast_hash": "26214a8d6d40a4cd7fde74fdc3c2e1f7",
+    "mtime": 1791991131.2182734,
+    "ast_hash": "5c0efcd73829925f21527bc0af8cfb6d",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3360,8 +3360,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.test.tsx": {
-    "mtime": 1791990715.9250097,
-    "ast_hash": "5cb15b9c4ea1c0e9d5a1914593794f65",
+    "mtime": 1791990992.4721954,
+    "ast_hash": "ff8ae2aca75db88e6b67af95a534b8cf",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useDocumentUrls.test.tsx": {
@@ -7470,8 +7470,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/HoldStack.tsx": {
-    "mtime": 1791987529.1969683,
-    "ast_hash": "b2bb0189f4514ece3c344320e619185d",
+    "mtime": 1791991015.2448049,
+    "ast_hash": "f9fd23fb3b0962aa5986a685ac2ef48e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationListSkeleton.tsx": {
@@ -7537,6 +7537,21 @@
   "apps/mobile/app/chat/components/timestampReveal.ts": {
     "mtime": 1791990641.349293,
     "ast_hash": "2142ea5eb09cd3807b5d0250d9a2e4c8",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/SenderAvatar.tsx": {
+    "mtime": 1791991131.2085943,
+    "ast_hash": "71b483c9094de47572ea7c3ba9a60819",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/bubbleGrouping.test.ts": {
+    "mtime": 1791990951.8553202,
+    "ast_hash": "29c46101b502646a796272b830922cde",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/chat/components/bubbleGrouping.ts": {
+    "mtime": 1791991131.2148337,
+    "ast_hash": "28019a758734059f057707310476587b",
     "semantic_hash": ""
   }
 }
