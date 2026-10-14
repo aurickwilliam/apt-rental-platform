@@ -9,6 +9,7 @@ import {
   paymentStatusLabel,
   periodMonthLabel,
   type PaymentRecord,
+  type RentStatusTenancy,
 } from './paymentService'
 
 const mockFrom = jest.fn()
@@ -216,7 +217,9 @@ describe('getCurrentRentStatus', () => {
     period_start: periodStart,
   })
 
-  const tenancy = (overrides: Partial<Parameters<typeof getCurrentRentStatus>[0]> = {}) => ({
+  const tenancy = (overrides: Partial<RentStatusTenancy> = {}): RentStatusTenancy => ({
+    lease_start: '2026-01-15',
+    rent_due_day: 5,
     monthly_rent: 10000,
     apartment: { monthly_rent: 12000 },
     currentPayment: null,
@@ -275,6 +278,35 @@ describe('getCurrentRentStatus', () => {
 
     expect(status.isFullyPaid).toBe(false)
     expect(status.status).toBe('Paid')
+  })
+
+  it("bills the lease's first month when the lease starts later, due on its due day", () => {
+    const status = getCurrentRentStatus(tenancy({ lease_start: '2026-11-03' }), [])
+
+    expect(status.periodStart).toBe('2026-11-01')
+    expect(status.dueDate).toBe('2026-11-05')
+  })
+
+  it('skips a month whose due date falls before move-in, like the server reminders', () => {
+    const status = getCurrentRentStatus(tenancy({ lease_start: '2026-11-08' }), [])
+
+    expect(status.periodStart).toBe('2026-12-01')
+    expect(status.periodEnd).toBe('2026-12-31')
+    expect(status.dueDate).toBe('2026-12-05')
+  })
+
+  it('skips the current month when the lease began after its due date', () => {
+    expect(getCurrentRentStatus(tenancy({ lease_start: '2026-10-08' }), []).periodStart).toBe('2026-11-01')
+  })
+
+  it("uses the tenancy's due day, clamped to the end of the month", () => {
+    jest.setSystemTime(new Date('2026-11-10T09:00:00'))
+
+    expect(getCurrentRentStatus(tenancy({ rent_due_day: 31 }), []).dueDate).toBe('2026-11-30')
+  })
+
+  it('rolls a December move-in past its due date into January', () => {
+    expect(getCurrentRentStatus(tenancy({ lease_start: '2026-12-20' }), []).periodStart).toBe('2027-01-01')
   })
 
   it('never counts rent as paid when the rent is zero', () => {

@@ -175,39 +175,84 @@ export function paidAmountForPeriod(payments: PaymentRecord[], periodStart: stri
     .reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 }
 
-// The period being paid for: the tenancy's current payment period when it
-// covers this month, otherwise the current calendar month (due on the 5th).
+// Rent falls due on this day when a tenancy has none (the database default).
+const DEFAULT_RENT_DUE_DAY = 5
+
+const padTwo = (value: number) => String(value).padStart(2, '0')
+const monthKey = (year: number, monthIndex: number) => `${year}-${padTwo(monthIndex + 1)}`
+
+// The due date in a month, clamped to its last day (a 31st due day is
+// Nov 30), matching the server's rent reminders.
+function dueDateInMonth(year: number, monthIndex: number, dueDay: number): string {
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate()
+  return `${monthKey(year, monthIndex)}-${padTwo(Math.min(dueDay, lastDay))}`
+}
+
+export interface PaymentPeriodLease {
+  leaseStart?: string | null
+  rentDueDay?: number | null
+}
+
+// The period being paid for: a calendar month, due on the tenancy's due day.
+// Same rule as the server's rent reminders: billing never starts before the
+// lease, and a month whose due date falls before move-in is skipped (a lease
+// starting Nov 8 with rent due on the 5th first bills December). The tenancy's
+// current payment is reused when it covers that month.
 export function resolvePaymentPeriod(
   currentPeriodStart: string | null,
   currentPeriodEnd: string | null,
-  currentDueDate: string | null
+  currentDueDate: string | null,
+  lease: PaymentPeriodLease = {}
 ): {
   periodStart: string
   periodEnd: string
   dueDate: string
 } {
+  const dueDay = lease.rentDueDay ?? DEFAULT_RENT_DUE_DAY
+  const leaseStart = lease.leaseStart?.slice(0, 10) ?? null
   const now = new Date()
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  let year = now.getFullYear()
+  let monthIndex = now.getMonth()
 
-  if (currentPeriodStart?.startsWith(currentMonth)) {
-    return {
-      periodStart: currentPeriodStart,
-      periodEnd: currentPeriodEnd ?? currentPeriodStart,
-      dueDate: currentDueDate ?? `${currentMonth}-05`,
+  if (leaseStart) {
+    const [leaseYear, leaseMonth] = leaseStart.split('-').map(Number)
+    if (leaseYear * 12 + leaseMonth - 1 > year * 12 + monthIndex) {
+      year = leaseYear
+      monthIndex = leaseMonth - 1
+    }
+    if (dueDateInMonth(year, monthIndex, dueDay) < leaseStart) {
+      monthIndex += 1
+      if (monthIndex > 11) {
+        monthIndex = 0
+        year += 1
+      }
     }
   }
 
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const billingMonth = monthKey(year, monthIndex)
+  const dueDate = dueDateInMonth(year, monthIndex, dueDay)
+
+  if (currentPeriodStart?.startsWith(billingMonth)) {
+    return {
+      periodStart: currentPeriodStart,
+      periodEnd: currentPeriodEnd ?? currentPeriodStart,
+      dueDate: currentDueDate ?? dueDate,
+    }
+  }
+
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate()
   return {
-    periodStart: `${currentMonth}-01`,
-    periodEnd: `${currentMonth}-${String(lastDay).padStart(2, '0')}`,
-    dueDate: `${currentMonth}-05`,
+    periodStart: `${billingMonth}-01`,
+    periodEnd: `${billingMonth}-${padTwo(lastDay)}`,
+    dueDate,
   }
 }
 
 // The parts of a tenancy the rent status needs (structural, so callers can
 // pass a CurrentTenancy without this service depending on the tenancy one).
 export interface RentStatusTenancy {
+  lease_start: string | null
+  rent_due_day: number | null
   monthly_rent: number | null
   apartment: { monthly_rent: number | null }
   currentPayment: {
@@ -241,7 +286,8 @@ export function getCurrentRentStatus(
   const period = resolvePaymentPeriod(
     currentPayment?.period_start ?? null,
     currentPayment?.period_end ?? null,
-    currentPayment?.due_date ?? null
+    currentPayment?.due_date ?? null,
+    { leaseStart: tenancy?.lease_start, rentDueDay: tenancy?.rent_due_day }
   )
 
   const isFullyPaid =

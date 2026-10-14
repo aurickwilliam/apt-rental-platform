@@ -45,6 +45,8 @@ export interface CurrentTenancy {
   lease_start: string;
   lease_end: string | null;
   monthly_rent: number | null;
+  // Day of the month rent falls due (server source of truth, default 5).
+  rent_due_day: number;
   status: string;
   apartment: TenancyApartment;
   landlord: TenancyLandlord | null;
@@ -61,6 +63,7 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
       lease_start,
       lease_end,
       monthly_rent,
+      rent_due_day,
       status,
       apartment:apartments (
         id, name, street_address, barangay, city, province, zip_code, monthly_rent,
