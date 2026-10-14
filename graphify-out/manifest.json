@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/[conversationId].tsx": {
-    "mtime": 1791991022.158467,
-    "ast_hash": "269140a27d75b7e4f72cd269b214f9ad",
+    "mtime": 1791991327.5840166,
+    "ast_hash": "9a2cb94500272c3ae2907fad78eaf355",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBox.tsx": {
@@ -525,8 +525,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.tsx": {
-    "mtime": 1791991131.212316,
-    "ast_hash": "3f9090a1124dc1457b1b91eea937dcbe",
+    "mtime": 1791991327.5838428,
+    "ast_hash": "3669fd8857966d43c543ac1dc39e607c",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatEmptyState.tsx": {
@@ -2960,8 +2960,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791991131.2182734,
-    "ast_hash": "5c0efcd73829925f21527bc0af8cfb6d",
+    "mtime": 1791991381.1176891,
+    "ast_hash": "d4bc6c2a075f2cfa1d66381c9613aa6d",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3360,8 +3360,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/ChatBubble.test.tsx": {
-    "mtime": 1791990992.4721954,
-    "ast_hash": "ff8ae2aca75db88e6b67af95a534b8cf",
+    "mtime": 1791991365.5448785,
+    "ast_hash": "b6b14cfad2c4b2c936348369e1713655",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/applications/useDocumentUrls.test.tsx": {
@@ -7545,13 +7545,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/bubbleGrouping.test.ts": {
-    "mtime": 1791990951.8553202,
-    "ast_hash": "29c46101b502646a796272b830922cde",
+    "mtime": 1791991269.8626618,
+    "ast_hash": "35dfd6cdf37299a4328e3872015f4fdb",
     "semantic_hash": ""
   },
   "apps/mobile/app/chat/components/bubbleGrouping.ts": {
-    "mtime": 1791991131.2148337,
-    "ast_hash": "28019a758734059f057707310476587b",
+    "mtime": 1791991269.8625507,
+    "ast_hash": "2efe8fbb4587c826e68a70cea42a9a02",
     "semantic_hash": ""
   }
 }
