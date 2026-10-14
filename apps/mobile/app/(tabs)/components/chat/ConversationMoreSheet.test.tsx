@@ -137,3 +137,34 @@ it('disables Unpin and Archive for the always-pinned landlord chat', () => {
   expect(screen.getByRole('button', { name: 'Archive' }).props.accessibilityState).toEqual({ disabled: true });
   expect(screen.getByRole('button', { name: 'Mark as unread' }).props.accessibilityState).toEqual({ disabled: false });
 });
+
+it('disables Block during an active tenancy and explains why', () => {
+  const onSelect = jest.fn();
+  render(
+    <ConversationMoreSheet
+      conversation={{ ...conversation, in_active_tenancy: true }}
+      isOpen
+      onOpenChange={jest.fn()}
+      onSelect={onSelect}
+    />
+  );
+
+  const block = screen.getByRole('button', { name: 'Block Ben' });
+  expect(block.props.accessibilityState).toEqual({ disabled: true });
+  expect(block.props.accessibilityHint).toBe('You can block after your tenancy ends. Report or mute instead.');
+  expect(screen.getByText('You can block after your tenancy ends. Report or mute instead.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Report Ben' }).props.accessibilityState).toEqual({ disabled: false });
+});
+
+it('always allows Unblock, even during an active tenancy', () => {
+  render(
+    <ConversationMoreSheet
+      conversation={{ ...conversation, in_active_tenancy: true, blocked_by_me: true }}
+      isOpen
+      onOpenChange={jest.fn()}
+      onSelect={jest.fn()}
+    />
+  );
+
+  expect(screen.getByRole('button', { name: 'Unblock Ben' }).props.accessibilityState).toEqual({ disabled: false });
+});

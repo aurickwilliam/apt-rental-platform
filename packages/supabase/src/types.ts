@@ -1712,6 +1712,7 @@ export type Database = {
           blocked_by_me: boolean
           conversation_key: string
           conversation_type: string
+          in_active_tenancy: boolean
           is_archived: boolean
           is_muted: boolean
           is_pinned: boolean

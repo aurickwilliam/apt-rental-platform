@@ -29,6 +29,7 @@ function toConversationPreferences(
     is_muted: row.is_muted ?? false,
     marked_unread: row.marked_unread ?? false,
     blocked_by_me: row.blocked_by_me ?? false,
+    in_active_tenancy: row.in_active_tenancy ?? false,
   };
 }
 

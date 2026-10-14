@@ -47,6 +47,8 @@ interface SheetOption {
   icon: Icon;
   isDestructive?: boolean;
   isDisabled?: boolean;
+  /** Shown under the label, e.g. why the option is unavailable. */
+  note?: string;
 }
 
 // Matches the disabled swipe actions.
@@ -77,7 +79,17 @@ function getOptions(conversation: ConversationWithMeta, isPinLocked: boolean): S
     { action: 'report', label: `Report ${firstName}`, icon: IconFlag, isDestructive: true },
     conversation.blocked_by_me
       ? { action: 'toggleBlock', label: `Unblock ${firstName}`, icon: IconBan }
-      : { action: 'toggleBlock', label: `Block ${firstName}`, icon: IconBan, isDestructive: true },
+      : conversation.in_active_tenancy
+        ? {
+            // The database refuses this too; the note says why.
+            action: 'toggleBlock',
+            label: `Block ${firstName}`,
+            icon: IconBan,
+            isDestructive: true,
+            isDisabled: true,
+            note: 'You can block after your tenancy ends. Report or mute instead.',
+          }
+        : { action: 'toggleBlock', label: `Block ${firstName}`, icon: IconBan, isDestructive: true },
   ];
 }
 
@@ -98,26 +110,40 @@ export default function ConversationMoreSheet({
         <BottomSheet.Content>
           {conversation ? (
             <View className='pb-6'>
-              {getOptions(conversation, isPinLocked).map(({ action, label, icon: OptionIcon, isDestructive, isDisabled = false }) => (
-                <PressableFeedback
-                  key={action}
-                  onPress={() => onSelect(action, conversation)}
-                  isDisabled={isDisabled}
-                  accessibilityRole='button'
-                  accessibilityLabel={label}
-                  accessibilityState={{ disabled: isDisabled }}
-                  className='flex-row items-center gap-4 min-h-14 px-2 rounded-2xl'
-                  style={isDisabled ? { opacity: DISABLED_OPTION_OPACITY } : undefined}
-                >
-                  <PressableFeedback.Highlight />
-                  <OptionIcon size={22} color={isDestructive ? colors.danger : colors.textPrimary} />
-                  <Text
-                    className={`flex-1 text-base font-inter ${isDestructive ? 'text-danger' : 'text-foreground'}`}
-                  >
-                    {label}
-                  </Text>
-                </PressableFeedback>
-              ))}
+              {getOptions(conversation, isPinLocked).map(
+                ({ action, label, icon: OptionIcon, isDestructive, isDisabled = false, note }) => {
+                  // Dim only the icon and label so a note stays readable.
+                  const dimmed = isDisabled ? { opacity: DISABLED_OPTION_OPACITY } : undefined;
+                  return (
+                    <PressableFeedback
+                      key={action}
+                      onPress={() => onSelect(action, conversation)}
+                      isDisabled={isDisabled}
+                      accessibilityRole='button'
+                      accessibilityLabel={label}
+                      accessibilityHint={note}
+                      accessibilityState={{ disabled: isDisabled }}
+                      className='flex-row items-center gap-4 min-h-14 px-2 py-2 rounded-2xl'
+                    >
+                      <PressableFeedback.Highlight />
+                      <View style={dimmed}>
+                        <OptionIcon size={22} color={isDestructive ? colors.danger : colors.textPrimary} />
+                      </View>
+                      <View className='flex-1'>
+                        <Text
+                          className={`text-base font-inter ${isDestructive ? 'text-danger' : 'text-foreground'}`}
+                          style={dimmed}
+                        >
+                          {label}
+                        </Text>
+                        {note ? (
+                          <Text className='mt-0.5 text-xs text-gray-500 font-inter'>{note}</Text>
+                        ) : null}
+                      </View>
+                    </PressableFeedback>
+                  );
+                }
+              )}
             </View>
           ) : null}
         </BottomSheet.Content>

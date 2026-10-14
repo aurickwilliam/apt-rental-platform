@@ -9,6 +9,8 @@ export type ConversationPreferences = {
   marked_unread: boolean;
   /** The caller blocked the other person (messaging is closed both ways). */
   blocked_by_me: boolean;
+  /** The caller and the other person share an active tenancy (any apartment): no blocking. */
+  in_active_tenancy: boolean;
 };
 
 export const DEFAULT_CONVERSATION_PREFERENCES: ConversationPreferences = {
@@ -18,4 +20,5 @@ export const DEFAULT_CONVERSATION_PREFERENCES: ConversationPreferences = {
   is_muted: false,
   marked_unread: false,
   blocked_by_me: false,
+  in_active_tenancy: false,
 };
