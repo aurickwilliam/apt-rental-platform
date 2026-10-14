@@ -77,21 +77,6 @@ export default function ConversationMoreSheet({
         <BottomSheet.Content>
           {conversation ? (
             <View className='pb-6'>
-              <View className='border-b border-border pb-3 mb-2'>
-                <Text
-                  className='text-lg text-center text-foreground font-nunitoSemiBold'
-                  numberOfLines={1}
-                  accessibilityRole='header'
-                >
-                  {conversation.other_user_name}
-                </Text>
-                {conversation.apartment_name ? (
-                  <Text className='text-xs text-center text-gray-500 font-inter' numberOfLines={1}>
-                    {conversation.apartment_name}
-                  </Text>
-                ) : null}
-              </View>
-
               {getOptions(conversation).map(({ action, label, icon: OptionIcon, isDestructive }) => (
                 <PressableFeedback
                   key={action}
