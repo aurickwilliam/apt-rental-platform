@@ -26,7 +26,7 @@ import {
   FURNISHED_TYPES,
   FLOOR_LEVELS, 
   LEASE_DURATIONS,
-  PROVINCES,
+  CAMANAVA_CITIES,
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
@@ -95,6 +95,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
     if (!error) {
       const updated = { ...property, ...form } as Property;
       onSaved(updated);
+    } else {
+      alert(error.message);
     }
     setSaving(false);
   };
@@ -353,35 +355,34 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                       </TextField>
 
-                      <TextField>
+                      <Select
+                        value={form.city ?? null}
+                        onChange={(city) => {
+                          updateForm("city", (city as string) ?? null);
+                          updateForm("province", "Metro Manila");
+                        }}
+                        placeholder="Select CAMANAVA city"
+                      >
                         <Label>
                           City
                         </Label>
-                        <Input
-                          value={form.city ?? ""}
-                          onChange={(e) => updateForm("city", e.target.value)}
-                          placeholder="e.g. Caloocan"
-                        />
-                      </TextField>
-
-                      <Select
-                        value={form.province ?? null}
-                        onChange={(v) => updateForm("province", (v as string) ?? null)}
-                        placeholder="Select one"
-                      >
-                        <Label>Province</Label>
                         <Select.Trigger>
                           <Select.Value />
                           <Select.Indicator />
                         </Select.Trigger>
                         <Select.Popover>
                           <ListBox>
-                            {PROVINCES.map((p) => (
-                              <ListBox.Item key={p} id={p}>{p}</ListBox.Item>
+                            {CAMANAVA_CITIES.map((city) => (
+                              <ListBox.Item key={city} id={city}>{city}</ListBox.Item>
                             ))}
                           </ListBox>
                         </Select.Popover>
                       </Select>
+
+                      <TextField isDisabled>
+                        <Label>Province</Label>
+                        <Input value="Metro Manila" />
+                      </TextField>
                       
                       <TextField>
                         <Label>

@@ -59,9 +59,23 @@ export default function PriceCard({
 
   const totalMoveInCost = price + securityDeposit + advancePayment;
 
-  const costBreakdown = [
+  // Deposit months under the 1–2 month rule; legacy peso amounts that do
+  // not divide evenly show without a month count.
+  const securityDepositMonths =
+    price > 0 && securityDeposit > 0 && securityDeposit % price === 0
+      ? securityDeposit / price
+      : null;
+
+  const costBreakdown: { label: string; value: string; sub?: string }[] = [
     { label: "Monthly Rent", value: formattedPrice },
-    { label: "Security Deposit", value: `${formatPesoDisplay(securityDeposit)}` },
+    {
+      label: "Security Deposit",
+      value: `${formatPesoDisplay(securityDeposit)}`,
+      sub:
+        securityDepositMonths !== null
+          ? `(${securityDepositMonths} month${securityDepositMonths !== 1 ? "s" : ""})`
+          : undefined,
+    },
     { label: "Advance Payment", value: `${formatPesoDisplay(advancePayment)}` },
   ]
 
@@ -78,10 +92,15 @@ export default function PriceCard({
 
           <Card.Content>
             <div className="flex flex-col gap-3 bg-muted p-4 rounded-lg">
-              {costBreakdown.map(({ label, value }) => (
+              {costBreakdown.map(({ label, value, sub }) => (
                 <div key={label} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium text-foreground">{value}</span>
+                  <span className="text-muted-foreground">
+                    {label}
+                    {sub ? (
+                      <span className="ml-1 text-xs font-normal">{sub}</span>
+                    ) : null}
+                  </span>
+                  <span className="font-medium text-foreground text-right">{value}</span>
                 </div>
               ))}
 
@@ -165,9 +184,14 @@ export default function PriceCard({
                 <p className="text-sm text-foreground/70">
                   Estimated initial payment required to move in.
                 </p>
-                {costBreakdown.map(({ label, value }) => (
+                {costBreakdown.map(({ label, value, sub }) => (
                   <div key={label} className="flex justify-between text-sm">
-                    <span className="text-foreground">{label}</span>
+                    <span className="text-foreground">
+                      {label}
+                      {sub ? (
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">{sub}</span>
+                      ) : null}
+                    </span>
                     <span className="font-medium text-foreground">{value}</span>
                   </div>
                 ))}

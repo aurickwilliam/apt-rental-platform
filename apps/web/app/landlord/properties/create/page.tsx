@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Button } from "@heroui/react";
+import { Button, Modal } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
+import { APARTMENT_FLOOR_AREA, APARTMENT_ROOM_LIMITS, isCamanavaCity } from "@repo/constants";
 import { useUser } from "@/hooks/use-user";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { IconArrowLeft, IconCircleCheck } from "@tabler/icons-react";
 
 
 import Step1Photos from "./components/Step1Photos";
@@ -38,13 +39,16 @@ export type ApartmentFormData = {
   isPinConfirmed: boolean;
   // Step 3
   monthly_rent: number;
-  security_deposit: number;
-  advance_rent: number;
+  security_deposit_months: number;
+  advance_rent_months: number;
   lease_agreement: File | null;
   // Step 4
   description: string;
   amenities: string[];
 };
+
+/** Minimum monthly rent in pesos. */
+export const MIN_MONTHLY_RENT = 1000;
 
 const INITIAL_FORM: ApartmentFormData = {
   name: "",
@@ -66,9 +70,9 @@ const INITIAL_FORM: ApartmentFormData = {
   latitude: null,
   longitude: null,
   isPinConfirmed: false,
-  monthly_rent: 0,
-  security_deposit: 0,
-  advance_rent: 0,
+  monthly_rent: MIN_MONTHLY_RENT,
+  security_deposit_months: 0,
+  advance_rent_months: 0,
   lease_agreement: null,
   description: "",
   amenities: [],
@@ -95,6 +99,8 @@ export default function CreateApartmentPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isValidatingLocation, setIsValidatingLocation] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const router = useRouter();
@@ -108,23 +114,76 @@ export default function CreateApartmentPage() {
     });
   }, []);
 
-  const handleNext = () => {
+  const validateLocationBeforeContinue = async (): Promise<FormErrors> => {
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("validate_camanava_location", {
+      p_city: formData.city,
+      p_latitude: formData.latitude!,
+      p_longitude: formData.longitude!,
+    });
+
+    if (error) {
+      console.error(error);
+      return { latitude: "We couldn't verify this pin. Please try again." };
+    }
+
+    return data
+      ? {}
+      : { latitude: `The map pin must be inside the selected CAMANAVA city (${formData.city}).` };
+  };
+
+  const handleNext = async () => {
     const stepErrors = validateStep(step, formData);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
+
+    if (step === 2) {
+      setIsValidatingLocation(true);
+      try {
+        const locationErrors = await validateLocationBeforeContinue();
+        if (Object.keys(locationErrors).length > 0) {
+          setErrors(locationErrors);
+          return;
+        }
+      } finally {
+        setIsValidatingLocation(false);
+      }
+    }
+
     setErrors({});
     setStep((s) => Math.min(s + 1, 5));
   };
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
+  const handleSubmitClick = () => {
+    // Validate everything before asking for confirmation; jump to the
+    // first step that needs attention.
+    for (const stepNumber of [1, 2, 3, 4]) {
+      const stepErrors = validateStep(stepNumber, formData);
+      if (Object.keys(stepErrors).length > 0) {
+        setErrors(stepErrors);
+        setStep(stepNumber);
+        return;
+      }
+    }
+    setErrors({});
+    setIsConfirmOpen(true);
+  };
+
   const handleSubmit = async () => {
     // Check any errors before submitting
-    const stepErrors = validateStep(4, formData);
+    const stepErrors = {
+      ...validateStep(1, formData),
+      ...validateStep(2, formData),
+      ...validateStep(3, formData),
+      ...validateStep(4, formData),
+    };
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
+      setIsConfirmOpen(false);
       return;
     }
     setIsSubmitting(true);
@@ -140,8 +199,8 @@ export default function CreateApartmentPage() {
           name: formData.name,
           description: formData.description,
           monthly_rent: formData.monthly_rent,
-          security_deposit: formData.security_deposit,
-          advance_rent: formData.advance_rent,
+          security_deposit: formData.security_deposit_months * formData.monthly_rent,
+          advance_rent: formData.advance_rent_months * formData.monthly_rent,
           type: formData.type,
           street_address: formData.street_address,
           barangay: formData.barangay,
@@ -241,7 +300,12 @@ export default function CreateApartmentPage() {
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      setIsConfirmOpen(false);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -257,16 +321,33 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 2) {
+      const roomLimits = APARTMENT_ROOM_LIMITS[data.type];
+      const areaLimits = APARTMENT_FLOOR_AREA[data.type];
+
       if (!data.type) errors.type = "Apartment type is required.";
       if (!data.furnished_type) errors.furnished_type = "Furnished type is required.";
       if (!data.floor_level) errors.floor_level = "Floor level is required.";
       if (!data.lease_duration) errors.lease_duration = "Lease duration is required.";
-      if (data.area_sqm <= 0) errors.area_sqm = "Must be greater than 0.";
-      if (data.max_occupants <= 0) errors.max_occupants = "Must be greater than 0.";
+      if (data.area_sqm <= 0) {
+        errors.area_sqm = "Must be greater than 0.";
+      } else if (areaLimits && (data.area_sqm < areaLimits.min || data.area_sqm > areaLimits.max)) {
+        errors.area_sqm = `Floor area must be between ${areaLimits.min} and ${areaLimits.max} sqm.`;
+      }
+      if (data.max_occupants <= 0) {
+        errors.max_occupants = "Must be greater than 0.";
+      } else if (roomLimits && (data.max_occupants < roomLimits.maxOccupants.min || data.max_occupants > roomLimits.maxOccupants.max)) {
+        errors.max_occupants = `Max occupants must be between ${roomLimits.maxOccupants.min} and ${roomLimits.maxOccupants.max}.`;
+      }
+      if (roomLimits && (data.no_bedrooms < roomLimits.bedrooms.min || data.no_bedrooms > roomLimits.bedrooms.max)) {
+        errors.no_bedrooms = `Bedrooms must be between ${roomLimits.bedrooms.min} and ${roomLimits.bedrooms.max}.`;
+      }
+      if (roomLimits && (data.no_bathrooms < roomLimits.bathrooms.min || data.no_bathrooms > roomLimits.bathrooms.max)) {
+        errors.no_bathrooms = `Bathrooms must be between ${roomLimits.bathrooms.min} and ${roomLimits.bathrooms.max}.`;
+      }
       if (!data.street_address.trim()) errors.street_address = "Street address is required.";
       if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
-      if (!data.city.trim()) errors.city = "City is required.";
-      if (!data.province.trim()) errors.province = "Province is required.";
+      if (!isCamanavaCity(data.city)) errors.city = "Select a city within CAMANAVA.";
+      if (data.province !== "Metro Manila") errors.province = "Properties can only be listed in Metro Manila.";
       if (!data.zip_code.trim()) errors.zip_code = "Zip code is required.";
       
       if (!data.latitude || !data.longitude) {
@@ -277,9 +358,9 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 3) {
-      if (data.monthly_rent <= 0) errors.monthly_rent = "Monthly rent must be greater than 0.";
-      if (data.security_deposit < 0) errors.security_deposit = "Cannot be negative.";
-      if (data.advance_rent < 0) errors.advance_rent = "Cannot be negative.";
+      if (Number.isNaN(data.monthly_rent) || data.monthly_rent < MIN_MONTHLY_RENT) errors.monthly_rent = `Monthly rent must be at least ₱${MIN_MONTHLY_RENT.toLocaleString()}.`;
+      if (![0, 1, 2].includes(data.security_deposit_months)) errors.security_deposit_months = "Security deposit must be none, 1 month, or 2 months.";
+      if (![0, 1].includes(data.advance_rent_months)) errors.advance_rent_months = "Advance rent can be at most 1 month.";
       if (!data.lease_agreement) errors.lease_agreement = "Lease agreement document is required.";
     }
 
@@ -293,19 +374,19 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto py-6">
+      <div className="max-w-7xl mx-auto py-6">
         <Button
           onPress={router.back}
           variant="outline"
         >
-          <ArrowLeft size={20} />
+          <IconArrowLeft size={20} />
           Back
         </Button>
       </div>
 
       {/* Top progress bar */}
       <div className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             {STEPS.map((s, i) => {
 
@@ -331,7 +412,7 @@ export default function CreateApartmentPage() {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {isDone ? <CheckCircle size={16} /> : num}
+                      {isDone ? <IconCircleCheck size={16} /> : num}
                     </div>
                     {/* line after */}
                     <div
@@ -355,7 +436,11 @@ export default function CreateApartmentPage() {
 
       {/* Step content */}
       <div className="px-6 py-8">
-        {step === 5 && <Step5Preview formData={formData} />}
+        {step === 5 && (
+          <div className="max-w-7xl mx-auto w-full">
+            <Step5Preview formData={formData} />
+          </div>
+        )}
 
         <div className="max-w-3xl mx-auto">
           {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} errors={errors} />}
@@ -376,14 +461,15 @@ export default function CreateApartmentPage() {
             {step < 5 ? (
               <Button
                 onPress={handleNext}
+                isPending={step === 2 && isValidatingLocation}
+                isDisabled={isValidatingLocation}
                 className="px-8"
               >
                 Continue
               </Button>
             ) : (
               <Button
-                onPress={handleSubmit}
-                isPending={isSubmitting}
+                onPress={handleSubmitClick}
                 className="px-8"
               >
                 Submit Listing
@@ -392,6 +478,83 @@ export default function CreateApartmentPage() {
           </div>
         </div>
       </div>
+
+      {/* Submit confirmation */}
+      <Modal>
+        <Modal.Backdrop
+          isOpen={isConfirmOpen}
+          onOpenChange={(open) => {
+            if (!isSubmitting) setIsConfirmOpen(open);
+          }}
+        >
+          <Modal.Container size="sm">
+            <Modal.Dialog>
+              {({ close }) => (
+                <>
+                  <Modal.Header>
+                    <Modal.Heading className="font-medium text-xl">
+                      Publish this listing?
+                    </Modal.Heading>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Please confirm the details below before your listing goes live for review.
+                    </p>
+                  </Modal.Header>
+
+                  <Modal.Body className="flex flex-col gap-2">
+                    {[
+                      { label: "Listing", value: formData.name || "—" },
+                      {
+                        label: "Address",
+                        value: [formData.street_address, formData.barangay, formData.city]
+                          .filter(Boolean)
+                          .join(", ") || "—",
+                      },
+                      { label: "Property Type", value: formData.type || "—" },
+                      { label: "Monthly Rent", value: `₱ ${formData.monthly_rent.toLocaleString()}` },
+                      {
+                        label: "Security Deposit",
+                        value: `₱ ${(formData.security_deposit_months * formData.monthly_rent).toLocaleString()}`,
+                      },
+                      {
+                        label: "Advance Rent",
+                        value: `₱ ${(formData.advance_rent_months * formData.monthly_rent).toLocaleString()}`,
+                      },
+                      {
+                        label: "Photos",
+                        value: `${(formData.thumbnail ? 1 : 0) + formData.additionalPhotos.length} uploaded`,
+                      },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex justify-between gap-4 text-sm">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-medium text-foreground text-right">{value}</span>
+                      </div>
+                    ))}
+                  </Modal.Body>
+
+                  <Modal.Footer className="flex gap-2">
+                    <Button
+                      variant="tertiary"
+                      onPress={close}
+                      isDisabled={isSubmitting}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onPress={handleSubmit}
+                      isPending={isSubmitting}
+                      isDisabled={isSubmitting}
+                      className="flex-1"
+                    >
+                      Confirm Listing
+                    </Button>
+                  </Modal.Footer>
+                </>
+              )}
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }

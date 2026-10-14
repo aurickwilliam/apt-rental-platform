@@ -1553,6 +1553,10 @@ export type Database = {
         Returns: undefined
       }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
+      validate_camanava_location: {
+        Args: { p_city: string; p_latitude: number; p_longitude: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
