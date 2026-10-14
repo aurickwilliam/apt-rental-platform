@@ -20,6 +20,11 @@ import { isEmojiOnly } from '@/service/chat/chatService';
 
 import { HEART_REACTION } from './reactionEmojis';
 import SwipeToReply from './SwipeToReply';
+import TimestampRevealRow from './TimestampRevealRow';
+import { formatRevealTime } from './timestampReveal';
+
+/** The row's `mb-4`, so the revealed time centers on the bubble. */
+const ROW_BOTTOM_MARGIN = 16;
 
 interface ChatBubbleProps {
   id?: string;
@@ -486,50 +491,56 @@ export default function ChatBubble({
   }, []);
 
   return (
-    <View
-      ref={rowRef}
-      collapsable={false}
-      className={`max-w-[80%] mb-4 ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+    <TimestampRevealRow
+      isSent={isSent}
+      time={isPending ? '' : formatRevealTime(createdAt)}
+      bottomInset={ROW_BOTTOM_MARGIN}
     >
-      <SwipeToReply
-        isSent={isSent}
-        enabled={canReply}
-        onReply={handleSwipeReply}
-        onThresholdCross={playReactionHaptic}
+      <View
+        ref={rowRef}
+        collapsable={false}
+        className={`max-w-[80%] mb-4 ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
       >
-        <Pressable
-          onPress={handleRowPress}
-          onLongPress={handleLongPress}
-          delayLongPress={350}
-          className={`w-full ${contentAlignment}`}
-          android_ripple={undefined}
-          accessibilityActions={canReply ? [{ name: 'reply', label: 'Reply' }] : undefined}
-          onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === 'reply') handleSwipeReply();
-          }}
+        <SwipeToReply
+          isSent={isSent}
+          enabled={canReply}
+          onReply={handleSwipeReply}
+          onThresholdCross={playReactionHaptic}
         >
-          <ChatBubbleContent
-            message={message}
-            messageType={messageType}
-            attachmentUrl={attachmentUrl}
-            attachmentPath={attachmentPath}
-            thumbnailUrl={thumbnailUrl}
-            thumbnailPath={thumbnailPath}
-            isSent={isSent}
-            replyTo={replyTo}
-            replyDeleted={replyDeleted}
-            otherUserName={otherUserName}
-            reactions={reactions}
-            interactive
-            canReact={canReact}
-            onImagePress={onImagePress}
-            onMediaLoadError={onMediaLoadError}
+          <Pressable
+            onPress={handleRowPress}
             onLongPress={handleLongPress}
-            onReact={onReact}
-          />
-        </Pressable>
-      </SwipeToReply>
-    </View>
+            delayLongPress={350}
+            className={`w-full ${contentAlignment}`}
+            android_ripple={undefined}
+            accessibilityActions={canReply ? [{ name: 'reply', label: 'Reply' }] : undefined}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'reply') handleSwipeReply();
+            }}
+          >
+            <ChatBubbleContent
+              message={message}
+              messageType={messageType}
+              attachmentUrl={attachmentUrl}
+              attachmentPath={attachmentPath}
+              thumbnailUrl={thumbnailUrl}
+              thumbnailPath={thumbnailPath}
+              isSent={isSent}
+              replyTo={replyTo}
+              replyDeleted={replyDeleted}
+              otherUserName={otherUserName}
+              reactions={reactions}
+              interactive
+              canReact={canReact}
+              onImagePress={onImagePress}
+              onMediaLoadError={onMediaLoadError}
+              onLongPress={handleLongPress}
+              onReact={onReact}
+            />
+          </Pressable>
+        </SwipeToReply>
+      </View>
+    </TimestampRevealRow>
   );
 }
 

@@ -31,6 +31,10 @@ jest.mock('./SwipeToReply', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
+jest.mock('./TimestampRevealRow', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({

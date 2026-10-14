@@ -14,6 +14,8 @@ import { IconArrowBackUp } from '@tabler/icons-react-native';
 
 import { useColors } from '@/hooks/useTheme';
 
+import { useTimestampReveal } from './timestampReveal';
+
 /** Distance the bubble must travel before letting go starts a reply. */
 const REPLY_THRESHOLD = 56;
 /** Farthest the bubble follows the finger; past the threshold it drags with resistance. */
@@ -52,9 +54,13 @@ export default function SwipeToReply({
   const translateX = useSharedValue(0);
   const passedThreshold = useSharedValue(false);
 
-  const pan = Gesture.Pan()
+  const timestampReveal = useTimestampReveal();
+
+  let pan = Gesture.Pan()
     .enabled(enabled)
     .activeOffsetX(direction * ACTIVATION_OFFSET)
+    // Dragging the other way hands the touch to the list's swipe-to-show-times.
+    .failOffsetX(-direction * ACTIVATION_OFFSET)
     .failOffsetY([-VERTICAL_FAIL_OFFSET, VERTICAL_FAIL_OFFSET])
     .onUpdate((event) => {
       // Distance in the reply direction only; dragging the other way does nothing.
@@ -76,6 +82,8 @@ export default function SwipeToReply({
       passedThreshold.value = false;
       translateX.value = withSpring(0, RETURN_SPRING);
     });
+  // A sent bubble's swipe left is a reply, so the list's swipe waits for it.
+  if (timestampReveal) pan = pan.blocksExternalGesture(timestampReveal.listGesture);
 
   const bubbleStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],

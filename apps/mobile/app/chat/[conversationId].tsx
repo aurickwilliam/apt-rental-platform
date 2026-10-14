@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 // Gesture-handler's list: a plain RN list cancels the bubbles' swipe-to-reply on Android.
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { BlurTargetView } from 'expo-blur';
@@ -20,6 +20,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -45,6 +46,11 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
+import {
+  TIMESTAMP_REVEAL_WIDTH,
+  TimestampRevealContext,
+} from './components/timestampReveal';
+
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 import ChatBlockedNotice from './components/ChatBlockedNotice';
 
@@ -61,6 +67,12 @@ import {
 } from '@/service/chat/chatRoutes';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
+
+/** Horizontal travel before the swipe-to-show-times takes over from scrolling. */
+const TIMESTAMP_SWIPE_ACTIVATION = 12;
+/** Vertical travel that hands the touch back to the list's scroll. */
+const TIMESTAMP_SWIPE_VERTICAL_FAIL = 10;
+const TIMESTAMP_RETURN_SPRING = { damping: 22, stiffness: 240 };
 
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
@@ -189,6 +201,32 @@ export default function ChatScreen() {
     if (!portal || !otherUserId) return;
     router.push(getChatProfileRoute(portal, otherUserId, apartmentId));
   }, [apartmentId, otherUserId, portal, router]);
+  // Swiping the chat left shows every bubble's time (iMessage style); a sent
+  // bubble's own swipe-left-to-reply takes priority (see SwipeToReply).
+  const timestampReveal = useSharedValue(0);
+  const timestampSwipe = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX(-TIMESTAMP_SWIPE_ACTIVATION)
+        .failOffsetY([-TIMESTAMP_SWIPE_VERTICAL_FAIL, TIMESTAMP_SWIPE_VERTICAL_FAIL])
+        .onUpdate((event) => {
+          const distance = Math.max(0, -event.translationX);
+          timestampReveal.set(
+            distance <= TIMESTAMP_REVEAL_WIDTH
+              ? distance
+              : TIMESTAMP_REVEAL_WIDTH + (distance - TIMESTAMP_REVEAL_WIDTH) * 0.15
+          );
+        })
+        .onFinalize(() => {
+          timestampReveal.set(withSpring(0, TIMESTAMP_RETURN_SPRING));
+        }),
+    [timestampReveal]
+  );
+  const timestampRevealContext = useMemo(
+    () => ({ reveal: timestampReveal, listGesture: timestampSwipe }),
+    [timestampReveal, timestampSwipe]
+  );
+
   // Inquiry chats float the apartment under the header; the list pads its
   // top edge by the card's height so the oldest messages stay reachable.
   const chatApartment = useChatApartment(apartmentId, otherUserId);
@@ -561,53 +599,57 @@ export default function ChatScreen() {
               <ChatLoadingSkeleton />
             </View>
           ) : (
-            <View className="flex-1">
-              <FlatList
-                inverted
-                ref={flatListRef}
-                className="flex-1"
-                data={messages}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={
-                  messages.length === 0
-                    ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
-                    : { flexGrow: 1, padding: 16, paddingBottom: 10 + listTopInset }
-                }
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="on-drag"
-                maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-                nestedScrollEnabled
-                ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
-                ListFooterComponent={
-                  <>
-                    {loadingMore && (
-                      <View className="py-3 items-center">
-                        <Spinner size="sm" color={colors.primary} />
-                      </View>
-                    )}
-                    <ChatEmptyState
-                      otherUserName={otherUserName}
-                      otherUserAvatar={otherUserAvatar ?? undefined}
-                      apartmentTitle={apartmentTitle}
-                      otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
-                      isVerified={otherUserIsVerified}
-                      hasMessages={messages.length > 0}
-                      onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
-                      onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
-                    />
-                  </>
-                }
-                onContentSizeChange={handleContentSizeChange}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onEndReached={hasMore ? loadOlderMessages : undefined}
-                onEndReachedThreshold={0.2}
-                onScroll={handleScroll}
-                onScrollBeginDrag={handleScrollBeginDrag}
-                scrollEventThrottle={16}
-              />
-            </View>
+            <TimestampRevealContext.Provider value={timestampRevealContext}>
+              <GestureDetector gesture={timestampSwipe}>
+                <View className="flex-1" collapsable={false}>
+                  <FlatList
+                    inverted
+                    ref={flatListRef}
+                    className="flex-1"
+                    data={messages}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    contentContainerStyle={
+                      messages.length === 0
+                        ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
+                        : { flexGrow: 1, padding: 16, paddingBottom: 10 + listTopInset }
+                    }
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                    nestedScrollEnabled
+                    ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+                    ListFooterComponent={
+                      <>
+                        {loadingMore && (
+                          <View className="py-3 items-center">
+                            <Spinner size="sm" color={colors.primary} />
+                          </View>
+                        )}
+                        <ChatEmptyState
+                          otherUserName={otherUserName}
+                          otherUserAvatar={otherUserAvatar ?? undefined}
+                          apartmentTitle={apartmentTitle}
+                          otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
+                          isVerified={otherUserIsVerified}
+                          hasMessages={messages.length > 0}
+                          onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
+                          onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
+                        />
+                      </>
+                    }
+                    onContentSizeChange={handleContentSizeChange}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onEndReached={hasMore ? loadOlderMessages : undefined}
+                    onEndReachedThreshold={0.2}
+                    onScroll={handleScroll}
+                    onScrollBeginDrag={handleScrollBeginDrag}
+                    scrollEventThrottle={16}
+                  />
+                </View>
+              </GestureDetector>
+            </TimestampRevealContext.Provider>
           )}
           {chatApartment && (
             <View className="absolute inset-x-0 top-0" pointerEvents="box-none">
