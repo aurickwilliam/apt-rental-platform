@@ -2550,9 +2550,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step4Description.tsx": {
-    "mtime": 1791960696.9140244,
-    "seen": 1791960783.020546,
-    "ast_hash": "19974e43f87053ffbe7674b52b2aeb56",
+    "mtime": 1791961414.2446432,
+    "seen": 1791961510.639468,
+    "ast_hash": "3dff9036e9afb993a6f61015cb2a5610",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step5Preview.tsx": {
