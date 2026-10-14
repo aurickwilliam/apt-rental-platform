@@ -1779,6 +1779,7 @@ export type Database = {
         Returns: undefined
       }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
+      sync_my_profile_email: { Args: never; Returns: undefined }
       unblock_user: { Args: { p_user_id: string }; Returns: undefined }
       validate_camanava_location: {
         Args: { p_city: string; p_latitude: number; p_longitude: number }
