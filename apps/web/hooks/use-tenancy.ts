@@ -49,6 +49,8 @@ export type CurrentTenancy = {
   lease_start: string;
   lease_end: string | null;
   monthly_rent: number | null;
+  // Day of the month rent falls due (server source of truth, default 5).
+  rent_due_day: number;
   status: string;
   apartment: TenancyApartment;
   landlord: TenancyLandlord | null;
@@ -82,6 +84,7 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
       lease_start,
       lease_end,
       monthly_rent,
+      rent_due_day,
       status,
       apartment:apartments (
         id,
@@ -131,6 +134,16 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
   };
 }
 
+// The payment with the latest period (like mobile's fetchTenancy): the rent
+// status reuses its dates when it covers the month being billed.
+function latestPeriodPayment(payments: TenancyPayment[]): TenancyPayment | null {
+  return payments.reduce<TenancyPayment | null>(
+    (latest, payment) =>
+      (payment.period_start ?? "") > (latest?.period_start ?? "") ? payment : latest,
+    payments[0] ?? null,
+  );
+}
+
 export function useTenancy() {
   const { data, loading, error, refresh } = useAsyncResource(
     fetchCurrentTenancy,
@@ -143,7 +156,7 @@ export function useTenancy() {
   return {
     tenancy,
     payments,
-    currentPayment: payments[0] ?? null,
+    currentPayment: latestPeriodPayment(payments),
     loading,
     error: error ?? data.paymentError,
     refetch: refresh,
