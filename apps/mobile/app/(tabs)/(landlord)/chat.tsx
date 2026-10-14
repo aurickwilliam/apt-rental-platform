@@ -1,7 +1,9 @@
-import { FlatList, RefreshControl } from 'react-native'
 import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+// Gesture-aware list pieces: on Android a plain FlatList claims the touch on
+// slight vertical drift and cancels the rows' swipe-to-mark-read.
+import { FlatList, RefreshControl } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
 

@@ -1,7 +1,10 @@
-import { View, Text, SectionList, RefreshControl } from 'react-native';
+import { View, Text, SectionList } from 'react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// Gesture-aware scroll pieces: on Android a plain ScrollView claims the touch
+// on slight vertical drift and cancels the rows' swipe-to-mark-read.
+import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 import { Separator } from 'heroui-native';
 
@@ -240,6 +243,7 @@ export default function Chat() {
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
+        renderScrollComponent={(scrollProps) => <ScrollView {...scrollProps} />}
         ListHeaderComponent={
           <ConversationListHeader
             searchQuery={searchQuery}
