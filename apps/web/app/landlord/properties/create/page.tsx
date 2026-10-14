@@ -355,7 +355,7 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto py-6">
+      <div className="max-w-7xl mx-auto py-6">
         <Button
           onPress={router.back}
           variant="outline"
@@ -367,7 +367,7 @@ export default function CreateApartmentPage() {
 
       {/* Top progress bar */}
       <div className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             {STEPS.map((s, i) => {
 
@@ -417,7 +417,11 @@ export default function CreateApartmentPage() {
 
       {/* Step content */}
       <div className="px-6 py-8">
-        {step === 5 && <Step5Preview formData={formData} />}
+        {step === 5 && (
+          <div className="max-w-7xl mx-auto w-full">
+            <Step5Preview formData={formData} />
+          </div>
+        )}
 
         <div className="max-w-3xl mx-auto">
           {step === 1 && <Step1Photos formData={formData} updateForm={updateForm} errors={errors} />}
