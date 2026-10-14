@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Calendar, Separator, Label, Popover } from "@heroui/react";
 import { parseDate, type CalendarDate } from "@internationalized/date";
-import { CalendarIcon } from "lucide-react";
+import { IconCalendar as CalendarIcon } from "@tabler/icons-react";
 import type { CashPaymentErrors } from "../types";
 
 export function validateCashPayment(data: { paymentDate: Date | null }): CashPaymentErrors {

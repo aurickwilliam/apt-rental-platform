@@ -18,7 +18,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
-import { ArrowLeft, Image as ImageIcon, MapPin } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconPhoto as ImageIcon, IconMapPin as MapPin } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import { formatAddress, formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
 

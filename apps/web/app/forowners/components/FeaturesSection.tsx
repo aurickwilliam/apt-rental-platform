@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Separator } from "@heroui/react";
-import { CheckCircle2, ChevronDown } from "lucide-react";
+import { IconCircleCheck as CheckCircle2, IconChevronDown as ChevronDown } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { features } from "./Data";
 

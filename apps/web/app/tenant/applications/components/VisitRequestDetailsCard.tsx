@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Button, Separator, Chip, Modal, useOverlayState } from "@heroui/react";
-import { Calendar, Clock, Users, Hourglass, CheckCircle2, XCircle, CalendarX } from "lucide-react";
+import { IconCalendar as Calendar, IconClock as Clock, IconUsers as Users, IconHourglass as Hourglass, IconCircleCheck as CheckCircle2, IconCircleX as XCircle, IconCalendarX as CalendarX } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import type { VisitRequest } from "@/service/visitRequestsService";
 

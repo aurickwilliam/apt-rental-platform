@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Chip } from "@heroui/react";
-import { Calendar, Clock } from "lucide-react";
+import { IconCalendar as Calendar, IconClock as Clock } from "@tabler/icons-react";
 import { formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";

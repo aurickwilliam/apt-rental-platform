@@ -2,18 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
-import {
-  CreditCard,
-  FileText,
-  History,
-  MessageCircle,
-  Receipt,
-  Wrench,
-  CheckCircle2,
-  Clock,
-  House,
-  CalendarDays,
-} from "lucide-react";
+import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
 
@@ -728,3 +717,4 @@ export default function MyRental() {
     </div>
   );
 }
+

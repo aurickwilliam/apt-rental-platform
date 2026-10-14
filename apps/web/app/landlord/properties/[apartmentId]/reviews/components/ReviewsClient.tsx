@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Dropdown, Label } from "@heroui/react";
-import { ArrowLeft, ChevronDown, MessageSquareText } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconMessage as MessageSquareText } from "@tabler/icons-react";
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 import RatingBreakdown from "@/app/browse/[apartmentId]/components/RatingBreakdown";
 import type { LandlordUnitReview } from "@/service/landlordUnitDetailService";

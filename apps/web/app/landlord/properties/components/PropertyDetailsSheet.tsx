@@ -12,12 +12,7 @@ import {
   Separator,
 } from "@heroui/react";
 
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  FileText,
-} from "lucide-react";
+import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";

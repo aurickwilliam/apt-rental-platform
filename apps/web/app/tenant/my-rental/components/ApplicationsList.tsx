@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList } from "lucide-react";
+import { IconClipboardList as ClipboardList } from "@tabler/icons-react";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import ApplicationStatusCard from "./ApplicationStatusCard";
 import ApplicationStatusCardSkeleton from "./ApplicationStatusCardSkeleton";

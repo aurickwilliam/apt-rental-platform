@@ -10,7 +10,7 @@ import {
   InputGroup,
 } from "@heroui/react";
 
-import { ChevronDown, Search, X } from "lucide-react";
+import { IconChevronDown as ChevronDown, IconSearch as Search, IconX as X } from "@tabler/icons-react";
 
 import { Perk } from "./perks";
 

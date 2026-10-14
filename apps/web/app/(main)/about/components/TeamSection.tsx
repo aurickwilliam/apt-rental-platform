@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import { Button, Card, buttonVariants } from "@heroui/react";
-import { IoLogoGithub, IoLogoLinkedin } from "react-icons/io5";
+import {
+  IconBrandGithub as IoLogoGithub,
+  IconBrandLinkedin as IoLogoLinkedin,
+} from "@tabler/icons-react";
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/AboutData";
 import { useState, useRef, useEffect } from "react";

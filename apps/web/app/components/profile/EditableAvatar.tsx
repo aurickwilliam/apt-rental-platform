@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { Button, Dropdown, Label, Spinner } from "@heroui/react";
-import { Camera, Pencil, Trash2 } from "lucide-react";
+import { IconCamera as Camera, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import UserAvatar from "./UserAvatar";
 import RemovePhotoConfirmModal from "./RemovePhotoConfirmModal";

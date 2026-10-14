@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip } from "@heroui/react";
-import { ArrowLeft, FileText, Pencil, Upload } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconFileText as FileText, IconPencil as Pencil, IconUpload as Upload } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { formatLeaseDate } from "@/app/tenant/payment/utils";
 import type { LandlordUnitDetail } from "@/service/landlordUnitDetailService";
