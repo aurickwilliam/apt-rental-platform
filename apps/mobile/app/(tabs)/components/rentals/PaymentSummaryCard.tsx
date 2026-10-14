@@ -7,6 +7,8 @@ import { formatPesoDisplay } from "@repo/utils";
 import { Button, Chip } from "heroui-native";
 import {
   IconCalendarMonth,
+  IconCircleCheck,
+  IconClock,
   IconCoin,
   IconCreditCard,
   IconHistory,
@@ -36,6 +38,8 @@ export default function PaymentSummaryCard({
 
   const isPending = status === "Pending";
   const statusStyle = isPending ? palette.warning : palette.success;
+  // Same icons as the application status chips.
+  const StatusIcon = isPending ? IconClock : IconCircleCheck;
 
   return (
     <View className="bg-accent rounded-3xl p-4 border border-white/10">
@@ -50,6 +54,7 @@ export default function PaymentSummaryCard({
           variant="soft"
           style={statusChipSurface(statusStyle)}
         >
+          <StatusIcon size={14} color={statusStyle.textColor} />
           <Chip.Label
             className="font-nunitoSemiBold text-sm"
             style={{ color: statusStyle.textColor }}
