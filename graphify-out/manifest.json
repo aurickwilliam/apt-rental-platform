@@ -2537,18 +2537,6 @@
     "ast_hash": "418be24c3d683f9087de44e02111a026",
     "semantic_hash": ""
   },
-  "apps/web/app/landlord/properties/create/components/MapPicker.tsx": {
-    "mtime": 1784109707.5917118,
-    "seen": 1791943522.5427146,
-    "ast_hash": "2227373fd7a25507dfbf90be0f61f644",
-    "semantic_hash": ""
-  },
-  "apps/web/app/landlord/properties/create/components/MapPreview.tsx": {
-    "mtime": 1784109707.5917118,
-    "seen": 1791943522.542717,
-    "ast_hash": "f924bfc35d43fd7b22f6c45de62e91e8",
-    "semantic_hash": ""
-  },
   "apps/web/app/landlord/properties/create/components/Step1Photos.tsx": {
     "mtime": 1791910585.682399,
     "seen": 1791943522.5427191,
@@ -2574,9 +2562,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step5Preview.tsx": {
-    "mtime": 1791945566.076288,
-    "seen": 1791945805.6070127,
-    "ast_hash": "7bfe95be4fe4e7cffb97f26ba378da50",
+    "mtime": 1791947345.869656,
+    "seen": 1791947481.45371,
+    "ast_hash": "785631ed8a33155a51af4fa1b15b2d60",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/page.tsx": {
@@ -6765,9 +6753,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/GoogleMapPicker.tsx": {
-    "mtime": 1790772341.7093427,
-    "seen": 1791943522.5426784,
-    "ast_hash": "f9ec6023c74225550eb8295c48762548",
+    "mtime": 1791948679.678784,
+    "seen": 1791948849.2065647,
+    "ast_hash": "75fe6ecfadaeebfd5a3550c8e1b126b7",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-apartment-reviews.ts": {
