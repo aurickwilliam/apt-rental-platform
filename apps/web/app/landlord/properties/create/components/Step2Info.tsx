@@ -30,6 +30,31 @@ function formatRange(min: number, max: number): string {
 }
 
 export default function Step2Info({ formData, updateForm, errors }: Props) {
+  const handleTypeChange = useCallback(
+    (value: string) => {
+      const nextType = value;
+      const nextRoomLimits = APARTMENT_ROOM_LIMITS[nextType];
+      const nextAreaLimits = APARTMENT_FLOOR_AREA[nextType];
+      const clamp = (current: number, min: number, max: number) =>
+        Math.min(Math.max(current, min), max);
+      // Keep stored numbers inside the new type's limits so the steppers'
+      // displayed values and the validated state never disagree.
+      updateForm({
+        type: nextType,
+        ...(nextRoomLimits
+          ? {
+              no_bedrooms: clamp(formData.no_bedrooms, nextRoomLimits.bedrooms.min, nextRoomLimits.bedrooms.max),
+              no_bathrooms: clamp(formData.no_bathrooms, nextRoomLimits.bathrooms.min, nextRoomLimits.bathrooms.max),
+              max_occupants: clamp(formData.max_occupants, nextRoomLimits.maxOccupants.min, nextRoomLimits.maxOccupants.max),
+            }
+          : {}),
+        ...(nextAreaLimits
+          ? { area_sqm: clamp(formData.area_sqm, nextAreaLimits.min, nextAreaLimits.max) }
+          : {}),
+      });
+    },
+    [formData, updateForm],
+  );
   const roomLimits = APARTMENT_ROOM_LIMITS[formData.type];
   const areaLimits = APARTMENT_FLOOR_AREA[formData.type];
   const bedroomLimits = roomLimits?.bedrooms;
@@ -62,7 +87,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <Select
             value={formData.type ?? null}
-            onChange={(value) => updateForm({ type: value as string })}
+            onChange={(value) => handleTypeChange(value as string)}
             isInvalid={!!errors.type}
             isRequired
             className="w-full"
