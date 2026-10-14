@@ -8581,5 +8581,17 @@
     "seen": 1791956017.0329113,
     "ast_hash": "f14a5c3c9e416b1f11503a28c9948dca",
     "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/create/components/CreateApartmentSkeleton.tsx": {
+    "mtime": 1791959372.434774,
+    "seen": 1791959493.3420749,
+    "ast_hash": "7a2e645dad96141557cd282be0289937",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/create/loading.tsx": {
+    "mtime": 1791959383.5675554,
+    "seen": 1791959493.3433907,
+    "ast_hash": "2b1c84e6f4bab122e31735504201e1b9",
+    "semantic_hash": ""
   }
 }
