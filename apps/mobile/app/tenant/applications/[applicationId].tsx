@@ -11,6 +11,7 @@ import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
+import LandlordCard from "@/components/cards/LandlordCard";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
@@ -27,7 +28,12 @@ import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
 import { buildConversationKey } from "@/service/chat/chatService";
 
-import { formatAddress, formatPesoDisplay, formatDate } from "@repo/utils";
+import {
+  formatAddress,
+  formatPesoDisplay,
+  formatDate,
+  formatFullName,
+} from "@repo/utils";
 
 import {
   Separator,
@@ -142,6 +148,12 @@ export default function ApplicationApartment() {
       params: { apartmentId: apartment?.id ?? "", applicationId },
     });
 
+  const handleViewLandlordProfile = () => {
+    const landlord = apartment?.landlord;
+    if (!landlord) return;
+    router.push(`/profile/landlord/${landlord.id}`);
+  };
+
   const handleMessageLandlord = () => {
     const landlord = apartment?.landlord;
     if (!landlord || !profile || !apartmentId) return;
@@ -159,7 +171,7 @@ export default function ApplicationApartment() {
       params: {
         conversationId,
         otherUserId: landlord.id,
-        otherUserName: `${landlord.first_name} ${landlord.last_name}`,
+        otherUserName: formatFullName(landlord),
         otherUserAvatar: landlord.avatar_url ?? "",
         otherUserPhoneNumber: landlord.mobile_number,
         apartmentId,
@@ -270,6 +282,20 @@ export default function ApplicationApartment() {
           )}
         </View>
       </View>
+
+      {/* Landlord */}
+      {apartment?.landlord && (
+        <View className="mt-5">
+          <LandlordCard
+            fullName={formatFullName(apartment.landlord)}
+            email={apartment.landlord.email ?? "No email provided"}
+            phoneNumber={apartment.landlord.mobile_number}
+            profilePictureUrl={apartment.landlord.avatar_url}
+            onPress={handleViewLandlordProfile}
+            onMessagePress={handleMessageLandlord}
+          />
+        </View>
+      )}
 
       <Separator className="my-5" />
 
