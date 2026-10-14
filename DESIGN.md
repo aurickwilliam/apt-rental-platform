@@ -84,6 +84,7 @@ Mobile `gray-500` is redefined to `#6C757D` (not Tailwind default `#6B7280`). We
 |---|---|---|---|
 | `success` / `successLight` | `#22C55E` / `#E6F4EA` | `#4ADE80` / `#14291E` | Paid, verified, approved |
 | `warning` / `warningLight` | `#FACC15` / `#FFF8E1` | `#FDE047` / `#2A2410` | Pending, partial |
+| `successText` / `warningText` (mobile `text-success-text` / `text-warning-text`) ✅ | `#166534` / `#92400E` | `#4ADE80` / `#FDE047` | Status text and the icon beside it (Verified, Visit confirmed, Pending Verification, property status chips, receipt titles). The base `success` / `warning` are fills and dots only: as text they are 2.3:1 / 1.5:1 on white; these are 6.3–7.1:1. Dark keeps the bright values. On mobile, `warningLight` / `successLight` switch to their dark values in dark mode |
 | `danger` / `dangerMid` / `dangerLight` | `#E50914` / `#FF4B4B` / `#FDA4AF` | `#F87171` / `#FCA5A5` / `#2D1515` | Destructive, errors, rejected |
 | web `--destructive` | `#E50914` | `oklch(0.704 0.191 22.216)` | Destructive actions |
 
@@ -290,7 +291,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 
 - **Dialog** ✅: `Portal > Overlay > Content`, `Close variant="ghost"` top-right; backdrop 20%/40%
   - `ConfirmDialog` ✅: footer `justify-end gap-3` — `ghost sm` cancel + `sm` confirm (default `danger`)
-  - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success`, dismiss `secondary sm`
+  - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success-text`, dismiss `secondary sm`
   - `RejectDialog` ✅: `TextField` + `TextArea numberOfLines={3}`, footer `secondary` Cancel / `danger-soft` Reject (both `flex-1`)
 - **BottomSheet** ✅: snapPoints `["85%"]` (filters) / `["50%","75%"]` (DropdownField); `enableOverDrag false`; handle `bg-[#D0D0D0] w-10`; `bg-surface rounded-t-[20px]`; sticky header `border-b border-border`; sticky footer `border-t pt-3` (Apply `flex-1 sm` + Clear All `tertiary sm`)
 - **Legacy RN `Modal`** ⚠ (fade, `rgba(0,0,0,0.3)` backdrop): MoveInCost, DateField iOS picker, video — migrate when touched

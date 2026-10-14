@@ -31,8 +31,12 @@ export const COLORS = {
     // Semantic
     success: '#22C55E',
     successLight: '#E6F4EA',
+    // Status text and status icons (success/warning are too light for text:
+    // 2.3:1 and 1.5:1 on white). Same as STATUS_COLORS text colors.
+    successText: '#166534',
     warning: '#FACC15',
     warningLight: '#FFF8E1',
+    warningText: '#92400E',
     danger: '#E50914',
     dangerMid: '#FF4B4B',
     dangerLight: '#FDA4AF',
@@ -66,8 +70,10 @@ export const COLORS = {
     // Semantic
     success: '#4ADE80',
     successLight: '#14291E',
+    successText: '#4ADE80',
     warning: '#FDE047',
     warningLight: '#2A2410',
+    warningText: '#FDE047',
     danger: '#F87171',
     dangerMid: '#FCA5A5',
     dangerLight: '#2D1515',

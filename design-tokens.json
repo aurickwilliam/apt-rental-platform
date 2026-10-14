@@ -31,8 +31,10 @@
       "gray100": "#E5E7EB",
       "success": "#22C55E",
       "successLight": "#E6F4EA",
+      "successText": "#166534",
       "warning": "#FACC15",
       "warningLight": "#FFF8E1",
+      "warningText": "#92400E",
       "danger": "#E50914",
       "dangerMid": "#FF4B4B",
       "dangerLight": "#FDA4AF"
@@ -58,8 +60,10 @@
       "gray100": "#1E1E1E",
       "success": "#4ADE80",
       "successLight": "#14291E",
+      "successText": "#4ADE80",
       "warning": "#FDE047",
       "warningLight": "#2A2410",
+      "warningText": "#FDE047",
       "danger": "#F87171",
       "dangerMid": "#FCA5A5",
       "dangerLight": "#2D1515"

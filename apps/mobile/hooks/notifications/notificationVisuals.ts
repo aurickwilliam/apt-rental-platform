@@ -48,7 +48,7 @@ export function useNotificationTypeColor() {
   const colorMap: Record<NotificationType, string> = {
     payment: colors.success,
     message: colors.primary,
-    maintenance: colors.warning,
+    maintenance: colors.warningText,
     apartment: colors.primary,
     system: colors.gray500,
   };
