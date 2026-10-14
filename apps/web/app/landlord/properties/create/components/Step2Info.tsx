@@ -101,7 +101,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Select.Popover>
               <ListBox>
                 {APARTMENT_TYPES.map((t) => (
-                  <ListBox.Item key={t} id={t} textValue={t} className="hover:bg-light-blue!">
+                  <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {t}
                   </ListBox.Item>
                 ))}
@@ -125,7 +125,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Select.Popover>
               <ListBox>
                 {FURNISHED_TYPES.map((t) => (
-                  <ListBox.Item key={t} id={t} textValue={t} className="hover:bg-light-blue!">
+                  <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {t}
                   </ListBox.Item>
                 ))}
@@ -252,7 +252,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
                     key={t} 
                     id={t} 
                     textValue={t}
-                    className="hover:bg-light-blue!"
+                    className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
                   >
                     {t}
                   </ListBox.Item>
@@ -287,7 +287,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
                     key={t} 
                     id={t} 
                     textValue={t}
-                    className="hover:bg-light-blue!"
+                    className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
                   >
                     {t}
                   </ListBox.Item>
@@ -347,7 +347,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <Select.Popover>
               <ListBox>
                 {CAMANAVA_CITIES.map((city) => (
-                  <ListBox.Item key={city} id={city} textValue={city} className="hover:bg-light-blue!">
+                  <ListBox.Item key={city} id={city} textValue={city} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {city}
                   </ListBox.Item>
                 ))}

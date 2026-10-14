@@ -74,7 +74,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
                   { value: 1, label: "1 month" },
                   { value: 2, label: "2 months" },
                 ].map((option) => (
-                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="hover:bg-light-blue!">
+                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>
                 ))}
@@ -104,7 +104,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
                   { value: 0, label: "None" },
                   { value: 1, label: "1 month" },
                 ].map((option) => (
-                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="hover:bg-light-blue!">
+                  <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>
                 ))}
