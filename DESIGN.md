@@ -195,7 +195,7 @@ Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocus
 | `ghost` | Icon/utility: navbar, back, theme toggle, favorite, closes |
 | Disabled / Loading | `isDisabled`; `isPending` + `Spinner size="sm" color="current"` |
 
-Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-col` (web quick actions). Mobile composes `<Button.Label>`; icons in buttons 16–26px.
+Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-col` (web quick actions). Mobile composes `<Button.Label>`; icons in buttons 16–26px. Mobile button labels (HeroUI `Button` and `LinkButton`) are Nunito SemiBold app-wide via the `.button__label` rule in `apps/mobile/app/global.css`, so a label needs no font class (never set Inter on one).
 
 **⚠ Legacy** (`apps/mobile/components/buttons/`): `PillButton` (h-14/h-12 pill, still in verify-account/document-id/payment flows; references undefined `redHead-*`/`grey-500` tokens), `OptionButton` (p-4 rounded-xl row + chevron), `RadioButton`, `CheckBox`. Never copy; migrate call sites when touched.
 

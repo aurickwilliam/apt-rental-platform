@@ -207,3 +207,9 @@
     border-color: var(--border) !important;
   }
 }
+/* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold
+   (DESIGN.md typography: emphasized text on mobile is Nunito). Overrides
+   HeroUI's default `--font-medium` for button labels only. */
+.button__label {
+  font-family: var(--font-nunitoSemiBold);
+}

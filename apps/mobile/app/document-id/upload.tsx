@@ -204,7 +204,7 @@ export default function Upload() {
             className="self-start"
             onPress={() => setIsLegalOpen(true)}
           >
-            <LinkButton.Label className="text-sm font-interMedium text-accent underline">
+            <LinkButton.Label className="text-sm font-nunitoSemiBold text-accent underline">
               Legal notice
             </LinkButton.Label>
           </LinkButton>
