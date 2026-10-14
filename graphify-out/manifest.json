@@ -250,8 +250,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/MessageCard.tsx": {
-    "mtime": 1791968478.8055723,
-    "ast_hash": "b45c2725de514ef7ccceff6326681fd6",
+    "mtime": 1791985981.4045029,
+    "ast_hash": "49906c7f8ad17400b59b440c3852cace",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/ProfitByPropertyCard.tsx": {
@@ -2955,13 +2955,13 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791979343.2541907,
-    "ast_hash": "1924a1c501157f78011f9d8604e68c67",
+    "mtime": 1791986052.0707388,
+    "ast_hash": "15597c49155d3c5897c8376cfba72c62",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791985542.4976172,
-    "ast_hash": "7ffe70e00466a0ed219efb11d4e48e51",
+    "mtime": 1791986052.0702956,
+    "ast_hash": "1468b4bd24ae22ff248acc523f0a1bd0",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -4340,13 +4340,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationRow.test.tsx": {
-    "mtime": 1791968833.7987282,
-    "ast_hash": "52460e287988feb581a53b833d7a9909",
+    "mtime": 1791985996.8469577,
+    "ast_hash": "c1d62ec4957eb9eed75e1863d48a22bd",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationRow.tsx": {
-    "mtime": 1791968497.096147,
-    "ast_hash": "1f23ddbdbb29a5d253088b51793d8615",
+    "mtime": 1791985981.404789,
+    "ast_hash": "7bf5b774f1472834d4e9f758fe4a1f33",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/verify-account/review.tsx": {
@@ -7255,8 +7255,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationActionOverlays.tsx": {
-    "mtime": 1791968576.171635,
-    "ast_hash": "186595269b62b3723733de1717c61677",
+    "mtime": 1791985981.4055247,
+    "ast_hash": "cd9ef71822290c5325b5d37c6999d7aa",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationListHeader.tsx": {
@@ -7265,8 +7265,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationListRow.tsx": {
-    "mtime": 1791979323.0401318,
-    "ast_hash": "c85b51cff68d5a302e7edfe3405fe164",
+    "mtime": 1791985981.405048,
+    "ast_hash": "d5c210390b15653366cd82a203d3abb0",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationListState.tsx": {
@@ -7275,13 +7275,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationMoreSheet.test.tsx": {
-    "mtime": 1791978845.494509,
-    "ast_hash": "71a22a0cc8ae04b0d1472d5d5fcf6301",
+    "mtime": 1791986018.8749747,
+    "ast_hash": "80d566b44f2c4acc3cc28afb82ea7715",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ConversationMoreSheet.tsx": {
-    "mtime": 1791978820.681645,
-    "ast_hash": "2c80f0eef61259b9db40008ca97ac1cc",
+    "mtime": 1791985981.405238,
+    "ast_hash": "b8f2484b64465978bf4b78f11ca75c68",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ReportUserDialog.tsx": {
@@ -7330,8 +7330,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/chat/useConversationRowActions.ts": {
-    "mtime": 1791968576.1320183,
-    "ast_hash": "437430331b424c1cd3ab76c8a8ec8d77",
+    "mtime": 1791985981.4057887,
+    "ast_hash": "6ec0efc252e88f6a983f03e23cfc3f0a",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/usePullToRefresh.test.ts": {
