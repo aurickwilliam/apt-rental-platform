@@ -1,10 +1,10 @@
 import { View, Text, Image } from 'react-native'
 
-import { Button, Spinner } from 'heroui-native'
+import { Button } from 'heroui-native'
 
 import { EMPTY_STATE_IMAGES } from 'constants/images'
 
-import { useColors } from '@/hooks/useTheme'
+import ConversationListSkeleton from './ConversationListSkeleton'
 
 type ConversationListStateProps =
   | { variant: 'loading' }
@@ -17,18 +17,12 @@ type ConversationListStateProps =
     };
 
 /**
- * Loading, error and empty states for the Messages lists. "illustrated" is the
+ * Loading (row skeletons), error and empty states for the Messages lists. "illustrated" is the
  * full empty/error screen; "compact" is the no-search-results message.
  */
 export default function ConversationListState(props: ConversationListStateProps) {
-  const { colors } = useColors();
-
   if (props.variant === 'loading') {
-    return (
-      <View className='flex-1 items-center justify-center mt-20'>
-        <Spinner size='sm' color={colors.primary} accessibilityLabel='Loading messages' />
-      </View>
-    );
+    return <ConversationListSkeleton />;
   }
 
   const { variant, title, description, actionLabel, onAction } = props;
