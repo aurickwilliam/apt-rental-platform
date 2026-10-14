@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   buildPortalContacts,
   getContactConversationKey,
+  resolveContactAvatar,
 } from "./conversation-contacts.ts";
 
 const row = (overrides) => ({
@@ -29,7 +30,6 @@ const options = (rows, pinned = []) => ({
   rows,
   pinned,
   describeApartment: (name) => (name ? `Inquiry: ${name}` : "Inquiry"),
-  resolveAvatar: (url) => url ?? "",
 });
 
 test("conversation keys use 'none' for chats without an apartment", () => {
@@ -89,4 +89,14 @@ test("names are trimmed and missing names become empty", () => {
   );
 
   assert.deepEqual(others.map((contact) => contact.name), ["Ana", ""]);
+});
+
+test("avatars fall back to empty (initials), never a third-party placeholder", () => {
+  assert.equal(resolveContactAvatar(null), "");
+  assert.equal(resolveContactAvatar(undefined), "");
+  assert.equal(resolveContactAvatar("  "), "");
+  assert.equal(resolveContactAvatar(" https://cdn.example/a.png "), "https://cdn.example/a.png");
+
+  const { others } = buildPortalContacts(options([row({ other_user_avatar: null })]));
+  assert.equal(others[0].avatar, "");
 });

@@ -466,7 +466,7 @@ Two key formats coexist — **this is a verified inconsistency** (debt D3):
 ### 8.3 Web messages
 
 - **Contacts & unread**: computed server-side in `page.tsx` from `get_portal_conversations` (`'tenant'` / `'landlord'`, same portal split as mobile §8.2a) plus active tenancies, which stay pinned even before any message; `lib/conversation-contacts.ts` merges them (keys `{otherUserId}:{apartmentId|'none'}`). Passed as props to the client `MessageClient`.
-- **Unread badge**: `postgres_changes` INSERT on `chat` filtered `receiver_id=eq.me` on channels `tenant-unread:{id}` / `landlord-unread:{id}`.
+- **Unread badge**: `postgres_changes` INSERT on `chat` filtered `receiver_id=eq.me` on channels `tenant-unread:{id}` / `landlord-unread:{id}`. A message in a conversation the page doesn't list yet (a chat that started while it was open) triggers a debounced `router.refresh()` (`use-new-conversation-refresh`) so the server re-builds the lists. Contacts without a photo render initials (`resolveContactAvatar`); no third-party placeholder avatars.
 - **Live conversation**: `postgres_changes` INSERT filtered `sender_id=eq.contact` on channel `conversation:{sortedIds}` (no apartment in the name) + presence for typing (no heartbeat).
 - **Sending**: optimistic insert with `crypto.randomUUID()`; text only — **no attachments, no GIFs on web**.
 - Both tenant and landlord variants are near-identical (one file each for the shared conversation view; `browse/[apartmentId]/LandlordChatPanel` reuses the tenant `ConversationView`).

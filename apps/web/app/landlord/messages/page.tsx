@@ -2,7 +2,11 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@repo/supabase/server";
 
-import { buildPortalContacts, getContactConversationKey } from "@/lib/conversation-contacts";
+import {
+  buildPortalContacts,
+  getContactConversationKey,
+  resolveContactAvatar,
+} from "@/lib/conversation-contacts";
 
 import { Contact } from "./components/types";
 import MessagesClient from "./components/MessageClient";
@@ -22,9 +26,6 @@ export default async function MessagesPage() {
   if (!landlord) redirect("/login");
 
   const landlordId = landlord.id;
-
-  const resolveAvatar = (avatarUrl: string | null, userId: string) =>
-    avatarUrl ?? `https://i.pravatar.cc/150?u=${userId}`;
 
   const [{ data: tenancyRows, error: tenancyError }, { data: conversationRows, error: conversationError }] =
     await Promise.all([
@@ -62,7 +63,7 @@ export default async function MessagesPage() {
       id: tenant.id,
       conversationKey: getContactConversationKey(tenant.id, apartment?.id ?? null),
       name: `${tenant.first_name} ${tenant.last_name}`.trim(),
-      avatar: resolveAvatar(tenant.avatar_url, tenant.id),
+      avatar: resolveContactAvatar(tenant.avatar_url),
       apartment: apartment.name,
       apartmentId: apartment?.id ?? null,
       unreadCount: 0,
@@ -75,7 +76,6 @@ export default async function MessagesPage() {
     pinned: activeTenants,
     describeApartment: (apartmentName) =>
       apartmentName ? `Inquiring: ${apartmentName}` : "Inquiring",
-    resolveAvatar,
   });
 
   return (

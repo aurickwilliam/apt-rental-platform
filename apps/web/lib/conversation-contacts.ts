@@ -26,7 +26,14 @@ interface BuildPortalContactsOptions {
   pinned: ConversationContact[];
   /** Subtitle for a conversation outside the pinned group. */
   describeApartment: (apartmentName: string | null) => string;
-  resolveAvatar: (avatarUrl: string | null, userId: string) => string;
+}
+
+/**
+ * Contact photo URL, or "" so `UserAvatar` shows initials. Never a
+ * third-party placeholder: those would send user IDs off-site.
+ */
+export function resolveContactAvatar(avatarUrl: string | null | undefined): string {
+  return avatarUrl?.trim() ?? "";
 }
 
 /** Web conversation key: `{otherUserId}:{apartmentId|'none'}` (see ARCHITECTURE.md §8.1). */
@@ -45,7 +52,6 @@ export function buildPortalContacts({
   rows,
   pinned,
   describeApartment,
-  resolveAvatar,
 }: BuildPortalContactsOptions): {
   pinned: ConversationContact[];
   others: ConversationContact[];
@@ -69,7 +75,7 @@ export function buildPortalContacts({
       id: row.other_user_id,
       conversationKey: getContactConversationKey(row.other_user_id, row.apartment_id),
       name: row.other_user_name?.trim() ?? "",
-      avatar: resolveAvatar(row.other_user_avatar, row.other_user_id),
+      avatar: resolveContactAvatar(row.other_user_avatar),
       apartment: describeApartment(row.apartment_name),
       apartmentId: row.apartment_id,
       unreadCount: row.unread_count ?? 0,
