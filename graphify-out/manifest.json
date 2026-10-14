@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/rentals.tsx": {
-    "mtime": 1791947798.850606,
-    "ast_hash": "b79e99a71f6c0e32fefebd709f877512",
+    "mtime": 1791948817.907441,
+    "ast_hash": "d601b8ca57b04671ab41e871b1b83c8a",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/(tenant)/search.tsx": {
@@ -287,11 +287,6 @@
   "apps/mobile/app/(tabs)/components/profile/VerificationStatus.tsx": {
     "mtime": 1790000404.850447,
     "ast_hash": "3de11b9f8aa68b8a99e61be99e7e3124",
-    "semantic_hash": ""
-  },
-  "apps/mobile/app/(tabs)/components/rentals/ApartmentDescriptionCard.tsx": {
-    "mtime": 1787912037.1290429,
-    "ast_hash": "148416b31c52789c08da7ff85118d5be",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/ApplicationList.tsx": {
@@ -2980,8 +2975,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791948209.1109061,
-    "ast_hash": "71cf556966fb1639018692607fc10f47",
+    "mtime": 1791949271.592318,
+    "ast_hash": "d7f1c594ec039aad4dcf51d213310911",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -3635,8 +3630,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/applications/tenantApplicationsService.ts": {
-    "mtime": 1791943055.3498118,
-    "ast_hash": "51b70ac0d483607b19bb83936c261cd9",
+    "mtime": 1791948715.9698389,
+    "ast_hash": "6962f2ddcd55740fe3bba0eb5004ed6e",
     "semantic_hash": ""
   },
   "apps/mobile/service/audit-fix/audit-fix.characterization.test.ts": {
@@ -3735,8 +3730,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/tenancy/tenancyService.ts": {
-    "mtime": 1791946491.7931757,
-    "ast_hash": "dcf89ae3e11545e2ba4a5a0b5d8fc50a",
+    "mtime": 1791948726.9986768,
+    "ast_hash": "596677b18bae1cb719fef628c1b2898a",
     "semantic_hash": ""
   },
   "apps/mobile/service/visitRequests/visitRequestsService.ts": {
@@ -3890,8 +3885,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/NotificationBellButton.tsx": {
-    "mtime": 1789483034.6535902,
-    "ast_hash": "d05df08db8826a87090fc0793e5ce22d",
+    "mtime": 1791948766.5970693,
+    "ast_hash": "e1854594044b1c961fca8906efaa606a",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/notifications/useUnreadNotificationCount.ts": {
@@ -3950,8 +3945,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/rentals/RentalsSkeleton.tsx": {
-    "mtime": 1791943458.3552635,
-    "ast_hash": "f1276e9df921e734d346e31795d16655",
+    "mtime": 1791948874.6776972,
+    "ast_hash": "c82b2f66de83778c8a68f6920dcc3d1d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260830000000_payment_notification_tenant_name.sql": {
@@ -7145,8 +7140,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/prepareTenantHome.ts": {
-    "mtime": 1791943055.3492832,
-    "ast_hash": "2992c2bf142a3e5b398334e0d66fc32e",
+    "mtime": 1791948741.4710565,
+    "ast_hash": "c13dc2ce299fb4ce67ef65a93827a79b",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/tenancy/useRentalsLayoutHint.ts": {
@@ -7172,6 +7167,26 @@
   "apps/mobile/hooks/maintenance-requests/useMaintenanceRequest.ts": {
     "mtime": 1791908055.4771032,
     "ast_hash": "1d6a36413e3b278455d68e493060821f",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/rentals/MaintenanceSection.tsx": {
+    "mtime": 1791948792.271594,
+    "ast_hash": "b402540036e2f09c98bebe736a636e26",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/(tabs)/components/rentals/RentalHero.tsx": {
+    "mtime": 1791949245.2738464,
+    "ast_hash": "5c64fe091b340c52f68d0558d6f5dbba",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/apartments/coverImage.test.ts": {
+    "mtime": 1791948715.9242797,
+    "ast_hash": "ab4f0951beea648287177d2fdfd653ae",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/apartments/coverImage.ts": {
+    "mtime": 1791948715.9211116,
+    "ast_hash": "cceac073648df7dee7654d8d9307c3ca",
     "semantic_hash": ""
   }
 }
