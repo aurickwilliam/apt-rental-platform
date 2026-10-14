@@ -1,5 +1,7 @@
 "use client";
-import { Description, FieldError, Label, TextArea, TextField } from "@heroui/react";
+import { useMemo, useState } from "react";
+import { Description, FieldError, InputGroup, Label, TextArea, TextField } from "@heroui/react";
+import { IconSearch } from "@tabler/icons-react";
 import { PERKS } from "../../../../components/inputs/perks";
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -10,6 +12,15 @@ interface Props {
 }
 
 export default function Step4Description({ formData, updateForm, errors }: Props) {
+  const [amenitySearch, setAmenitySearch] = useState("");
+
+  const visiblePerks = useMemo(() => {
+    const query = amenitySearch.toLowerCase().trim();
+    return Object.values(PERKS).filter(
+      (perk) => query === "" || perk.name.toLowerCase().includes(query),
+    );
+  }, [amenitySearch]);
+
   const toggleAmenity = (id: string) => {
     const current = formData.amenities;
     if (current.includes(id)) {
@@ -54,15 +65,30 @@ export default function Step4Description({ formData, updateForm, errors }: Props
 
       {/* Amenities picker */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-foreground"}`}>
-            Amenities <span className="text-danger">*</span>
-          </p>
-          {formData.amenities.length > 0 && (
-            <p className="text-xs text-primary font-medium">
-              {formData.amenities.length} selected
+        <div className="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-foreground"}`}>
+              Amenities <span className="text-danger">*</span>
             </p>
-          )}
+            {formData.amenities.length > 0 && (
+              <p className="text-xs text-primary font-medium">
+                {formData.amenities.length} selected
+              </p>
+            )}
+          </div>
+          <TextField aria-label="Search amenities" className="w-full sm:max-w-xs">
+            <InputGroup className="rounded-xl border border-border bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
+              <InputGroup.Prefix>
+                <IconSearch size={16} className="text-muted-foreground shrink-0" />
+              </InputGroup.Prefix>
+              <InputGroup.Input
+                placeholder="Search amenities..."
+                value={amenitySearch}
+                onChange={(e) => setAmenitySearch(e.target.value)}
+                className="bg-transparent text-foreground placeholder:text-muted-foreground"
+              />
+            </InputGroup>
+          </TextField>
         </div>
 
         <div
@@ -70,7 +96,12 @@ export default function Step4Description({ formData, updateForm, errors }: Props
             errors.amenities ? "border-danger bg-danger/5" : "border-transparent"
           }`}
         >
-          {Object.values(PERKS).map((perk) => {
+          {visiblePerks.length === 0 ? (
+            <p className="col-span-2 text-center text-sm text-muted-foreground py-4">
+              No amenities match &ldquo;{amenitySearch.trim()}&rdquo;.
+            </p>
+          ) : (
+            visiblePerks.map((perk) => {
             const Icon = perk.icon;
             const selected = formData.amenities.includes(perk.id);
             return (
@@ -91,7 +122,8 @@ export default function Step4Description({ formData, updateForm, errors }: Props
                 <span className="text-sm font-medium leading-tight">{perk.name}</span>
               </button>
             );
-          })}
+            })
+          )}
         </div>
 
         {errors.amenities && (
