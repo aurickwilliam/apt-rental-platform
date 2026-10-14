@@ -103,7 +103,10 @@ export default function Search() {
   const isInitialLoading = isGateLoading || (showNetflix ? sectionsLoading : loading);
 
   return (
-    <ScreenWrapper noBottomPadding>
+    // Tap-to-dismiss would wrap the lists in a touch handler that steals drags
+    // starting on non-pressable areas (section titles); the lists dismiss the
+    // keyboard on drag and on taps outside pressables instead.
+    <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <SearchHeader
         cities={cities}
         selectedCity={selectedCity}
