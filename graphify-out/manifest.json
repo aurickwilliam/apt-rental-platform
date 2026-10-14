@@ -2538,9 +2538,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step2Info.tsx": {
-    "mtime": 1791958728.2847354,
-    "seen": 1791958833.6515064,
-    "ast_hash": "1e6757709be02e3bf36b5e1254388536",
+    "mtime": 1791960443.5274541,
+    "seen": 1791960545.5915213,
+    "ast_hash": "c84fe0438078f319b340bc8e36fd88cb",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step3Pricing.tsx": {
@@ -2550,9 +2550,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step4Description.tsx": {
-    "mtime": 1791949597.934452,
-    "seen": 1791949836.0030172,
-    "ast_hash": "613260c66e64bab70a361097b40449e9",
+    "mtime": 1791960696.9140244,
+    "seen": 1791960783.020546,
+    "ast_hash": "19974e43f87053ffbe7674b52b2aeb56",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step5Preview.tsx": {
