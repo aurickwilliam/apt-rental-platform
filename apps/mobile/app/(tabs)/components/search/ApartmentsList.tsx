@@ -161,6 +161,7 @@ export default function ApartmentsList({
         flexGrow: apartments.length === 0 ? 1 : 0,
       }}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       ListEmptyComponent={renderEmptyState}
       ListFooterComponent={renderFooter}
       ListHeaderComponent={
