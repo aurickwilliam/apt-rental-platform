@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Button } from "@heroui/react";
+import { Button, Modal } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
 import { APARTMENT_FLOOR_AREA, APARTMENT_ROOM_LIMITS, isCamanavaCity } from "@repo/constants";
@@ -99,6 +99,7 @@ export default function CreateApartmentPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isValidatingLocation, setIsValidatingLocation] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -157,15 +158,32 @@ export default function CreateApartmentPage() {
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
+  const handleSubmitClick = () => {
+    // Validate everything before asking for confirmation; jump to the
+    // first step that needs attention.
+    for (const stepNumber of [1, 2, 3, 4]) {
+      const stepErrors = validateStep(stepNumber, formData);
+      if (Object.keys(stepErrors).length > 0) {
+        setErrors(stepErrors);
+        setStep(stepNumber);
+        return;
+      }
+    }
+    setErrors({});
+    setIsConfirmOpen(true);
+  };
+
   const handleSubmit = async () => {
     // Check any errors before submitting
     const stepErrors = {
+      ...validateStep(1, formData),
       ...validateStep(2, formData),
       ...validateStep(3, formData),
       ...validateStep(4, formData),
     };
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
+      setIsConfirmOpen(false);
       return;
     }
     setIsSubmitting(true);
@@ -282,6 +300,7 @@ export default function CreateApartmentPage() {
       router.refresh();
     } catch (err) {
       console.error(err);
+      setIsConfirmOpen(false);
       alert(
         err instanceof Error
           ? err.message
@@ -450,8 +469,7 @@ export default function CreateApartmentPage() {
               </Button>
             ) : (
               <Button
-                onPress={handleSubmit}
-                isPending={isSubmitting}
+                onPress={handleSubmitClick}
                 className="px-8"
               >
                 Submit Listing
@@ -460,6 +478,83 @@ export default function CreateApartmentPage() {
           </div>
         </div>
       </div>
+
+      {/* Submit confirmation */}
+      <Modal>
+        <Modal.Backdrop
+          isOpen={isConfirmOpen}
+          onOpenChange={(open) => {
+            if (!isSubmitting) setIsConfirmOpen(open);
+          }}
+        >
+          <Modal.Container size="sm">
+            <Modal.Dialog>
+              {({ close }) => (
+                <>
+                  <Modal.Header>
+                    <Modal.Heading className="font-medium text-xl">
+                      Publish this listing?
+                    </Modal.Heading>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Please confirm the details below before your listing goes live for review.
+                    </p>
+                  </Modal.Header>
+
+                  <Modal.Body className="flex flex-col gap-2">
+                    {[
+                      { label: "Listing", value: formData.name || "—" },
+                      {
+                        label: "Address",
+                        value: [formData.street_address, formData.barangay, formData.city]
+                          .filter(Boolean)
+                          .join(", ") || "—",
+                      },
+                      { label: "Property Type", value: formData.type || "—" },
+                      { label: "Monthly Rent", value: `₱ ${formData.monthly_rent.toLocaleString()}` },
+                      {
+                        label: "Security Deposit",
+                        value: `₱ ${(formData.security_deposit_months * formData.monthly_rent).toLocaleString()}`,
+                      },
+                      {
+                        label: "Advance Rent",
+                        value: `₱ ${(formData.advance_rent_months * formData.monthly_rent).toLocaleString()}`,
+                      },
+                      {
+                        label: "Photos",
+                        value: `${(formData.thumbnail ? 1 : 0) + formData.additionalPhotos.length} uploaded`,
+                      },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex justify-between gap-4 text-sm">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-medium text-foreground text-right">{value}</span>
+                      </div>
+                    ))}
+                  </Modal.Body>
+
+                  <Modal.Footer className="flex gap-2">
+                    <Button
+                      variant="tertiary"
+                      onPress={close}
+                      isDisabled={isSubmitting}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onPress={handleSubmit}
+                      isPending={isSubmitting}
+                      isDisabled={isSubmitting}
+                      className="flex-1"
+                    >
+                      Confirm Listing
+                    </Button>
+                  </Modal.Footer>
+                </>
+              )}
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }
