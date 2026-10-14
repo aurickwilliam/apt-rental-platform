@@ -221,7 +221,7 @@ export default function FifthStep() {
             <View className="flex-row items-center mt-5 gap-2">
               <IconStarFilled
                 size={20}
-                color={colors.secondary}
+                color={colors.rating}
                 
               />
               <Text className="text-white font-nunitoSemiBold text-base">

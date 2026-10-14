@@ -26,9 +26,14 @@
   /* Brand */
   --color-primary: #376BF5;
   --color-primary-light: #EFF6FF;
-  --color-secondary: #FFA500;
+  /* Secondary is sky, the second blue (light values; dark overrides below) */
+  --color-secondary: #0369A1;
   --color-secondary-foreground: #FFFFFF;
-  --color-secondary-light: #FFF3E0;
+  --color-secondary-light: #E0F2FE;
+  --color-secondary-border: #0284C7;
+
+  /* Star ratings */
+  --color-rating: #FBBF24;
 
   /* Neutral */
   --color-gray-100: #E5E7EB;
@@ -52,7 +57,9 @@
   --color-dark-surface-raised: #2A2A2A;
   --color-dark-primary: #5B8BF7;
   --color-dark-primary-light: #1A2340;
-  --color-dark-secondary-light: #2E2212;
+  --color-dark-secondary: #7DD3FC;
+  --color-dark-secondary-light: #0C2A3D;
+  --color-dark-secondary-border: #38BDF8;
   --color-dark-gray-100: #1E1E1E;
   --color-dark-gray-200: #2A2A2A;
   --color-dark-gray-300: #3D3D3D;
@@ -88,7 +95,9 @@
     /* Brand */
     --accent: var(--color-primary);
     --accent-foreground: oklch(1 0 0);
-    --color-secondary-light: #FFF3E0; 
+    --color-secondary: #0369A1;
+    --color-secondary-light: #E0F2FE;
+    --color-secondary-border: #0284C7;
     --color-primary-light: #EFF6FF;
 
     /* Semantic */
@@ -168,8 +177,10 @@
     --segment: oklch(0.3964 0.01 285.93);
     --segment-foreground: var(--foreground);
 
-    /* Override secondary-light for dark mode */
-    --color-secondary-light: #2E2212;
+    /* Sky (secondary) brightens in dark mode */
+    --color-secondary: var(--color-dark-secondary);
+    --color-secondary-light: var(--color-dark-secondary-light);
+    --color-secondary-border: var(--color-dark-secondary-border);
 
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
@@ -207,6 +218,24 @@
     border-color: var(--border) !important;
   }
 }
+/* Primary buttons stay brand blue in both modes: white text on the lighter
+   dark-mode accent (#5B8BF7) is only 3.2:1. */
+.button__root--variant-primary {
+  background-color: var(--color-primary);
+}
+
+/* Secondary buttons are a sky outline (DESIGN.md §9): surface fill, 1.5px
+   sky border, sky label. */
+.button__root--variant-secondary {
+  background-color: var(--surface);
+  border-width: 1.5px;
+  border-color: var(--color-secondary-border);
+}
+
+.button__label--variant-secondary {
+  color: var(--color-secondary);
+}
+
 /* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold
    (DESIGN.md typography: emphasized text on mobile is Nunito). Overrides
    HeroUI's default `--font-medium` for button labels only. */

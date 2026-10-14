@@ -183,7 +183,7 @@ export default function Index() {
             <View className="mt-5 p-2 border-t border-b border-border flex-row items-center justify-between">
               <View className="flex items-center gap-1 w-1/3">
                 <Text className="text-base text-foreground font-inter">Ratings</Text>
-                <Text className="text-3xl text-secondary font-nunitoBold">
+                <Text className="text-3xl text-accent font-nunitoBold">
                   {apartment.average_rating !== null
                     ? `${apartment.average_rating}`
                     : '—'}

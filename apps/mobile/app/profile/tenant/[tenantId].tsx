@@ -113,7 +113,7 @@ export default function PublicTenantProfile() {
               label: 'Reviews',
               value: String(profile?.reviewsCount ?? 0),
               icon: IconStar,
-              iconColor: colors.secondary,
+              iconColor: colors.rating,
             },
             {
               label: 'Member Since',

@@ -232,7 +232,7 @@ export default function Rentals() {
         <View className="flex-row items-center justify-between gap-2">
           <View className="flex-row items-center justify-start gap-2">
             <IconMapPinFilled size={30} color={colors.primary} />
-            <Text className="text-secondary text-2xl font-nunitoBold">
+            <Text className="text-accent text-2xl font-nunitoBold">
               {apartment.name}
             </Text>
           </View>
@@ -398,7 +398,7 @@ export default function Rentals() {
     <TabScreen refreshing={refreshing} onRefresh={onRefresh}>
       <View className="flex-row items-center justify-between mb-5">
         {/* The error state can't say which page this is, so it keeps the tab name. */}
-        <Text className="text-secondary text-2xl font-nunitoBold">
+        <Text className="text-accent text-2xl font-nunitoBold">
           {view === 'error' ? 'Rentals' : 'Applications'}
         </Text>
         <NotificationBellButton route="/tenant-notif" />

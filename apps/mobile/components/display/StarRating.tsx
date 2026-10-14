@@ -24,7 +24,7 @@ export default function StarRating({
 }: StarRatingProps) {
   const { colors } = useColors()
 
-  const starColor = color ?? colors.secondary
+  const starColor = color ?? colors.rating
   const clampedRating = Math.max(0, Math.min(rating, maxStars))
 
   return (

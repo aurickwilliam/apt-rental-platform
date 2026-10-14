@@ -27,7 +27,7 @@ export default function RatingBarCount({
         <Text className='text-foreground text-sm font-nunitoSemiBold mr-1 flex-1 text-center'>
           {rating}
         </Text>
-        <IconStarFilled size={16} color={colors.secondary} />
+        <IconStarFilled size={16} color={colors.rating} />
       </View>
 
       <View
@@ -40,7 +40,7 @@ export default function RatingBarCount({
           maxValue={100}
         >
           <Slider.Track className='h-3 rounded-full bg-gray-100'>
-            <Slider.Fill className='rounded-full bg-secondary' />
+            <Slider.Fill className='rounded-full bg-rating' />
           </Slider.Track>
         </Slider>
       </View>

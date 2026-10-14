@@ -166,7 +166,7 @@ export default function RecoveryCodeVerification() {
         </Text>
 
         <LinkButton onPress={router.back} className="self-start p-0">
-          <LinkButton.Label className="text-secondary font-nunitoSemiBold underline">
+          <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
             Wrong email? Change it
           </LinkButton.Label>
         </LinkButton>
