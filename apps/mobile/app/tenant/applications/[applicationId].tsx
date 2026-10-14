@@ -210,6 +210,7 @@ export default function ApplicationApartment() {
             background={null}
             style={statusChipSurface(chipStatusStyle)}
           >
+            <chipConfig.Icon size={16} color={chipStatusStyle.textColor} />
             <Chip.Label style={{ color: chipStatusStyle.textColor }}>
               {chipConfig.label}
             </Chip.Label>
