@@ -34,7 +34,7 @@ export default function StepFour() {
 
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
-            <Text className="text-secondary text-2xl font-nunitoMedium">
+            <Text className="text-accent text-2xl font-nunitoMedium">
               Can you share with us your family information?
             </Text>
 

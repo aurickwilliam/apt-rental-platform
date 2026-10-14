@@ -7,9 +7,17 @@ export const COLORS = {
     // Brand
     primary: '#376BF5',
     primaryLight: '#EFF6FF',
+    // Legacy orange: still used by the web app (charts, headings) until it
+    // moves to the blue and sky palette. Mobile uses sky / rating instead.
     secondary: '#FFA500',
     secondaryForeground: '#FFFFFF',
     secondaryLight: '#FFF3E0',
+    // Sky: the second blue (secondary buttons, landlord role, highlights).
+    sky: '#0369A1',
+    skyBorder: '#0284C7',
+    skyLight: '#E0F2FE',
+    // Star ratings.
+    rating: '#FBBF24',
 
     // Text & Neutral
     textPrimary: '#333333',
@@ -42,6 +50,10 @@ export const COLORS = {
     secondary: '#FFA500',
     secondaryForeground: '#FFFFFF',
     secondaryLight: '#2E2212',
+    sky: '#7DD3FC',
+    skyBorder: '#38BDF8',
+    skyLight: '#0C2A3D',
+    rating: '#FBBF24',
 
     // Text & Neutral
     textPrimary: '#F0F0F0',

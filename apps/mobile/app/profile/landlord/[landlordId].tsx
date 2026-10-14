@@ -139,7 +139,7 @@ export default function PublicLandlordProfile() {
             {
               label: 'Average Rating',
               value: `${stats.averageRating}/5`,
-              valueColor: 'text-secondary',
+              valueColor: 'text-accent',
             },
             {
               label: 'Member Since',
