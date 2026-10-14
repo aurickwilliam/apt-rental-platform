@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-14)
 
 ## Corpus Check
-- 1392 files · ~1,052,719 words
+- 1392 files · ~1,052,858 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 31 file(s) not represented in the graph (top: (none) 14, .ttf 7, .kiro 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0e867b55`
+- Built from commit: `aa78efed`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1265,7 +1265,7 @@ Nodes (13): PropertyActions(), formatBadgeCount(), QuickActionButton(), QuickAct
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `@heroui/react` connect `@heroui/react` to `landlord/profile/page.tsx`, `create/page.tsx`, `UsersClient.tsx`, `SignUpForm.tsx`, `APT Admin Web Portal — Implementation Plan`, `web/package.json`, `ref_next`, `carousel.tsx`, `framer-motion`, `profile/UserAvatar.tsx`, `payments/page.tsx`, `ApplyStartModal.tsx`, `user-display.ts`, `admin/users/[id]/page.tsx`, `ApplyClient.tsx`, `my-rental/page.tsx`, `DashboardCharts.tsx`, `admin/dashboard/page.tsx`, `TeamSection.tsx`, `payment/page.tsx`, `ApartmentsClient.tsx`, `passport/src/index.ts`, `PassportDocumentDetailClient.tsx`, `service/favoritesService.ts`, `ApartmentRatingsView.tsx`, `PropertyDetailClient.tsx`, `VerificationQueues.tsx`, `ForgotPasswordClient.tsx`, `payment/utils.ts`, `chart.tsx`, `createClient`, `ProfileForm.tsx`, `tenant/browse/page.tsx`, `PassportUploadForm.tsx`, `AppSidebar.tsx`, `pap/page.tsx`, `tos/page.tsx`, `Panel`, `UserAvatar`, `PassportProfileCard.tsx`, `MobileVerifyClient.tsx`, `landlord/messages/components/ConversationView.tsx`, `admin-filters.ts`, `UsersTable.tsx`, `ActivityClient.tsx`, `BrowseSectionsList.tsx`, `history/page.tsx`, `LeaseDocumentPreview.tsx`, `DesktopVerifyWizard.tsx`, `ApartmentsTable.tsx`, `lucide-react`, `service/maintenanceService.ts`, `FilterContainer.tsx`, `browser.ts`, `use-favorites.ts`, `use-review-unlock.ts`, `GeneralTab.tsx`, `maintenance-requests/page.tsx`, `web/app/tenant/payment/components/PaymentMethodSelector.tsx`, `use-user.ts`, `landlord/applications/[applicationId]/page.tsx`, `AppNavbar.tsx`, `admin/apartments/[id]/page.tsx`, `careers/page.tsx`, `RateApartmentForm.tsx`, `FilterPillGroup.tsx`, `service/paymongoService.ts`, `SettingsModal.tsx`, `VerifyClient.tsx`, `ReviewsClient.tsx`, `ReviewCard.tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `BrowsePageSkeleton.tsx`, `company/page.tsx`, `CreateApartmentSkeleton.tsx`, `(main)/page.tsx`, `ApartmentDetailSkeleton`, `usePasswordValidation`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+  _High betweenness centrality (0.064) - this node is a cross-community bridge._
 - **Are the 5 inferred relationships involving `useColors()` (e.g. with `24. Known Design Debt` and `Current implementation and problems`) actually correct?**
   _`useColors()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@expo/dom-webview`, `@expo/metro-runtime`, `@miblanchard/react-native-slider` to the rest of the system?**
