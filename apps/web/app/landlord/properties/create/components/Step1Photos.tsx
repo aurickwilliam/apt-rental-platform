@@ -62,7 +62,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
         onChange={(v) => updateForm({ name: v })}
         isInvalid={!!errors.name}
       >
-        <Label>Listing Title</Label>
+        <Label>Listing Title <span className="text-danger">*</span></Label>
         <Input
           placeholder="e.g. Cozy 1BR Studio near BGC"
           className="rounded-lg bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"

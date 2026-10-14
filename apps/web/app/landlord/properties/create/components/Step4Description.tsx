@@ -45,7 +45,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
         isInvalid={!!errors.description} 
         className="w-full"
       >
-        <Label>Description</Label>
+        <Label>Description <span className="text-danger">*</span></Label>
         
         <TextArea
           placeholder="Tell tenants about the property — location highlights, nearby establishments, house rules, what's included, etc."
