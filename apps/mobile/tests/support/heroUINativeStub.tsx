@@ -12,12 +12,13 @@ interface PressableStubProps extends ChildrenProps {
   onPress?: () => void;
   isDisabled?: boolean;
   accessibilityLabel?: string;
+  className?: string;
 }
 
 const Passthrough = ({ children }: ChildrenProps) => <View>{children}</View>;
 const TextStub = ({ children }: ChildrenProps) => <Text>{children}</Text>;
 
-function PressableStub({ children, onPress, isDisabled, accessibilityLabel }: PressableStubProps) {
+function PressableStub({ children, onPress, isDisabled, accessibilityLabel, className }: PressableStubProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -25,6 +26,7 @@ function PressableStub({ children, onPress, isDisabled, accessibilityLabel }: Pr
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: !!isDisabled }}
+      className={className}
     >
       {children}
     </Pressable>
@@ -36,7 +38,7 @@ export const CloseButton = PressableStub;
 export const LinkButton = Object.assign(PressableStub, { Label: TextStub });
 
 export const TextField = Passthrough;
-export const Label = TextStub;
+export const Label = Object.assign(TextStub, { Text: TextStub });
 export const FieldError = TextStub;
 export const Input = (props: TextInputProps) => <TextInput {...props} />;
 export const InputGroup = Object.assign(Passthrough, { Input, Prefix: Passthrough, Suffix: Passthrough });

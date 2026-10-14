@@ -1,6 +1,7 @@
 export { useGoogleAuth } from './useGoogleAuth';
 export { useCurrentUser, useCurrentUserId } from './useCurrentUser';
 export { useProfile } from './useProfile';
+export { useEditProfile } from './useEditProfile';
 export type { UserProfile } from './useProfile';
 export { useCountdown } from './useCountdown';
 export { useSuspensionGuard } from './useSuspensionGuard';
