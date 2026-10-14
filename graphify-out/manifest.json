@@ -2030,8 +2030,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/MessageClient.tsx": {
-    "mtime": 1791790422.6154165,
-    "ast_hash": "8fc796848ab5dae9ccd1a30502660d31",
+    "mtime": 1791965951.6270435,
+    "ast_hash": "78aad38ed3e4950a68479596bb0303e1",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/MessageInput.tsx": {
@@ -2045,8 +2045,8 @@
     "semantic_hash": "cf5eafcacbdfc836c723822bcab9e380"
   },
   "apps/web/app/landlord/messages/page.tsx": {
-    "mtime": 1791965593.6805193,
-    "ast_hash": "135452617de5bdf48afa67e3ff58db78",
+    "mtime": 1791965951.6276224,
+    "ast_hash": "114c54f3352e259b3eb4186d5fc70b2a",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/page.tsx": {
@@ -2205,8 +2205,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/MessageClient.tsx": {
-    "mtime": 1791790422.6217575,
-    "ast_hash": "61afa8af4dbd13d2d3fbcdbef96ea2c9",
+    "mtime": 1791965951.6268601,
+    "ast_hash": "96a49c827c9c24c2d79d58cb6a680721",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/MessageInput.tsx": {
@@ -2220,8 +2220,8 @@
     "semantic_hash": "84baf6048c259e15d30d602187160665"
   },
   "apps/web/app/tenant/messages/page.tsx": {
-    "mtime": 1791965570.3599267,
-    "ast_hash": "f1ef74a08dc18147b0596d4630e50c9f",
+    "mtime": 1791965951.627406,
+    "ast_hash": "e98a46b66527d806493ecc0cb5a3ab33",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/DashboardCard.tsx": {
@@ -2970,8 +2970,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1791965634.6258953,
-    "ast_hash": "846a95350069b2ec381ae609a302fbc5",
+    "mtime": 1791965972.7008483,
+    "ast_hash": "8e1dd411c1e39eb040b994158c61abc0",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -7265,13 +7265,18 @@
     "semantic_hash": ""
   },
   "apps/web/lib/conversation-contacts.test.mjs": {
-    "mtime": 1791965593.687002,
-    "ast_hash": "340a5fc84f1499eacfb7fb612989feff",
+    "mtime": 1791965951.6280541,
+    "ast_hash": "97030c0d43e4e6eab5ba72525cbd6a35",
     "semantic_hash": ""
   },
   "apps/web/lib/conversation-contacts.ts": {
-    "mtime": 1791965560.1258457,
-    "ast_hash": "60d4bbe7d1273d51345467b971ad638c",
+    "mtime": 1791965951.6272666,
+    "ast_hash": "34760dd318022ba7452202aaea66ccf3",
+    "semantic_hash": ""
+  },
+  "apps/web/hooks/use-new-conversation-refresh.ts": {
+    "mtime": 1791965927.9450936,
+    "ast_hash": "d47b9b2524ba22553aa46c42af77463b",
     "semantic_hash": ""
   }
 }
