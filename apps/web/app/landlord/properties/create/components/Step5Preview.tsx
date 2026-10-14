@@ -60,9 +60,16 @@ export default function Step5Preview({ formData }: Props) {
   const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
   const totalMoveInCost = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
 
-  const costBreakdown = [
+  const costBreakdown: { label: string; value: string; sub?: string }[] = [
     { label: "Monthly Rent", value: formatPesoDisplay(formData.monthly_rent) },
-    { label: "Security Deposit", value: formatPesoDisplay(securityDepositAmount) },
+    {
+      label: "Security Deposit",
+      value: formatPesoDisplay(securityDepositAmount),
+      sub:
+        formData.security_deposit_months > 0
+          ? `(${formData.security_deposit_months} month${formData.security_deposit_months !== 1 ? "s" : ""})`
+          : undefined,
+    },
     { label: "Advance Payment", value: formatPesoDisplay(advanceRentAmount) },
   ];
 
@@ -151,9 +158,14 @@ export default function Step5Preview({ formData }: Props) {
 
               <Card.Content>
                 <div className="flex flex-col gap-3 bg-muted p-4 rounded-lg">
-                  {costBreakdown.map(({ label, value }) => (
+                  {costBreakdown.map(({ label, value, sub }) => (
                     <div key={label} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{label}</span>
+                      <span className="text-muted-foreground">
+                        {label}
+                        {sub ? (
+                          <span className="ml-1 text-xs font-normal">{sub}</span>
+                        ) : null}
+                      </span>
                       <span className="font-medium text-foreground">{value}</span>
                     </div>
                   ))}
