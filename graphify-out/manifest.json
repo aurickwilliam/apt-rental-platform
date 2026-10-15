@@ -2005,23 +2005,23 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/ConversationView.tsx": {
-    "mtime": 1791992883.5197814,
-    "ast_hash": "b011873e0d4cfc5062ab15676fdf02ff",
+    "mtime": 1792070635.220331,
+    "ast_hash": "f247bebcf87c09a81bd1b03e6262b83a",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/MessageClient.tsx": {
-    "mtime": 1791992883.520312,
-    "ast_hash": "78aad38ed3e4950a68479596bb0303e1",
+    "mtime": 1792070635.220569,
+    "ast_hash": "6989324dab46d9772961a5704100587f",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/MessageInput.tsx": {
-    "mtime": 1788409087.1530628,
-    "ast_hash": "3b7e10ac2e2d82363a2009bcd03a046f",
+    "mtime": 1792070635.2208488,
+    "ast_hash": "5e2f127f26072a2b1e9cac84a9a62f68",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/components/types.ts": {
-    "mtime": 1787060341.9595325,
-    "ast_hash": "cf5eafcacbdfc836c723822bcab9e380",
+    "mtime": 1792070635.221037,
+    "ast_hash": "d13a2002aecdbe24bd97e5f826ffc6e1",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/messages/page.tsx": {
@@ -2040,8 +2040,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/PropertiesTable.tsx": {
-    "mtime": 1792049090.4904003,
-    "ast_hash": "00721e08b6254264f74341ad0aefed28",
+    "mtime": 1792070635.2212782,
+    "ast_hash": "e2a03eedd9797ef9f8ebbd369bb56c4c",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/PropertiesTableSection.tsx": {
@@ -2170,28 +2170,28 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/ConversationView.tsx": {
-    "mtime": 1791992883.5349436,
-    "ast_hash": "e19cf60dc0dbef9f7e7ee48ebd15f477",
+    "mtime": 1792070635.221394,
+    "ast_hash": "f247bebcf87c09a81bd1b03e6262b83a",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/MessageClient.tsx": {
-    "mtime": 1791992883.5350678,
-    "ast_hash": "96a49c827c9c24c2d79d58cb6a680721",
+    "mtime": 1792070635.2215,
+    "ast_hash": "d21d94b7d37750ade7e18015d72b60b9",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/MessageInput.tsx": {
-    "mtime": 1788409087.1539855,
-    "ast_hash": "68d8bf41def05177691b3cc223611ddf",
+    "mtime": 1792070635.2216148,
+    "ast_hash": "5e2f127f26072a2b1e9cac84a9a62f68",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/types.ts": {
-    "mtime": 1787060341.9738286,
-    "ast_hash": "84baf6048c259e15d30d602187160665",
+    "mtime": 1792070635.2218075,
+    "ast_hash": "c62f637dd6d4ec77879d1c2e9e1d366d",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/page.tsx": {
-    "mtime": 1791992883.5352414,
-    "ast_hash": "e98a46b66527d806493ecc0cb5a3ab33",
+    "mtime": 1792070635.2219799,
+    "ast_hash": "75c464670de4a97727d24eeafb8f2c27",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/DashboardCard.tsx": {
@@ -2215,8 +2215,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/page.tsx": {
-    "mtime": 1792049156.4197934,
-    "ast_hash": "a5526c938fe44d5d1745f4dfedf7f050",
+    "mtime": 1792070635.2222116,
+    "ast_hash": "dc373b0457bda967fb3acb92564ffcd7",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/types.ts": {
@@ -2935,13 +2935,13 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792038000.2552063,
-    "ast_hash": "c7aac8c0189048a6d0c9f92f8d62e1b4",
+    "mtime": 1792070635.2180808,
+    "ast_hash": "5a7c2a6a757144b6259b7a48e9a7f870",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792051971.4826748,
-    "ast_hash": "7c406b0859ba58db5fe753013548f1aa",
+    "mtime": 1792070635.2185223,
+    "ast_hash": "9f04273f1b989212507531d6727a4f06",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -7817,6 +7817,76 @@
   "apps/mobile/constants/addApartmentSteps.ts": {
     "mtime": 1792051936.7209063,
     "ast_hash": "2c0b1e832dc7e80d60e7dfcd10236ad7",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/EmojiInsertPanel.tsx": {
+    "mtime": 1792070635.2186828,
+    "ast_hash": "7299c54034aee1eb10dd51fd598cd100",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/GiphyPicker.tsx": {
+    "mtime": 1792070635.218772,
+    "ast_hash": "d7d13d38a8a48718d653914a7b5a9a5e",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/GiphyPickerSheet.tsx": {
+    "mtime": 1792070635.2188327,
+    "ast_hash": "517d53b54a369c92ced12712a5185d8b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/MessageBubble.tsx": {
+    "mtime": 1792070635.218948,
+    "ast_hash": "d814010ce7487ab521d71185dd64e258",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/MessageContextMenu.tsx": {
+    "mtime": 1792070635.2190127,
+    "ast_hash": "8c6e802a37f004ecc20daa02a0f0f6d9",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/MessageInput.tsx": {
+    "mtime": 1792070635.2192328,
+    "ast_hash": "7550cf685a039ff6d18efd2282d20acf",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/ReactionStrip.tsx": {
+    "mtime": 1792070635.2193015,
+    "ast_hash": "daaa634d297c3fdbc73b68a0f85aa1e6",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/attachments.ts": {
+    "mtime": 1792070635.2194147,
+    "ast_hash": "e12865717cdc70143b746c32e5ffd929",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/chatReactions.ts": {
+    "mtime": 1792070635.2194934,
+    "ast_hash": "f895d336cd50d8e4a839fc6b292ff617",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/emojiRecents.ts": {
+    "mtime": 1792070635.2195485,
+    "ast_hash": "3c6342da125e260e79a17a8e401a0176",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/giphy.ts": {
+    "mtime": 1792070635.2196078,
+    "ast_hash": "6776224d945c68e0983ac280e7f48fe2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/reactionEmojis.ts": {
+    "mtime": 1792070635.219685,
+    "ast_hash": "f26230bd07a190e5d2d11435180b149b",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/types.ts": {
+    "mtime": 1792070635.2197409,
+    "ast_hash": "c92c117a81bef2324068a32d460bcf8e",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/chat/useConversation.ts": {
+    "mtime": 1792070635.2198358,
+    "ast_hash": "bbc87f3f5cd1003cff3ff4aaebad5f3c",
     "semantic_hash": ""
   }
 }

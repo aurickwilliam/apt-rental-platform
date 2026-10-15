@@ -249,7 +249,7 @@ export default function ThirdStep() {
           <Button
             variant="outline"
             onPress={() => router.back()}
-            className="flex-1"
+            className="flex-1 bg-surface"
           >
             <Button.Label>Back</Button.Label>
           </Button>
