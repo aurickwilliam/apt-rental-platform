@@ -42,7 +42,10 @@ export async function fetchBrowseResults(
     { count: "exact" },
   );
 
-  query = query.is('deleted_at', null).eq('is_hidden_by_admin', false);
+  query = query
+    .is('deleted_at', null)
+    .eq('is_hidden_by_admin', false)
+    .in("status", ["available", "unverified"]);
 
   // Cards only ever read the cover image: order covers first and fetch one
   // image row per apartment instead of the whole gallery.

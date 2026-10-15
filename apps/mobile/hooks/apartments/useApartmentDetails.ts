@@ -36,13 +36,16 @@ export function useApartmentDetails(
     enabled: !!apartmentId && includeReviews,
   });
 
-  const error = apartmentQuery.error?.message ?? (includeReviews ? reviewsQuery.error?.message ?? null : null);
+  const reviewsError = includeReviews ? (reviewsQuery.error?.message ?? null) : null;
 
   return {
     apartment: apartmentQuery.data ?? null,
     reviews: includeReviews ? (reviewsQuery.data ?? []) : [],
-    loading: apartmentQuery.isLoading || (includeReviews && reviewsQuery.isLoading),
-    error,
+    loading: apartmentQuery.isLoading,
+    reviewsLoading: includeReviews && reviewsQuery.isLoading,
+    error: apartmentQuery.error?.message ?? null,
+    reviewsError,
     refetch: apartmentQuery.refetch,
+    refetchReviews: reviewsQuery.refetch,
   };
 }

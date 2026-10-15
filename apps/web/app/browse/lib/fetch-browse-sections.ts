@@ -38,34 +38,6 @@ interface SectionRow {
   }> | null;
 }
 
-// Default browse = no search text, no filters, first page. Mirrors the mobile
-// search tab, which only shows curated sections in this state.
-const FILTER_KEYS = [
-  "search",
-  "locations",
-  "price_min",
-  "price_max",
-  "apt_types",
-  "bedrooms",
-  "bathrooms",
-  "size_min",
-  "size_max",
-  "furnishing",
-  "floor_level",
-  "lease",
-  "amenities",
-  "sort",
-  "verified",
-] as const;
-
-export function isDefaultBrowseParams(params: Record<string, string>): boolean {
-  if (params.page && params.page !== "1") return false;
-  return !FILTER_KEYS.some((key) => {
-    const value = params[key];
-    return value != null && value !== "";
-  });
-}
-
 // Cohort → filtered-grid mapping for See All. Cohorts without a filter
 // equivalent (near_you, all_results) return null and render no chevron.
 function seeAllQuery(sectionId: string): string | null {
@@ -120,7 +92,8 @@ export async function fetchBrowseSections(
       .from("apartments")
       .select("id", { count: "exact", head: true })
       .is("deleted_at", null)
-      .eq("is_hidden_by_admin", false),
+      .eq("is_hidden_by_admin", false)
+      .in("status", ["available", "unverified"]),
   ]);
 
   const totalCount = countRes.count ?? 0;

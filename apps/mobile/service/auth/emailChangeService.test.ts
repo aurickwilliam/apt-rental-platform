@@ -2,7 +2,7 @@ import {
   getEmailChangeAccount,
   getEmailChangeEligibility,
   requestEmailChange,
-  resendEmailChangeCode,
+  resendEmailChangeCodes,
   verifyEmailChangeCode,
 } from "./emailChangeService";
 import { EmailChangeError } from "@repo/utils";
@@ -101,21 +101,45 @@ describe("emailChangeService", () => {
     });
   });
 
-  it("resends through the email_change type", async () => {
-    await resendEmailChangeCode(CURRENT);
+  it("resends both codes keyed by the current address", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { ...emailUser, new_email: NEXT } },
+      error: null,
+    });
+    await resendEmailChangeCodes();
     expect(mockResend).toHaveBeenCalledWith({ type: "email_change", email: CURRENT });
   });
 
   it("syncs the profile and signs other sessions out on completion", async () => {
     mockGetUser
       .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null })
-      .mockResolvedValueOnce({ data: { user: { ...emailUser, email: NEXT, new_email: null } }, error: null })
       .mockResolvedValueOnce({ data: { user: { ...emailUser, email: NEXT, new_email: null } }, error: null });
 
-    const result = await verifyEmailChangeCode(NEXT, "123456", NEXT);
-    expect(result.completed).toBe(true);
+    const result = await verifyEmailChangeCode("new", "123456", NEXT);
+    expect(result).toMatchObject({ completed: true, signOutFailed: false, profileSyncFailed: false });
+    expect(mockVerifyOtp).toHaveBeenCalledWith({ email: NEXT, token: "123456", type: "email_change" });
     expect(mockRpc).toHaveBeenCalledWith("sync_my_profile_email");
     expect(mockSignOut).toHaveBeenCalledWith({ scope: "others" });
+  });
+
+  it("reports a failed profile sync without hiding the completed change", async () => {
+    mockGetUser
+      .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null })
+      .mockResolvedValueOnce({ data: { user: { ...emailUser, email: NEXT, new_email: null } }, error: null });
+    mockRpc.mockResolvedValueOnce({ error: { name: "PostgrestError", code: "42501" } });
+
+    const result = await verifyEmailChangeCode("new", "123456", NEXT);
+    expect(result).toMatchObject({ completed: true, profileSyncFailed: true });
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: "others" });
+  });
+
+  it("neither syncs nor signs out after only one inbox confirms", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { ...emailUser, new_email: NEXT } }, error: null });
+
+    const result = await verifyEmailChangeCode("current", "123456", NEXT);
+    expect(result.completed).toBe(false);
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockSignOut).not.toHaveBeenCalled();
   });
 
   it("refuses suspended accounts without contacting Auth update", async () => {

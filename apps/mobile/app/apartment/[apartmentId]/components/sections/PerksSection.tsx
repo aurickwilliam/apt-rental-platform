@@ -7,6 +7,7 @@ import PerkItem from 'components/display/PerkItem';
 
 import { useColors } from 'hooks/useTheme';
 import SectionHeader, { SeeAllButton } from '@/components/display/SectionHeader';
+import SectionCard from '../SectionCard';
 
 const PERKS_LIMIT = 10;
 
@@ -19,28 +20,31 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
   const { colors } = useColors();
   const router = useRouter();
 
-  const hasPerks = (amenities?.length ?? 0) > 0;
-  const displayAmenities = amenities?.slice(0, PERKS_LIMIT);
+  // A listing can repeat an amenity; show (and key) each one once.
+  const uniqueAmenities = Array.from(new Set(amenities ?? []));
+  const hasPerks = uniqueAmenities.length > 0;
+  const displayAmenities = uniqueAmenities.slice(0, PERKS_LIMIT);
 
   return (
-    <>
+    <SectionCard>
       <SectionHeader
         icon={<IconSquareCheck size={26} color={colors.textPrimary} />}
         title="Included Perks"
         subtitle="These are already included in your rent."
         action={
-          (amenities?.length ?? 0) > PERKS_LIMIT ? (
+          uniqueAmenities.length > PERKS_LIMIT ? (
             <SeeAllButton
               onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
             />
           ) : undefined
         }
+        className='p-0 mt-0'
       />
 
-      <View className='flex-row flex-wrap px-5 mt-5'>
+      <View className='flex-row flex-wrap mt-5 -mb-4'>
         {hasPerks ? (
-          displayAmenities?.map((amenity, index) => (
-            <View key={index} className='w-1/2 mb-4'>
+          displayAmenities.map((amenity) => (
+            <View key={amenity} className='w-1/2 mb-4'>
               <PerkItem perkId={amenity} />
             </View>
           ))
@@ -52,6 +56,6 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
           </View>
         )}
       </View>
-    </>
+    </SectionCard>
   );
 }

@@ -6,22 +6,24 @@ import type { ApartmentDetails } from 'hooks/apartments';
 
 type LandlordSectionProps = {
   landlord: ApartmentDetails['landlord'];
-  totalRentals?: number | null;
   onPress: () => void;
   onMessagePress: () => void;
 };
 
 export default function LandlordSection({
   landlord,
-  totalRentals,
   onPress,
   onMessagePress,
 }: LandlordSectionProps) {
+  const fullName = [landlord?.first_name, landlord?.last_name]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <View className='px-5'>
       <LandlordCard
-        fullName={`${landlord?.first_name} ${landlord?.last_name}`}
-        totalRentals={totalRentals ?? undefined}
+        fullName={fullName || 'Landlord'}
+        profilePictureUrl={landlord?.avatar_url}
         onPress={onPress}
         onMessagePress={onMessagePress}
       />

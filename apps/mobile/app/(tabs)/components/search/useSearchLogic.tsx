@@ -275,7 +275,11 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
   );
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    // An empty list fires onEndReached right away; paging from offset 10 then
+    // fails with PGRST103, so only page once a first page has loaded.
+    if (loadingMore || loading || refreshing || !hasMore || apartments.length === 0) {
+      return;
+    }
     try {
       setLoadingMore(true);
       const nextPage = pageRef.current + 1;
@@ -304,11 +308,25 @@ export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {
         setHasMore(transformed.length === PAGE_SIZE);
       }
     } catch (err: any) {
-      console.error("Error loading more:", err);
+      // PGRST103: the requested range starts past the last row, i.e. the end.
+      if (err?.code === "PGRST103") {
+        setHasMore(false);
+      } else {
+        console.error("Error loading more:", err);
+      }
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, selectedCity, filters, committedSearch]);
+  }, [
+    loadingMore,
+    loading,
+    refreshing,
+    hasMore,
+    apartments.length,
+    selectedCity,
+    filters,
+    committedSearch,
+  ]);
 
   // Restore the account's last browse inputs once on mount. The initial
   // fetch is gated on hydration so defaults never flash a throwaway query.

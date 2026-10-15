@@ -11,10 +11,8 @@ import {
   FieldError,
   Form,
   Input,
-  InputOTP,
   Label,
   Link as HeroLink,
-  REGEXP_ONLY_DIGITS,
   TextField,
 } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
@@ -29,6 +27,7 @@ import {
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import CodeInput from "@/app/components/inputs/CodeInput";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   requestPasswordRecovery,
@@ -41,11 +40,6 @@ type Step = "email" | "code" | "google_only";
 // Errors shown under the code input; anything else shows the error banner.
 const INLINE_CODE_ERRORS = new Set<PasswordErrorReason>(["invalid_or_expired_code", "rate_limited"]);
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
-
-// Bordered, shadowless slots matching the site's text inputs (and the mobile
-// code input). `!`: @heroui/styles' slot rules are unlayered CSS.
-const CODE_SLOT_CLASS =
-  "rounded-xl! border! border-input! bg-card! shadow-none! data-[active=true]:border-[#376BF5]! data-[active=true]:ring-2 data-[active=true]:ring-[#376BF5]/15 data-[invalid=true]:border-danger!";
 
 function messageFor(reason: PasswordErrorReason): string {
   return new PasswordError(reason).message;
@@ -250,35 +244,18 @@ export default function ForgotPasswordClient() {
         {error && <ErrorBanner message={error} />}
 
         <div className="mt-[clamp(1.5rem,4vh,2rem)] flex flex-col items-center gap-4">
-          <InputOTP
-            aria-label="6-digit code"
-            maxLength={RECOVERY_CODE_LENGTH}
+          <CodeInput
             value={code}
             onChange={(value) => {
               setCode(value);
               if (codeError) setCodeError(null);
             }}
             onComplete={(value: string) => void handleVerify(value)}
+            length={RECOVERY_CODE_LENGTH}
             isInvalid={!!codeError}
             isDisabled={verifying}
-            pattern={REGEXP_ONLY_DIGITS}
-            inputMode="numeric"
-            autoComplete="one-time-code"
             autoFocus
-            className="justify-center"
-          >
-            <InputOTP.Group>
-              <InputOTP.Slot index={0} className={CODE_SLOT_CLASS} />
-              <InputOTP.Slot index={1} className={CODE_SLOT_CLASS} />
-              <InputOTP.Slot index={2} className={CODE_SLOT_CLASS} />
-            </InputOTP.Group>
-            <InputOTP.Separator />
-            <InputOTP.Group>
-              <InputOTP.Slot index={3} className={CODE_SLOT_CLASS} />
-              <InputOTP.Slot index={4} className={CODE_SLOT_CLASS} />
-              <InputOTP.Slot index={5} className={CODE_SLOT_CLASS} />
-            </InputOTP.Group>
-          </InputOTP>
+          />
 
           {codeError && (
             <p role="alert" className="text-center text-sm text-danger">

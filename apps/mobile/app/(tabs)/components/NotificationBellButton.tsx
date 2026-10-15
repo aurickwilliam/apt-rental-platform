@@ -33,7 +33,7 @@ export default function NotificationBellButton({ route, tone = "default" }: Noti
         <IconBell size={26} color={tone === "onImage" ? ON_IMAGE_ICON_COLOR : colors.gray500} />
 
         {unreadCount > 0 && (
-          <View className="absolute -top-1 -right-1 min-w-5.5 h-5.5 px-1 rounded-full bg-accent items-center justify-center border-2 border-background">
+          <View className="absolute -top-1 -right-1 min-w-5.5 h-5.5 px-1 rounded-full bg-danger items-center justify-center border-2 border-background">
             <Text className="text-white text-[10px] font-nunitoSemiBold">
               {unreadCount > 9 ? "9+" : unreadCount}
             </Text>

@@ -122,9 +122,8 @@ export default function SectionDetail() {
             }
           />
         }
-        className="p-5"
       >
-        <SearchGridSkeleton count={isGridView ? 6 : 4} isGrid={isGridView} />
+        <SearchGridSkeleton count={isGridView ? 6 : 4} isGrid={isGridView} paddingTop={16} />
       </ScreenWrapper>
     );
   }

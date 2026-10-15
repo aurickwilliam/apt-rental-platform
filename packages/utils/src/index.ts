@@ -60,8 +60,9 @@ export {
   type EmailChangeStatus,
   getEmailChangeStatus,
   type EmailChangeVerification,
+  type EmailChangeInbox,
   verifyEmailChangeCodeWith,
-  resendEmailChangeCodeWith,
+  resendEmailChangeCodesWith,
   signOutOtherSessionsAfterEmailChange,
 } from './emailChange';
 export {

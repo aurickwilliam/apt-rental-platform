@@ -1,4 +1,7 @@
-export { default as ApartmentHeroSection } from './sections/ApartmentHeroSection';
+export {
+  default as ApartmentHeroSection,
+  APARTMENT_HERO_HEIGHT,
+} from './sections/ApartmentHeroSection';
 export { default as ApartmentSkeleton } from './ApartmentSkeleton';
 export { default as ApartmentDescriptionSection } from './sections/ApartmentDescriptionSection';
 export { default as PerksSection } from './sections/PerksSection';

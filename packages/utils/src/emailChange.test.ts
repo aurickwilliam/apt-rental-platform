@@ -5,7 +5,7 @@ import {
   isEmailChangeCodeFormat,
   normalizeEmailChangeEmail,
   requestEmailChangeWith,
-  resendEmailChangeCodeWith,
+  resendEmailChangeCodesWith,
   signOutOtherSessionsAfterEmailChange,
   verifyEmailChangeCodeWith,
   type EmailChangeAuth,
@@ -88,6 +88,7 @@ describe("emailChange helpers", () => {
     ["invalid_or_expired_code", "code"],
     ["rate_limited", "code"],
     ["session_expired", "general"],
+    ["no_pending_change", "general"],
     ["unknown", "general"],
   ])("shows %s under the %s field", (reason, field) => {
     expect(getEmailChangeErrorField(reason)).toBe(field);
@@ -167,9 +168,8 @@ describe("verifyEmailChangeCodeWith", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null })
-      .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null });
+    mockGetUser.mockReset();
+    mockGetUser.mockResolvedValue({ data: { user: { ...emailUser, new_email: NEXT } }, error: null });
     mockVerifyOtp.mockResolvedValue({ data: { user: emailUser }, error: null });
   });
 
@@ -184,10 +184,15 @@ describe("verifyEmailChangeCodeWith", () => {
   });
 
   it("does not complete after only the first code", async () => {
-    const result = await verifyEmailChangeCodeWith(auth, CURRENT, CODE, NEXT);
+    const result = await verifyEmailChangeCodeWith(auth, "current", CODE, NEXT);
 
     expect(mockVerifyOtp).toHaveBeenCalledWith({ email: CURRENT, token: CODE, type: "email_change" });
     expect(result).toMatchObject({ completed: false, pendingNewEmail: NEXT });
+  });
+
+  it("pairs each inbox with this account's own address from Auth", async () => {
+    await verifyEmailChangeCodeWith(auth, "new", CODE);
+    expect(mockVerifyOtp).toHaveBeenCalledWith({ email: NEXT, token: CODE, type: "email_change" });
   });
 
   it("completes when Auth shows the new canonical address", async () => {
@@ -196,12 +201,37 @@ describe("verifyEmailChangeCodeWith", () => {
       .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null })
       .mockResolvedValueOnce({ data: { user: { ...emailUser, email: NEXT, new_email: null } }, error: null });
 
-    const result = await verifyEmailChangeCodeWith(auth, NEXT, CODE, NEXT);
-    expect(result).toMatchObject({ completed: true, email: NEXT, pendingNewEmail: null });
+    const result = await verifyEmailChangeCodeWith(auth, "new", CODE, NEXT);
+    expect(result).toEqual({ completed: true, email: NEXT, pendingNewEmail: null });
+  });
+
+  it("never reports success when the canonical address is not the pending one", async () => {
+    mockGetUser.mockReset();
+    mockGetUser
+      .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: NEXT } }, error: null })
+      .mockResolvedValueOnce({ data: { user: { ...emailUser, new_email: null } }, error: null });
+
+    await expectReason(verifyEmailChangeCodeWith(auth, "new", CODE, NEXT), "unknown");
+  });
+
+  it("refuses when no change is pending", async () => {
+    mockGetUser.mockReset();
+    mockGetUser.mockResolvedValue({ data: { user: emailUser }, error: null });
+
+    await expectReason(verifyEmailChangeCodeWith(auth, "current", CODE, NEXT), "no_pending_change");
+    expect(mockVerifyOtp).not.toHaveBeenCalled();
+  });
+
+  it("refuses when another device replaced the pending address", async () => {
+    await expectReason(
+      verifyEmailChangeCodeWith(auth, "new", CODE, "other@example.com"),
+      "no_pending_change",
+    );
+    expect(mockVerifyOtp).not.toHaveBeenCalled();
   });
 
   it("rejects malformed codes before calling Supabase", async () => {
-    await expectReason(verifyEmailChangeCodeWith(auth, CURRENT, "123", NEXT), "invalid_or_expired_code");
+    await expectReason(verifyEmailChangeCodeWith(auth, "current", "123", NEXT), "invalid_or_expired_code");
     expect(mockVerifyOtp).not.toHaveBeenCalled();
   });
 
@@ -210,7 +240,7 @@ describe("verifyEmailChangeCodeWith", () => {
       data: { user: null },
       error: authError({ code: "otp_expired", status: 403 }),
     });
-    await expectReason(verifyEmailChangeCodeWith(auth, CURRENT, CODE, NEXT), "invalid_or_expired_code");
+    await expectReason(verifyEmailChangeCodeWith(auth, "current", CODE, NEXT), "invalid_or_expired_code");
   });
 });
 
@@ -218,6 +248,8 @@ describe("emailChange status, resend, and sign-out", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, "error").mockImplementation(() => {});
+    // Earlier tests can leave unused once-values behind.
+    mockGetUser.mockReset();
     mockGetUser.mockResolvedValue({ data: { user: emailUser }, error: null });
     mockResend.mockResolvedValue({ error: null });
     mockSignOut.mockResolvedValue({ error: null });
@@ -232,16 +264,25 @@ describe("emailChange status, resend, and sign-out", () => {
       data: { user: { ...emailUser, new_email: NEXT } },
       error: null,
     });
-    await expect(getEmailChangeStatus(auth)).resolves.toMatchObject({
+    await expect(getEmailChangeStatus(auth)).resolves.toEqual({
       userId: "user-1",
       email: CURRENT,
       pendingNewEmail: NEXT,
     });
   });
 
-  it("resends through the email_change type", async () => {
-    await resendEmailChangeCodeWith(auth, CURRENT);
+  it("resends both codes keyed by the current address", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { ...emailUser, new_email: NEXT } },
+      error: null,
+    });
+    await resendEmailChangeCodesWith(auth);
     expect(mockResend).toHaveBeenCalledWith({ type: "email_change", email: CURRENT });
+  });
+
+  it("does not resend when no change is pending", async () => {
+    await expectReason(resendEmailChangeCodesWith(auth), "no_pending_change");
+    expect(mockResend).not.toHaveBeenCalled();
   });
 
   it("reports other-session sign-out failures instead of throwing", async () => {

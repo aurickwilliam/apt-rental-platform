@@ -15,6 +15,7 @@ import { useState } from "react";
 import { formatPesoDisplay } from "@repo/utils";
 import dynamic from "next/dynamic";
 import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
+import { isApartmentUnavailable } from "@/lib/apartment-availability";
 import type {
   ApplyStartApartment,
   ApplyStartViewer,
@@ -28,6 +29,7 @@ const ApplyStartModal = dynamic(
 
 interface PriceCardProps {
   price: number;
+  apartmentStatus?: string | null;
   securityDeposit: number | undefined;
   advancePayment: number | undefined;
   apartmentId?: string;
@@ -39,6 +41,7 @@ interface PriceCardProps {
 
 export default function PriceCard({
   price,
+  apartmentStatus,
   securityDeposit = 0,
   advancePayment = 0,
   apartmentId,
@@ -49,8 +52,10 @@ export default function PriceCard({
   const router = useRouter();
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const breakdownModal = useOverlayState();
+  const isUnavailable = isApartmentUnavailable(apartmentStatus);
 
   const handleApply = () => {
+    if (isUnavailable) return;
     if (applyViewer && applyApartment) setIsApplyOpen(true);
     else if (apartmentId) router.push(`${basePath}/${apartmentId}/apply`);
   };
@@ -114,8 +119,8 @@ export default function PriceCard({
           </Card.Content>
 
           <Card.Footer className="flex flex-col gap-2">
-            <Button fullWidth className="cursor-pointer" onPress={handleApply}>
-              Apply Now
+            <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isUnavailable}>
+              {isUnavailable ? "Not Available" : "Apply Now"}
             </Button>
 
             {apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
@@ -165,8 +170,8 @@ export default function PriceCard({
                 Move-in cost breakdown
               </Button>
             </div>
-            <Button className="flex-1 cursor-pointer" onPress={handleApply}>
-              Apply Now
+            <Button className="flex-1 cursor-pointer" onPress={handleApply} isDisabled={isUnavailable}>
+              {isUnavailable ? "Not Available" : "Apply Now"}
             </Button>
           </div>
         </div>

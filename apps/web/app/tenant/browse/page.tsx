@@ -10,7 +10,8 @@ import MobileFilterButton from "@/app/browse/components/MobileFilterButton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
-import { fetchBrowseSections, isDefaultBrowseParams } from "@/app/browse/lib/fetch-browse-sections";
+import { fetchBrowseSections } from "@/app/browse/lib/fetch-browse-sections";
+import { isDefaultBrowseParams } from "@/app/browse/lib/browse-params";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;

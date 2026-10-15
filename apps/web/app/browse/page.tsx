@@ -7,7 +7,8 @@ import MobileFilterButton from "./components/MobileFilterButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
-import { fetchBrowseSections, isDefaultBrowseParams } from "./lib/fetch-browse-sections";
+import { fetchBrowseSections } from "./lib/fetch-browse-sections";
+import { isDefaultBrowseParams } from "./lib/browse-params";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;

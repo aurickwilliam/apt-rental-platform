@@ -1,11 +1,10 @@
-import { View } from 'react-native';
-
 import { IconFileText } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
 import SectionHeader from '@/components/display/SectionHeader';
+import SectionCard from '../SectionCard';
 import { useLeaseAgreement } from '@/hooks/apartments';
 
 type LeaseAgreementSectionProps = {
@@ -19,7 +18,7 @@ export default function LeaseAgreementSection({
   const { openLeaseAgreement, isLoading } = useLeaseAgreement();
 
   return (
-    <View className="mt-10 px-5 flex gap-2">
+    <SectionCard className="gap-3">
       <SectionHeader
         icon={<IconFileText size={26} color={colors.textPrimary} />}
         title="Lease Agreement & Rules"
@@ -34,6 +33,6 @@ export default function LeaseAgreementSection({
       >
         <Button.Label>View Full Lease Agreement</Button.Label>
       </Button>
-    </View>
+    </SectionCard>
   );
 }
