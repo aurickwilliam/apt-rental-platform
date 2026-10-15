@@ -1,5 +1,5 @@
-import BrowsePageSkeleton from "@/app/browse/components/BrowsePageSkeleton";
+import BrowseLoadingSkeleton from "@/app/browse/components/BrowseLoadingSkeleton";
 
 export default function TenantBrowseLoading() {
-  return <BrowsePageSkeleton />;
+  return <BrowseLoadingSkeleton />;
 }

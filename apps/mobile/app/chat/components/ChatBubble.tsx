@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Keyboard, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
@@ -17,6 +19,15 @@ import { useColors } from '@/hooks/useTheme';
 import { isEmojiOnly } from '@/service/chat/chatService';
 
 import { HEART_REACTION } from './reactionEmojis';
+import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
+import SenderAvatar from './SenderAvatar';
+import SwipeToReply from './SwipeToReply';
+import TimestampRevealRow from './TimestampRevealRow';
+import { formatRevealTime } from './timestampReveal';
+
+/** Gap below a bubble: tight inside a same-sender run, else `mb-4`. */
+const ROW_GAP = 16;
+const GROUPED_ROW_GAP = 4;
 
 interface ChatBubbleProps {
   id?: string;
@@ -45,6 +56,16 @@ interface ChatBubbleProps {
     width: number;
     height: number;
   }) => void;
+  /** Place in a run of same-sender messages: joined corners and a tighter gap. */
+  groupPosition?: BubbleGroupPosition;
+  /** Sent bubbles: "Seen" under the newest message the other person has read. */
+  showSeen?: boolean;
+  /** Received bubbles: the sender's avatar beside the last bubble of a run. */
+  showSenderAvatar?: boolean;
+  otherUserAvatar?: string | null;
+  onSenderAvatarPress?: () => void;
+  /** Swipe toward the middle of the screen (or the accessibility action) to reply. */
+  onReply?: () => void;
   /** Hides the row (opacity-0, layout kept) while its elevated clone shows. */
   hidden?: boolean;
   /** @deprecated Use onHold. Kept for compat; fires with (true) on long-press. */
@@ -71,15 +92,29 @@ export interface ChatBubbleContentProps {
   onMediaLoadError?: (mediaKind: 'attachment' | 'thumbnail') => void;
   onLongPress?: () => void;
   onReact?: (emoji: string) => void;
+  /** Place in a run of same-sender messages; shrinks the joining corners of text bubbles. */
+  groupPosition?: BubbleGroupPosition;
 }
 
 const DOUBLE_TAP_WINDOW_MS = 300;
 
+/** Text bubble corners: `rounded-3xl`, shrinking where same-sender bubbles meet. */
+const BUBBLE_RADIUS = 24;
+const JOINED_CORNER_RADIUS = 6;
+
+function getGroupedCornerStyle(isSent: boolean, position: BubbleGroupPosition) {
+  const joinsAbove = position === 'middle' || position === 'last';
+  const joinsBelow = position === 'middle' || position === 'first';
+  const top = joinsAbove ? JOINED_CORNER_RADIUS : BUBBLE_RADIUS;
+  const bottom = joinsBelow ? JOINED_CORNER_RADIUS : BUBBLE_RADIUS;
+  return isSent
+    ? { borderTopRightRadius: top, borderBottomRightRadius: bottom }
+    : { borderTopLeftRadius: top, borderBottomLeftRadius: bottom };
+}
+
 export function playReactionHaptic() {
-  // Lazy + fire-and-forget, mirroring the expo-clipboard/expo-blur handling below.
-  import('expo-haptics')
-    .then((m) => m?.impactAsync?.(m?.ImpactFeedbackStyle?.Light))
-    .catch(() => {});
+  // Fire-and-forget; haptics are optional on unsupported devices.
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 /**
@@ -222,32 +257,27 @@ function getReplySnippet(reply: ReplyPreview): string {
   }
 }
 
-export function BlurBackdrop({ isDark }: { isDark: boolean }) {
-  const [BlurViewComp, setBlurViewComp] = useState<React.ComponentType<any> | null>(null);
+interface BlurBackdropProps {
+  isDark: boolean;
+  /** The content to blur. Required on Android, where the blur samples this view. */
+  blurTarget: RefObject<View | null>;
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    import('expo-blur')
-      .then((m) => {
-        if (!cancelled && m?.BlurView) setBlurViewComp(() => m.BlurView as React.ComponentType<any>);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (BlurViewComp) {
-    return (
-      <BlurViewComp
-        tint={isDark ? 'dark' : 'light'}
-        intensity={60}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        pointerEvents="none"
-      />
-    );
-  }
-  return null;
+/**
+ * Frosted backdrop behind a held message. Android only blurs when given a
+ * `BlurTargetView` and a blur method; without them it draws a plain tint.
+ */
+export function BlurBackdrop({ isDark, blurTarget }: BlurBackdropProps) {
+  return (
+    <BlurView
+      tint={isDark ? 'dark' : 'light'}
+      intensity={60}
+      blurTarget={blurTarget}
+      blurMethod="dimezisBlurViewSdk31Plus"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      pointerEvents="none"
+    />
+  );
 }
 
 /** Pure bubble body shared by the list row and the elevated clone above the backdrop. */
@@ -269,6 +299,7 @@ export function ChatBubbleContent({
   onMediaLoadError,
   onLongPress,
   onReact,
+  groupPosition = 'single',
 }: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -401,7 +432,10 @@ export function ChatBubbleContent({
           <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
       ) : (
-        <View className={`relative px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}>
+        <View
+          className={`relative px-3 py-2 rounded-3xl ${bubbleColor} ${replyOverlap}`}
+          style={getGroupedCornerStyle(isSent, groupPosition)}
+        >
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
           <ReactionBadge reactions={reactions} isSent={isSent} />
         </View>
@@ -429,6 +463,12 @@ export default function ChatBubble({
   onMediaLoadError,
   onReact,
   onHold,
+  onReply,
+  groupPosition = 'single',
+  showSeen = false,
+  showSenderAvatar = false,
+  otherUserAvatar,
+  onSenderAvatarPress,
   hidden = false,
   onMenuOpenChange,
 }: ChatBubbleProps) {
@@ -446,6 +486,11 @@ export default function ChatBubble({
   const contentAlignment = isSent ? 'items-end' : 'items-start';
 
   const canReact = !isPending && !!onReact;
+  const canReply = !isPending && !!onReply;
+  // A reaction badge hangs below its bubble, so it keeps the full gap.
+  const rowGap = continuesBelow(groupPosition) && reactions.length === 0 ? GROUPED_ROW_GAP : ROW_GAP;
+
+  const handleSwipeReply = useCallback(() => onReply?.(), [onReply]);
 
   const handleDoubleTap = useCallback(() => {
     playReactionHaptic();
@@ -484,39 +529,80 @@ export default function ChatBubble({
   }, []);
 
   return (
-    <View
-      ref={rowRef}
-      collapsable={false}
-      className={`max-w-[80%] mb-4 ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+    <TimestampRevealRow
+      isSent={isSent}
+      time={isPending ? '' : formatRevealTime(createdAt)}
+      bottomInset={rowGap}
     >
-      <Pressable
-        onPress={handleRowPress}
-        onLongPress={handleLongPress}
-        delayLongPress={350}
-        className={`w-full ${contentAlignment}`}
-        android_ripple={undefined}
-      >
-        <ChatBubbleContent
-          message={message}
-          messageType={messageType}
-          attachmentUrl={attachmentUrl}
-          attachmentPath={attachmentPath}
-          thumbnailUrl={thumbnailUrl}
-          thumbnailPath={thumbnailPath}
-          isSent={isSent}
-          replyTo={replyTo}
-          replyDeleted={replyDeleted}
-          otherUserName={otherUserName}
-          reactions={reactions}
-          interactive
-          canReact={canReact}
-          onImagePress={onImagePress}
-          onMediaLoadError={onMediaLoadError}
-          onLongPress={handleLongPress}
-          onReact={onReact}
-        />
-      </Pressable>
-    </View>
+      <View className={isSent ? undefined : 'flex-row items-end'}>
+        {/* Received rows keep the avatar's gutter so a run's bubbles line up. */}
+        {!isSent && (
+          <View className="w-8 mr-2" style={{ marginBottom: rowGap }}>
+            {showSenderAvatar && (
+              <SenderAvatar
+                name={otherUserName}
+                avatarUrl={otherUserAvatar}
+                onPress={onSenderAvatarPress}
+              />
+            )}
+          </View>
+        )}
+        <View
+          ref={rowRef}
+          collapsable={false}
+          className={`${isSent ? 'max-w-[80%]' : 'max-w-[75%]'} ${rowAlignment} ${hidden ? 'opacity-0' : ''}`}
+          style={{ marginBottom: rowGap }}
+        >
+          <SwipeToReply
+            isSent={isSent}
+            enabled={canReply}
+            onReply={handleSwipeReply}
+            onThresholdCross={playReactionHaptic}
+          >
+            <Pressable
+              onPress={handleRowPress}
+              onLongPress={handleLongPress}
+              delayLongPress={350}
+              className={`w-full ${contentAlignment}`}
+              android_ripple={undefined}
+              accessibilityActions={canReply ? [{ name: 'reply', label: 'Reply' }] : undefined}
+              onAccessibilityAction={(event) => {
+                if (event.nativeEvent.actionName === 'reply') handleSwipeReply();
+              }}
+            >
+              <ChatBubbleContent
+                message={message}
+                messageType={messageType}
+                attachmentUrl={attachmentUrl}
+                attachmentPath={attachmentPath}
+                thumbnailUrl={thumbnailUrl}
+                thumbnailPath={thumbnailPath}
+                isSent={isSent}
+                replyTo={replyTo}
+                replyDeleted={replyDeleted}
+                otherUserName={otherUserName}
+                reactions={reactions}
+                interactive
+                canReact={canReact}
+                onImagePress={onImagePress}
+                onMediaLoadError={onMediaLoadError}
+                onLongPress={handleLongPress}
+                onReact={onReact}
+                groupPosition={groupPosition}
+              />
+            </Pressable>
+          </SwipeToReply>
+          {showSeen && (
+            <Text
+              className="self-end mt-1 mr-1 text-[11px] font-inter text-gray-500"
+              accessibilityLabel="Seen"
+            >
+              Seen
+            </Text>
+          )}
+        </View>
+      </View>
+    </TimestampRevealRow>
   );
 }
 

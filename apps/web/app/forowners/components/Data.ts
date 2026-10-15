@@ -1,13 +1,4 @@
-import {
-  Building2,
-  MessageSquare,
-  Wallet,
-  ClipboardList,
-  ShieldCheck,
-  BarChart3,
-  Wrench,
-  Star,
-} from "lucide-react";
+import { IconBuilding as Building2, IconMessage as MessageSquare, IconWallet as Wallet, IconClipboardList as ClipboardList, IconShieldCheck as ShieldCheck, IconChartBar as BarChart3, IconTool as Wrench, IconStar as Star } from "@tabler/icons-react";
 
 export const features = [
   {

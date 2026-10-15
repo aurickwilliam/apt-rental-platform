@@ -9,6 +9,9 @@ import { useTheme } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { portalHome } from "@/service/auth/portalPreference";
 import { abandonUnfinishedPasswordRecovery } from "@/service/auth/passwordRecoveryService";
+import { getCurrentUser } from "@/service/auth/currentUserService";
+import { CURRENT_USER_QUERY_KEY, queryClient } from "@/utils/queryClient";
+import { prepareTenantHome } from "@/hooks/tenancy";
 
 export default function Index() {
   const { isDark } = useTheme();
@@ -25,14 +28,20 @@ export default function Index() {
     };
 
     const redirectByRole = async (userId: string) => {
-      const { data: userProfile, error } = await supabase
-        .from("users")
-        .select("roles")
-        .eq("user_id", userId)
-        .single();
+      // Loads the full profile into the shared cache, so the portal layout
+      // doesn't fetch it a second time before showing the home tab.
+      const userProfile = await queryClient.fetchQuery({
+        queryKey: CURRENT_USER_QUERY_KEY,
+        queryFn: getCurrentUser,
+      });
 
-      if (error || !userProfile) throw error ?? new Error("Profile not found.");
+      if (!userProfile) throw new Error("Profile not found.");
       const portal = await usePortalStore.getState().restore(userId, userProfile.roles ?? []);
+      if (portal === "tenant") {
+        // Start the Rentals data now and load its skeleton hint while the
+        // splash is still up.
+        await prepareTenantHome(queryClient, userId, userProfile.id);
+      }
       if (portal) {
         router.replace(portalHome(portal));
       } else {

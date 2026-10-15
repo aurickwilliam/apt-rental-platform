@@ -11,15 +11,21 @@ import DetailField from "@/components/display/DetailField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
 
-import { IconHammer, IconTrash } from '@tabler/icons-react-native';
+import { IconHammer, IconTrash } from "@tabler/icons-react-native";
 
-import { Button, Chip, PressableFeedback, Separator } from "heroui-native";
+import {
+  Button,
+  Chip,
+  PressableFeedback,
+  Separator,
+  Spinner,
+} from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
 import {
   useMaintenanceRequestStatusStyles,
   useMaintenanceRequestUrgencyStyles,
-  MaintenanceRequest,
+  useMaintenanceRequest,
   useMaintenanceRequests,
 } from "@/hooks/maintenance-requests";
 
@@ -28,18 +34,22 @@ import { MAINTENANCE_CATEGORIES, MAINTENANCE_URGENCY } from "@repo/constants";
 import { formatDate } from "@repo/utils";
 
 export default function MaintenanceDetails() {
-  // Get the maintenance request details from the query parameters
-  const { request } = useLocalSearchParams<{
-    request: string;
-    apartmentId: string
+  // Ids only: the request is read from the cache/server, never the route.
+  const { requestId, apartmentId } = useLocalSearchParams<{
+    requestId: string;
+    apartmentId: string;
   }>();
-  const maintenanceRequest = request ? JSON.parse(request) as MaintenanceRequest : null;
+  const {
+    request: maintenanceRequest,
+    loading,
+    error,
+  } = useMaintenanceRequest({ requestId, apartmentId });
 
   const router = useRouter();
   const { colors } = useColors();
   const statusStyles = useMaintenanceRequestStatusStyles();
   const urgencyStyles = useMaintenanceRequestUrgencyStyles();
-  const { cancelRequest, canCancel } = useMaintenanceRequests({});
+  const { cancelRequest, canCancel } = useMaintenanceRequests({ apartmentId });
 
   const [isCancelling, setIsCancelling] = useState(false);
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
@@ -49,18 +59,31 @@ export default function MaintenanceDetails() {
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
 
+  if (loading) {
+    return (
+      <ScreenWrapper
+        header={<StandardHeader title="Maintenance Details" />}
+        className="p-5"
+      >
+        <View className="flex-1 items-center justify-center py-10">
+          <Spinner size="lg" color={colors.primary} />
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
   // Empty State
   if (!maintenanceRequest) {
     return (
       <ScreenWrapper
-        header={
-          <StandardHeader title="Maintenance Details" />
-        }
+        header={<StandardHeader title="Maintenance Details" />}
         scrollable
         className="p-5"
       >
         <Text className="text-foreground">
-          No maintenance request found.
+          {error
+            ? "Couldn't load this maintenance request."
+            : "No maintenance request found."}
         </Text>
       </ScreenWrapper>
     );
@@ -86,17 +109,17 @@ export default function MaintenanceDetails() {
   const status = statusStyles[maintenanceRequest.status];
   const urgency = urgencyStyles[maintenanceRequest.urgency];
   const categoryLabel =
-    MAINTENANCE_CATEGORIES.find((c) => c.value === maintenanceRequest.category)?.label ?? maintenanceRequest.category;
+    MAINTENANCE_CATEGORIES.find((c) => c.value === maintenanceRequest.category)
+      ?.label ?? maintenanceRequest.category;
   const urgencyLabel =
-    MAINTENANCE_URGENCY.find((u) => u.value === maintenanceRequest.urgency)?.label ?? maintenanceRequest.urgency;
+    MAINTENANCE_URGENCY.find((u) => u.value === maintenanceRequest.urgency)
+      ?.label ?? maintenanceRequest.urgency;
 
   const images = maintenanceRequest.image_urls;
 
   return (
     <ScreenWrapper
-      header={
-        <StandardHeader title="Maintenance Details" />
-      }
+      header={<StandardHeader title="Maintenance Details" />}
       scrollable
       className="p-5"
     >
@@ -110,16 +133,11 @@ export default function MaintenanceDetails() {
       </View>
 
       <View className="mt-3 gap-3">
-        <DetailField
-          label="Issue Title"
-          value={maintenanceRequest.title}
-        />
+        <DetailField label="Issue Title" value={maintenanceRequest.title} />
 
         <View className="flex-row">
           <View className="gap-1 flex-1">
-            <Text className="text-muted text-sm font-inter">
-              Urgency Level
-            </Text>
+            <Text className="text-muted text-sm font-inter">Urgency Level</Text>
             <Chip
               variant="soft"
               size="md"
@@ -136,9 +154,7 @@ export default function MaintenanceDetails() {
           </View>
 
           <View className="gap-1 flex-1">
-            <Text className="text-muted text-sm font-inter">
-              Status
-            </Text>
+            <Text className="text-muted text-sm font-inter">Status</Text>
 
             <Chip
               variant="soft"
@@ -157,10 +173,7 @@ export default function MaintenanceDetails() {
         </View>
 
         <View className="flex-row">
-          <DetailField
-            label="Category"
-            value={categoryLabel}
-          />
+          <DetailField label="Category" value={categoryLabel} />
 
           <DetailField
             label="Submitted Date"
@@ -169,9 +182,7 @@ export default function MaintenanceDetails() {
         </View>
 
         <View className="gap-1">
-          <Text className="text-sm text-muted  font-inter">
-            Description
-          </Text>
+          <Text className="text-sm text-muted  font-inter">Description</Text>
 
           <View className="bg-surface p-3 rounded-3xl min-h-20">
             <Text className="text-sm text-foreground font-inter">
@@ -205,7 +216,7 @@ export default function MaintenanceDetails() {
                     source={{ uri: url }}
                     style={{
                       width: "100%",
-                      height: '100%',
+                      height: "100%",
                     }}
                     contentFit="cover"
                     cachePolicy="disk"

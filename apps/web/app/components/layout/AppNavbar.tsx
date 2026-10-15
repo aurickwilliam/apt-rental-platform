@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { Dropdown, Button, Label } from "@heroui/react";
-import { Menu, X } from "lucide-react";
+import { IconMenu2 as Menu, IconX as X } from "@tabler/icons-react";
 
 import { useHydrated } from "@/hooks/use-hydrated";
 

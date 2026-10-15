@@ -66,7 +66,7 @@ export default function ProfileHeader({
     },
     landlord: {
       icon: IconBuildingSkyscraper,
-      iconColor: colors.secondary,
+      iconColor: colors.sky,
       className: "bg-secondary-light border border-secondary",
       label: "Landlord",
       labelColor: "text-secondary"

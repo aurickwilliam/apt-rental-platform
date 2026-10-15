@@ -15,19 +15,19 @@ import { useColors } from '@/hooks/useTheme'
 
 import ZigzagEdge from './ZigzagEdge'
 
-const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; color: 'success' | 'warning' | 'danger'; title: string; titleClass: string; footer: string }> = {
+const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; color: 'successText' | 'warningText' | 'danger'; title: string; titleClass: string; footer: string }> = {
   Paid: {
     icon: IconCircleCheckFilled,
-    color: 'success',
+    color: 'successText',
     title: 'Payment Successful',
-    titleClass: 'text-success',
+    titleClass: 'text-success-text',
     footer: 'Thank you for your payment!',
   },
   Pending: {
     icon: IconAlertCircleFilled,
-    color: 'warning',
+    color: 'warningText',
     title: 'Payment Pending',
-    titleClass: 'text-warning',
+    titleClass: 'text-warning-text',
     footer: 'Awaiting payment confirmation.',
   },
   Unpaid: {

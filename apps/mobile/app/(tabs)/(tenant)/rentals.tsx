@@ -1,99 +1,160 @@
-import { View, Text } from 'react-native'
-import { router, useRouter } from 'expo-router'
-import type React from 'react'
+import { View, Text, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
-import ApartmentDescriptionCard from "@/app/(tabs)/components/rentals/ApartmentDescriptionCard";
-import QuickActionButton from '@/app/(tabs)/components/QuickActionButton';
-import TenancyEmptyState from '../components/rentals/TenancyEmptyState';
+import QuickActionsSection from '@/app/(tabs)/components/rentals/QuickActionsSection';
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
-import MaintenanceRequestCard from '../components/rentals/MaintenanceRequestCard';
+import MaintenanceSection from '../components/rentals/MaintenanceSection';
+import RentalHero, { useRentalHeroHeight } from '../components/rentals/RentalHero';
+import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
+import {
+  getRentalsLayoutToRemember,
+  getRentalsSkeleton,
+  getRentalsView,
+} from '../components/rentals/rentalsView';
+import EmptyState from 'components/display/EmptyState';
 
 import {
-  IconLink,
-  IconUser,
-  IconFileText,
-  IconHammer,
-  IconMapPinFilled,
-  IconReceipt,
-  IconSettings,
-  IconHelpCircle,
-  IconClipboardText,
+  IconAlertCircle,
 } from "@tabler/icons-react-native";
 
-import { useTenancy } from '@/hooks/tenancy';
+import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
 import { useColors } from '@/hooks/useTheme';
-import { useMaintenanceRequests } from '@/hooks/maintenance-requests';
+import { useLightStatusBar } from '@/hooks/useLightStatusBar';
+import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
 import { usePayments } from '@/hooks/payments';
-import { paidAmountForPeriod, resolvePaymentPeriod } from '@/service/payments/paymentService';
+import { buildConversationKey } from '@/service/chat/chatService';
 
-import { Button, Separator } from 'heroui-native';
+import { Button } from 'heroui-native';
 
-import { formatAddress, formatDate, formatFullName } from '@repo/utils';
+import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
 
-type actionsTypes = {
-  id: number;
-  label: string;
-  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
-  onPress?: () => void;
+import type { TenantQuickActionId } from '@/service/tenancy/quickActionsPreference';
+
+interface TabScreenProps {
+  children: ReactNode;
+  refreshing?: boolean;
+  onRefresh?: () => Promise<void>;
+  // Content starts at the very top (under the status bar), for the photo hero.
+  edgeToEdge?: boolean;
+  // Edge to edge only: paint the page background behind the status bar so
+  // scrolled content doesn't run under the clock.
+  showStatusBarBackdrop?: boolean;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
-const actions: actionsTypes[] = [
-  {
-    id: 1,
-    label: "View Receipts",
-    icon: IconReceipt,
-    onPress: () => router.push("/tenant/payment/history"),
-  },
-  {
-    id: 2,
-    label: "View Applications",
-    icon: IconClipboardText,
-    onPress: () => router.push("/tenant/applications"),
-  },
-  {
-    id: 3,
-    label: "Settings",
-    icon: IconSettings,
-    onPress: () => router.push("/settings"),
-  },
-  {
-    id: 4,
-    label: "FAQ",
-    icon: IconHelpCircle,
-    onPress: () => router.push("/settings/faq"),
-  },
-];
+// The scrollable tab-page shell every Rentals state shares, clearing the
+// floating tab bar.
+function TabScreen({
+  children,
+  refreshing,
+  onRefresh,
+  edgeToEdge = false,
+  showStatusBarBackdrop = false,
+  onScroll,
+}: TabScreenProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View className="flex-1">
+      <ScreenWrapper
+      scrollable
+      className={edgeToEdge ? "px-5 pb-5" : "p-5"}
+      noTopPadding={edgeToEdge}
+      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      onScroll={onScroll}
+    >
+      {children}
+    </ScreenWrapper>
+      {edgeToEdge && showStatusBarBackdrop && (
+        <View
+          pointerEvents="none"
+          className="absolute top-0 left-0 right-0 bg-background"
+          style={{ height: insets.top }}
+        />
+      )}
+    </View>
+  );
+}
 
 export default function Rentals() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const { tenancy, loading: tenancyLoading, refreshing: tenancyRefreshing, refetch: refetchTenancy } = useTenancy();
+  const {
+    tenancy,
+    loading: tenancyLoading,
+    error: tenancyError,
+    refetch: refetchTenancy,
+  } = useTenancy();
   const { profile } = useProfile();
   const {
-    latestRequest,
-    isFinal,
+    requests: maintenanceRequests,
+    loading: maintenanceLoading,
     refetch: refetchMaintenance,
-    // maintenance hook doesn't expose refreshing yet, but tenancy covers isFetching scope
-  } = useMaintenanceRequests({
+  } = useMaintenanceRequestHistory({
     apartmentId: tenancy?.apartment.id,
   });
-  const { refreshing: applicationsRefreshing, refetch: refetchApplications } = useTenantApplications();
+  const {
+    applications,
+    loading: applicationsLoading,
+    error: applicationsError,
+    refetch: refetchApplications,
+  } = useTenantApplications();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
-  const loading = tenancyLoading;
-  const refreshing = tenancyRefreshing || applicationsRefreshing;
+  const view = getRentalsView({
+    hasTenancy: tenancy !== null,
+    tenancyLoading,
+    tenancyError,
+    applicationsLoading,
+    applicationsError,
+    tenancyDetailsLoading: maintenanceLoading || paymentsQuery.isLoading,
+  });
+
+  // Picks the skeleton before the server answers, then remembers the answer
+  // for next launch. The hint never decides what data is shown.
+  const { hint, isReady: isHintReady, remember: rememberLayout } = useRentalsLayoutHint();
+  const skeleton = getRentalsSkeleton(hint, isHintReady);
+  const layoutToRemember = getRentalsLayoutToRemember(view);
+  useEffect(() => {
+    if (layoutToRemember) rememberLayout(layoutToRemember);
+  }, [layoutToRemember, rememberLayout]);
+
+  // Pull-to-refresh only: background refetches (realtime, focus) stay silent,
+  // and the spinner waits for every section, not just the tenancy.
+  const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => {
-    await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications(), paymentsQuery.refetch()]);
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchTenancy(), refetchMaintenance(), refetchApplications(), paymentsQuery.refetch()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  // A failed query keeps its error status while refetching, so track the
+  // retry locally to give the button feedback.
+  const [retrying, setRetrying] = useState(false);
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      await Promise.all([refetchTenancy(), refetchApplications()]);
+    } finally {
+      setRetrying(false);
+    }
   };
 
   const handleRequestMaintenance = () => {
@@ -121,61 +182,65 @@ export default function Rentals() {
       pathname: '/tenant/maintenance-history',
       params: { apartmentId: tenancy?.apartment.id },
     });
-  const handleViewMoreDetails = () => router.push('/tenant/current-apartment');
+  const handleOpenMaintenanceRequest = (request: MaintenanceRequest) =>
+    router.push({
+      pathname: '/tenant/maintenance-details',
+      params: { requestId: request.id, apartmentId: request.apartment_id },
+    });
+  const handleViewDescription = () => router.push('/tenant/current-apartment');
   const handlePayNow = () => router.push('/tenant/payment');
   const handleViewPaymentHistory = () => router.push('/tenant/payment/history');
+  const handleViewApplications = () => router.push('/tenant/applications');
 
+  // White status-bar icons only while the photo is behind them: not once it
+  // has scrolled away, and not while a pull-to-refresh drags it below the
+  // status bar (the light page shows above it then).
+  const insets = useSafeAreaInsets();
+  const heroHeight = useRentalHeroHeight();
+  const [isPastHero, setIsPastHero] = useState(false);
+  const [isHeroPulledDown, setIsHeroPulledDown] = useState(false);
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const isPast = offsetY > heroHeight - insets.top;
+    const isPulledDown = offsetY < -insets.top / 2;
+    if (isPast !== isPastHero) setIsPastHero(isPast);
+    if (isPulledDown !== isHeroPulledDown) setIsHeroPulledDown(isPulledDown);
+  };
+  useLightStatusBar(view === 'tenancy' && !isPastHero && !isHeroPulledDown);
 
-  // Loading
-  if (loading) {
+  // Loading a rental (the applications skeleton is drawn by the shell below)
+  if (view === 'loading' && skeleton !== 'applications') {
     return (
-      <ScreenWrapper
-        scrollable
-        className="p-5"
-        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
-      >
-        <RentalsSkeleton />
-      </ScreenWrapper>
+      <TabScreen edgeToEdge={skeleton === 'tenancy'}>
+        {skeleton === 'tenancy' && <RentalsSkeleton />}
+      </TabScreen>
     );
   }
 
   // Active tenancy
-  if (tenancy) {
-    const { apartment, landlord, currentPayment } = tenancy;
-    const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
+  if (view === 'tenancy' && tenancy) {
+    const { apartment, landlord } = tenancy;
+    const rent = getCurrentRentStatus(tenancy, paymentsQuery.data ?? []);
+    const pendingApplicationCount = applications.filter(
+      (application) => application.status === 'pending',
+    ).length;
 
-    const period = resolvePaymentPeriod(
-      currentPayment?.period_start ?? null,
-      currentPayment?.period_end ?? null,
-      currentPayment?.due_date ?? null,
-    );
-    const paymentPeriodDate = period.periodStart;
-    const isPeriodFullyPaid =
-      monthlyRent > 0 &&
-      paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= monthlyRent;
-    const paymentStatus: 'Pending' | 'Paid' = isPeriodFullyPaid
-      ? 'Paid'
-      : currentPayment?.period_start === period.periodStart && currentPayment?.status === 'paid'
-        ? 'Paid'
-        : 'Pending';
-
-    const landlordFullName = formatFullName(landlord!);
-    const address = formatAddress(apartment);
+    // The landlord join can come back null (e.g. a profile RLS hides), so the
+    // landlord section is skipped rather than crashing the whole tab.
+    const landlordFullName = landlord ? formatFullName(landlord) : '';
 
     const handleMessageLandlord = () => {
       if (!landlord || !profile || !apartment?.id) return;
 
-      // Same conversation id format as the applications screen, so this opens
-      // the one continuous tenant↔landlord thread for the tenancy.
-      const [userA, userB] = [profile.id, landlord.id].sort();
+      // The chat screen finds the thread from the two users and the apartment;
+      // the route id is the same conversation key the chat list uses.
       router.push({
         pathname: '/chat/[conversationId]',
         params: {
-          conversationId: `${userA}-${userB}-${apartment.id}`,
+          conversationId: buildConversationKey(profile.id, landlord.id, apartment.id),
           otherUserId: landlord.id,
           otherUserName: landlordFullName,
           otherUserAvatar: landlord.avatar_url ?? '',
-          otherUserPhoneNumber: landlord.mobile_number ?? '',
           apartmentId: apartment.id,
           apartmentTitle: apartment.name,
         },
@@ -187,203 +252,141 @@ export default function Rentals() {
       router.push(`/profile/landlord/${landlord.id}`);
     };
 
+    const handleQuickActionPress = (actionId: TenantQuickActionId) => {
+      switch (actionId) {
+        case 'receipts':
+          handleViewPaymentHistory();
+          return;
+        case 'applications':
+          handleViewApplications();
+          return;
+        case 'repairs':
+          handleRequestMaintenance();
+          return;
+        case 'repair-history':
+          handleViewHistory();
+          return;
+        case 'my-rental':
+          handleViewDescription();
+          return;
+        case 'message-landlord':
+          handleMessageLandlord();
+          return;
+        case 'passport':
+          router.push('/document-id');
+          return;
+        case 'favorites':
+          router.push('/tenant/favorites');
+          return;
+        case 'settings':
+          router.push('/settings');
+          return;
+        case 'faq':
+          router.push('/settings/faq');
+          return;
+      }
+    };
+
     return (
-      <ScreenWrapper
-        scrollable
-        className="p-5"
-        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
+      <TabScreen
         refreshing={refreshing}
         onRefresh={onRefresh}
+        edgeToEdge
+        showStatusBarBackdrop={isPastHero}
+        onScroll={handleScroll}
       >
-        {/* Apartment Header */}
-        <View className="flex-row items-center justify-between gap-2">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconMapPinFilled size={30} color={colors.primary} />
-            <Text className="text-secondary text-2xl font-nunitoBold">
-              {apartment.name}
-            </Text>
-          </View>
-          <NotificationBellButton route="/tenant-notif" />
-        </View>
+        {/* Apartment photo, name and address */}
+        <RentalHero
+          name={apartment.name}
+          address={formatAddress(apartment)}
+          imageUrl={apartment.cover_url}
+          onViewDescription={handleViewDescription}
+          topRight={<NotificationBellButton route="/tenant-notif" tone="onImage" />}
+        />
 
         {/* Payment Summary Card */}
         <View className="mt-3">
           <PaymentSummaryCard
-            periodMonth={formatDate(paymentPeriodDate, "month")}
-            periodYear={formatDate(paymentPeriodDate, "year")}
-            status={paymentStatus}
-            totalRent={monthlyRent}
-            dueDate={formatDate(period.dueDate, "short")}
+            periodMonth={formatDate(rent.periodStart, "month")}
+            periodYear={formatDate(rent.periodStart, "year")}
+            status={rent.status}
+            totalRent={rent.monthlyRent}
+            dueDate={formatDate(rent.dueDate, "medium")}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
           />
         </View>
 
-        {/* Quick Actions */}
-        <View className="flex mt-5">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconLink size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Quick Actions
-            </Text>
+        {/* Applications waiting on a landlord */}
+        {pendingApplicationCount > 0 && (
+          <View className="mt-3">
+            <PendingApplicationsCard
+              count={pendingApplicationCount}
+              onPress={handleViewApplications}
+            />
           </View>
-          <View className="mt-5 flex-row flex-wrap">
-            {actions.map((action) => (
-              <QuickActionButton
-                key={action.id}
-                label={action.label}
-                icon={action.icon}
-                onPress={action.onPress}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* Landlord Information */}
-        <View className="mt-5 flex gap-3">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconUser size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Landlord Information
-            </Text>
-          </View>
-          <LandlordCard
-            fullName={landlordFullName}
-            email={landlord?.email ?? "No email provided"}
-            phoneNumber={landlord?.mobile_number ?? "No number provided"}
-            profilePictureUrl={landlord?.avatar_url}
-            onPress={handleViewLandlordProfile}
-            onMessagePress={handleMessageLandlord}
-          />
-        </View>
-
-        {/* Apartment Description */}
-        <View className="mt-5 flex gap-3">
-          <View className="flex-row items-center justify-start gap-2">
-            <IconFileText size={24} color={colors.textPrimary} />
-            <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Apartment Description
-            </Text>
-          </View>
-          <ApartmentDescriptionCard
-            apartmentName={apartment.name}
-            apartmentAddress={address}
-            leaseStartMonth={formatDate(tenancy.lease_start, "month")}
-            leaseStartYear={formatDate(tenancy.lease_start, "year")}
-            leaseEndMonth={
-              tenancy.lease_end
-                ? formatDate(tenancy.lease_end, "month")
-                : "Ongoing"
-            }
-            leaseEndYear={
-              tenancy.lease_end
-                ? formatDate(tenancy.lease_end, "year")
-                : ""
-            }
-            monthlyRent={monthlyRent}
-            onPressViewMore={handleViewMoreDetails}
-          />
-        </View>
-
-        {latestRequest ? (
-          <>
-            <Separator className="my-4" />
-            <View className="flex gap-3">
-              <View className="flex-row items-center justify-start gap-2">
-                <IconHammer size={24} color={colors.textPrimary} />
-                <Text className="text-foreground text-lg font-nunitoSemiBold">
-                  {isFinal ? "Latest Maintenance Request" : "Active Maintenance Request"}
-                </Text>
-              </View>
-
-              <MaintenanceRequestCard
-                request={latestRequest}
-                onPress={() => {
-                  router.push({
-                    pathname: "/tenant/maintenance-details",
-                    params: {
-                      request: JSON.stringify(latestRequest),
-                    },
-                  });
-                }}
-              />
-
-              <View className="flex-row gap-3 mt-1">
-                <Button
-                  className="flex-1"
-                  variant="secondary"
-                  onPress={handleViewHistory}
-                  size='sm'
-                >
-                  <Button.Label>View History</Button.Label>
-                </Button>
-
-                {isFinal && (
-                  <Button
-                    className="flex-1"
-                    onPress={handleRequestMaintenance}
-                    size='sm'
-                  >
-                    <IconHammer size={18} color={colors.secondaryForeground} />
-                    <Button.Label>Request Again</Button.Label>
-                  </Button>
-                )}
-              </View>
-            </View>
-          </>
-        ) : (
-          <>
-            <Separator className='my-4' />
-
-            <Button onPress={handleRequestMaintenance}>
-              <IconHammer size={20} color={colors.secondaryForeground} />
-              <Button.Label>Request Maintenance Issue</Button.Label>
-            </Button>
-          </>
         )}
-      </ScreenWrapper>
-    );
-  }
 
-  // No tenancy, has applications
-  if (!tenancy) {
-    return (
-      <ScreenWrapper
-        scrollable
-        className="p-5"
-        bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      >
-        <View className="flex-row items-center justify-between mb-5">
-          <Text className="text-secondary text-2xl font-nunitoBold">
-            Rentals
-          </Text>
-          <NotificationBellButton route="/tenant-notif" />
+        {/* Quick Actions */}
+        <QuickActionsSection
+          authUserId={profile?.user_id}
+          isVerifiedAccount={profile?.account_status === 'verified'}
+          hasLandlord={!!landlord}
+          onActionPress={handleQuickActionPress}
+        />
+
+        {landlord && (
+          <View className="mt-3">
+            <LandlordCard
+              fullName={landlordFullName}
+              profilePictureUrl={landlord.avatar_url}
+              onPress={handleViewLandlordProfile}
+              onMessagePress={handleMessageLandlord}
+            />
+          </View>
+        )}
+
+        {/* Maintenance */}
+        <View className="mt-3">
+          <MaintenanceSection
+            requests={maintenanceRequests}
+            onOpenRequest={handleOpenMaintenanceRequest}
+            onViewAll={handleViewHistory}
+            onRequestMaintenance={handleRequestMaintenance}
+          />
         </View>
-
-        <ApplicationsList />
-      </ScreenWrapper>
+      </TabScreen>
     );
   }
 
-  // Brand new user, nothing at all
+  // No tenancy: the applications list (it has its own empty state), its
+  // skeleton while loading, or an error when we couldn't tell whether the
+  // tenant has a rental at all.
   return (
-    <ScreenWrapper
-      scrollable
-      className="p-5"
-      bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-    >
+    <TabScreen refreshing={refreshing} onRefresh={onRefresh}>
       <View className="flex-row items-center justify-between mb-5">
-        <Text className="text-secondary text-2xl font-nunitoBold">
-          Rentals
+        {/* The error state can't say which page this is, so it keeps the tab name. */}
+        <Text className="text-accent text-2xl font-nunitoBold">
+          {view === 'error' ? 'Rentals' : 'Applications'}
         </Text>
         <NotificationBellButton route="/tenant-notif" />
       </View>
 
-      <TenancyEmptyState />
-    </ScreenWrapper>
+      {view === 'error' ? (
+        <EmptyState
+          variant="tenant"
+          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          title="Couldn't load your rentals"
+          description="Check your connection and try again."
+          action={
+            <Button onPress={handleRetry} isDisabled={retrying}>
+              <Button.Label>{retrying ? 'Trying again…' : 'Try Again'}</Button.Label>
+            </Button>
+          }
+        />
+      ) : (
+        <ApplicationsList isLoading={view === 'loading'} />
+      )}
+    </TabScreen>
   );
 }

@@ -13,21 +13,7 @@ import {
   Modal,
   useOverlayState,
 } from "@heroui/react";
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Star,
-  FileText,
-  Pencil,
-  MoreHorizontal,
-  Trash2,
-  MessageCircle,
-  Wrench,
-  Banknote,
-  ChevronRight,
-  CircleCheck,
-  House,
-} from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -542,3 +528,4 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
     </div>
   );
 }
+

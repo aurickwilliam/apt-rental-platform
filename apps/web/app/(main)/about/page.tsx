@@ -6,7 +6,7 @@ import {
   Separator,
 } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Users, Target, Eye } from "lucide-react";
+import { IconUsers as Users, IconTarget as Target, IconEye as Eye } from "@tabler/icons-react";
 
 import { stats } from "./data/AboutData";
 import TeamSection from "./components/TeamSection";

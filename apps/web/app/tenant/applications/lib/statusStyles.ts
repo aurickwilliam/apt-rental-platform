@@ -1,5 +1,5 @@
-import { Clock, CheckCircle, XCircle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { IconClock as Clock, IconCircleCheck as CheckCircle, IconCircleX as XCircle } from "@tabler/icons-react";
+import type { Icon as LucideIcon } from "@tabler/icons-react";
 
 export type ApplicationStatus = "pending" | "approved" | "rejected" | "cancelled" | "closed";
 

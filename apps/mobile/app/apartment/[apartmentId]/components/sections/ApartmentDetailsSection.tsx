@@ -10,57 +10,57 @@ type ApartmentDetailsSectionProps = {
   apartment: ApartmentDetails | null;
 }
 
+type DetailBlockProps = {
+  Icon: Icon;
+  value: string;
+}
+
+function DetailBlock({ Icon, value }: DetailBlockProps) {
+  const { colors } = useColors();
+
+  return (
+    <View className='flex-row items-center gap-2 bg-surface p-3 rounded-2xl mb-2 border border-border'>
+      <Icon size={24} color={colors.gray500} />
+      <Text className='text-foreground font-nunitoSemiBold text-sm'>
+        {value}
+      </Text>
+    </View>
+  )
+}
+
 export default function ApartmentDetailsSection({
   apartment,
 }: ApartmentDetailsSectionProps) {
-  const { colors } = useColors();
-
-  type DetailBlockProps = {
-    Icon: Icon;
-    value: string;
-  }
-
-  // Component for each detail block
-  function DetailBlock({
-    Icon,
-    value,
-  }: DetailBlockProps){
-    return (
-      <View className='flex-row items-center gap-2 bg-surface p-3 rounded-2xl mb-2 border border-border'>
-        <Icon size={24} color={colors.gray500} />
-        <Text className='text-foreground font-nunitoSemiBold text-sm'>
-          {value}
-        </Text>
-      </View>
-    )
-  }
-
   const detailData = [
     {
+      key: 'occupants',
       icon: IconUsers,
       value: apartment?.max_occupants
         ? `Max ${apartment.max_occupants} ${apartment.max_occupants === 1 ? 'Occupant' : 'Occupants'}`
         : 'N/A'
     },
     {
+      key: 'floor',
       icon: IconBuilding,
-      value: apartment?.floor_level ? `${apartment.floor_level}` : 'N/A'
+      value: apartment?.floor_level ? apartment.floor_level : 'N/A'
     },
     {
+      key: 'type',
       icon: IconHome,
       value: apartment?.type || 'N/A'
     },
     {
+      key: 'duration',
       icon: IconCalendar,
       value: apartment?.lease_duration || 'N/A'
     }
   ]
 
   return (
-    <View className='mt-5 px-5 flex-row flex-wrap'>
+    <View className='px-5 flex-row flex-wrap'>
       {
-        detailData.map((detail, index) => (
-          <View key={index} className='w-1/2 pr-2'>
+        detailData.map((detail) => (
+          <View key={detail.key} className='w-1/2 pr-2'>
             <DetailBlock
               Icon={detail.icon}
               value={detail.value}

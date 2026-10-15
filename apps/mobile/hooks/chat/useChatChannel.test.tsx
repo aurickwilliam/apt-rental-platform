@@ -175,11 +175,11 @@ describe('useChatChannel', () => {
     // The stale joined channels never receive new bindings.
     expect(staleMsg.on).not.toHaveBeenCalled();
     expect(stalePresence.on).not.toHaveBeenCalled();
-    // The fresh channels get the full binding set (4 broadcast + 3 presence).
+    // The fresh channels get the full binding set (5 broadcast + 3 presence).
     const freshEvents = mockChannels.flatMap((c) =>
       c.on.mock.calls.map(([event]) => event as string)
     );
-    expect(freshEvents.filter((e) => e === 'broadcast')).toHaveLength(4);
+    expect(freshEvents.filter((e) => e === 'broadcast')).toHaveLength(5);
     expect(freshEvents.filter((e) => e === 'presence')).toHaveLength(3);
 
     unmount();

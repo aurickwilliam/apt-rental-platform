@@ -9,26 +9,30 @@
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
 
+  /* Soft blue (DESIGN.md §9): light blue fill, brand-blue label, no border. */
   .button--secondary {
-    @apply bg-secondary text-white hover:bg-[#e59400];
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary-hover;
   }
 
   .button--tertiary {
     @apply bg-muted text-muted-foreground hover:bg-[#d1d5db];
   }
 
-  .input, .textarea {
-    @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
+  /* No `.input` / `.textarea` overrides. HeroUI's `Input` renders `class="input"`
+     and already themes itself from `--field-background` / `--field-border`. A
+     local `bg-white` rule declared after the `@import "@heroui/styles"` wins on
+     source order and pinned every HeroUI field to white in dark mode. Fields
+     get their focus ring from `--heroui-focus` (the app's `--primary`). */
+
+  /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
+     light background token, so descriptions and the close icon were nearly
+     invisible. Use the app's muted text color instead. */
+  .toast__description {
+    @apply text-muted-foreground;
   }
 
-  .input:hover, .input[data-hovered="true"],
-  .textarea:hover, .textarea[data-hovered="true"] {
-    @apply border-gray-400;
-  }
-
-  .input:focus-visible, .input[data-focus-visible="true"],
-  .textarea:focus-visible, .textarea[data-focus-visible="true"] {
-    @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  .toast__close-button {
+    @apply cursor-pointer text-muted-foreground hover:text-foreground;
   }
 
   .toggle-button[data-selected="true"] {
@@ -60,48 +64,22 @@
     opacity: 1;
   }
 
-  .select__trigger {
-    @apply rounded-xl border border-gray-300 bg-white transition-all;
-  }
+  /* No `.select__trigger` surface overrides. HeroUI's `Select` renders
+     `class="select__trigger"` and already themes itself from
+     `--field-background` / `--field-border`, falling back to `--default` —
+     which `@heroui/styles` scopes per theme (light `#ebebec`, dark `#27272a`).
+     A local `bg-white` rule declared after `@import "@heroui/styles"` wins on
+     source order and pinned every trigger white in dark mode.
+
+     Dark variants are not the fix here: Tailwind v4 does not emit `dark:`
+     variants from `@apply` inside `@layer components`, so they compile to
+     nothing. Theme the tokens instead. Same fix as the `.input` /
+     `.textarea` rules removed above. The app's focus ring comes from
+     `--heroui-focus`, which is the app's `--primary`. */
 
   /* Placeholder text color — targets the value slot */
   .select__value[data-placeholder="true"] {
     @apply text-gray-400;
-  }
-
-  /* Hover + open: blue border with a bluish fill. The open state keeps
-     the treatment so the open menu stays visually tied to its trigger.
-     (important: beats HeroUI's unlayered defaults, same as focus below) */
-  .select__trigger:hover,
-  .select__trigger[data-hovered="true"],
-  .select__trigger[data-open="true"],
-  .select__trigger[aria-expanded="true"] {
-    border-color: #376BF5 !important;
-    background-color: color-mix(in oklab, #376BF5 12%, transparent) !important;
-  }
-
-  /* Chevron follows the trigger state. */
-  .select__trigger:hover [data-slot="select-indicator"],
-  .select__trigger[data-hovered="true"] [data-slot="select-indicator"],
-  .select__trigger[data-open="true"] [data-slot="select-indicator"],
-  .select__trigger[aria-expanded="true"] [data-slot="select-indicator"],
-  .select__trigger:hover [data-slot="select-default-indicator"],
-  .select__trigger[data-hovered="true"] [data-slot="select-default-indicator"],
-  .select__trigger[data-open="true"] [data-slot="select-default-indicator"],
-  .select__trigger[aria-expanded="true"] [data-slot="select-default-indicator"] {
-    color: #376BF5 !important;
-  }
-
-  /* Focus */
-  .select__trigger[data-focus-visible="true"] {
-    @apply outline-none;
-    border-color: #376BF5 !important;
-    box-shadow: 0 0 0 2px rgb(55 107 245 / 0.15) !important;
-  }
-
-  /* Disabled */
-  .select__trigger[data-disabled="true"] {
-    @apply opacity-50 cursor-not-allowed;
   }
 }
 
@@ -218,8 +196,7 @@ body[data-scroll-locked] [role="option"] {
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
   --color-light-blue: #EFF6FF;
-  --color-secondary: #FFA500;
-  --color-rating: #FFA500;
+  --color-rating: #FBBF24;
   --color-darker-white: #F8F9FA;
   --color-black: #333333;
   --color-grey-700: #6C757D;
@@ -236,7 +213,6 @@ body[data-scroll-locked] [role="option"] {
   --color-red-200: #FDA4AF;
 
   --heroui-primary: var(--primary);
-  --heroui-secondary: var(--secondary);
 
   --heroui-focus: var(--primary);
 }
@@ -259,6 +235,10 @@ body[data-scroll-locked] [role="option"] {
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-brand: var(--brand);
+  --color-sky: var(--sky);
+  --color-sky-light: var(--sky-light);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -284,6 +264,11 @@ body[data-scroll-locked] [role="option"] {
 }
 
 :root {
+  /* No drop shadow on HeroUI fields (inputs, selects, combo boxes, text
+     areas). Same transparent value HeroUI uses in dark mode, so ring
+     utilities still work. */
+  --field-shadow: 0 0 0 0 transparent inset;
+
   --radius: 0.625rem;
   --background: #F8F9FA;
   --foreground: #333333;
@@ -293,8 +278,15 @@ body[data-scroll-locked] [role="option"] {
   --popover-foreground: #333333;
   --primary: #376BF5;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFA500;
-  --secondary-foreground: #FFFFFF;
+  /* Brand-blue text (headings, links); brightens in dark mode like mobile's text-accent */
+  --brand: #376BF5;
+  /* Soft blue: secondary buttons (label 5.0:1 on the fill) */
+  --secondary: #EFF6FF;
+  --secondary-foreground: #2F5FE0;
+  --secondary-hover: #E2ECFE;
+  /* Sky, the second blue: landlord role, highlights */
+  --sky: #0369A1;
+  --sky-light: #E0F2FE;
   --muted: #E5E7EB;
   --muted-foreground: #6C757D;
   --accent: #EFF6FF;
@@ -327,8 +319,12 @@ body[data-scroll-locked] [role="option"] {
   --popover-foreground: oklch(0.985 0 0);
   --primary: #376BF5;
   --primary-foreground: #FFFFFF;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
+  --brand: #5B8BF7;
+  --secondary: #1A2340;
+  --secondary-foreground: #5B8BF7;
+  --secondary-hover: #1C2647;
+  --sky: #7DD3FC;
+  --sky-light: #0C2A3D;
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);

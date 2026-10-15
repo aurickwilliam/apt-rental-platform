@@ -55,7 +55,7 @@ export default function Dashboard() {
             resizeMode="contain"
           />
 
-          <Text className="text-secondary text-3xl font-nunitoBold mt-1">
+          <Text className="text-accent text-3xl font-nunitoBold mt-1">
             Dashboard
           </Text>
         </View>

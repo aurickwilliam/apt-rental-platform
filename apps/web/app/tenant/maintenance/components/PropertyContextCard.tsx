@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@heroui/react";
-import { Building2 } from "lucide-react";
+import { IconBuilding as Building2 } from "@tabler/icons-react";
 
 type PropertyContextCardProps = {
   propertyName?: string;

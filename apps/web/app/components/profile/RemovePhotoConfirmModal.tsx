@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Modal, Spinner } from "@heroui/react";
-import { Trash2 } from "lucide-react";
+import { IconTrash as Trash2 } from "@tabler/icons-react";
 
 type RemovePhotoConfirmModalProps = {
   isOpen: boolean;

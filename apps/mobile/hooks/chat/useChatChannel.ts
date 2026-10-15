@@ -37,6 +37,13 @@ export type ReactionBroadcast = {
   apartment_id: string | null;
 };
 
+/** The reader saw every message up to `read_up_to` (that message's created_at). */
+export type ReadBroadcast = {
+  reader_id: string;
+  apartment_id: string | null;
+  read_up_to: string;
+};
+
 type UseChatChannelOptions = {
   currentUserId: string | null;
   otherUserId: string;
@@ -45,12 +52,15 @@ type UseChatChannelOptions = {
   onOtherUserTypingChange: (isTyping: boolean) => void;
   onMessageDeleted?: (id: string) => void;
   onReactionChange?: (reaction: ReactionBroadcast) => void;
+  /** The other user read this conversation up to a message's created_at. */
+  onMessagesRead?: (readUpTo: string) => void;
 };
 
 type BroadcastEvent = { payload: BroadcastPayload };
 type DeletePayload = { id: string; apartment_id: string | null };
 type DeleteEvent = { payload: DeletePayload };
 type ReactionEvent = { payload: ReactionBroadcast };
+type ReadEvent = { payload: ReadBroadcast };
 type PresenceJoinEvent = { key: string; newPresences: PresenceState[] };
 type PresenceLeaveEvent = { key: string };
 
@@ -62,6 +72,7 @@ export function useChatChannel({
   onOtherUserTypingChange,
   onMessageDeleted,
   onReactionChange,
+  onMessagesRead,
 }: UseChatChannelOptions) {
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -70,6 +81,7 @@ export function useChatChannel({
   const onOtherUserTypingChangeRef = useRef(onOtherUserTypingChange);
   const onMessageDeletedRef = useRef(onMessageDeleted);
   const onReactionChangeRef = useRef(onReactionChange);
+  const onMessagesReadRef = useRef(onMessagesRead);
 
   useEffect(() => {
     onNewMessageRef.current = onNewMessage;
@@ -86,6 +98,10 @@ export function useChatChannel({
   useEffect(() => {
     onReactionChangeRef.current = onReactionChange;
   }, [onReactionChange]);
+
+  useEffect(() => {
+    onMessagesReadRef.current = onMessagesRead;
+  }, [onMessagesRead]);
 
   const teardown = useCallback(() => {
     if (msgChannelRef.current) {
@@ -209,6 +225,13 @@ export function useChatChannel({
           } else if (payload.apartment_id != null) return;
           onReactionChangeRef.current?.({ ...payload, emoji: null });
         })
+        .on('broadcast', { event: 'messages_read' }, ({ payload }: ReadEvent) => {
+          if (payload.reader_id === currentUserId || !payload.read_up_to) return;
+          if (apartmentId !== null) {
+            if (payload.apartment_id !== apartmentId) return;
+          } else if (payload.apartment_id != null) return;
+          onMessagesReadRef.current?.(payload.read_up_to);
+        })
         .subscribe((status) => {
           if (msgChannelRef.current === msg) {
             isSubscribedRef.current = status === 'SUBSCRIBED';
@@ -309,6 +332,12 @@ export function useChatChannel({
     });
   }, []);
 
+  /** Tells the other user's open chat how far this user has read. */
+  const broadcastRead = useCallback((payload: ReadBroadcast) => {
+    if (!isSubscribedRef.current || !msgChannelRef.current) return;
+    msgChannelRef.current.send({ type: 'broadcast', event: 'messages_read', payload });
+  }, []);
+
   /** Tracks the current user's presence state (typing / not typing). */
   const trackPresence = useCallback((currentUserId: string, isTyping: boolean) => {
     presenceChannelRef.current?.track({
@@ -318,5 +347,5 @@ export function useChatChannel({
     });
   }, []);
 
-  return { teardown, broadcast, broadcastDelete, broadcastReaction, trackPresence };
+  return { teardown, broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence };
 }

@@ -223,7 +223,7 @@ export default function ApartmentSummary() {
               </Text>
 
               <View className="flex-row items-center gap-2">
-                <IconStarFilled size={20} color={colors.secondary} />
+                <IconStarFilled size={20} color={colors.rating} />
                 <Text className="text-secondary-foreground font-nunitoSemiBold text-base">
                   {apartment.average_rating?.toFixed(1) ?? "N/A"} ({apartment.no_ratings})
                 </Text>

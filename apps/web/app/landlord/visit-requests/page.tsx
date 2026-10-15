@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
-import { ArrowLeft, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconChevronUp as ChevronUp, IconSearch as Search } from "@tabler/icons-react";
 import { formatFullName } from "@repo/utils";
 
 import { useLandlordVisitRequests, type LandlordVisitRequest } from "@/hooks/use-landlord-visit-requests";

@@ -99,7 +99,7 @@ export default function MapPreviewSheet({ apartment, onClose, onPress }: Props) 
 
                     <Text className="text-muted text-sm">·</Text>
 
-                    <IconStarFilled size={13} color={colors.secondary} />
+                    <IconStarFilled size={13} color={colors.rating} />
                     <Text className="text-foreground font-inter text-sm">
                       {apartment.average_rating?.toFixed(1) ?? '0.0'}
                     </Text>

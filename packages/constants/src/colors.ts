@@ -7,9 +7,17 @@ export const COLORS = {
     // Brand
     primary: '#376BF5',
     primaryLight: '#EFF6FF',
-    secondary: '#FFA500',
+    // Soft blue secondary buttons: primaryLight fill with this label
+    // (#376BF5 on #EFF6FF is only 4.2:1, so the label is one step deeper).
+    primaryLightForeground: '#2F5FE0',
     secondaryForeground: '#FFFFFF',
-    secondaryLight: '#FFF3E0',
+    // Sky: the second blue (landlord role, highlights).
+    sky: '#0369A1',
+    skyLight: '#E0F2FE',
+    // Chart series beside primary (sky itself is too close to primary).
+    chartSky: '#0891B2',
+    // Star ratings.
+    rating: '#FBBF24',
 
     // Text & Neutral
     textPrimary: '#333333',
@@ -23,11 +31,21 @@ export const COLORS = {
     // Semantic
     success: '#22C55E',
     successLight: '#E6F4EA',
+    // Status text and status icons (success/warning are too light for text:
+    // 2.3:1 and 1.5:1 on white). Same as STATUS_COLORS text colors.
+    successText: '#166534',
     warning: '#FACC15',
     warningLight: '#FFF8E1',
+    warningText: '#92400E',
     danger: '#E50914',
     dangerMid: '#FF4B4B',
     dangerLight: '#FDA4AF',
+
+    // Conversation swipe actions (filled circles with white icons, labels
+    // below in text color; each fill is at least 3:1 against white).
+    actionMore: '#6B7280',
+    actionPin: '#D97706',
+    actionArchive: '#7C3AED',
   },
 
   dark: {
@@ -39,9 +57,12 @@ export const COLORS = {
     // Brand
     primary: '#5B8BF7',
     primaryLight: '#1A2340',
-    secondary: '#FFA500',
+    primaryLightForeground: '#5B8BF7',
     secondaryForeground: '#FFFFFF',
-    secondaryLight: '#2E2212',
+    sky: '#7DD3FC',
+    skyLight: '#0C2A3D',
+    chartSky: '#0891B2',
+    rating: '#FBBF24',
 
     // Text & Neutral
     textPrimary: '#F0F0F0',
@@ -55,11 +76,17 @@ export const COLORS = {
     // Semantic
     success: '#4ADE80',
     successLight: '#14291E',
+    successText: '#4ADE80',
     warning: '#FDE047',
     warningLight: '#2A2410',
+    warningText: '#FDE047',
     danger: '#F87171',
     dangerMid: '#FCA5A5',
     dangerLight: '#2D1515',
+
+    actionMore: '#6B7280',
+    actionPin: '#D97706',
+    actionArchive: '#7C3AED',
   },
 }
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@heroui/react";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
 import { useAuth } from "../../components/AuthContext";
 
 export default function BackBtn() {

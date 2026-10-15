@@ -11,64 +11,58 @@ export interface HoldViewport {
   usableBottom: number;
 }
 
+export interface HoldStackSizes {
+  /** Reaction pill height; 0 when the message can't be reacted to. */
+  reactionsH: number;
+  menuH: number;
+}
+
 export interface HoldLayout {
-  /** Menu top: always centered in the usable viewport. */
-  menuTop: number;
-  /** Bubble top: original position, or fallback when colliding. */
+  /** Reaction pill top (above the bubble). */
+  reactionsTop: number;
+  /** Where the held bubble settles. */
   bubbleTop: number;
-  /** True when the bubble had to move (drives the shift animation). */
+  /** Actions card top (below the bubble). */
+  menuTop: number;
+  /** True when the bubble has to move from where it was in the chat. */
   bubbleMoved: boolean;
 }
 
 const GAP = 8;
 
 /**
- * Hold-stack positioning.
+ * Hold-stack positioning (Messenger / WhatsApp / Google Messages style):
+ * reaction pill above the bubble, actions card below it, and the whole
+ * stack centered vertically in the usable viewport. The bubble glides from
+ * its place in the chat to its slot in the stack.
  *
- * Priority: (1) the bubble keeps its measured position; (2) the menu is
- * centered in the usable viewport; (3) the bubble moves ONLY on overlap
- * with the menu or viewport breach, to the nearest free side.
- *
- * The bubble and card share the same side alignment, so any vertical-range
- * intersection (plus the spacing gap) counts as a collision.
+ * A stack taller than the viewport is pinned to the top, and the actions
+ * card is kept on screen (it may then overlap the bottom of a very tall
+ * bubble, such as a portrait photo).
  */
 export function computeHoldLayout(
   anchor: HoldAnchor,
-  menuH: number,
-  viewport: HoldViewport
+  { reactionsH, menuH }: HoldStackSizes,
+  viewport: HoldViewport,
 ): HoldLayout {
   const { usableTop, usableBottom } = viewport;
   const usableH = usableBottom - usableTop;
+  const reactionsBlock = reactionsH > 0 ? reactionsH + GAP : 0;
+  const stackH = reactionsBlock + anchor.height + GAP + menuH;
 
-  // Menu owns its logic: centered in the usable viewport, clamped inside it.
-  const menuTop = Math.max(
-    usableTop,
-    Math.min(usableTop + (usableH - menuH) / 2, usableBottom - menuH)
+  const stackTop =
+    stackH >= usableH ? usableTop : usableTop + (usableH - stackH) / 2;
+
+  const bubbleTop = stackTop + reactionsBlock;
+  const menuTop = Math.min(
+    bubbleTop + anchor.height + GAP,
+    Math.max(usableTop, usableBottom - menuH),
   );
-  const menuBottom = menuTop + menuH;
 
-  const bubbleH = anchor.height;
-  const origTop = anchor.pageY;
-
-  const overlapsMenu =
-    origTop + bubbleH + GAP > menuTop && origTop < menuBottom + GAP;
-  const breachesViewport =
-    origTop < usableTop || origTop + bubbleH > usableBottom;
-
-  if (!overlapsMenu && !breachesViewport) {
-    return { menuTop, bubbleTop: origTop, bubbleMoved: false };
-  }
-
-  // Fallback: nearest free side — above the menu when the bubble's center
-  // sits above the menu's center, else below. Clamped to usable bounds.
-  const bubbleCenter = origTop + bubbleH / 2;
-  const menuCenter = menuTop + menuH / 2;
-  const aboveTop = menuTop - GAP - bubbleH;
-  const belowTop = menuBottom + GAP;
-  const bubbleTop =
-    bubbleCenter <= menuCenter
-      ? Math.max(usableTop, aboveTop)
-      : Math.min(belowTop, usableBottom - bubbleH);
-
-  return { menuTop, bubbleTop, bubbleMoved: true };
+  return {
+    reactionsTop: stackTop,
+    bubbleTop,
+    menuTop,
+    bubbleMoved: bubbleTop !== anchor.pageY,
+  };
 }

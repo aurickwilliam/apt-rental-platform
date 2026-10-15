@@ -8,6 +8,7 @@ export type {
   MaintenanceRequest
 } from "./useMaintenanceRequests";
 export { useMaintenanceRequests } from "./useMaintenanceRequests";
+export { useMaintenanceRequest } from "./useMaintenanceRequest";
 export {
   useSubmitMaintenanceRequest,
   type MaintenanceCategorySlug,

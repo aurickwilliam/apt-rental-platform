@@ -1,5 +1,5 @@
-import BrowsePageSkeleton from "./components/BrowsePageSkeleton";
+import BrowseLoadingSkeleton from "./components/BrowseLoadingSkeleton";
 
 export default function BrowseLoading() {
-  return <BrowsePageSkeleton />;
+  return <BrowseLoadingSkeleton />;
 }

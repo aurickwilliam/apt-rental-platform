@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Chip, Dropdown, InputGroup, Separator, Spinner } from "@heroui/react";
-import { ArrowLeft, ListFilter, Search } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconFilter as ListFilter, IconSearch as Search } from "@tabler/icons-react";
 import { formatFullName } from "@repo/utils";
 
 import { useLandlordVisitRequests } from "@/hooks/use-landlord-visit-requests";

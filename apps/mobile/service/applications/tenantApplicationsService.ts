@@ -2,6 +2,7 @@ import { supabase } from '@repo/supabase';
 
 import type { ApplicationStatus } from '@/hooks/applications';
 import { resolveApplicationDocumentUrls } from '@/service/media/privateMediaResolver';
+import { coverImageUrl, type ApartmentImageRow } from '@/service/apartments/coverImage';
 
 export type ApplicationDocument = {
   label: string;
@@ -35,6 +36,10 @@ export type TenantApplication = {
   apartments: {
     name: string;
     monthly_rent: number;
+    barangay: string | null;
+    city: string | null;
+    // Cover image thumbnail (public CDN URL), or null when the listing has none.
+    thumbnail_url: string | null;
   };
 };
 
@@ -80,6 +85,9 @@ type ApplicationRow = {
   apartments: {
     name: string;
     monthly_rent: number;
+    barangay: string | null;
+    city: string | null;
+    apartment_images: ApartmentImageRow[] | null;
   };
 };
 
@@ -92,7 +100,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
       gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-      apartments(name, monthly_rent)`
+      apartments(name, monthly_rent, barangay, city, apartment_images(url, url_thumb, is_cover, created_at))`
     )
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false });
@@ -121,6 +129,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       proof_of_income_url,
       proof_of_billing_url,
       nbi_clearance_url,
+      apartments: { apartment_images, ...apartment },
       ...application
     } = item;
 
@@ -128,6 +137,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       ...application,
       status: item.status as ApplicationStatus,
       documents,
+      apartments: { ...apartment, thumbnail_url: coverImageUrl(apartment_images, 'thumb') },
     };
   });
 

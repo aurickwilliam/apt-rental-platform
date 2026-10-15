@@ -14,7 +14,6 @@ import {
   fetchMessagePage,
   fetchOtherUserProfile,
   insertMessage,
-  markMessagesAsRead,
   resolveMessageType,
   sendChatAttachments,
   upsertChatReaction,
@@ -28,6 +27,8 @@ import { mergeChatMessages } from '../../service/chat/chatPagination';
 
 import { useChatChannel, type ReactionBroadcast } from './useChatChannel';
 import { useChatTyping } from './useChatTyping';
+import { getNewestReceivedCreatedAt, markSentReadUpTo } from '@/service/chat/readReceipts';
+import { useConversationReadSync } from './useConversationReadSync';
 
 type Options = {
   conversationId: string;
@@ -52,6 +53,9 @@ export function useChat({
   const [otherUserAvatar, setOtherUserAvatar] = useState<string | null>(
     initialOtherUserAvatar ?? null
   );
+  // Loaded with the profile, never passed through route params (PII).
+  const [otherUserPhoneNumber, setOtherUserPhoneNumber] = useState<string | null>(null);
+  const [otherUserIsVerified, setOtherUserIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -76,9 +80,29 @@ export function useChat({
 
   // ─── Realtime channel ───────────────────────────────────────────────────────
 
-  const handleNewMessage = useCallback((msg: Message) => {
-    setMessages((prev) => mergeChatMessages(prev, [msg], 'newest'));
+  // After the server marks the chat read, tell the sender's open chat how far
+  // we read (the newest of their messages we have) so their "Seen" updates live.
+  const broadcastReadRef = useRef<((readUpTo: string) => void) | null>(null);
+  const handleMarkedRead = useCallback(() => {
+    const readUpTo = getNewestReceivedCreatedAt(messagesRef.current);
+    if (readUpTo) broadcastReadRef.current?.(readUpTo);
   }, []);
+
+  const { handleIncomingMessage } = useConversationReadSync({
+    myId,
+    otherUserId,
+    apartmentId,
+    onMarkedRead: handleMarkedRead,
+  });
+
+  // The channel only delivers the other user's messages.
+  const handleNewMessage = useCallback(
+    (msg: Message) => {
+      setMessages((prev) => mergeChatMessages(prev, [msg], 'newest'));
+      handleIncomingMessage();
+    },
+    [handleIncomingMessage]
+  );
 
   const handleOtherUserTypingChange = useCallback((isTyping: boolean) => {
     setOtherUserIsTyping((prev) => (prev === isTyping ? prev : isTyping));
@@ -109,7 +133,11 @@ export function useChat({
     );
   }, []);
 
-  const { broadcast, broadcastDelete, broadcastReaction, trackPresence } = useChatChannel({
+  const handleMessagesRead = useCallback((readUpTo: string) => {
+    setMessages((prev) => markSentReadUpTo(prev, readUpTo));
+  }, []);
+
+  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
@@ -117,7 +145,15 @@ export function useChat({
     onOtherUserTypingChange: handleOtherUserTypingChange,
     onMessageDeleted: handleMessageDeleted,
     onReactionChange: handleReactionChange,
+    onMessagesRead: handleMessagesRead,
   });
+
+  useEffect(() => {
+    broadcastReadRef.current = (readUpTo: string) => {
+      if (!myIdRef.current) return;
+      broadcastRead({ reader_id: myIdRef.current, apartment_id: apartmentId, read_up_to: readUpTo });
+    };
+  }, [apartmentId, broadcastRead]);
 
   // ─── Typing indicators ──────────────────────────────────────────────────────
 
@@ -588,6 +624,8 @@ export function useChat({
     setNextCursor(null);
     setMessages([]);
     setReplyTarget(null);
+    setOtherUserPhoneNumber(null);
+    setOtherUserIsVerified(false);
 
     async function init() {
       if (!myId) {
@@ -617,12 +655,13 @@ export function useChat({
           if (!initialOtherUserAvatarRef.current && otherProfile.avatarUrl) {
             setOtherUserAvatar(otherProfile.avatarUrl);
           }
+          setOtherUserPhoneNumber(otherProfile.phoneNumber);
+          setOtherUserIsVerified(otherProfile.isVerified);
         }
 
         setMessages((current) => mergeChatMessages(current, page.messages, 'older'));
         setNextCursor(page.nextCursor);
         setHasMore(page.nextCursor !== null);
-        markMessagesAsRead(myId, otherUserId, apartmentId).catch(console.error);
       } catch (err) {
         console.error('Chat init error:', err);
       } finally {
@@ -647,6 +686,8 @@ export function useChat({
     chatMessage,
     otherUserName,
     otherUserAvatar,
+    otherUserPhoneNumber,
+    otherUserIsVerified,
     loading,
     loadingMore,
     hasMore,

@@ -46,6 +46,8 @@ export type Message = {
   replyTo?: ReplyPreview | null;
   replyDeleted?: boolean;
   reactions: MessageReaction[];
+  /** Sent messages only: the other person has read it (drives "Seen"). */
+  isRead?: boolean;
 };
 
 /** A message freshly sent through sendChatAttachments — carries the original
@@ -84,7 +86,11 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
+  phoneNumber: string | null;
+  isVerified: boolean;
 };
+
+import type { ConversationPreferences } from './conversationPreferences';
 
 export type Conversation = {
   conversation_key: string;
@@ -98,10 +104,11 @@ export type Conversation = {
   last_message_type: MessageType | null;
   last_message_time: string;
   unread_count: number;
-  /** Authoritative sender of the latest message — provided by get_conversations_v2. */
+  /** Authoritative sender of the latest message — provided by get_portal_conversations. */
   last_sender_id: string | null;
   conversation_type: 'tenant' | 'inquiry';
 };
+
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -157,7 +164,7 @@ export async function fetchMessagePage(params: {
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to'
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to, is_read'
     )
     .or(
       `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
@@ -247,24 +254,6 @@ export async function insertMessage(params: {
 
   if (error) throw error;
   return data;
-}
-
-export async function markMessagesAsRead(
-  currentUserId: string,
-  otherUserId: string,
-  apartmentId: string | null
-) {
-  let query = supabase
-    .from('chat')
-    .update({ is_read: true })
-    .eq('receiver_id', currentUserId)
-    .eq('sender_id', otherUserId)
-    .eq('is_read', false);
-
-  query = apartmentId ? query.eq('apartment_id', apartmentId) : query.is('apartment_id', null);
-
-  const { error } = await query;
-  if (error) throw error;
 }
 
 export async function deleteChatMessage(params: {
@@ -591,17 +580,22 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
 }
 
 /**
- * Hardened conversation list: zero-argument RPC whose caller identity is
- * derived from auth.uid() server-side, so no user ID is ever client-supplied.
- * Returns authoritative last_sender_id / last_message_type / conversation_type,
- * removing the need for the client-side chat/tenancies metadata scan.
+ * Conversation list for one portal. The caller's identity comes from
+ * auth.uid() server-side, so no user ID is ever client-supplied. Chats about
+ * the caller's own apartments belong to the landlord portal, others to the
+ * tenant portal; chats with no apartment appear in both. Returns authoritative
+ * last_sender_id / last_message_type / conversation_type.
  */
-export async function getConversationsV2(): Promise<Conversation[]> {
-  const { data, error } = await supabase.rpc('get_conversations_v2');
+export async function getPortalConversations(
+  portal: 'tenant' | 'landlord'
+): Promise<(Conversation & Partial<ConversationPreferences>)[]> {
+  const { data, error } = await supabase.rpc('get_portal_conversations', {
+    p_portal: portal,
+  });
 
   if (error) throw error;
 
-  return (data as Conversation[]).sort(
+  return (data as (Conversation & Partial<ConversationPreferences>)[]).sort(
     (a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
   );
 }
@@ -611,7 +605,7 @@ export async function getConversationsV2(): Promise<Conversation[]> {
 export async function fetchOtherUserProfile(otherUserId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
-    .select('id, first_name, last_name, avatar_url')
+    .select('id, first_name, last_name, avatar_url, mobile_number, account_status')
     .eq('id', otherUserId)
     .maybeSingle();
 
@@ -623,6 +617,8 @@ export async function fetchOtherUserProfile(otherUserId: string): Promise<UserPr
     firstName: data.first_name ?? '',
     lastName: data.last_name ?? '',
     avatarUrl: data.avatar_url ?? null,
+    phoneNumber: data.mobile_number?.trim() || null,
+    isVerified: data.account_status === 'verified',
   };
 }
 
@@ -695,6 +691,7 @@ export async function mapMessages(
       replyTo,
       replyDeleted,
       reactions: reactionsByMessageId.get(m.id) ?? [],
+      isRead: m.is_read === true,
     };
   });
 }

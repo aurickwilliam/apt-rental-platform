@@ -2,6 +2,12 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@repo/supabase/server";
 
+import {
+  buildPortalContacts,
+  getContactConversationKey,
+  resolveContactAvatar,
+} from "@/lib/conversation-contacts";
+
 import { Contact } from "./components/types";
 import MessagesClient from "./components/MessageClient";
 
@@ -24,115 +30,66 @@ export default async function MessagesPage() {
 
   const tenantId = tenant.id;
 
-  // Get unread message counts for all conversations involving this tenant
-  const { data: unreadRows } = await supabase
-    .from("chat")
-    .select("sender_id, apartment_id")
-    .eq("receiver_id", tenantId)
-    .eq("is_read", false);
+  const [{ data: tenancyRows, error: tenancyError }, { data: conversationRows, error: conversationError }] =
+    await Promise.all([
+      supabase
+        .from("tenancies")
+        .select(`
+          landlord:users!tenancies_landlord_id_fkey (
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          ),
+          apartment:apartments!tenancies_apartment_id_fkey (
+            id,
+            name
+          )
+        `)
+        .eq("tenant_id", tenantId)
+        .eq("status", "active"),
+      // Tenant-side conversations only: chats about apartments this user owns
+      // belong to the landlord portal.
+      supabase.rpc("get_portal_conversations", { p_portal: "tenant" }),
+    ]);
 
-  const unreadCountByConversation = (unreadRows ?? []).reduce<Map<string, number>>((acc, row) => {
-    const senderId = row.sender_id;
-    const apartmentId = row.apartment_id ?? "none";
-    const key = `${senderId}:${apartmentId}`;
-    acc.set(key, (acc.get(key) ?? 0) + 1);
-    return acc;
-  }, new Map<string, number>());
+  if (tenancyError) console.error("[tenant messages] Failed to load tenancies:", tenancyError);
+  if (conversationError) {
+    console.error("[tenant messages] Failed to load conversations:", conversationError);
+  }
 
-  const resolveAvatar = (avatarUrl: string | null) => {
-    const normalized = avatarUrl?.trim();
-    return normalized ? normalized : "";
-  };
-
-  const { data: tenancyRows } = await supabase
-    .from("tenancies")
-    .select(`
-      landlord:users!tenancies_landlord_id_fkey (
-        id,
-        first_name,
-        last_name,
-        avatar_url
-      ),
-      apartment:apartments!tenancies_apartment_id_fkey (
-        id,
-        name
-      )
-    `)
-    .eq("tenant_id", tenantId)
-    .eq("status", "active");
-
-  // My Landlord: active landlord relationship(s) for this tenant
+  // My Landlord: active landlord relationship(s), shown even before any message
   const seenConversations = new Set<string>();
-  const myLandlord: Contact[] = (tenancyRows ?? []).reduce<Contact[]>((acc, row) => {
+  const activeLandlords: Contact[] = (tenancyRows ?? []).reduce<Contact[]>((acc, row) => {
     const landlord = row.landlord as { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
     const apartment = row.apartment as { id: string; name: string } | null;
     if (!landlord || !apartment?.id) return acc;
 
-    const conversationKey = `${landlord.id}:${apartment.id}`;
+    const conversationKey = getContactConversationKey(landlord.id, apartment.id);
     if (seenConversations.has(conversationKey)) return acc;
     seenConversations.add(conversationKey);
     acc.push({
       id: landlord.id,
       conversationKey,
       name: `${landlord.first_name} ${landlord.last_name}`.trim(),
-      avatar: resolveAvatar(landlord.avatar_url),
-      apartment: apartment ? `Current: ${apartment.name}` : "Current Landlord",
-      apartmentId: apartment?.id ?? null,
-      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
+      avatar: resolveContactAvatar(landlord.avatar_url),
+      apartment: `Current: ${apartment.name}`,
+      apartmentId: apartment.id,
+      unreadCount: 0,
     });
     return acc;
   }, []);
 
-  const activeConversations = new Set(myLandlord.map((landlord) => landlord.conversationKey));
-
-  const chatQuery = supabase
-    .from("chat")
-    .select(`
-      receiver:users!chat_receiver_id_fkey (
-        id,
-        first_name,
-        last_name,
-        avatar_url
-      ),
-      apartment:apartments!chat_apartment_id_fkey (
-        id,
-        name
-      )
-    `)
-    .eq("sender_id", tenantId)
-    .order("created_at", { ascending: false });
-
-  const { data: chatRows } = await chatQuery;
-
-  // Past Inquiries: previous landlord conversations excluding active landlord(s)
-  const seenReceiverKeys = new Set<string>();
-  const pastInquiries: Contact[] = (chatRows ?? []).reduce<Contact[]>((acc, row) => {
-    const receiver = row.receiver as { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
-    const apartment = row.apartment as { id: string; name: string } | null;
-
-    if (!receiver || !apartment?.id) return acc;
-
-    const conversationKey = `${receiver.id}:${apartment.id}`;
-    if (activeConversations.has(conversationKey) || seenReceiverKeys.has(conversationKey)) {
-      return acc;
-    }
-
-    seenReceiverKeys.add(conversationKey);
-    acc.push({
-      id: receiver.id,
-      conversationKey,
-      name: `${receiver.first_name} ${receiver.last_name}`.trim(),
-      avatar: resolveAvatar(receiver.avatar_url),
-      apartment: apartment ? `Previous inquiry: ${apartment.name}` : "Previous inquiry",
-      apartmentId: apartment?.id ?? null,
-      unreadCount: unreadCountByConversation.get(conversationKey) ?? 0,
-    });
-
-    return acc;
-  }, []);
+  // Past Inquiries: every other tenant-side conversation, newest first
+  const { pinned: myLandlord, others: pastInquiries } = buildPortalContacts({
+    rows: conversationRows ?? [],
+    pinned: activeLandlords,
+    describeApartment: (apartmentName) =>
+      apartmentName ? `Previous inquiry: ${apartmentName}` : "Previous inquiry",
+  });
 
   return (
-    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <MessagesClient
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}

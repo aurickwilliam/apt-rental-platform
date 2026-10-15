@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button, Chip, Dropdown, InputGroup, Separator, Spinner, Table } from "@heroui/react";
-import { Search, ListFilter, Calendar, Home } from "lucide-react";
+import { IconSearch as Search, IconFilter as ListFilter, IconCalendar as Calendar, IconHome as Home } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import { useLandlordApplications, type DisplayStatus } from "@/hooks/use-landlord-applications";

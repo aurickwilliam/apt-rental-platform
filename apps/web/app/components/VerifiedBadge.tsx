@@ -1,5 +1,5 @@
 import { Chip } from "@heroui/react";
-import { ShieldCheck } from "lucide-react";
+import { IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 
 interface VerifiedBadgeProps { className?: string }
 export function VerifiedBadge({ className }: VerifiedBadgeProps) {

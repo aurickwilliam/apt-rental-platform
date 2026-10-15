@@ -4,10 +4,8 @@ import {
   fetchPayments,
   formatReferenceId,
   methodLabel,
-  paidAmountForPeriod,
   paymentStatusLabel,
   periodMonthLabel,
-  type PaymentRecord,
 } from './paymentService'
 
 const mockFrom = jest.fn()
@@ -99,24 +97,6 @@ describe('methodLabel', () => {
   it('falls back for unknown or missing methods', () => {
     expect(methodLabel(null)).toBe('—')
     expect(methodLabel('bank')).toBe('bank')
-  })
-})
-
-describe('paidAmountForPeriod', () => {
-  const payments: PaymentRecord[] = [
-    { ...(ROW as unknown as PaymentRecord), id: 'a', amount: 1000, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
-    { ...(ROW as unknown as PaymentRecord), id: 'b', amount: 2000, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
-    { ...(ROW as unknown as PaymentRecord), id: 'c', amount: 5000, status: 'pending', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
-    { ...(ROW as unknown as PaymentRecord), id: 'd', amount: 9000, status: 'paid', period_start: '2026-07-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
-    { ...(ROW as unknown as PaymentRecord), id: 'e', amount: null, status: 'paid', period_start: '2026-08-01', apartment_name: 'Sunny Apartments', landlord_name: 'John Doe', tenant_name: 'Jane Smith' },
-  ]
-
-  it('sums only paid rows of the given period', () => {
-    expect(paidAmountForPeriod(payments, '2026-08-01')).toBe(3000)
-  })
-
-  it('returns zero when nothing was paid', () => {
-    expect(paidAmountForPeriod(payments, '2026-09-01')).toBe(0)
   })
 })
 

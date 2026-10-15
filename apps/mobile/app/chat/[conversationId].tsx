@@ -2,21 +2,25 @@ import {
   View,
   Pressable,
   KeyboardAvoidingView,
-  FlatList,
   Keyboard,
   Alert,
   LayoutChangeEvent,
   useWindowDimensions,
   type ViewToken,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+// Gesture-handler's list: a plain RN list cancels the bubbles' swipe-to-reply on Android.
+import { FlatList, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
+import { BlurTargetView } from 'expo-blur';
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -35,38 +39,50 @@ import ChatBubble, {
   playReactionHaptic,
 } from '@/app/chat/components/ChatBubble';
 import HoldMenu, { type HoldMenuData } from '@/app/chat/components/HoldMenu';
+import HoldStack from '@/app/chat/components/HoldStack';
+import ReactionStrip from '@/app/chat/components/ReactionStrip';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
-import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
+import ChatApartmentCard from './components/ChatApartmentCard';
+import { useEmojiPickerSettings } from './components/emojiPicker';
+import { getSeenMessageId } from '@/service/chat/readReceipts';
+import {
+  SENDER_AVATAR_GUTTER,
+  getBubbleGroupPosition,
+  showsSenderAvatar,
+} from './components/bubbleGrouping';
+import {
+  TIMESTAMP_REVEAL_WIDTH,
+  TimestampRevealContext,
+} from './components/timestampReveal';
 
-import { Button, Spinner } from 'heroui-native';
+import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
+import ChatBlockedNotice from './components/ChatBlockedNotice';
+
+import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { computeHoldLayout } from '@/app/chat/components/holdLayout';
-import { useChat } from 'hooks/chat';
+import { useBlockStatus, useChat, useChatApartment, useEmojiRecents } from 'hooks/chat';
+import { usePortalStore } from '@/stores/usePortalStore';
+import {
+  getChatApartmentRoute,
+  getChatProfileRoute,
+  getOtherPartyLabel,
+} from '@/service/chat/chatRoutes';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
 
+/** Horizontal travel before the swipe-to-show-times takes over from scrolling. */
+const TIMESTAMP_SWIPE_ACTIVATION = 12;
+/** Vertical travel that hands the touch back to the list's scroll. */
+const TIMESTAMP_SWIPE_VERTICAL_FAIL = 10;
+const TIMESTAMP_RETURN_SPRING = { damping: 22, stiffness: 240 };
+
 const MAX_ATTACHMENTS_PER_SEND = 10;
 const SCROLL_BOTTOM_THRESHOLD = 150;
-
-function glideHoldShift(
-  shift: SharedValue<number>,
-  prevIdRef: { current: string | null },
-  holdId: string | null,
-  target: number
-) {
-  // Fresh open starts at the origin; later passes (e.g. measured card
-  // height) glide from the current position instead of jumping back.
-  if (prevIdRef.current !== holdId) {
-    prevIdRef.current = holdId;
-    shift.value = 0;
-  }
-  shift.value = withTiming(target, { duration: 200 });
-}
 
 function setScrollButtonVisibility(
   opacity: SharedValue<number>,
@@ -88,8 +104,6 @@ function useRouteParams() {
     otherUserId: string;
     otherUserName?: string;
     otherUserAvatar?: string;
-    otherUserPhone?: string;
-    otherUserPhoneNumber?: string;
     apartmentId?: string;
     apartmentTitle?: string;
   }>();
@@ -103,7 +117,6 @@ function useRouteParams() {
     otherUserId: normalize(raw.otherUserId) ?? '',
     otherUserName: normalize(raw.otherUserName),
     otherUserAvatar: normalize(raw.otherUserAvatar),
-    otherUserPhoneNumber: normalize(raw.otherUserPhoneNumber),
     apartmentId: apartmentIdRaw || null,
     apartmentTitle: normalize(raw.apartmentTitle),
   };
@@ -115,10 +128,13 @@ function generateStagedId() {
 
 export default function ChatScreen() {
   const { colors, isDark } = useColors();
+  const { toast } = useToast();
   const { height: screenH } = useWindowDimensions();
 
   const flatListRef = useRef<FlatList>(null);
   const rootRef = useRef<View>(null);
+  // The chat content the hold backdrop blurs (needed for the Android blur).
+  const blurTargetRef = useRef<View>(null);
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -133,7 +149,6 @@ export default function ChatScreen() {
     height: number;
   } | null>(null);
   // Measured card height (estimate until onLayout reports the real one).
-  const [menuH, setMenuH] = useState(400);
   const insets = useSafeAreaInsets();
   const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
   const [pickerTargetId, setPickerTargetId] = useState<string | null>(null);
@@ -148,7 +163,6 @@ export default function ChatScreen() {
     otherUserId,
     otherUserName: routedName,
     otherUserAvatar: routedAvatar,
-    otherUserPhoneNumber,
     apartmentId,
     apartmentTitle,
   } = useRouteParams();
@@ -158,6 +172,8 @@ export default function ChatScreen() {
     chatMessage,
     otherUserName,
     otherUserAvatar,
+    otherUserPhoneNumber,
+    otherUserIsVerified,
     loading,
     loadingMore,
     hasMore,
@@ -182,6 +198,59 @@ export default function ChatScreen() {
     initialOtherUserName: routedName,
     initialOtherUserAvatar: routedAvatar,
   });
+
+  const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
+
+  // Emoji pickers (chat box panel and reaction "+") share recents and styling.
+  useEmojiRecents();
+  const emojiPickerSettings = useEmojiPickerSettings();
+  const [isEmojiPanelOpen, setIsEmojiPanelOpen] = useState(false);
+
+  // The active portal says who the other person is (tenant portal → landlord).
+  const portal = usePortalStore((state) => state.portal);
+  const router = useRouter();
+  const handleViewProfile = useCallback(() => {
+    if (!portal || !otherUserId) return;
+    router.push(getChatProfileRoute(portal, otherUserId, apartmentId));
+  }, [apartmentId, otherUserId, portal, router]);
+  // Swiping the chat left shows every bubble's time (iMessage style); a sent
+  // bubble's own swipe-left-to-reply takes priority (see SwipeToReply).
+  const timestampReveal = useSharedValue(0);
+  const timestampSwipe = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX(-TIMESTAMP_SWIPE_ACTIVATION)
+        .failOffsetY([-TIMESTAMP_SWIPE_VERTICAL_FAIL, TIMESTAMP_SWIPE_VERTICAL_FAIL])
+        .onUpdate((event) => {
+          const distance = Math.max(0, -event.translationX);
+          timestampReveal.set(
+            distance <= TIMESTAMP_REVEAL_WIDTH
+              ? distance
+              : TIMESTAMP_REVEAL_WIDTH + (distance - TIMESTAMP_REVEAL_WIDTH) * 0.15
+          );
+        })
+        .onFinalize(() => {
+          timestampReveal.set(withSpring(0, TIMESTAMP_RETURN_SPRING));
+        }),
+    [timestampReveal]
+  );
+  const timestampRevealContext = useMemo(
+    () => ({ reveal: timestampReveal, listGesture: timestampSwipe }),
+    [timestampReveal, timestampSwipe]
+  );
+
+  // Inquiry chats float the apartment under the header; the list pads its
+  // top edge by the card's height so the oldest messages stay reachable.
+  const chatApartment = useChatApartment(apartmentId, otherUserId);
+  const [apartmentCardHeight, setApartmentCardHeight] = useState(0);
+  const handleApartmentCardLayout = useCallback((event: LayoutChangeEvent) => {
+    setApartmentCardHeight(Math.round(event.nativeEvent.layout.height));
+  }, []);
+  const listTopInset = chatApartment ? apartmentCardHeight : 0;
+  const handleViewApartment = useCallback(() => {
+    if (!portal || !apartmentId) return;
+    router.push(getChatApartmentRoute(portal, apartmentId));
+  }, [apartmentId, portal, router]);
 
   const handleVisibleMessagesRef = useRef(handleVisibleMessages);
   useEffect(() => {
@@ -255,7 +324,11 @@ export default function ChatScreen() {
   // Any scroll, keyboard pop, or list growth while the hold stack is open dismisses it.
   const handleScrollBeginDrag = useCallback(() => {
     setActiveHold(null);
+    setIsEmojiPanelOpen(false);
   }, []);
+
+  // Touching the conversation closes the chat box's emoji panel (Messenger style).
+  const closeEmojiPanel = useCallback(() => setIsEmojiPanelOpen(false), []);
 
   useEffect(() => {
     if (!activeHold) return;
@@ -286,9 +359,9 @@ export default function ChatScreen() {
     ? (messages.find((m) => m.id === activeHold.id) ?? null)
     : null;
 
-  // The menu centers itself in the usable viewport; the elevated clone keeps
-  // the bubble's original position and moves ONLY on menu/viewport collision
-  // (see holdLayout.ts). Unmeasured anchors fall back to viewport center.
+  // The held message is stacked with its reaction pill and actions card and
+  // centered in the usable viewport (see HoldStack / holdLayout.ts). An
+  // unmeasured anchor starts from the viewport center.
   const usableTop = headerHeight + 8;
   const usableBottom = screenH - insets.bottom - 90;
   const bubbleOrigTop =
@@ -297,31 +370,6 @@ export default function ChatScreen() {
         ? usableTop + (usableBottom - usableTop - activeHold.height) / 2
         : activeHold.pageY - rootY
       : 0;
-  const layout =
-    activeHold && activeMsg
-      ? computeHoldLayout(
-          {
-            pageX: activeHold.pageX,
-            pageY: bubbleOrigTop,
-            width: activeHold.width,
-            height: activeHold.height,
-          },
-          menuH,
-          { screenH, usableTop, usableBottom }
-        )
-      : null;
-
-  // Glide the clone from its original position to the fallback position only
-  // when a move is required; zero distance means no visible movement.
-  const holdShift = useSharedValue(0);
-  const holdShiftStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: holdShift.value }],
-  }));
-  const shiftTarget = layout ? layout.bubbleTop - bubbleOrigTop : 0;
-  const prevHoldId = useRef<string | null>(null);
-  useEffect(() => {
-    glideHoldShift(holdShift, prevHoldId, activeHold?.id ?? null, shiftTarget);
-  }, [activeHold, shiftTarget, holdShift]);
 
   const holdData: HoldMenuData | null = activeMsg
     ? {
@@ -355,32 +403,20 @@ export default function ChatScreen() {
     setActiveHold(null);
   }, [activeMsg, handleReply]);
 
+  // A static import: loading expo-clipboard on demand failed in development
+  // ("Requiring unknown module") and fell back to an alert without copying.
   const handleHoldCopy = useCallback(async () => {
     if (!activeMsg?.message) return;
     const text = activeMsg.message;
     setActiveHold(null);
     try {
-      let copied = false;
-      try {
-        const Clipboard = await import('expo-clipboard');
-        if (Clipboard?.setStringAsync) {
-          await Clipboard.setStringAsync(text);
-          copied = true;
-        }
-      } catch {
-        // native module missing — fall through to web fallback
-      }
-      if (!copied && typeof navigator !== 'undefined' && (navigator as unknown as { clipboard?: { writeText?: (t: string) => Promise<void> } }).clipboard?.writeText) {
-        await (navigator as unknown as { clipboard: { writeText: (t: string) => Promise<void> } }).clipboard.writeText(text);
-        copied = true;
-      }
-      if (!copied) {
-        Alert.alert('Copied', text);
-      }
-    } catch {
+      await Clipboard.setStringAsync(text);
+      toast.show({ variant: 'success', label: 'Message copied' });
+    } catch (error) {
+      console.error('[chat] Failed to copy message:', error);
       Alert.alert('Copy failed', 'Unable to copy message.');
     }
-  }, [activeMsg]);
+  }, [activeMsg, toast]);
 
   const handleHoldUnsend = useCallback(() => {
     if (!activeMsg) return;
@@ -513,8 +549,11 @@ export default function ChatScreen() {
     [selectedImage]
   );
 
+  // "Seen" sits under the newest of my messages the other person has read.
+  const seenMessageId = useMemo(() => getSeenMessageId(messages), [messages]);
+
   const renderItem = useCallback(
-    ({ item }: { item: Message }) => (
+    ({ item, index }: { item: Message; index: number }) => (
       <ChatBubble
         id={item.id}
         message={item.message}
@@ -534,6 +573,12 @@ export default function ChatScreen() {
         reactions={item.reactions}
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
+        onReply={() => handleReply(item)}
+        groupPosition={getBubbleGroupPosition(messages, index)}
+        showSeen={item.id === seenMessageId}
+        showSenderAvatar={showsSenderAvatar(messages, index)}
+        otherUserAvatar={otherUserAvatar}
+        onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
         hidden={activeHold?.id === item.id}
         onImagePress={setSelectedImage}
         onMediaLoadError={(mediaKind) => {
@@ -545,6 +590,13 @@ export default function ChatScreen() {
       otherUserName,
       handleToggleReaction,
       handleHoldFor,
+      handleReply,
+      messages,
+      seenMessageId,
+      otherUserAvatar,
+      portal,
+      otherUserId,
+      handleViewProfile,
       activeHold,
       retryChatMediaOnce,
     ]
@@ -552,6 +604,7 @@ export default function ChatScreen() {
 
   return (
     <View ref={rootRef} collapsable={false} className="flex-1">
+    <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
     <ScreenWrapper
       dismissKeyboardOnTouch={false}
       header={
@@ -559,7 +612,7 @@ export default function ChatScreen() {
           <ChatHeader
             name={otherUserName}
             profilePicture={otherUserAvatar ?? undefined}
-            phoneNumber={otherUserPhoneNumber}
+            phoneNumber={otherUserPhoneNumber ?? undefined}
             apartmentTitle={apartmentTitle ?? undefined}
           />
         </View>
@@ -570,55 +623,100 @@ export default function ChatScreen() {
         behavior="padding"
         keyboardVerticalOffset={headerHeight}
       >
-        {loading ? (
-          <ChatLoadingSkeleton />
-        ) : (
-          <View className="flex-1">
-            <FlatList
-              inverted
-              ref={flatListRef}
-              className="flex-1"
-              data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={renderItem}
-              contentContainerStyle={
-                messages.length === 0
-                  ? { flexGrow: 1, justifyContent: 'center' }
-                  : { flexGrow: 1, padding: 16, paddingBottom: 10 }
-              }
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-              nestedScrollEnabled
-              ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
-              ListFooterComponent={
-                <>
-                  {loadingMore && (
-                    <View className="py-3 items-center">
-                      <Spinner size="sm" color={colors.primary} />
-                    </View>
-                  )}
-                  <ChatEmptyState
-                    otherUserName={otherUserName}
-                    otherUserAvatar={otherUserAvatar ?? undefined}
-                    apartmentTitle={apartmentTitle}
-                    hasMessages={messages.length > 0}
+        <View className="flex-1">
+          {loading ? (
+            <View className="flex-1" style={{ paddingTop: listTopInset }}>
+              <ChatLoadingSkeleton />
+            </View>
+          ) : (
+            <TimestampRevealContext.Provider value={timestampRevealContext}>
+              <GestureDetector gesture={timestampSwipe}>
+                <View
+                  className="flex-1"
+                  collapsable={false}
+                  onTouchStart={isEmojiPanelOpen ? closeEmojiPanel : undefined}
+                >
+                  <FlatList
+                    inverted
+                    ref={flatListRef}
+                    className="flex-1"
+                    data={messages}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    contentContainerStyle={
+                      messages.length === 0
+                        ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
+                        : {
+                            flexGrow: 1,
+                            paddingHorizontal: 16,
+                            // Inverted: paddingTop is the gap above the chat box, which
+                            // the newest bubble's own bottom gap already provides.
+                            paddingTop: 0,
+                            paddingBottom: 10 + listTopInset,
+                          }
+                    }
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                    nestedScrollEnabled
+                    ListHeaderComponent={otherUserIsTyping ? <TypingIndicator /> : null}
+                    ListFooterComponent={
+                      <>
+                        {loadingMore && (
+                          <View className="py-3 items-center">
+                            <Spinner size="sm" color={colors.primary} />
+                          </View>
+                        )}
+                        <ChatEmptyState
+                          otherUserName={otherUserName}
+                          otherUserAvatar={otherUserAvatar ?? undefined}
+                          apartmentTitle={apartmentTitle}
+                          otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
+                          isVerified={otherUserIsVerified}
+                          hasMessages={messages.length > 0}
+                          onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
+                          onViewApartment={portal && apartmentId ? handleViewApartment : undefined}
+                        />
+                      </>
+                    }
+                    onContentSizeChange={handleContentSizeChange}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onEndReached={hasMore ? loadOlderMessages : undefined}
+                    onEndReachedThreshold={0.2}
+                    onScroll={handleScroll}
+                    onScrollBeginDrag={handleScrollBeginDrag}
+                    scrollEventThrottle={16}
                   />
-                </>
-              }
-              onContentSizeChange={handleContentSizeChange}
-              onViewableItemsChanged={onViewableItemsChanged}
-              onEndReached={hasMore ? loadOlderMessages : undefined}
-              onEndReachedThreshold={0.2}
-              onScroll={handleScroll}
-              onScrollBeginDrag={handleScrollBeginDrag}
-              scrollEventThrottle={16}
-            />
-          </View>
-        )}
+                </View>
+              </GestureDetector>
+            </TimestampRevealContext.Provider>
+          )}
+          {chatApartment && (
+            <View className="absolute inset-x-0 top-0" pointerEvents="box-none">
+              <ChatApartmentCard
+                apartment={chatApartment}
+                onPress={handleViewApartment}
+                onLayout={handleApartmentCardLayout}
+              />
+            </View>
+          )}
+        </View>
 
         <View className="px-3 py-2">
+          {blockedByMe || blockedMe ? (
+            <ChatBlockedNotice
+              otherUserName={otherUserName}
+              blockedByMe={blockedByMe}
+              isUnblocking={isUnblocking}
+              onUnblock={() => {
+                unblock().catch((error: unknown) => {
+                  console.error('[chat] Failed to unblock:', error);
+                  Alert.alert("Couldn't unblock", 'Check your connection and try again.');
+                });
+              }}
+            />
+          ) : (
           <ChatBox
             chatValue={chatMessage}
             onChatValueChange={handleChatMessageChange}
@@ -633,7 +731,10 @@ export default function ChatScreen() {
             replyTarget={replyTarget}
             onClearReply={clearReply}
             otherUserName={otherUserName}
+            isEmojiPickerOpen={isEmojiPanelOpen}
+            onEmojiPickerOpenChange={setIsEmojiPanelOpen}
           />
+          )}
         </View>
         <Animated.View
           pointerEvents={isNearBottom ? 'none' : 'auto'}
@@ -670,6 +771,7 @@ export default function ChatScreen() {
         onSelect={handleGifSelected}
       />
     </ScreenWrapper>
+    </BlurTargetView>
     {activeHold !== null && (
       <View
         className="absolute inset-0"
@@ -683,57 +785,60 @@ export default function ChatScreen() {
           className="absolute inset-0"
           style={{ zIndex: 0, elevation: 0 }}
         >
-          <BlurBackdrop isDark={isDark} />
+          <BlurBackdrop isDark={isDark} blurTarget={blurTargetRef} />
         </Pressable>
-        {activeMsg && holdData && (
-          <>
-            <Animated.View
-              pointerEvents="none"
-              className="absolute inset-x-0 px-4"
-              style={[{ top: bubbleOrigTop, zIndex: 10, elevation: 10 }, holdShiftStyle]}
-            >
-              <View className={`max-w-[80%] ${activeMsg.isSent ? 'self-end' : 'self-start'}`}>
-                <ChatBubbleContent
-                  message={activeMsg.message}
-                  messageType={activeMsg.messageType}
-                  attachmentUrl={activeMsg.attachmentUrl}
-                  attachmentPath={activeMsg.attachmentPath}
-                  thumbnailUrl={activeMsg.thumbnailUrl}
-                  thumbnailPath={activeMsg.thumbnailPath}
-                  isSent={activeMsg.isSent}
-                  replyTo={activeMsg.replyTo}
-                  replyDeleted={activeMsg.replyDeleted}
-                  otherUserName={otherUserName}
-                  reactions={activeMsg.reactions}
-                  interactive={false}
-                />
-              </View>
-            </Animated.View>
-            <View
-              pointerEvents="box-none"
-              className="absolute inset-x-0 px-6"
-              style={{ top: layout?.menuTop ?? 0, zIndex: 20, elevation: 20 }}
-              onLayout={(e) => {
-                const h = Math.round(e.nativeEvent.layout.height);
-                setMenuH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
-              }}
-            >
-              <View className={activeMsg.isSent ? 'self-end' : 'self-start'}>
-                <HoldMenu
-                  data={holdData}
-                  onSelectReaction={handleHoldReact}
+        {activeMsg && holdData && activeHold && (
+          <HoldStack
+            key={activeMsg.id}
+            isSent={activeMsg.isSent}
+            bubbleOrigTop={bubbleOrigTop}
+            bubbleHeight={activeHold.height}
+            viewport={{ screenH, usableTop, usableBottom }}
+            startInset={activeMsg.isSent ? 0 : SENDER_AVATAR_GUTTER}
+            reactions={
+              holdData.canReact ? (
+                <ReactionStrip
+                  myReaction={holdData.myReaction}
+                  onSelect={handleHoldReact}
                   onOpenFullPicker={handleHoldPicker}
-                  onReply={handleHoldReply}
-                  onCopy={handleHoldCopy}
-                  onUnsend={handleHoldUnsend}
                 />
-              </View>
-            </View>
-          </>
+              ) : null
+            }
+            bubble={
+              <ChatBubbleContent
+                message={activeMsg.message}
+                messageType={activeMsg.messageType}
+                attachmentUrl={activeMsg.attachmentUrl}
+                attachmentPath={activeMsg.attachmentPath}
+                thumbnailUrl={activeMsg.thumbnailUrl}
+                thumbnailPath={activeMsg.thumbnailPath}
+                isSent={activeMsg.isSent}
+                replyTo={activeMsg.replyTo}
+                replyDeleted={activeMsg.replyDeleted}
+                otherUserName={otherUserName}
+                reactions={activeMsg.reactions}
+                interactive={false}
+                groupPosition={getBubbleGroupPosition(
+                  messages,
+                  messages.findIndex((m) => m.id === activeMsg.id)
+                )}
+              />
+            }
+            menu={
+              <HoldMenu
+                data={holdData}
+                onReply={handleHoldReply}
+                onCopy={handleHoldCopy}
+                onUnsend={handleHoldUnsend}
+              />
+            }
+          />
         )}
       </View>
     )}
     <EmojiPicker
+      {...emojiPickerSettings}
+      expandable
       open={isReactionPickerOpen}
       onClose={() => {
         setIsReactionPickerOpen(false);

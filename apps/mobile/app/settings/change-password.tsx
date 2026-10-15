@@ -13,11 +13,8 @@ import NewPasswordFields from "@/components/inputs/NewPasswordFields";
 import { usePasswordValidation } from "@repo/hooks";
 import { useColors } from "@/hooks/useTheme";
 import { changePassword } from "@/service/auth/passwordChangeService";
-import { PasswordError, type PasswordErrorReason } from "@repo/utils";
+import { getPasswordChangeErrorField, PasswordError } from "@repo/utils";
 
-// Server errors shown under a field; anything else opens the error dialog.
-const CURRENT_PASSWORD_ERRORS = new Set<PasswordErrorReason>(["wrong_current_password"]);
-const NEW_PASSWORD_ERRORS = new Set<PasswordErrorReason>(["same_password", "weak_password"]);
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 
 export default function ChangePassword() {
@@ -97,12 +94,12 @@ export default function ChangePassword() {
         // Log the type only: an unexpected message could echo a password.
         console.error("Password change failed:", err instanceof Error ? err.name : typeof err);
         setError(GENERIC_ERROR);
-      } else if (CURRENT_PASSWORD_ERRORS.has(err.reason)) {
-        setCurrentPasswordError(err.message);
-      } else if (NEW_PASSWORD_ERRORS.has(err.reason)) {
-        setNewPasswordError(err.message);
       } else {
-        setError(err.message);
+        // Shown under its field, or in the error dialog for anything else.
+        const field = getPasswordChangeErrorField(err.reason);
+        if (field === "current") setCurrentPasswordError(err.message);
+        else if (field === "new") setNewPasswordError(err.message);
+        else setError(err.message);
       }
     } finally {
       setSaving(false);

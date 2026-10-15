@@ -28,13 +28,11 @@ type StatusConfig = {
 type VerificationStatusProps = {
   accountStatus?: AccountStatus;
   rejectedReason?: string;
-  dateVerified?: string;
 };
 
 export default function VerificationStatus({
   accountStatus = 'unverified',
   rejectedReason,
-  dateVerified,
 }: VerificationStatusProps) {
   const router = useRouter();
   const { colors } = useColors();
@@ -42,15 +40,15 @@ export default function VerificationStatus({
   const STATUS_CONFIG: StatusConfig = {
     verified: {
       text: 'Verified Tenant',
-      style: 'text-success',
+      style: 'text-success-text',
       icon: IconCircleCheck,
-      iconColor: colors.success,
+      iconColor: colors.successText,
     },
     pending: {
       text: 'Pending Verification',
-      style: 'text-warning',
+      style: 'text-warning-text',
       icon: IconAlertCircle,
-      iconColor: colors.warning,
+      iconColor: colors.warningText,
     },
     rejected: {
       text: 'Rejected',
@@ -106,29 +104,22 @@ export default function VerificationStatus({
         )}
 
         {accountStatus === 'pending' && (
-          <Card.Description className='text-gray-400 font-inter text-sm'>
+          <Card.Description className='text-muted font-inter text-sm'>
             Your documents are currently under review. We will notify you once
             the verification process is complete.
           </Card.Description>
         )}
 
         {accountStatus === 'verified' && (
-          <>
-            <Card.Description className='text-gray-400 font-inter text-sm'>
-              You have successfully been verified as a tenant. You can now apply
-              for rental properties on our platform.
-            </Card.Description>
-            {dateVerified && (
-              <Card.Description className='text-gray-400 font-inter text-sm'>
-                Last Verified: {dateVerified}
-              </Card.Description>
-            )}
-          </>
+          <Card.Description className='text-muted font-inter text-sm'>
+            You have successfully been verified as a tenant. You can now apply
+            for rental properties on our platform.
+          </Card.Description>
         )}
 
         {accountStatus === 'unverified' && (
           <>
-            <Card.Description className='text-gray-400 font-inter text-sm'>
+            <Card.Description className='text-muted font-inter text-sm'>
               Your account has not been verified yet. Please submit your
               documents to get verified.
             </Card.Description>

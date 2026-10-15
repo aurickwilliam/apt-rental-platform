@@ -8,7 +8,7 @@ import { createClient } from "@repo/supabase/browser";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import { useVisitRequest } from "@/hooks/use-visit-request";
 import { useSubmitVisitRequest } from "@/hooks/use-submit-visit-request";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
 
 function RequestVisitPageInner() {
   const searchParams = useSearchParams();

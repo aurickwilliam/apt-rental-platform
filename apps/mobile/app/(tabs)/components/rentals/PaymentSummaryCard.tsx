@@ -1,15 +1,18 @@
 import { View, Text } from "react-native";
 
-import { useColors } from "hooks/useTheme";
-import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
+import {
+  useStatusChipStyles,
+  statusChipSurface,
+} from "@/hooks/useStatusChipStyles";
 import { formatPesoDisplay } from "@repo/utils";
+import { COLORS } from "@repo/constants";
 
 import { Button, Chip } from "heroui-native";
 import {
-  IconCalendarMonth,
-  IconCoin,
-  IconCreditCard,
   IconHistory,
+  IconCircleCheck,
+  IconClock,
+  IconCreditCard,
 } from "@tabler/icons-react-native";
 
 interface PaymentSummaryCardProps {
@@ -31,25 +34,21 @@ export default function PaymentSummaryCard({
   onPayNowPress,
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
-  const { colors } = useColors();
   const palette = useStatusChipStyles();
 
   const isPending = status === "Pending";
   const statusStyle = isPending ? palette.warning : palette.success;
+  // Same icons as the application status chips.
+  const StatusIcon = isPending ? IconClock : IconCircleCheck;
 
   return (
     <View className="bg-accent rounded-3xl p-4 border border-white/10">
       {/* Header — no icon beside title per request */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-white text-lg font-nunitoBold">
-          Payment Summary
-        </Text>
+        <Text className="text-white text-lg font-nunitoBold">Monthly rent</Text>
 
-        <Chip
-          size="sm"
-          variant="soft"
-          style={statusChipSurface(statusStyle)}
-        >
+        <Chip size="sm" variant="soft" style={statusChipSurface(statusStyle)}>
+          <StatusIcon size={14} color={statusStyle.textColor} />
           <Chip.Label
             className="font-nunitoSemiBold text-sm"
             style={{ color: statusStyle.textColor }}
@@ -59,81 +58,41 @@ export default function PaymentSummaryCard({
         </Chip>
       </View>
 
-      {/* Details — compact row with icons */}
-      <View className="flex-row gap-3 mt-4">
-        {/* Period */}
-        <View className="flex-1 flex-row items-center gap-2.5">
-          <View className="p-2 rounded-xl bg-white/20">
-            <IconCalendarMonth size={16} color="#FFFFFF" strokeWidth={2} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white/70 text-xs font-nunitoSemiBold">
-              Period
-            </Text>
-            <Text
-              className="text-white text-sm font-nunitoSemiBold"
-              numberOfLines={1}
-            >
-              {periodMonth} {periodYear}
-            </Text>
-          </View>
-        </View>
-
-        {/* Rent Amount — renamed from Amount, due date below it */}
-        <View className="flex-1 flex-row items-center gap-2.5">
-          <View className="p-2 rounded-xl bg-white/20">
-            <IconCoin size={16} color="#FFFFFF" strokeWidth={2} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white/70 text-xs font-interSemiBold">
-              Rent Amount
-            </Text>
-            <Text
-              className="text-white text-sm font-nunitoSemiBold"
-              numberOfLines={1}
-            >
-              {formatPesoDisplay(totalRent)}
-            </Text>
-            {dueDate ? (
-              <Text className="text-white/60 text-[11px] font-inter leading-none mt-0.5">
-                Due: {dueDate}
-              </Text>
-            ) : null}
-          </View>
-        </View>
+      <View className="mt-2 gap-1">
+        <Text className="text-white text-2xl font-nunitoBold">
+          {formatPesoDisplay(totalRent)}
+        </Text>
+        <Text className="text-white text-sm font-nunitoSemiBold">
+          {periodMonth} {periodYear}
+          {dueDate ? ` · Due ${dueDate}` : ""}
+        </Text>
       </View>
 
-      {/* Actions — both with Tabler icons */}
-      <View className="flex-row gap-3 mt-4">
+      <View className="flex-row items-center gap-4 mt-2">
         {isPending && (
-          <Button
-            size="sm"
-            onPress={onPayNowPress}
-            className={`flex-1 bg-secondary`}
-          >
+          <Button size="sm" onPress={onPayNowPress} className="flex-1 bg-white">
+            {/* Brand blue in both modes: the lighter dark-mode blue is too
+                faint on white. */}
             <IconCreditCard
               size={16}
-              color={colors.secondaryForeground}
+              color={COLORS.light.primary}
               strokeWidth={2}
             />
-            <Button.Label
-              style={{ color: colors.secondaryForeground}}
-            >
+            <Button.Label style={{ color: COLORS.light.primary }}>
               Pay Now
             </Button.Label>
           </Button>
         )}
 
         <Button
-          size="sm"
-          variant="secondary"
+          isIconOnly
+          variant="ghost"
+          size="md"
           onPress={onViewHistoryPress}
-          className="flex-1 bg-white/15 border border-white/20"
+          className="size-11 rounded-full bg-white/15"
+          accessibilityLabel="View payment history"
         >
-          <IconHistory size={16} color="#FFFFFF" strokeWidth={2} />
-          <Button.Label style={{ color: "#FFFFFF" }}>
-            View History
-          </Button.Label>
+          <IconHistory size={22} color="#FFFFFF" strokeWidth={2} />
         </Button>
       </View>
     </View>

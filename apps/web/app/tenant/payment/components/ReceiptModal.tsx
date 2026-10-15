@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Modal, useOverlayState } from "@heroui/react";
-import { X } from "lucide-react";
+import { IconX as X } from "@tabler/icons-react";
 import ReceiptView from "./ReceiptView";
 import type { PaymentRecord } from "@/service/paymentService";
 
