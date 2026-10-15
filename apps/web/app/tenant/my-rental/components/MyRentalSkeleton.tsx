@@ -49,31 +49,39 @@ function ApplicationsSkeleton() {
 function TenancySkeleton() {
   return (
     <>
-      <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
         <Sk className="h-3 w-36 rounded-lg" />
-        <div className="flex items-center justify-between gap-3">
-          <div className="space-y-2">
-            <Sk className="h-9 w-64 rounded-lg" />
-            <Sk className="h-4 w-80 max-w-full rounded-lg" />
-          </div>
+        <div className="flex items-center gap-2">
+          <Sk className="h-8 w-36 rounded-full" />
           <Sk className="h-7 w-24 rounded-full" />
         </div>
       </div>
 
+      <Sk className="h-64 w-full rounded-3xl md:h-80" />
+
       <div className="grid gap-3 lg:grid-cols-3">
-        <div className="space-y-5 rounded-2xl border border-border bg-card p-4 lg:col-span-2">
-          <Sk className="h-3 w-24 rounded-lg" />
-          <Sk className="h-10 w-40 rounded-lg" />
-          <div className="flex gap-2">
-            <Sk className="h-6 w-28 rounded-full" />
-            <Sk className="h-6 w-24 rounded-full" />
+        <div className="space-y-3 rounded-2xl bg-primary/20 p-5 lg:col-span-2">
+          <div className="flex items-center justify-between gap-2">
+            <Sk className="h-6 w-36 rounded-lg" />
+            <Sk className="h-8 w-28 rounded-full" />
           </div>
-          <div className="grid grid-cols-3 gap-4 border-t border-border pt-4">
-            <Sk className="h-10 rounded-lg" />
-            <Sk className="h-10 rounded-lg" />
-            <Sk className="h-10 rounded-lg" />
+          <Sk className="h-10 w-48 rounded-lg" />
+          <Sk className="h-4 w-64 max-w-full rounded-lg" />
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <Sk className="size-6 shrink-0 rounded-md" />
+                <div className="space-y-1.5">
+                  <Sk className="h-3 w-16 rounded-lg" />
+                  <Sk className="h-4 w-24 rounded-lg" />
+                </div>
+              </div>
+            ))}
           </div>
-          <Sk className="h-9 w-24 rounded-full" />
+          <div className="flex items-center gap-3 pt-1">
+            <Sk className="h-10 flex-1 rounded-full" />
+            <Sk className="size-11 shrink-0 rounded-full" />
+          </div>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4">
           <Sk className="h-5 w-28 rounded-lg" />
@@ -84,9 +92,9 @@ function TenancySkeleton() {
       <div className="grid gap-3 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-2xl border border-border bg-card p-4">
           <Sk className="h-3 w-28 rounded-lg" />
-          <div className="mt-4 grid grid-cols-4 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <Sk key={index} className="h-20 rounded-xl" />
+              <Sk key={index} className="h-20 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -98,6 +106,24 @@ function TenancySkeleton() {
           </div>
           <Sk className="h-9 w-full rounded-full" />
         </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <Sk className="h-4 w-28 rounded-lg" />
+          <Sk className="h-4 w-24 rounded-lg" />
+        </div>
+        <Sk className="mx-auto h-3 w-48 rounded-lg" />
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <Sk className="h-4 w-32 rounded-lg" />
+          <Sk className="h-3 w-40 rounded-lg" />
+        </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Sk key={index} className="h-8 w-full rounded-lg" />
+        ))}
       </div>
     </>
   );
