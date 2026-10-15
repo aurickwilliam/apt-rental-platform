@@ -683,7 +683,7 @@ export default function SecondStep() {
 
           {/* Map Button */}
           <TouchableOpacity
-            className="rounded-3xl h-52 w-full overflow-hidden"
+            className="rounded-3xl h-52 w-full overflow-hidden border border-border"
             onPress={() =>
               router.push("/landlord/manage-apartment/add-apartment/map-pin")
             }

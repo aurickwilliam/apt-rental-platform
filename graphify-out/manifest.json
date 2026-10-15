@@ -730,13 +730,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx": {
-    "mtime": 1792051936.7222168,
-    "ast_hash": "cf513aa2ea6bf56192886bb6ce5f1003",
+    "mtime": 1792071053.787178,
+    "ast_hash": "f707c5b99d5c9074b2ca1a13a4511416",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx": {
-    "mtime": 1792051936.722757,
-    "ast_hash": "ad2bd1b12344d80906d9083cc734a3fa",
+    "mtime": 1792071053.7873867,
+    "ast_hash": "35b8db82ed3695772c2f579e1fd35147",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/index.tsx": {
@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx": {
-    "mtime": 1792070502.2515485,
-    "ast_hash": "5e153922f49c1181b3222a846baad5c0",
+    "mtime": 1792071053.7876422,
+    "ast_hash": "cd70c84047a105e35fba4b46ea82d40e",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/success.tsx": {
@@ -760,8 +760,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx": {
-    "mtime": 1792051936.7225137,
-    "ast_hash": "4e48ef0e0f1d1d59127c6fcdeceb2748",
+    "mtime": 1792071053.787847,
+    "ast_hash": "97d5ca332c90a22f7b68ff97e94bf311",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/components/PerkButton.tsx": {
