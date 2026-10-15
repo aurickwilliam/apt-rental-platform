@@ -285,11 +285,11 @@ const CAMANAVA_CITY_ALIASES: Record<string, CamanavaCity> = {
  * "Kalookan") to the listing city, or null outside CAMANAVA.
  */
 export function toCamanavaCity(name: string | null | undefined): CamanavaCity | null {
-  const key = (name ?? "")
-    .toLowerCase()
-    .replace(/^city of\s+/, "")
-    .replace(/\s+city$/, "")
-    .trim();
+  // Word-based (no backtracking regex): geocoder input is untrusted.
+  const words = (name ?? "").toLowerCase().split(" ").filter(Boolean);
+  if (words[0] === "city" && words[1] === "of") words.splice(0, 2);
+  if (words.length > 1 && words[words.length - 1] === "city") words.pop();
+  const key = words.join(" ");
   if (!key) return null;
   return (
     CAMANAVA_CITIES.find((city) => city.toLowerCase() === key) ??

@@ -322,24 +322,6 @@ export default function EditMain() {
           />
         </TextField>
 
-        <TextField isRequired>
-          <Label>Street Address</Label>
-          <Input
-            placeholder="Enter street address"
-            value={info.street_address}
-            onChangeText={(v) => setInfo({ ...info, street_address: v })}
-          />
-        </TextField>
-
-        <TextField isRequired>
-          <Label>Barangay</Label>
-          <Input
-            placeholder="Enter barangay"
-            value={info.barangay}
-            onChangeText={(v) => setInfo({ ...info, barangay: v })}
-          />
-        </TextField>
-
         <DropdownField
           label="City:"
           required
@@ -354,6 +336,24 @@ export default function EditMain() {
           <Label>Province</Label>
           <Input value={METRO_MANILA} editable={false} />
           <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Barangay</Label>
+          <Input
+            placeholder="Enter barangay"
+            value={info.barangay}
+            onChangeText={(v) => setInfo({ ...info, barangay: v })}
+          />
+        </TextField>
+
+        <TextField isRequired>
+          <Label>Street Address</Label>
+          <Input
+            placeholder="Enter street address"
+            value={info.street_address}
+            onChangeText={(v) => setInfo({ ...info, street_address: v })}
+          />
         </TextField>
 
         <TextField isRequired>

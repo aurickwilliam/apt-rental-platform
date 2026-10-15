@@ -491,6 +491,40 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     </div>
                   </section>
 
+                  {/* Coordinates */}
+                  <section>
+                    <SectionTitle>Location</SectionTitle>
+                    <div className="flex flex-col gap-3">
+                      <TextField isInvalid={!!errors.latitude}>
+                        <Label>Latitude</Label>
+                        <Input 
+                          type="number" 
+                          value={form.latitude == null ? "" : String(form.latitude)} 
+                          onChange={(e) => updateForm("latitude", toNullableNumber(e.target.value))} 
+                        />
+                      </TextField>
+                      <TextField>
+                        <Label>Longitude</Label>
+                        <Input 
+                          type="number" 
+                          value={form.longitude == null ? "" : String(form.longitude)} 
+                          onChange={(e) => updateForm("longitude", toNullableNumber(e.target.value))} 
+                        />
+                      </TextField>
+                      <GoogleMapPicker
+                        latitude={form.latitude ?? null}
+                        longitude={form.longitude ?? null}
+                        onPick={(lat, lng) => {
+                          setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+                          clearError("latitude");
+                        }}
+                      />
+                      {errors.latitude && (
+                        <p role="alert" className="text-danger text-xs">{errors.latitude}</p>
+                      )}
+                    </div>
+                  </section>
+
                   {/* Address */}
                   <section>
                     <SectionTitle>
@@ -498,28 +532,6 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     </SectionTitle>
 
                     <div className="flex flex-col gap-3">
-                      <TextField isInvalid={!!errors.street_address}>
-                        <Label>
-                          Street Address
-                        </Label>
-                        <Input 
-                          value={form.street_address ?? ""} 
-                          onChange={(e) => updateForm("street_address", e.target.value)} 
-                        />
-                        <FieldError>{errors.street_address}</FieldError>
-                      </TextField>
-
-                      <TextField isInvalid={!!errors.barangay}>
-                        <Label>
-                          Barangay
-                        </Label>
-                        <Input 
-                          value={form.barangay ?? ""} 
-                          onChange={(e) => updateForm("barangay", e.target.value)} 
-                        />
-                        <FieldError>{errors.barangay}</FieldError>
-                      </TextField>
-
                       <Select
                         value={form.city ?? null}
                         onChange={(city) => {
@@ -551,7 +563,29 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         <Label>Province</Label>
                         <Input value="Metro Manila" />
                       </TextField>
-                      
+
+                      <TextField isInvalid={!!errors.barangay}>
+                        <Label>
+                          Barangay
+                        </Label>
+                        <Input 
+                          value={form.barangay ?? ""} 
+                          onChange={(e) => updateForm("barangay", e.target.value)} 
+                        />
+                        <FieldError>{errors.barangay}</FieldError>
+                      </TextField>
+
+                      <TextField isInvalid={!!errors.street_address}>
+                        <Label>
+                          Street Address
+                        </Label>
+                        <Input 
+                          value={form.street_address ?? ""} 
+                          onChange={(e) => updateForm("street_address", e.target.value)} 
+                        />
+                        <FieldError>{errors.street_address}</FieldError>
+                      </TextField>
+
                       <TextField isInvalid={!!errors.zip_code}>
                         <Label>
                           Zip Code
@@ -564,40 +598,6 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         />
                         <FieldError>{errors.zip_code}</FieldError>
                       </TextField>
-                    </div>
-                  </section>
-
-                  {/* Coordinates */}
-                  <section>
-                    <SectionTitle>Coordinates</SectionTitle>
-                    <div className="flex flex-col gap-3">
-                      <TextField isInvalid={!!errors.latitude}>
-                        <Label>Latitude</Label>
-                        <Input 
-                          type="number" 
-                          value={form.latitude == null ? "" : String(form.latitude)} 
-                          onChange={(e) => updateForm("latitude", toNullableNumber(e.target.value))} 
-                        />
-                      </TextField>
-                      <TextField>
-                        <Label>Longitude</Label>
-                        <Input 
-                          type="number" 
-                          value={form.longitude == null ? "" : String(form.longitude)} 
-                          onChange={(e) => updateForm("longitude", toNullableNumber(e.target.value))} 
-                        />
-                      </TextField>
-                      <GoogleMapPicker
-                        latitude={form.latitude ?? null}
-                        longitude={form.longitude ?? null}
-                        onPick={(lat, lng) => {
-                          setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
-                          clearError("latitude");
-                        }}
-                      />
-                      {errors.latitude && (
-                        <p role="alert" className="text-danger text-xs">{errors.latitude}</p>
-                      )}
                     </div>
                   </section>
 
