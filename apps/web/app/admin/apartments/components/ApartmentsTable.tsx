@@ -1,4 +1,6 @@
-import { Chip, Table } from "@heroui/react";
+import { Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 import {
   IconEye,
   IconEyeOff,
@@ -10,7 +12,6 @@ import ApartmentThumbnail from "./ApartmentThumbnail";
 import {
   joinedFormatter,
   rentFormatter,
-  statusChipStyle,
   verificationChipColor,
   visibilityChipColor,
   type AdminApartment,
@@ -88,7 +89,6 @@ export default function ApartmentsTable({
             </Table.Header>
             <Table.Body>
               {apartments.map((apartment) => {
-                const statusStyle = statusChipStyle(apartment.status);
                 return (
                   <Table.Row
                     key={apartment.id}
@@ -113,20 +113,18 @@ export default function ApartmentsTable({
                     {rentFormatter.format(apartment.monthly_rent)}
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip
+                    <StatusChip
                       size="sm"
-                      variant="soft"
-                      color={statusStyle.color}
-                      className={`capitalize ${statusStyle.className ?? ""}`}
+                      tone={statusToneFor(apartment.status)}
+                      className="capitalize"
                     >
                       {apartment.status.replaceAll("_", " ")}
-                    </Chip>
+                    </StatusChip>
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip
+                    <StatusChip
                       size="sm"
-                      variant="soft"
-                      color={verificationChipColor(apartment.is_verified)}
+                      tone={verificationChipColor(apartment.is_verified)}
                     >
                       {apartment.is_verified ? (
                         <IconShieldCheckFilled size={14} aria-hidden="true" />
@@ -134,13 +132,12 @@ export default function ApartmentsTable({
                         <IconShieldX size={14} aria-hidden="true" />
                       )}
                       {apartment.is_verified ? "Verified" : "Unverified"}
-                    </Chip>
+                    </StatusChip>
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip
+                    <StatusChip
                       size="sm"
-                      variant="soft"
-                      color={visibilityChipColor(apartment.is_hidden_by_admin)}
+                      tone={visibilityChipColor(apartment.is_hidden_by_admin)}
                     >
                       {apartment.is_hidden_by_admin ? (
                         <IconEyeOff size={14} aria-hidden="true" />
@@ -148,7 +145,7 @@ export default function ApartmentsTable({
                         <IconEye size={14} aria-hidden="true" />
                       )}
                       {apartment.is_hidden_by_admin ? "Hidden" : "Visible"}
-                    </Chip>
+                    </StatusChip>
                   </Table.Cell>
                   <Table.Cell className="whitespace-nowrap text-sm text-muted-foreground">
                     {joinedFormatter.format(new Date(apartment.created_at))}

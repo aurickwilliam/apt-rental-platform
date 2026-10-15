@@ -1,14 +1,12 @@
 "use client";
 
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 
-// Small muted chip explaining why a settings row is unavailable.
-export default function StatusChip({ label }: { label: string }) {
+// Small neutral chip explaining why a settings row is unavailable.
+export default function SettingsStatusChip({ label }: { label: string }) {
   return (
-    <Chip size="sm" variant="soft" color="default" className="px-2 py-0.5">
-      <Chip.Label className="text-[11px] font-nunito font-semibold text-muted-foreground">
-        {label}
-      </Chip.Label>
-    </Chip>
+    <StatusChip tone="neutral" className="px-2 py-0.5">
+      <span className="text-[11px] font-nunito font-semibold">{label}</span>
+    </StatusChip>
   );
 }

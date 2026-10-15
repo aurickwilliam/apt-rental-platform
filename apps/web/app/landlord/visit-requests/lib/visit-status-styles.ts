@@ -1,6 +1,7 @@
+import type { StatusTone } from "@/lib/status-tone";
 import type { LandlordVisitStatus } from "@/service/landlordVisitRequestsService";
 
-export type VisitStatusChipColor = "warning" | "success" | "danger" | "default" | "accent";
+export type VisitStatusChipColor = StatusTone;
 
 export function getVisitStatusLabel(status: LandlordVisitStatus): string {
   switch (status) {
@@ -26,8 +27,8 @@ export function getVisitStatusChipColor(status: LandlordVisitStatus): VisitStatu
     case "rejected":
       return "danger";
     case "rescheduled":
-      return "accent";
+      return "warning";
     case "cancelled":
-      return "default";
+      return "danger";
   }
 }

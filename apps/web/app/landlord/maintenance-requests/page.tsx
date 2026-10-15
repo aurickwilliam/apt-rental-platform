@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button, Chip, Dropdown, InputGroup, Separator, Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconSearch as Search, IconFilter as ListFilter, IconTools as Hammer, IconCalendar as Calendar } from "@tabler/icons-react";
 import { formatDate, getInitials } from "@repo/utils";
 
@@ -262,24 +263,22 @@ export default function MaintenanceRequestsPage() {
                             </p>
                           </Table.Cell>
                           <Table.Cell>
-                            <Chip
+                            <StatusChip
                               size="sm"
-                              variant="soft"
-                              style={{ backgroundColor: urgency.bg, color: urgency.text }}
+                              tone={urgency.tone}
                               className="capitalize"
                             >
                               {urgency.label}
-                            </Chip>
+                            </StatusChip>
                           </Table.Cell>
                           <Table.Cell>
-                            <Chip
+                            <StatusChip
                               size="sm"
-                              variant="soft"
-                              color={maintenanceStatusChipColor(request.status)}
+                              tone={maintenanceStatusChipColor(request.status)}
                               className="capitalize"
                             >
                               {request.status}
-                            </Chip>
+                            </StatusChip>
                           </Table.Cell>
                         </Table.Row>
                       );
@@ -313,27 +312,25 @@ export default function MaintenanceRequestsPage() {
                         </p>
                       </div>
                     </div>
-                    <Chip
+                    <StatusChip
                       size="sm"
-                      variant="soft"
-                      color={maintenanceStatusChipColor(request.status)}
+                      tone={maintenanceStatusChipColor(request.status)}
                       className="capitalize shrink-0"
                     >
                       {request.status}
-                    </Chip>
+                    </StatusChip>
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs text-muted-foreground truncate">
                       By {request.tenant_name}
                     </p>
                     <span className="flex items-center gap-2 shrink-0">
-                      <Chip
+                      <StatusChip
                         size="sm"
-                        variant="soft"
-                        style={{ backgroundColor: urgency.bg, color: urgency.text }}
+                        tone={urgency.tone}
                       >
                         {urgency.label}
-                      </Chip>
+                      </StatusChip>
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar size={12} />
                         {formatDate(request.reported_at, "medium")}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconCashBanknote as Banknote, IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconUser as User, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
@@ -369,9 +370,9 @@ function PaymentContent() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 mt-auto pt-3">
-                  <Chip size="sm" variant="soft" color="success">
+                  <StatusChip size="sm" tone="success">
                     Active lease
-                  </Chip>
+                  </StatusChip>
                   <Chip size="sm" variant="soft" color="default">
                     {apartment.city}
                   </Chip>

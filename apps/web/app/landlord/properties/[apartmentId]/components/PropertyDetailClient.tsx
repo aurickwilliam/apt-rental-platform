@@ -13,6 +13,7 @@ import {
   Modal,
   useOverlayState,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
@@ -165,9 +166,9 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 {apartment.name}
                 {apartment.is_verified && <BadgeCheck size={20} className="text-primary shrink-0" />}
               </h1>
-              <Chip size="sm" variant="soft" color={STATUS_COLOR[apartment.status] ?? "default"} className="capitalize">
+              <StatusChip size="sm" tone={STATUS_COLOR[apartment.status] ?? "neutral"} className="capitalize">
                 {apartment.status}
-              </Chip>
+              </StatusChip>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {buildAddress(apartment)} · {formatPesoDisplay(apartment.monthly_rent)}/month
@@ -415,9 +416,9 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(p.amount)}</p>
-                            <Chip size="sm" variant="soft" color={statusVariant(paymentStatusLabel(p.status))}>
+                            <StatusChip size="sm" tone={statusVariant(paymentStatusLabel(p.status))}>
                               {paymentStatusLabel(p.status)}
-                            </Chip>
+                            </StatusChip>
                           </div>
                         </div>
                       </Link>

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button, Chip, Dropdown, InputGroup, Separator, Spinner, Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconSearch as Search, IconFilter as ListFilter, IconCalendar as Calendar, IconHome as Home } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
@@ -195,9 +196,9 @@ export default function ApplicationsPage() {
                             <p className="text-xs text-muted-foreground">Move: {formatDate(app.move_in_date, "medium")}</p>
                           </Table.Cell>
                           <Table.Cell>
-                            <Chip size="sm" variant="soft" color={statusChipColor(app.status)} className="capitalize">
+                            <StatusChip size="sm" tone={statusChipColor(app.status)} className="capitalize">
                               {app.status}
-                            </Chip>
+                            </StatusChip>
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -239,9 +240,9 @@ export default function ApplicationsPage() {
                         </p>
                       </div>
                     </div>
-                    <Chip size="sm" variant="soft" color={statusChipColor(app.status)} className="capitalize shrink-0">
+                    <StatusChip size="sm" tone={statusChipColor(app.status)} className="capitalize shrink-0">
                       {app.status}
-                    </Chip>
+                    </StatusChip>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar size={12} />

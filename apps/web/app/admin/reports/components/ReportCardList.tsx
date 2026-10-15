@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
 import {
   reportDateFormatter,
@@ -30,9 +30,9 @@ export default function ReportCardList({ reports }: { reports: AdminUserReport[]
                 {reportDateFormatter.format(new Date(report.created_at))}
               </p>
             </div>
-            <Chip size="sm" variant="soft" color={reportStatusColor(report.status)} className="shrink-0 capitalize">
+            <StatusChip size="sm" tone={reportStatusColor(report.status)} className="shrink-0 capitalize">
               {report.status}
-            </Chip>
+            </StatusChip>
           </div>
           <div className="text-sm">
             <p className="font-semibold">{getReportReasonLabel(report.reason)}</p>

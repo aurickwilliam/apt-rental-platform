@@ -6,7 +6,6 @@ import {
   Card,
   Button,
   Separator,
-  Chip,
   Accordion,
   AccordionItem,
   AccordionTrigger,
@@ -17,6 +16,7 @@ import {
   useOverlayState,
   Spinner,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconBan as Ban, IconMapPin as MapPin } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
@@ -135,9 +135,9 @@ export default function ApplicationDetailPage() {
           <h1 className="text-2xl font-bold text-primary truncate">{apartment?.name ?? "Listing"}</h1>
           <p className="text-sm text-muted-foreground mt-1">Submitted {formatLongDate(application.created_at)}</p>
         </div>
-        <Chip variant="soft" color={style.chipColor as never} size="sm">
+        <StatusChip tone={style.chipColor} size="sm">
           {style.label}
-        </Chip>
+        </StatusChip>
       </div>
 
       <div className="border border-border rounded-3xl overflow-hidden bg-card isolate">

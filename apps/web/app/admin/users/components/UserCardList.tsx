@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IconChevronRight } from "@tabler/icons-react";
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "./UserAvatar";
 import {
   formatRoles,
@@ -31,14 +31,13 @@ export default function UserCardList({ users }: UserCardListProps) {
                   <p className="flex items-center gap-2 font-nunito font-bold">
                     <span className="truncate">{name}</span>
                     {user.is_suspended ? (
-                      <Chip
+                      <StatusChip
                         size="sm"
-                        variant="soft"
-                        color="danger"
+                        tone="danger"
                         className="shrink-0 text-[11px]"
                       >
                         Suspended
-                      </Chip>
+                      </StatusChip>
                     ) : null}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -56,14 +55,13 @@ export default function UserCardList({ users }: UserCardListProps) {
                   {formatRoles(user.roles)} ·{" "}
                   {joinedFormatter.format(new Date(user.created_at))}
                 </span>
-                <Chip
+                <StatusChip
                   size="sm"
-                  variant="soft"
-                  color={verificationChipColor(user.account_status)}
+                  tone={verificationChipColor(user.account_status)}
                   className="shrink-0 capitalize"
                 >
                   {user.account_status}
-                </Chip>
+                </StatusChip>
               </div>
             </Link>
           </li>

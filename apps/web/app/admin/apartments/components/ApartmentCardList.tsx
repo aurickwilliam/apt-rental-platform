@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IconChevronRight, IconShieldCheckFilled, IconShieldX } from "@tabler/icons-react";
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import ApartmentThumbnail from "./ApartmentThumbnail";
 import {
   joinedFormatter,
@@ -46,10 +46,9 @@ export default function ApartmentCardList({
                 {apartment.status.replaceAll("_", " ")} ·{" "}
                 {joinedFormatter.format(new Date(apartment.created_at))}
               </span>
-              <Chip
+              <StatusChip
                 size="sm"
-                variant="soft"
-                color={verificationChipColor(apartment.is_verified)}
+                tone={verificationChipColor(apartment.is_verified)}
                 className="shrink-0"
               >
                 {apartment.is_verified ? (
@@ -58,7 +57,7 @@ export default function ApartmentCardList({
                   <IconShieldX size={14} aria-hidden="true" />
                 )}
                 {apartment.is_verified ? "Verified" : "Unverified"}
-              </Chip>
+              </StatusChip>
             </div>
           </Link>
         </li>

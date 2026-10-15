@@ -19,7 +19,7 @@ import type {
 } from "./types";
 
 import DashboardCard from "./components/DashboardCard";
-import StatusChip from "./components/StatusChip";
+import StatusChip from "@/app/components/display/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import TenancyEmptyState from "./components/TenancyEmptyState";
 import ApplicationsList from "./components/ApplicationsList";
@@ -34,19 +34,19 @@ function normalizePaymentStatus(status?: string | null): PaymentStatus {
 }
 
 function statusBadge(status: PaymentStatus) {
-  if (status === "paid") return <StatusChip variant="success">Paid</StatusChip>;
-  if (status === "late") return <StatusChip variant="danger">Late</StatusChip>;
-  return <StatusChip variant="warning">Pending</StatusChip>;
+  if (status === "paid") return <StatusChip className="text-[11px]" tone="success">Paid</StatusChip>;
+  if (status === "late") return <StatusChip className="text-[11px]" tone="danger">Late</StatusChip>;
+  return <StatusChip className="text-[11px]" tone="warning">Pending</StatusChip>;
 }
 
 function maintenanceBadge(status: MaintenanceStatus) {
   if (status === "in_progress")
-    return <StatusChip variant="warning">In progress</StatusChip>;
+    return <StatusChip className="text-[11px]" tone="warning">In progress</StatusChip>;
   if (status === "resolved")
-    return <StatusChip variant="success">Done</StatusChip>;
+    return <StatusChip className="text-[11px]" tone="success">Done</StatusChip>;
   if (status === "cancelled")
-    return <StatusChip variant="neutral">Cancelled</StatusChip>;
-  return <StatusChip variant="neutral">Pending</StatusChip>;
+    return <StatusChip className="text-[11px]" tone="danger">Cancelled</StatusChip>;
+  return <StatusChip className="text-[11px]" tone="warning">Pending</StatusChip>;
 }
 
 function categoryLabel(value: string) {
@@ -314,7 +314,7 @@ export default function MyRental() {
                   Application History
                 </Button>
               )}
-              <StatusChip variant="success">Active lease</StatusChip>
+              <StatusChip className="text-[11px]" tone="success">Active lease</StatusChip>
             </div>
           </div>
         </div>
@@ -433,16 +433,16 @@ export default function MyRental() {
                   )}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {paymentStatus === "paid" ? (
-                      <StatusChip variant="success">Paid</StatusChip>
+                      <StatusChip className="text-[11px]" tone="success">Paid</StatusChip>
                     ) : (
-                      <StatusChip
-                        variant={paymentStatus === "late" ? "danger" : "warning"}
+                      <StatusChip className="text-[11px]"
+                        tone={paymentStatus === "late" ? "danger" : "warning"}
                       >
                         {dueLabel}
                       </StatusChip>
                     )}
-                    <StatusChip variant="neutral">{paymentPeriodLabel}</StatusChip>
-                    <StatusChip variant="neutral">Monthly rent</StatusChip>
+                    <StatusChip className="text-[11px]" tone="neutral">{paymentPeriodLabel}</StatusChip>
+                    <StatusChip className="text-[11px]" tone="neutral">Monthly rent</StatusChip>
                   </div>
                 </>
               )}
@@ -568,7 +568,7 @@ export default function MyRental() {
               Maintenance
             </h2>
             <div className="flex items-center gap-2">
-              <StatusChip variant="warning">
+              <StatusChip className="text-[11px]" tone="warning">
                 {openMaintenanceCount} open
               </StatusChip>
               <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">

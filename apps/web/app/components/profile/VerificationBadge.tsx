@@ -1,4 +1,4 @@
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import {
   IconClock,
   IconShield,
@@ -28,16 +28,15 @@ export default function VerificationBadge({ status }: VerificationBadgeProps) {
       : "unverified";
   const { label, Icon } = STATUS_META[key];
   return (
-    <Chip
+    <StatusChip
       size="sm"
-      variant="soft"
-      color={verificationChipColor(key)}
+      tone={verificationChipColor(key)}
       className="shrink-0 capitalize"
     >
       <span className="flex items-center gap-1">
         <Icon size={14} aria-hidden="true" />
         {label}
       </span>
-    </Chip>
+    </StatusChip>
   );
 }

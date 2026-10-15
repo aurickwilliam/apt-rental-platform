@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/lib/status-tone";
 import type { UserReportStatus } from "@/lib/user-reports";
 
 export interface ReportPerson {
@@ -25,8 +26,8 @@ export const reportDateFormatter = new Intl.DateTimeFormat("en-PH", {
   timeStyle: "short",
 });
 
-export function reportStatusColor(status: UserReportStatus): "warning" | "success" | "default" {
+export function reportStatusColor(status: UserReportStatus): StatusTone {
   if (status === "open") return "warning";
   if (status === "resolved") return "success";
-  return "default";
+  return "neutral";
 }

@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/lib/status-tone";
 import { IconClock as Clock, IconCircleCheck as CheckCircle, IconCircleX as XCircle } from "@tabler/icons-react";
 import type { Icon as LucideIcon } from "@tabler/icons-react";
 
@@ -7,7 +8,7 @@ export type StatusStyle = {
   label: string;
   description: string;
   Icon: LucideIcon;
-  chipColor: "warning" | "success" | "danger" | "default";
+  chipColor: StatusTone;
   iconColor: string;
 };
 
@@ -42,7 +43,7 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         label: "Cancelled",
         description: "Your application has been cancelled.",
         Icon: XCircle,
-        chipColor: "default",
+        chipColor: "danger",
         iconColor: "#9CA3AF",
       };
     case "closed":
@@ -50,7 +51,7 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         label: "Closed",
         description: "This apartment has already been leased to another applicant, so this application is now closed.",
         Icon: XCircle,
-        chipColor: "default",
+        chipColor: "neutral",
         iconColor: "#9CA3AF",
       };
     default:
@@ -58,7 +59,7 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         label: "Unknown",
         description: "",
         Icon: XCircle,
-        chipColor: "default",
+        chipColor: "neutral",
         iconColor: "#9CA3AF",
       };
   }

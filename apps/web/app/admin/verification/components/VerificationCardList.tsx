@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IconChevronRight } from "@tabler/icons-react";
-import { Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import VerificationImage from "./VerificationImage";
 import {
   submittedFormatter,
@@ -47,14 +47,13 @@ export default function VerificationCardList({
               <span className="truncate">
                 {submittedFormatter.format(new Date(row.submittedAt))}
               </span>
-              <Chip
+              <StatusChip
                 size="sm"
-                variant="soft"
-                color="warning"
+                tone="warning"
                 className="shrink-0"
               >
                 Pending
-              </Chip>
+              </StatusChip>
             </div>
           </Link>
         </li>

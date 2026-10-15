@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Chip, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
+import { Button, Card, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconTool as Wrench } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
@@ -10,17 +12,17 @@ import {
   type MaintenanceRequest,
 } from "@/hooks/use-maintenance-request-history";
 
-const URGENCY_STYLE: Record<string, { bg: string; text: string }> = {
-  low: { bg: "#E5E7EB", text: "#6C757D" },
-  medium: { bg: "#FFF8E1", text: "#FACC15" },
-  high: { bg: "#FDA4AF", text: "#E50914" },
+// Same tones as mobile's useMaintenanceRequestUrgencyStyles.
+const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
+  low: { tone: "neutral" },
+  medium: { tone: "warning" },
+  high: { tone: "danger" },
 };
 
-function statusChipColor(status: MaintenanceRequest["status"]): "warning" | "success" | "default" | "accent" {
-  if (status === "Pending") return "warning";
-  if (status === "In Progress") return "accent";
+function statusChipColor(status: MaintenanceRequest["status"]): StatusTone {
+  if (status === "Pending" || status === "In Progress") return "warning";
   if (status === "Resolved") return "success";
-  return "default";
+  return "danger";
 }
 
 function categoryLabel(value: string) {
@@ -106,16 +108,15 @@ export default function MaintenanceHistory({
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <Chip
-                        variant="soft"
+                      <StatusChip
                         size="sm"
-                        style={{ backgroundColor: urgencyStyle.bg, color: urgencyStyle.text }}
+                        tone={urgencyStyle.tone}
                       >
                         {request.urgency}
-                      </Chip>
-                      <Chip variant="soft" size="sm" color={statusChipColor(request.status)}>
+                      </StatusChip>
+                      <StatusChip size="sm" tone={statusChipColor(request.status)}>
                         {request.status}
-                      </Chip>
+                      </StatusChip>
                     </div>
                   </div>
 
