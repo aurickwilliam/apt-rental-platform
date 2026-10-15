@@ -43,6 +43,28 @@ export {
   getPasswordChangeErrorField,
 } from './passwordChange';
 export {
+  type EmailChangeErrorReason,
+  EmailChangeError,
+  toEmailChangeErrorReason,
+  toEmailChangeError,
+  EMAIL_CHANGE_CODE_LENGTH,
+  EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
+  isEmailChangeCodeFormat,
+  normalizeEmailChangeEmail,
+  isEligibleForEmailChange,
+  type EmailChangeErrorField,
+  getEmailChangeErrorField,
+  type EmailChangeAuth,
+  type EmailChangeRequest,
+  requestEmailChangeWith,
+  type EmailChangeStatus,
+  getEmailChangeStatus,
+  type EmailChangeVerification,
+  verifyEmailChangeCodeWith,
+  resendEmailChangeCodeWith,
+  signOutOtherSessionsAfterEmailChange,
+} from './emailChange';
+export {
   DEFAULT_RENT_DUE_DAY,
   type PaymentPeriod,
   type PaymentPeriodLease,

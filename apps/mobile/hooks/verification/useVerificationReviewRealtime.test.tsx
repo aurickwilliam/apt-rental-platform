@@ -40,6 +40,7 @@ const profileRecord = {
   first_name: "Pending",
   last_name: "User",
   middle_name: null,
+  suffix: null,
   email: "pending@example.test",
   mobile_number: "09171234567",
   avatar_url: null,
