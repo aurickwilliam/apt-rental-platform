@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
-import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconBuildingSkyscraper as BuildingSkyscraper, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight } from "@tabler/icons-react";
+import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
 
@@ -353,18 +353,13 @@ export default function MyRental() {
         />
 
         <div className="grid gap-3 lg:grid-cols-3">
-          <div className="relative overflow-hidden rounded-2xl bg-primary p-5 text-white lg:col-span-2">
-            <BuildingSkyscraper
-              size={150}
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-8 right-8 text-white/10"
-            />
+          <div className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white lg:col-span-2">
             <div className="relative flex h-full flex-col">
               {isPeriodPaid ? (
                 <>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-nunito text-lg font-bold">Monthly rent</p>
-                    <StatusChip variant="success">Paid</StatusChip>
+                    <p className="font-nunito text-xl font-bold">Monthly rent</p>
+                    <StatusChip variant="success" solid>Paid</StatusChip>
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="flex min-w-0 flex-col gap-2 rounded-2xl bg-white/10 p-4">
@@ -436,22 +431,23 @@ export default function MyRental() {
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-nunito text-lg font-bold">Monthly rent</p>
+                    <p className="font-nunito text-xl font-bold">Monthly rent</p>
                     {paymentStatus === "paid" ? (
-                      <StatusChip variant="success">Paid</StatusChip>
+                      <StatusChip variant="success" solid>Paid</StatusChip>
                     ) : (
                       <StatusChip
                         variant={paymentStatus === "late" ? "danger" : "warning"}
+                        solid
                       >
                         {dueLabel}
                       </StatusChip>
                     )}
                   </div>
-                  <p className="mt-2 font-nunito text-4xl font-bold">
+                  <p className="mt-2 font-nunito text-5xl font-bold">
                     {formatPesoDisplay(totalDue)}
                   </p>
-                  <p className="mt-2 flex items-center gap-2 font-inter text-sm font-semibold text-white/90">
-                    <CalendarDays size={18} className="shrink-0" aria-hidden="true" />
+                  <p className="mt-2 flex items-center gap-2 font-inter text-base font-semibold text-white/90">
+                    <CalendarDays size={20} className="shrink-0" aria-hidden="true" />
                     {paymentPeriodLabel} - Due {formatShortDate(isPeriodPaid ? nextPeriod.dueDate : rent.dueDate)}
                   </p>
                   {pendingFeesTotal > 0 && (
@@ -470,41 +466,41 @@ export default function MyRental() {
               )}
               {!isPeriodPaid && (
                 <>
-                  <div className="mt-4 grid gap-4 border-t border-white/20 pt-4 sm:grid-cols-3 sm:divide-x sm:divide-white/20">
+                  <div className="mt-8 grid gap-5 border-t border-white/20 pt-5 sm:grid-cols-3 sm:divide-x sm:divide-white/20">
                     <div className="flex items-center gap-3">
-                      <CalendarDays size={22} className="shrink-0 text-white/80" aria-hidden="true" />
+                      <CalendarDays size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-xs font-semibold text-white/70">Lease start</p>
-                        <p className="font-inter text-sm font-semibold text-white">
+                        <p className="font-nunito text-base font-semibold text-white/70">Lease start</p>
+                        <p className="font-inter text-lg font-semibold text-white">
                           {formatShortDate(tenancy.lease_start)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:pl-4">
-                      <CalendarDays size={22} className="shrink-0 text-white/80" aria-hidden="true" />
+                    <div className="flex items-center gap-3 sm:pl-5">
+                      <CalendarDays size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-xs font-semibold text-white/70">Lease end</p>
-                        <p className="font-inter text-sm font-semibold text-white">
+                        <p className="font-nunito text-base font-semibold text-white/70">Lease end</p>
+                        <p className="font-inter text-lg font-semibold text-white">
                           {tenancy.lease_end
                             ? formatShortDate(tenancy.lease_end)
                             : "Ongoing"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:pl-4">
-                      <CurrencyPeso size={22} className="shrink-0 text-white/80" aria-hidden="true" />
+                    <div className="flex items-center gap-3 sm:pl-5">
+                      <CurrencyPeso size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-xs font-semibold text-white/70">Monthly rent</p>
-                        <p className="font-inter text-sm font-semibold text-white">
+                        <p className="font-nunito text-base font-semibold text-white/70">Monthly rent</p>
+                        <p className="font-inter text-lg font-semibold text-white">
                           {formatPesoDisplay(monthlyRent)}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-3 md:mt-auto">
+                  <div className="mt-5 flex items-center gap-3 md:mt-auto">
                     <Link href="/tenant/payment" className="flex-1 no-underline">
-                      <Button className="w-full rounded-full bg-white font-semibold text-primary">
-                        <CreditCard size={16} />
+                      <Button className="h-12 w-full rounded-full bg-white font-nunito text-base font-bold text-primary">
+                        <CreditCard size={18} />
                         Pay now
                       </Button>
                     </Link>
