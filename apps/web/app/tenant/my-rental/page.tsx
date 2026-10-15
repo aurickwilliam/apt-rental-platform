@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
-import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight } from "@tabler/icons-react";
+import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight, IconX as X } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
 
@@ -743,9 +743,18 @@ export default function MyRental() {
           <Modal.Backdrop>
             <Modal.Container size="lg" scroll="inside">
               <Modal.Dialog>
-                <Modal.Header>
+                <Modal.Header className="flex flex-row items-center justify-between">
                   <Modal.Heading>Application History</Modal.Heading>
-                  <Modal.CloseTrigger />
+                  <Button
+                    isIconOnly
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => historyDialog.setOpen(false)}
+                    aria-label="Close application history"
+                    className="text-muted-foreground"
+                  >
+                    <X size={18} />
+                  </Button>
                 </Modal.Header>
                 <Modal.Body>
                   <ApplicationsList showHeader={false} applications={applications} loading={applicationsLoading} error={applicationsError} />
