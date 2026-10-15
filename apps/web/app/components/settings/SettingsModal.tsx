@@ -32,10 +32,12 @@ export default function SettingsModal({
   open,
   onClose,
   onChangePassword,
+  onChangeEmail,
 }: {
   open: boolean;
   onClose: () => void;
   onChangePassword: () => void;
+  onChangeEmail: () => void;
 }) {
   const { profile } = useUser();
   const roles = profile?.roles ?? [];
@@ -101,7 +103,7 @@ export default function SettingsModal({
                   className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
-                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} onChangePassword={onChangePassword} /> : null}
+                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} /> : null}
                   {activeId === "language" ? <LanguageRegionTab /> : null}
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
                   {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}

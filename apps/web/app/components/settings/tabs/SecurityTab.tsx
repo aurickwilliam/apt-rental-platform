@@ -7,20 +7,23 @@ import {
   IconMail,
 } from "@tabler/icons-react";
 
+import { useEmailChangeEligibility } from "@/hooks/use-email-change-eligibility";
 import { usePasswordSignInStatus } from "@/hooks/use-password-sign-in-status";
 import SettingsRow from "../SettingsRow";
-import ComingSoonChip from "../ComingSoonChip";
 import StatusChip from "../StatusChip";
 
 export default function SecurityTab({
   isAdmin = false,
   onChangePassword,
+  onChangeEmail,
 }: {
   isAdmin?: boolean;
   // Closes Settings and opens the Change Password modal.
   onChangePassword: () => void;
+  // Closes Settings and opens the Change Email modal.
+  onChangeEmail: () => void;
 }) {
-  if (!isAdmin) return <AccountSecurity onChangePassword={onChangePassword} />;
+  if (!isAdmin) return <AccountSecurity onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} />;
 
   return (
     <>
@@ -53,11 +56,14 @@ export default function SecurityTab({
   );
 }
 
-// Tenant/landlord credentials. Google-only accounts have no password.
-function AccountSecurity({ onChangePassword }: { onChangePassword: () => void }) {
+// Tenant/landlord credentials. Google sign-in accounts (including linked
+// Google + password) cannot change their email here.
+function AccountSecurity({ onChangePassword, onChangeEmail }: { onChangePassword: () => void; onChangeEmail: () => void }) {
   const { status, loading } = usePasswordSignInStatus();
+  const { status: emailStatus, loading: emailLoading } = useEmailChangeEligibility();
 
   const canChangePassword = !loading && status === "has_password";
+  const canChangeEmail = !emailLoading && emailStatus === "eligible";
 
   return (
     <>
@@ -80,8 +86,13 @@ function AccountSecurity({ onChangePassword }: { onChangePassword: () => void })
         <SettingsRow
           icon={<IconMail size={18} />}
           title="Change Email"
-          disabled
-          suffix={<ComingSoonChip />}
+          onClick={onChangeEmail}
+          disabled={!canChangeEmail}
+          suffix={
+            !emailLoading && emailStatus === "google" ? (
+              <StatusChip label="Signed in with Google" />
+            ) : undefined
+          }
         />
       </div>
     </>

@@ -58,11 +58,24 @@ content_path = "./supabase/templates/otp.html"
 subject = "Reset your APT password"
 content_path = "./supabase/templates/recovery.html"
 
+# Email change sends a 6-digit code to both the current and new inboxes
+# (updateUser -> verifyOtp type "email_change"). Secure Email Change keeps the
+# current address active until both codes confirm.
+[auth.email.template.email_change]
+subject = "Confirm your new APT email"
+content_path = "./supabase/templates/email-change.html"
+
 # Security notice sent after any password change (including recovery).
 [auth.email.notification.password_changed]
 enabled = true
 subject = "Your APT password was changed"
 content_path = "./supabase/templates/password-changed.html"
+
+# Security notice sent after an email change completes.
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your APT email was changed"
+content_path = "./supabase/templates/email-changed.html"
 
 # Edge function invoked by the mobile app with the anon key, so JWT
 # verification is enforced (default) — the key is checked, not a specific role.

@@ -47,7 +47,7 @@ export default function EditableCover({ authUserId, initialUrl }: EditableCoverP
   };
 
   return (
-    <div className="relative h-32 w-full overflow-hidden rounded-t-2xl bg-muted sm:h-40">
+    <div className="relative h-28 w-full overflow-hidden rounded-t-3xl bg-muted sm:h-32">
       {shownUrl ? (
         <Image
           src={shownUrl}

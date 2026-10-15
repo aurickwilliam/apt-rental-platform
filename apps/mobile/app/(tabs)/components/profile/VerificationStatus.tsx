@@ -28,13 +28,11 @@ type StatusConfig = {
 type VerificationStatusProps = {
   accountStatus?: AccountStatus;
   rejectedReason?: string;
-  dateVerified?: string;
 };
 
 export default function VerificationStatus({
   accountStatus = 'unverified',
   rejectedReason,
-  dateVerified,
 }: VerificationStatusProps) {
   const router = useRouter();
   const { colors } = useColors();
@@ -113,17 +111,10 @@ export default function VerificationStatus({
         )}
 
         {accountStatus === 'verified' && (
-          <>
-            <Card.Description className='text-muted font-inter text-sm'>
-              You have successfully been verified as a tenant. You can now apply
-              for rental properties on our platform.
-            </Card.Description>
-            {dateVerified && (
-              <Card.Description className='text-muted font-inter text-sm'>
-                Last Verified: {dateVerified}
-              </Card.Description>
-            )}
-          </>
+          <Card.Description className='text-muted font-inter text-sm'>
+            You have successfully been verified as a tenant. You can now apply
+            for rental properties on our platform.
+          </Card.Description>
         )}
 
         {accountStatus === 'unverified' && (

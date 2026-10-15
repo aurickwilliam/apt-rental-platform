@@ -13,7 +13,7 @@ import type { Icon } from '@tabler/icons-react-native';
 import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
-import { usePasswordSignInStatus } from '@/hooks/auth'
+import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -52,6 +52,7 @@ export default function Index() {
   const { preferences: notifPrefs } = useNotificationPreferences();
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
   const { data: passwordSignInStatus } = usePasswordSignInStatus();
+  const { data: emailChangeEligibility } = useEmailChangeEligibility();
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
@@ -85,17 +86,30 @@ export default function Index() {
     return { ...base, disabled: true };
   };
 
+  // Opens only for email/password accounts without Google; linked Google +
+  // password accounts stay on Google sign-in for email changes. Stays
+  // disabled while the status loads or if it can't be read.
+  const changeEmailItem = (): SettingItem => {
+    const base = { icon: IconMail, title: 'Change Email' };
+    if (emailChangeEligibility === 'eligible') {
+      return {
+        ...base,
+        onPress: () => router.push('/settings/change-email'),
+        suffix: <IconChevronRight size={16} color={colors.gray500} />,
+      };
+    }
+    if (emailChangeEligibility === 'google') {
+      return { ...base, disabled: true, suffix: <StatusChip label="Signed in with Google" /> };
+    }
+    return { ...base, disabled: true };
+  };
+
   const sections: SettingSection[] = [
     {
       title: 'Security',
       items: [
         changePasswordItem(),
-        {
-          icon: IconMail,
-          title: 'Change Email',
-          disabled: true,
-          suffix: <ComingSoonChip />,
-        },
+        changeEmailItem(),
       ],
     },
     {

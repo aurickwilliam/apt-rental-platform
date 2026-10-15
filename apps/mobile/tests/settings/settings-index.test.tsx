@@ -4,6 +4,7 @@ import Settings from "@/app/settings/index";
 
 const mockRouter = { push: jest.fn() };
 let mockPasswordStatus: "has_password" | "no_password" | undefined;
+let mockEmailEligibility: "eligible" | "google" | undefined;
 
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
 
@@ -11,6 +12,7 @@ jest.mock("heroui-native", () => jest.requireActual("../support/heroUINativeStub
 
 jest.mock("@/hooks/auth", () => ({
   usePasswordSignInStatus: () => ({ data: mockPasswordStatus }),
+  useEmailChangeEligibility: () => ({ data: mockEmailEligibility }),
 }));
 
 jest.mock("@/hooks/useTheme", () => ({
@@ -53,6 +55,7 @@ describe("Settings › Change Password row", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPasswordStatus = undefined;
+    mockEmailEligibility = undefined;
   });
 
   it("opens Change Password for accounts with a password", () => {
@@ -83,12 +86,34 @@ describe("Settings › Change Password row", () => {
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
-  it("keeps Change Email as coming soon", () => {
+  it("opens Change Email for email/password accounts without Google", () => {
+    mockPasswordStatus = "has_password";
+    mockEmailEligibility = "eligible";
+    render(<Settings />);
+
+    const changeEmailRow = rowFor("Change Email");
+    expect(changeEmailRow.props.accessibilityState.disabled).toBe(false);
+    fireEvent.press(changeEmailRow);
+    expect(mockRouter.push).toHaveBeenCalledWith("/settings/change-email");
+  });
+
+  it("explains that Google sign-in accounts cannot change email here", () => {
+    mockPasswordStatus = "has_password";
+    mockEmailEligibility = "google";
+    render(<Settings />);
+
+    const changeEmailRow = rowFor("Change Email");
+    expect(within(changeEmailRow).getByText("Signed in with Google")).toBeTruthy();
+    expect(changeEmailRow.props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(changeEmailRow);
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/settings/change-email");
+  });
+
+  it("keeps Change Email disabled while eligibility is loading", () => {
     mockPasswordStatus = "has_password";
     render(<Settings />);
 
     const changeEmailRow = rowFor("Change Email");
-    expect(within(changeEmailRow).getByText("Coming soon")).toBeTruthy();
     expect(changeEmailRow.props.accessibilityState.disabled).toBe(true);
   });
 });
