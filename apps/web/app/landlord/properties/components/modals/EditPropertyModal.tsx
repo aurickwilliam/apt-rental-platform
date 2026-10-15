@@ -419,7 +419,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Select.Popover>
                           <ListBox>
-                            {FLOOR_LEVELS.map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}
+                            {/* A saved floor level that is no longer offered stays selectable. */}
+                            {(form.floor_level && !FLOOR_LEVELS.includes(form.floor_level)
+                              ? [form.floor_level, ...FLOOR_LEVELS]
+                              : FLOOR_LEVELS
+                            ).map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}
                           </ListBox>
                         </Select.Popover>
                       </Select>
@@ -440,7 +444,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Select.Popover>
                           <ListBox>
-                            {LEASE_DURATIONS.map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}
+                            {/* A saved duration that is no longer offered (e.g. "Monthly") stays selectable. */}
+                            {(form.lease_duration && !(LEASE_DURATIONS as readonly string[]).includes(form.lease_duration)
+                              ? [form.lease_duration, ...LEASE_DURATIONS]
+                              : [...LEASE_DURATIONS]
+                            ).map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}
                           </ListBox>
                         </Select.Popover>
                       </Select>
