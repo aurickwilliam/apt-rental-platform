@@ -625,6 +625,13 @@ export default function SecondStep() {
             Apartment Address
           </Text>
 
+          <TextField isDisabled isInvalid={!!visibleErrors.province}>
+            <Label>Province:</Label>
+            <Input value="Metro Manila" editable={false} />
+            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+            {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
+          </TextField>
+
           <DropdownField
             label="City:"
             bottomSheetLabel="Select your city"
@@ -645,13 +652,6 @@ export default function SecondStep() {
             required
             error={visibleErrors.city}
           />
-
-          <TextField isDisabled isInvalid={!!visibleErrors.province}>
-            <Label>Province:</Label>
-            <Input value="Metro Manila" editable={false} />
-            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
-            {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
-          </TextField>
 
           <DropdownField
             label="Barangay:"
@@ -780,7 +780,7 @@ export default function SecondStep() {
               <Checkbox className="mt-0.5" />
             </ControlField.Indicator>
             <View className="flex-1">
-              <Label>I confirm that the pin location is correct</Label>
+              <Label isRequired>I confirm that the pin location is correct</Label>
               {visibleErrors.mapConfirmed && (
                 <FieldError>{visibleErrors.mapConfirmed}</FieldError>
               )}

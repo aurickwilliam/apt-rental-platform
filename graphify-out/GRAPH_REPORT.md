@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-15)
 
 ## Corpus Check
-- 1511 files · ~1,118,826 words
+- 1512 files · ~1,118,987 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `36ce8bbd`
+- Built from commit: `24a50290`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1160,8 +1160,8 @@ Cohesion: 0.18
 Nodes (15): computeGuidedFrameRect(), GuidedFrameOverlay(), Acceptance Criteria Testing Prework, Capture-sequence configuration (new), Components and Interfaces, `computeCanContinue` (redesigned, presence-driven, no `kind`), Correctness Properties Assessment, Design Document: ID Verification Capture (+7 more)
 
 ### Community 197 - "FilterContainer.tsx"
-Cohesion: 0.06
-Nodes (50): FilterState, Props, ROOM_OPTS, CITIES, mockFrom, mockGetUser, mockIsFavorite, mockToggleFavorite (+42 more)
+Cohesion: 0.07
+Nodes (46): FilterState, Props, ROOM_OPTS, CITIES, useSearchLogic(), UseSearchLogicParams, clearSearchPreference(), isRecord() (+38 more)
 
 ### Community 198 - "Identity Verification — Recommended Provider (Future Work)"
 Cohesion: 0.22
@@ -1476,8 +1476,8 @@ Cohesion: 0.50
 Nodes (4): Function 1: handleDocumentPress(), Function 2: DocumentCard render decision, Key Functions with Formal Specifications, doc()
 
 ### Community 379 - "@testing-library/react-native"
-Cohesion: 0.05
-Nodes (38): ChatApartmentCard(), apartment, MockProps, ChatEmptyState(), MockProps, ReactionStrip(), mockFetchApartmentDetails, mockFetchReviewsPreview (+30 more)
+Cohesion: 0.04
+Nodes (42): ChatApartmentCard(), apartment, MockProps, ChatEmptyState(), MockProps, ReactionStrip(), mockFrom, mockGetUser (+34 more)
 
 ### Community 381 - "Correctness Properties"
 Cohesion: 0.50
@@ -1488,22 +1488,22 @@ Cohesion: 0.12
 Nodes (27): NotificationCardSkeleton(), NotificationFilter, NotificationList(), NotificationListProps, PortalSwitcherProps, getOpenChatConversationKey(), shouldSuppressChatToast(), useInAppNotificationBanner() (+19 more)
 
 ## Knowledge Gaps
-- **2265 isolated node(s):** `1. Design Philosophy`, `2. Source of Truth`, `Brand`, `Surfaces & backgrounds`, `Text & neutral` (+2260 more)
+- **2265 isolated node(s):** `mockFrom`, `mockGetUser`, `mockIsFavorite`, `mockToggleFavorite`, `mockGetUser` (+2260 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **118 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `expo-router` connect `expo-router` to `heroui-native`, `ref_react`, `mobile/package.json`, `document-id/index.tsx`, `analytics.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `formatDate`, `[documentId].tsx`, `useGoogleAuth.ts`, `preferences.tsx`, `onboarding.tsx`, `app/index.tsx`, `supabase/src/index.ts`, `request-maintenance.tsx`, `app/_layout.tsx`, `history/index.tsx`, `auth-complete-profile.tsx`, `useConversationRowActions.ts`, `settings/index.tsx`, `(tenant)/chat.tsx`, `useSuspensionGuard.ts`, `[conversationId].tsx`, `visit-requests/index.tsx`, `ref_react_native`, `auth/index.ts`, `live-capture.tsx`, `useColors`, `apartment/[apartmentId]/index.tsx`, `reset-password.tsx`, `rentals.tsx`, `ratings.tsx`, `formatPesoDisplay`, `ScreenWrapper`, `map-search.tsx`, `NotificationList.tsx`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Why does `useColors()` connect `useColors` to `heroui-native`, `ref_react`, `document-id/index.tsx`, `analytics.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `formatDate`, `maintenance-requests/index.ts`, `useFavorites.ts`, `[documentId].tsx`, `useGoogleAuth.ts`, `expo-router`, `preferences.tsx`, `supabase/src/index.ts`, `app/index.tsx`, `request-maintenance.tsx`, `app/_layout.tsx`, `useTheme.test.tsx`, `history/index.tsx`, `auth-complete-profile.tsx`, `settings/index.tsx`, `(tenant)/chat.tsx`, `[conversationId].tsx`, `FilterContainer.tsx`, `visit-requests/index.tsx`, `RescheduleSheet.tsx`, `QuickActionsSection.tsx`, `ref_react_native`, `auth/index.ts`, `live-capture.tsx`, `ChatBubble.tsx`, `SwipeToReply.tsx`, `apartment/[apartmentId]/index.tsx`, `NotificationToast.tsx`, `reset-password.tsx`, `notifications/index.ts`, `rentals.tsx`, `ratings.tsx`, `useChatChannel`, `HoldMenu.tsx`, `formatPesoDisplay`, `ScreenWrapper`, `map-search.tsx`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Why does `heroui-native` connect `heroui-native` to `utils/src/index.ts`, `ref_react`, `mobile/package.json`, `document-id/index.tsx`, `edit-profile.test.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `formatDate`, `maintenance-requests/index.ts`, `useFavorites.ts`, `display/GiphyPicker.tsx`, `[documentId].tsx`, `expo-router`, `preferences.tsx`, `onboarding.tsx`, `supabase/src/index.ts`, `request-maintenance.tsx`, `app/_layout.tsx`, `history/index.tsx`, `auth-complete-profile.tsx`, `useConversationRowActions.ts`, `settings/index.tsx`, `(tenant)/chat.tsx`, `[conversationId].tsx`, `FilterContainer.tsx`, `visit-requests/index.tsx`, `RescheduleSheet.tsx`, `QuickActionsSection.tsx`, `ref_react_native`, `live-capture.tsx`, `ChatBubble.tsx`, `useColors`, `apartment/[apartmentId]/index.tsx`, `NotificationToast.tsx`, `reset-password.tsx`, `notifications/index.ts`, `rentals.tsx`, `ratings.tsx`, `HoldMenu.tsx`, `formatPesoDisplay`, `ScreenWrapper`, `map-search.tsx`, `NotificationList.tsx`, `AppInput.tsx`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **Why does `expo-router` connect `expo-router` to `heroui-native`, `ref_react`, `mobile/package.json`, `document-id/index.tsx`, `analytics.tsx`, `manage-apartment/[apartmentId]/index.tsx`, `formatDate`, `[documentId].tsx`, `useGoogleAuth.ts`, `preferences.tsx`, `onboarding.tsx`, `app/index.tsx`, `supabase/src/index.ts`, `request-maintenance.tsx`, `app/_layout.tsx`, `history/index.tsx`, `auth-complete-profile.tsx`, `useConversationRowActions.ts`, `settings/index.tsx`, `(tenant)/chat.tsx`, `useSuspensionGuard.ts`, `[conversationId].tsx`, `visit-requests/index.tsx`, `ref_react_native`, `auth/index.ts`, `live-capture.tsx`, `useColors`, `apartment/[apartmentId]/index.tsx`, `reset-password.tsx`, `rentals.tsx`, `ratings.tsx`, `formatPesoDisplay`, `ScreenWrapper`, `map-search.tsx`, `NotificationList.tsx`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `useColors()` (e.g. with `Current implementation and problems` and `Implementation plan`) actually correct?**
   _`useColors()` has 4 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `1. Design Philosophy`, `2. Source of Truth`, `Brand` to the rest of the system?**
+- **What connects `mockFrom`, `mockGetUser`, `mockIsFavorite` to the rest of the system?**
   _2265 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `PasswordError` be split into smaller, more focused modules?**
   _Cohesion score 0.12195121951219512 - nodes in this community are weakly interconnected._

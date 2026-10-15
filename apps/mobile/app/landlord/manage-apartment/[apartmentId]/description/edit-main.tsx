@@ -322,6 +322,12 @@ export default function EditMain() {
           />
         </TextField>
 
+        <TextField isDisabled>
+          <Label>Province</Label>
+          <Input value={METRO_MANILA} editable={false} />
+          <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+        </TextField>
+
         <DropdownField
           label="City:"
           required
@@ -336,12 +342,6 @@ export default function EditMain() {
           }}
           value={info.city}
         />
-
-        <TextField isDisabled>
-          <Label>Province</Label>
-          <Input value={METRO_MANILA} editable={false} />
-          <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
-        </TextField>
 
         <DropdownField
           label="Barangay:"

@@ -507,6 +507,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     </SectionTitle>
 
                     <div className="flex flex-col gap-3">
+                      <TextField isDisabled>
+                        <Label>Province</Label>
+                        <Input value="Metro Manila" />
+                      </TextField>
+
                       <Select
                         value={form.city ?? null}
                         onChange={(city) => {
@@ -537,11 +542,6 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           </ListBox>
                         </Select.Popover>
                       </Select>
-
-                      <TextField isDisabled>
-                        <Label>Province</Label>
-                        <Input value="Metro Manila" />
-                      </TextField>
 
                       <Select
                         value={form.barangay || null}

@@ -304,6 +304,12 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <p className="text-sm font-semibold text-foreground">Address</p>
 
         <div className="grid grid-cols-2 gap-4">
+          <TextField isRequired isInvalid={!!errors.province} isDisabled>
+            <Label>Province</Label>
+            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
+            <FieldError>{errors.province}</FieldError>
+          </TextField>
+
           <Select
             placeholder="Select CAMANAVA city"
             value={formData.city || null}
@@ -339,12 +345,6 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               </ListBox>
             </Select.Popover>
           </Select>
-
-          <TextField isRequired isInvalid={!!errors.province} isDisabled>
-            <Label>Province</Label>
-            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
-            <FieldError>{errors.province}</FieldError>
-          </TextField>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
