@@ -31,40 +31,40 @@ export default function PropertiesTable({
   }
 
   return (
-    <Table className="bg-darker-white">
+    <Table className="bg-darker-white dark:bg-zinc-900">
       <Table.ScrollContainer>
         <Table.Content
           aria-label="Properties table"
-          className="bg-darker-white"
+          className="bg-darker-white dark:bg-zinc-900"
           selectionMode="single"
           onRowAction={(key) => {
             const property = properties.find((p) => p.id === key);
             if (property) onRowClick(property);
           }}
         >
-          <Table.Header className="bg-darker-white">
-            <Table.Column className="w-16 text-black font-medium">
+          <Table.Header className="bg-darker-white dark:bg-zinc-900">
+            <Table.Column className="w-16 text-black dark:text-zinc-200 font-medium">
               Photo
             </Table.Column>
-            <Table.Column isRowHeader className="text-black font-medium">
+            <Table.Column isRowHeader className="text-black dark:text-zinc-200 font-medium">
               Name
             </Table.Column>
-            <Table.Column className="text-black font-medium">
+            <Table.Column className="text-black dark:text-zinc-200 font-medium">
               Location
             </Table.Column>
-            <Table.Column className="text-black font-medium">
+            <Table.Column className="text-black dark:text-zinc-200 font-medium">
               Type
             </Table.Column>
-            <Table.Column className="text-black font-medium">
+            <Table.Column className="text-black dark:text-zinc-200 font-medium">
               Price
             </Table.Column>
-            <Table.Column className="text-black font-medium">
+            <Table.Column className="text-black dark:text-zinc-200 font-medium">
               Rating
             </Table.Column>
-            <Table.Column className="text-black font-medium">
+            <Table.Column className="text-black dark:text-zinc-200 font-medium">
               Status
             </Table.Column>
-            <Table.Column className="text-right text-black font-medium">
+            <Table.Column className="text-right text-black dark:text-zinc-200 font-medium">
               Actions
             </Table.Column>
           </Table.Header>

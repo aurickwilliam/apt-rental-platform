@@ -65,7 +65,7 @@ export default function MaintenanceHistory({
   };
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm">
       <Card.Content className="p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
@@ -73,7 +73,7 @@ export default function MaintenanceHistory({
             Your requests
           </h2>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="font-inter text-sm text-muted-foreground mb-4">
           Track status and cancel open requests. Photos load via short-lived signed URLs.
         </p>
 
@@ -82,9 +82,9 @@ export default function MaintenanceHistory({
             <Spinner color="accent" />
           </div>
         ) : error ? (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="font-inter text-sm text-red-600">{error}</p>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
+          <p className="font-inter text-sm text-muted-foreground text-center py-6">
             No maintenance requests yet.
           </p>
         ) : (
@@ -99,10 +99,10 @@ export default function MaintenanceHistory({
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-card-foreground truncate">
+                      <p className="font-nunito text-sm font-semibold text-card-foreground truncate">
                         {request.title}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="font-inter text-xs text-muted-foreground mt-0.5">
                         {categoryLabel(request.category)} ·{" "}
                         {new Date(request.created_at).toLocaleString()}
                       </p>
@@ -111,16 +111,17 @@ export default function MaintenanceHistory({
                       <StatusChip
                         size="sm"
                         tone={urgencyStyle.tone}
+                        className="font-nunito font-semibold"
                       >
                         {request.urgency}
                       </StatusChip>
-                      <StatusChip size="sm" tone={statusChipColor(request.status)}>
+                      <StatusChip size="sm" tone={statusChipColor(request.status)} className="font-nunito font-semibold">
                         {request.status}
                       </StatusChip>
                     </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">
+                  <p className="font-inter text-sm text-muted-foreground mt-2 whitespace-pre-line">
                     {request.message}
                   </p>
 
@@ -147,11 +148,11 @@ export default function MaintenanceHistory({
 
                   {request.resolved_at && (
                     <div className="mt-3 rounded-lg bg-muted p-3">
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-inter text-xs text-muted-foreground">
                         Resolved {new Date(request.resolved_at).toLocaleString()}
                       </p>
                       {request.resolution_notes && (
-                        <p className="text-sm text-card-foreground mt-1">
+                        <p className="font-inter text-sm text-card-foreground mt-1">
                           {request.resolution_notes}
                         </p>
                       )}
@@ -163,7 +164,7 @@ export default function MaintenanceHistory({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-fit"
+                        className="w-fit font-nunito font-semibold"
                         isDisabled={cancellingId === request.id}
                         onPress={() => openCancel(request.id)}
                       >
@@ -185,7 +186,7 @@ export default function MaintenanceHistory({
                   <Modal.Heading>Cancel maintenance request</Modal.Heading>
                 </Modal.Header>
                 <Modal.Body>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-inter text-sm text-muted-foreground">
                     Are you sure you want to cancel this request? This cannot be undone.
                   </p>
                 </Modal.Body>
