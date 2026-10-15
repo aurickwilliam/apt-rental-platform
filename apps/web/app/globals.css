@@ -183,6 +183,11 @@ body[data-scroll-locked] [role="option"] {
 }
 
 :root {
+  /* No drop shadow on HeroUI fields (inputs, selects, combo boxes, text
+     areas). Same transparent value HeroUI uses in dark mode, so ring
+     utilities still work. */
+  --field-shadow: 0 0 0 0 transparent inset;
+
   --radius: 0.625rem;
   --background: #F8F9FA;
   --foreground: #333333;

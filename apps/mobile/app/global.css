@@ -206,13 +206,13 @@
 }
 
 @layer components {
-  /* Unfocused / no value — 1px grey (border-border), separate from focused blue */
+  /* Unfocused / no value — 1px field border, same colour as DropdownField/DateField */
   .input__input:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
   .search-field__input:not(:focus):not([disabled]):not([readonly]):not([readOnly]),
   .text-area__input:not(:focus):not([readonly]):not([disabled]),
   .select__trigger:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
     --field-border-width: 1px !important;
-    border-color: var(--border) !important;
+    border-color: var(--field-border) !important;
     outline-color: transparent !important;
   }
   /* Focused (editable only) — 2px blue */
@@ -227,13 +227,13 @@
     outline-color: var(--focus) !important;
     outline-width: 2px !important;
   }
-  /* Readonly/disabled — 1px grey hairline (border-border), never blue */
+  /* Readonly/disabled — 1px field border, never blue */
   .input__input[readonly], .input__input[readOnly], .search-field__input[readonly],
   .text-area__input[readonly], .input__input[disabled],
   .input__input[data-disabled="true"], .search-field__input[data-disabled="true"],
   .text-area__input[data-disabled="true"] {
     --field-border-width: 1px !important;
-    border-color: var(--border) !important;
+    border-color: var(--field-border) !important;
   }
 }
 /* Primary buttons stay brand blue in both modes: white text on the lighter
