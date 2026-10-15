@@ -37,7 +37,16 @@ export const THUMBNAIL_JPEG_QUALITY = 0.7;
 const MAX_CONCURRENT_UPLOADS = 3;
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+/**
+ * Video types the `chat-images` bucket actually accepts.
+ *
+ * `video/webm` is deliberately absent. Browsers record screencasts as webm by
+ * default, but the bucket rejects that type outright ("mime type video/webm is
+ * not supported"), so accepting it here would only surface the failure after
+ * an upload attempt. If the bucket's allowlist is widened, add webm back here
+ * and to the composer's `accept` attribute in the same change.
+ */
+export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime"];
 
 const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -48,7 +57,6 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/gif": "gif",
   "video/mp4": "mp4",
   "video/quicktime": "mov",
-  "video/webm": "webm",
 };
 
 /** A picked file held in the composer until Send. */
@@ -90,7 +98,7 @@ export async function validateAttachmentFile(file: File): Promise<string | null>
   const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
 
   if (!isImage && !isVideo) {
-    return `"${file.name}" isn't a supported file. Choose a JPG, PNG, WebP, MP4, MOV or WebM.`;
+    return `"${file.name}" isn't a supported file. Choose a JPG, PNG, WebP, MP4 or MOV.`;
   }
 
   if (file.size > MAX_ATTACHMENT_BYTES) {
