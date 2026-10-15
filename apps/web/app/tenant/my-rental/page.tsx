@@ -688,17 +688,17 @@ export default function MyRental() {
               <Table.Content
                 aria-label="Payment history"
               >
-                <Table.Header className="font-inter text-[11px] tracking-wider text-muted-foreground">
-                  <Table.Column isRowHeader className="font-nunito font-semibold">
+                <Table.Header className="font-inter text-[11px] tracking-wider text-card-foreground">
+                  <Table.Column isRowHeader className="font-nunito font-semibold text-card-foreground">
                     Date
                   </Table.Column>
-                  <Table.Column className="font-nunito font-semibold">
+                  <Table.Column className="font-nunito font-semibold text-card-foreground">
                     Description
                   </Table.Column>
-                  <Table.Column className="text-right font-nunito font-semibold">
+                  <Table.Column className="text-right font-nunito font-semibold text-card-foreground">
                     Amount
                   </Table.Column>
-                  <Table.Column className="text-right font-nunito font-semibold">
+                  <Table.Column className="text-right font-nunito font-semibold text-card-foreground">
                     Status
                   </Table.Column>
                 </Table.Header>
