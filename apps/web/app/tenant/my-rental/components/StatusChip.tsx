@@ -15,7 +15,7 @@ type StatusChipProps = {
 
 const solidColors: Record<BadgeVariant, string> = {
   success: "bg-green-200! text-green-900!",
-  warning: "bg-amber-200! text-amber-900!",
+  warning: "bg-amber-200! text-amber-950!",
   danger: "bg-red-200! text-red-900!",
   info: "bg-sky-200! text-sky-900!",
   neutral: "bg-white/85! text-slate-800!",
