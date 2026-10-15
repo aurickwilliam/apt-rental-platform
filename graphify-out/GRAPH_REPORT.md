@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-15)
 
 ## Corpus Check
-- 1478 files · ~1,097,647 words
+- 1478 files · ~1,097,653 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 32 file(s) not represented in the graph (top: (none) 14, .ttf 7, .kiro 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4782e1f3`
+- Built from commit: `02e85e31`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1136,7 +1136,7 @@ Nodes (4): Completed Baseline, Deferred and Evidence-Only Future Work, Execution
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `useColors()` connect `useColors` to `ProfitTrendCard.tsx`, `request-visit.tsx`, `@tabler/icons-react-native`, `emailChange.ts`, `maintenance-details.tsx`, `[conversationId].tsx`, `expo-router`, `ref_react_native`, `mobile/package.json`, `apartment/[apartmentId]/index.tsx`, `audit-fix.characterization.test.ts`, `useTheme.test.tsx`, `(tenant)/chat.tsx`, `auth/index.ts`, `map-search.tsx`, `preferences.tsx`, `ref_react`, `PasswordError`, `useCurrentUser`, `usePortalStore`, `@testing-library/react-native`, `tenant-applications/index.tsx`, `rentals.tsx`, `ChatBubble.tsx`, `formatDate`, `QuickActionsSection.tsx`, `statusChipSurface`, `AppearanceSheet.tsx`, `DocumentPreview.tsx`, `DESIGN.md — APT (A Place to Thrive)`, `heroui-native`, `ConversationRow.tsx`, `second-step.tsx`, `live-capture.tsx`, `upload-id.tsx`, `useTheme`, `getCaptureSequence`, `payment/index.tsx`, `search.tsx`, `formatPesoDisplay`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+  _High betweenness centrality (0.048) - this node is a cross-community bridge._
 - **Are the 7 inferred relationships involving `useColors()` (e.g. with `State Management Rules` and `24. Known Design Debt`) actually correct?**
   _`useColors()` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@expo/dom-webview`, `@expo/metro-runtime`, `@miblanchard/react-native-slider` to the rest of the system?**
@@ -1144,8 +1144,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `ProfitTrendCard.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.08901515151515152 - nodes in this community are weakly interconnected._
 - **Why does `@tabler/icons-react` connect `@tabler/icons-react` to `cookies/page.tsx`, `pap/page.tsx`, `framer-motion`, `emailChange.ts`, `tenant/browse/page.tsx`, `ActivityClient.tsx`, `@heroui/react`, `service/reviewsService.ts`, `FavoriteBtn.tsx`, `GeneralTab.tsx`, `PropertyDetailClient.tsx`, `UserRentalActivity.tsx`, `ResetPasswordClient.tsx`, `ref_next`, `useAsyncResource`, `TeamSection.tsx`, `admin/apartments/[id]/page.tsx`, `passport/src/index.ts`, `createClient`, `SettingsModal.tsx`, `landlord/profile/page.tsx`, `PriceCard.tsx`, `UsersClient.tsx`, `FilterContainer.tsx`, `my-rental/page.tsx`, `SettingsOverlay`, `cn`, `formatFullName`, `ApplyClient.tsx`, `VisitsCalendar.tsx`, `createClient`, `history/page.tsx`, `AnalyticsPanels.tsx`, `AppSidebar.tsx`, `maintenance-requests/page.tsx`, `service/favoritesService.ts`, `VerificationQueues.tsx`, `BrowseSectionsList.tsx`, `analytics/page.tsx`, `company/page.tsx`, `SignUpForm.tsx`, `PassportClient.tsx`, `ForgotPasswordClient.tsx`, `supabase/src/index.ts`, `web/package.json`, `chart.tsx`, `payment/page.tsx`, `admin/dashboard/page.tsx`, `PassportDocumentDetailClient.tsx`, `UserAvatar`, `landlord/messages/components/ConversationView.tsx`, `ReportsClient.tsx`, `getInitials`, `create/page.tsx`, `UsersTable.tsx`, `profile/VerificationStatusCard.tsx`, `careers/page.tsx`, `DesktopVerifyWizard.tsx`, `PropertyActions.tsx`, `VerifyClient.tsx`, `ApplyStartModal.tsx`, `FeaturesSection.tsx`, `(main)/page.tsx`, `carousel.tsx`, `PassportPageShell`, `dropdown-menu.tsx`, `APT Admin Web Portal — Implementation Plan`, `AppNavbar.tsx`, `tenant/applications/[applicationId]/page.tsx`?**
-  _High betweenness centrality (0.045) - this node is a cross-community bridge._
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **Should `request-visit.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
 - **Why does `@heroui/react` connect `@heroui/react` to `cookies/page.tsx`, `pap/page.tsx`, `framer-motion`, `@tabler/icons-react`, `emailChange.ts`, `tenant/browse/page.tsx`, `ActivityClient.tsx`, `service/reviewsService.ts`, `FavoriteBtn.tsx`, `GeneralTab.tsx`, `PropertyDetailClient.tsx`, `UserRentalActivity.tsx`, `ResetPasswordClient.tsx`, `ref_next`, `useAsyncResource`, `TeamSection.tsx`, `admin/apartments/[id]/page.tsx`, `passport/src/index.ts`, `createClient`, `SettingsModal.tsx`, `landlord/profile/page.tsx`, `PriceCard.tsx`, `UsersClient.tsx`, `FilterContainer.tsx`, `first-process.tsx`, `SettingsOverlay`, `my-rental/page.tsx`, `formatFullName`, `ApplyClient.tsx`, `VisitsCalendar.tsx`, `createClient`, `history/page.tsx`, `AnalyticsPanels.tsx`, `AppSidebar.tsx`, `maintenance-requests/page.tsx`, `service/favoritesService.ts`, `VerificationQueues.tsx`, `BrowseSectionsList.tsx`, `company/page.tsx`, `SignUpForm.tsx`, `PassportClient.tsx`, `ForgotPasswordClient.tsx`, `supabase/src/index.ts`, `CompleteProfileForm.tsx`, `web/package.json`, `ApartmentDetailSkeleton`, `second-step.tsx`, `payment/page.tsx`, `admin/dashboard/page.tsx`, `PassportDocumentDetailClient.tsx`, `UserAvatar`, `landlord/messages/components/ConversationView.tsx`, `ReportsClient.tsx`, `getInitials`, `create/page.tsx`, `UsersTable.tsx`, `profile/VerificationStatusCard.tsx`, `VerifyClient.tsx`, `careers/page.tsx`, `DesktopVerifyWizard.tsx`, `ApplyStartModal.tsx`, `FeaturesSection.tsx`, `(main)/page.tsx`, `carousel.tsx`, `PassportPageShell`, `APT Admin Web Portal — Implementation Plan`, `DashboardTrends.tsx`, `AppNavbar.tsx`, `tenant/applications/[applicationId]/page.tsx`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
