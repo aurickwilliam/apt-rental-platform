@@ -8,7 +8,15 @@ import ChangeEmailModal from "./ChangeEmailModal";
 
 export const SETTINGS_QUERY_VALUE = "open";
 
-export default function SettingsOverlay() {
+export default function SettingsOverlay({
+  initialRoles,
+  activePortal,
+}: {
+  /** Server-known account roles; seeds tab visibility on first paint. */
+  initialRoles?: string[];
+  /** Portal this Settings instance belongs to; mirrors `AppSidebar activePortal`. */
+  activePortal?: "tenant" | "landlord" | "admin";
+}) {
   const searchParams = useSearchParams();
   const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
   // Stay mounted after the first open so reopening is instant and the
@@ -42,7 +50,14 @@ export default function SettingsOverlay() {
 
   return (
     <>
-      <SettingsModal open={open} onClose={close} onChangePassword={openChangePassword} onChangeEmail={openChangeEmail} />
+      <SettingsModal
+        open={open}
+        onClose={close}
+        initialRoles={initialRoles}
+        activePortal={activePortal}
+        onChangePassword={openChangePassword}
+        onChangeEmail={openChangeEmail}
+      />
       <ChangePasswordModal isOpen={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <ChangeEmailModal isOpen={changeEmailOpen} onOpenChange={setChangeEmailOpen} />
     </>

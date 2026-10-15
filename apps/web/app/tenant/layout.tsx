@@ -84,7 +84,7 @@ export default async function TenantLayout({
         activePortal="tenant"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay />
+        <SettingsOverlay initialRoles={userRoles} activePortal="tenant" />
       </Suspense>
       <ReviewUnlockGate />
     </div>

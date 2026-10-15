@@ -93,6 +93,104 @@ body[data-scroll-locked] [role="option"] {
   pointer-events: auto !important;
 }
 
+/* Rental Preferences checkboxes (Settings → Rental Preferences only).
+   HeroUI's checkbox visuals resolve through inherited theme variables, so
+   scoping the variables here recolors both states without touching other
+   forms: unchecked gets a visible gray ring on white, checked gets solid
+   APT blue (#376BF5) with a white check via --accent/--accent-foreground.
+   Shape/width need property overrides (higher specificity, same scope). */
+.rental-prefs-checks {
+  --accent: #376BF5;
+  --accent-foreground: #ffffff;
+  --accent-hover: #2554d4;
+  --field-border: #9CA3AF;
+  --field-background: #ffffff;
+  /* Flat indicator: drop the theme's resting field drop-shadow, which reads
+     as an extra ring/3D edge on a 20px circle. Keyboard focus still shows
+     through the separate ring-shadow variables. */
+  --field-shadow: none;
+}
+
+.rental-prefs-checks .checkbox__control,
+.rental-prefs-checks .checkbox__control::before {
+  border-radius: 9999px;
+}
+
+.rental-prefs-checks .checkbox__control {
+  /* Match the mobile ~20px circular indicator; fixed in both states so
+     toggling never shifts layout. */
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+  background-color: #ffffff;
+}
+
+.rental-prefs-checks .checkbox[data-selected="true"] .checkbox__control,
+.rental-prefs-checks .checkbox[aria-checked="true"] .checkbox__control {
+  border-color: #376BF5;
+  background-color: #376BF5;
+}
+
+/* Row hover: blue ring mirrors the select hover treatment (covers both
+   pointer hover and keyboard/data-driven hover states). */
+.rental-prefs-checks .checkbox .checkbox__content:hover .checkbox__control,
+.rental-prefs-checks .checkbox:has([data-slot="checkbox-content"][data-hovered="true"]) .checkbox__control {
+  border-color: #376BF5;
+}
+
+/* Explicit selected fill: HeroUI paints it through a ::before layer whose
+   theme-variable chain does not reliably resolve here, so set the fill,
+   visibility, and scale directly. No white may remain except the check. */
+.rental-prefs-checks .checkbox[data-selected="true"] .checkbox__control::before,
+.rental-prefs-checks .checkbox[aria-checked="true"] .checkbox__control::before {
+  background-color: #376BF5;
+  opacity: 1;
+  scale: 1;
+}
+
+.rental-prefs-checks [data-slot="checkbox-default-indicator--checkmark"] {
+  width: 12px;
+  height: 12px;
+  color: #ffffff;
+}
+
+/* Settings dropdown menus: bluish hover/focus and a retained blue
+   selected state (HeroUI defaults to gray hover with no selected fill).
+   Unlayered so these beat HeroUI's unlayered defaults. color-mix keeps
+   the tint readable in dark mode. */
+.settings-select-list .list-box-item:hover,
+.settings-select-list .list-box-item[data-hovered="true"],
+.settings-select-list .list-box-item[data-focused="true"] {
+  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+}
+
+.settings-select-list .list-box-item[data-selected="true"],
+.settings-select-list .list-box-item[aria-selected="true"] {
+  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+  color: #376BF5;
+}
+
+/* Account/nav dropdown menus (all portals): same bluish hover instead of
+   HeroUI's gray. Covers the sidebar account menu, navbar menu, and the
+   mobile menu. Selected/active and danger text styling untouched. */
+.menu-item:hover,
+.menu-item[data-hovered="true"],
+.menu-item[data-focused="true"] {
+  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+}
+
+/* Hovered menu text/icons turn blue, except danger rows (Log Out).
+   The label carries its own color declaration, so it must be targeted
+   directly — inheritance from the row is not enough. */
+.menu-item:not(.menu-item--danger):hover,
+.menu-item:not(.menu-item--danger)[data-hovered="true"],
+.menu-item:not(.menu-item--danger)[data-focused="true"],
+.menu-item:not(.menu-item--danger):hover [data-slot="label"],
+.menu-item:not(.menu-item--danger)[data-hovered="true"] [data-slot="label"],
+.menu-item:not(.menu-item--danger)[data-focused="true"] [data-slot="label"] {
+  color: #376BF5;
+}
+
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;

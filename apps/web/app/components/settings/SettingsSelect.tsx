@@ -40,7 +40,7 @@ export default function SettingsSelect({
         <Select.Indicator />
       </Select.Trigger>
       <Select.Popover>
-        <ListBox>
+        <ListBox className="settings-select-list">
           {options.map(({ value: optionValue, label: optionLabel, icon: Icon }) => (
             <ListBox.Item key={optionValue} id={optionValue} textValue={optionLabel}>
               <span className="flex flex-row items-center gap-2">

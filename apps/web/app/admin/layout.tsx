@@ -54,7 +54,7 @@ export default async function AdminLayout({
         activePortal="admin"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay />
+        <SettingsOverlay initialRoles={profile.roles} activePortal="admin" />
       </Suspense>
     </div>
   );
