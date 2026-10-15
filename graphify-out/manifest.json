@@ -745,8 +745,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/map-pin.tsx": {
-    "mtime": 1792072164.4987447,
-    "ast_hash": "c3ff4b0a7d6f3dae91333882742b8d05",
+    "mtime": 1792075243.4702563,
+    "ast_hash": "e50199188b5bb6814a3fb27f33e35c4c",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx": {
@@ -4060,8 +4060,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/maps/PlaceAutocompleteInput.tsx": {
-    "mtime": 1788952892.238005,
-    "ast_hash": "f142c9e3dc1acfc60b5583d4e3377899",
+    "mtime": 1792075309.3718169,
+    "ast_hash": "e2d03f667481d43fafad4a2240db6953",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/apartments/useApartmentMapSearch.ts": {
@@ -4070,8 +4070,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/places/usePlaceAutocomplete.ts": {
-    "mtime": 1788952892.2791893,
-    "ast_hash": "56c071f867498d03c41e6a4d0b0ae845",
+    "mtime": 1792074928.007747,
+    "ast_hash": "41caa5a56db89641c979abd2403c96a1",
     "semantic_hash": ""
   },
   "apps/mobile/service/apartments/mapSearchService.ts": {
@@ -7902,6 +7902,21 @@
   "supabase/migrations/20261015141248_remap_floor_levels.sql": {
     "mtime": 1792073511.0330236,
     "ast_hash": "7a5c6afc3c17c35646f06f72e28b6557",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/places/useRecentPlaceSearches.ts": {
+    "mtime": 1792074948.142597,
+    "ast_hash": "4c12a01003d2bef4358fca99b706f449",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/places/recentPlaceSearches.test.ts": {
+    "mtime": 1792074911.456012,
+    "ast_hash": "6006cb3c17bfaaa438129bb89ff29138",
+    "semantic_hash": ""
+  },
+  "apps/mobile/service/places/recentPlaceSearches.ts": {
+    "mtime": 1792074911.4243739,
+    "ast_hash": "48aca942aba5d1622510a68f3821a4dc",
     "semantic_hash": ""
   }
 }
