@@ -1,10 +1,10 @@
 "use client";
 
 import { IconTool as Wrench } from "@tabler/icons-react";
-import { Spinner } from "@heroui/react";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
+import MaintenancePageSkeleton from "./components/MaintenancePageSkeleton";
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
@@ -57,9 +57,7 @@ export default function MaintenanceRequestPage() {
           </div>
 
           {tenancyLoading ? (
-            <div className="flex justify-center py-12">
-              <Spinner color="accent" />
-            </div>
+            <MaintenancePageSkeleton />
           ) : !tenancy || !apartmentId ? (
             <div className="rounded-2xl border border-border bg-card p-6 text-center">
               <p className="font-nunito text-sm font-semibold text-card-foreground">
