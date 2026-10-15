@@ -6528,15 +6528,15 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/DashboardCard.tsx": {
-    "mtime": 1791973208.6047115,
-    "seen": 1792029469.5393684,
-    "ast_hash": "c78222ad044be5f06588a7a5b2b828dc",
+    "mtime": 1792046564.2164075,
+    "seen": 1792046836.1184578,
+    "ast_hash": "4f947b86bde2b9e3bd94231b8642f257",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/MiniCalendar.tsx": {
-    "mtime": 1791973424.2580013,
-    "seen": 1792029469.53937,
-    "ast_hash": "001d12d84f6c36b9385ed7c491434bf7",
+    "mtime": 1792048709.97279,
+    "seen": 1792048797.8167207,
+    "ast_hash": "fddd503ac6c1634586cbcce1138e7d43",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/StatusChip.tsx": {
@@ -6558,9 +6558,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/page.tsx": {
-    "mtime": 1792042623.9864252,
-    "seen": 1792042735.9603758,
-    "ast_hash": "c8b5304bca6920eca96204ae65c65c4d",
+    "mtime": 1792049220.80406,
+    "seen": 1792049364.6181085,
+    "ast_hash": "5949a4975c6c6a6417c91de81866ec1b",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/types.ts": {
@@ -7086,9 +7086,9 @@
     "semantic_hash": ""
   },
   "apps/web/hooks/use-tenancy.ts": {
-    "mtime": 1791973208.7415059,
-    "seen": 1792029469.539512,
-    "ast_hash": "65c939845072668ab9fde4ef318420fe",
+    "mtime": 1792046269.3377154,
+    "seen": 1792046836.1337676,
+    "ast_hash": "64b97c353fa267a2774e9a7aea319233",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-tenant-applications.ts": {
@@ -8670,9 +8670,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/MyRentalSkeleton.tsx": {
-    "mtime": 1792042646.165034,
-    "seen": 1792042735.9599316,
-    "ast_hash": "802df4a30115e523f0e0d877ac68f98c",
+    "mtime": 1792049534.6773612,
+    "seen": 1792049652.509076,
+    "ast_hash": "d42f7285a3cda6609b41b8281c9d05f7",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-applicant-personal-info.ts": {
@@ -8685,6 +8685,12 @@
     "mtime": 1792044684.3115857,
     "seen": 1792044776.137064,
     "ast_hash": "fbf2537e03b3a821f904b3d4132d9a2a",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/my-rental/components/RentalHero.tsx": {
+    "mtime": 1792048257.4879453,
+    "seen": 1792048377.9210663,
+    "ast_hash": "52f1516d451c561d8e447916990ccf55",
     "semantic_hash": ""
   }
 }
