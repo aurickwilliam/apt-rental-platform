@@ -84,7 +84,7 @@ export default async function DashboardLayout({
         activePortal="landlord"
       />
       <Suspense fallback={null}>
-        <SettingsOverlay />
+        <SettingsOverlay initialRoles={userRoles} activePortal="landlord" />
       </Suspense>
     </div>
   );

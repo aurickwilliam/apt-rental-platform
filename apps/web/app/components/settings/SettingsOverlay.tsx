@@ -6,7 +6,15 @@ import SettingsModal from "./SettingsModal";
 
 export const SETTINGS_QUERY_VALUE = "open";
 
-export default function SettingsOverlay() {
+export default function SettingsOverlay({
+  initialRoles,
+  activePortal,
+}: {
+  /** Server-known account roles; seeds tab visibility on first paint. */
+  initialRoles?: string[];
+  /** Portal this Settings instance belongs to; mirrors `AppSidebar activePortal`. */
+  activePortal?: "tenant" | "landlord" | "admin";
+}) {
   const searchParams = useSearchParams();
   const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
   // Stay mounted after the first open so reopening is instant and the
@@ -24,5 +32,5 @@ export default function SettingsOverlay() {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
-  return <SettingsModal open={open} onClose={close} />;
+  return <SettingsModal open={open} onClose={close} initialRoles={initialRoles} activePortal={activePortal} />;
 }

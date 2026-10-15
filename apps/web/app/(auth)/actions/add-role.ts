@@ -37,6 +37,15 @@ export async function addRole(
       code: error.code,
       message: error.message,
     });
+    // Map only known, user-actionable RPC failures to specific messages.
+    // Anything else (including raw constraint violations) keeps the generic
+    // fallback so no SQL internals ever reach the browser.
+    if (error.message === "Complete your profile before adding a role.") {
+      return {
+        error:
+          "Please complete your profile (including your mobile number) before adding a role.",
+      };
+    }
     return {
       error:
         "We couldn't add that role to your account. Please try again — if this persists, contact support.",

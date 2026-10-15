@@ -344,6 +344,16 @@ export function AppSidebar({
 
   const switchTargets = getSwitchTargets(activePortal, userRoles);
 
+  // Prefetch the profile route while the account menu is open so tapping
+  // Profile paints immediately instead of fetching on demand.
+  const handleAccountMenuOpenChange = useCallback(
+    (value: boolean) => {
+      setAccountMenuOpen(value);
+      if (value) router.prefetch(profileHref);
+    },
+    [router, profileHref],
+  );
+
   return (
     <aside
       aria-label={sidebarLabel}
@@ -399,12 +409,12 @@ export function AppSidebar({
             type="button"
             aria-label="Collapse sidebar"
             aria-expanded={true}
-            className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="group flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-primary/10 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             onClick={toggleCollapsed}
           >
             <IconLayoutSidebarLeftCollapse
               size={28}
-              className="size-6 shrink-0"
+              className="size-6 shrink-0 group-hover:text-primary"
               aria-hidden="true"
             />
           </button>
@@ -429,16 +439,16 @@ export function AppSidebar({
               aria-current={active ? "page" : undefined}
               aria-label={collapsed ? label : undefined}
               title={collapsed ? label : undefined}
-              className={`flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 px-3 py-2.5"} ${
+              className={`group flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 px-3 py-2.5"} ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  : "text-sidebar-foreground/70 hover:text-primary hover:bg-primary/10"
               }`}
             >
               <Icon
                 size={collapsed ? 22 : 20}
                 aria-hidden="true"
-                className={`shrink-0 ${active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/60"}`}
+                className={`shrink-0 ${active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/60 group-hover:text-primary"}`}
               />
               {!collapsed ? <span>{label}</span> : null}
             </Link>
@@ -450,11 +460,11 @@ export function AppSidebar({
       <div
         className={`border-t border-sidebar-border bg-sidebar ${collapsed ? "p-2" : "p-3"}`}
       >
-        <Dropdown isOpen={isAccountMenuOpen} onOpenChange={setAccountMenuOpen}>
+        <Dropdown isOpen={isAccountMenuOpen} onOpenChange={handleAccountMenuOpenChange}>
           <Button
             variant="ghost"
             aria-label={collapsed ? `${displayName} account menu` : undefined}
-            className={`w-full flex items-center h-auto hover:bg-sidebar-accent text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
+            className={`w-full group flex items-center h-auto hover:bg-primary/10 text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
             <UserAvatar
               src={userAvatarUrl}
@@ -480,12 +490,12 @@ export function AppSidebar({
               (iconSet === "tabler" ? (
                 <IconSelector
                   size={14}
-                  className="ml-auto text-sidebar-foreground/40 shrink-0"
+                  className="ml-auto text-sidebar-foreground/40 shrink-0 group-hover:text-primary"
                 />
               ) : (
                 <ChevronsUpDown
                   size={14}
-                  className="ml-auto text-sidebar-foreground/40 shrink-0"
+                  className="ml-auto text-sidebar-foreground/40 shrink-0 group-hover:text-primary"
                 />
               ))}
           </Button>
@@ -644,6 +654,16 @@ function MobileSidebarMenu({
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 
+  // Prefetch the profile route while the menu is open (see desktop above).
+  const handleMobileMenuOpenChange = useCallback(
+    (value: boolean) => {
+      setMobileMenuOpen(value);
+      if (value && profileHref) router.prefetch(profileHref);
+    },
+    [router, profileHref],
+  );
+  useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+
   // Settings and theme were only reachable from the desktop sidebar, so
   // they are offered here too — this menu is the sole navigation on phones.
   const openSettings = () => {
@@ -666,7 +686,7 @@ function MobileSidebarMenu({
       aria-label={navLabel}
       className={`fixed left-4 z-40 md:hidden ${isApartmentDetail ? "bottom-24" : "bottom-4"}`}
     >
-      <Dropdown isOpen={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+      <Dropdown isOpen={isMobileMenuOpen} onOpenChange={handleMobileMenuOpenChange}>
         <Button
           variant="primary"
           className="rounded-full shadow-sm"

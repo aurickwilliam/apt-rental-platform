@@ -11,6 +11,8 @@ import RenderApartments from "@/app/browse/components/RenderApartments";
 import SearchContainer from "@/app/browse/components/SearchContainer";
 import { fetchBrowseResults } from "@/app/browse/lib/fetch-browse-results";
 import { fetchBrowseSections, isDefaultBrowseParams } from "@/app/browse/lib/fetch-browse-sections";
+import { buildRecommendedSection } from "@/app/browse/lib/fetch-recommended";
+import { parseTenantPreferences } from "@/lib/tenant-preferences";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;
@@ -31,7 +33,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id, roles")
+    .select("id, roles, preferences")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -48,7 +50,20 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   const { sections, totalCount: sectionsTotal } = showSections
     ? await fetchBrowseSections(supabase, "/tenant/browse")
     : { sections: [], totalCount: 0 };
-  const useSections = showSections && sections.length > 0;
+  // Personalization re-ranks the already-fetched pool only. Raw saved
+  // budgets are used as-is (never clamped, never turned into filters).
+  const recommended = showSections
+    ? buildRecommendedSection(
+        sections,
+        parseTenantPreferences(
+          (profile as unknown as { preferences?: unknown } | null)?.preferences ?? null,
+        ),
+      )
+    : null;
+  const sectionsWithRecommended = recommended
+    ? [recommended, ...sections]
+    : sections;
+  const useSections = showSections && sectionsWithRecommended.length > 0;
 
   const { apartments: mapped, page, totalCount, pageSize } = useSections
     ? { apartments: [], page: 1, totalCount: sectionsTotal, pageSize: 0 }
@@ -91,7 +106,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
             }
           >
             {useSections ? (
-              <BrowseSectionsList sections={sections} basePath="/tenant/browse" />
+              <BrowseSectionsList sections={sectionsWithRecommended} basePath="/tenant/browse" />
             ) : (
               <RenderApartments
                 apartment={mapped}

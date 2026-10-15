@@ -10,6 +10,8 @@ const DEFAULT_THUMBNAIL = "/default/default-thumbnail.jpeg";
 export interface BrowseSection {
   id: string;
   title: string;
+  /** Short supporting copy rendered under the title when present. */
+  subtitle?: string | null;
   apartments: BrowseApartment[];
   /** Filtered-grid URL for See All, or null when no filter matches the cohort. */
   seeAllHref: string | null;
@@ -31,6 +33,7 @@ interface SectionRow {
   no_bedrooms?: number | null;
   no_bathrooms?: number | null;
   area_sqm?: number | null;
+  amenities?: string[] | null;
   apartment_images?: Array<{
     url?: string | null;
     url_thumb?: string | null;
@@ -100,6 +103,8 @@ function mapRow(apt: SectionRow): BrowseApartment {
     bedrooms: apt.no_bedrooms ?? undefined,
     bathrooms: apt.no_bathrooms ?? undefined,
     areaSqm: apt.area_sqm ?? undefined,
+    city: apt.city ?? undefined,
+    amenities: apt.amenities ?? undefined,
   };
 }
 

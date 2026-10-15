@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { Card } from "@heroui/react";
 
@@ -20,6 +21,30 @@ function getInitials(firstName: string | null, lastName: string | null, email: s
       .join("");
   }
   return email?.[0]?.toUpperCase() ?? "U";
+}
+
+// Latest verification submission for the activity timeline. Streams in
+// separately (see Suspense below) so it never blocks the header and form
+// first paint. userId is the internal users.id, not the auth id.
+async function TenantVerificationCard({
+  userId,
+  accountStatus,
+}: {
+  userId: string;
+  accountStatus: string;
+}) {
+  const supabase = await createClient();
+  const { data: verification } = await supabase
+    .from("user_verifications")
+    .select("status, submitted_at, reviewed_at, rejection_reason")
+    .eq("user_id", userId)
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (
+    <PassportProfileCard accountStatus={accountStatus} basePath="/tenant/passport" verification={verification} />
+  );
 }
 
 export default async function TenantProfilePage() {
@@ -63,16 +88,8 @@ export default async function TenantProfilePage() {
     redirect("/browse");
   }
 
-  // Latest verification submission for the activity timeline. Owners read
-  // only their own rows; absent when the user never submitted.
-  const { data: verification } = await supabase
-    .from("user_verifications")
-    .select("status, submitted_at, reviewed_at, rejection_reason")
-    .eq("user_id", profile.id)
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
+  // Verification timeline streams in below; owners read only their own
+  // rows, absent when the user never submitted.
   const displayName =
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Tenant";
 
@@ -89,7 +106,15 @@ export default async function TenantProfilePage() {
         backgroundUrl={profile.background_url}
       />
 
-      <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" verification={verification} />
+      <Suspense
+        fallback={
+          <div className="border border-border bg-card p-6 rounded-2xl" aria-hidden="true">
+            <div className="h-6 w-40 rounded-lg bg-default-200 animate-pulse" />
+          </div>
+        }
+      >
+        <TenantVerificationCard userId={profile.id} accountStatus={profile.account_status} />
+      </Suspense>
 
       <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
         <Card.Content className="p-0">
