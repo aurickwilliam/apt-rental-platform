@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { ReactNode } from "react";
 
 type Variant = "tile" | "chip";
@@ -46,7 +46,7 @@ export default function PaymentMethodButton({
       >
         {selected && (
           <span className="absolute right-1.5 top-1.5 rounded-full bg-white dark:bg-zinc-900">
-            <CheckCircle2 size={18} className="text-primary" fill="currentColor" />
+            <CheckCircle2 size={18} className="text-primary" aria-hidden="true" />
           </span>
         )}
 
@@ -94,7 +94,7 @@ export default function PaymentMethodButton({
         ) : null}
       </span>
       {label ? <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{label}</span> : null}
-      {selected && <CheckCircle2 size={16} className="ml-1 text-primary" />}
+      {selected && <CheckCircle2 size={16} className="ml-1 text-primary" aria-hidden="true" />}
     </button>
   );
 }

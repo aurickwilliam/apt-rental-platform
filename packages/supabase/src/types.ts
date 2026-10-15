@@ -405,6 +405,67 @@ export type Database = {
           },
         ]
       }
+      conversation_preferences: {
+        Row: {
+          apartment_id: string | null
+          id: string
+          is_archived: boolean
+          is_muted: boolean
+          is_pinned: boolean
+          marked_unread: boolean
+          other_user_id: string
+          pinned_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apartment_id?: string | null
+          id?: string
+          is_archived?: boolean
+          is_muted?: boolean
+          is_pinned?: boolean
+          marked_unread?: boolean
+          other_user_id: string
+          pinned_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apartment_id?: string | null
+          id?: string
+          is_archived?: boolean
+          is_muted?: boolean
+          is_pinned?: boolean
+          marked_unread?: boolean
+          other_user_id?: string
+          pinned_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_preferences_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_preferences_other_user_id_fkey"
+            columns: ["other_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           apartment_id: string
@@ -1094,6 +1155,110 @@ export type Database = {
           },
         ]
       }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_blocks_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_reports: {
+        Row: {
+          apartment_id: string | null
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          apartment_id?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          apartment_id?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_apartment_id_fkey"
+            columns: ["apartment_id"]
+            isOneToOne: false
+            referencedRelation: "apartments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_verifications: {
         Row: {
           created_at: string
@@ -1390,6 +1555,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_resolve_user_report: {
+        Args: { p_note: string; p_report_id: string; p_status: string }
+        Returns: undefined
+      }
       admin_set_apartment_visibility: {
         Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
         Returns: undefined
@@ -1398,6 +1567,7 @@ export type Database = {
         Args: { p_reason: string; p_suspend: boolean; p_target_id: string }
         Returns: undefined
       }
+      block_user: { Args: { p_user_id: string }; Returns: undefined }
       consume_verification_session: {
         Args: { p_token_hash: string }
         Returns: string
@@ -1491,6 +1661,13 @@ export type Database = {
           urgency: string
         }[]
       }
+      get_block_status: {
+        Args: { p_other_user_id: string }
+        Returns: {
+          blocked_by_me: boolean
+          blocked_me: boolean
+        }[]
+      }
       get_conversations: {
         Args: { p_user_id: string }
         Returns: {
@@ -1527,6 +1704,31 @@ export type Database = {
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
       get_my_suspension_status: { Args: never; Returns: Json }
+      get_portal_conversations: {
+        Args: { p_portal: string }
+        Returns: {
+          apartment_id: string
+          apartment_name: string
+          blocked_by_me: boolean
+          conversation_key: string
+          conversation_type: string
+          in_active_tenancy: boolean
+          is_archived: boolean
+          is_muted: boolean
+          is_pinned: boolean
+          last_message: string
+          last_message_time: string
+          last_message_type: string
+          last_sender_id: string
+          marked_unread: boolean
+          other_user_avatar: string
+          other_user_id: string
+          other_user_name: string
+          other_user_phone: string
+          pinned_at: string
+          unread_count: number
+        }[]
+      }
       get_search_section_page: {
         Args: {
           p_after?: Json
@@ -1547,12 +1749,42 @@ export type Database = {
         Returns: Json
       }
       grant_user_role: { Args: { new_role: string }; Returns: string[] }
+      mark_conversation_read: {
+        Args: { p_apartment_id: string; p_other_user_id: string }
+        Returns: undefined
+      }
       notify_rent_due_status: { Args: never; Returns: undefined }
       register_push_token: {
         Args: { p_platform: string; p_token: string }
         Returns: undefined
       }
+      report_user: {
+        Args: {
+          p_apartment_id: string
+          p_details?: string
+          p_reason: string
+          p_reported_user_id: string
+        }
+        Returns: undefined
+      }
+      set_conversation_preference: {
+        Args: {
+          p_apartment_id: string
+          p_archived?: boolean
+          p_marked_unread?: boolean
+          p_muted?: boolean
+          p_other_user_id: string
+          p_pinned?: boolean
+        }
+        Returns: undefined
+      }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
+      sync_my_profile_email: { Args: never; Returns: undefined }
+      unblock_user: { Args: { p_user_id: string }; Returns: undefined }
+      validate_camanava_location: {
+        Args: { p_city: string; p_latitude: number; p_longitude: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

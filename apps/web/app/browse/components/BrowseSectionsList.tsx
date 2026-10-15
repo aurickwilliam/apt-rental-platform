@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { toast } from "@heroui/react";
@@ -12,13 +13,14 @@ import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
-import ApartmentHoverPreview from "./ApartmentHoverPreview";
 import { BrowseCardsSkeleton } from "./BrowsePageSkeleton";
 import {
   previewPosition,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
+
+const ApartmentHoverPreview = dynamic(() => import("./ApartmentHoverPreview"));
 
 interface BrowseSectionsListProps {
   sections: BrowseSection[];

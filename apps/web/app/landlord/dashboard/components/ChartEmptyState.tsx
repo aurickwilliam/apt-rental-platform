@@ -1,4 +1,4 @@
-import { ChartNoAxesCombined } from "lucide-react";
+import { IconChartBar as ChartNoAxesCombined } from "@tabler/icons-react";
 
 type Props = {
   title: string;

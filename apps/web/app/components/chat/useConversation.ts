@@ -269,6 +269,7 @@ export default function useConversation({
     setMessages,
     isLoading,
     replyTarget,
+    setReplyTarget,
     contextMenu,
     fetchMessages,
     sendMessage,

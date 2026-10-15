@@ -1,4 +1,4 @@
-import { useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { useStatusChipStyles, type StatusChipStyle } from "@/hooks/useStatusChipStyles";
 import { IconClock, IconCircleCheck, IconCircleX, type Icon } from "@tabler/icons-react-native";
 
 export type ApplicationStatus =
@@ -27,6 +27,8 @@ export type ApplicationStatusStyle = {
   description: string;
   Icon: Icon;
   chipColor: ChipColor;
+  // Theme-aware chip surface + text colors (DESIGN.md status chips).
+  chipStyle: StatusChipStyle;
   iconColor: string;
 };
 
@@ -35,6 +37,7 @@ const FALLBACK_STYLE = (palette: ReturnType<typeof useStatusChipStyles>): Applic
   description: "",
   Icon: IconCircleX,
   chipColor: "default",
+  chipStyle: palette.neutral,
   iconColor: palette.neutral.textColor,
 });
 
@@ -48,6 +51,7 @@ export function useApplicationStatusStyles() {
         "Your application is being reviewed by the landlord. We'll notify you once there's an update.",
       Icon: IconClock,
       chipColor: "warning",
+      chipStyle: palette.warning,
       iconColor: palette.warning.textColor,
     },
     approved: {
@@ -56,6 +60,7 @@ export function useApplicationStatusStyles() {
         "Your application has been approved! The landlord will reach out to finalize your lease.",
       Icon: IconCircleCheck,
       chipColor: "success",
+      chipStyle: palette.success,
       iconColor: palette.success.textColor,
     },
     rejected: {
@@ -63,6 +68,7 @@ export function useApplicationStatusStyles() {
       description: "Unfortunately, your application was not approved this time.",
       Icon: IconCircleX,
       chipColor: "danger",
+      chipStyle: palette.danger,
       iconColor: palette.danger.textColor,
     },
     cancelled: {
@@ -71,6 +77,7 @@ export function useApplicationStatusStyles() {
         "Your application has been cancelled. If you have any questions, please contact the landlord.",
       Icon: IconCircleX,
       chipColor: "danger",
+      chipStyle: palette.danger,
       iconColor: palette.danger.textColor,
     },
     closed: {
@@ -79,6 +86,7 @@ export function useApplicationStatusStyles() {
         "This apartment has already been leased to another applicant, so this application is now closed.",
       Icon: IconCircleX,
       chipColor: "default",
+      chipStyle: palette.neutral,
       iconColor: palette.neutral.textColor,
     },
   };

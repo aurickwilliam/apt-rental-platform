@@ -420,7 +420,7 @@ export function RateApartmentForm({
           <div className="flex flex-col items-center">
             <Label className="font-nunito text-lg font-semibold">Overall Rating</Label>
 
-            <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-rating">
+            <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-brand">
               {rating.toFixed(1)}
             </p>
 

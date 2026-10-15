@@ -104,7 +104,6 @@ export default function PublicLandlordProfile() {
         otherUserId: resolvedLandlordId,
         otherUserName: fullName || 'Landlord',
         otherUserAvatar: profile?.avatar_url ?? '',
-        otherUserPhoneNumber: profile?.mobile_number ?? '',
         ...(resolvedApartmentId ? { apartmentId: resolvedApartmentId } : {}),
       },
     });
@@ -139,7 +138,7 @@ export default function PublicLandlordProfile() {
             {
               label: 'Average Rating',
               value: `${stats.averageRating}/5`,
-              valueColor: 'text-secondary',
+              valueColor: 'text-accent',
             },
             {
               label: 'Member Since',

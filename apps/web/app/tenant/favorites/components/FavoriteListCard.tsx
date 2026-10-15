@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { Button, Card } from "@heroui/react";
 
-import { BedDouble, Bath, Expand, Heart } from "lucide-react";
+import { IconBed as BedDouble, IconBath as Bath, IconMaximize as Expand, IconHeart as Heart } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 

@@ -1,15 +1,19 @@
 import { View } from 'react-native';
 import { Skeleton } from 'heroui-native';
 
+// Mirrors ApplicationStatusCard: thumbnail, name + status chip, location, date.
 export default function ApplicationStatusCardSkeleton() {
   return (
-    <View className="border border-border rounded-3xl p-4 gap-3">
-      <Skeleton className="h-5 w-4/5 rounded-lg" />
-      <Skeleton className="h-4 w-1/2 rounded-lg" />
+    <View className="border border-border rounded-3xl overflow-hidden flex-row items-stretch">
+      <Skeleton className="w-24 self-stretch rounded-none" />
 
-      <View className="flex-row justify-between items-center mt-2">
-        <Skeleton className="h-8 w-24 rounded-full" />
-        <Skeleton className="h-4 w-16 rounded-md" />
+      <View className="flex-1 gap-2 p-3">
+        <View className="flex-row items-center justify-between gap-2">
+          <Skeleton className="h-5 w-32 rounded-lg" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </View>
+        <Skeleton className="h-3.5 w-28 rounded-md" />
+        <Skeleton className="h-3.5 w-36 rounded-md" />
       </View>
     </View>
   );

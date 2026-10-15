@@ -1,5 +1,5 @@
 import { Modal, Button } from "@heroui/react";
-import { CircleCheck } from "lucide-react";
+import { IconCircleCheck as CircleCheck } from "@tabler/icons-react";
 import Link from "next/link";
 
 interface SuccessModalProps {

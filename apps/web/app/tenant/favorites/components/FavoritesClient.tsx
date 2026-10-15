@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Spinner, toast } from "@heroui/react";
-import { LayoutGrid, LayoutList } from "lucide-react";
+import { IconLayoutGrid as LayoutGrid, IconLayoutList as LayoutList } from "@tabler/icons-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { useFavorites } from "@/hooks/use-favorites";

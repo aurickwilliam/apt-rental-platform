@@ -81,4 +81,5 @@ overrides:
   ws@>=8.0.0 <8.21.0: '>=8.21.0'
   yaml@>=2.0.0 <2.8.3: '>=2.8.3'
 patchedDependencies:
+  heroui-native@1.0.8: patches/heroui-native@1.0.8.patch
   next-themes@0.4.6: patches/next-themes@0.4.6.patch

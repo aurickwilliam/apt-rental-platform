@@ -28,12 +28,12 @@ import {
   RECOVERY_RESEND_COOLDOWN_SECONDS,
 } from "@repo/utils";
 
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "../../actions/password-recovery";
-import ErrorBanner from "./ErrorBanner";
 import RecoveryHeader from "./RecoveryHeader";
 
 type Step = "email" | "code" | "google_only";

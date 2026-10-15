@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Card } from "@heroui/react";
 
-import { Button, Card } from "@heroui/react";
+import { joinedFormatter } from "@/app/admin/users/lib/user-display";
 
-import VerifyDialog from "@/app/verify/components/VerifyDialog";
 import EditableAvatar from "./EditableAvatar";
 import EditableCover from "./EditableCover";
 import RoleBadge from "./RoleBadge";
@@ -14,73 +13,56 @@ type ProfileHeaderProps = {
   authUserId: string;
   displayName: string;
   initials: string;
-  email: string | null;
   role: "tenant" | "landlord";
   accountStatus: string;
   avatarUrl: string | null;
   backgroundUrl: string | null;
+  joinedAt: string | null;
 };
 
-// Own-profile header: cover banner with circular avatar overlapping its
-// bottom-left edge, identity content to the right (stacked below on
-// mobile). Photo editing is in place via EditableAvatar / EditableCover.
+// Own-profile header, same layout as the admin profile header: cover banner,
+// circular avatar overlapping its bottom edge, then name, role and
+// verification chips and the join date. Photo editing is in place via
+// EditableAvatar / EditableCover.
 export default function ProfileHeader({
   authUserId,
   displayName,
   initials,
-  email,
   role,
   accountStatus,
   avatarUrl,
   backgroundUrl,
+  joinedAt,
 }: ProfileHeaderProps) {
-  const [verifyOpen, setVerifyOpen] = useState(false);
-  const needsVerification = accountStatus !== "verified" && accountStatus !== "pending";
-
   return (
-    <>
-      <Card className="overflow-hidden border border-border bg-card text-card-foreground rounded-2xl">
+    <Card className="relative overflow-hidden rounded-3xl border border-border bg-card p-0 text-card-foreground shadow-none">
       <Card.Content className="p-0">
         <EditableCover authUserId={authUserId} initialUrl={backgroundUrl} />
-        <div className="px-6 pb-6">
-          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-end sm:gap-6 sm:text-left">
-            <div className="-mt-16 shrink-0 sm:-mt-20">
-              <EditableAvatar
-                authUserId={authUserId}
-                initialUrl={avatarUrl}
-                initials={initials}
-                displayName={displayName}
-              />
+        <div className="flex flex-wrap items-start gap-4 p-4">
+          <div className="-mt-12 shrink-0">
+            <EditableAvatar
+              authUserId={authUserId}
+              initialUrl={avatarUrl}
+              initials={initials}
+              displayName={displayName}
+            />
+          </div>
+          <div className="min-w-0 flex-1 basis-48">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-nunito text-2xl font-bold wrap-break-word">
+                {displayName}
+              </h1>
+              <RoleBadge role={role} />
+              <VerificationBadge status={accountStatus} />
             </div>
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 sm:items-start sm:pb-1">
-              <h1 className="text-2xl font-bold">{displayName}</h1>
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <RoleBadge role={role} />
-                <VerificationBadge status={accountStatus} />
-              </div>
-              {email ? (
-                <p className="text-sm text-muted-foreground truncate max-w-full">{email}</p>
-              ) : null}
-              {accountStatus === "pending" ? (
-                <p className="text-sm text-muted-foreground">Pending Verification</p>
-              ) : null}
-              {needsVerification ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="primary"
-                  onPress={() => setVerifyOpen(true)}
-                  className="mt-1"
-                >
-                  {accountStatus === "rejected" ? "Verification Rejected — submit again" : "Verify Account"}
-                </Button>
-              ) : null}
-            </div>
+            {joinedAt ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Joined {joinedFormatter.format(new Date(joinedAt))}
+              </p>
+            ) : null}
           </div>
         </div>
       </Card.Content>
-      </Card>
-      <VerifyDialog open={verifyOpen} onClose={() => setVerifyOpen(false)} />
-    </>
+    </Card>
   );
 }

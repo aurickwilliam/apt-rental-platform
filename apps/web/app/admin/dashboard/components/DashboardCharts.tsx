@@ -28,7 +28,7 @@ interface QueueChartProps {
 
 const queueConfig = {
   users: { label: "Users", color: "var(--primary)" },
-  apartments: { label: "Apartments", color: COLORS.light.secondary },
+  apartments: { label: "Apartments", color: COLORS.light.chartSky },
 } satisfies ChartConfig;
 
 export function QueueChart({ users, apartments }: QueueChartProps) {
@@ -92,7 +92,7 @@ export function QueueChart({ users, apartments }: QueueChartProps) {
           <span className="flex items-center gap-2">
             <span
               className="size-2.5 rounded-full"
-              style={{ backgroundColor: COLORS.light.secondary }}
+              style={{ backgroundColor: COLORS.light.chartSky }}
             />
             Apartments
           </span>

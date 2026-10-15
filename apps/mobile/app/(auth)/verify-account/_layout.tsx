@@ -8,6 +8,7 @@ export default function _layout() {
       }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="scan-session" />
       <Stack.Screen name="select-id" />
       <Stack.Screen name="upload-id" />
       <Stack.Screen name="live-capture" />

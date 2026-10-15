@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollShadow, Spinner } from "@heroui/react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
 
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "./MessageInput";
 import { Contact } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -11,6 +12,7 @@ import EmojiPicker from "@/app/components/chat/EmojiPicker";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
+import { toReplyPreview } from "@/app/components/chat/chatReactions";
 import type { ChatMessage } from "@/app/components/chat/types";
 
 interface ConversationViewProps {
@@ -46,6 +48,8 @@ export default function ConversationView({
   onBack,
   className = "",
 }: ConversationViewProps) {
+  const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isContactTyping, setIsContactTyping] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const channelRef = useRef<ReturnType<
@@ -57,7 +61,7 @@ export default function ConversationView({
     conversationId,
     messages,
     setMessages,
-    isLoading,
+    isLoading: messagesLoading,
     replyTarget,
     contextMenu,
     sendMessage,
@@ -66,6 +70,7 @@ export default function ConversationView({
     clearReply,
     openContextMenu,
     closeContextMenu,
+    setReplyTarget,
   } = useConversation({
     currentUserId,
     otherUserId: activeContact?.id ?? null,
@@ -177,9 +182,81 @@ export default function ConversationView({
   }, [messages, isContactTyping]);
 
   const handleSend = useCallback(
-    (content: string) => void sendMessage(content, replyTarget?.id ?? null),
-    [replyTarget, sendMessage]
-  );
+    async (content: string) => {
+      if (!activeContact) return;
+      if (!content.trim()) return;
+
+      const replyToId = replyTarget?.id ?? null;
+      const preview = replyTarget ? toReplyPreview(replyTarget, currentUserId) : null;
+
+      const optimistic: ChatMessage = {
+        id: crypto.randomUUID(),
+        sender_id: currentUserId,
+        receiver_id: activeContact.id,
+        message: content,
+        message_type: "text",
+        is_read: false,
+        read_at: null,
+        apartment_id: apartmentId ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        reply_to: replyTarget?.id ?? null,
+        replyTo: preview,
+        reactions: [],
+        isPending: true,
+      };
+
+      setMessages((prev) => [...prev, optimistic]);
+      setSendError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from("chat")
+          .insert({
+            sender_id: currentUserId,
+            receiver_id: activeContact.id,
+            message: content,
+            apartment_id: apartmentId ?? null,
+            reply_to: replyTarget?.id ?? null,
+            is_read: false,
+          })
+          .select("id, message, message_type, created_at, updated_at, sender_id, reply_to")
+          .single();
+
+        if (error || !data) {
+          setMessages((prev) => prev.filter((m) => m.id !== `temp-${Date.now()}`));
+          console.error("Failed to send:", error?.message);
+          setSendError({ key: activeContact.conversationKey, message: error?.message ?? "Failed to send" });
+          return;
+        }
+
+        setMessages((prev) => {
+          const withoutPending = prev.filter((m) => m.message !== content || !m.isPending);
+          const sent: ChatMessage = {
+            id: data.id,
+            sender_id: currentUserId,
+            receiver_id: activeContact.id,
+            message: content,
+            message_type: "text",
+            is_read: false,
+            read_at: null,
+            apartment_id: apartmentId ?? null,
+            created_at: data.created_at,
+            updated_at: data.updated_at ?? data.created_at,
+            reply_to: data.reply_to,
+            replyTo: preview,
+            reactions: [],
+            isPending: false,
+          };
+          return [...prev.filter((m) => m.message !== content || !m.isPending), sent];
+        });
+      } catch (err) {
+        console.error("Failed to send:", err);
+        setSendError({ key: activeContact.conversationKey, message: err instanceof Error ? err.message : "Failed to send" });
+      } finally {
+        setReplyTarget(null);
+      }
+    }, [activeContact, apartmentId, currentUserId, replyTarget, supabase]);
 
   const handleTypingChange = useCallback(
     async (isTyping: boolean) => {
@@ -263,7 +340,7 @@ export default function ConversationView({
         className="min-h-0 flex-1 overflow-y-auto bg-muted/20 dark:bg-background p-4"
         visibility="none"
       >
-        {isLoading ? (
+        {isLoading || messagesLoading ? (
           <div className="flex justify-center py-8">
             <Spinner size="md" color="accent" />
           </div>
@@ -304,6 +381,12 @@ export default function ConversationView({
           </div>
         )}
       </ScrollShadow>
+
+      {sendError?.key === activeContact.conversationKey ? (
+        <div className="px-4">
+          <ErrorBanner message={sendError.message} />
+        </div>
+      ) : null}
 
       <MessageInput
         onSend={handleSend}

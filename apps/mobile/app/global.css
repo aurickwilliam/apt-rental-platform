@@ -26,22 +26,32 @@
   /* Brand */
   --color-primary: #376BF5;
   --color-primary-light: #EFF6FF;
-  --color-secondary: #FFA500;
+  /* Soft blue secondary-button label (on primary-light) */
+  --color-primary-light-foreground: #2F5FE0;
+  /* Secondary is sky, the second blue (light values; dark overrides below) */
+  --color-secondary: #0369A1;
   --color-secondary-foreground: #FFFFFF;
-  --color-secondary-light: #FFF3E0;
+  --color-secondary-light: #E0F2FE;
+
+  /* Star ratings */
+  --color-rating: #FBBF24;
 
   /* Neutral */
+  --color-grouped-background: #F5F7FB;
   --color-gray-100: #E5E7EB;
   --color-gray-200: #D1D5DB;
   --color-gray-300: #BDBDBD;
   --color-gray-400: #9CA3AF;
-  --color-gray-500: #6C757D;
+  --color-gray-500: #626B73;
 
   /* Semantic */
   --color-success: #22C55E;
   --color-success-light: #E6F4EA;
   --color-warning: #FACC15;
   --color-warning-light: #FFF8E1;
+  /* Status text and icons (success/warning are too light for text) */
+  --color-success-text: #166534;
+  --color-warning-text: #92400E;
   --color-danger: #E50914;
   --color-danger-mid: #FF4B4B;
   --color-danger-light: #FDA4AF;
@@ -52,7 +62,9 @@
   --color-dark-surface-raised: #2A2A2A;
   --color-dark-primary: #5B8BF7;
   --color-dark-primary-light: #1A2340;
-  --color-dark-secondary-light: #2E2212;
+  --color-dark-primary-light-foreground: #5B8BF7;
+  --color-dark-secondary: #7DD3FC;
+  --color-dark-secondary-light: #0C2A3D;
   --color-dark-gray-100: #1E1E1E;
   --color-dark-gray-200: #2A2A2A;
   --color-dark-gray-300: #3D3D3D;
@@ -61,6 +73,8 @@
   --color-dark-success-light: #14291E;
   --color-dark-warning: #FDE047;
   --color-dark-warning-light: #2A2410;
+  --color-dark-success-text: #4ADE80;
+  --color-dark-warning-text: #FDE047;
   --color-dark-danger: #F87171;
   --color-dark-danger-mid: #FCA5A5;
   --color-dark-danger-light: #2D1515;
@@ -69,15 +83,16 @@
 @layer theme {
   @variant light {
     /* Background */
-    --background: oklch(0.9702 0 0);
-    --foreground: var(--eclipse);
+    --background: #F5F7FB;
+    --color-grouped-background: #F5F7FB;
+    --foreground: #333333;
 
     /* Surfaces */
     --surface: var(--white);
     --surface-foreground: var(--foreground);
-    --surface-secondary: oklch(0.9524 0.0013 286.37);
+    --surface-secondary: #F1F3F5;
     --surface-secondary-foreground: var(--foreground);
-    --surface-tertiary: oklch(0.9373 0.0013 286.37);
+    --surface-tertiary: #E9ECEF;
     --surface-tertiary-foreground: var(--foreground);
 
     /* Overlay */
@@ -86,10 +101,12 @@
     --backdrop: oklch(0% 0 0 / 20%);
 
     /* Brand */
-    --accent: var(--color-primary);
+    --accent: var(--color-primary-light-foreground);
     --accent-foreground: oklch(1 0 0);
-    --color-secondary-light: #FFF3E0; 
+    --color-secondary: #0369A1;
+    --color-secondary-light: #E0F2FE;
     --color-primary-light: #EFF6FF;
+    --color-primary-light-foreground: #2F5FE0;
 
     /* Semantic */
     --success: var(--color-success);
@@ -98,42 +115,47 @@
     --warning-foreground: var(--eclipse);
     --danger: var(--color-danger);
     --danger-foreground: oklch(1 0 0);
+    --color-success-light: #E6F4EA;
+    --color-warning-light: #FFF8E1;
+    --color-success-text: #166534;
+    --color-warning-text: #92400E;
 
     /* Fields */
     --field-background: var(--white);
-    --field-foreground: var(--eclipse);
-    --field-placeholder: oklch(0.5517 0.0138 285.94);
+    --field-foreground: var(--foreground);
+    --field-placeholder: var(--muted);
     --field-border: oklch(0.88 0.005 264);
     --field-border-width: 1px;
     --field-shadow: none;
 
     /* Misc */
-    --muted: oklch(0.5517 0.0138 285.94);
-    --default: oklch(94% 0.001 286.375);
-    --default-foreground: var(--eclipse);
-    --border: oklch(90% 0.004 286.32);
+    --muted: #626B73;
+    --default: var(--surface-tertiary);
+    --default-foreground: var(--foreground);
+    --border: #E5EAF2;
     --separator: oklch(74% 0.004 286.32);
     --focus: var(--color-primary);
     --link: var(--foreground);
     --segment: var(--white);
-    --segment-foreground: var(--eclipse);
+    --segment-foreground: var(--foreground);
   }
 
   @variant dark {
     /* Background */
-    --background: oklch(12% 0.005 285.823);
-    --foreground: var(--snow);
+    --background: #121212;
+    --color-grouped-background: var(--background);
+    --foreground: #F0F0F0;
 
     /* Surfaces */
-    --surface: oklch(0.2103 0.0059 285.89);
+    --surface: #1E1E1E;
     --surface-foreground: var(--foreground);
-    --surface-secondary: oklch(0.227 0.004 285);
+    --surface-secondary: #242424;
     --surface-secondary-foreground: var(--foreground);
-    --surface-tertiary: oklch(0.26 0.004 285);
+    --surface-tertiary: #2A2A2A;
     --surface-tertiary-foreground: var(--foreground);
 
     /* Overlay */
-    --overlay: oklch(0.2103 0.0059 285.89);
+    --overlay: #242424;
     --overlay-foreground: var(--foreground);
     --backdrop: oklch(0% 0 0 / 40%);
 
@@ -148,42 +170,49 @@
     --warning-foreground: var(--eclipse);
     --danger: var(--color-dark-danger);
     --danger-foreground: oklch(1 0 0);
+    --color-success-light: var(--color-dark-success-light);
+    --color-warning-light: var(--color-dark-warning-light);
+    --color-success-text: var(--color-dark-success-text);
+    --color-warning-text: var(--color-dark-warning-text);
 
     /* Fields */
-    --field-background: oklch(0.2103 0.0059 285.89);
+    --field-background: var(--surface);
     --field-foreground: var(--foreground);
-    --field-placeholder: oklch(0.55 0.01 285);
+    --field-placeholder: var(--muted);
     --field-border: oklch(0.35 0.02 264);
     --field-border-width: 1px;
     --field-shadow: none;
 
     /* Misc */
-    --muted: oklch(0.55 0.01 285);
-    --default: oklch(27.4% 0.006 286.033);
-    --default-foreground: var(--snow);
-    --border: oklch(28% 0.006 286.033);
+    --muted: #9CA3AF;
+    --default: var(--surface-tertiary);
+    --default-foreground: var(--foreground);
+    --border: #3D3D3D;
     --separator: oklch(40% 0.006 286.033);
     --focus: var(--color-dark-primary);
     --link: var(--foreground);
     --segment: oklch(0.3964 0.01 285.93);
     --segment-foreground: var(--foreground);
 
-    /* Override secondary-light for dark mode */
-    --color-secondary-light: #2E2212;
+    /* Sky (secondary) brightens in dark mode */
+    --color-secondary: var(--color-dark-secondary);
+    --color-secondary-light: var(--color-dark-secondary-light);
 
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
+    --color-primary-light-foreground: var(--color-dark-primary-light-foreground);
+    --color-gray-500: var(--muted);
   }
 }
 
 @layer components {
-  /* Unfocused / no value — 1px grey (border-border), separate from focused blue */
+  /* Unfocused / no value — 1px field border, same colour as DropdownField/DateField */
   .input__input:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
   .search-field__input:not(:focus):not([disabled]):not([readonly]):not([readOnly]),
   .text-area__input:not(:focus):not([readonly]):not([disabled]),
   .select__trigger:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
     --field-border-width: 1px !important;
-    border-color: var(--border) !important;
+    border-color: var(--field-border) !important;
     outline-color: transparent !important;
   }
   /* Focused (editable only) — 2px blue */
@@ -198,12 +227,34 @@
     outline-color: var(--focus) !important;
     outline-width: 2px !important;
   }
-  /* Readonly/disabled — 1px grey hairline (border-border), never blue */
+  /* Readonly/disabled — 1px field border, never blue */
   .input__input[readonly], .input__input[readOnly], .search-field__input[readonly],
   .text-area__input[readonly], .input__input[disabled],
   .input__input[data-disabled="true"], .search-field__input[data-disabled="true"],
   .text-area__input[data-disabled="true"] {
     --field-border-width: 1px !important;
-    border-color: var(--border) !important;
+    border-color: var(--field-border) !important;
   }
+}
+/* Primary buttons stay brand blue in both modes: white text on the lighter
+   dark-mode accent (#5B8BF7) is only 3.2:1. */
+.button__root--variant-primary {
+  background-color: var(--color-primary);
+}
+
+/* Secondary buttons are soft blue (DESIGN.md §9): primary-light fill, no
+   border, brand-blue label (5.0:1 light / 4.8:1 dark). */
+.button__root--variant-secondary {
+  background-color: var(--color-primary-light);
+}
+
+.button__label--variant-secondary {
+  color: var(--color-primary-light-foreground);
+}
+
+/* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold
+   (DESIGN.md typography: emphasized text on mobile is Nunito). Overrides
+   HeroUI's default `--font-medium` for button labels only. */
+.button__label {
+  font-family: var(--font-nunitoSemiBold);
 }

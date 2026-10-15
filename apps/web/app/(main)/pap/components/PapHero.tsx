@@ -1,7 +1,7 @@
 // apps/web/app/(main)/pap/components/PapHero.tsx
 import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
-import { ShieldCheck } from "lucide-react";
+import { IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 import { fadeUp } from "../data/animations";
 
 export default function PapHero() {

@@ -193,8 +193,8 @@ export default function VisitRequestCard({
           {status === "pending" && (
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-warning-light px-3 py-2.5">
-                <IconHourglass size={iconSize} color={colors.warning} />
-                <Text className="flex-1 text-sm text-warning font-nunitoSemiBold">
+                <IconHourglass size={iconSize} color={colors.warningText} />
+                <Text className="flex-1 text-sm text-warning-text font-nunitoSemiBold">
                   Waiting for the landlord to respond
                 </Text>
               </View>
@@ -222,8 +222,8 @@ export default function VisitRequestCard({
           {status === "approved" && (
             <View className="gap-3">
               <View className="flex-row items-center gap-2 rounded-2xl bg-success/10 px-3 py-2.5">
-                <IconCircleCheck size={iconSize} color={colors.success} />
-                <Text className="flex-1 text-sm text-success font-nunitoSemiBold">
+                <IconCircleCheck size={iconSize} color={colors.successText} />
+                <Text className="flex-1 text-sm text-success-text font-nunitoSemiBold">
                   Visit confirmed
                 </Text>
               </View>

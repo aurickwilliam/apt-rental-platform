@@ -15,7 +15,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
-import { ArrowLeft, Mail, MapPin, Phone, FileText, Eye, Check, X, ShieldCheck } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -213,7 +213,7 @@ export default function LandlordApplicationDetailPage() {
           <div className="rounded-2xl bg-card p-3 flex flex-row items-start justify-between gap-3">
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
-              <p className="text-xl font-nunito font-semibold text-secondary dark:text-[#FFA500] leading-tight">{app.apartment_name}</p>
+              <p className="text-xl font-nunito font-semibold text-brand leading-tight">{app.apartment_name}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1">
                 <MapPin size={12} className="shrink-0" />
                 {app.apartment_address}
@@ -255,7 +255,7 @@ export default function LandlordApplicationDetailPage() {
           <div className="rounded-2xl bg-card px-4 py-3 flex flex-row items-start justify-between gap-3 shrink-0">
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
-              <p className="text-xl font-nunito font-semibold text-secondary dark:text-[#FFA500] leading-tight">{app.apartment_name}</p>
+              <p className="text-xl font-nunito font-semibold text-brand leading-tight">{app.apartment_name}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1">
                 <MapPin size={12} className="shrink-0" />
                 {app.apartment_address}

@@ -2,12 +2,7 @@
 
 import { Button, Card, Avatar, Chip } from "@heroui/react";
 import Link from "next/link";
-import {
-  Building2,
-  ArrowRight,
-  CheckCircle2,
-  Star,
-} from "lucide-react";
+import { IconBuilding as Building2, IconArrowRight as ArrowRight, IconCircleCheck as CheckCircle2, IconStar as Star } from "@tabler/icons-react";
 import FeaturesSection from "././components/FeaturesSection";
 import { challenges, steps, testimonials } from "./components/Data";
 

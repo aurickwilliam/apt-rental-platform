@@ -1,13 +1,14 @@
-import { TouchableOpacity, Text, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import type React from "react";
 
-import { useColors } from "hooks/useTheme";
+import QuickActionContent from "./QuickActionContent";
 
 interface QuickActionButtonProps {
   label: string;
   icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress?: () => void;
   badgeCount?: number;
+  columns?: 4 | 5;
 }
 
 export default function QuickActionButton({
@@ -15,38 +16,20 @@ export default function QuickActionButton({
   icon: Icon,
   onPress,
   badgeCount,
+  columns = 4,
 }: QuickActionButtonProps) {
-  const { colors } = useColors();
+  const isFiveColumnLayout = columns === 5;
 
   return (
-    <View className="w-1/4 px-2 mb-4">
+    <View className={`${columns === 5 ? "w-1/5" : "w-1/4 mb-3"} px-1`}>
       <TouchableOpacity
-        className="flex items-center justify-center gap-2"
+        className="flex items-center justify-center gap-1.5"
         onPress={onPress}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label}
       >
-        {/* Icon Label */}
-        <View className="relative aspect-square p-4 bg-surface-tertiary justify-center items-center rounded-2xl">
-          <Icon
-            size={26}
-            color={colors.gray500}
-            strokeWidth={2}
-          />
-
-          {/* Badge Count */}
-          {(badgeCount ?? 0) > 0 && (
-            <View className="absolute -top-1 -right-1 min-w-5.5 h-5.5 px-1 rounded-full bg-accent items-center justify-center border-2 border-background">
-              <Text className="text-white text-[10px] font-nunitoSemiBold">
-                {badgeCount && badgeCount > 9 ? "9+" : badgeCount}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Text Label */}
-        <Text className="text-center text-[12px] text-foreground font-inter">
-          {label}
-        </Text>
+        <QuickActionContent label={label} icon={Icon} compact={isFiveColumnLayout} badgeCount={badgeCount} />
       </TouchableOpacity>
     </View>
   );

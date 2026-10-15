@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, Separator } from "@heroui/react";
-import { Banknote } from "lucide-react";
+import { IconCashBanknote as Banknote } from "@tabler/icons-react";
 import type { CardInformation, PaymentMethod, SelectedPaymentMethod } from "../types";
 import type { CardFormErrors } from "@repo/utils";
 import type { CashPaymentErrors } from "../types";

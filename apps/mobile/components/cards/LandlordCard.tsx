@@ -12,8 +12,6 @@ import {
 
 interface LandlordCardProps {
   fullName: string;
-  email: string;
-  phoneNumber?: string;
   profilePictureUrl?: string | null;
   withRentalInfo?: boolean;
   averageRating?: number;
@@ -40,8 +38,6 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
 
 export default function LandlordCard({
   fullName,
-  email,
-  phoneNumber,
   profilePictureUrl,
   withRentalInfo = false,
   averageRating = 0.0,
@@ -54,7 +50,7 @@ export default function LandlordCard({
   return (
     <PressableFeedback onPress={onPress} className="rounded-3xl">
       <PressableFeedback.Highlight />
-      <Card className="border border-border shadow-none rounded-3xl">
+      <Card className="bg-surface border border-border shadow-none rounded-3xl">
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (
@@ -68,19 +64,19 @@ export default function LandlordCard({
             <InitialsAvatar fullName={fullName} />
           )}
 
-          {/* Name + Email */}
+          {/* Name + role */}
           <View className="flex-1">
             <Text className="text-foreground font-nunitoSemiBold text-base" numberOfLines={1}>
               {fullName}
             </Text>
             <Text className="text-gray-500 font-inter text-xs" numberOfLines={1}>
-              {email}
+              Landlord
             </Text>
 
             {withRentalInfo && (
               <View className="flex-row items-center gap-4 mt-1">
                 <View className="flex-row items-center gap-1">
-                  <IconStarFilled size={12} color={colors.secondary} />
+                  <IconStarFilled size={12} color={colors.rating} />
                   <Text className="text-foreground text-xs font-inter">
                     {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
                   </Text>

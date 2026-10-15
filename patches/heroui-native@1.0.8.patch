@@ -1,0 +1,45 @@
+diff --git a/lib/module/components/input/input.styles.js b/lib/module/components/input/input.styles.js
+index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..bef3b33e430e5dd42de6e4a81b7a679b5d2e64b0 100644
+--- a/lib/module/components/input/input.styles.js
++++ b/lib/module/components/input/input.styles.js
+@@ -32,14 +32,14 @@ const background = tv({
+  * explicitly aligned to the trailing side in RTL layouts.
+  */
+ const input = tv({
+-  base: 'input__input ios:outline-2 ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
++  base: 'input__input border border-field-border focus:border-2 focus:border-focus rtl:text-right',
+   variants: {
+     variant: {
+-      primary: 'input__input--variant-primary ios:shadow-field android:shadow-sm',
++      primary: 'input__input--variant-primary',
+       secondary: 'input__input--variant-secondary'
+     },
+     isInvalid: {
+-      true: 'ios:outline-danger ios:focus:outline-danger android:border-danger android:focus:border-danger',
++      true: 'border-2 border-danger focus:border-danger',
+       false: ''
+     },
+     isDisabled: {
+diff --git a/src/components/input/input.styles.ts b/src/components/input/input.styles.ts
+index a52d796df58f20c532fd87b1788c98693a93fd44..2c9af25e8dcf879fff7036dd0c7c8afeef482dab 100644
+--- a/src/components/input/input.styles.ts
++++ b/src/components/input/input.styles.ts
+@@ -30,15 +30,15 @@ const background = tv({
+  * explicitly aligned to the trailing side in RTL layouts.
+  */
+ const input = tv({
+-  base: 'input__input ios:outline-2 ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
++  base: 'input__input border border-field-border focus:border-2 focus:border-focus rtl:text-right',
+   variants: {
+     variant: {
+       primary:
+-        'input__input--variant-primary ios:shadow-field android:shadow-sm',
++        'input__input--variant-primary',
+       secondary: 'input__input--variant-secondary',
+     },
+     isInvalid: {
+-      true: 'ios:outline-danger ios:focus:outline-danger android:border-danger android:focus:border-danger',
++      true: 'border-2 border-danger focus:border-danger',
+       false: '',
+     },
+     isDisabled: {

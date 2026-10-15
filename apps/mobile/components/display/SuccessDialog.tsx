@@ -33,8 +33,8 @@ export default function SuccessDialog({
 
           <View className="mb-5 gap-1.5">
             <View className="flex-row items-center gap-2">
-              <IconCircleCheck size={20} color={colors.success} />
-              <Dialog.Title className="text-success">
+              <IconCircleCheck size={20} color={colors.successText} />
+              <Dialog.Title className="text-success-text">
                 {title}
               </Dialog.Title>
             </View>

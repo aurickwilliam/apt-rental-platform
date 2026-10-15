@@ -1,6 +1,8 @@
 import { View, Text } from "react-native";
 import { Button, Dialog } from "heroui-native";
 
+import { IconCheck } from "@tabler/icons-react-native";
+
 type Props = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -12,6 +14,7 @@ type Props = {
   errorMessage?: string | null;
   isConfirmDisabled?: boolean;
   cancelLabel?: string;
+  checklistItems?: string[];
 };
 
 export default function ConfirmDialog({
@@ -25,6 +28,7 @@ export default function ConfirmDialog({
   errorMessage,
   isConfirmDisabled,
   cancelLabel = "Cancel",
+  checklistItems,
 }: Props) {
   return (
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -35,6 +39,16 @@ export default function ConfirmDialog({
           <View className="mb-5 gap-1.5">
             <Dialog.Title className="font-nunitoBold">{title}</Dialog.Title>
             <Dialog.Description>{description}</Dialog.Description>
+            {checklistItems && checklistItems.length > 0 && (
+              <View className="mt-2 gap-2">
+                {checklistItems.map((item) => (
+                  <View key={item} className="flex-row items-center gap-2">
+                    <IconCheck size={16} color="#22C55E" />
+                    <Text className="flex-1 text-sm text-muted">{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
             {errorMessage && (
               <Text className="text-sm text-danger mt-1">{errorMessage}</Text>
             )}
@@ -46,7 +60,7 @@ export default function ConfirmDialog({
               className="flex-1"
               onPress={() => onOpenChange(false)}
             >
-              {cancelLabel}
+              <Button.Label>{cancelLabel}</Button.Label>
             </Button>
             <Button
               size="sm"
@@ -55,7 +69,7 @@ export default function ConfirmDialog({
               onPress={onConfirm}
               isDisabled={isConfirmDisabled}
             >
-              {confirmLabel}
+              <Button.Label>{confirmLabel}</Button.Label>
             </Button>
           </View>
         </Dialog.Content>

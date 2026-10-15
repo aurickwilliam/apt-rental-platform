@@ -1,28 +1,34 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 
 import { useCurrentUser } from "@/hooks/auth";
 import { fetchConversationsWithMetadata } from "@/service/chat/conversationService";
 import { toMessageType } from "@/service/chat/chatService";
+import {
+  blockUser,
+  markConversationRead as markConversationReadOnServer,
+  setConversationPreference,
+  unblockUser,
+  type ConversationPreferenceChange,
+} from "@/service/chat/conversationActionsService";
 
 import type { ConversationRole, ConversationWithMeta } from "@/service/chat/conversationService";
 
-export const getConversationsQueryKey = (myId: string | null) =>
-  ["conversations", myId] as const;
+import {
+  clearCachedUnreadCount,
+  getConversationsQueryKey,
+  getUserConversationsQueryPrefix,
+  isViewingConversation,
+  patchCachedConversation,
+  restoreCachedUnreadCount,
+} from "./conversationReadState";
 
-function getErrorMessage(error: unknown): string | null {
-  if (!error) return null;
-  if (error instanceof Error) return error.message;
-  if (
-    typeof error === "object" &&
-    "message" in error &&
-    typeof (error as { message?: unknown }).message === "string"
-  ) {
-    return (error as { message: string }).message;
-  }
-  return "An unexpected error occurred.";
-}
+export { getConversationsQueryKey };
+
+// Shown instead of raw database/network errors, which are logged.
+export const CONVERSATIONS_LOAD_ERROR_MESSAGE =
+  "We couldn't load your messages. Check your connection and try again.";
 
 type NewChatRow = {
   sender_id: string;
@@ -41,12 +47,49 @@ type OldChatRow = {
   created_at: string;
 };
 
-export function useConversations(role: ConversationRole) {
+export const getBlockStatusQueryKey = (myId: string | null, otherUserId: string) =>
+  ["block-status", myId, otherUserId] as const;
+
+/** The cached-list fields a preference change sets (mirrors the RPC rules). */
+export function getPreferencePatch(
+  change: ConversationPreferenceChange
+): Partial<ConversationWithMeta> {
+  const patch: Partial<ConversationWithMeta> = {};
+  if (change.pinned !== undefined) {
+    patch.is_pinned = change.pinned;
+    patch.pinned_at = change.pinned ? new Date().toISOString() : null;
+    if (change.pinned) patch.is_archived = false;
+  }
+  if (change.archived !== undefined) {
+    patch.is_archived = change.archived;
+    if (change.archived) {
+      patch.is_pinned = false;
+      patch.pinned_at = null;
+    }
+  }
+  if (change.muted !== undefined) patch.is_muted = change.muted;
+  if (change.markedUnread !== undefined) patch.marked_unread = change.markedUnread;
+  return patch;
+}
+
+interface UseConversationsOptions {
+  /**
+   * Keep the realtime channel for this list. A second screen showing the same
+   * portal's list (e.g. archived chats over the tab) passes false and relies
+   * on the tab's channel, so the channel is never registered twice.
+   */
+  subscribe?: boolean;
+}
+
+export function useConversations(
+  role: ConversationRole,
+  { subscribe = true }: UseConversationsOptions = {}
+) {
   const queryClient = useQueryClient();
   const currentUserQuery = useCurrentUser();
   const myId = currentUserQuery.data?.id ?? null;
 
-  const queryKey = useMemo(() => getConversationsQueryKey(myId), [myId]);
+  const queryKey = useMemo(() => getConversationsQueryKey(myId, role), [myId, role]);
 
   const conversationsQuery = useQuery({
     queryKey,
@@ -67,7 +110,7 @@ export function useConversations(role: ConversationRole) {
   // before the next run chained .on() onto it (the reported
   // "cannot add postgres_changes callbacks ... after subscribe()" crash).
   useEffect(() => {
-    if (!myId) return;
+    if (!myId || !subscribe) return;
 
     const handleInsert = (payload: { new: unknown }) => {
       const row = payload.new as NewChatRow;
@@ -92,16 +135,22 @@ export function useConversations(role: ConversationRole) {
           return current;
         }
 
+        // A message arriving in the chat on screen is read as it lands.
+        const countsAsUnread =
+          row.sender_id !== myId &&
+          !isViewingConversation(next[index].conversation_key);
+
         const updated = {
           ...next[index],
           last_message: row.message,
           last_message_type: toMessageType(row.message_type),
           last_message_time: row.created_at,
           last_sender_is_me: row.sender_id === myId,
-          unread_count:
-            row.sender_id !== myId
-              ? (next[index].unread_count ?? 0) + 1
-              : next[index].unread_count,
+          // The server brings an archived conversation back on a new message.
+          is_archived: false,
+          unread_count: countsAsUnread
+            ? (next[index].unread_count ?? 0) + 1
+            : next[index].unread_count,
         };
 
         next.splice(index, 1);
@@ -152,9 +201,12 @@ export function useConversations(role: ConversationRole) {
     // async): reuse it instead of re-registering on the joined channel. The
     // live callback closes over the same myId-scoped key, so behavior is
     // identical; this run takes over teardown ownership.
+    // The portal is part of the identity: each portal's list has its own
+    // cache entry, so a reused channel must write to the same one.
+    const channelName = `chat-list:${myId}:${role}`;
     const existing = supabase
       .getChannels()
-      .find((channel) => channel.topic === `realtime:chat-list:${myId}`);
+      .find((channel) => channel.topic === `realtime:${channelName}`);
     if (existing) {
       channelRef.current = existing;
       return () => {
@@ -166,7 +218,7 @@ export function useConversations(role: ConversationRole) {
     }
 
     const channel = supabase
-      .channel(`chat-list:${myId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -195,24 +247,114 @@ export function useConversations(role: ConversationRole) {
         void supabase.removeChannel(channel);
       }
     };
-  }, [myId, queryClient, queryKey]);
+  }, [myId, queryClient, queryKey, role, subscribe]);
 
-  const markConversationRead = (conversationKey: string) => {
-    queryClient.setQueryData<ConversationWithMeta[]>(queryKey, (current) =>
-      current?.map((c) =>
-        c.conversation_key === conversationKey ? { ...c, unread_count: 0 } : c
-      )
-    );
-  };
+  // Clears the badge right away, then saves the read state; a failed save
+  // puts the badge back so the list never shows a read that didn't happen.
+  const markConversationRead = useCallback(
+    async (conversationKey: string) => {
+      if (!myId) return;
 
-  const error = getErrorMessage(currentUserQuery.error ?? conversationsQuery.error);
+      const conversation = queryClient
+        .getQueryData<ConversationWithMeta[]>(queryKey)
+        ?.find((c) => c.conversation_key === conversationKey);
+      if (!conversation) return;
+
+      const previousReadState = clearCachedUnreadCount(queryClient, myId, conversationKey);
+
+      try {
+        await markConversationReadOnServer({
+          otherUserId: conversation.other_user_id,
+          apartmentId: conversation.apartment_id,
+        });
+      } catch (markError) {
+        console.error("[conversations] Failed to mark conversation as read:", markError);
+        restoreCachedUnreadCount(queryClient, myId, conversationKey, previousReadState);
+      } finally {
+        void queryClient.invalidateQueries({ queryKey, exact: true, refetchType: "none" });
+      }
+    },
+    [myId, queryClient, queryKey]
+  );
+
+  // Pin / archive / mute / mark unread: the list updates right away and is
+  // put back (and the error rethrown for the screen to show) if saving fails.
+  const updatePreferences = useCallback(
+    async (conversation: ConversationWithMeta, change: ConversationPreferenceChange) => {
+      if (!myId) return;
+
+      const previous = patchCachedConversation(
+        queryClient,
+        myId,
+        conversation.conversation_key,
+        getPreferencePatch(change)
+      );
+
+      try {
+        await setConversationPreference(
+          { otherUserId: conversation.other_user_id, apartmentId: conversation.apartment_id },
+          change
+        );
+      } catch (saveError) {
+        if (previous) {
+          patchCachedConversation(queryClient, myId, conversation.conversation_key, previous);
+        }
+        throw saveError;
+      } finally {
+        void queryClient.invalidateQueries({
+          queryKey: getUserConversationsQueryPrefix(myId),
+          refetchType: "none",
+        });
+      }
+    },
+    [myId, queryClient]
+  );
+
+  // Blocking is per person, so every conversation with them updates.
+  const setBlocked = useCallback(
+    async (otherUserId: string, blocked: boolean) => {
+      if (!myId) return;
+
+      const setBlockedInCache = (value: boolean) =>
+        queryClient.setQueriesData<ConversationWithMeta[]>(
+          { queryKey: getUserConversationsQueryPrefix(myId) },
+          (current) =>
+            current?.map((conversation) =>
+              conversation.other_user_id === otherUserId
+                ? { ...conversation, blocked_by_me: value }
+                : conversation
+            )
+        );
+
+      setBlockedInCache(blocked);
+      try {
+        await (blocked ? blockUser(otherUserId) : unblockUser(otherUserId));
+      } catch (blockError) {
+        setBlockedInCache(!blocked);
+        throw blockError;
+      } finally {
+        void queryClient.invalidateQueries({
+          queryKey: getBlockStatusQueryKey(myId, otherUserId),
+        });
+      }
+    },
+    [myId, queryClient]
+  );
+
+  const loadError = currentUserQuery.error ?? conversationsQuery.error;
+
+  useEffect(() => {
+    if (loadError) console.error("[conversations] Failed to load conversations:", loadError);
+  }, [loadError]);
 
   return {
     conversations: conversationsQuery.data ?? [],
     loading: currentUserQuery.isLoading || conversationsQuery.isLoading,
     refreshing: conversationsQuery.isFetching && !conversationsQuery.isLoading,
-    error,
+    error: loadError ? CONVERSATIONS_LOAD_ERROR_MESSAGE : null,
     refetch: conversationsQuery.refetch,
     markConversationRead,
+    updatePreferences,
+    setBlocked,
   };
 }

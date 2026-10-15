@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FileText, Image as ImageIcon } from "lucide-react";
+import { IconFileText as FileText, IconPhoto as ImageIcon } from "@tabler/icons-react";
 
 type Props = {
   label: string;

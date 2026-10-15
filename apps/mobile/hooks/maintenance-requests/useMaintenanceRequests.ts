@@ -5,6 +5,7 @@ import {
   cancelMaintenanceRequest,
   fetchLatestMaintenanceRequest,
 } from '@/service/maintenance-requests/maintenanceService';
+import { getMaintenanceRequestHistoryQueryKey } from './useMaintenanceRequestHistory';
 
 export type {
   MaintenanceRequestStatus,
@@ -71,10 +72,14 @@ export function useMaintenanceRequests({ apartmentId }: UseMaintenanceRequestsPa
       }
 
       void queryClient.invalidateQueries({ queryKey, exact: true });
+      void queryClient.invalidateQueries({
+        queryKey: getMaintenanceRequestHistoryQueryKey(apartmentId),
+        exact: true,
+      });
       setMutationError(null);
       return { success: true as const };
     },
-    [activeRequest, canCancel, latestRequest, queryClient, queryKey]
+    [activeRequest, apartmentId, canCancel, latestRequest, queryClient, queryKey]
   );
 
   return {

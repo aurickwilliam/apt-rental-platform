@@ -6,20 +6,15 @@ import { Button, Card, Spinner, toast } from "@heroui/react";
 import { IconShieldCheck } from "@tabler/icons-react";
 import { createBrowserClient } from "@repo/supabase";
 import { SECONDARY_IDS, VALID_IDS } from "@repo/constants";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@repo/supabase";
 
-import {
-  compressAvatarImage,
-  compressBackgroundImage,
-  validateAvatarFile,
-} from "@/lib/avatar-upload";
 import { claimVerificationSession, submitVerificationSession } from "../../actions";
 import CameraCapture from "./CameraCapture";
+import VerifySubmitConfirm from "../../components/VerifySubmitConfirm";
+import {
+  VERIFICATION_BUCKET as BUCKET,
+  uploadVerificationCapture as uploadCapture,
+} from "@/lib/verification-upload";
 
-type BrowserClient = SupabaseClient<Database>;
-
-const BUCKET = "user-verification";
 const FRONT_FILE = "id-front.jpg";
 const BACK_FILE = "id-back.jpg";
 const SELFIE_FILE = "selfie.jpg";
@@ -39,30 +34,6 @@ function revoke(capture: Capture) {
   if (capture) URL.revokeObjectURL(capture.url);
 }
 
-// Upload one capture into the session's private folder. Retakes overwrite
-// the same object (remove-then-upload, since the bucket has no upsert grant).
-async function uploadCapture(
-  supabase: BrowserClient,
-  path: string,
-  file: File,
-  isSelfie: boolean,
-): Promise<void> {
-  const validationError = validateAvatarFile(file);
-  if (validationError) throw new Error(validationError);
-
-  const blob = isSelfie ? await compressAvatarImage(file) : await compressBackgroundImage(file);
-  let { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, { contentType: "image/jpeg" });
-  if (error && /exists|duplicate/i.test(error.message)) {
-    await supabase.storage.from(BUCKET).remove([path]);
-    ({ error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, blob, { contentType: "image/jpeg" }));
-  }
-  if (error) throw new Error(error.message);
-}
-
 // Claim validates token + owner WITHOUT consuming: the session stays active
 // while the wizard runs. Only the final submit consumes it atomically.
 export default function MobileVerifyClient({ token }: { token: string }) {
@@ -74,6 +45,7 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   const [selfie, setSelfie] = useState<Capture>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const claimRef = useRef(false);
 
@@ -405,12 +377,22 @@ export default function MobileVerifyClient({ token }: { token: string }) {
             <Button
               type="button"
               variant="primary"
-              onPress={() => void handleSubmit()}
+              onPress={() => setConfirmOpen(true)}
               isDisabled={isSubmitting}
-              isPending={isSubmitting}
             >
               Submit for Review
             </Button>
+            <VerifySubmitConfirm
+              open={confirmOpen}
+              isSubmitting={isSubmitting}
+              idPhotosReady={Boolean(front && (!needsBack || back))}
+              selfieReady={Boolean(selfie)}
+              onConfirm={() => {
+                setConfirmOpen(false);
+                void handleSubmit();
+              }}
+              onClose={() => setConfirmOpen(false)}
+            />
           </div>
         )}
       </Card.Content>

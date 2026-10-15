@@ -1,6 +1,6 @@
 import { Breadcrumbs, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Cookie } from "lucide-react";
+import { IconCookie as Cookie } from "@tabler/icons-react";
 import { fadeUp } from "../data/animations";
 
 export default function CookiesHero() {

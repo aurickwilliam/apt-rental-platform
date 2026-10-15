@@ -79,13 +79,13 @@ function NotificationToastContent({
   const toastVariant: ToastVariant = isRentDue ? 'danger' : TOAST_VARIANT_BY_TYPE[type];
 
   // Muted chevron, except payment (green), rent-due (red), and maintenance
-  // (yellow) which tint it with their semantic color.
+  // (amber) which tint it with their semantic color.
   const chevronColor = isRentDue
     ? colors.danger
     : type === 'payment'
       ? colors.success
       : type === 'maintenance'
-        ? colors.warning
+        ? colors.warningText
         : colors.gray500;
 
   return (

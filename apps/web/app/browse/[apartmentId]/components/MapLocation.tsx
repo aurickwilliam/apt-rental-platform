@@ -84,8 +84,8 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   // Empty State of no coordinates of the apartment
   if (!hasCoordinates || !embedSrc || !mapCoordinates) {
     return (
-      <div className="w-full h-64 sm:h-80 bg-grey-200 flex items-center justify-center rounded-lg border border-grey-300">
-        <p className="text-default-400 text-sm">No location available</p>
+      <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center rounded-lg border border-border">
+        <p className="text-muted-foreground text-sm">No location available</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   return (
     <>
       {/* Preview map */}
-      <div className="relative w-full h-64 sm:h-80 overflow-hidden rounded-lg border border-grey-300">
+      <div className="relative w-full h-64 sm:h-80 overflow-hidden rounded-lg border border-border">
         <iframe
           title={`Map of ${mapCoordinates}`}
           src={embedSrc}
@@ -103,21 +103,19 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
         />
         <div className="absolute bottom-3 right-3 z-10 flex flex-wrap justify-end gap-2">
           <Button
-            className="shadow-sm"
+            className="shadow-md bg-card text-foreground border border-border hover:border-primary"
             size="sm"
             onPress={handleOpenDirections}
-            variant="tertiary"
           >
             <IconNavigation size={16} />
             <p>Get Directions</p>
           </Button>
-          
+
           <Button
             isIconOnly
-            className="shadow-md"
+            className="shadow-md bg-card text-foreground border border-border hover:border-primary"
             size="sm"
             onPress={() => setIsExpandOpen(true)}
-            variant="tertiary"
           >
             <IconMaximize size={16} />
           </Button>

@@ -1,7 +1,7 @@
 import { useLayoutEffect } from "react";
 import { Uniwind, useUniwind } from "uniwind";
 
-import { COLORS } from "@repo/constants";
+import { MOBILE_COLORS } from "../constants/theme";
 
 import {
   useThemeHydrationStore,
@@ -17,7 +17,7 @@ export function useColors() {
   const { theme } = useUniwind();
   const isDark = theme === "dark";
 
-  return { colors: isDark ? COLORS.dark : COLORS.light, isDark };
+  return { colors: isDark ? MOBILE_COLORS.dark : MOBILE_COLORS.light, isDark };
 }
 
 /** Resolved palette and `isDark` — kept for existing consumers. */
