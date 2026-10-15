@@ -104,7 +104,7 @@ export default function DropdownField({
             disabled={isDisabled || isReadOnly}
             style={{ alignItems: 'center' }}
             className={`rounded-2xl pl-3 pr-4 h-12 flex-row items-center
-              justify-between shadow-xs ${
+              justify-between ${
                 isDisabled
                   ? 'bg-surface-tertiary border border-field-border'
                   : error
