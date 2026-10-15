@@ -730,18 +730,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx": {
-    "mtime": 1791958251.2141368,
-    "ast_hash": "39fc883e0915e10ed3d7d5571c4a174d",
+    "mtime": 1792051936.7222168,
+    "ast_hash": "cf513aa2ea6bf56192886bb6ce5f1003",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx": {
-    "mtime": 1787912037.1412327,
-    "ast_hash": "a73b5658044307e64a63e849fa37c067",
+    "mtime": 1792051936.722757,
+    "ast_hash": "ad2bd1b12344d80906d9083cc734a3fa",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/index.tsx": {
-    "mtime": 1787060341.8815253,
-    "ast_hash": "20bed3ba1b48f6b09c7f1fd5644203f6",
+    "mtime": 1792051936.7220793,
+    "ast_hash": "819c0181f4c817ee0bfa10f4a010a211",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/map-pin.tsx": {
@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx": {
-    "mtime": 1792051517.661872,
-    "ast_hash": "e07b4b308cb3bfb3afe9ec60a51f73ef",
+    "mtime": 1792051936.7230735,
+    "ast_hash": "44fe214fc2457f596c08ee92728723af",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/success.tsx": {
@@ -760,8 +760,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx": {
-    "mtime": 1792049378.3126779,
-    "ast_hash": "b9bf2b5ea5188917f833e4c5d14039ed",
+    "mtime": 1792051936.7225137,
+    "ast_hash": "4e48ef0e0f1d1d59127c6fcdeceb2748",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/components/PerkButton.tsx": {
@@ -1210,13 +1210,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/ApplicationHeader.tsx": {
-    "mtime": 1791449211.8881717,
-    "ast_hash": "95f006a30ee2eddb0786342030961e4c",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/layout/CircleProgress.tsx": {
-    "mtime": 1787912037.1527789,
-    "ast_hash": "dac2643c190f3f80f3209880f2991e00",
+    "mtime": 1792051936.7208254,
+    "ast_hash": "1b809a73bf0fc186be5bb722613230b0",
     "semantic_hash": ""
   },
   "apps/mobile/components/layout/OnBoardingSlide.tsx": {
@@ -2945,8 +2940,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792049273.1784394,
-    "ast_hash": "88fd38b4e01db487e0773a6b4cbdbd36",
+    "mtime": 1792051971.4826748,
+    "ast_hash": "7c406b0859ba58db5fe753013548f1aa",
     "semantic_hash": ""
   },
   "supabase/functions/paymongo/index.ts": {
@@ -7817,6 +7812,11 @@
   "supabase/migrations/20261015074347_guard_apartment_listing_fields.sql": {
     "mtime": 1792049440.9574811,
     "ast_hash": "1ccf114244dbd2a5b03a78a59aad552b",
+    "semantic_hash": ""
+  },
+  "apps/mobile/constants/addApartmentSteps.ts": {
+    "mtime": 1792051936.7209063,
+    "ast_hash": "2c0b1e832dc7e80d60e7dfcd10236ad7",
     "semantic_hash": ""
   }
 }

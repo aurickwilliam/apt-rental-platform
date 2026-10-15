@@ -597,6 +597,78 @@ export default function SecondStep() {
           )}
         </View>
 
+        {/* Apartment Address */}
+        <View className="flex gap-3 mt-10">
+          <Text className="text-foreground text-lg font-nunitoSemiBold">
+            Apartment Address
+          </Text>
+
+          <DropdownField
+            label="City:"
+            bottomSheetLabel="Select your city"
+            placeholder="Select CAMANAVA city"
+            options={[...CAMANAVA_CITIES]}
+            value={city}
+            onSelect={(value) => {
+              setField("city", value || "");
+              setField("province", "Metro Manila");
+              clearError("city");
+              clearError("postalCode");
+              clearError("mapConfirmed");
+            }}
+            required
+            error={visibleErrors.city}
+          />
+
+          <TextField isDisabled isInvalid={!!visibleErrors.province}>
+            <Label>Province:</Label>
+            <Input value="Metro Manila" editable={false} />
+            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+            {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
+          </TextField>
+
+          <TextField isRequired isInvalid={!!visibleErrors.barangay}>
+            <Label>Barangay:</Label>
+            <Input
+              placeholder="Enter barangay name"
+              value={barangay}
+              onChangeText={(value) => {
+                setField("barangay", value);
+                clearError("barangay");
+              }}
+            />
+            {visibleErrors.barangay && <FieldError>{visibleErrors.barangay}</FieldError>}
+          </TextField>
+
+          <TextField isRequired isInvalid={!!visibleErrors.streetName}>
+            <Label>Unit No./Street Name:</Label>
+            <Input
+              placeholder="Enter street name"
+              value={streetName}
+              onChangeText={(value) => {
+                setField("streetName", value);
+                clearError("streetName");
+              }}
+            />
+            {visibleErrors.streetName && <FieldError>{visibleErrors.streetName}</FieldError>}
+          </TextField>
+
+          <TextField isRequired isInvalid={!!visibleErrors.postalCode}>
+            <Label>Zip Code:</Label>
+            <Input
+              placeholder="Enter zip code"
+              value={postalCode}
+              keyboardType="numeric"
+              maxLength={4}
+              onChangeText={(value) => {
+                setField("postalCode", value.replace(/[^0-9]/g, ""));
+                clearError("postalCode");
+              }}
+            />
+            {visibleErrors.postalCode && <FieldError>{visibleErrors.postalCode}</FieldError>}
+          </TextField>
+        </View>
+
         {/* Apartment Location */}
         <View className="flex gap-2 mt-10">
           <Text className="text-foreground text-lg font-nunitoSemiBold">
@@ -604,8 +676,9 @@ export default function SecondStep() {
           </Text>
 
           <Text className="text-muted text-base font-inter">
-            Start by pinning your property on the map. Searching an address
-            there fills in the fields below; drag the pin to fine-tune.
+            Pin your property on the map, inside the city above. Searching an
+            address there can also fill in the fields above; drag the pin to
+            fine-tune.
           </Text>
 
           {/* Map Button */}
@@ -681,78 +754,6 @@ export default function SecondStep() {
               )}
             </View>
           </ControlField>
-        </View>
-
-        {/* Apartment Address */}
-        <View className="flex gap-3 mt-10">
-          <Text className="text-foreground text-lg font-nunitoSemiBold">
-            Apartment Address
-          </Text>
-
-          <DropdownField
-            label="City:"
-            bottomSheetLabel="Select your city"
-            placeholder="Select CAMANAVA city"
-            options={[...CAMANAVA_CITIES]}
-            value={city}
-            onSelect={(value) => {
-              setField("city", value || "");
-              setField("province", "Metro Manila");
-              clearError("city");
-              clearError("postalCode");
-              clearError("mapConfirmed");
-            }}
-            required
-            error={visibleErrors.city}
-          />
-
-          <TextField isDisabled isInvalid={!!visibleErrors.province}>
-            <Label>Province:</Label>
-            <Input value="Metro Manila" editable={false} />
-            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
-            {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
-          </TextField>
-
-          <TextField isRequired isInvalid={!!visibleErrors.barangay}>
-            <Label>Barangay:</Label>
-            <Input
-              placeholder="Enter barangay name"
-              value={barangay}
-              onChangeText={(value) => {
-                setField("barangay", value);
-                clearError("barangay");
-              }}
-            />
-            {visibleErrors.barangay && <FieldError>{visibleErrors.barangay}</FieldError>}
-          </TextField>
-
-          <TextField isRequired isInvalid={!!visibleErrors.streetName}>
-            <Label>Unit No./Street Name:</Label>
-            <Input
-              placeholder="Enter street name"
-              value={streetName}
-              onChangeText={(value) => {
-                setField("streetName", value);
-                clearError("streetName");
-              }}
-            />
-            {visibleErrors.streetName && <FieldError>{visibleErrors.streetName}</FieldError>}
-          </TextField>
-
-          <TextField isRequired isInvalid={!!visibleErrors.postalCode}>
-            <Label>Zip Code:</Label>
-            <Input
-              placeholder="Enter zip code"
-              value={postalCode}
-              keyboardType="numeric"
-              maxLength={4}
-              onChangeText={(value) => {
-                setField("postalCode", value.replace(/[^0-9]/g, ""));
-                clearError("postalCode");
-              }}
-            />
-            {visibleErrors.postalCode && <FieldError>{visibleErrors.postalCode}</FieldError>}
-          </TextField>
         </View>
 
         {/* Back or Next Button */}

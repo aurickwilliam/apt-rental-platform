@@ -298,92 +298,6 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         </div>
       </div>
 
-      {/* Location (map pin first) */}
-      <div className="flex flex-col gap-4">
-        <div>
-          <p className="text-sm font-semibold text-foreground">
-            Location
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Start by pinning your property on the map. The pin must be inside the CAMANAVA city you select below.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <NumberField
-            isRequired
-            isInvalid={!!errors.latitude}
-            value={formData.latitude !== null ? formData.latitude : 0}
-            onChange={(value) => {
-              updateForm({ latitude: value !== undefined ? value : null, isPinConfirmed: false });
-            }}
-            className="flex flex-col gap-1.5 w-full"
-          >
-            <Label className="text-sm font-medium text-foreground">Latitude</Label>
-            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
-              <NumberField.Input 
-                placeholder="e.g. 14.5995"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
-              />
-            </NumberField.Group>
-            <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
-          </NumberField>
-
-          <NumberField
-            isRequired
-            isInvalid={!!errors.longitude}
-            value={formData.longitude !== null ? formData.longitude : 0}
-            onChange={(value) => {
-              updateForm({ longitude: value !== undefined ? value : null, isPinConfirmed: false });
-            }}
-            className="flex flex-col gap-1.5 w-full"
-          >
-            <Label className="text-sm font-medium text-foreground">Longitude</Label>
-            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
-              <NumberField.Input 
-                placeholder="e.g. 120.9842"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
-              />
-            </NumberField.Group>
-            <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>
-          </NumberField>
-        </div>
-
-        <GoogleMapPicker
-          latitude={formData.latitude}
-          longitude={formData.longitude}
-          onPick={handlePick}
-          error={errors.latitude}
-        />
-
-        {/* Pin Confirmation Checkbox */}
-        {formData.latitude !== null && formData.longitude !== null && (
-          <Checkbox
-            className="group"
-            isSelected={formData.isPinConfirmed ?? false}
-            onChange={(checked) => updateForm({ isPinConfirmed: checked })}
-            isInvalid={!!errors.isPinConfirmed}
-          >
-            <Checkbox.Content className="flex cursor-pointer items-start gap-2 select-none">
-              <Checkbox.Control className="mt-0.5 size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
-                <Checkbox.Indicator className="[&_svg]:text-white!" />
-              </Checkbox.Control>
-              <div className="flex flex-col">
-                <Label className="cursor-pointer text-sm text-foreground">
-                  I confirm that the pin location on the map is correct{" "}
-                  <span className="text-danger">*</span>
-                </Label>
-                {errors.isPinConfirmed && (
-                  <Description className="mt-0.5 block text-xs text-danger">
-                    {errors.isPinConfirmed}
-                  </Description>
-                )}
-              </div>
-            </Checkbox.Content>
-          </Checkbox>
-        )}
-      </div>
-
       {/* Address */}
       <div className="flex flex-col gap-4">
         <p className="text-sm font-semibold text-foreground">Address</p>
@@ -474,6 +388,92 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <FieldError>{errors.zip_code}</FieldError>
           </TextField>
         </div>
+      </div>
+
+      {/* Location */}
+      <div className="flex flex-col gap-4">
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            Location
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Pin your property on the map. The pin must be inside the CAMANAVA city you selected above.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <NumberField
+            isRequired
+            isInvalid={!!errors.latitude}
+            value={formData.latitude !== null ? formData.latitude : 0}
+            onChange={(value) => {
+              updateForm({ latitude: value !== undefined ? value : null, isPinConfirmed: false });
+            }}
+            className="flex flex-col gap-1.5 w-full"
+          >
+            <Label className="text-sm font-medium text-foreground">Latitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+              <NumberField.Input 
+                placeholder="e.g. 14.5995"
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+              />
+            </NumberField.Group>
+            <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
+          </NumberField>
+
+          <NumberField
+            isRequired
+            isInvalid={!!errors.longitude}
+            value={formData.longitude !== null ? formData.longitude : 0}
+            onChange={(value) => {
+              updateForm({ longitude: value !== undefined ? value : null, isPinConfirmed: false });
+            }}
+            className="flex flex-col gap-1.5 w-full"
+          >
+            <Label className="text-sm font-medium text-foreground">Longitude</Label>
+            <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
+              <NumberField.Input 
+                placeholder="e.g. 120.9842"
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+              />
+            </NumberField.Group>
+            <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>
+          </NumberField>
+        </div>
+
+        <GoogleMapPicker
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onPick={handlePick}
+          error={errors.latitude}
+        />
+
+        {/* Pin Confirmation Checkbox */}
+        {formData.latitude !== null && formData.longitude !== null && (
+          <Checkbox
+            className="group"
+            isSelected={formData.isPinConfirmed ?? false}
+            onChange={(checked) => updateForm({ isPinConfirmed: checked })}
+            isInvalid={!!errors.isPinConfirmed}
+          >
+            <Checkbox.Content className="flex cursor-pointer items-start gap-2 select-none">
+              <Checkbox.Control className="mt-0.5 size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                <Checkbox.Indicator className="[&_svg]:text-white!" />
+              </Checkbox.Control>
+              <div className="flex flex-col">
+                <Label className="cursor-pointer text-sm text-foreground">
+                  I confirm that the pin location on the map is correct{" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                {errors.isPinConfirmed && (
+                  <Description className="mt-0.5 block text-xs text-danger">
+                    {errors.isPinConfirmed}
+                  </Description>
+                )}
+              </div>
+            </Checkbox.Content>
+          </Checkbox>
+        )}
       </div>
     </div>
   );
