@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/forgot-password/otp-verification.tsx": {
-    "mtime": 1791955956.6344402,
-    "ast_hash": "3a28010b9ed11c4760e87ec1f180f02c",
+    "mtime": 1792031875.8240483,
+    "ast_hash": "ab53579a6ed0e6b5b424e89ff95957cf",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/forgot-password/reset-password.tsx": {
@@ -2675,7 +2675,7 @@
     "semantic_hash": ""
   },
   "packages/utils/src/index.ts": {
-    "mtime": 1792030034.9447632,
+    "mtime": 1792034107.5186543,
     "ast_hash": "ab496921618f3a71a92060bbab31e623",
     "semantic_hash": ""
   },
@@ -2950,8 +2950,8 @@
     "semantic_hash": "648fa9faea73bcefeebcdd3c28c94c38"
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792030736.4378557,
-    "ast_hash": "681e7736eac010bf74e4aaa4a6cfa15b",
+    "mtime": 1792032413.2238526,
+    "ast_hash": "c7aac8c0189048a6d0c9f92f8d62e1b4",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -6900,8 +6900,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/ForgotPasswordClient.tsx": {
-    "mtime": 1791882842.665323,
-    "ast_hash": "b9f17a9f6546d72f2c591a9e0fa385aa",
+    "mtime": 1792031994.3771503,
+    "ast_hash": "42ddf7fbdef19a3666102d56d07bfae1",
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/forgot-password/components/RecoveryHeader.tsx": {
@@ -7569,11 +7569,6 @@
     "ast_hash": "35a93fdf15c007c92f29235b3fd2922d",
     "semantic_hash": ""
   },
-  "apps/mobile/app/settings/change-email.tsx": {
-    "mtime": 1792030211.780007,
-    "ast_hash": "beb8f9c5460139eb1d2833cede6c74bb",
-    "semantic_hash": ""
-  },
   "apps/mobile/hooks/auth/useEmailChangeEligibility.ts": {
     "mtime": 1792029485.905454,
     "ast_hash": "9b00f3a5ffa00a9bc162971854a87b95",
@@ -7600,13 +7595,13 @@
     "semantic_hash": ""
   },
   "apps/web/app/(auth)/actions/change-email.ts": {
-    "mtime": 1792030051.5566988,
+    "mtime": 1792034107.518857,
     "ast_hash": "06f14bc4916b88fc560109002ef9d0f4",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/ChangeEmailModal.tsx": {
-    "mtime": 1792030147.6649783,
-    "ast_hash": "50bd04c37d8af9f2686eebcbf413c672",
+    "mtime": 1792034107.5181994,
+    "ast_hash": "6fe6af7a09c042ccce7fd73dd0f5abd8",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-email-change-eligibility.ts": {
@@ -7615,12 +7610,12 @@
     "semantic_hash": ""
   },
   "packages/utils/src/emailChange.test.ts": {
-    "mtime": 1792030268.430017,
-    "ast_hash": "0fb24bb0234dcfad14914fd046e62da2",
+    "mtime": 1792034107.5189981,
+    "ast_hash": "671a3c4a811fa99f36c5ac29be35856d",
     "semantic_hash": ""
   },
   "packages/utils/src/emailChange.ts": {
-    "mtime": 1792030034.9444978,
+    "mtime": 1792034113.3544633,
     "ast_hash": "b334c2feb08a893216b8ad8ae8aa7bf1",
     "semantic_hash": ""
   },
@@ -7697,6 +7692,41 @@
   "supabase/tests/profile_update_permissions.test.sql": {
     "mtime": 1792030736.461174,
     "ast_hash": "b062d9c58879b9dce8cabe56b37c6a4d",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/change-email/_layout.tsx": {
+    "mtime": 1792031939.3446841,
+    "ast_hash": "55c9af71d5dd0a8f4ffee0da94ac6d1a",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/change-email/index.tsx": {
+    "mtime": 1792034070.0856283,
+    "ast_hash": "270bb1b5af80ead06cad847d1fef2ae3",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/change-email/verify-current.tsx": {
+    "mtime": 1792031939.3469248,
+    "ast_hash": "4080b99a9d808f0e2644644ba20e8375",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/change-email/verify-new.tsx": {
+    "mtime": 1792031939.3489604,
+    "ast_hash": "d3a46a95f6ff97e249031eeb93435bcd",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/settings/components/EmailChangeCodeScreen.tsx": {
+    "mtime": 1792034092.5986555,
+    "ast_hash": "62c4b0633eba082341ffb17b10bf0123",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/inputs/CodeInput.tsx": {
+    "mtime": 1792031875.639063,
+    "ast_hash": "a9e965e58f67b74c7c448344265cfdd9",
+    "semantic_hash": ""
+  },
+  "apps/web/app/components/inputs/CodeInput.tsx": {
+    "mtime": 1792031994.174065,
+    "ast_hash": "d5f7e15d1aa3ed4b7de084e6ba8ee8f6",
     "semantic_hash": ""
   }
 }

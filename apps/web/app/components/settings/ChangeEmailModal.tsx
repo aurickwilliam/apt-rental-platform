@@ -264,7 +264,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
 
   return (
     <Modal isOpen={isOpen} onOpenChange={handleOpenChange}>
-      <Modal.Backdrop isDismissable={!saving && !verifying}>
+      {/* Clicking outside never closes it: only Cancel, the close button or Done
+          do, so a half-entered code or password isn't lost by accident. */}
+      <Modal.Backdrop isDismissable={false}>
         <Modal.Container placement="center" size="lg" scroll="inside">
           <Modal.Dialog className="w-full max-w-xl!">
             <Modal.CloseTrigger
@@ -274,8 +276,8 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
             {step === "success" ? (
               <>
                 <Modal.Body className="flex flex-col items-center pt-2 text-center">
-                  <div className="rounded-full bg-primary/10 p-4">
-                    <IconShieldCheck size={40} className="text-primary" aria-hidden="true" />
+                  <div className="rounded-full bg-primary/10 p-5">
+                    <IconShieldCheck size={64} className="text-primary" aria-hidden="true" />
                   </div>
                   <Modal.Heading className="mt-5 font-nunito text-2xl font-bold text-foreground">
                     Email Updated
@@ -307,7 +309,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                   {codeStep ? (
                     <div className="flex flex-col gap-2">
                       <p className="text-sm font-semibold text-muted-foreground">{codeStep.label}</p>
-                      <Modal.Heading className="font-nunito text-2xl font-bold text-foreground">
+                      <Modal.Heading className="font-nunito text-2xl font-bold text-primary">
                         {codeStep.title}
                       </Modal.Heading>
                     </div>
@@ -466,7 +468,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                 {step === "request" && !loadingAccount && (
                   <Modal.Footer className="flex gap-3">
                     <Button
-                      variant="tertiary"
+                      variant="danger-soft"
                       className="flex-1 cursor-pointer"
                       isDisabled={saving}
                       onPress={() => handleOpenChange(false)}

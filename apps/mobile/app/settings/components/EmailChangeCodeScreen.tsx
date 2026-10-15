@@ -1,9 +1,9 @@
-import { Image, Keyboard, Pressable, Text, View } from "react-native";
+import { Keyboard, Pressable, Text, View } from "react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { Button, CloseButton, LinkButton, Spinner, useToast, type InputOTPRef } from "heroui-native";
-import { IconChevronLeft } from "@tabler/icons-react-native";
+import { IconChevronLeft, IconShieldCheck } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import ErrorDialog from "@/components/display/ErrorDialog";
@@ -25,7 +25,6 @@ import {
   type EmailChangeInbox,
 } from "@repo/utils";
 
-import { IMAGES } from "../../../constants/images";
 
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 const REQUEST_PATH = "/settings/change-email";
@@ -204,7 +203,10 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
     return (
       <ScreenWrapper className="p-5">
         <View className="flex-1 items-center justify-center gap-10">
-          <Image source={IMAGES.shield} style={{ width: 175, height: 175 }} resizeMode="contain" />
+          {/* Same shield-check as the web success state. */}
+          <View className="rounded-full bg-primary/10 p-7">
+            <IconShieldCheck size={96} color={colors.primary} />
+          </View>
 
           <View>
             <Text className="text-accent text-2xl font-nunitoBold text-center">Email Updated</Text>

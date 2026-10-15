@@ -77,7 +77,7 @@ export default function SettingsRow({
         href={href}
         target={target}
         rel={rel}
-        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 hover:bg-muted/40 transition-colors"
+        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 rounded-xl hover:bg-muted/40 transition-colors"
       >
         {iconEl}
         {labelEl}
@@ -92,7 +92,7 @@ export default function SettingsRow({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 w-full text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-muted/40"}`}
+        className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 w-full text-left rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-muted/40"}`}
         aria-disabled={disabled}
         aria-expanded={expanded}
         aria-controls={controlsId}
