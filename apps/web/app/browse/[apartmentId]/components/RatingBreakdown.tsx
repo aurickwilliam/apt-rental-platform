@@ -26,7 +26,7 @@ export default function RatingBreakdown({
   return (
     <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3 min-w-0">
       <div className="w-full flex flex-col items-center justify-center sm:w-1/3 min-w-0">
-        <h3 className="font-nunito text-5xl font-bold text-rating sm:text-6xl">
+        <h3 className="font-nunito text-5xl font-bold text-brand sm:text-6xl">
           {overallRate}
         </h3>
 

@@ -102,6 +102,7 @@ export default function SearchSectionsList({
       removeClippedSubviews={false}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       refreshControl={
         <RefreshControl
           // Native indicator is fully suppressed — the HeroUI Spinner in

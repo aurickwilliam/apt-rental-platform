@@ -12,12 +12,7 @@ import {
   Separator,
 } from "@heroui/react";
 
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  FileText,
-} from "lucide-react";
+import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
@@ -432,7 +427,7 @@ export default function PropertyDetailsSheet({
                               size="sm"
                               variant="ghost"
                               onPress={() => setDescriptionModalOpen(true)}
-                              className="text-secondary dark:text-[#FFA500]"
+                              className="text-brand"
                             >
                               View all
                             </Button>
@@ -455,7 +450,7 @@ export default function PropertyDetailsSheet({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-secondary dark:text-[#FFA500]"
+                              className="text-brand"
                               onPress={() => setAmenitiesModalOpen(true)}
                             >
                               View all

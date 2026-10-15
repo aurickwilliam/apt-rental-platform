@@ -98,10 +98,13 @@ export default function DropdownField({
       <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
         <BottomSheet.Trigger asChild>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            accessibilityState={{ disabled: isDisabled || isReadOnly, expanded: isOpen }}
             disabled={isDisabled || isReadOnly}
             style={{ alignItems: 'center' }}
             className={`rounded-2xl pl-3 pr-4 h-12 flex-row items-center
-              justify-between shadow-xs ${
+              justify-between ${
                 isDisabled
                   ? 'bg-surface-tertiary border border-field-border'
                   : error

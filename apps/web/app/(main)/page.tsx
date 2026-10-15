@@ -8,15 +8,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
-import {
-  KeyRound,
-  Building2,
-  ClipboardCheck,
-  Map,
-  SearchCheck,
-  FileCheckCorner,
-  BanknoteArrowUp,
-} from "lucide-react";
+import { IconKey as KeyRound, IconBuilding as Building2, IconClipboardCheck as ClipboardCheck, IconMap as Map, IconSearch as SearchCheck, IconFileCheck as FileCheckCorner, IconCashBanknote as BanknoteArrowUp } from "@tabler/icons-react";
 
 import { createClient } from '@repo/supabase/server';
 
@@ -54,6 +46,7 @@ export default async function Home() {
     `)
     .eq('is_hidden_by_admin', false)
     .is('deleted_at', null)
+    .in("status", ["available", "unverified"])
     .limit(10)
     .order('created_at', { ascending: false });
 

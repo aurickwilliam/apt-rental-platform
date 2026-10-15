@@ -13,8 +13,6 @@ export default function ApartmentLayout() {
       <Stack.Screen name="rate-apartment"/>
       <Stack.Screen name="map-view"/>
       <Stack.Screen name="included-perks"/>
-      <Stack.Screen name="request-visit"/>
-      <Stack.Screen name="view-lease"/>
     </Stack>
   )
 }

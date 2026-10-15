@@ -95,7 +95,7 @@ export default function ForgotPassword() {
       </View>
 
       <View className="flex gap-3 mt-5">
-        <Text className="text-secondary text-3xl font-nunitoBold">
+        <Text className="text-accent text-3xl font-nunitoBold">
           Forgot Password
         </Text>
 

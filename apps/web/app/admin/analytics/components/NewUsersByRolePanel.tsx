@@ -16,7 +16,7 @@ import Panel from "./Panel";
 
 const roleConfig = {
   tenants: { label: "Tenant", color: "var(--primary)" },
-  landlords: { label: "Landlord", color: COLORS.light.secondary },
+  landlords: { label: "Landlord", color: COLORS.light.chartSky },
 } satisfies ChartConfig;
 
 interface NewUsersByRolePanelProps {

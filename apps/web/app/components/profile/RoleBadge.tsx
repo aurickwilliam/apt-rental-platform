@@ -7,7 +7,7 @@ type RoleBadgeProps = {
 
 // Tint + icon mapping mirrors the admin role chips
 // (roleChipStyle/roleChipIcon) without touching admin code:
-// tenant reads blue, landlord reads orange, per design tokens.
+// tenant reads brand blue, landlord reads sky, per design tokens.
 const ROLE_STYLES = {
   tenant: {
     label: "Tenant",
@@ -17,9 +17,8 @@ const ROLE_STYLES = {
   landlord: {
     label: "Landlord",
     Icon: IconBuildingSkyscraper,
-    // `dark:` pin is required: --secondary flips to a dark grey in dark
-    // mode, which renders the badge invisible. The accent stays orange.
-    className: "bg-secondary/10 text-secondary dark:bg-[#FFA500]/10 dark:text-[#FFA500]",
+    // Sky tint and label; both tokens switch to their dark values.
+    className: "bg-sky-light text-sky",
   },
 } as const;
 

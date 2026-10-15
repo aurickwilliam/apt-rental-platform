@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CirclePlus, FileText, Hammer, House, LayoutGrid } from "lucide-react";
+import { IconCirclePlus as CirclePlus, IconFileText as FileText, IconTools as Hammer, IconHome as House, IconLayoutGrid as LayoutGrid } from "@tabler/icons-react";
 
 import { useLandlordActionBadges, type ActionBadgeCategory } from "@/hooks/use-landlord-action-badges";
 

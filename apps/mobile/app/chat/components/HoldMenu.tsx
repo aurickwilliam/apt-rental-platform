@@ -1,16 +1,18 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text } from 'react-native';
+
+import { ListGroup, Separator } from 'heroui-native';
 
 import {
   IconArrowBackUp,
   IconCopy,
   IconTrash,
+  type Icon,
 } from '@tabler/icons-react-native';
 
 import { useColors } from '@/hooks/useTheme';
 
-import ReactionStrip from './ReactionStrip';
-
 export interface HoldMenuData {
+  /** Used by the separate reaction pill, not by this card. */
   myReaction?: string;
   dateLabel: string;
   canReact: boolean;
@@ -20,82 +22,97 @@ export interface HoldMenuData {
 
 interface HoldMenuProps {
   data: HoldMenuData;
-  onSelectReaction: (emoji: string) => void;
-  onOpenFullPicker: () => void;
   onReply: () => void;
   onCopy: () => void;
   onUnsend: () => void;
 }
 
+interface HoldAction {
+  key: string;
+  label: string;
+  accessibilityLabel: string;
+  icon: Icon;
+  onPress: () => void;
+  isDisabled?: boolean;
+  isDestructive?: boolean;
+}
+
+const ICON_SIZE = 22;
+
 /**
- * Contextual action card only: reactions + timestamp + actions.
- * Theme-token styled (light/dark adaptive). The selected message itself
- * is rendered separately above the backdrop, never inside this card.
+ * Actions card shown below a held message (HeroUI `ListGroup`): timestamp,
+ * then Reply / Copy / Unsend. The reactions are a separate pill above the
+ * message (see HoldStack), and the message itself is rendered separately
+ * above the backdrop.
  */
-export default function HoldMenu({
-  data,
-  onSelectReaction,
-  onOpenFullPicker,
-  onReply,
-  onCopy,
-  onUnsend,
-}: HoldMenuProps) {
+export default function HoldMenu({ data, onReply, onCopy, onUnsend }: HoldMenuProps) {
   const { colors } = useColors();
 
+  const actions: HoldAction[] = [
+    {
+      key: 'reply',
+      label: 'Reply',
+      accessibilityLabel: 'Reply to message',
+      icon: IconArrowBackUp,
+      onPress: onReply,
+    },
+    {
+      key: 'copy',
+      label: 'Copy',
+      accessibilityLabel: 'Copy message',
+      icon: IconCopy,
+      onPress: onCopy,
+      isDisabled: !data.canCopy,
+    },
+    {
+      key: 'unsend',
+      label: 'Unsend',
+      accessibilityLabel: 'Unsend message',
+      icon: IconTrash,
+      onPress: onUnsend,
+      isDisabled: !data.canUnsend,
+      isDestructive: true,
+    },
+  ];
+
   return (
-    <View className="bg-surface border border-border rounded-[20px] px-2 py-2 min-w-50">
-      {data.canReact && (
-        <>
-          <ReactionStrip
-            bare
-            myReaction={data.myReaction}
-            onSelect={onSelectReaction}
-            onOpenFullPicker={onOpenFullPicker}
-          />
-          <View className="mx-2 my-1 h-px bg-border opacity-75" />
-        </>
-      )}
-      <Text className="text-center text-[13px] font-inter text-gray-500">
+    <ListGroup className="min-w-56 border border-border pb-1 shadow-lg">
+      <Text className="px-4 pt-3 pb-2 text-center text-[13px] font-inter text-gray-500">
         {data.dateLabel || 'Just now'}
       </Text>
-      <Pressable
-        onPress={onReply}
-        accessibilityRole="button"
-        accessibilityLabel="Reply to message"
-        className="flex-row items-center gap-3 px-3 py-2.5"
-      >
-        <IconArrowBackUp size={22} color={colors.textPrimary} />
-        <Text className="text-base font-inter text-foreground">Reply</Text>
-      </Pressable>
-      <Pressable
-        onPress={data.canCopy ? onCopy : undefined}
-        disabled={!data.canCopy}
-        accessibilityRole="button"
-        accessibilityLabel="Copy message"
-        className="flex-row items-center gap-3 px-3 py-2.5"
-      >
-        <IconCopy size={22} color={colors.textPrimary} />
-        <Text className="text-base font-inter text-foreground">Copy</Text>
-      </Pressable>
-      {data.canUnsend ? (
-        <Pressable
-          onPress={onUnsend}
-          accessibilityRole="button"
-          accessibilityLabel="Unsend message"
-          className="flex-row items-center gap-3 px-3 py-2.5"
-        >
-          <IconTrash size={22} color={colors.danger} />
-          <Text className="text-base font-inter text-danger">Unsend</Text>
-        </Pressable>
-      ) : (
-        <View
-          accessibilityLabel="Unsend message"
-          className="flex-row items-center gap-3 px-3 py-2.5 opacity-40"
-        >
-          <IconTrash size={22} color={colors.gray400} />
-          <Text className="text-base font-inter text-gray-500">Unsend</Text>
-        </View>
-      )}
-    </View>
+      <Separator className="mx-4 mb-1" />
+
+      {actions.map((action) => {
+        const isActiveDestructive = action.isDestructive && !action.isDisabled;
+        const iconColor = action.isDisabled
+          ? colors.gray400
+          : isActiveDestructive
+            ? colors.danger
+            : colors.textPrimary;
+
+        return (
+          <ListGroup.Item
+            key={action.key}
+            onPress={action.isDisabled ? undefined : action.onPress}
+            disabled={action.isDisabled}
+            accessibilityRole="button"
+            accessibilityLabel={action.accessibilityLabel}
+            accessibilityState={{ disabled: Boolean(action.isDisabled) }}
+            className={`py-2.5 ${action.isDisabled ? 'opacity-40' : ''}`}
+          >
+            <ListGroup.ItemPrefix>
+              <action.icon size={ICON_SIZE} color={iconColor} />
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle
+                className={`font-inter ${isActiveDestructive ? 'text-danger' : ''}`}
+              >
+                {action.label}
+              </ListGroup.ItemTitle>
+            </ListGroup.ItemContent>
+          </ListGroup.Item>
+        );
+      })}
+    </ListGroup>
   );
 }

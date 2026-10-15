@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Skeleton } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { FilterPanelSkeleton } from "./BrowsePageSkeleton";
 
 type Props = {
   resultCount: number;
@@ -36,21 +37,7 @@ export const FILTER_KEYS = [
 // preserving server rendering; the aside keeps its width while loading.
 const FilterContainer = dynamic(() => import("./FilterContainer"), {
   ssr: true,
-  loading: () => (
-    <div
-      aria-hidden="true"
-      className="rounded-xl border bg-surface p-4 w-full"
-    >
-      <Skeleton className="h-10 w-full rounded-full" />
-      <Skeleton className="mt-2 h-10 w-full rounded-full" />
-      <Skeleton className="mt-5 h-5 w-28 rounded-md" />
-      <Skeleton className="mt-3 h-4 w-full rounded-md" />
-      <Skeleton className="mt-2 h-4 w-5/6 rounded-md" />
-      <Skeleton className="mt-2 h-4 w-4/6 rounded-md" />
-      <Skeleton className="mt-5 h-5 w-24 rounded-md" />
-      <Skeleton className="mt-3 h-9 w-full rounded-lg" />
-    </div>
-  ),
+  loading: () => <FilterPanelSkeleton />,
 });
 
 export default function BrowseFilters({

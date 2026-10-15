@@ -37,7 +37,7 @@ export default function MaintenanceRequestCard({
       className='rounded-3xl shadow-none overflow-hidden'
     >
       <PressableFeedback.Highlight />
-      <Card className='border border-border'>
+      <Card className='bg-overlay border border-border shadow-none'>
         <Card.Header>
           <View className="flex-row items-center justify-between w-full gap-3">
             <Text

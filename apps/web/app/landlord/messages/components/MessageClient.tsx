@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
+import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact, TabKey } from "./types";
@@ -36,6 +37,12 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     setSyncedInquiries(inquiries);
     setInquiryContacts(inquiries);
   }
+
+  const conversationKeys = useMemo(
+    () => [...currentTenantContacts, ...inquiryContacts].map((contact) => contact.conversationKey),
+    [currentTenantContacts, inquiryContacts]
+  );
+  const refreshIfNewConversation = useNewConversationRefresh(conversationKeys);
 
   const markContactAsRead = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {
@@ -107,6 +114,8 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
           if (conversationKey === activeContact?.conversationKey) {
             return;
           }
+          // A chat that started while the page was open: reload the lists.
+          if (refreshIfNewConversation(conversationKey)) return;
           incrementUnreadForContact(conversationKey);
         }
       )
@@ -115,12 +124,17 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, supabase]);
+  }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, refreshIfNewConversation, supabase]);
 
   const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
   return (
-    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
+    // The thread and the contact list each scroll internally, so this frame
+    // is pinned to the viewport. Without a definite height the whole column
+    // outgrows the screen, `flex-1` resolves against unbounded height, and
+    // the window becomes the scroller — dragging the header and composer off
+    // screen. `pb-20`/`md:pb-0` on the portal `main` is mirrored here.
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <ContactSidebar
         contacts={contacts}
         activeTab={activeTab}

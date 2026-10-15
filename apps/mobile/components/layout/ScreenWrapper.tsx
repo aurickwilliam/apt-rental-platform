@@ -4,6 +4,8 @@ import {
   RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -26,6 +28,7 @@ interface ScreenWrapperProps {
   children: ReactNode;
   className?: string;
   backgroundColor?: string;
+  background?: "default" | "grouped";
   header?: ReactNode;
   footer?: ReactNode;
   scrollable?: boolean;
@@ -35,6 +38,8 @@ interface ScreenWrapperProps {
   refreshing?: boolean;
   onRefresh?: () => void | Promise<void>;
   dismissKeyboardOnTouch?: boolean;
+  // Scrollable only: scroll position updates (throttled to ~60fps).
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 const WrapWithDismiss = ({ children }: { children: ReactNode }) => (
@@ -49,6 +54,7 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
       children,
       className = "",
       backgroundColor,
+      background = "default",
       header,
       footer,
       scrollable = false,
@@ -58,6 +64,7 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
       refreshing = false,
       onRefresh,
       dismissKeyboardOnTouch = true,
+      onScroll,
     },
     ref,
   ) {
@@ -67,7 +74,11 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
     const containerStyle = backgroundColor
       ? { flex: 1, backgroundColor }
       : { flex: 1 };
-    const containerClassName = backgroundColor ? "" : "bg-background";
+    const containerClassName = backgroundColor
+      ? ""
+      : background === "grouped"
+        ? "bg-grouped-background"
+        : "bg-background";
 
     const paddingTop = noTopPadding ? 0 : header ? 0 : insets.top;
 
@@ -81,6 +92,8 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
             bottomOffset={KEYBOARD_BOTTOM_OFFSET}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={onScroll ? 16 : undefined}
             refreshControl={
               onRefresh ? (
                 <RefreshControl

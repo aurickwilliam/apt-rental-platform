@@ -28,7 +28,7 @@ export default function OnBoardingSlide({ slide, width }: OnBoardingSlideProps) 
       <View className="w-full flex gap-2 px-2">
 
         {/* Title */}
-        <Text className="text-4xl font-nunitoBold text-secondary">
+        <Text className="text-4xl font-nunitoBold text-accent">
           {slide.title}
         </Text>
         

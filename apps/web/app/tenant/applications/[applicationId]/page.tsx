@@ -17,7 +17,7 @@ import {
   useOverlayState,
   Spinner,
 } from "@heroui/react";
-import { ArrowLeft, Ban, MapPin } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconBan as Ban, IconMapPin as MapPin } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";

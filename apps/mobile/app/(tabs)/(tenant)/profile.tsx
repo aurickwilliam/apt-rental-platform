@@ -23,7 +23,6 @@ import { useProfile } from 'hooks/auth';
 import { useLatestVerification } from 'hooks/verification';
 import { useColors } from 'hooks/useTheme';
 import { clearQueryClient } from '@/utils/queryClient';
-import { formatDate } from '@repo/utils';
 
 import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
@@ -54,9 +53,6 @@ export default function Profile() {
         : 'Verify your account to unlock';
   const { data: latestVerification, refetch: refetchVerification } = useLatestVerification();
   const rejectedReason = latestVerification?.rejection_reason ?? undefined;
-  const dateVerified = latestVerification?.reviewed_at
-    ? formatDate(latestVerification.reviewed_at, 'long')
-    : undefined;
 
   const handleLogout = async () => {
     clearQueryClient();
@@ -159,7 +155,6 @@ export default function Profile() {
       <VerificationStatus
         accountStatus={accountStatus}
         rejectedReason={rejectedReason}
-        dateVerified={dateVerified}
       />
 
       {/* Profile Options */}

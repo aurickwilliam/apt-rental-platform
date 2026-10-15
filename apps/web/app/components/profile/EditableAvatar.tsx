@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { Button, Dropdown, Label, Spinner } from "@heroui/react";
-import { Camera, Pencil, Trash2 } from "lucide-react";
+import { IconCamera as Camera, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import UserAvatar from "./UserAvatar";
 import RemovePhotoConfirmModal from "./RemovePhotoConfirmModal";
@@ -59,8 +59,8 @@ export default function EditableAvatar({
           initials={initials}
           alt={`${displayName}'s profile photo`}
           size="lg"
-          className="size-36 rounded-full border-4 border-background bg-primary text-white"
-          fallbackClassName="rounded-full bg-primary text-white font-semibold text-4xl"
+          className="size-24 rounded-full border-4 border-background bg-primary text-white"
+          fallbackClassName="rounded-full bg-primary text-white font-bold text-xl"
         />
 
         {isBusy ? (
@@ -80,7 +80,7 @@ export default function EditableAvatar({
             variant="secondary"
             aria-label="Photo options"
             isDisabled={isBusy || isPreviewing}
-            className="absolute right-1 bottom-1 border-2 border-background shadow-md hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="absolute -right-1 -bottom-1 border-2 border-background shadow-md hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <Camera size={16} aria-hidden="true" />
           </Button>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Chip, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
-import { Wrench } from "lucide-react";
+import { IconTool as Wrench } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
 import {
@@ -204,3 +204,4 @@ export default function MaintenanceHistory({
     </Card>
   );
 }
+

@@ -6,7 +6,7 @@ import {
   Modal, Button 
 } from "@heroui/react";
 
-import { FileUp, Trash2 } from "lucide-react";
+import { IconFileUpload as FileUp, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import { createBrowserClient } from "@repo/supabase";
 

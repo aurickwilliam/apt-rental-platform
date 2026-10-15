@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { Button, Dropdown, Label, Spinner } from "@heroui/react";
 import { IconPhoto } from "@tabler/icons-react";
-import { ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { IconChevronDown as ChevronDown, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import RemovePhotoConfirmModal from "./RemovePhotoConfirmModal";
 import { useProfilePhotoUpload } from "./use-profile-photo";
@@ -47,7 +47,7 @@ export default function EditableCover({ authUserId, initialUrl }: EditableCoverP
   };
 
   return (
-    <div className="relative h-32 w-full overflow-hidden rounded-t-2xl bg-muted sm:h-40">
+    <div className="relative h-28 w-full overflow-hidden rounded-t-3xl bg-muted sm:h-32">
       {shownUrl ? (
         <Image
           src={shownUrl}

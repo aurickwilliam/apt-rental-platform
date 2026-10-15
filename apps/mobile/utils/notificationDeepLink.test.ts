@@ -45,7 +45,6 @@ describe("buildNotificationDeepLink", () => {
         params: {
           conversationId: "chat:apt-1:aaaa-bbbb:cccc-dddd",
           otherUserId: "aaaa-bbbb",
-          otherUserPhoneNumber: "",
           apartmentId: "apt-1",
           apartmentTitle: "",
         },
@@ -67,7 +66,6 @@ describe("buildNotificationDeepLink", () => {
         params: {
           conversationId: "chat:apt-1:aaaa-bbbb:cccc-dddd",
           otherUserId: "cccc-dddd",
-          otherUserPhoneNumber: "",
           apartmentId: "apt-1",
           apartmentTitle: "",
         },

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react-native";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 
 import ScreenWrapper from "./ScreenWrapper";
 
@@ -61,4 +61,25 @@ it("uses the native gesture without either native indicator, showing only HeroUI
     </ScreenWrapper>,
   );
   expect(screen.queryByLabelText("Refreshing")).toBeNull();
+});
+
+it("defaults to the screen background, allows grouping, and preserves explicit overrides", () => {
+  const { rerender, UNSAFE_getAllByType } = render(
+    <ScreenWrapper><Text>Content</Text></ScreenWrapper>,
+  );
+  const container = () => UNSAFE_getAllByType(View)[0];
+  expect(container().props.className).toBe("bg-background");
+
+  rerender(
+    <ScreenWrapper background="grouped"><Text>Content</Text></ScreenWrapper>,
+  );
+  expect(container().props.className).toBe("bg-grouped-background");
+
+  rerender(
+    <ScreenWrapper background="grouped" backgroundColor="#376BF5">
+      <Text>Receipt</Text>
+    </ScreenWrapper>,
+  );
+  expect(container().props.className).toBe("");
+  expect(container().props.style).toMatchObject({ backgroundColor: "#376BF5" });
 });

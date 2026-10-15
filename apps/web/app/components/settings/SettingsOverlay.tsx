@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SettingsModal from "./SettingsModal";
+import ChangePasswordModal from "./ChangePasswordModal";
+import ChangeEmailModal from "./ChangeEmailModal";
 
 export const SETTINGS_QUERY_VALUE = "open";
 
@@ -21,6 +23,10 @@ export default function SettingsOverlay({
   // dialog can play its exit animation instead of being torn down.
   const [hasOpened, setHasOpened] = useState(open);
   if (open && !hasOpened) setHasOpened(true);
+  // Change Password and Change Email have their own modals; Settings closes
+  // before either opens.
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [changeEmailOpen, setChangeEmailOpen] = useState(false);
 
   if (!hasOpened) return null;
 
@@ -33,4 +39,21 @@ export default function SettingsOverlay({
   };
 
   return <SettingsModal open={open} onClose={close} initialRoles={initialRoles} activePortal={activePortal} />;
+  const openChangePassword = () => {
+    close();
+    setChangePasswordOpen(true);
+  };
+
+  const openChangeEmail = () => {
+    close();
+    setChangeEmailOpen(true);
+  };
+
+  return (
+    <>
+      <SettingsModal open={open} onClose={close} onChangePassword={openChangePassword} onChangeEmail={openChangeEmail} />
+      <ChangePasswordModal isOpen={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
+      <ChangeEmailModal isOpen={changeEmailOpen} onOpenChange={setChangeEmailOpen} />
+    </>
+  );
 }

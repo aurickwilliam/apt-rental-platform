@@ -11,6 +11,7 @@ import DocumentRow from "../../../components/display/DocumentRow";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestHistoryItem from "./components/VisitRequestHistoryItem";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
+import LandlordCard from "@/components/cards/LandlordCard";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
@@ -25,8 +26,14 @@ import {
 } from "@/hooks/applications";
 import { useVisitRequest, useRespondToReschedule } from "@/hooks/visitRequests";
 import { useProfile } from "@/hooks/auth";
+import { buildConversationKey } from "@/service/chat/chatService";
 
-import { formatAddress, formatPesoDisplay, formatDate } from "@repo/utils";
+import {
+  formatAddress,
+  formatPesoDisplay,
+  formatDate,
+  formatFullName,
+} from "@repo/utils";
 
 import {
   Separator,
@@ -65,14 +72,7 @@ export default function ApplicationApartment() {
   const application = applications.find((a) => a.id === applicationId);
   const status = application?.status;
   const chipConfig = status ? getStatusStyle(status) : null;
-  const chipStatusStyle =
-    chipConfig?.chipColor === "success"
-      ? palette.success
-      : chipConfig?.chipColor === "warning"
-        ? palette.warning
-        : chipConfig?.chipColor === "danger"
-          ? palette.danger
-          : palette.neutral;
+  const chipStatusStyle = chipConfig?.chipStyle ?? palette.neutral;
 
   const [docViewerUri, setDocViewerUri] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -148,22 +148,31 @@ export default function ApplicationApartment() {
       params: { apartmentId: apartment?.id ?? "", applicationId },
     });
 
+  const handleViewLandlordProfile = () => {
+    const landlord = apartment?.landlord;
+    if (!landlord) return;
+    router.push(`/profile/landlord/${landlord.id}`);
+  };
+
   const handleMessageLandlord = () => {
     const landlord = apartment?.landlord;
     if (!landlord || !profile || !apartmentId) return;
 
-    const userA = profile.id < landlord.id ? profile.id : landlord.id;
-    const userB = profile.id < landlord.id ? landlord.id : profile.id;
-    const conversationId = `${userA}-${userB}-${apartmentId}`;
+    // The chat screen finds the thread from the two users and the apartment;
+    // the route id is the same conversation key the chat list uses.
+    const conversationId = buildConversationKey(
+      profile.id,
+      landlord.id,
+      apartmentId,
+    );
 
     router.push({
       pathname: "/chat/[conversationId]",
       params: {
         conversationId,
         otherUserId: landlord.id,
-        otherUserName: `${landlord.first_name} ${landlord.last_name}`,
+        otherUserName: formatFullName(landlord),
         otherUserAvatar: landlord.avatar_url ?? "",
-        otherUserPhoneNumber: landlord.mobile_number,
         apartmentId,
         apartmentTitle: apartment?.name,
       },
@@ -212,6 +221,7 @@ export default function ApplicationApartment() {
             background={null}
             style={statusChipSurface(chipStatusStyle)}
           >
+            <chipConfig.Icon size={16} color={chipStatusStyle.textColor} />
             <Chip.Label style={{ color: chipStatusStyle.textColor }}>
               {chipConfig.label}
             </Chip.Label>
@@ -272,6 +282,18 @@ export default function ApplicationApartment() {
         </View>
       </View>
 
+      {/* Landlord */}
+      {apartment?.landlord && (
+        <View className="mt-5">
+          <LandlordCard
+            fullName={formatFullName(apartment.landlord)}
+            profilePictureUrl={apartment.landlord.avatar_url}
+            onPress={handleViewLandlordProfile}
+            onMessagePress={handleMessageLandlord}
+          />
+        </View>
+      )}
+
       <Separator className="my-5" />
 
       {application?.status === "rejected" && application.rejected_reason && (
@@ -287,7 +309,7 @@ export default function ApplicationApartment() {
 
       {application?.status === "closed" && application.rejected_reason && (
         <View className="mb-3 p-4 rounded-3xl bg-surface border border-border">
-          <Text className="text-sm font-nunitoSemiBold text-secondary mb-1">
+          <Text className="text-sm font-nunitoSemiBold text-foreground mb-1">
             Application Closed
           </Text>
           <Text className="text-sm text-foreground">
@@ -510,11 +532,11 @@ export default function ApplicationApartment() {
         <>
           <Button
             className="mt-5"
-            variant="danger"
+            variant="danger-soft"
             isDisabled={cancelling || responding}
             onPress={() => setCancelDialogOpen(true)}
           >
-            <IconBan size={20} color={colors.secondaryForeground} />
+            <IconBan size={20} color={colors.danger} />
             <Button.Label>Cancel Application</Button.Label>
           </Button>
 

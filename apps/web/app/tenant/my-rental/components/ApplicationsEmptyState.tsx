@@ -2,7 +2,7 @@
 
 import { Button } from "@heroui/react";
 import Link from "next/link";
-import { ClipboardX } from "lucide-react";
+import { IconClipboardX as ClipboardX } from "@tabler/icons-react";
 
 export default function ApplicationsEmptyState() {
   return (

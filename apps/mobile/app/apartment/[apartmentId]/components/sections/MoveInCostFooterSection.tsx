@@ -13,6 +13,7 @@ type MoveInCostFooterProps = {
   securityDeposit?: number | null;
   advanceRent?: number | null;
   onApplyNow: () => void;
+  applyDisabledReason?: string | null;
 };
 
 export default function MoveInCostFooterSection({
@@ -20,6 +21,7 @@ export default function MoveInCostFooterSection({
   securityDeposit,
   advanceRent,
   onApplyNow,
+  applyDisabledReason,
 }: MoveInCostFooterProps) {
   const [isMoveInCostModalVisible, setIsMoveInCostModalVisible] =
     useState(false);
@@ -56,9 +58,10 @@ export default function MoveInCostFooterSection({
               <Button
                 onPress={onApplyNow}
                 size="md"
+                isDisabled={!!applyDisabledReason}
               >
                 <Button.Label>
-                  Apply Now
+                  {applyDisabledReason ?? 'Apply Now'}
                 </Button.Label>
               </Button>
             </View>

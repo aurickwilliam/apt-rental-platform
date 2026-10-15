@@ -1,5 +1,5 @@
 import { createClient } from "@repo/supabase/server";
-import { House, DoorOpen, DoorClosed, PhilippinePeso } from "lucide-react";
+import { IconHome as House, IconDoorEnter as DoorOpen, IconDoorExit as DoorClosed, IconCurrencyPeso as PhilippinePeso } from "@tabler/icons-react";
 import PropertiesTableSection from "./components/PropertiesTableSection";
 import PropertyActions from "./components/PropertyActions";
 
@@ -101,7 +101,7 @@ export default async function Properties() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-5xl text-secondary dark:text-[#FFA500] font-bold font-noto-serif">
+        <h1 className="text-5xl text-brand font-bold font-noto-serif">
           My Properties
         </h1>
       </div>

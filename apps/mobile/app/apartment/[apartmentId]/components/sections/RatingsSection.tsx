@@ -14,10 +14,13 @@ import type { ReviewWithTenant } from 'hooks/apartments';
 
 import { formatDate } from '@repo/utils';
 
-import { Button } from 'heroui-native';
+import { Button, SkeletonGroup } from 'heroui-native';
 
 type RatingsSectionProps = {
   reviews: ReviewWithTenant[];
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   onSeeAll?: () => void;
   canReview?: boolean;
   checkingEligibility?: boolean;
@@ -26,6 +29,9 @@ type RatingsSectionProps = {
 
 export default function RatingsSection({
   reviews,
+  isLoading = false,
+  error = null,
+  onRetry,
   onSeeAll,
   canReview = false,
   checkingEligibility = false,
@@ -38,18 +44,41 @@ export default function RatingsSection({
   return (
     <>
       <SectionHeader
-        icon={<IconStarFilled size={26} color={colors.secondary} />}
+        icon={<IconStarFilled size={26} color={colors.rating} />}
         title="Ratings"
+        className='px-5'
         action={
           hasReviews && onSeeAll ? <SeeAllButton onPress={onSeeAll} /> : undefined
         }
       />
-      <View className='mt-5 px-5 flex gap-3'>
-        {hasReviews ? (
+      <View className='mt-3 px-5 flex gap-3'>
+        {isLoading && !hasReviews ? (
+          <SkeletonGroup isLoading>
+            <SkeletonGroup.Item className='h-24 w-full rounded-2xl' />
+          </SkeletonGroup>
+        ) : error && !hasReviews ? (
+          <View className='items-center py-5 px-6'>
+            <Text className='font-nunitoSemiBold text-base text-foreground'>
+              Couldn&apos;t load ratings
+            </Text>
+            <Text className='mt-1 text-sm text-gray-500 font-nunitoSemiBold text-center'>
+              Please check your connection and try again.
+            </Text>
+            {onRetry && (
+              <Button className='mt-4' size='sm' variant='secondary' onPress={onRetry}>
+                <Button.Label>Try Again</Button.Label>
+              </Button>
+            )}
+          </View>
+        ) : hasReviews ? (
           reviews.map((review) => (
             <SmallRatingCard
               key={review.id}
-              accountName={`${review.tenant?.first_name} ${review.tenant?.last_name}`}
+              accountName={
+                [review.tenant?.first_name, review.tenant?.last_name]
+                  .filter(Boolean)
+                  .join(' ') || 'Anonymous'
+              }
               profilePictureUrl={review.tenant?.avatar_url ?? undefined}
               rating={review.rating}
               comment={review.comment ?? ''}

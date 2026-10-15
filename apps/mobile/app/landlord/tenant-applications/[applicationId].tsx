@@ -97,7 +97,6 @@ export default function TenantApplicationDetails() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Application Details" />}
-        backgroundColor={colors.surface}
         scrollable
         className="p-5"
       >

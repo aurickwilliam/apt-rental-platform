@@ -277,7 +277,7 @@ export default function SignIn() {
         onPress={() => router.push("/forgot-password")}
         className="mt-3 self-start p-0"
       >
-        <LinkButton.Label className="text-secondary font-nunitoSemiBold underline">
+        <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
           Forgot Password?
         </LinkButton.Label>
       </LinkButton>

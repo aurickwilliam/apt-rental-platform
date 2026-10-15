@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
-import { ArrowLeft, UserRoundKey, Building, Sparkles } from "lucide-react";
+import { IconArrowLeft as ArrowLeft, IconKey as UserRoundKey, IconBuilding as Building, IconSparkles as Sparkles } from "@tabler/icons-react";
 
 import Link from "next/link";
 
@@ -105,7 +105,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: {
                 </Tabs.Tab>
 
                 {/* Landlord Tab */}
-                <Tabs.Tab id="landlord" className="data-[selected=true]:text-secondary dark:data-[selected=true]:text-[#FFA500]">
+                <Tabs.Tab id="landlord" className="data-[selected=true]:text-sky">
                   <Tabs.Separator />
                   <span className="flex items-center gap-1.5">
                     <Building size={15} />

@@ -3,8 +3,10 @@ import { View, Text } from 'react-native'
 import { Avatar, PressableFeedback } from 'heroui-native'
 
 import {
+  IconBellOff,
   IconGif,
   IconPhoto,
+  IconPinFilled,
   IconPlayerPlayFilled,
 } from '@tabler/icons-react-native'
 
@@ -29,6 +31,16 @@ function getLastMessageDisplay(
   }
 }
 
+// Same hold delay as chat bubbles.
+const LONG_PRESS_DELAY_MS = 350;
+
+/** A row action screen readers can run without swiping. */
+export interface MessageCardAction {
+  name: string;
+  label: string;
+  onPress: () => void;
+}
+
 interface MessageCardProps {
   name: string;
   apartmentName: string;
@@ -38,9 +50,15 @@ interface MessageCardProps {
   profilePictureUrl?: string;
   isUserLastSender?: boolean;
   unreadCount?: number;
+  /** Marked unread by the user (shows a dot when there's no unread count). */
+  isMarkedUnread?: boolean;
+  isPinned?: boolean;
+  isMuted?: boolean;
   onPress?: () => void;
-  /** Touch-free mirror of the swipe "Mark read" action (screen readers can't swipe). */
-  onMarkRead?: () => void;
+  /** Hold the card (opens the conversation's options). */
+  onLongPress?: () => void;
+  /** Touch-free mirror of the swipe actions (screen readers can't swipe). */
+  actions?: MessageCardAction[];
 }
 
 export default function MessageCard({
@@ -52,13 +70,16 @@ export default function MessageCard({
   profilePictureUrl,
   isUserLastSender = false,
   unreadCount = 0,
+  isMarkedUnread = false,
+  isPinned = false,
+  isMuted = false,
   onPress,
-  onMarkRead
+  onLongPress,
+  actions = [],
 }: MessageCardProps) {
   const { colors } = useColors();
 
-  const hasUnread = unreadCount > 0;
-  const showMarkReadAction = hasUnread && onMarkRead !== undefined;
+  const hasUnread = unreadCount > 0 || isMarkedUnread;
   const rawDisplay = getLastMessageDisplay(lastMessage, messageType, isUserLastSender);
   const displayMessage = lastMessage && isUserLastSender && rawDisplay ? `You: ${rawDisplay}` : rawDisplay;
   // Text fallback rows have no message body — an icon names the attachment kind.
@@ -71,24 +92,30 @@ export default function MessageCard({
           ? IconPhoto
           : null
     : null;
-  const unreadLabel = hasUnread
-    ? `, ${unreadCount > 99 ? '99+' : unreadCount} unread messages`
-    : '';
+  const unreadLabel =
+    unreadCount > 0
+      ? `, ${unreadCount > 99 ? '99+' : unreadCount} unread messages`
+      : isMarkedUnread
+        ? ', marked unread'
+        : '';
+  const stateLabel = `${isPinned ? ', pinned' : ''}${isMuted ? ', muted' : ''}`;
 
   return (
     <PressableFeedback
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={LONG_PRESS_DELAY_MS}
       className='overflow-hidden rounded-3xl'
       accessibilityRole='button'
-      accessibilityLabel={`Chat with ${name} about ${apartmentName}${unreadLabel}`}
-      accessibilityHint='Opens conversation'
+      accessibilityLabel={`Chat with ${name} about ${apartmentName}${unreadLabel}${stateLabel}`}
+      accessibilityHint={onLongPress ? 'Opens conversation. Hold for more options' : 'Opens conversation'}
       accessibilityActions={
-        showMarkReadAction ? [{ name: 'markRead', label: 'Mark as read' }] : undefined
+        actions.length > 0
+          ? actions.map(({ name: actionName, label }) => ({ name: actionName, label }))
+          : undefined
       }
       onAccessibilityAction={(event) => {
-        if (showMarkReadAction && event.nativeEvent.actionName === 'markRead') {
-          onMarkRead?.();
-        }
+        actions.find((action) => action.name === event.nativeEvent.actionName)?.onPress();
       }}
     >
       <PressableFeedback.Highlight />
@@ -105,24 +132,40 @@ export default function MessageCard({
             </Avatar.Fallback>
           </Avatar>
 
-          {unreadCount > 0 && (
-            <View className='absolute -top-1 -right-1 bg-accent rounded-full min-w-5 h-5 px-1 items-center justify-center'>
+          {unreadCount > 0 ? (
+            <View className='absolute -top-1 -right-1 bg-danger rounded-full min-w-5 h-5 px-1 items-center justify-center'>
               <Text className='text-white text-xs font-nunitoSemiBold'>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>
             </View>
-          )}
+          ) : isMarkedUnread ? (
+            <View
+              className='absolute top-0 right-0 bg-danger rounded-full size-3.5 border-2 border-background'
+              accessibilityElementsHidden
+            />
+          ) : null}
         </View>
 
         {/* Message Details */}
         <View className='flex-1'>
           <View className='flex-row items-center gap-2'>
             <Text
-              className={`flex-1 text-foreground text-sm ${hasUnread ? 'font-nunitoBold' : 'font-nunitoSemiBold'}`}
+              className={`shrink text-foreground text-sm ${hasUnread ? 'font-nunitoBold' : 'font-nunitoSemiBold'}`}
               numberOfLines={1}
             >
               {name}
             </Text>
+            {isMuted ? (
+              <View accessibilityElementsHidden>
+                <IconBellOff size={14} color={colors.gray500} />
+              </View>
+            ) : null}
+            {isPinned ? (
+              <View accessibilityElementsHidden>
+                <IconPinFilled size={14} color={colors.gray500} />
+              </View>
+            ) : null}
+            <View className='flex-1' />
             <Text className={`text-gray-500 text-xs font-inter ${hasUnread ? 'font-semibold' : ''}`}>
               {timestamp}
             </Text>

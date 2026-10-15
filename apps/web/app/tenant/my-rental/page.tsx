@@ -2,20 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
-import {
-  CreditCard,
-  FileText,
-  History,
-  MessageCircle,
-  Receipt,
-  Wrench,
-  CheckCircle2,
-  Clock,
-  House,
-  CalendarDays,
-} from "lucide-react";
+import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays } from "@tabler/icons-react";
 
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
@@ -221,50 +210,30 @@ export default function MyRental() {
 
   const apartment = tenancy.apartment;
   const landlord = tenancy.landlord;
-  const monthlyRent = tenancy.monthly_rent ?? apartment.monthly_rent ?? 0;
-  const paymentStatus = normalizePaymentStatus(currentPayment?.status);
+  // The period being billed now, same rule as mobile and the server's rent
+  // reminders: starts with the lease, due on the tenancy's due day.
+  const rent = getCurrentRentStatus({ ...tenancy, currentPayment }, payments);
+  const { monthlyRent } = rent;
+  // Same full-amount guard as the payment page: a fully paid period can't be paid again.
+  const isPeriodPaid = rent.isFullyPaid;
+  const nextPeriod = nextPaymentPeriod(rent.periodStart, tenancy.rent_due_day);
+  // This period's own payment row, once the tenant has started paying it.
+  const periodPayment = payments.find((payment) => payment.period_start === rent.periodStart);
+  const paymentStatus = normalizePaymentStatus(periodPayment?.status);
 
-  const dueDate = currentPayment?.due_date
-    ? new Date(currentPayment.due_date)
-    : null;
-  const dueDays = dueDate
-    ? Math.ceil((dueDate.getTime() - today.getTime()) / MS_PER_DAY)
-    : null;
+  // The next rent due: this period's, or the following one once it is paid.
+  const dueDate = new Date(`${isPeriodPaid ? nextPeriod.dueDate : rent.dueDate}T00:00:00`);
+  const dueDays = Math.ceil((dueDate.getTime() - today.getTime()) / MS_PER_DAY);
   const dueLabel =
-    dueDays === null
-      ? "Due soon"
-      : dueDays < 0
-        ? `Overdue by ${Math.abs(dueDays)} days`
-        : `Due in ${dueDays} days`;
+    dueDays < 0
+      ? `Overdue by ${Math.abs(dueDays)} days`
+      : `Due in ${dueDays} days`;
 
-  const paymentPeriodLabel = currentPayment?.period_start
-    ? formatMonthYear(currentPayment.period_start)
-    : formatMonthYear(today.toISOString());
-
-  const amountDue = currentPayment?.amount ?? monthlyRent;
+  const paymentPeriodLabel = formatMonthYear(rent.periodStart);
 
   const pendingFeesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
-  const nextPeriodTotal = monthlyRent + pendingFeesTotal;
-
-  const currentPeriodStart = currentPayment?.period_start ?? null;
-  // Next period after the paid one (due on the 5th, same convention as billing).
-  const nextPeriod =
-    currentPeriodStart !== null
-      ? (() => {
-          const d = new Date(`${currentPeriodStart.slice(0, 7)}-01T00:00:00`);
-          const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-          const y = next.getFullYear();
-          const m = String(next.getMonth() + 1).padStart(2, "0");
-          return { periodStart: `${y}-${m}-01`, dueDate: `${y}-${m}-05` };
-        })()
-      : null;
-  // Same full-amount guard as the payment page: a fully paid period can't be paid again.
-  const isPeriodPaid =
-    monthlyRent > 0 &&
-    currentPeriodStart !== null &&
-    payments
-      .filter((p) => p.status === "paid" && p.period_start === currentPeriodStart)
-      .reduce((sum, p) => sum + (p.amount ?? 0), 0) >= monthlyRent;
+  // Rent is always billed whole, with pending fees on top.
+  const totalDue = monthlyRent + pendingFeesTotal;
 
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
     const paymentDate =
@@ -397,48 +366,46 @@ export default function MyRental() {
                       </Button>
                     </Link>
                   </div>
-                  {nextPeriod && (
-                    <div className="rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-2 w-full sm:w-72 shrink-0">
-                      <p className="text-xs font-nunito font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
-                        <span className="rounded-full bg-primary/10 p-1 text-primary">
-                          <CalendarDays size={14} />
-                        </span>
-                        Next Payment
+                  <div className="rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-2 w-full sm:w-72 shrink-0">
+                    <p className="text-xs font-nunito font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                      <span className="rounded-full bg-primary/10 p-1 text-primary">
+                        <CalendarDays size={14} />
+                      </span>
+                      Next Payment
+                    </p>
+                    <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatMonthYear(nextPeriod.periodStart)}
+                    </p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Due {formatShortDate(nextPeriod.dueDate)}
+                    </p>
+                    <div className="mt-auto pt-2">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Total due</p>
+                      <p className="text-2xl font-nunito font-bold text-primary">
+                        {formatPesoDisplay(totalDue)}
                       </p>
-                      <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                        {formatMonthYear(nextPeriod.periodStart)}
-                      </p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Due {formatShortDate(nextPeriod.dueDate)}
-                      </p>
-                      <div className="mt-auto pt-2">
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Total due</p>
-                        <p className="text-2xl font-nunito font-bold text-primary">
-                          {formatPesoDisplay(nextPeriodTotal)}
+                    </div>
+                    <div className="rounded-xl bg-white/70 dark:bg-zinc-900/50 px-3 py-2 grid gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Monthly rent</p>
+                        <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+                          {formatPesoDisplay(monthlyRent)}
                         </p>
                       </div>
-                      <div className="rounded-xl bg-white/70 dark:bg-zinc-900/50 px-3 py-2 grid gap-2">
-                        <div className="min-w-0">
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Monthly rent</p>
+                      {pendingFeesTotal > 0 && (
+                        <div className="min-w-0 border-t border-zinc-200 dark:border-zinc-800 pt-2">
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Maintenance fee</p>
                           <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-                            {formatPesoDisplay(monthlyRent)}
+                            {formatPesoDisplay(pendingFees[0].amount)}{" "}
+                            <span className="font-normal text-zinc-500">· {pendingFees[0].title}</span>
+                            {pendingFees.length > 1 && (
+                              <span className="font-normal text-zinc-400"> +{pendingFees.length - 1} more</span>
+                            )}
                           </p>
                         </div>
-                        {pendingFeesTotal > 0 && (
-                          <div className="min-w-0 border-t border-zinc-200 dark:border-zinc-800 pt-2">
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Maintenance fee</p>
-                            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-                              {formatPesoDisplay(pendingFees[0].amount)}{" "}
-                              <span className="font-normal text-zinc-500">· {pendingFees[0].title}</span>
-                              {pendingFees.length > 1 && (
-                                <span className="font-normal text-zinc-400"> +{pendingFees.length - 1} more</span>
-                              )}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                   </div>
                 </>
               ) : (
@@ -448,7 +415,7 @@ export default function MyRental() {
                   </p>
                   <div className="flex items-end gap-2 mt-2">
                     <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
-                      {formatPesoDisplay(pendingFeesTotal > 0 ? monthlyRent + pendingFeesTotal : amountDue)}
+                      {formatPesoDisplay(totalDue)}
                     </p>
                     <span className="text-sm text-zinc-400">.00</span>
                   </div>
@@ -515,7 +482,7 @@ export default function MyRental() {
           </DashboardCard>
 
           <MiniCalendar
-            focusDate={dueDate ?? today}
+            focusDate={dueDate}
             highlightDate={dueDate}
             highlightLabel="Rent due"
           />
@@ -672,23 +639,23 @@ export default function MyRental() {
               </Link>
             </div>
           </div>
-          <Table className="bg-darker-white">
+          <Table className="bg-darker-white dark:bg-zinc-900">
             <Table.ScrollContainer>
               <Table.Content
                 aria-label="Payment history"
-                className="bg-darker-white"
+                className="bg-darker-white dark:bg-zinc-900"
               >
-                <Table.Header className="bg-darker-white text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
-                  <Table.Column isRowHeader className="text-black font-medium">
+                <Table.Header className="bg-darker-white dark:bg-zinc-900 text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
+                  <Table.Column isRowHeader className="text-black dark:text-zinc-200 font-medium">
                     Date
                   </Table.Column>
-                  <Table.Column className="text-black font-medium">
+                  <Table.Column className="text-black dark:text-zinc-200 font-medium">
                     Description
                   </Table.Column>
-                  <Table.Column className="text-right text-black font-medium">
+                  <Table.Column className="text-right text-black dark:text-zinc-200 font-medium">
                     Amount
                   </Table.Column>
-                  <Table.Column className="text-right text-black font-medium">
+                  <Table.Column className="text-right text-black dark:text-zinc-200 font-medium">
                     Status
                   </Table.Column>
                 </Table.Header>
@@ -750,3 +717,4 @@ export default function MyRental() {
     </div>
   );
 }
+

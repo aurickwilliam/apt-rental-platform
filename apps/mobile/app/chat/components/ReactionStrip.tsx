@@ -1,4 +1,6 @@
-import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
+import { Text, type LayoutChangeEvent } from 'react-native';
+
+import { Button, Surface } from 'heroui-native';
 
 import { IconPlus } from '@tabler/icons-react-native';
 
@@ -11,55 +13,50 @@ interface ReactionStripProps {
   onSelect?: (emoji: string) => void;
   onOpenFullPicker?: () => void;
   onLayout?: (e: LayoutChangeEvent) => void;
-  /**
-   * Inline row inside the anchored Menu card (single menu, no separate pill):
-   * drops the floating surface/border/shadow and shrinks targets so 6 emojis
-   * + the picker button fit the 220-wide card in one row.
-   */
-  bare?: boolean;
 }
 
 /**
- * Quick-reaction row. Default is the floating pill; `bare` renders the same
- * row inline inside the hold Menu card.
+ * Quick-reaction pill shown above a held message: a HeroUI `Surface` with
+ * icon-only ghost `Button`s; the current reaction is tinted.
  */
 export default function ReactionStrip({
   myReaction,
   onSelect,
   onOpenFullPicker,
   onLayout,
-  bare = false,
 }: ReactionStripProps) {
   const { colors } = useColors();
 
   return (
-    <View
+    <Surface
       onLayout={onLayout}
-      className={
-        bare
-          ? 'flex-row items-center justify-between'
-          : 'flex-row items-center bg-surface border border-border rounded-full px-3 py-2 shadow-lg'
-      }
+      className="flex-row items-center gap-0.5 rounded-full border border-border px-1.5 py-1 shadow-lg"
     >
-      {QUICK_REACTIONS.map((emoji) => (
-        <Pressable
-          key={emoji}
-          onPress={() => onSelect?.(emoji)}
-          accessibilityRole="button"
-          accessibilityLabel={`React with ${emoji}`}
-          className={`rounded-full ${bare ? 'p-1' : 'p-2.5'} ${myReaction === emoji ? 'bg-accent/15' : ''}`}
-        >
-          <Text className={bare ? 'text-base leading-6' : 'text-2xl leading-8'}>{emoji}</Text>
-        </Pressable>
-      ))}
-      <Pressable
+      {QUICK_REACTIONS.map((emoji) => {
+        const isSelected = myReaction === emoji;
+        return (
+          <Button
+            key={emoji}
+            variant="ghost"
+            isIconOnly
+            onPress={() => onSelect?.(emoji)}
+            accessibilityLabel={`React with ${emoji}`}
+            accessibilityState={{ selected: isSelected }}
+            className={`rounded-full ${isSelected ? 'bg-accent/15' : ''}`}
+          >
+            <Text className="text-2xl leading-8">{emoji}</Text>
+          </Button>
+        );
+      })}
+      <Button
+        variant="ghost"
+        isIconOnly
         onPress={onOpenFullPicker}
-        accessibilityRole="button"
         accessibilityLabel="More reactions"
-        className={`rounded-full ${bare ? 'p-1' : 'p-2.5'}`}
+        className="rounded-full"
       >
-        <IconPlus size={bare ? 16 : 22} color={colors.textPrimary} />
-      </Pressable>
-    </View>
+        <IconPlus size={22} color={colors.textPrimary} />
+      </Button>
+    </Surface>
   );
 }

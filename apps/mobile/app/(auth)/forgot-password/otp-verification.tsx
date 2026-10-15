@@ -4,15 +4,14 @@ import { Redirect, useRouter } from "expo-router";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import CodeInput from "@/components/inputs/CodeInput";
 
 import {
   Button,
   CloseButton,
-  InputOTP,
   LinkButton,
   Spinner,
   type InputOTPRef,
-  REGEXP_ONLY_DIGITS,
 } from "heroui-native";
 
 import { IconBrandGoogle, IconChevronLeft } from "@tabler/icons-react-native";
@@ -166,14 +165,14 @@ export default function RecoveryCodeVerification() {
         </Text>
 
         <LinkButton onPress={router.back} className="self-start p-0">
-          <LinkButton.Label className="text-secondary font-nunitoSemiBold underline">
+          <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
             Wrong email? Change it
           </LinkButton.Label>
         </LinkButton>
       </View>
 
       <View className="items-center my-6">
-        <InputOTP
+        <CodeInput
           ref={codeRef}
           value={code}
           onChange={(value) => {
@@ -181,28 +180,10 @@ export default function RecoveryCodeVerification() {
             if (codeError) setCodeError(null);
           }}
           onComplete={handleVerify}
-          maxLength={RECOVERY_CODE_LENGTH}
+          length={RECOVERY_CODE_LENGTH}
           isInvalid={!!codeError}
           isDisabled={verifying}
-          inputMode="numeric"
-          pattern={REGEXP_ONLY_DIGITS}
-          textInputProps={{
-            textContentType: "oneTimeCode",
-            autoComplete: "one-time-code",
-          }}
-        >
-          <InputOTP.Group>
-            <InputOTP.Slot index={0} />
-            <InputOTP.Slot index={1} />
-            <InputOTP.Slot index={2} />
-          </InputOTP.Group>
-          <InputOTP.Separator />
-          <InputOTP.Group>
-            <InputOTP.Slot index={3} />
-            <InputOTP.Slot index={4} />
-            <InputOTP.Slot index={5} />
-          </InputOTP.Group>
-        </InputOTP>
+        />
 
         {!!codeError && (
           <Text className="text-danger text-sm font-inter mt-3 text-center">
@@ -210,7 +191,7 @@ export default function RecoveryCodeVerification() {
           </Text>
         )}
         {!!resendNotice && (
-          <Text className="text-success text-sm font-inter mt-3 text-center">
+          <Text className="text-success-text text-sm font-inter mt-3 text-center">
             {resendNotice}
           </Text>
         )}

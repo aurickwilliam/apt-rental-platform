@@ -71,17 +71,20 @@ beforeEach(() => {
   mockFrom.mockReset();
 });
 
-describe('fetchConversationsWithMetadata — v2 path', () => {
-  it('calls get_conversations_v2 with no arguments and maps metadata from the RPC', async () => {
-    mockRpc.mockResolvedValue({ data: seedV2Conversations, error: null });
+describe('fetchConversationsWithMetadata — portal path', () => {
+  it.each(['tenant', 'landlord'] as const)(
+    'asks get_portal_conversations for the %s portal only',
+    async (portal) => {
+      mockRpc.mockResolvedValue({ data: seedV2Conversations, error: null });
 
-    const result = await fetchConversationsWithMetadata(MY_ID, 'landlord');
+      await fetchConversationsWithMetadata(MY_ID, portal);
 
-    expect(mockRpc).toHaveBeenCalledTimes(1);
-    expect(mockRpc).toHaveBeenCalledWith('get_conversations_v2');
-  });
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+      expect(mockRpc).toHaveBeenCalledWith('get_portal_conversations', { p_portal: portal });
+    }
+  );
 
-  it('does not scan chat or tenancies rows on the v2 path', async () => {
+  it('does not scan chat or tenancies rows on the portal path', async () => {
     mockRpc.mockResolvedValue({ data: seedV2Conversations, error: null });
 
     await fetchConversationsWithMetadata(MY_ID, 'landlord');
@@ -126,7 +129,7 @@ describe('fetchConversationsWithMetadata — v2 path', () => {
 describe('fetchConversationsWithMetadata — legacy fallback', () => {
   const legacyError = {
     code: 'PGRST202',
-    message: 'Could not find the function public.get_conversations_v2 in the schema cache',
+    message: 'Could not find the function public.get_portal_conversations(p_portal) in the schema cache',
   };
 
   const tenancyRows = [{ tenant_id: 'other-1', apartment_id: 'apt-1' }];
@@ -186,7 +189,7 @@ describe('fetchConversationsWithMetadata — legacy fallback', () => {
   }
 
   it('falls back to the legacy scan only for PGRST202 and stays backward compatible', async () => {
-    // First call (v2) rejects; the fallback's second call (old RPC) succeeds.
+    // First call (portal RPC) rejects; the fallback's second call (old RPC) succeeds.
     mockRpc.mockRejectedValueOnce(legacyError);
     mockRpc.mockResolvedValueOnce({ data: legacyConversations, error: null });
     mockLegacyQueries();
@@ -214,7 +217,7 @@ describe('fetchConversationsWithMetadata — legacy fallback', () => {
   });
 });
 
-describe('fetchConversationsWithMetadata — unexpected v2 errors', () => {
+describe('fetchConversationsWithMetadata — unexpected portal RPC errors', () => {
   it('rethrows permission errors instead of falling back', async () => {
     mockRpc.mockRejectedValue({ code: '42501', message: 'permission denied for function' });
 

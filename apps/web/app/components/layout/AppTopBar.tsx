@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { IconMenu2 as Menu } from "@tabler/icons-react";
 import { Button, Dropdown } from "@heroui/react";
 
 type NavItem = { href: string; label: string; icon: string };
