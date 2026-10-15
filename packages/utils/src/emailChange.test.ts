@@ -264,7 +264,7 @@ describe("emailChange status, resend, and sign-out", () => {
       data: { user: { ...emailUser, new_email: NEXT } },
       error: null,
     });
-    await expect(getEmailChangeStatus(auth)).resolves.toMatchObject({
+    await expect(getEmailChangeStatus(auth)).resolves.toEqual({
       userId: "user-1",
       email: CURRENT,
       pendingNewEmail: NEXT,
