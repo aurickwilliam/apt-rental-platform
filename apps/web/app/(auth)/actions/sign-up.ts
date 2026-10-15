@@ -55,14 +55,15 @@ export async function signUp(
     const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user || user.id !== userId) {
+    if (authError || !user || user.id !== userId || !user.email) {
       return { error: "Session not found. Please verify your email again.", success: false };
     }
 
     // Shared generated types still describe the legacy schema; production uses roles[].
     const profileInsert = {
       user_id: userId,
-      email: mapped.email,
+      // Auth's canonical (lowercased) address: the profile email must match it.
+      email: user.email,
       roles: [requestedRole],
       first_name: mapped.firstName,
       last_name: mapped.lastName,

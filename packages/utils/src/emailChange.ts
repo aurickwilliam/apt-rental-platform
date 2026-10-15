@@ -26,6 +26,7 @@ export type EmailChangeErrorReason =
   | "reauthentication_required"
   | "email_unavailable"
   | "suspended"
+  | "no_pending_change"
   | "network"
   | "unknown";
 
@@ -42,6 +43,8 @@ const EMAIL_CHANGE_ERROR_MESSAGES: Record<EmailChangeErrorReason, string> = {
   // Generic on purpose: never reveal whether an address is registered.
   email_unavailable: "This email address can't be used. Try a different one.",
   suspended: "Your account is suspended and can't change its email.",
+  no_pending_change:
+    "This email change is no longer waiting for confirmation. Start again with your new email.",
   network: "Can't connect right now. Check your internet connection and try again.",
   unknown: "Something went wrong. Please try again.",
 };
@@ -249,25 +252,41 @@ export interface EmailChangeVerification {
   pendingNewEmail: string | null;
 }
 
-// Verifies one inbox code (current or new address) with type "email_change",
-// then re-reads Auth. Completed only when no pending change remains or the
-// canonical address equals the intended new address for the same account.
+// Which inbox a code came from: the current (canonical) address or the
+// pending new one. The addresses themselves are read from Auth, never taken
+// from the client, so a code is always paired with this account's inbox.
+export type EmailChangeInbox = "current" | "new";
+
+function sameEmail(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+// Verifies one inbox code with type "email_change", then re-reads Auth.
+// Supabase uses up an accepted code, so callers track which inbox is already
+// confirmed and never send that code again. Completed only when the same
+// account's canonical address is now the pending address and nothing is left
+// pending. intendedNewEmail (the address the form shows) guards against a
+// change that another device replaced in the meantime.
 export async function verifyEmailChangeCodeWith(
   auth: EmailChangeAuth,
-  inboxEmailInput: string,
+  inbox: EmailChangeInbox,
   codeInput: string,
   intendedNewEmailInput?: string,
 ): Promise<EmailChangeVerification> {
-  const inboxEmail = normalizeEmailChangeEmail(inboxEmailInput);
   const token = codeInput.trim();
   if (!isEmailChangeCodeFormat(token)) {
     throw new EmailChangeError("invalid_or_expired_code");
   }
 
   const before = await getEmailChangeStatus(auth);
+  const pending = before.pendingNewEmail;
+  if (!pending) throw new EmailChangeError("no_pending_change");
+  if (intendedNewEmailInput !== undefined && !sameEmail(intendedNewEmailInput, pending)) {
+    throw new EmailChangeError("no_pending_change");
+  }
 
   const { error: verifyError } = await auth.verifyOtp({
-    email: inboxEmail,
+    email: inbox === "current" ? before.email : pending,
     token,
     type: "email_change",
   });
@@ -278,23 +297,25 @@ export async function verifyEmailChangeCodeWith(
     console.error("Email change verification returned a different account.");
     throw new EmailChangeError("unknown");
   }
-
-  const intended = intendedNewEmailInput?.trim().toLowerCase() ?? after.pendingNewEmail?.toLowerCase() ?? null;
-  const completed =
-    after.pendingNewEmail === null ||
-    (intended !== null && after.email.toLowerCase() === intended);
-  return { completed, email: after.email, pendingNewEmail: after.pendingNewEmail };
+  if (after.pendingNewEmail !== null) {
+    return { completed: false, email: after.email, pendingNewEmail: after.pendingNewEmail };
+  }
+  if (!sameEmail(after.email, pending)) {
+    console.error("Email change verification left an unexpected canonical address.");
+    throw new EmailChangeError("unknown");
+  }
+  return { completed: true, email: after.email, pendingNewEmail: null };
 }
 
-// Resends the confirmation code to one inbox. Supabase enforces its own rate
-// limits; the UI cooldown is feedback only, not a security boundary.
-export async function resendEmailChangeCodeWith(
-  auth: EmailChangeAuth,
-  inboxEmailInput: string,
-): Promise<void> {
-  const inboxEmail = normalizeEmailChangeEmail(inboxEmailInput);
-  await getEmailChangeStatus(auth);
-  const { error } = await auth.resend({ type: "email_change", email: inboxEmail });
+// Resends the confirmation codes. Supabase looks the account up by its
+// current address and then issues new codes for BOTH inboxes (any earlier
+// code, or a confirmation already made, no longer counts), so there is one
+// resend for the whole change. Supabase enforces its own rate limits; the UI
+// cooldown is feedback only, not a security boundary.
+export async function resendEmailChangeCodesWith(auth: EmailChangeAuth): Promise<void> {
+  const status = await getEmailChangeStatus(auth);
+  if (!status.pendingNewEmail) throw new EmailChangeError("no_pending_change");
+  const { error } = await auth.resend({ type: "email_change", email: status.email });
   if (error) throw toEmailChangeError(error, "Email change resend");
 }
 

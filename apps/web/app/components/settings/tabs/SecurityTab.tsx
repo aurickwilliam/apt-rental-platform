@@ -6,6 +6,7 @@ import {
   IconKey,
   IconMail,
 } from "@tabler/icons-react";
+import { Separator } from "@heroui/react";
 
 import { useEmailChangeEligibility } from "@/hooks/use-email-change-eligibility";
 import { usePasswordSignInStatus } from "@/hooks/use-password-sign-in-status";
@@ -71,7 +72,7 @@ function AccountSecurity({ onChangePassword, onChangeEmail }: { onChangePassword
       <p className="mt-1 text-sm text-muted-foreground">
         Manage your account credentials.
       </p>
-      <div className="mt-3 divide-y divide-border">
+      <div className="mt-3 flex flex-col gap-1">
         <SettingsRow
           icon={<IconKey size={18} />}
           title="Change Password"
@@ -83,6 +84,7 @@ function AccountSecurity({ onChangePassword, onChangeEmail }: { onChangePassword
             ) : undefined
           }
         />
+        <Separator />
         <SettingsRow
           icon={<IconMail size={18} />}
           title="Change Email"

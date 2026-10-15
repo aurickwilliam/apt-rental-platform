@@ -4,12 +4,14 @@ import {
   getEmailChangeStatus,
   isEligibleForEmailChange,
   requestEmailChangeWith,
-  resendEmailChangeCodeWith,
+  resendEmailChangeCodesWith,
   signOutOtherSessionsAfterEmailChange,
   toEmailChangeError,
   verifyEmailChangeCodeWith,
   EmailChangeError,
+  type EmailChangeInbox,
   type EmailChangeStatus,
+  type EmailChangeVerification,
 } from "@repo/utils";
 
 import { getMySuspensionStatus } from "@/service/auth/suspensionService";
@@ -44,14 +46,18 @@ async function guardEmailChangeAction(context: string): Promise<void> {
   }
 }
 
-async function syncProfileEmail(): Promise<void> {
+// Returns whether the sync failed: the email has already changed in Auth, so
+// a failure is reported (not thrown) for honest UI copy.
+async function syncProfileEmail(): Promise<boolean> {
   const { error } = await supabase.rpc("sync_my_profile_email");
   if (error) {
     console.error("Email change profile sync failed:", {
       name: error.name,
       code: (error as { code?: string }).code,
     });
+    return true;
   }
+  return false;
 }
 
 export function getEmailChangeAccount(): Promise<EmailChangeStatus> {
@@ -64,37 +70,37 @@ export function requestEmailChange(newEmail: string, currentPassword: string) {
     .then(() => requestEmailChangeWith(supabase.auth, newEmail, currentPassword));
 }
 
-export function resendEmailChangeCode(inboxEmail: string) {
+// Supabase issues new codes for both inboxes on every resend.
+export function resendEmailChangeCodes() {
   return guardEmailChangeAction("Email change resend")
-    .then(() => resendEmailChangeCodeWith(supabase.auth, inboxEmail));
+    .then(() => resendEmailChangeCodesWith(supabase.auth));
 }
 
-export interface VerifyEmailChangeResult extends EmailChangeStatus {
-  completed: boolean;
+export interface VerifyEmailChangeResult extends EmailChangeVerification {
   signOutFailed: boolean;
+  profileSyncFailed: boolean;
 }
 
 // Verifies one inbox code. On completion the profile email is synced from the
-// canonical Auth address and other sessions end; a sign-out failure is
-// reported so the UI stays honest.
+// canonical Auth address and other sessions end; failures there are reported
+// so the UI stays honest.
 export async function verifyEmailChangeCode(
-  inboxEmail: string,
+  inbox: EmailChangeInbox,
   code: string,
   intendedNewEmail?: string,
 ): Promise<VerifyEmailChangeResult> {
   await guardEmailChangeAction("Email change verification");
   const verification = await verifyEmailChangeCodeWith(
     supabase.auth,
-    inboxEmail,
+    inbox,
     code,
     intendedNewEmail,
   );
-  const status = await getEmailChangeStatus(supabase.auth);
   if (!verification.completed) {
-    return { ...status, completed: false, signOutFailed: false };
+    return { ...verification, signOutFailed: false, profileSyncFailed: false };
   }
 
-  await syncProfileEmail();
+  const profileSyncFailed = await syncProfileEmail();
   const { signOutFailed } = await signOutOtherSessionsAfterEmailChange(supabase.auth);
-  return { ...status, completed: true, signOutFailed };
+  return { ...verification, signOutFailed, profileSyncFailed };
 }
