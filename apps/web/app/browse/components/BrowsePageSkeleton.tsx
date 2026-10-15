@@ -55,6 +55,43 @@ export function BrowseSectionsSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
+// Filter sidebar placeholder; also the fallback while the filter chunk loads.
+export function FilterPanelSkeleton() {
+  return (
+    <div aria-hidden="true" className="rounded-xl border bg-surface p-4 w-full">
+      <Skeleton className="h-10 w-full rounded-full" />
+      <Skeleton className="mt-2 h-10 w-full rounded-full" />
+      <Skeleton className="mt-5 h-5 w-28 rounded-md" />
+      <Skeleton className="mt-3 h-4 w-full rounded-md" />
+      <Skeleton className="mt-2 h-4 w-5/6 rounded-md" />
+      <Skeleton className="mt-2 h-4 w-4/6 rounded-md" />
+      <Skeleton className="mt-5 h-5 w-24 rounded-md" />
+      <Skeleton className="mt-3 h-9 w-full rounded-lg" />
+    </div>
+  );
+}
+
+// Loading state for a searched / filtered / paged browse: the results page
+// shows the filter sidebar and a flat grid, not curated section rows.
+export function BrowseResultsPageSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6" aria-busy="true">
+      <Skeleton className="h-12 w-full rounded-full md:hidden" />
+      <Skeleton className="hidden h-52 w-full rounded-xl md:block" />
+
+      <div className="mt-4 flex flex-col gap-4 md:flex-row">
+        <aside className="hidden shrink-0 self-start md:block md:w-64 lg:w-72 xl:w-80">
+          <FilterPanelSkeleton />
+        </aside>
+        <div className="w-full min-w-0 flex-1">
+          <Skeleton className="mb-3 h-5 w-24 rounded-md md:hidden" />
+          <BrowseCardsSkeleton />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Full-page loading state for /browse and /tenant/browse: mirrors discovery
 // mode (compact search on mobile, hero on desktop, full-width section rows,
 // no filter sidebar) since that is the landing users watch load.
