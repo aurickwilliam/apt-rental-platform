@@ -336,4 +336,43 @@ describe("useSearchLogic", () => {
 
     unmount();
   });
+
+  it("does not page past an empty result list", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    let query: {
+      select: jest.Mock;
+      is: jest.Mock;
+      eq: jest.Mock;
+      in: jest.Mock;
+      range: jest.Mock;
+      order: jest.Mock;
+    };
+    query = {
+      select: jest.fn(() => query),
+      is: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      in: jest.fn(() => query),
+      range: jest.fn(() => query),
+      order: jest.fn(),
+    };
+    query.order.mockReturnValue(query);
+    // The first page is empty; any further page would be a PGRST103 error.
+    (query as unknown as { then: unknown }).then = (resolve: (value: unknown) => void) =>
+      resolve({ data: [], error: null, count: 0 });
+    mockFrom.mockReturnValue(query);
+
+    const { result, unmount } = renderHook(() => useSearchLogic());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(query.range).not.toHaveBeenCalledWith(10, 19);
+    expect(consoleError).not.toHaveBeenCalled();
+
+    consoleError.mockRestore();
+    unmount();
+  });
 });
