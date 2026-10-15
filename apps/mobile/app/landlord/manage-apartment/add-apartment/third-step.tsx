@@ -121,7 +121,6 @@ export default function ThirdStep() {
       header={
       <ApplicationHeader
         currentTitle="Pricing & Terms"
-        nextTitle="Description & Amenities"
         step={3}
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}

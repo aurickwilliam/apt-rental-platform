@@ -351,7 +351,6 @@ export default function SecondStep() {
       header={
       <ApplicationHeader
         currentTitle={"Basic Info"}
-        nextTitle={"Pricing & Terms"}
         step={2}
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}

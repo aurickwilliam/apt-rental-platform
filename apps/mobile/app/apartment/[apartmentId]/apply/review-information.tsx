@@ -79,7 +79,6 @@ export default function ReviewInformation() {
       header={
       <ApplicationHeader
         currentTitle="Review Application"
-        nextTitle="Submit Application"
         step={3}
       />
       }

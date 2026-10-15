@@ -65,7 +65,6 @@ export default function FourthStep() {
       header={
       <ApplicationHeader
         currentTitle={"Description & Amenities"}
-        nextTitle={"Preview & Publish"}
         step={4}
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}

@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface ApplicationHeaderProps {
   currentTitle: string,
-  nextTitle: string,
   step: number,
   totalSteps?: number,
   /** Short name per step, shown under the bar ("Photos", "Info", ...). */
@@ -25,7 +24,6 @@ interface ApplicationHeaderProps {
 
 export default function ApplicationHeader({
   currentTitle,
-  nextTitle,
   step = 1,
   totalSteps = 3,
   stepLabels,
@@ -136,10 +134,6 @@ export default function ApplicationHeader({
           )
         })}
       </View>
-
-      <Text className='text-sm font-nunitoSemiBold text-muted'>
-        Next: {nextTitle}
-      </Text>
     </View>
   )
 }

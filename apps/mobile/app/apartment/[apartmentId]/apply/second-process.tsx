@@ -130,7 +130,6 @@ export default function SecondProcess() {
       header={
       <ApplicationHeader
         currentTitle="Rental Preferences"
-        nextTitle="Review Application"
         step={2}
       />
       }

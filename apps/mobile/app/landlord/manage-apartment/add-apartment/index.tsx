@@ -84,7 +84,6 @@ export default function Index() {
       header={
       <ApplicationHeader
         currentTitle='Photos & Title'
-        nextTitle='Basic Info'
         step={1}
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}

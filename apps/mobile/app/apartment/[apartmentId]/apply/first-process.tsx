@@ -203,7 +203,6 @@ export default function FirstProcess() {
       header={
       <ApplicationHeader
         currentTitle="Tenant Information"
-        nextTitle="Rental Preferences"
         step={1}
       />
       }
