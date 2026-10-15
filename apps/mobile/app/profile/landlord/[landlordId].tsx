@@ -19,6 +19,7 @@ import { Button, SkeletonGroup } from "heroui-native"
 
 import { usePublicLandlordProfile } from 'hooks/profiles'
 import { useColors } from 'hooks/useTheme'
+import { getInquiryConversationId } from '@/service/chat/chatRoutes'
 
 import {
   IconFlag,
@@ -91,11 +92,10 @@ export default function PublicLandlordProfile() {
   const handleMessageLandlord = () => {
     if (!resolvedLandlordId) return;
 
-    // Use the same ID format as ApartmentScreen when apartmentId is available,
-    // otherwise fall back to the generic one
-    const conversationId = resolvedApartmentId
-      ? `inquiry-${resolvedApartmentId}-${resolvedLandlordId}`
-      : `inquiry-${resolvedLandlordId}`;
+    const conversationId = getInquiryConversationId(
+      resolvedLandlordId,
+      resolvedApartmentId,
+    );
 
     router.push({
       pathname: '/chat/[conversationId]',

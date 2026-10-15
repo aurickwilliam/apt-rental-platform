@@ -46,6 +46,7 @@ export default async function Home() {
     `)
     .eq('is_hidden_by_admin', false)
     .is('deleted_at', null)
+    .in("status", ["available", "unverified"])
     .limit(10)
     .order('created_at', { ascending: false });
 

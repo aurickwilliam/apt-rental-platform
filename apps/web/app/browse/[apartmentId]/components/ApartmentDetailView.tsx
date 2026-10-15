@@ -83,6 +83,7 @@ export default async function ApartmentDetailView({
       .select('id, name, city, monthly_rent, average_rating, apartment_images(url, url_thumb, is_cover)')
       .eq('city', apartment.city)
       .neq('id', apartmentId)
+      .in("status", ["available", "unverified"])
       .eq('is_hidden_by_admin', false)
       .is('deleted_at', null)
       .limit(10),
@@ -239,6 +240,7 @@ export default async function ApartmentDetailView({
         <div className="w-full lg:w-1/3 min-w-0 flex flex-col gap-4 sm:gap-5">
           <PriceCard
             price={apartment.monthly_rent}
+            apartmentStatus={apartment.status}
             securityDeposit={apartment.security_deposit ?? undefined}
             advancePayment={apartment.advance_rent ?? undefined}
             apartmentId={apartment.id}

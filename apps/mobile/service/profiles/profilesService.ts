@@ -71,6 +71,7 @@ export async function fetchPublicLandlordProfile(
     .eq("landlord_id", landlordId)
     .is("deleted_at", null)
     .eq("is_hidden_by_admin", false)
+    .in("status", ["available", "unverified"])
     .order("created_at", { ascending: false });
 
   if (aptError) {
