@@ -1,27 +1,24 @@
 "use client";
 
-import { IconPlus } from "@tabler/icons-react";
-
 import { QUICK_REACTIONS } from "./reactionEmojis";
 
 interface ReactionStripProps {
   /** The current user's reaction, if any (highlighted) */
   myReaction?: string;
   onSelect?: (emoji: string) => void;
-  /** Open the full emoji picker */
-  onOpenFullPicker?: () => void;
   /** Renders inline without the floating pill surface (used in the context menu) */
   bare?: boolean;
 }
 
 /**
- * Quick-reaction row. `bare` renders the same row without the floating pill
- * styling, for inline use inside the message context menu.
+ * Quick-reaction row. This is the whole reaction surface — the quick set only,
+ * no full catalogue — so the strip is intentionally the only entry point.
+ * `bare` renders the same row without the floating pill styling, for inline use
+ * inside the message context menu.
  */
 export default function ReactionStrip({
   myReaction,
   onSelect,
-  onOpenFullPicker,
   bare = false,
 }: ReactionStripProps) {
   if (bare) {
@@ -40,14 +37,6 @@ export default function ReactionStrip({
             <span className="text-base leading-6">{emoji}</span>
           </button>
         ))}
-        <button
-          type="button"
-          onClick={onOpenFullPicker}
-          aria-label="More reactions"
-          className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <IconPlus size={16} aria-hidden="true" />
-        </button>
       </div>
     );
   }
@@ -67,14 +56,6 @@ export default function ReactionStrip({
           <span className="text-xl leading-7">{emoji}</span>
         </button>
       ))}
-      <button
-        type="button"
-        onClick={onOpenFullPicker}
-        aria-label="More reactions"
-        className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      >
-        <IconPlus size={18} aria-hidden="true" />
-      </button>
     </div>
   );
 }

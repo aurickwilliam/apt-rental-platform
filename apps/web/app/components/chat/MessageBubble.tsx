@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconPaperclip, IconPhoto, IconPlayerPlay } from "@tabler/icons-react";
 
+import { attachmentDisplayUrl, hasAttachment } from "./attachments";
 import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
@@ -14,7 +15,6 @@ interface MessageBubbleProps {
   onToggleReaction: (messageId: string, emoji: string) => void | Promise<void>;
   onReply: (message: ChatMessage) => void;
   onOpenContextMenu: (position: { x: number; y: number }) => void;
-  onOpenEmojiPicker: () => void;
 }
 
 /**
@@ -29,7 +29,6 @@ export default function MessageBubble({
   onToggleReaction,
   onReply,
   onOpenContextMenu,
-  onOpenEmojiPicker,
 }: MessageBubbleProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [stripPlacement, setStripPlacement] = useState<"above" | "below">("above");
@@ -90,6 +89,9 @@ export default function MessageBubble({
 
   useEffect(() => () => cancelPress(), []);
 
+  const mediaUrl = attachmentDisplayUrl(message);
+  const showsAttachment = hasAttachment(message);
+
   const hasReply = message.replyDeleted || !!message.replyTo;
   const replierLabel = hasReply
     ? isMine
@@ -137,8 +139,11 @@ export default function MessageBubble({
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-card">
                 {message.replyTo.messageType === "video" ? (
                   <IconPlayerPlay size={14} className="text-muted-foreground" aria-hidden="true" />
-                ) : (
+                ) : message.replyTo.messageType === "image" ||
+                  message.replyTo.messageType === "gif" ? (
                   <IconPhoto size={14} className="text-muted-foreground" aria-hidden="true" />
+                ) : (
+                  <IconPaperclip size={14} className="text-muted-foreground" aria-hidden="true" />
                 )}
               </span>
               <span className="line-clamp-2 flex-1 text-sm text-muted-foreground">
@@ -170,7 +175,6 @@ export default function MessageBubble({
           <ReactionStrip
             myReaction={myReaction}
             onSelect={(emoji) => void onToggleReaction(message.id, emoji)}
-            onOpenFullPicker={onOpenEmojiPicker}
           />
         </div>
       )}
@@ -196,8 +200,11 @@ export default function MessageBubble({
             : "bg-card text-foreground border border-border rounded-tl-none"
         } ${canInteract ? "cursor-pointer" : ""}`}
       >
+        {mediaUrl && showsAttachment ? (
+          <AttachmentBody message={message} url={mediaUrl} />
+        ) : null}
         {message.message && <p className="text-sm break-words">{message.message}</p>}
-        {!message.message && (
+        {!message.message && !showsAttachment && (
           <span className="flex items-center gap-2 text-sm">
             <IconPaperclip size={16} aria-hidden="true" />
             Attachment
@@ -217,6 +224,54 @@ export default function MessageBubble({
         {message.isPending ? "Sending…" : formatTime(message.created_at)}
       </span>
     </div>
+  );
+}
+
+/**
+ * Attachment content. Images and GIFs render inline; video gets real controls
+ * because it can't autoplay usefully in a chat bubble. A caption sits above
+ * the media when the message also carries text.
+ */
+function AttachmentBody({
+  message,
+  url,
+}: {
+  message: ChatMessage;
+  url: string;
+}) {
+  const isVideo = message.message_type === "video";
+
+  return (
+    <span className="block">
+      {/* A media-only message needs no padding, so the bubble hugs the media. */}
+      <span
+        className={`block overflow-hidden ${
+          message.message ? "mb-1.5 rounded-xl" : "-mx-3 -my-2"
+        }`}
+      >
+        {isVideo ? (
+          <video
+            src={url}
+            controls
+            preload="metadata"
+            className="max-h-80 w-full bg-black object-cover"
+          >
+            <track kind="captions" />
+          </video>
+        ) : (
+          // Signed URL with a 60-minute TTL. `next/image` would cache the
+          // optimized copy past expiry and then re-fetch a dead URL, so this
+          // follows the plain-`<img>` convention used for private storage.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={message.message ?? "Shared image"}
+            loading="lazy"
+            className="max-h-80 w-full object-cover"
+          />
+        )}
+      </span>
+    </span>
   );
 }
 

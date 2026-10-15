@@ -19,7 +19,6 @@ interface MessageContextMenuProps {
   data: MessageContextMenuData;
   position: { x: number; y: number };
   onSelectReaction: (emoji: string) => void;
-  onOpenFullPicker: () => void;
   onReply: () => void;
   onCopy: () => void;
   onClose: () => void;
@@ -37,13 +36,12 @@ export default function MessageContextMenu({
   data,
   position,
   onSelectReaction,
-  onOpenFullPicker,
   onReply,
   onCopy,
   onClose,
 }: MessageContextMenuProps) {
   const CARD_WIDTH = 224;
-  const CARD_ESTIMATED_HEIGHT = data.canReact ? 208 : 128;
+  const CARD_ESTIMATED_HEIGHT = data.canReact ? 136 : 128;
 
   // Flip toward the viewport interior when the click lands near an edge.
   const left = Math.max(
@@ -82,7 +80,6 @@ export default function MessageContextMenu({
                 bare
                 myReaction={data.myReaction}
                 onSelect={onSelectReaction}
-                onOpenFullPicker={onOpenFullPicker}
               />
             </div>
             <div className="mx-2 my-1 h-px bg-border opacity-75" />

@@ -8,7 +8,6 @@ import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "./MessageInput";
 import { Contact } from "./types";
 import UserAvatar from "@/app/components/profile/UserAvatar";
-import EmojiPicker from "@/app/components/chat/EmojiPicker";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
@@ -49,11 +48,6 @@ export default function ConversationView({
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
   const [isContactTyping, setIsContactTyping] = useState(false);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
-  // The message the full picker is reacting to. Held separately from
-  // `contextMenu` so the picker can be the only overlay on screen — the
-  // context menu's dismiss layer would otherwise sit on top of the modal.
-  const [emojiPickerTarget, setEmojiPickerTarget] = useState<ChatMessage | null>(null);
   const channelRef = useRef<ReturnType<
     ReturnType<typeof useConversation>["supabase"]["channel"]
   > | null>(null);
@@ -67,6 +61,8 @@ export default function ConversationView({
     replyTarget,
     contextMenu,
     sendMessage,
+    sendAttachments,
+    sendGif,
     toggleReaction,
     handleReply,
     clearReply,
@@ -82,23 +78,6 @@ export default function ConversationView({
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  // Opening the picker always dismisses the context menu first, so only one
-  // overlay is ever mounted and the modal is never fighting a stale
-  // `fixed inset-0` layer for clicks.
-  const openEmojiPicker = useCallback(
-    (message: ChatMessage) => {
-      setEmojiPickerTarget(message);
-      closeContextMenu();
-      setIsEmojiPickerOpen(true);
-    },
-    [closeContextMenu]
-  );
-
-  const closeEmojiPicker = useCallback(() => {
-    setIsEmojiPickerOpen(false);
-    setEmojiPickerTarget(null);
-  }, []);
 
   // Mark incoming messages as read when this conversation is opened
   useEffect(() => {
@@ -321,7 +300,6 @@ export default function ConversationView({
                   onToggleReaction={toggleReaction}
                   onReply={handleReply}
                   onOpenContextMenu={(position) => openContextMenu(msg, position)}
-                  onOpenEmojiPicker={() => openEmojiPicker(msg)}
                 />
               ))
             )}
@@ -342,6 +320,11 @@ export default function ConversationView({
       <MessageInput
         onSend={handleSend}
         onTypingChange={handleTypingChange}
+        onSendAttachments={sendAttachments}
+        onSendGif={sendGif}
+        onError={(message) =>
+          setSendError({ key: activeContact?.conversationKey ?? "", message })
+        }
         replyTarget={replyTarget}
         replyLabel={
           replyTarget
@@ -369,7 +352,6 @@ export default function ConversationView({
             void toggleReaction(contextMenu.message.id, emoji);
             closeContextMenu();
           }}
-          onOpenFullPicker={() => openEmojiPicker(contextMenu.message)}
           onReply={() => {
             handleReply(contextMenu.message);
             closeContextMenu();
@@ -382,14 +364,6 @@ export default function ConversationView({
           onClose={closeContextMenu}
         />
       )}
-
-      <EmojiPicker
-        isOpen={isEmojiPickerOpen && emojiPickerTarget !== null}
-        onClose={closeEmojiPicker}
-        onEmojiSelected={(emoji) => {
-          if (emojiPickerTarget) void toggleReaction(emojiPickerTarget.id, emoji);
-        }}
-      />
     </div>
   );
 }

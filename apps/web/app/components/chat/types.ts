@@ -42,4 +42,22 @@ export interface ChatMessage {
   reactions: MessageReaction[];
   /** Optimistic rows get a `temp-` id and can neither react nor be replied to. */
   isPending?: boolean;
+
+  // ─── Attachments ─────────────────────────────────────────────────────────
+  // Mirrors the `chat` attachment columns. Only one of `attachment_path`
+  // (private `chat-images` object) or `attachment_url` (external CDN, used by
+  // GIFs) is set — exactly the split mobile's `chatService` writes.
+  attachment_path?: string | null;
+  /** External media URL (Giphy CDN). Rendered directly; never signed. */
+  attachment_url?: string | null;
+  attachment_mime_type?: string | null;
+  attachment_thumbnail_path?: string | null;
+  /** Batches a multi-file send into one visual group. */
+  group_id?: string | null;
+  /**
+   * Resolved signed URL for `attachment_path`, produced at read time. Never
+   * persisted. Optimistic rows carry the local object URL here instead so a
+   * pending attachment previews before the upload lands.
+   */
+  resolvedUrl?: string | null;
 }
