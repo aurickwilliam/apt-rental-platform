@@ -352,8 +352,8 @@ export default function MyRental() {
           descriptionHref={`/tenant/browse/${apartment.id}`}
         />
 
-        <div className="grid gap-3 lg:grid-cols-3">
-          <div className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white lg:col-span-2">
+        <div className="grid gap-3 lg:grid-cols-[2fr_1fr]">
+          <div className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white">
             <div className="relative flex h-full flex-col">
               {isPeriodPaid ? (
                 <>
