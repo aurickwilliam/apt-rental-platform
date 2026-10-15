@@ -4,6 +4,11 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import {
+  ADD_APARTMENT_STEP_HREFS,
+  ADD_APARTMENT_STEP_LABELS,
+  ADD_APARTMENT_TOTAL_STEPS,
+} from "constants/addApartmentSteps";
 
 import {
   TextField,
@@ -59,7 +64,9 @@ export default function FourthStep() {
         currentTitle={"Description & Amenities"}
         nextTitle={"Preview & Publish"}
         step={4}
-        totalSteps={5}
+        totalSteps={ADD_APARTMENT_TOTAL_STEPS}
+        stepLabels={ADD_APARTMENT_STEP_LABELS}
+        stepHrefs={ADD_APARTMENT_STEP_HREFS}
       />
 
       <View className="p-5 flex-1">

@@ -21,6 +21,11 @@ import {
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import {
+  ADD_APARTMENT_STEP_HREFS,
+  ADD_APARTMENT_STEP_LABELS,
+  ADD_APARTMENT_TOTAL_STEPS,
+} from "constants/addApartmentSteps";
 import PerkItem from "components/display/PerkItem";
 import LandlordCard from "components/cards/LandlordCard";
 
@@ -162,7 +167,9 @@ export default function FifthStep() {
         currentTitle={"Preview & Publish"}
         nextTitle={"Publish the Apartment"}
         step={5}
-        totalSteps={5}
+        totalSteps={ADD_APARTMENT_TOTAL_STEPS}
+        stepLabels={ADD_APARTMENT_STEP_LABELS}
+        stepHrefs={ADD_APARTMENT_STEP_HREFS}
       />
 
       <View className="h-168 bg-background relative">
