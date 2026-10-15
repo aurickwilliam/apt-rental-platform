@@ -17,7 +17,7 @@ import {
   IconHeart,
   IconHeartFilled,
   IconChevronLeft,
-  IconShare,
+  IconShare2,
 } from "@tabler/icons-react-native";
 
 import {
@@ -31,10 +31,10 @@ import {
   MoveInCostFooter,
   ApartmentSkeleton,
   ApartmentDetailsSection,
+  APARTMENT_HERO_HEIGHT,
 } from "./components";
 
 import { useApartmentDetails } from "@/hooks/apartments";
-import type { ApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 import { useLightStatusBar } from "@/hooks/useLightStatusBar";
@@ -42,25 +42,11 @@ import { useReviewEligibility } from "@/hooks/ratings";
 import { useCurrentUserId } from "@/hooks/auth";
 import { getInquiryConversationId } from "@/service/chat/chatRoutes";
 import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
+import { getApplyDisabledReason } from "@/service/apartments/applyEligibility";
 
 import { Button } from "heroui-native";
 
-function getApplyDisabledReason(
-  apartment: ApartmentDetails | null,
-  currentUserId: string | null,
-): string | null {
-  if (!apartment) return null;
-  if (currentUserId && apartment.landlord?.id === currentUserId) {
-    return "Your Listing";
-  }
-  if (apartment.status === "occupied" || apartment.status === "under_maintenance") {
-    return "Not Available";
-  }
-  return null;
-}
-
-// Matches the hero's `h-168` (672px) and the floating button row below the status bar.
-const HERO_HEIGHT = 672;
+// Height of the floating back/share/favorite row below the status bar.
 const FLOATING_BUTTONS_HEIGHT = 56;
 
 export default function ApartmentScreen() {
@@ -104,22 +90,28 @@ export default function ApartmentScreen() {
   };
 
   const applyDisabledReason = getApplyDisabledReason(
-    apartment,
+    apartment && { status: apartment.status, landlordId: apartment.landlord?.id },
     currentUserId,
   );
 
-  // White status-bar icons while the hero photo sits behind them.
-  useLightStatusBar(!isPastHero);
+  // White status-bar icons only while a hero photo sits behind them; the
+  // skeleton, error screen and photo-less hero have light backgrounds.
+  useLightStatusBar(apartmentImages.length > 0 && !isPastHero);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const pastHero =
       event.nativeEvent.contentOffset.y >
-      HERO_HEIGHT - insets.top - FLOATING_BUTTONS_HEIGHT;
+      APARTMENT_HERO_HEIGHT - insets.top - FLOATING_BUTTONS_HEIGHT;
     setIsPastHero((current) => (current === pastHero ? current : pastHero));
   };
 
   const handleJumpToRatings = () => {
-    scrollRef.current?.scrollTo({ y: ratingsOffsetY.current, animated: true });
+    // Leave the section header clear of the status bar and floating buttons.
+    const y = Math.max(
+      0,
+      ratingsOffsetY.current - insets.top - FLOATING_BUTTONS_HEIGHT,
+    );
+    scrollRef.current?.scrollTo({ y, animated: true });
   };
 
   const handleShare = async () => {
@@ -127,10 +119,7 @@ export default function ApartmentScreen() {
 
     try {
       await Share.share({
-        message: buildApartmentShareMessage(
-          apartment,
-          process.env.EXPO_PUBLIC_WEB_URL,
-        ),
+        message: buildApartmentShareMessage(apartment),
       });
     } catch (shareError) {
       console.error("Failed to share apartment", shareError);
@@ -310,7 +299,7 @@ export default function ApartmentScreen() {
           isDisabled={!apartment}
           accessibilityLabel="Share apartment"
         >
-          <IconShare size={24} color={colors.secondaryForeground} />
+          <IconShare2 size={24} color={colors.secondaryForeground} />
         </Button>
         <Button
           onPress={() => void handleFavoriteToggle()}

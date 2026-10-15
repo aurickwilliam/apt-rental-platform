@@ -1,5 +1,10 @@
 import { formatPesoDisplay } from "@repo/utils";
 
+/** Public web address of the site (`EXPO_PUBLIC_WEB_URL`), if configured. */
+export function getShareWebBaseUrl(): string | undefined {
+  return process.env.EXPO_PUBLIC_WEB_URL;
+}
+
 export interface ApartmentShareInput {
   id: string;
   name?: string | null;
@@ -14,7 +19,7 @@ export interface ApartmentShareInput {
  */
 export function buildApartmentShareMessage(
   apartment: ApartmentShareInput,
-  webBaseUrl?: string | null,
+  webBaseUrl: string | null | undefined = getShareWebBaseUrl(),
 ): string {
   const title = apartment.name?.trim() || "an apartment";
   const details = [

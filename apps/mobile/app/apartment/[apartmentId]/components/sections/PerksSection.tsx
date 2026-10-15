@@ -20,8 +20,10 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
   const { colors } = useColors();
   const router = useRouter();
 
-  const hasPerks = (amenities?.length ?? 0) > 0;
-  const displayAmenities = amenities?.slice(0, PERKS_LIMIT);
+  // A listing can repeat an amenity; show (and key) each one once.
+  const uniqueAmenities = Array.from(new Set(amenities ?? []));
+  const hasPerks = uniqueAmenities.length > 0;
+  const displayAmenities = uniqueAmenities.slice(0, PERKS_LIMIT);
 
   return (
     <SectionCard>
@@ -30,7 +32,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
         title="Included Perks"
         subtitle="These are already included in your rent."
         action={
-          (amenities?.length ?? 0) > PERKS_LIMIT ? (
+          uniqueAmenities.length > PERKS_LIMIT ? (
             <SeeAllButton
               onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
             />
@@ -41,7 +43,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
 
       <View className='flex-row flex-wrap mt-5 -mb-4'>
         {hasPerks ? (
-          displayAmenities?.map((amenity) => (
+          displayAmenities.map((amenity) => (
             <View key={amenity} className='w-1/2 mb-4'>
               <PerkItem perkId={amenity} />
             </View>

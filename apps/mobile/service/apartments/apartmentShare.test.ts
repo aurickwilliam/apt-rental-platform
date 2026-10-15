@@ -11,13 +11,13 @@ describe("buildApartmentShareMessage", () => {
   });
 
   it("adds the web link only when a base URL is configured", () => {
-    expect(buildApartmentShareMessage(apartment)).not.toContain("http");
+    expect(buildApartmentShareMessage(apartment, null)).not.toContain("http");
     expect(buildApartmentShareMessage(apartment, "https://apt.example/")).toContain(
       "https://apt.example/browse/apt-1",
     );
   });
 
   it("falls back when the name is missing", () => {
-    expect(buildApartmentShareMessage({ id: "x" })).toBe("Check out an apartment on APT");
+    expect(buildApartmentShareMessage({ id: "x" }, null)).toBe("Check out an apartment on APT");
   });
 });

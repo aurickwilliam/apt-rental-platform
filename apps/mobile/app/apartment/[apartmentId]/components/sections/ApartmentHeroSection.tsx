@@ -36,6 +36,9 @@ type ApartmentHeroSectionProps = {
   onRatingPress?: () => void;
 };
 
+// Shared with the screen's scroll logic and the loading skeleton (672px).
+export const APARTMENT_HERO_HEIGHT = 672;
+
 // Dark scrim behind the white hero text and the floating buttons (DESIGN.md: RentalHero).
 const BOTTOM_SCRIM_COLORS = ['transparent', 'rgba(0, 0, 0, 0.9)'] as const;
 const TOP_SCRIM_COLORS = ['rgba(0, 0, 0, 0.45)', 'transparent'] as const;
@@ -78,7 +81,10 @@ export default function ApartmentHeroSection({
   };
 
   return (
-    <View className='h-168 bg-surface-tertiary relative'>
+    <View
+      className='bg-surface-tertiary relative'
+      style={{ height: APARTMENT_HERO_HEIGHT }}
+    >
       {images.length === 0 && (
         <View className='absolute inset-x-0 top-0 h-1/2 items-center justify-center gap-2'>
           <IconBuilding size={48} color={colors.gray400} strokeWidth={1.5} />

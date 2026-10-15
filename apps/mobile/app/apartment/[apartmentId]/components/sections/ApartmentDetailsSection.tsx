@@ -33,20 +33,24 @@ export default function ApartmentDetailsSection({
 }: ApartmentDetailsSectionProps) {
   const detailData = [
     {
+      key: 'occupants',
       icon: IconUsers,
       value: apartment?.max_occupants
         ? `Max ${apartment.max_occupants} ${apartment.max_occupants === 1 ? 'Occupant' : 'Occupants'}`
         : 'N/A'
     },
     {
+      key: 'floor',
       icon: IconBuilding,
       value: apartment?.floor_level ? apartment.floor_level : 'N/A'
     },
     {
+      key: 'type',
       icon: IconHome,
       value: apartment?.type || 'N/A'
     },
     {
+      key: 'duration',
       icon: IconCalendar,
       value: apartment?.lease_duration || 'N/A'
     }
@@ -56,7 +60,7 @@ export default function ApartmentDetailsSection({
     <View className='px-5 flex-row flex-wrap'>
       {
         detailData.map((detail) => (
-          <View key={detail.value} className='w-1/2 pr-2'>
+          <View key={detail.key} className='w-1/2 pr-2'>
             <DetailBlock
               Icon={detail.icon}
               value={detail.value}

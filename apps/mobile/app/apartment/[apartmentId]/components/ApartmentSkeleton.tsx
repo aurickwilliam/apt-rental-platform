@@ -4,12 +4,17 @@ import { SkeletonGroup } from "heroui-native";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 
+import { APARTMENT_HERO_HEIGHT } from "./sections/ApartmentHeroSection";
+
 export default function ApartmentSkeleton() {
   return (
     <View className="flex-1">
       <ScreenWrapper scrollable bottomPadding={100} noTopPadding>
         <SkeletonGroup isLoading>
-          <View className="h-168 bg-surface-secondary p-5 justify-end">
+          <View
+            className="bg-surface-secondary p-5 justify-end"
+            style={{ height: APARTMENT_HERO_HEIGHT }}
+          >
             <View className="gap-3">
               <SkeletonGroup.Item className="h-8 w-3/4 rounded-xl" />
               <SkeletonGroup.Item className="h-5 w-11/12 rounded-xl" />

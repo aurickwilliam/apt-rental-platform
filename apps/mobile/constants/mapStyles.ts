@@ -4,7 +4,6 @@ import type { MapStyleElement } from 'react-native-maps';
 // `customMapStyle` on the Google provider, so it works on iOS and Android.
 export const DARK_MAP_STYLE: MapStyleElement[] = [
   { elementType: 'geometry', stylers: [{ color: '#1c1c1e' }] },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#9ca3af' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#1c1c1e' }] },
   { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#3a3a3c' }] },
