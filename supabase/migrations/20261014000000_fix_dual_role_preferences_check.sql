@@ -13,6 +13,7 @@
 do $$
 declare
   v_count integer;
+  v_definition text;
 begin
   if not exists (
     select 1 from pg_constraint
@@ -20,6 +21,22 @@ begin
       and conrelid = 'public.users'::regclass
   ) then
     raise exception 'Expected constraint preferences_only_for_tenants on public.users is missing; audit before migrating.';
+  end if;
+
+  -- Confirm the installed definition is exactly the legacy rule this
+  -- migration replaces (landlord ⇒ null preferences, no tenant awareness).
+  -- Whitespace-normalized for cross-version stability; aborts on anything
+  -- else — including an already-fixed definition — instead of silently
+  -- reverting another change (e.g. from newer out-of-band migrations).
+  select pg_get_constraintdef(oid) into v_definition from pg_constraint
+  where conname = 'preferences_only_for_tenants'
+    and conrelid = 'public.users'::regclass;
+  v_definition := lower(regexp_replace(v_definition, '\s+', ' ', 'g'));
+  if v_definition not like '%landlord%preferences is null%' then
+    raise exception 'Unexpected preferences_only_for_tenants definition: %. Audit before migrating.', v_definition;
+  end if;
+  if v_definition like '%tenant%' then
+    raise exception 'preferences_only_for_tenants already handles tenant roles; this migration is superseded. Audit before migrating.';
   end if;
 
   select count(*) into v_count
