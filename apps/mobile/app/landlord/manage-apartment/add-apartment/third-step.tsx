@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
 import UploadFileField from "components/inputs/UploadFileField";
+import DropdownField from "components/inputs/DropdownField";
 
 import {
   Input,
@@ -17,42 +18,52 @@ import {
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 
-import { calcMoveInCost, formatPesoDisplay, handlePesoChange } from "@repo/utils";
+import {
+  ADVANCE_RENT_MONTH_OPTIONS,
+  SECURITY_DEPOSIT_MONTH_OPTIONS,
+  calcMoveInCost,
+  formatPesoDisplay,
+  formatPricingMonths,
+  handlePesoChange,
+  pricingAmountFromMonths,
+  validateApartmentPricing,
+} from "@repo/utils";
 
 type FieldErrors = {
   monthlyRent?: string;
   rentDueDay?: string;
-  securityDeposit?: string;
-  advanceRent?: string;
+  securityDepositMonths?: string;
+  advanceRentMonths?: string;
   leaseAgreement?: string;
 };
 
 function validate(values: {
   monthlyRent: string;
   rentDueDay: string;
-  securityDeposit: string;
-  advanceRent: string;
+  securityDepositMonths: number;
+  advanceRentMonths: number;
   leaseAgreement: string;
 }): FieldErrors {
-  const errors: FieldErrors = {};
-
-  if (!values.monthlyRent.trim() || Number(values.monthlyRent) <= 0)
-    errors.monthlyRent = "Monthly rent must be greater than 0.";
-
-  const dueDay = Number(values.rentDueDay);
-  if (!values.rentDueDay.trim() || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31)
-    errors.rentDueDay = "Enter a day between 1 and 31.";
-
-  if (values.securityDeposit.trim() && Number(values.securityDeposit) <= 0)
-    errors.securityDeposit = "Security deposit must be greater than 0.";
-
-  if (values.advanceRent.trim() && Number(values.advanceRent) <= 0)
-    errors.advanceRent = "Advance rent must be greater than 0.";
+  const errors: FieldErrors = validateApartmentPricing({
+    monthlyRent: values.monthlyRent.trim() ? Number(values.monthlyRent) : Number.NaN,
+    securityDepositMonths: values.securityDepositMonths,
+    advanceRentMonths: values.advanceRentMonths,
+    rentDueDay: values.rentDueDay.trim() ? Number(values.rentDueDay) : null,
+  });
 
   if (!values.leaseAgreement)
     errors.leaseAgreement = "Please upload a lease agreement.";
 
   return errors;
+}
+
+/** Month options shown as "None", "1 month", "2 months". */
+function monthLabels(options: readonly number[]): string[] {
+  return options.map(formatPricingMonths);
+}
+
+function monthsFromLabel(options: readonly number[], label: string | null): number {
+  return options.find((months) => formatPricingMonths(months) === label) ?? 0;
 }
 
 export default function ThirdStep() {
@@ -63,8 +74,8 @@ export default function ThirdStep() {
   const {
     monthlyRent,
     rentDueDay,
-    securityDeposit,
-    advanceRent,
+    securityDepositMonths,
+    advanceRentMonths,
     leaseAgreement,
     setField,
   } = useApartmentFormStore();
@@ -77,8 +88,8 @@ export default function ThirdStep() {
     const validationErrors = validate({
       monthlyRent,
       rentDueDay,
-      securityDeposit,
-      advanceRent,
+      securityDepositMonths,
+      advanceRentMonths,
       leaseAgreement,
     });
     if (Object.keys(validationErrors).length > 0) {
@@ -88,6 +99,9 @@ export default function ThirdStep() {
     router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
+  const rentAmount = Number(monthlyRent) || 0;
+  const securityDeposit = pricingAmountFromMonths(rentAmount, securityDepositMonths);
+  const advanceRent = pricingAmountFromMonths(rentAmount, advanceRentMonths);
   const totalMoveInCost = calcMoveInCost(monthlyRent, securityDeposit, advanceRent);
 
   return (
@@ -130,35 +144,29 @@ export default function ThirdStep() {
             {errors.rentDueDay && <FieldError>{errors.rentDueDay}</FieldError>}
           </TextField>
 
-          <TextField isInvalid={!!errors.securityDeposit}>
-            <Label>Security Deposit:</Label>
-            <Input
-              placeholder="Enter security deposit"
-              value={formatPesoDisplay(securityDeposit)}
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const { raw } = handlePesoChange(text);
-                setField("securityDeposit", raw);
-                clearError("securityDeposit");
-              }}
-            />
-            {errors.securityDeposit && <FieldError>{errors.securityDeposit}</FieldError>}
-          </TextField>
+          <DropdownField
+            label="Security Deposit:"
+            bottomSheetLabel="Security Deposit"
+            options={monthLabels(SECURITY_DEPOSIT_MONTH_OPTIONS)}
+            value={formatPricingMonths(securityDepositMonths)}
+            onSelect={(label) => {
+              setField("securityDepositMonths", monthsFromLabel(SECURITY_DEPOSIT_MONTH_OPTIONS, label));
+              clearError("securityDepositMonths");
+            }}
+            error={errors.securityDepositMonths}
+          />
 
-          <TextField isInvalid={!!errors.advanceRent}>
-            <Label>Advance Rent:</Label>
-            <Input
-              placeholder="Enter advance rent"
-              value={formatPesoDisplay(advanceRent)}
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const { raw } = handlePesoChange(text);
-                setField("advanceRent", raw);
-                clearError("advanceRent");
-              }}
-            />
-            {errors.advanceRent && <FieldError>{errors.advanceRent}</FieldError>}
-          </TextField>
+          <DropdownField
+            label="Advance Rent:"
+            bottomSheetLabel="Advance Rent"
+            options={monthLabels(ADVANCE_RENT_MONTH_OPTIONS)}
+            value={formatPricingMonths(advanceRentMonths)}
+            onSelect={(label) => {
+              setField("advanceRentMonths", monthsFromLabel(ADVANCE_RENT_MONTH_OPTIONS, label));
+              clearError("advanceRentMonths");
+            }}
+            error={errors.advanceRentMonths}
+          />
 
           {/* Total Move-in Cost */}
           {!!monthlyRent && (

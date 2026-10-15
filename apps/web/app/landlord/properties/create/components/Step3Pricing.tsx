@@ -2,8 +2,16 @@
 import { useRef } from "react";
 import { NumberField, Button, Label, Description, FieldError, Select, ListBox } from "@heroui/react";
 import { IconFileText, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  ADVANCE_RENT_MONTH_OPTIONS,
+  MAX_RENT_DUE_DAY,
+  MIN_MONTHLY_RENT,
+  MIN_RENT_DUE_DAY,
+  SECURITY_DEPOSIT_MONTH_OPTIONS,
+  formatPricingMonths,
+  pricingAmountFromMonths,
+} from "@repo/utils";
 import type { ApartmentFormData, FormErrors } from "../page";
-import { MIN_MONTHLY_RENT } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
@@ -12,8 +20,8 @@ interface Props {
 }
 
 export default function Step3Pricing({ formData, updateForm, errors }: Props) {
-  const securityDepositAmount = formData.security_deposit_months * formData.monthly_rent;
-  const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
+  const securityDepositAmount = pricingAmountFromMonths(formData.monthly_rent, formData.security_deposit_months);
+  const advanceRentAmount = pricingAmountFromMonths(formData.monthly_rent, formData.advance_rent_months);
   const total = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
   const leaseAgreementRef = useRef<HTMLInputElement>(null);
 
@@ -52,6 +60,24 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           <FieldError>{errors.monthly_rent}</FieldError>
         </NumberField>
 
+        <NumberField
+          minValue={MIN_RENT_DUE_DAY}
+          maxValue={MAX_RENT_DUE_DAY}
+          step={1}
+          value={formData.rent_due_day}
+          onChange={(value) => updateForm({ rent_due_day: value })}
+          isInvalid={!!errors.rent_due_day}
+        >
+          <Label>Rent Due Day</Label>
+          <NumberField.Group className="rounded-lg border border-border focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2 bg-card">
+            <NumberField.Input className="w-full bg-transparent text-foreground" />
+          </NumberField.Group>
+          <Description className="text-muted-foreground">
+            Day of the month rent is due ({MIN_RENT_DUE_DAY}–{MAX_RENT_DUE_DAY}). Shorter months use their last day.
+          </Description>
+          <FieldError>{errors.rent_due_day}</FieldError>
+        </NumberField>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Select
@@ -69,11 +95,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             <FieldError>{errors.security_deposit_months}</FieldError>
             <Select.Popover>
               <ListBox>
-                {[
-                  { value: 0, label: "None" },
-                  { value: 1, label: "1 month" },
-                  { value: 2, label: "2 months" },
-                ].map((option) => (
+                {SECURITY_DEPOSIT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>
@@ -100,10 +122,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             <FieldError>{errors.advance_rent_months}</FieldError>
             <Select.Popover>
               <ListBox>
-                {[
-                  { value: 0, label: "None" },
-                  { value: 1, label: "1 month" },
-                ].map((option) => (
+                {ADVANCE_RENT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>

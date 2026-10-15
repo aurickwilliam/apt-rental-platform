@@ -4,8 +4,20 @@ import { useCallback, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@repo/supabase/browser";
-import { APARTMENT_FLOOR_AREA, APARTMENT_ROOM_LIMITS, isCamanavaCity } from "@repo/constants";
+import {
+  APARTMENT_FLOOR_AREA,
+  APARTMENT_ROOM_LIMITS,
+  isCamanavaCity,
+  isCamanavaZipForCity,
+} from "@repo/constants";
+import {
+  DEFAULT_RENT_DUE_DAY,
+  MIN_MONTHLY_RENT,
+  pricingAmountFromMonths,
+  validateApartmentPricing,
+} from "@repo/utils";
 import { useUser } from "@/hooks/use-user";
+import { APARTMENT_IMAGES_BUCKET, uploadApartmentImage } from "@/lib/apartment-image-upload";
 import { IconArrowLeft, IconCircleCheck } from "@tabler/icons-react";
 
 
@@ -39,6 +51,7 @@ export type ApartmentFormData = {
   isPinConfirmed: boolean;
   // Step 3
   monthly_rent: number;
+  rent_due_day: number;
   security_deposit_months: number;
   advance_rent_months: number;
   lease_agreement: File | null;
@@ -46,9 +59,6 @@ export type ApartmentFormData = {
   description: string;
   amenities: string[];
 };
-
-/** Minimum monthly rent in pesos. */
-export const MIN_MONTHLY_RENT = 1000;
 
 const INITIAL_FORM: ApartmentFormData = {
   name: "",
@@ -71,6 +81,7 @@ const INITIAL_FORM: ApartmentFormData = {
   longitude: null,
   isPinConfirmed: false,
   monthly_rent: MIN_MONTHLY_RENT,
+  rent_due_day: DEFAULT_RENT_DUE_DAY,
   security_deposit_months: 0,
   advance_rent_months: 0,
   lease_agreement: null,
@@ -199,8 +210,9 @@ export default function CreateApartmentPage() {
           name: formData.name,
           description: formData.description,
           monthly_rent: formData.monthly_rent,
-          security_deposit: formData.security_deposit_months * formData.monthly_rent,
-          advance_rent: formData.advance_rent_months * formData.monthly_rent,
+          rent_due_day: formData.rent_due_day,
+          security_deposit: pricingAmountFromMonths(formData.monthly_rent, formData.security_deposit_months),
+          advance_rent: pricingAmountFromMonths(formData.monthly_rent, formData.advance_rent_months),
           type: formData.type,
           street_address: formData.street_address,
           barangay: formData.barangay,
@@ -217,7 +229,6 @@ export default function CreateApartmentPage() {
           latitude: formData.latitude,
           longitude: formData.longitude,
           amenities: formData.amenities,
-          status: "unverified",
         })
         .select()
         .single();
@@ -228,6 +239,7 @@ export default function CreateApartmentPage() {
       // Upload lease agreement and images
       // then update apartment record with lease agreement URL and image URLs
       let leaseAgreementPath: string | null = null;
+      const uploadedImagePaths: string[] = [];
 
       try {
         if (formData.lease_agreement) {
@@ -258,24 +270,16 @@ export default function CreateApartmentPage() {
         ];
 
         if (allImages.length > 0) {
-          const imageRows: { apartment_id: string; url: string; is_cover: boolean }[] = [];
+          const imageRows: { apartment_id: string; url: string; url_thumb: string; is_cover: boolean }[] = [];
 
           for (const { file, isCover } of allImages) {
-            const path = uniqueStoragePath(apartment.id, file.name);
-
-            const { error: uploadError } = await supabase.storage
-              .from("apartment-images")
-              .upload(path, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: urlData } = supabase.storage
-              .from("apartment-images")
-              .getPublicUrl(path);
+            const uploaded = await uploadApartmentImage(supabase, apartment.id, file);
+            uploadedImagePaths.push(...uploaded.paths);
 
             imageRows.push({
               apartment_id: apartment.id,
-              url: urlData.publicUrl,
+              url: uploaded.url,
+              url_thumb: uploaded.url_thumb,
               is_cover: isCover,
             });
           }
@@ -290,6 +294,9 @@ export default function CreateApartmentPage() {
         // Clean up storage files if any were uploaded
         if (leaseAgreementPath) {
           await supabase.storage.from("lease-agreements").remove([leaseAgreementPath]);
+        }
+        if (uploadedImagePaths.length > 0) {
+          await supabase.storage.from(APARTMENT_IMAGES_BUCKET).remove(uploadedImagePaths);
         }
         // Roll back apartment row
         await supabase.from("apartments").delete().eq("id", apartment.id);
@@ -348,7 +355,11 @@ export default function CreateApartmentPage() {
       if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
       if (!isCamanavaCity(data.city)) errors.city = "Select a city within CAMANAVA.";
       if (data.province !== "Metro Manila") errors.province = "Properties can only be listed in Metro Manila.";
-      if (!data.zip_code.trim()) errors.zip_code = "Zip code is required.";
+      if (!data.zip_code.trim()) {
+        errors.zip_code = "Zip code is required.";
+      } else if (isCamanavaCity(data.city) && !isCamanavaZipForCity(data.city, data.zip_code)) {
+        errors.zip_code = `Enter a valid ${data.city} zip code.`;
+      }
       
       if (!data.latitude || !data.longitude) {
         errors.latitude = "Please pin your property location on the map.";
@@ -358,9 +369,16 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 3) {
-      if (Number.isNaN(data.monthly_rent) || data.monthly_rent < MIN_MONTHLY_RENT) errors.monthly_rent = `Monthly rent must be at least ₱${MIN_MONTHLY_RENT.toLocaleString()}.`;
-      if (![0, 1, 2].includes(data.security_deposit_months)) errors.security_deposit_months = "Security deposit must be none, 1 month, or 2 months.";
-      if (![0, 1].includes(data.advance_rent_months)) errors.advance_rent_months = "Advance rent can be at most 1 month.";
+      const pricingErrors = validateApartmentPricing({
+        monthlyRent: data.monthly_rent,
+        securityDepositMonths: data.security_deposit_months,
+        advanceRentMonths: data.advance_rent_months,
+        rentDueDay: data.rent_due_day,
+      });
+      if (pricingErrors.monthlyRent) errors.monthly_rent = pricingErrors.monthlyRent;
+      if (pricingErrors.rentDueDay) errors.rent_due_day = pricingErrors.rentDueDay;
+      if (pricingErrors.securityDepositMonths) errors.security_deposit_months = pricingErrors.securityDepositMonths;
+      if (pricingErrors.advanceRentMonths) errors.advance_rent_months = pricingErrors.advanceRentMonths;
       if (!data.lease_agreement) errors.lease_agreement = "Lease agreement document is required.";
     }
 
@@ -511,6 +529,7 @@ export default function CreateApartmentPage() {
                       },
                       { label: "Property Type", value: formData.type || "—" },
                       { label: "Monthly Rent", value: `₱ ${formData.monthly_rent.toLocaleString()}` },
+                      { label: "Rent Due Day", value: `Day ${formData.rent_due_day} of each month` },
                       {
                         label: "Security Deposit",
                         value: `₱ ${(formData.security_deposit_months * formData.monthly_rent).toLocaleString()}`,

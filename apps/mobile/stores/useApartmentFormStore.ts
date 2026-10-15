@@ -27,8 +27,8 @@ export interface ApartmentFormData {
 
   monthlyRent: string
   rentDueDay: string
-  securityDeposit: string
-  advanceRent: string
+  securityDepositMonths: number
+  advanceRentMonths: number
   leaseAgreement: string
 
   // Step 4
@@ -55,7 +55,8 @@ const initialState: ApartmentFormData = {
   streetName: '',
   barangay: '',
   city: '',
-  province: '',
+  // Listings are limited to CAMANAVA, Metro Manila.
+  province: 'Metro Manila',
   postalCode: '',
   mapConfirmed: false,
   furnishingType: '',
@@ -69,8 +70,8 @@ const initialState: ApartmentFormData = {
   leaseDuration: '',
   monthlyRent: '',
   rentDueDay: '5',
-  securityDeposit: '',
-  advanceRent: '',
+  securityDepositMonths: 0,
+  advanceRentMonths: 0,
   leaseAgreement: '',
   description: '', 
   amenities: [],

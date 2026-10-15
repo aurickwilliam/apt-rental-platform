@@ -10,6 +10,7 @@ import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 import MapViewSwitcher from "@/components/maps/MapViewSwitcher";
 import PlaceAutocompleteInput from "@/components/maps/PlaceAutocompleteInput";
 import { MAP_DEFAULT_COORDS, isPlacesEnabled } from "@/utils/mapConfig";
+import { isMetroManilaProvince, toCamanavaCity } from "@repo/constants";
 
 export default function MapPin() {
   const router = useRouter();
@@ -31,9 +32,14 @@ export default function MapPin() {
     setMarkerCoords({ latitude: details.latitude, longitude: details.longitude });
     if (details.streetName) setField('streetName', details.streetName);
     if (details.barangay) setField('barangay', details.barangay);
-    if (details.city) setField('city', details.city);
-    if (details.province) setField('province', details.province);
-    if (details.postalCode) setField('postalCode', details.postalCode);
+    // Only CAMANAVA values reach the form; Google names ("Caloocan City",
+    // "Kalookan") are mapped to the listing city.
+    const camanavaCity = toCamanavaCity(details.city);
+    if (camanavaCity && isMetroManilaProvince(details.province)) {
+      setField('city', camanavaCity);
+      setField('province', 'Metro Manila');
+    }
+    if (/^\d{4}$/.test(details.postalCode)) setField('postalCode', details.postalCode);
   };
 
   const handleConfirm = () => {

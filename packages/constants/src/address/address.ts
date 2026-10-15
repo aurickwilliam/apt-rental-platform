@@ -260,5 +260,49 @@ export function isCamanavaCity(city: string): city is CamanavaCity {
   return (CAMANAVA_CITIES as readonly string[]).includes(city);
 }
 
+// PHPost ZIP code ranges for each CAMANAVA city.
+export const CAMANAVA_ZIP_RANGES: Record<CamanavaCity, { min: number; max: number }> = {
+  Caloocan: { min: 1400, max: 1428 },
+  Malabon: { min: 1470, max: 1480 },
+  Navotas: { min: 1485, max: 1490 },
+  Valenzuela: { min: 1440, max: 1448 },
+};
+
+/** True when `zip` is a 4-digit ZIP code inside the city's PHPost range. */
+export function isCamanavaZipForCity(city: string, zip: string): boolean {
+  if (!isCamanavaCity(city) || !/^\d{4}$/.test(zip)) return false;
+  const value = Number(zip);
+  const range = CAMANAVA_ZIP_RANGES[city];
+  return value >= range.min && value <= range.max;
+}
+
+const CAMANAVA_CITY_ALIASES: Record<string, CamanavaCity> = {
+  kalookan: "Caloocan",
+};
+
+/**
+ * Maps a geocoder city name ("Caloocan City", "City of Valenzuela",
+ * "Kalookan") to the listing city, or null outside CAMANAVA.
+ */
+export function toCamanavaCity(name: string | null | undefined): CamanavaCity | null {
+  const key = (name ?? "")
+    .toLowerCase()
+    .replace(/^city of\s+/, "")
+    .replace(/\s+city$/, "")
+    .trim();
+  if (!key) return null;
+  return (
+    CAMANAVA_CITIES.find((city) => city.toLowerCase() === key) ??
+    CAMANAVA_CITY_ALIASES[key] ??
+    null
+  );
+}
+
+/** Province names geocoders use for Metro Manila. */
+export function isMetroManilaProvince(name: string | null | undefined): boolean {
+  const key = (name ?? "").toLowerCase().trim();
+  return key === "metro manila" || key === "national capital region" || key === "ncr";
+}
+
 // Browse sentinel + the CAMANAVA corridor, in display order.
 export const CAMANAVA_FILTER_OPTIONS = ["CAMANAVA", ...CAMANAVA_CITIES] as const;

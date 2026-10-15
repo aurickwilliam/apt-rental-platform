@@ -20,18 +20,20 @@ import {
 
 import {
   APARTMENT_TYPES,
-  PROVINCES,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
   APARTMENT_FLOOR_AREA,
   APARTMENT_ROOM_LIMITS,
-  CITIES,
+  CAMANAVA_CITIES,
+  isCamanavaCity,
+  isCamanavaZipForCity,
 } from "@repo/constants";
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native';
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
+import { isPinInsideCamanavaCity } from "@/service/apartments/apartmentLocationService";
 
 import { useColors } from "hooks/useTheme";
 
@@ -74,6 +76,7 @@ export default function SecondStep() {
   const { colors } = useColors();
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [checkingPin, setCheckingPin] = useState(false);
 
   const {
     name,
@@ -95,10 +98,6 @@ export default function SecondStep() {
     floorLevel,
     leaseDuration,
   } = useApartmentFormStore();
-
-  const cityOptions: string[] = province
-    ? (CITIES[province as keyof typeof CITIES] ?? [])
-    : [];
 
   const typeRoomLimits = APARTMENT_ROOM_LIMITS[apartmentType];
   const roomLimits = typeRoomLimits ?? DEFAULT_ROOM_LIMITS;
@@ -196,12 +195,15 @@ export default function SecondStep() {
     if (!apartmentType) errs.apartmentType = "Apartment type is required";
     if (!streetName.trim()) errs.streetName = "Street name is required";
     if (!barangay.trim()) errs.barangay = "Barangay is required";
-    if (!province.trim()) {
-      errs.province = "Province is required";
-    } else if (!city.trim()) {
-      errs.city = "City is required";
+    if (province !== "Metro Manila") {
+      errs.province = "Properties can only be listed in Metro Manila";
     }
-    if (!postalCode.trim()) errs.postalCode = "Zip code is required";
+    if (!isCamanavaCity(city)) errs.city = "Select a city within CAMANAVA";
+    if (!postalCode.trim()) {
+      errs.postalCode = "Zip code is required";
+    } else if (isCamanavaCity(city) && !isCamanavaZipForCity(city, postalCode)) {
+      errs.postalCode = `Enter a valid ${city} zip code`;
+    }
     if (!floorArea.trim()) {
       errs.floorArea = "Floor area is required";
     } else {
@@ -260,12 +262,33 @@ export default function SecondStep() {
     return errs;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const validationErrors = validateStep();
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
+    }
+
+    // Same boundary check the database runs on publish, so a wrong pin is
+    // caught here rather than at the last step.
+    if (latitude == null || longitude == null) {
+      setErrors({ mapConfirmed: "Please pin your property location on the map" });
+      return;
+    }
+    setCheckingPin(true);
+    try {
+      const inside = await isPinInsideCamanavaCity(city, latitude, longitude);
+      if (!inside) {
+        setErrors({ mapConfirmed: `The map pin must be inside ${city}` });
+        return;
+      }
+    } catch (err) {
+      console.error("CAMANAVA pin check failed", err);
+      setErrors({ mapConfirmed: "We couldn't verify this pin. Please try again" });
+      return;
+    } finally {
+      setCheckingPin(false);
     }
 
     setErrors({});
@@ -566,49 +589,29 @@ export default function SecondStep() {
             {errors.barangay && <FieldError>{errors.barangay}</FieldError>}
           </TextField>
 
-          {/* Province — now above City */}
-          <DropdownField
-            label="Province:"
-            bottomSheetLabel="Select your province"
-            placeholder="Select your province"
-            options={PROVINCES}
-            value={province}
-            onSelect={(value) => {
-              // Clear city if it no longer belongs to the new province
-              const newCities: string[] =
-                CITIES[value as keyof typeof CITIES] ?? [];
-              if (city && !newCities.includes(city)) {
-                setField("city", "");
-                clearError("city");
-              }
-              setField("province", value || "");
-              clearError("province");
-            }}
-            enableSearch
-            searchPlaceholder="Search provinces..."
-            required
-            error={errors.province}
-          />
-
-          {/* City — dependent on province */}
           <DropdownField
             label="City:"
             bottomSheetLabel="Select your city"
-            placeholder={
-              province ? "Select your city" : "Select a province first"
-            }
-            options={cityOptions}
+            placeholder="Select CAMANAVA city"
+            options={[...CAMANAVA_CITIES]}
             value={city}
             onSelect={(value) => {
               setField("city", value || "");
+              setField("province", "Metro Manila");
               clearError("city");
+              clearError("postalCode");
+              clearError("mapConfirmed");
             }}
-            enableSearch
-            searchPlaceholder="Search cities..."
             required
-            disabled={!province}
             error={errors.city}
           />
+
+          <TextField isDisabled isInvalid={!!errors.province}>
+            <Label>Province:</Label>
+            <Input value="Metro Manila" editable={false} />
+            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+            {errors.province && <FieldError>{errors.province}</FieldError>}
+          </TextField>
 
           <TextField isRequired isInvalid={!!errors.postalCode}>
             <Label>Zip Code:</Label>
@@ -616,8 +619,9 @@ export default function SecondStep() {
               placeholder="Enter zip code"
               value={postalCode}
               keyboardType="numeric"
+              maxLength={4}
               onChangeText={(value) => {
-                setField("postalCode", value);
+                setField("postalCode", value.replace(/[^0-9]/g, ""));
                 clearError("postalCode");
               }}
             />
@@ -721,8 +725,8 @@ export default function SecondStep() {
             <Button.Label>Back</Button.Label>
           </Button>
 
-          <Button onPress={handleNext} className="flex-1">
-            <Button.Label>Next</Button.Label>
+          <Button onPress={handleNext} className="flex-1" isDisabled={checkingPin}>
+            <Button.Label>{checkingPin ? "Checking pin..." : "Next"}</Button.Label>
           </Button>
         </View>
       </View>
