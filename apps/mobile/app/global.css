@@ -107,6 +107,8 @@
     --color-secondary-light: #E0F2FE;
     --color-primary-light: #EFF6FF;
     --color-primary-light-foreground: #2F5FE0;
+    /* Selected tab label */
+    --color-tab-selected: var(--color-primary);
     /* Secondary buttons look like tertiary in light mode (neutral fill) */
     --color-button-secondary: var(--default);
     --color-button-secondary-foreground: var(--default-foreground);
@@ -204,6 +206,8 @@
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
     --color-primary-light-foreground: var(--color-dark-primary-light-foreground);
+    /* Selected tab label */
+    --color-tab-selected: var(--color-dark-primary);
     /* Secondary buttons stay soft blue in dark mode */
     --color-button-secondary: var(--color-primary-light);
     --color-button-secondary-foreground: var(--color-primary-light-foreground);
@@ -257,6 +261,16 @@
 
 .button__label--variant-secondary {
   color: var(--color-button-secondary-foreground);
+}
+
+/* Tabs — every HeroUI Tabs label uses Nunito SemiBold; the selected label is
+   the theme's primary blue, unselected stays muted. */
+.tabs__label {
+  font-family: var(--font-nunitoSemiBold);
+}
+
+.tabs__label--is-selected {
+  color: var(--color-tab-selected);
 }
 
 /* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold

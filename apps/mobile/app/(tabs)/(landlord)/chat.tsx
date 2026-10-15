@@ -164,25 +164,11 @@ export default function Chat() {
                 <Tabs.List className="w-full my-3">
                   <Tabs.Indicator />
                   <Tabs.Trigger value="Tenant" className="w-1/2">
-                    {({ isSelected }) => (
-                      <Tabs.Label
-                        style={{ color: isSelected ? colors.primary : colors.gray500 }}
-                        className='font-nunitoBold'
-                      >
-                        Tenant
-                      </Tabs.Label>
-                    )}
+                    <Tabs.Label>Tenant</Tabs.Label>
                   </Tabs.Trigger>
 
                   <Tabs.Trigger value="Inquiries" className="flex-1">
-                    {({ isSelected }) => (
-                      <Tabs.Label
-                        style={{ color: isSelected ? colors.primary : colors.gray500 }}
-                        className='font-nunitoBold'
-                      >
-                        Inquiries
-                      </Tabs.Label>
-                    )}
+                    <Tabs.Label>Inquiries</Tabs.Label>
                   </Tabs.Trigger>
                 </Tabs.List>
               </Tabs>

@@ -5,6 +5,8 @@ type RoleTabProps = {
   onValueChange: (value: string) => void;
 };
 
+// Label font and selected/unselected colors come from the global
+// `.tabs__label` rules in app/global.css.
 export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
   return (
     <Tabs
@@ -17,31 +19,11 @@ export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
         <Tabs.Indicator />
 
         <Tabs.Trigger value="tenant" className="flex-1">
-          {({ isSelected }) => (
-            <Tabs.Label
-              className={
-                isSelected
-                  ? 'text-primary dark:text-dark-primary'
-                  : 'text-gray-500 dark:text-dark-gray-400'
-              }
-            >
-              Tenant
-            </Tabs.Label>
-          )}
+          <Tabs.Label>Tenant</Tabs.Label>
         </Tabs.Trigger>
 
         <Tabs.Trigger value="landlord" className="flex-1">
-          {({ isSelected }) => (
-            <Tabs.Label
-              className={
-                isSelected
-                  ? 'text-secondary dark:text-secondary'
-                  : 'text-gray-500 dark:text-dark-gray-400'
-              }
-            >
-              Landlord
-            </Tabs.Label>
-          )}
+          <Tabs.Label>Landlord</Tabs.Label>
         </Tabs.Trigger>
       </Tabs.List>
     </Tabs>
