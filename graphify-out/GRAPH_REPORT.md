@@ -1,17 +1,17 @@
 # Graph Report - apt-rental-platform  (2026-10-15)
 
 ## Corpus Check
-- 1496 files · ~1,102,361 words
+- 1496 files · ~1,102,555 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 32 file(s) not represented in the graph (top: (none) 14, .ttf 7, .kiro 3)
 
 ## Summary
-- 7121 nodes · 20997 edges · 269 communities (241 shown, 28 thin omitted)
+- 7121 nodes · 20999 edges · 269 communities (241 shown, 28 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 645 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `02928f37`
+- Built from commit: `ae5a60e4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -276,7 +276,7 @@
 1. `useColors()` - 412 edges
 2. `@heroui/react` - 263 edges
 3. `heroui-native` - 241 edges
-4. `@tabler/icons-react` - 230 edges
+4. `@tabler/icons-react` - 231 edges
 5. `ScreenWrapper` - 218 edges
 6. `@tabler/icons-react-native` - 180 edges
 7. `expo-router` - 153 edges
@@ -1282,7 +1282,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `formatPesoDisplay` be split into smaller, more focused modules?**
   _Cohesion score 0.04098649442160893 - nodes in this community are weakly interconnected._
 - **Why does `@heroui/react` connect `@heroui/react` to `ActivityClient.tsx`, `service/favoritesService.ts`, `admin/users/[id]/page.tsx`, `emailChange.ts`, `createClient`, `getTenantContext`, `service/reviewsService.ts`, `ref_next`, `UserAvatar`, `admin/apartments/[id]/page.tsx`, `supabase/src/index.ts`, `useAsyncResource`, `history/page.tsx`, `Panel`, `@tabler/icons-react`, `TeamSection.tsx`, `use-review-unlock.ts`, `ApplicationsList.tsx`, `payment/index.tsx`, `ApartmentsTable.tsx`, `FilterContainer.tsx`, `passport/src/index.ts`, `ApplyClient.tsx`, `VerifyClient.tsx`, `service/maintenanceService.ts`, `PassportDocumentDetailClient.tsx`, `my-rental/page.tsx`, `payment/page.tsx`, `PassportUploadForm.tsx`, `ApartmentMaintenanceHistory.tsx`, `DesktopVerifyWizard.tsx`, `maintenance-requests/page.tsx`, `chart.tsx`, `AppNavbar.tsx`, `use-tenancy.ts`, `service/paymongoService.ts`, `UsersClient.tsx`, `UsersTable.tsx`, `tenant/browse/page.tsx`, `visit-requests/page.tsx`, `VerifyDialog.tsx`, `ApartmentsClient.tsx`, `AuthWrapper.tsx`, `admin/dashboard/page.tsx`, `VerificationQueues.tsx`, `FeaturesSection.tsx`, `ResetPasswordClient.tsx`, `ReviewStep.tsx`, `PassportDocumentCard.tsx`, `web/package.json`, `SignUpForm.tsx`, `formatFullName`, `PriceCard.tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `ForgotPasswordClient.tsx`, `AppSidebar.tsx`, `ReportsClient.tsx`, `tenant/applications/[applicationId]/page.tsx`, `first-process.tsx`, `LeaseDocumentPreview.tsx`, `ApartmentDetailSkeleton`, `getInitials`, `company/page.tsx`, `FilterPillGroup.tsx`, `AppTopBar.tsx`, `carousel.tsx`, `BrowseSectionsList.tsx`, `SettingsModal.tsx`, `GeneralTab.tsx`, `maintenance-requests/[requestId]/page.tsx`, `create/page.tsx`, `careers/page.tsx`, `DashboardCharts.tsx`, `cookies/page.tsx`, `pap/page.tsx`, `framer-motion`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Should `useColors` be split into smaller, more focused modules?**
   _Cohesion score 0.045548387096774196 - nodes in this community are weakly interconnected._
 - **Why does `@tabler/icons-react` connect `@tabler/icons-react` to `ActivityClient.tsx`, `service/favoritesService.ts`, `admin/users/[id]/page.tsx`, `emailChange.ts`, `@heroui/react`, `createClient`, `use-landlord-action-badges.ts`, `getTenantContext`, `service/reviewsService.ts`, `ref_next`, `useAsyncResource`, `admin/apartments/[id]/page.tsx`, `supabase/src/index.ts`, `UserAvatar`, `history/page.tsx`, `TeamSection.tsx`, `ApplicationsList.tsx`, `use-review-unlock.ts`, `ApartmentsTable.tsx`, `FilterContainer.tsx`, `passport/src/index.ts`, `ApplyClient.tsx`, `service/maintenanceService.ts`, `VerifyClient.tsx`, `dropdown-menu.tsx`, `PassportDocumentDetailClient.tsx`, `my-rental/page.tsx`, `payment/page.tsx`, `PassportUploadForm.tsx`, `cn`, `ApartmentMaintenanceHistory.tsx`, `DesktopVerifyWizard.tsx`, `maintenance-requests/page.tsx`, `AppNavbar.tsx`, `UsersClient.tsx`, `UsersTable.tsx`, `tenant/browse/page.tsx`, `visit-requests/page.tsx`, `ApartmentsClient.tsx`, `AuthWrapper.tsx`, `RentDonut.tsx`, `admin/dashboard/page.tsx`, `VerificationQueues.tsx`, `FeaturesSection.tsx`, `ResetPasswordClient.tsx`, `ReviewStep.tsx`, `PassportDocumentCard.tsx`, `web/package.json`, `SignUpForm.tsx`, `formatFullName`, `apartments/page.tsx`, `PriceCard.tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `ForgotPasswordClient.tsx`, `AppSidebar.tsx`, `ReportsClient.tsx`, `tenant/applications/[applicationId]/page.tsx`, `LeaseDocumentPreview.tsx`, `getInitials`, `company/page.tsx`, `AnalyticsPanels.tsx`, `create/page.tsx`, `AppTopBar.tsx`, `carousel.tsx`, `BrowseSectionsList.tsx`, `SettingsModal.tsx`, `GeneralTab.tsx`, `maintenance-requests/[requestId]/page.tsx`, `careers/page.tsx`, `cookies/page.tsx`, `pap/page.tsx`, `framer-motion`?**
