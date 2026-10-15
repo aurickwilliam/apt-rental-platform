@@ -128,70 +128,6 @@ export default function useConversation({
     [currentUserId, otherUserId]
   );
 
-  // Fetch messages plus their reactions and quoted originals in one pass.
-  const fetchMessages = useCallback(async () => {
-    if (!otherUserId) return;
-
-    const base = supabase
-      .from("chat")
-      .select("*")
-      .or(
-        `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),` +
-          `and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
-      )
-      .order("created_at", { ascending: true });
-
-    const { data, error } = apartmentId
-      ? await base.eq("apartment_id", apartmentId)
-      : await base.is("apartment_id", null);
-
-    if (error || !data) return;
-
-    // The generated row type lags the chat table's extra columns; the columns
-// this view reads (message, reply_to, timestamps) line up.
-    const rows = data as unknown as ChatMessage[];
-    const messageIds = rows.map((r) => r.id);
-
-    // Reactions for the page (one row per reacting user per message).
-    const reactionRows = messageIds.length
-      ? (
-          await supabase
-            .from("chat_reactions")
-            .select("message_id, user_id, emoji")
-            .in("message_id", messageIds)
-        ).data ?? []
-      : [];
-
-    // Quoted originals for reply previews (text placeholder for media).
-    const replyIds = [
-      ...new Set(rows.map((r) => r.reply_to).filter((v): v is string => !!v)),
-    ];
-    const replyRows = replyIds.length
-      ? (
-          await supabase
-            .from("chat")
-            .select("id, message, message_type, sender_id")
-            .in("id", replyIds)
-        ).data ?? []
-      : [];
-
-    const reactionsByMessage = groupReactions(
-      reactionRows as { message_id: string; user_id: string; emoji: string }[],
-      currentUserId
-    );
-
-    const hydrated = attachReplyPreviews(
-      rows,
-      replyRows as Pick<ChatMessage, "id" | "message" | "message_type" | "sender_id">[],
-      currentUserId
-    ).map((m) => ({
-      ...m,
-      reactions: reactionsByMessage.get(m.id) ?? [],
-    }));
-
-    setMessages(hydrated);
-  }, [apartmentId, currentUserId, otherUserId, supabase]);
-
   // Clearing on "no conversation" is a prop-to-state reset, so it happens
   // during render by comparing against the previous id rather than inside an
   // effect — `react-hooks/set-state-in-effect` is enforced in CI.
@@ -213,22 +149,40 @@ export default function useConversation({
   const isLoading = fetchKey !== null && loadedKey !== fetchKey;
 
   useEffect(() => {
-    if (!fetchKey) return;
+    if (!fetchKey || !otherUserId) return;
 
     let isCancelled = false;
 
-    void fetchMessages()
+    // Rows are applied in the promise callback, never in the effect body —
+    // `loadConversation` is pure, so the linter sees no setState here.
+    loadConversation(supabase, currentUserId, otherUserId, apartmentId ?? null)
+      .then((hydrated) => {
+        if (isCancelled) return;
+        setMessages(hydrated);
+        setLoadedKey(fetchKey);
+      })
       .catch((err: unknown) => {
         console.error("Failed to load messages:", err);
-      })
-      .finally(() => {
+        // Stop the spinner even on failure; the view falls back to its empty state.
         if (!isCancelled) setLoadedKey(fetchKey);
       });
 
     return () => {
       isCancelled = true;
     };
-  }, [fetchKey, fetchMessages]);
+  }, [apartmentId, currentUserId, fetchKey, otherUserId, supabase]);
+
+  /** Re-reads the current conversation, e.g. after a failed reaction write. */
+  const refreshMessages = useCallback(async () => {
+    if (!otherUserId) return;
+    const hydrated = await loadConversation(
+      supabase,
+      currentUserId,
+      otherUserId,
+      apartmentId ?? null
+    );
+    setMessages(hydrated);
+  }, [apartmentId, currentUserId, otherUserId, supabase]);
 
   /** Sends a text message, optionally as a reply. Optimistic with rollback. */
   const sendMessage = useCallback(
@@ -337,10 +291,10 @@ export default function useConversation({
       } catch (err) {
         console.error("Failed to save reaction:", err);
         // Re-sync from the server so the optimistic badge can't drift.
-        void fetchMessages();
+        void refreshMessages();
       }
     },
-    [currentUserId, fetchMessages, messages, supabase]
+    [currentUserId, messages, refreshMessages, supabase]
   );
 
   const handleReply = useCallback((msg: ChatMessage) => {
@@ -363,9 +317,7 @@ export default function useConversation({
     setMessages,
     isLoading,
     replyTarget,
-    setReplyTarget,
     contextMenu,
-    fetchMessages,
     sendMessage,
     toggleReaction,
     handleReply,
