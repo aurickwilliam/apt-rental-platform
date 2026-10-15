@@ -82,6 +82,7 @@ export default function ApartmentScreen() {
   const currentUserId = useCurrentUserId();
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const ratingsOffsetY = useRef(0);
+  const sectionsOffsetY = useRef(0);
   const [isPastHero, setIsPastHero] = useState(false);
   const { isFavorite } = useFavorites();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
@@ -228,46 +229,53 @@ export default function ApartmentScreen() {
           onRatingPress={handleJumpToRatings}
         />
 
-        <ApartmentDetailsSection apartment={apartment} />
-
-        <ApartmentDescriptionSection description={apartment?.description} />
-
-        <PerksSection apartmentId={apartmentId} amenities={apartment?.amenities} />
-
-        <MapPreviewSection
-          apartmentName={apartment?.name}
-          latitude={apartment?.latitude}
-          longitude={apartment?.longitude}
-          onOpenMap={handleMapViewNavigation}
-        />
-
-        <LandlordSection
-          landlord={apartment?.landlord ?? null}
-          onPress={handleLandlordProfileNavigation}
-          onMessagePress={handleMessageLandlord}
-        />
-
-        <LeaseAgreementSection
-          leaseAgreementUrl={apartment?.lease_agreement_url}
-        />
-
         <View
+          className="gap-3 mt-3"
           onLayout={(event) => {
-            ratingsOffsetY.current = event.nativeEvent.layout.y;
+            sectionsOffsetY.current = event.nativeEvent.layout.y;
           }}
         >
-        <RatingsSection
-          reviews={reviews}
-          isLoading={reviewsLoading}
-          error={reviewsError}
-          onRetry={() => void refetchReviews()}
-          onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
-          canReview={canReview}
-          checkingEligibility={checkingEligibility}
-          onWriteReview={handleWriteReview}
-        />
-        </View>
+          <ApartmentDetailsSection apartment={apartment} />
 
+          <ApartmentDescriptionSection description={apartment?.description} />
+
+          <PerksSection apartmentId={apartmentId} amenities={apartment?.amenities} />
+
+          <MapPreviewSection
+            apartmentName={apartment?.name}
+            latitude={apartment?.latitude}
+            longitude={apartment?.longitude}
+            onOpenMap={handleMapViewNavigation}
+          />
+
+          <LandlordSection
+            landlord={apartment?.landlord ?? null}
+            onPress={handleLandlordProfileNavigation}
+            onMessagePress={handleMessageLandlord}
+          />
+
+          <LeaseAgreementSection
+            leaseAgreementUrl={apartment?.lease_agreement_url}
+          />
+
+          <View
+            onLayout={(event) => {
+              ratingsOffsetY.current =
+                sectionsOffsetY.current + event.nativeEvent.layout.y;
+            }}
+          >
+            <RatingsSection
+              reviews={reviews}
+              isLoading={reviewsLoading}
+              error={reviewsError}
+              onRetry={() => void refetchReviews()}
+              onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
+              canReview={canReview}
+              checkingEligibility={checkingEligibility}
+              onWriteReview={handleWriteReview}
+            />
+          </View>
+        </View>
       </ScreenWrapper>
 
       <MoveInCostFooter

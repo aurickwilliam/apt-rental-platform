@@ -28,42 +28,63 @@ export default function ApartmentSkeleton() {
             </View>
           </View>
 
-          <View className="px-5 mt-6 gap-4">
-            <SkeletonGroup.Item className="h-6 w-2/3 rounded-xl" />
-            <View className="p-4 bg-surface-tertiary rounded-2xl gap-2">
+          <View className="mt-3 gap-3">
+            <View className="px-5 flex-row flex-wrap">
+              <View className="w-1/2 pr-2 mb-2">
+                <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+              </View>
+              <View className="w-1/2 pr-2 mb-2">
+                <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+              </View>
+              <View className="w-1/2 pr-2 mb-2">
+                <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+              </View>
+              <View className="w-1/2 pr-2 mb-2">
+                <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+              </View>
+            </View>
+
+            <View className="mx-5 p-5 bg-surface rounded-3xl border border-border gap-3">
+              <SkeletonGroup.Item className="h-6 w-2/3 rounded-xl" />
               <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
               <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
               <SkeletonGroup.Item className="h-4 w-5/6 rounded-xl" />
-              <SkeletonGroup.Item className="h-9 w-32 mt-3 rounded-xl" />
             </View>
 
-            <SkeletonGroup.Item className="h-6 w-1/2 mt-2 rounded-xl" />
-            <View className="flex-row flex-wrap">
-              <View className="w-1/2 pr-2 mb-3">
-                <SkeletonGroup.Item className="h-10 w-full rounded-xl" />
-              </View>
-              <View className="w-1/2 pl-2 mb-3">
-                <SkeletonGroup.Item className="h-10 w-full rounded-xl" />
-              </View>
-              <View className="w-1/2 pr-2 mb-3">
-                <SkeletonGroup.Item className="h-10 w-full rounded-xl" />
-              </View>
-              <View className="w-1/2 pl-2 mb-3">
-                <SkeletonGroup.Item className="h-10 w-full rounded-xl" />
+            <View className="mx-5 p-5 bg-surface rounded-3xl border border-border gap-3">
+              <SkeletonGroup.Item className="h-6 w-1/2 rounded-xl" />
+              <View className="flex-row flex-wrap">
+                <View className="w-1/2 pr-2 mb-3">
+                  <SkeletonGroup.Item className="h-8 w-full rounded-xl" />
+                </View>
+                <View className="w-1/2 pl-2 mb-3">
+                  <SkeletonGroup.Item className="h-8 w-full rounded-xl" />
+                </View>
+                <View className="w-1/2 pr-2">
+                  <SkeletonGroup.Item className="h-8 w-full rounded-xl" />
+                </View>
+                <View className="w-1/2 pl-2">
+                  <SkeletonGroup.Item className="h-8 w-full rounded-xl" />
+                </View>
               </View>
             </View>
 
-            <SkeletonGroup.Item className="h-56 w-full rounded-2xl mt-2" />
+            <View className="mx-5 p-5 bg-surface rounded-3xl border border-border gap-3">
+              <SkeletonGroup.Item className="h-6 w-1/3 rounded-xl" />
+              <SkeletonGroup.Item className="h-56 w-full rounded-2xl" />
+            </View>
 
-            <SkeletonGroup.Item className="h-6 w-1/2 mt-2 rounded-xl" />
-            <SkeletonGroup.Item className="h-28 w-full rounded-2xl" />
+            <SkeletonGroup.Item className="mx-5 h-20 rounded-3xl" />
 
-            <SkeletonGroup.Item className="h-6 w-1/2 mt-2 rounded-xl" />
-            <SkeletonGroup.Item className="h-10 w-52 rounded-xl" />
+            <View className="mx-5 p-5 bg-surface rounded-3xl border border-border gap-3">
+              <SkeletonGroup.Item className="h-6 w-1/2 rounded-xl" />
+              <SkeletonGroup.Item className="h-10 w-full rounded-xl" />
+            </View>
 
-            <SkeletonGroup.Item className="h-6 w-1/3 mt-2 rounded-xl" />
-            <SkeletonGroup.Item className="h-24 w-full rounded-2xl" />
-            <SkeletonGroup.Item className="h-24 w-full rounded-2xl" />
+            <View className="px-5 gap-3">
+              <SkeletonGroup.Item className="h-6 w-1/3 rounded-xl" />
+              <SkeletonGroup.Item className="h-24 w-full rounded-3xl" />
+            </View>
           </View>
 
           <View className="h-20" />

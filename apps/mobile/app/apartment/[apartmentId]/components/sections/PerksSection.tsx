@@ -7,6 +7,7 @@ import PerkItem from 'components/display/PerkItem';
 
 import { useColors } from 'hooks/useTheme';
 import SectionHeader, { SeeAllButton } from '@/components/display/SectionHeader';
+import SectionCard from '../SectionCard';
 
 const PERKS_LIMIT = 10;
 
@@ -23,7 +24,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
   const displayAmenities = amenities?.slice(0, PERKS_LIMIT);
 
   return (
-    <>
+    <SectionCard>
       <SectionHeader
         icon={<IconSquareCheck size={26} color={colors.textPrimary} />}
         title="Included Perks"
@@ -35,9 +36,10 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
             />
           ) : undefined
         }
+        className='p-0 mt-0'
       />
 
-      <View className='flex-row flex-wrap px-5 mt-5'>
+      <View className='flex-row flex-wrap mt-5 -mb-4'>
         {hasPerks ? (
           displayAmenities?.map((amenity) => (
             <View key={amenity} className='w-1/2 mb-4'>
@@ -52,6 +54,6 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
           </View>
         )}
       </View>
-    </>
+    </SectionCard>
   );
 }

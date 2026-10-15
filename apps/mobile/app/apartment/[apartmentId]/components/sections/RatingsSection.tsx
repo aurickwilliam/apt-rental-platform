@@ -46,11 +46,12 @@ export default function RatingsSection({
       <SectionHeader
         icon={<IconStarFilled size={26} color={colors.rating} />}
         title="Ratings"
+        className='px-5'
         action={
           hasReviews && onSeeAll ? <SeeAllButton onPress={onSeeAll} /> : undefined
         }
       />
-      <View className='mt-5 px-5 flex gap-3'>
+      <View className='mt-3 px-5 flex gap-3'>
         {isLoading && !hasReviews ? (
           <SkeletonGroup isLoading>
             <SkeletonGroup.Item className='h-24 w-full rounded-2xl' />

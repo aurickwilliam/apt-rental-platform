@@ -53,7 +53,7 @@ export default function ApartmentDetailsSection({
   ]
 
   return (
-    <View className='mt-5 px-5 flex-row flex-wrap'>
+    <View className='px-5 flex-row flex-wrap'>
       {
         detailData.map((detail) => (
           <View key={detail.value} className='w-1/2 pr-2'>

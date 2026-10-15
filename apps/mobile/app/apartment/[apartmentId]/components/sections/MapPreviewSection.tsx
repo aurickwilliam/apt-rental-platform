@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { View, TouchableOpacity, Linking, Platform } from 'react-native';
 
-import { IconMap } from '@tabler/icons-react-native';
+import { IconMap, IconNavigation } from '@tabler/icons-react-native';
 
 import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
 import SectionHeader from '@/components/display/SectionHeader';
+import SectionCard from '../SectionCard';
 import AppDialog from '@/components/display/AppDialog';
 import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 
@@ -89,13 +90,14 @@ export default function MapPreviewSection({
   };
 
   return (
-    <>
-      <SectionHeader
-        icon={<IconMap size={26} color={colors.textPrimary} />}
-        title="View on Map"
-      />
+    <SectionCard flush>
+        <SectionHeader
+          icon={<IconMap size={26} color={colors.textPrimary} />}
+          title="View on Map"
+          className="p-5 pb-3 mt-0"
+        />
 
-      <View className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'>
+        <View className='h-64 mx-2 mb-2 rounded-2xl overflow-hidden'>
         <TouchableOpacity
           activeOpacity={0.7}
           style={{ flex: 1 }}
@@ -116,15 +118,14 @@ export default function MapPreviewSection({
         <Button
           onPress={() => setIsDirectionsModalVisible(true)}
           size="sm"
-          variant="secondary"
-          className='absolute bottom-4 right-4 shadow-xs'
+          className='absolute bottom-4 right-4 shadow-md'
         >
+          <IconNavigation size={16} color={colors.secondaryForeground} />
           <Button.Label>
             Get Directions
           </Button.Label>
         </Button>
-      </View>
-
+        </View>
       <AppDialog
         isOpen={isDirectionsModalVisible}
         onOpenChange={setIsDirectionsModalVisible}
@@ -170,6 +171,6 @@ export default function MapPreviewSection({
           </Button>
         </View>
       </AppDialog>
-    </>
+    </SectionCard>
   );
 }

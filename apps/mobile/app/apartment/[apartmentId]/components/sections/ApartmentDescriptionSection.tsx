@@ -7,6 +7,7 @@ import { Button } from "heroui-native"
 
 import { useColors } from 'hooks/useTheme';
 import SectionHeader from '@/components/display/SectionHeader';
+import SectionCard from '../SectionCard';
 
 type ApartmentDescriptionSectionProps = {
   description?: string | null;
@@ -22,14 +23,14 @@ export default function ApartmentDescriptionSection({
     !!description && description.split(' ').length > 50;
 
   return (
-    <>
+    <SectionCard>
       <SectionHeader
         icon={<IconBuilding size={26} color={colors.textPrimary} />}
         title="Everything About Your Apartment"
-        className="mt-5 px-5"
+        className="p-0 mt-0"
       />
 
-      <View className='mt-3 mx-5 p-4 bg-surface rounded-2xl border border-border'>
+      <View className='mt-3'>
         <Text
           numberOfLines={isReadMore ? undefined : 10}
           ellipsizeMode='tail'
@@ -52,6 +53,6 @@ export default function ApartmentDescriptionSection({
           </View>
         )}
       </View>
-    </>
+    </SectionCard>
   );
 }

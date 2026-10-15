@@ -4,6 +4,7 @@ import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps
 
 import { MAP_DEFAULT_COORDS, MAP_DEFAULTS } from '@/utils/mapConfig';
 import { useColors } from '@/hooks/useTheme';
+import { DARK_MAP_STYLE } from '@/constants/mapStyles';
 import { formatPricePill } from '@/service/apartments/mapSearchService';
 
 export interface GoogleMapPin {
@@ -87,7 +88,7 @@ export default function GoogleMapView({
   syncCameraOnCoordsChange = true,
   hideEmptyPin = false,
 }: GoogleMapViewProps) {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const internalRef = useRef<MapView>(null);
   const mapRef = (externalRef as React.RefObject<MapView | null>) ?? internalRef;
 
@@ -135,6 +136,8 @@ export default function GoogleMapView({
       <MapView
         ref={mapRef as React.RefObject<MapView>}
         provider={PROVIDER_GOOGLE}
+        customMapStyle={isDark ? DARK_MAP_STYLE : undefined}
+        userInterfaceStyle={isDark ? 'dark' : 'light'}
         style={{ flex: 1 }}
         initialRegion={initialRegion}
         onPress={(e) => {
@@ -216,8 +219,8 @@ export default function GoogleMapView({
 
       {/* Google attribution is rendered by native SDK; for custom overlay we show hint when no key (fallback handled by switcher) */}
       {!interactive && hasCoords && (
-        <View pointerEvents="none" style={{ position: 'absolute', bottom: 6, right: 6, backgroundColor: 'rgba(255,255,255,0.85)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-          <Text style={{ fontSize: 9, color: '#444' }}>© Google</Text>
+        <View pointerEvents="none" style={{ position: 'absolute', bottom: 6, right: 6, backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.85)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+          <Text style={{ fontSize: 9, color: isDark ? '#d1d5db' : '#444' }}>© Google</Text>
         </View>
       )}
     </View>
