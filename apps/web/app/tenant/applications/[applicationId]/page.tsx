@@ -13,6 +13,7 @@ import {
   AccordionPanel,
   AccordionBody,
   Modal,
+  Separator,
   useOverlayState,
   Spinner,
 } from "@heroui/react";
@@ -24,6 +25,7 @@ import {
 import { toast } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
+import { useApplicantPersonalInfo } from "@/hooks/use-applicant-personal-info";
 import { useVisitRequest } from "@/hooks/use-visit-request";
 import { useCancelApplication } from "@/hooks/use-cancel-application";
 import { useRespondToReschedule } from "@/hooks/use-respond-to-reschedule";
@@ -40,6 +42,14 @@ function formatLongDate(d: string) {
   }
 }
 
+function formatBirthDate(value: string) {
+  if (!value) return "—";
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" });
+}
+
 export default function ApplicationDetailPage() {
   const params = useParams<{ applicationId: string }>();
   const searchParams = useSearchParams();
@@ -47,7 +57,8 @@ export default function ApplicationDetailPage() {
   const applicationId = params.applicationId;
   const apartmentIdParam = searchParams.get("apartmentId") ?? "";
 
-  const { applications, loading: appsLoading, error: appsError, refresh } = useTenantApplications();
+  const { applications, tenantId, loading: appsLoading, error: appsError, refresh } = useTenantApplications();
+  const { personalInfo, loading: profileLoading } = useApplicantPersonalInfo(tenantId);
   const {
     visitRequest,
     history,
@@ -61,7 +72,7 @@ export default function ApplicationDetailPage() {
 
   const application = applications.find((a) => a.id === applicationId) ?? null;
 
-  if (appsLoading || visitLoading) {
+  if (appsLoading || visitLoading || profileLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
         <Spinner color="accent" />
@@ -231,12 +242,22 @@ export default function ApplicationDetailPage() {
             <AccordionPanel>
               <AccordionBody className="border-t border-border px-4 pb-5 pt-4">
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <DetailField label="Occupation" value={application.occupation || "—"} />
-                  <DetailField label="Employer" value={application.employer_name || "—"} />
+                  <DetailField label="Full Name" value={personalInfo.fullName.trim() ? personalInfo.fullName : "—"} />
+                  <DetailField label="Email" value={personalInfo.email.trim() ? personalInfo.email : "—"} />
+                  <DetailField label="Date of Birth" value={formatBirthDate(personalInfo.dateOfBirth)} />
+                  <DetailField label="Contact Number" value={personalInfo.contactNumber.trim() ? personalInfo.contactNumber : "—"} />
+                  <div className="md:col-span-2">
+                    <DetailField label="Current Address" value={personalInfo.currentAddress.trim() ? personalInfo.currentAddress : "—"} />
+                  </div>
+                </div>
+                <Separator className="my-5" />
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <DetailField label="Occupation" value={application.occupation.trim() ? application.occupation : "—"} />
+                  <DetailField label="Employer" value={application.employer_name.trim() ? application.employer_name : "—"} />
                   <DetailField label="Employment Type" value={application.employment_type || "—"} />
                   <DetailField label="Monthly Income" value={formatPesoDisplay(application.monthly_income)} />
-                  <DetailField label="Previous Landlord Name" value={application.prev_landlord_name} />
-                  <DetailField label="Previous Landlord Contact" value={application.prev_landlord_contact} />
+                  <DetailField label="Previous Landlord Name" value={application.prev_landlord_name?.trim() ? application.prev_landlord_name : "—"} />
+                  <DetailField label="Previous Landlord Contact" value={application.prev_landlord_contact?.trim() ? application.prev_landlord_contact : "—"} />
                 </div>
               </AccordionBody>
             </AccordionPanel>
