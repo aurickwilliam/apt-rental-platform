@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, Text, FlatList, Pressable, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { IconChevronRight } from "@tabler/icons-react-native";
 import { SkeletonGroup } from "heroui-native";
@@ -120,41 +120,79 @@ export function SearchSectionSkeleton() {
   );
 }
 
-export function SearchGridSkeleton({ count = 6, isGrid = true }: { count?: number; isGrid?: boolean }) {
+// Same metrics as ApartmentCard: 16px screen padding, 8px between grid columns,
+// 16px between rows, card width derived from the window.
+const GRID_HORIZONTAL_PADDING = 16;
+const GRID_COLUMN_GAP = 8;
+const GRID_ROW_GAP = 16;
+
+function GridCardSkeleton({ width, isGrid }: { width: number; isGrid: boolean }) {
   return (
-    <SkeletonGroup isLoading isSkeletonOnly variant="shimmer" className="flex-1 gap-4 pt-2">
-      <View className="flex-row flex-wrap gap-2">
-        {Array.from({ length: count }).map((_, i) => (
-          <View
-            key={i}
-            className="bg-surface rounded-2xl overflow-hidden border border-border"
-            style={{ width: (isGrid ? "48%" : "100%") as any, alignSelf: isGrid ? "auto" : "center" }}
-          >
-            <SkeletonGroup.Item className="aspect-square" />
-            <View className={isGrid ? "p-2 gap-2" : "p-3 gap-3"}>
-              <SkeletonGroup.Item className={isGrid ? "h-4 w-3/4 rounded-lg" : "h-5 w-3/4 rounded-lg"} />
-              <SkeletonGroup.Item className={isGrid ? "h-3 w-1/2 rounded-lg" : "h-4 w-1/2 rounded-lg"} />
-              {!isGrid && (
-                <View className="flex-row flex-wrap">
-                  <View className="flex-row w-2/6 gap-1 items-center">
-                    <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
-                  </View>
-                  <View className="flex-row w-2/6 gap-1 items-center">
-                    <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
-                  </View>
-                  <View className="flex-row w-2/6 gap-1 items-center">
-                    <SkeletonGroup.Item className="h-3 w-12 rounded-md" />
-                  </View>
-                </View>
-              )}
-              <View className="flex-row justify-between items-center mt-1">
-                <SkeletonGroup.Item className={isGrid ? "h-4 w-16 rounded-lg" : "h-5 w-20 rounded-lg"} />
-                <SkeletonGroup.Item className={isGrid ? "h-3 w-10 rounded-lg" : "h-4 w-12 rounded-lg"} />
-              </View>
+    <View
+      className="bg-surface rounded-2xl overflow-hidden border border-border"
+      style={{ width }}
+    >
+      <SkeletonGroup.Item className="aspect-square" />
+      <View className={isGrid ? "p-2 gap-2" : "p-3 gap-3"}>
+        <SkeletonGroup.Item className={isGrid ? "h-4 w-3/4 rounded-lg" : "h-5 w-3/4 rounded-lg"} />
+        <SkeletonGroup.Item className={isGrid ? "h-3 w-1/2 rounded-lg" : "h-4 w-1/2 rounded-lg"} />
+        {!isGrid && (
+          <View className="flex-row flex-wrap">
+            <View className="flex-row w-2/6 gap-1 items-center">
+              <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
+            </View>
+            <View className="flex-row w-2/6 gap-1 items-center">
+              <SkeletonGroup.Item className="h-3 w-16 rounded-md" />
+            </View>
+            <View className="flex-row w-2/6 gap-1 items-center">
+              <SkeletonGroup.Item className="h-3 w-12 rounded-md" />
             </View>
           </View>
-        ))}
+        )}
+        <View className="flex-row justify-between items-center mt-1">
+          <SkeletonGroup.Item className={isGrid ? "h-4 w-16 rounded-lg" : "h-5 w-20 rounded-lg"} />
+          <SkeletonGroup.Item className={isGrid ? "h-3 w-10 rounded-lg" : "h-4 w-12 rounded-lg"} />
+        </View>
       </View>
+    </View>
+  );
+}
+
+export function SearchGridSkeleton({
+  count = 6,
+  isGrid = true,
+  paddingTop = 0,
+}: {
+  count?: number;
+  isGrid?: boolean;
+  paddingTop?: number;
+}) {
+  const { width } = useWindowDimensions();
+  const cardWidth = isGrid
+    ? (width - GRID_HORIZONTAL_PADDING * 2 - GRID_COLUMN_GAP) / 2
+    : width - GRID_HORIZONTAL_PADDING * 2;
+  const columns = isGrid ? 2 : 1;
+  const rows = Math.ceil(count / columns);
+
+  return (
+    <SkeletonGroup
+      isLoading
+      isSkeletonOnly
+      variant="shimmer"
+      className="flex-1"
+      style={{
+        paddingTop,
+        paddingHorizontal: GRID_HORIZONTAL_PADDING,
+        gap: GRID_ROW_GAP,
+      }}
+    >
+      {Array.from({ length: rows }).map((_, row) => (
+        <View key={row} className="flex-row" style={{ gap: GRID_COLUMN_GAP }}>
+          {Array.from({ length: columns }).map((__, col) => (
+            <GridCardSkeleton key={col} width={cardWidth} isGrid={isGrid} />
+          ))}
+        </View>
+      ))}
     </SkeletonGroup>
   );
 }
