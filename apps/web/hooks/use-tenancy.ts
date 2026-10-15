@@ -23,6 +23,7 @@ export type TenancyApartment = {
   max_occupants: number | null;
   lease_duration: string | null;
   lease_agreement_url: string | null;
+  apartment_images: { url: string; is_cover: boolean | null }[] | null;
 };
 
 export type TenancyLandlord = {
@@ -104,7 +105,8 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
         floor_level,
         max_occupants,
         lease_duration,
-        lease_agreement_url
+        lease_agreement_url,
+        apartment_images (url, is_cover)
       ),
       landlord:users!tenancies_landlord_id_fkey (
         id,
