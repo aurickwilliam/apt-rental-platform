@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Button, Chip, Popover, Separator } from "@heroui/react";
+import { Badge, Button, Chip, Drawer, Popover, Separator, useOverlayState } from "@heroui/react";
 import { IconClipboardList as ClipboardList, IconFilter as Filter } from "@tabler/icons-react";
 
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { ApplicationStatus } from "@/app/tenant/applications/lib/statusStyles";
 
 import ApplicationStatusCard from "./ApplicationStatusCard";
@@ -46,6 +47,8 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
   const { applications, loading, error } = useTenantApplications();
   const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const drawerState = useOverlayState({ isOpen: filterOpen, onOpenChange: setFilterOpen });
   const filteredApplications = useMemo(() => {
     const filtered = filters.statuses.length > 0
       ? applications.filter((application) => filters.statuses.includes(application.status))
@@ -70,6 +73,56 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
       : [...filters.statuses, status];
     setFilters({ ...filters, statuses });
   };
+
+  const filterSections = (
+    <>
+      <div>
+        <p className="mb-3 text-sm font-inter text-muted-foreground">Status</p>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTIONS.map((option) => {
+            const selected = filters.statuses.includes(option.value);
+            return (
+              <Chip
+                key={option.value}
+                variant={selected ? "primary" : "secondary"}
+                color={selected ? "accent" : "default"}
+                onClick={() => toggleStatus(option.value)}
+                className={selected
+                  ? "cursor-pointer bg-[#2F5FE0]! text-white! dark:bg-[#5B8BF7]!"
+                  : "cursor-pointer"}
+              >
+                {option.label}
+              </Chip>
+            );
+          })}
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="mb-3 text-sm font-inter text-muted-foreground">Sort by</p>
+        <div className="flex flex-wrap gap-2">
+          {SORT_OPTIONS.map((option) => {
+            const selected = filters.sort === option.value;
+            return (
+              <Chip
+                key={option.value}
+                variant={selected ? "primary" : "secondary"}
+                color={selected ? "accent" : "default"}
+                onClick={() => setFilters({ ...filters, sort: option.value })}
+                className={selected
+                  ? "cursor-pointer bg-[#2F5FE0]! text-white! dark:bg-[#5B8BF7]!"
+                  : "cursor-pointer"}
+              >
+                {option.label}
+              </Chip>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
 
   const content = loading ? (
     <div className="flex flex-col gap-3">
@@ -110,6 +163,9 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
           ]
             .filter(Boolean)
             .join(", ")}
+          mobileLocation={[a.apartments?.barangay, a.apartments?.city]
+            .filter(Boolean)
+            .join(", ")}
           thumbnailUrl={
             a.apartments?.apartment_images?.find((image) => image.is_cover)?.url ??
             a.apartments?.apartment_images?.[0]?.url ??
@@ -134,11 +190,12 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
                 ? "Loading Applications..."
                 : `${filteredApplications.length} Application${filteredApplications.length === 1 ? "" : "s"}`}
             </p>
-            <Popover isOpen={filterOpen} onOpenChange={setFilterOpen}>
+            {isMobile ? (
               <Badge.Anchor>
                 <Button
                   variant="tertiary"
                   size="sm"
+                  onPress={() => setFilterOpen(true)}
                   aria-label={activeFilterCount ? `Filter and sort applications, ${activeFilterCount} applied` : "Filter and sort applications"}
                 >
                   <Filter size={16} aria-hidden="true" />
@@ -150,69 +207,73 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
                   </Badge>
                 )}
               </Badge.Anchor>
-              <Popover.Content placement="bottom end" className="w-[min(22rem,calc(100vw-2rem))]">
-                <Popover.Dialog className="space-y-5 p-4">
+            ) : (
+              <Popover isOpen={filterOpen} onOpenChange={setFilterOpen}>
+                <Badge.Anchor>
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    aria-label={activeFilterCount ? `Filter and sort applications, ${activeFilterCount} applied` : "Filter and sort applications"}
+                  >
+                    <Filter size={16} aria-hidden="true" />
+                    Filter & sort
+                  </Button>
+                  {activeFilterCount > 0 && (
+                    <Badge size="sm" placement="top-right" className="bg-primary! text-white!">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Badge.Anchor>
+                <Popover.Content placement="bottom end" className="w-[min(22rem,calc(100vw-2rem))]">
+                  <Popover.Dialog className="space-y-5 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <Popover.Heading className="font-nunito text-lg font-semibold">
+                        Filter & sort
+                      </Popover.Heading>
+                      {!isDefaultFilter && (
+                        <Button variant="ghost" size="sm" onPress={() => setFilters(DEFAULT_FILTERS)} className="text-danger">
+                          Reset
+                        </Button>
+                      )}
+                    </div>
+                    {filterSections}
+                    <Button className="w-full" onPress={() => setFilterOpen(false)}>
+                      Done
+                    </Button>
+                  </Popover.Dialog>
+                </Popover.Content>
+              </Popover>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isMobile && filterOpen && (
+        <Drawer.Root state={drawerState}>
+          <Drawer.Backdrop>
+            <Drawer.Content placement="bottom">
+              <Drawer.Dialog className="flex max-h-[85dvh] w-full flex-col rounded-t-[2rem] p-0">
+                <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
+                <Drawer.Body className="space-y-6 overflow-y-auto px-5 pb-6 pt-5">
                   <div className="flex items-center justify-between gap-3">
-                    <Popover.Heading className="font-nunito text-lg font-semibold">
+                    <h3 className="font-nunito text-2xl font-semibold text-card-foreground">
                       Filter & sort
-                    </Popover.Heading>
+                    </h3>
                     {!isDefaultFilter && (
                       <Button variant="ghost" size="sm" onPress={() => setFilters(DEFAULT_FILTERS)} className="text-danger">
                         Reset
                       </Button>
                     )}
                   </div>
-
-                  <div>
-                    <p className="mb-3 text-sm font-inter text-muted-foreground">Status</p>
-                    <div className="flex flex-wrap gap-2">
-                      {STATUS_OPTIONS.map((option) => {
-                        const selected = filters.statuses.includes(option.value);
-                        return (
-                          <Chip
-                            key={option.value}
-                            variant="soft"
-                            color={selected ? "accent" : "default"}
-                            onClick={() => toggleStatus(option.value)}
-                            className="cursor-pointer"
-                          >
-                            {option.label}
-                          </Chip>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <p className="mb-3 text-sm font-inter text-muted-foreground">Sort by</p>
-                    <div className="flex flex-wrap gap-2">
-                      {SORT_OPTIONS.map((option) => {
-                        const selected = filters.sort === option.value;
-                        return (
-                          <Chip
-                            key={option.value}
-                            variant="soft"
-                            color={selected ? "accent" : "default"}
-                            onClick={() => setFilters({ ...filters, sort: option.value })}
-                            className="cursor-pointer"
-                          >
-                            {option.label}
-                          </Chip>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <Button className="w-full" onPress={() => setFilterOpen(false)}>
+                  {filterSections}
+                  <Button className="w-full" size="lg" onPress={() => setFilterOpen(false)}>
                     Done
                   </Button>
-                </Popover.Dialog>
-              </Popover.Content>
-            </Popover>
-          </div>
-        </div>
+                </Drawer.Body>
+              </Drawer.Dialog>
+            </Drawer.Content>
+          </Drawer.Backdrop>
+        </Drawer.Root>
       )}
 
       {content}

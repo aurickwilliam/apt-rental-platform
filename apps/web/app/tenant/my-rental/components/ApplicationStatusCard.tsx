@@ -17,6 +17,7 @@ type Props = {
   apartmentId: string;
   createdAt: string;
   location: string;
+  mobileLocation: string;
   thumbnailUrl: string | null;
 };
 
@@ -27,6 +28,7 @@ export default function ApplicationStatusCard({
   apartmentId,
   createdAt,
   location,
+  mobileLocation,
   thumbnailUrl,
 }: Props) {
   const style = getApplicationStatusStyle(status);
@@ -70,7 +72,8 @@ export default function ApplicationStatusCard({
           {location && (
             <div className="flex min-w-0 items-start gap-1 text-sm font-inter text-muted-foreground">
               <MapPin size={16} className="shrink-0" aria-hidden="true" />
-              <span className="break-words">{location}</span>
+              <span className="break-words sm:hidden">{mobileLocation || location}</span>
+              <span className="hidden break-words sm:inline">{location}</span>
             </div>
           )}
 
