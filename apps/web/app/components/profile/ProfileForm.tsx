@@ -1025,7 +1025,7 @@ export default function ProfileForm({
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
-          variant="outline"
+          variant="danger-soft"
           size="lg"
           className="w-full sm:w-auto font-semibold"
           onPress={handleCancelRequest}
