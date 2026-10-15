@@ -385,7 +385,7 @@ export default function MyRental() {
                         </p>
                       </div>
                     </div>
-                    <Link href="/tenant/payment/history" className="mt-2 w-fit no-underline md:mt-auto">
+                    <Link href="/tenant/payment/history" className="mt-auto w-fit no-underline pt-2">
                       <Button className="bg-white font-semibold text-primary">
                         <Receipt size={16} />
                         View history
@@ -405,6 +405,7 @@ export default function MyRental() {
                     <p className="font-inter text-sm text-white/85">
                       Due {formatShortDate(nextPeriod.dueDate)}
                     </p>
+                    <div aria-hidden="true" className="border-t border-white/20" />
                     <div className="mt-auto pt-2">
                       <p className="font-nunito text-xs font-semibold text-white/70">Total due</p>
                       <p className="font-nunito text-2xl font-bold">
