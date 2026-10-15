@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-15)
 
 ## Corpus Check
-- 1509 files · ~1,117,857 words
+- 1509 files · ~1,117,868 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3778acf2`
+- Built from commit: `19376b25`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1432,7 +1432,7 @@ Cohesion: 0.13
 Nodes (29): NotificationManager(), NotificationCardType, NotificationCardSkeleton(), NotificationList(), NotificationListProps, PortalSwitcherProps, useCurrentUser(), getOpenChatConversationKey() (+21 more)
 
 ## Knowledge Gaps
-- **2266 isolated node(s):** `MAP_STYLE`, `DEFAULT_COORDS`, `FormErrors`, `DEFAULT_ROOM_LIMITS`, `FieldErrors` (+2261 more)
+- **2266 isolated node(s):** `FormErrors`, `DEFAULT_ROOM_LIMITS`, `MAP_STYLE`, `DEFAULT_COORDS`, `FieldErrors` (+2261 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **122 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1447,7 +1447,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `useColors()` (e.g. with `Current implementation and problems` and `Implementation plan`) actually correct?**
   _`useColors()` has 4 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `MAP_STYLE`, `DEFAULT_COORDS`, `FormErrors` to the rest of the system?**
+- **What connects `FormErrors`, `DEFAULT_ROOM_LIMITS`, `MAP_STYLE` to the rest of the system?**
   _2266 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `chatService.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07801418439716312 - nodes in this community are weakly interconnected._

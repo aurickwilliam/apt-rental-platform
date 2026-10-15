@@ -199,13 +199,17 @@ export default function FirstProcess() {
   }
 
   return (
-    <ScreenWrapper scrollable ref={scrollRef}>
-      {/* Header with Progress Bar */}
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle="Tenant Information"
         nextTitle="Rental Preferences"
         step={1}
       />
+      }
+      scrollable ref={scrollRef}
+    >
+      {/* Header with Progress Bar */}
 
       <View className="p-5" ref={contentRef}>
         {/* Personal Information */}

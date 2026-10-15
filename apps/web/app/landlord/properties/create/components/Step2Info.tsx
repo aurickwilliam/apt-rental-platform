@@ -15,6 +15,7 @@ import {
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
+  getBarangaysByCity,
 } from "@repo/constants";
 
 const GoogleMapPicker = dynamic(() => import("../../components/GoogleMapPicker"), { ssr: false });
@@ -308,7 +309,15 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             value={formData.city || null}
             onChange={(city) =>
               // Re-sending the pin clears a "pin must be inside <city>" error.
-              updateForm({ city: city as string, province: "Metro Manila", latitude: formData.latitude })
+              updateForm({
+                city: city as string,
+                province: "Metro Manila",
+                latitude: formData.latitude,
+                // A barangay from the previous city no longer applies.
+                ...(getBarangaysByCity(city as string).includes(formData.barangay)
+                  ? {}
+                  : { barangay: "" }),
+              })
             }
             isInvalid={!!errors.city}
             isRequired
@@ -339,18 +348,31 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <TextField 
-            isRequired 
+          <Select
+            placeholder={formData.city ? "Select barangay" : "Select a city first"}
+            value={formData.barangay || null}
+            onChange={(barangay) => updateForm({ barangay: barangay as string })}
             isInvalid={!!errors.barangay}
+            isDisabled={!formData.city}
+            isRequired
+            className="w-full"
           >
             <Label>Barangay</Label>
-            <Input
-              value={formData.barangay}
-              onChange={(e) => updateForm({ barangay: e.target.value })}
-              className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
-            />
+            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
             <FieldError>{errors.barangay}</FieldError>
-          </TextField>
+            <Select.Popover>
+              <ListBox className="max-h-64 overflow-y-auto">
+                {getBarangaysByCity(formData.city).map((barangay) => (
+                  <ListBox.Item key={barangay} id={barangay} textValue={barangay} className="cursor-pointer text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
+                    {barangay}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
 
           <TextField 
             isRequired 

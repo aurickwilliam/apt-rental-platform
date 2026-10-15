@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
 import {
   ADD_APARTMENT_STEP_HREFS,
   ADD_APARTMENT_STEP_LABELS,
@@ -21,6 +22,7 @@ import {
   Description,
   Checkbox,
   ControlField,
+  Separator,
 } from "heroui-native";
 
 import {
@@ -33,6 +35,7 @@ import {
   CAMANAVA_CITIES,
   isCamanavaCity,
   isCamanavaZipForCity,
+  getBarangaysByCity,
 } from "@repo/constants";
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native';
@@ -82,6 +85,7 @@ export default function SecondStep() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [checkingPin, setCheckingPin] = useState(false);
+  const furthestStep = useAddApartmentProgress(2);
 
   const {
     name,
@@ -233,6 +237,8 @@ export default function SecondStep() {
     if (!apartmentType) errs.apartmentType = "Apartment type is required";
     if (!streetName.trim()) errs.streetName = "Street name is required";
     if (!barangay.trim()) errs.barangay = "Barangay is required";
+    else if (isCamanavaCity(city) && !getBarangaysByCity(city).includes(barangay))
+      errs.barangay = `Select a barangay of ${city}`;
     if (province !== "Metro Manila") {
       errs.province = "Properties can only be listed in Metro Manila";
     }
@@ -300,41 +306,49 @@ export default function SecondStep() {
     return errs;
   };
 
-  const handleNext = async () => {
+  // Shows this step's errors; true when it is fine to leave.
+  const checkStep = async (): Promise<boolean> => {
     const validationErrors = validateStep();
 
     if (Object.keys(validationErrors).length > 0) {
       showErrors(validationErrors);
-      return;
+      return false;
     }
 
     // Same boundary check the database runs on publish, so a wrong pin is
     // caught here rather than at the last step.
     if (latitude == null || longitude == null) {
       showErrors({ mapConfirmed: "Please pin your property location on the map" });
-      return;
+      return false;
     }
     setCheckingPin(true);
     try {
       const inside = await isPinInsideCamanavaCity(city, latitude, longitude);
       if (!inside) {
         showErrors({ mapConfirmed: `The map pin must be inside ${city}` });
-        return;
+        return false;
       }
     } catch (err) {
       console.error("CAMANAVA pin check failed", err);
       showErrors({ mapConfirmed: "We couldn't verify this pin. Please try again" });
-      return;
+      return false;
     } finally {
       setCheckingPin(false);
     }
 
     setErrors({});
-    router.push("/landlord/manage-apartment/add-apartment/third-step");
+    return true;
+  };
+
+  const handleNext = async () => {
+    if (await checkStep()) {
+      router.push("/landlord/manage-apartment/add-apartment/third-step");
+    }
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle={"Basic Info"}
         nextTitle={"Pricing & Terms"}
@@ -342,7 +356,12 @@ export default function SecondStep() {
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}
         stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={checkStep}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5">
         {/* Name and Type */}
@@ -599,8 +618,10 @@ export default function SecondStep() {
           )}
         </View>
 
+        <Separator className="my-8" />
+
         {/* Apartment Address */}
-        <View className="flex gap-3 mt-10">
+        <View className="flex gap-3">
           <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Address
           </Text>
@@ -614,6 +635,10 @@ export default function SecondStep() {
             onSelect={(value) => {
               setField("city", value || "");
               setField("province", "Metro Manila");
+              if (barangay && !getBarangaysByCity(value || "").includes(barangay)) {
+                setField("barangay", "");
+              }
+              clearError("barangay");
               clearError("city");
               clearError("postalCode");
               clearError("mapConfirmed");
@@ -629,18 +654,22 @@ export default function SecondStep() {
             {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
           </TextField>
 
-          <TextField isRequired isInvalid={!!visibleErrors.barangay}>
-            <Label>Barangay:</Label>
-            <Input
-              placeholder="Enter barangay name"
-              value={barangay}
-              onChangeText={(value) => {
-                setField("barangay", value);
-                clearError("barangay");
-              }}
-            />
-            {visibleErrors.barangay && <FieldError>{visibleErrors.barangay}</FieldError>}
-          </TextField>
+          <DropdownField
+            label="Barangay:"
+            bottomSheetLabel="Select your barangay"
+            placeholder={city ? "Select your barangay" : "Select a city first"}
+            options={getBarangaysByCity(city)}
+            value={barangay}
+            onSelect={(value) => {
+              setField("barangay", value || "");
+              clearError("barangay");
+            }}
+            enableSearch
+            searchPlaceholder="Search barangays..."
+            required
+            disabled={!city}
+            error={visibleErrors.barangay}
+          />
 
           <TextField isRequired isInvalid={!!visibleErrors.streetName}>
             <Label>Unit No./Street Name:</Label>
@@ -671,8 +700,10 @@ export default function SecondStep() {
           </TextField>
         </View>
 
+        <Separator className="my-8" />
+
         {/* Apartment Location */}
-        <View className="flex gap-2 mt-10">
+        <View className="flex gap-2">
           <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Location
           </Text>

@@ -21,6 +21,7 @@ import {
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
 import {
   ADD_APARTMENT_STEP_HREFS,
   ADD_APARTMENT_STEP_LABELS,
@@ -152,6 +153,8 @@ export default function FifthStep() {
     setIsReadMore(!isReadMore);
   };
 
+  const furthestStep = useAddApartmentProgress(5);
+
   const handlePublish = async () => {
     const result = await publish();
     if (result) {
@@ -162,7 +165,8 @@ export default function FifthStep() {
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle={"Preview & Publish"}
         nextTitle={"Publish the Apartment"}
@@ -170,7 +174,11 @@ export default function FifthStep() {
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}
         stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
       />
+      }
+      scrollable
+    >
 
       <View className="h-168 bg-background relative">
         {/* Image Carousel */}

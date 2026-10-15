@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
 import {
   ADD_APARTMENT_STEP_HREFS,
   ADD_APARTMENT_STEP_LABELS,
@@ -75,6 +76,7 @@ export default function ThirdStep() {
   const router = useRouter();
 
   const [errors, setErrors] = useState<FieldErrors>({});
+  const furthestStep = useAddApartmentProgress(3);
 
   const {
     monthlyRent,
@@ -89,7 +91,8 @@ export default function ThirdStep() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function handleNext() {
+  // Shows this step's errors; true when it is fine to leave.
+  function checkStep(): boolean {
     const validationErrors = validate({
       monthlyRent,
       rentDueDay,
@@ -99,9 +102,13 @@ export default function ThirdStep() {
     });
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      return;
+      return false;
     }
-    router.push("/landlord/manage-apartment/add-apartment/fourth-step");
+    return true;
+  }
+
+  function handleNext() {
+    if (checkStep()) router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
   const rentAmount = Number(monthlyRent) || 0;
@@ -110,7 +117,8 @@ export default function ThirdStep() {
   const totalMoveInCost = calcMoveInCost(monthlyRent, securityDeposit, advanceRent);
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle="Pricing & Terms"
         nextTitle="Description & Amenities"
@@ -118,7 +126,12 @@ export default function ThirdStep() {
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}
         stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={checkStep}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5 flex-1">
         <View className="flex gap-3">

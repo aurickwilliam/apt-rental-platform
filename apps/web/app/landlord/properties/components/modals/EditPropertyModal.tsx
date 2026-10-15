@@ -42,6 +42,7 @@ import {
   CAMANAVA_CITIES,
   isCamanavaCity,
   isCamanavaZipForCity,
+  getBarangaysByCity,
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
@@ -503,6 +504,10 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         onChange={(city) => {
                           updateForm("city", (city as string) ?? null);
                           updateForm("province", "Metro Manila");
+                          // A barangay from the previous city no longer applies.
+                          if (!getBarangaysByCity((city as string) ?? "").includes(form.barangay ?? "")) {
+                            updateForm("barangay", "");
+                          }
                           clearError("latitude");
                         }}
                         placeholder="Select CAMANAVA city"
@@ -530,16 +535,35 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         <Input value="Metro Manila" />
                       </TextField>
 
-                      <TextField isInvalid={!!errors.barangay}>
+                      <Select
+                        value={form.barangay || null}
+                        onChange={(barangay) => updateForm("barangay", (barangay as string) ?? null)}
+                        placeholder={form.city ? "Select barangay" : "Select a city first"}
+                        isInvalid={!!errors.barangay}
+                        isDisabled={!form.city}
+                      >
                         <Label>
                           Barangay
                         </Label>
-                        <Input 
-                          value={form.barangay ?? ""} 
-                          onChange={(e) => updateForm("barangay", e.target.value)} 
-                        />
+                        <Select.Trigger className="cursor-pointer">
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
                         <FieldError>{errors.barangay}</FieldError>
-                      </TextField>
+                        <Select.Popover>
+                          <ListBox className="max-h-64 overflow-y-auto">
+                            {/* A saved barangay outside the city's list stays selectable. */}
+                            {(form.barangay && !getBarangaysByCity(form.city ?? "").includes(form.barangay)
+                              ? [form.barangay, ...getBarangaysByCity(form.city ?? "")]
+                              : getBarangaysByCity(form.city ?? "")
+                            ).map((barangay) => (
+                              <ListBox.Item key={barangay} id={barangay} textValue={barangay} className="cursor-pointer">
+                                {barangay}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
 
                       <TextField isInvalid={!!errors.street_address}>
                         <Label>

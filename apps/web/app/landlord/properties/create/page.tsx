@@ -9,6 +9,7 @@ import {
   APARTMENT_ROOM_LIMITS,
   isCamanavaCity,
   isCamanavaZipForCity,
+  getBarangaysByCity,
 } from "@repo/constants";
 import {
   DEFAULT_RENT_DUE_DAY,
@@ -352,7 +353,11 @@ export default function CreateApartmentPage() {
         errors.no_bathrooms = `Bathrooms must be between ${roomLimits.bathrooms.min} and ${roomLimits.bathrooms.max}.`;
       }
       if (!data.street_address.trim()) errors.street_address = "Street address is required.";
-      if (!data.barangay.trim()) errors.barangay = "Barangay is required.";
+      if (!data.barangay.trim()) {
+        errors.barangay = "Barangay is required.";
+      } else if (isCamanavaCity(data.city) && !getBarangaysByCity(data.city).includes(data.barangay)) {
+        errors.barangay = `Select a barangay of ${data.city}.`;
+      }
       if (!isCamanavaCity(data.city)) errors.city = "Select a city within CAMANAVA.";
       if (data.province !== "Metro Manila") errors.province = "Properties can only be listed in Metro Manila.";
       if (!data.zip_code.trim()) {

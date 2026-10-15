@@ -7,6 +7,8 @@ import {
   isMetroManilaProvince,
   toCamanavaCity,
 } from "../../../packages/constants/src/address/address.ts";
+import { matchBarangay } from "../../../packages/constants/src/address/barangay-match.ts";
+import { getBarangaysByCity } from "../../../packages/constants/src/address/barangays.ts";
 
 test("only the four CAMANAVA cities are valid listing cities", () => {
   assert.deepEqual(CAMANAVA_CITIES, ["Caloocan", "Malabon", "Navotas", "Valenzuela"]);
@@ -45,4 +47,22 @@ test("geocoder city and province names map to listing values", () => {
   assert.equal(isMetroManilaProvince("Metro Manila"), true);
   assert.equal(isMetroManilaProvince("National Capital Region"), true);
   assert.equal(isMetroManilaProvince("Bulacan"), false);
+});
+
+test("every CAMANAVA city has a barangay list", () => {
+  const expected = { Caloocan: 193, Malabon: 21, Navotas: 18, Valenzuela: 33 };
+  for (const [city, count] of Object.entries(expected)) {
+    assert.equal(getBarangaysByCity(city).length, count, city);
+  }
+});
+
+test("matchBarangay maps free text to the listed barangay", () => {
+  assert.equal(matchBarangay(getBarangaysByCity("Malabon"), "tinajeros"), "Tinajeros");
+  assert.equal(matchBarangay(getBarangaysByCity("Malabon"), "  Catmon "), "Catmon");
+  assert.equal(matchBarangay(getBarangaysByCity("Valenzuela"), "Arkong  Bato"), "Arkong Bato");
+  assert.equal(matchBarangay(getBarangaysByCity("Caloocan"), "Brgy. 12"), "Barangay 12");
+  assert.equal(matchBarangay(getBarangaysByCity("Caloocan"), "barangay 100"), "Barangay 100");
+  assert.equal(matchBarangay(getBarangaysByCity("Malabon"), "Arkong Bato"), null);
+  assert.equal(matchBarangay(getBarangaysByCity("Malabon"), ""), null);
+  assert.equal(matchBarangay(getBarangaysByCity("Quezon City"), "Catmon"), null);
 });

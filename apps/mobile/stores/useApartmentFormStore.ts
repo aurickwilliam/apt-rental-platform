@@ -34,6 +34,9 @@ export interface ApartmentFormData {
   // Step 4
   description: string
   amenities: string[]
+
+  /** Furthest step reached with every earlier step passed (progress bar jumps). */
+  furthestStep: number
 }
 
 interface ApartmentFormActions {
@@ -44,6 +47,7 @@ interface ApartmentFormActions {
   setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void
   setDescription: (description: string) => void
   toggleAmenity: (amenity: string) => void
+  reachStep: (step: number) => void
   reset: () => void
 }
 
@@ -75,6 +79,7 @@ const initialState: ApartmentFormData = {
   leaseAgreement: '',
   description: '', 
   amenities: [],
+  furthestStep: 1,
 }
 
 export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormActions>((set) => ({
@@ -97,6 +102,9 @@ export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormAct
         ? state.amenities.filter((a) => a !== amenity)
         : [...state.amenities, amenity],
     })),
+
+  reachStep: (step) =>
+    set((state) => (step > state.furthestStep ? { furthestStep: step } : state)),
 
   reset: () => set(initialState),
 }))

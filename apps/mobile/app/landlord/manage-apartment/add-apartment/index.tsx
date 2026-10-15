@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
+import { useAddApartmentProgress } from 'hooks/apartments/useAddApartmentProgress'
 import {
   ADD_APARTMENT_STEP_HREFS,
   ADD_APARTMENT_STEP_LABELS,
@@ -28,6 +29,7 @@ export default function Index() {
   const router = useRouter();
 
   const [errors, setErrors] = useState<FormErrors>({})
+  const furthestStep = useAddApartmentProgress(1)
 
   const name = useApartmentFormStore((s) => s.name)
   const thumbnail = useApartmentFormStore((s) => s.thumbnail)
@@ -55,16 +57,21 @@ export default function Index() {
     return errs
   }
 
-  const handleNext = () => {
+  // Shows this step's errors; true when it is fine to leave.
+  const checkStep = (): boolean => {
     const validationErrors = validateStep()
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
-      return
+      return false
     }
 
     setErrors({})
-    router.push('/landlord/manage-apartment/add-apartment/second-step')
+    return true
+  }
+
+  const handleNext = () => {
+    if (checkStep()) router.push('/landlord/manage-apartment/add-apartment/second-step')
   }
 
   const handleCancel = () => {
@@ -73,7 +80,8 @@ export default function Index() {
   }
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle='Photos & Title'
         nextTitle='Basic Info'
@@ -81,7 +89,12 @@ export default function Index() {
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}
         stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={checkStep}
       />
+      }
+      scrollable
+    >
 
       <View className='p-5 flex-1'>
         <View className='flex-1 gap-5'>

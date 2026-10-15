@@ -19,7 +19,7 @@ import {
   type PendingImage,
 } from './updateApartmentMain'
 
-import { CAMANAVA_CITIES, isCamanavaCity } from '@repo/constants'
+import { CAMANAVA_CITIES, getBarangaysByCity, isCamanavaCity } from '@repo/constants'
 import {
   ADVANCE_RENT_MONTH_OPTIONS,
   SECURITY_DEPOSIT_MONTH_OPTIONS,
@@ -328,7 +328,12 @@ export default function EditMain() {
           placeholder="Select CAMANAVA city"
           bottomSheetLabel="Select City"
           options={[...CAMANAVA_CITIES]}
-          onSelect={(v) => setInfo({ ...info, city: v ?? '' })}
+          onSelect={(v) => {
+            const city = v ?? ''
+            // A barangay from the previous city no longer applies.
+            const keepBarangay = getBarangaysByCity(city).includes(info.barangay)
+            setInfo({ ...info, city, barangay: keepBarangay ? info.barangay : '' })
+          }}
           value={info.city}
         />
 
@@ -338,14 +343,23 @@ export default function EditMain() {
           <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
         </TextField>
 
-        <TextField isRequired>
-          <Label>Barangay</Label>
-          <Input
-            placeholder="Enter barangay"
-            value={info.barangay}
-            onChangeText={(v) => setInfo({ ...info, barangay: v })}
-          />
-        </TextField>
+        <DropdownField
+          label="Barangay:"
+          required
+          placeholder={info.city ? 'Select barangay' : 'Select a city first'}
+          bottomSheetLabel="Select Barangay"
+          // A saved barangay that is not in the city's list stays selectable.
+          options={
+            info.barangay && !getBarangaysByCity(info.city).includes(info.barangay)
+              ? [info.barangay, ...getBarangaysByCity(info.city)]
+              : getBarangaysByCity(info.city)
+          }
+          enableSearch
+          searchPlaceholder="Search barangays..."
+          disabled={!info.city}
+          onSelect={(v) => setInfo({ ...info, barangay: v ?? '' })}
+          value={info.barangay}
+        />
 
         <TextField isRequired>
           <Label>Street Address</Label>

@@ -10,7 +10,12 @@ import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 import MapViewSwitcher from "@/components/maps/MapViewSwitcher";
 import PlaceAutocompleteInput from "@/components/maps/PlaceAutocompleteInput";
 import { MAP_DEFAULT_COORDS, isPlacesEnabled } from "@/utils/mapConfig";
-import { isMetroManilaProvince, toCamanavaCity } from "@repo/constants";
+import {
+  getBarangaysByCity,
+  isMetroManilaProvince,
+  matchBarangay,
+  toCamanavaCity,
+} from "@repo/constants";
 
 export default function MapPin() {
   const router = useRouter();
@@ -31,13 +36,19 @@ export default function MapPin() {
     // Auto-fill address fields from Google Places; keep existing if Google returns empty (e.g., barangay)
     setMarkerCoords({ latitude: details.latitude, longitude: details.longitude });
     if (details.streetName) setField('streetName', details.streetName);
-    if (details.barangay) setField('barangay', details.barangay);
     // Only CAMANAVA values reach the form; Google names ("Caloocan City",
     // "Kalookan") are mapped to the listing city.
     const camanavaCity = toCamanavaCity(details.city);
     if (camanavaCity && isMetroManilaProvince(details.province)) {
       setField('city', camanavaCity);
       setField('province', 'Metro Manila');
+      // Only a barangay from the city's list is filled in; otherwise it is picked by hand.
+      const cityBarangays = getBarangaysByCity(camanavaCity);
+      setField(
+        'barangay',
+        matchBarangay(cityBarangays, details.barangay) ??
+          (cityBarangays.includes(barangay) ? barangay : ''),
+      );
     }
     if (/^\d{4}$/.test(details.postalCode)) setField('postalCode', details.postalCode);
   };

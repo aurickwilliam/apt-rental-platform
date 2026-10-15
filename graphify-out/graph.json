@@ -4,72 +4,6 @@
   "graph": {},
   "nodes": [
     {
-      "label": "fifth-step.tsx",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "fifth-step.tsx"
-    },
-    {
-      "label": "MAP_STYLE",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L47",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_map_style",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "map_style"
-    },
-    {
-      "label": "DEFAULT_COORDS",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L73",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_default_coords",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "default_coords"
-    },
-    {
-      "label": "FifthStep()",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L78",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "fifthstep()"
-    },
-    {
-      "label": "fourth-step.tsx",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "fourth-step.tsx"
-    },
-    {
-      "label": "FourthStep()",
-      "file_type": "code",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep",
-      "community": 2,
-      "community_name": "ref_react",
-      "norm_label": "fourthstep()"
-    },
-    {
       "label": "second-step.tsx",
       "file_type": "code",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx",
@@ -147,15 +81,81 @@
       "norm_label": "secondstep()"
     },
     {
+      "label": "fifth-step.tsx",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "fifth-step.tsx",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step"
+    },
+    {
+      "label": "MAP_STYLE",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L47",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "map_style",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_map_style"
+    },
+    {
+      "label": "DEFAULT_COORDS",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L73",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "default_coords",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_default_coords"
+    },
+    {
+      "label": "FifthStep()",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L78",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "fifthstep()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep"
+    },
+    {
+      "label": "fourth-step.tsx",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "fourth-step.tsx",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step"
+    },
+    {
+      "label": "FourthStep()",
+      "file_type": "code",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L28",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ref_react",
+      "norm_label": "fourthstep()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep"
+    },
+    {
       "label": "third-step.tsx",
       "file_type": "code",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "third-step.tsx"
+      "norm_label": "third-step.tsx",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step"
     },
     {
       "label": "FieldErrors",
@@ -163,10 +163,10 @@
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L37",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_fielderrors",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "fielderrors"
+      "norm_label": "fielderrors",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_fielderrors"
     },
     {
       "label": "validate()",
@@ -174,10 +174,10 @@
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L45",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_validate",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "validate()"
+      "norm_label": "validate()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_validate"
     },
     {
       "label": "monthLabels()",
@@ -185,10 +185,10 @@
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L66",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "monthlabels()"
+      "norm_label": "monthlabels()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels"
     },
     {
       "label": "monthsFromLabel()",
@@ -196,10 +196,10 @@
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L70",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "monthsfromlabel()"
+      "norm_label": "monthsfromlabel()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel"
     },
     {
       "label": "ThirdStep()",
@@ -207,10 +207,10 @@
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L74",
       "_origin": "ast",
-      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
       "community": 2,
       "community_name": "ref_react",
-      "norm_label": "thirdstep()"
+      "norm_label": "thirdstep()",
+      "id": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep"
     },
     {
       "label": "ARCHITECTURE.md",
@@ -85105,506 +85105,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L73",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_default_coords",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L78",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L47",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_map_style",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L30",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_components_cards_landlordcard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_components_display_perkitem",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_components_layout_applicationheader",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L22",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_components_layout_screenwrapper",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_constants_addapartmentsteps",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L42",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_hooks_apartments_index",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L40",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_hooks_auth_index",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L41",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_hooks_landlord_index",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L43",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_hooks_usetheme",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L43",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_hooks_usetheme_usecolors",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L36",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_stores_useapartmentformstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L36",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L38",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "packages_utils_src_index",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_expo_linear_gradient",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_expo_router",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L32",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_heroui_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_maplibre_maplibre_react_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_react",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L1",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_react_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L10",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_react_native_image_viewing",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
-      "source_location": "L34",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
-      "target": "ref_tabler_icons_react_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L28",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_components_layout_applicationheader",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_components_layout_screenwrapper",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_constants_addapartmentsteps",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L26",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_constants_perks",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L26",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_constants_perks_perks",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_hooks_usetheme",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L24",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_hooks_usetheme_usecolors",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L22",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_stores_useapartmentformstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L22",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "ref_expo_router",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "ref_heroui_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L1",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "ref_react",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
-      "source_location": "L2",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
-      "target": "ref_react_native",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx",
       "source_location": "L63",
       "weight": 1.0,
@@ -86009,7 +85509,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx",
-      "source_location": "L397",
+      "source_location": "L462",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_second_step_secondstep",
@@ -86031,13 +85531,513 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_default_coords"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_fifthstep"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step_map_style"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_components_cards_landlordcard"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_components_display_perkitem"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_components_layout_applicationheader"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_components_layout_screenwrapper"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_constants_addapartmentsteps"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_hooks_apartments_index"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_hooks_auth_index"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_hooks_landlord_index"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_hooks_usetheme"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_hooks_usetheme_usecolors"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_stores_useapartmentformstore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "packages_utils_src_index"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_expo_linear_gradient"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_expo_router"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_heroui_native"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_maplibre_maplibre_react_native"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_react"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_react_native"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_react_native_image_viewing"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fifth_step",
+      "target": "ref_tabler_icons_react_native"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step_fourthstep"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_components_layout_applicationheader"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_components_layout_screenwrapper"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_constants_addapartmentsteps"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_constants_perks"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_constants_perks_perks"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_hooks_usetheme"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_hooks_usetheme_usecolors"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_stores_useapartmentformstore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "ref_expo_router"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "ref_heroui_native"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "ref_react"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_fourth_step",
+      "target": "ref_react_native"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/mobile/app/landlord/manage-apartment/add-apartment/third-step.tsx",
       "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_fielderrors",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_fielderrors"
     },
     {
       "relation": "contains",
@@ -86046,9 +86046,9 @@
       "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels"
     },
     {
       "relation": "contains",
@@ -86057,9 +86057,9 @@
       "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel"
     },
     {
       "relation": "contains",
@@ -86068,9 +86068,9 @@
       "source_location": "L74",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep"
     },
     {
       "relation": "contains",
@@ -86079,9 +86079,9 @@
       "source_location": "L45",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_validate",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_validate"
     },
     {
       "relation": "imports_from",
@@ -86091,9 +86091,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_components_inputs_dropdownfield",
-      "confidence_score": 1.0
+      "target": "apps_mobile_components_inputs_dropdownfield"
     },
     {
       "relation": "imports_from",
@@ -86103,9 +86103,9 @@
       "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_components_inputs_uploadfilefield",
-      "confidence_score": 1.0
+      "target": "apps_mobile_components_inputs_uploadfilefield"
     },
     {
       "relation": "imports_from",
@@ -86115,9 +86115,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_components_layout_applicationheader",
-      "confidence_score": 1.0
+      "target": "apps_mobile_components_layout_applicationheader"
     },
     {
       "relation": "imports_from",
@@ -86127,9 +86127,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_components_layout_screenwrapper",
-      "confidence_score": 1.0
+      "target": "apps_mobile_components_layout_screenwrapper"
     },
     {
       "relation": "imports_from",
@@ -86139,9 +86139,9 @@
       "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_constants_addapartmentsteps",
-      "confidence_score": 1.0
+      "target": "apps_mobile_constants_addapartmentsteps"
     },
     {
       "relation": "imports",
@@ -86151,9 +86151,9 @@
       "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs",
-      "confidence_score": 1.0
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_hrefs"
     },
     {
       "relation": "imports",
@@ -86163,9 +86163,9 @@
       "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels",
-      "confidence_score": 1.0
+      "target": "apps_mobile_constants_addapartmentsteps_add_apartment_step_labels"
     },
     {
       "relation": "imports_from",
@@ -86175,9 +86175,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_stores_useapartmentformstore",
-      "confidence_score": 1.0
+      "target": "apps_mobile_stores_useapartmentformstore"
     },
     {
       "relation": "imports",
@@ -86187,9 +86187,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore",
-      "confidence_score": 1.0
+      "target": "apps_mobile_stores_useapartmentformstore_useapartmentformstore"
     },
     {
       "relation": "imports_from",
@@ -86199,9 +86199,9 @@
       "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "packages_utils_src_index",
-      "confidence_score": 1.0
+      "target": "packages_utils_src_index"
     },
     {
       "relation": "imports_from",
@@ -86211,9 +86211,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "ref_expo_router",
-      "confidence_score": 1.0
+      "target": "ref_expo_router"
     },
     {
       "relation": "imports_from",
@@ -86223,9 +86223,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "ref_heroui_native",
-      "confidence_score": 1.0
+      "target": "ref_heroui_native"
     },
     {
       "relation": "imports_from",
@@ -86235,9 +86235,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "ref_react",
-      "confidence_score": 1.0
+      "target": "ref_react"
     },
     {
       "relation": "imports_from",
@@ -86247,9 +86247,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step",
-      "target": "ref_react_native",
-      "confidence_score": 1.0
+      "target": "ref_react_native"
     },
     {
       "relation": "calls",
@@ -86259,9 +86259,9 @@
       "source_location": "L157",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthlabels"
     },
     {
       "relation": "calls",
@@ -86271,9 +86271,9 @@
       "source_location": "L160",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_thirdstep",
-      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel",
-      "confidence_score": 1.0
+      "target": "apps_mobile_app_landlord_manage_apartment_add_apartment_third_step_monthsfromlabel"
     },
     {
       "relation": "contains",
@@ -313535,5 +313535,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3778acf2bb7581dcc7c5826b5de475a683701863"
+  "built_at_commit": "19376b25270dc98897796069b49e1ca36e8001fd"
 }

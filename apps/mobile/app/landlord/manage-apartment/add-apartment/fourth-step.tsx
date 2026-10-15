@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
 import {
   ADD_APARTMENT_STEP_HREFS,
   ADD_APARTMENT_STEP_LABELS,
@@ -37,6 +38,7 @@ export default function FourthStep() {
     description?: string;
     amenities?: string;
   }>({});
+  const furthestStep = useAddApartmentProgress(4);
 
   const validate = () => {
     const newErrors: typeof errors = {};
@@ -59,7 +61,8 @@ export default function FourthStep() {
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle={"Description & Amenities"}
         nextTitle={"Preview & Publish"}
@@ -67,7 +70,12 @@ export default function FourthStep() {
         totalSteps={ADD_APARTMENT_TOTAL_STEPS}
         stepLabels={ADD_APARTMENT_STEP_LABELS}
         stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={validate}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5 flex-1">
         <TextField isRequired isInvalid={!!errors.description}>
