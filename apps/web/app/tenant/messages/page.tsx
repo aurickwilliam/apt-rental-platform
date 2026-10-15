@@ -89,7 +89,7 @@ export default async function MessagesPage() {
   });
 
   return (
-    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <MessagesClient
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}

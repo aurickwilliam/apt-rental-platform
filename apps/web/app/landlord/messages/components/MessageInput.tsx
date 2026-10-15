@@ -68,9 +68,38 @@ export default function MessageInput({
   // removed, replaced, or the composer unmounts — otherwise the blob stays in
   // memory for the life of the tab.
   const stagedRef = useRef<StagedAttachment[]>(staged);
+  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     stagedRef.current = staged;
   }, [staged]);
+
+  /**
+   * Keeps a press from moving focus off the draft.
+   *
+   * A native button's default `mousedown` focuses the button, which blurs the
+   * input — on a mobile browser that collapses the keyboard mid-sentence, and
+   * it discards the caret the insert step needs. Suppressing the default keeps
+   * the caret, the keyboard and any in-progress draft selection alive.
+   */
+  const preventFocusSteal = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
+
+  // A press on the toggle belongs to the toggle, not to the panel's click-away
+  // closer — otherwise opening re-closes and the panel flickers.
+  useEffect(() => {
+    if (!isEmojiOpen) return;
+    const button = emojiButtonRef.current;
+    if (!button) return;
+    const swallow = (event: MouseEvent) => {
+      event.stopPropagation();
+      if (event.target instanceof Node && button.contains(event.target)) {
+        setIsEmojiOpen(false);
+      }
+    };
+    button.addEventListener("mousedown", swallow);
+    return () => button.removeEventListener("mousedown", swallow);
+  }, [isEmojiOpen]);
 
   useEffect(() => {
     return () => {
@@ -122,9 +151,10 @@ export default function MessageInput({
       const end = input?.selectionEnd ?? current.length;
       return `${current.slice(0, start)}${emoji}${current.slice(end)}`;
     });
-    setIsEmojiOpen(false);
 
-    // Restore the caret after the emoji, once React has committed the new value.
+    // The panel deliberately stays open so several emoji can be picked in a
+    // row — that is the point of a picker over a send-and-close flow.
+    // Restore the caret after the insert, once React has committed the value.
     requestAnimationFrame(() => {
       const field = inputRef.current;
       if (!field) return;
@@ -134,6 +164,19 @@ export default function MessageInput({
       field.setSelectionRange(caret, caret);
     });
   }, []);
+
+  /**
+   * Opens or closes the emoji panel.
+   *
+   * The button is a sibling of the panel, so the panel's click-away handler
+   * sees this press on `mousedown` and would close it a moment before the
+   * `click` here runs — so the toggle skips that race by flipping on the
+   * button's own `mousedown` instead, and this `click` becomes a no-op.
+   */
+  const toggleEmojiPanel = useCallback(() => {
+    if (isEmojiOpen) return;
+    setIsEmojiOpen(true);
+  }, [isEmojiOpen]);
 
   const removeStaged = useCallback((id: string) => {
     setStaged((prev) => {
@@ -233,7 +276,10 @@ export default function MessageInput({
     "flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
   return (
-    <div className="border-t border-border bg-card">
+    // `relative` anchors the floating emoji panel above the composer. Without
+    // it the panel can only be laid out in flow, which inflates the composer
+    // and crushes the message thread.
+    <div className="relative border-t border-border bg-card">
       {replyTarget && (
         <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -337,9 +383,11 @@ export default function MessageInput({
         </div>
 
         <button
+          ref={emojiButtonRef}
           type="button"
           className={iconButtonClass}
-          onClick={() => setIsEmojiOpen(true)}
+          onMouseDown={preventFocusSteal}
+          onClick={toggleEmojiPanel}
           aria-label="Insert emoji"
           aria-expanded={isEmojiOpen}
         >

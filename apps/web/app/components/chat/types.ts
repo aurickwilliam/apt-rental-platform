@@ -60,4 +60,6 @@ export interface ChatMessage {
    * pending attachment previews before the upload lands.
    */
   resolvedUrl?: string | null;
+  /** Resolved signed URL for `attachment_thumbnail_path` (video poster). */
+  resolvedThumbnailUrl?: string | null;
 }

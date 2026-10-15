@@ -42,24 +42,36 @@ type SupabaseClient = ReturnType<typeof createClient>;
  */
 const INITIAL_MESSAGE_LIMIT = 100;
 
+/** The oldest row loaded so far — the keyset cursor for older history. */
+interface HistoryCursor {
+  created_at: string;
+  id: string;
+}
+
 /** The subset of `chat` an attachment insert needs back to confirm a bubble. */
 interface InsertedAttachmentRow {
   id: string;
   created_at: string;
   /** Null only if the database didn't echo the write back; treated as unconfirmed. */
   attachment_path: string | null;
+  attachment_thumbnail_path?: string | null;
 }
 
 /**
  * Loads a conversation's messages together with their reactions and resolved
  * reply originals. Pure with respect to React — it returns rows rather than
  * setting state, so callers decide when to apply them.
+ *
+ * When `olderThan` is supplied the query walks backwards from that cursor
+ * (keyset pagination), so loading earlier history never re-reads rows already
+ * held and can't skip past messages that share a timestamp.
  */
 async function loadConversation(
   supabase: SupabaseClient,
   currentUserId: string,
   otherUserId: string,
-  apartmentId: string | null
+  apartmentId: string | null,
+  olderThan?: HistoryCursor | null
 ): Promise<ChatMessage[]> {
   const base = supabase
     .from("chat")
@@ -72,10 +84,18 @@ async function loadConversation(
   // Ordering and the limit stay on the builder, so the window is applied
   // server-side: this returns the *newest* N rows of the conversation rather
   // than the oldest N of the filtered set. Reversed back to oldest-first below.
-  const { data, error } = await (apartmentId
+  let query = apartmentId
     ? base.eq("apartment_id", apartmentId)
-    : base.is("apartment_id", null)
-  )
+    : base.is("apartment_id", null);
+
+  if (olderThan) {
+    query = query.or(
+      `created_at.lt.${olderThan.created_at},` +
+        `and(created_at.eq.${olderThan.created_at},id.lt.${olderThan.id})`
+    );
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(INITIAL_MESSAGE_LIMIT);
@@ -116,7 +136,7 @@ async function loadConversation(
   // Signed URLs are produced at read time and never persisted. External URLs
   // (GIFs) are already renderable and skip signing entirely.
   const attachmentPaths = rows
-    .map((r) => r.attachment_path)
+    .flatMap((r) => [r.attachment_path, r.attachment_thumbnail_path])
     .filter((p): p is string => Boolean(p));
   const signedUrls = await resolveAttachmentUrls(supabase, attachmentPaths);
 
@@ -130,6 +150,9 @@ async function loadConversation(
       reactions: reactionsByMessage.get(m.id) ?? [],
       resolvedUrl: m.attachment_path
         ? (signedUrls.get(m.attachment_path) ?? null)
+        : null,
+      resolvedThumbnailUrl: m.attachment_thumbnail_path
+        ? (signedUrls.get(m.attachment_thumbnail_path) ?? null)
         : null,
     }))
     .reverse();
@@ -152,6 +175,10 @@ export default function useConversation({
 }: UseConversationArgs) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [historyCursor, setHistoryCursor] = useState<HistoryCursor | null>(null);
+  // False once a backwards page comes back short — there is nothing older left.
+  const [hasEarlierMessages, setHasEarlierMessages] = useState(true);
+  const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const [replyTarget, setReplyTarget] = useState<ChatMessage | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
 
@@ -197,6 +224,12 @@ export default function useConversation({
       .then((hydrated) => {
         if (isCancelled) return;
         setMessages(hydrated);
+        // Seed the backwards cursor from the oldest row currently held.
+        const oldest = hydrated[0];
+        setHistoryCursor(
+          oldest ? { created_at: oldest.created_at, id: oldest.id } : null
+        );
+        setHasEarlierMessages(hydrated.length === INITIAL_MESSAGE_LIMIT);
         setLoadedKey(fetchKey);
       })
       .catch((err: unknown) => {
@@ -209,6 +242,44 @@ export default function useConversation({
       isCancelled = true;
     };
   }, [apartmentId, currentUserId, fetchKey, otherUserId, supabase]);
+
+  /**
+ * Prepends the previous page of history. Rows already held are de-duplicated
+ * by id, because a realtime insert can land between pages and the keyset
+ * cursor only guarantees ordering, not exclusivity.
+ */
+const loadEarlierMessages = useCallback(async () => {
+    if (!otherUserId || !historyCursor) return;
+
+    setIsLoadingEarlier(true);
+    try {
+      const older = await loadConversation(
+        supabase,
+        currentUserId,
+        otherUserId,
+        apartmentId ?? null,
+        historyCursor
+      );
+
+      setMessages((prev) => {
+        const seen = new Set(prev.map((m) => m.id));
+        const fresh = older.filter((m) => !seen.has(m.id));
+        return [...fresh, ...prev];
+      });
+
+      const oldest = older[0];
+      if (oldest) {
+        setHistoryCursor({ created_at: oldest.created_at, id: oldest.id });
+      }
+      // A short page means the conversation start has been reached.
+      setHasEarlierMessages(older.length === INITIAL_MESSAGE_LIMIT);
+    } catch (err) {
+      console.error("Failed to load earlier messages:", err);
+      onSendError?.("Couldn't load earlier messages.");
+    } finally {
+      setIsLoadingEarlier(false);
+    }
+  }, [apartmentId, currentUserId, historyCursor, onSendError, otherUserId, supabase]);
 
   /** Re-reads the current conversation, e.g. after a failed reaction write. */
   const refreshMessages = useCallback(async () => {
@@ -406,6 +477,7 @@ export default function useConversation({
                   reply_to: replyToId,
                   is_read: false,
                   attachment_path: item.path,
+                  attachment_thumbnail_path: item.thumbnailPath,
                   attachment_mime_type: item.mimeType,
                   group_id: groupId,
                   // Only the first row keeps the quoted context, so a batch
@@ -413,7 +485,9 @@ export default function useConversation({
                   ...(index === 0 ? {} : { reply_to: null }),
                 }))
               )
-              .select("id, message_type, created_at, attachment_path")
+              .select(
+                "id, message_type, created_at, attachment_path, attachment_thumbnail_path"
+              )
           : { data: null, error: null };
 
       if (inserted.error) {
@@ -453,6 +527,8 @@ export default function useConversation({
               id: confirmed.id,
               created_at: confirmed.created_at,
               attachment_path: confirmed.attachment_path,
+              attachment_thumbnail_path:
+                confirmed.attachment_thumbnail_path ?? null,
               isPending: false,
             },
           ];
@@ -581,6 +657,10 @@ export default function useConversation({
     messages,
     setMessages,
     isLoading,
+    hasEarlierMessages,
+    isLoadingEarlier,
+    loadEarlierMessages,
+    refreshMessages,
     replyTarget,
     contextMenu,
     sendMessage,

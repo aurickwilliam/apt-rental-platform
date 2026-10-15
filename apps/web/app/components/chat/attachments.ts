@@ -28,6 +28,8 @@ export const ATTACHMENT_SIGNED_URL_TTL_SECONDS = 60 * 60;
 export const IMAGE_MAX_LONG_EDGE = 1600;
 export const IMAGE_JPEG_QUALITY = 0.7;
 
+export const THUMBNAIL_JPEG_QUALITY = 0.7;
+
 /**
  * Caps concurrent uploads rather than firing all N at once — a 10-file
  * multi-select on a weak connection shouldn't open 10 simultaneous uploads.
@@ -182,6 +184,58 @@ export async function compressChatImage(file: File): Promise<File> {
 }
 
 /**
+ * Grabs a video's first frame as a JPEG so the row carries a real thumbnail,
+ * matching the `attachment_thumbnail_path` mobile already writes.
+ *
+ * Returns null when the frame can't be captured — a codec the browser can't
+ * decode for canvas, or a `preload="metadata"` seek that never resolves. The
+ * video then renders its own first frame instead, so this is an enhancement
+ * and never a gate on sending.
+ */
+export async function captureVideoThumbnail(file: File): Promise<Blob | null> {
+  const url = URL.createObjectURL(file);
+  try {
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+
+    const ready = await new Promise<boolean>((resolve) => {
+      const finish = (ok: boolean) => resolve(ok);
+      // Cap the wait: a file the browser can't decode should fall back fast
+      // rather than hang the send.
+      const timer = setTimeout(() => finish(false), 8000);
+      video.onloadeddata = () => {
+        clearTimeout(timer);
+        finish(true);
+      };
+      video.onerror = () => {
+        clearTimeout(timer);
+        finish(false);
+      };
+      video.src = url;
+    });
+
+    if (!ready || !video.videoWidth || !video.videoHeight) return null;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    return await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", THUMBNAIL_JPEG_QUALITY)
+    );
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/**
  * Uploads one attachment to the private `chat-images` bucket and returns its
  * storage path. Mirrors mobile's `{senderId}/{id}.{ext}` shape.
  */
@@ -199,8 +253,45 @@ export async function uploadChatAttachment(
     .from(CHAT_IMAGES_BUCKET)
     .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
 
-  if (error) throw new Error(error.message);
+  if (error) throw describeUploadFailure(error, file);
   return path;
+}
+
+/**
+ * Turns a storage error into a message that identifies the cause. The Supabase
+ * client collapses a network-layer abort to the bare string "Failed to fetch"
+ * with no status, which is indistinguishable between a CORS preflight failure,
+ * a dropped connection, a mid-flight abort on a large body and a bucket-side
+ * rejection with an unreadable body. Re-throwing `error.message` alone therefore
+ * hid the only information needed to debug it.
+ *
+ * Never includes file contents — just name, type, size and the status code.
+ */
+function describeUploadFailure(error: Error, file: File): Error {
+  const detail = error.message || "Unknown storage error";
+
+  // The generic fetch failure: no response reached the client at all.
+  if (/failed to fetch|networkerror|load failed/i.test(detail)) {
+    return new Error(
+      `Upload didn't reach the server (${detail}). ` +
+        `The request was blocked or reset in transit — usually the file is too ` +
+        `large for the network or the browser, or the bucket rejected it ` +
+        `without a readable response. File: ${file.name} ` +
+        `(${file.type || "unknown type"}, ${formatBytes(file.size)}).`
+    );
+  }
+
+  // A structured server rejection — RLS, missing bucket, size limit.
+  return new Error(
+    `Upload rejected: ${detail} File: ${file.name} ` +
+      `(${file.type || "unknown type"}, ${formatBytes(file.size)}).`
+  );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 /** A successfully uploaded attachment, ready to be written to `chat`. */
@@ -211,6 +302,8 @@ export interface UploadedAttachment {
   path: string;
   messageType: Exclude<MessageType, "text">;
   mimeType: string;
+  /** Video poster. Null for images/GIFs and when the frame can't be captured. */
+  thumbnailPath: string | null;
 }
 
 /**
@@ -245,14 +338,35 @@ export async function uploadChatAttachments(
           : next.file;
 
         const path = await uploadChatAttachment(supabase, senderId, payload);
+
+        // Video only, and best-effort: a failed capture must not fail the send.
+        let thumbnailPath: string | null = null;
+        if (next.messageType === "video") {
+          const frame = await captureVideoThumbnail(next.file);
+          if (frame) {
+            const thumbPath = await uploadChatAttachment(
+              supabase,
+              senderId,
+              new File([frame], `thumb-${Date.now()}.jpg`, { type: "image/jpeg" })
+            );
+            thumbnailPath = thumbPath;
+          }
+        }
+
         uploaded.push({
           index: next.index,
           path,
           messageType: next.messageType,
           mimeType: payload.type || next.file.type,
+          thumbnailPath,
         });
       } catch (err) {
-        console.error("Attachment upload failed:", err);
+        // Log the real reason — `describeUploadFailure` already reduced it to
+        // status + file metadata, with no file contents.
+        console.error(
+          `Attachment upload failed (${next.file.name}, ${next.file.type || "unknown type"}, ${formatBytes(next.file.size)}):`,
+          err instanceof Error ? err.message : err
+        );
         failures.push({ index: next.index, name: next.file.name });
       }
     }

@@ -12,6 +12,14 @@ interface MessageBubbleProps {
   message: ChatMessage;
   isMine: boolean;
   otherUserName?: string;
+  /**
+   * Where this bubble sits in a run of consecutive messages from the same
+   * sender. Tightens the gap between them and is what makes a multi-file
+   * attachment batch read as one group instead of a stack.
+   */
+  groupPosition?: "single" | "first" | "middle" | "last";
+  /** True when a later message from this sender follows, so "Seen" is stale. */
+  hasLaterMessageFromSender?: boolean;
   onToggleReaction: (messageId: string, emoji: string) => void | Promise<void>;
   onReply: (message: ChatMessage) => void;
   onOpenContextMenu: (position: { x: number; y: number }) => void;
@@ -26,6 +34,8 @@ export default function MessageBubble({
   message,
   isMine,
   otherUserName,
+  groupPosition = "single",
+  hasLaterMessageFromSender = false,
   onToggleReaction,
   onReply,
   onOpenContextMenu,
@@ -89,8 +99,13 @@ export default function MessageBubble({
 
   useEffect(() => () => cancelPress(), []);
 
+  // A single send keeps the full gap; only the inside of a run tightens.
+  const isGrouped = groupPosition !== "single";
   const mediaUrl = attachmentDisplayUrl(message);
   const showsAttachment = hasAttachment(message);
+
+  // Runs share a timestamp row and hug together; a lone bubble keeps both.
+  const runSpacing = isGrouped ? "-mt-3 first:mt-0" : "";
 
   const hasReply = message.replyDeleted || !!message.replyTo;
   const replierLabel = hasReply
@@ -198,7 +213,7 @@ export default function MessageBubble({
           isMine
             ? "bg-primary text-primary-foreground rounded-tr-none"
             : "bg-card text-foreground border border-border rounded-tl-none"
-        } ${canInteract ? "cursor-pointer" : ""}`}
+        } ${canInteract ? "cursor-pointer" : ""} ${runSpacing}`}
       >
         {mediaUrl && showsAttachment ? (
           <AttachmentBody message={message} url={mediaUrl} />
@@ -222,6 +237,11 @@ export default function MessageBubble({
 
       <span className="mt-1 text-[10px] text-muted-foreground">
         {message.isPending ? "Sending…" : formatTime(message.created_at)}
+        {/* Read receipt for the newest sent message only, and only until the
+            other person replies — once they do, the reply is the signal. */}
+        {isMine && message.is_read && !hasLaterMessageFromSender && (
+          <span className="ml-1.5">Seen</span>
+        )}
       </span>
     </div>
   );
@@ -254,6 +274,9 @@ function AttachmentBody({
             src={url}
             controls
             preload="metadata"
+            // Captured first frame, so the poster matches mobile's rows
+            // instead of depending on the browser painting frame zero.
+            poster={message.resolvedThumbnailUrl ?? undefined}
             className="max-h-80 w-full bg-black object-cover"
           >
             <track kind="captions" />
