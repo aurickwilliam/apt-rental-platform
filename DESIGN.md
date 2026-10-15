@@ -12,7 +12,7 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).
 
-**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons, yellow `#FBBF24` for star ratings only (mobile and web ✅); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
+**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons (mobile light mode: neutral tertiary look), yellow `#FBBF24` for star ratings only (mobile and web ✅); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
 
 **Mobile-first:** the Expo app is the primary product; web mirrors its palette and semantics. Design mobile-first, adapt to web.
 
@@ -201,7 +201,7 @@ Sizes (stroke 2 default): tab bar 24 (focused filled `strokeWidth 2.5` / unfocus
 | Variant | Usage |
 |---|---|
 | `primary` (default) | Apply Now, Pay, Save, Verify, next steps. Mobile fill is always brand `#376BF5` (white text 4.6:1), also in dark mode |
-| `secondary` | Supporting actions (View Description, View More Details; web also Cancel-in-dialog fallback, Skip, Search submit). Soft blue on both platforms: `primaryLight` fill, no border, `primaryLightForeground` label (mobile rules in `apps/mobile/app/global.css`, web `.button--secondary` in `apps/web/app/globals.css`). On a blue card, the main action is a white button with brand-blue text (Pay Now) |
+| `secondary` | Supporting actions (View Description, View More Details; web also Cancel-in-dialog fallback, Skip, Search submit). Web: soft blue, `primaryLight` fill, no border, `primaryLightForeground` label (`.button--secondary` in `apps/web/app/globals.css`). Mobile: light mode uses the tertiary look (neutral `--default` fill, foreground label); dark mode stays soft blue (`--color-button-secondary*` per theme in `apps/mobile/app/global.css`). On a blue card, the main action is a white button with brand-blue text (Pay Now) |
 | `tertiary` | Quiet in-content actions: Clear All, quick actions, row menus |
 | `outline` | Bordered actions: browse CTAs, select triggers |
 | `danger` / `danger-soft` | Delete, Reject, Logout dropdown item |

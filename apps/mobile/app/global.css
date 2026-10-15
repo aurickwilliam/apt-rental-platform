@@ -107,6 +107,9 @@
     --color-secondary-light: #E0F2FE;
     --color-primary-light: #EFF6FF;
     --color-primary-light-foreground: #2F5FE0;
+    /* Secondary buttons look like tertiary in light mode (neutral fill) */
+    --color-button-secondary: var(--default);
+    --color-button-secondary-foreground: var(--default-foreground);
 
     /* Semantic */
     --success: var(--color-success);
@@ -201,6 +204,9 @@
     /* Override primary-light for dark mode (icon tiles, soft blue surfaces) */
     --color-primary-light: var(--color-dark-primary-light);
     --color-primary-light-foreground: var(--color-dark-primary-light-foreground);
+    /* Secondary buttons stay soft blue in dark mode */
+    --color-button-secondary: var(--color-primary-light);
+    --color-button-secondary-foreground: var(--color-primary-light-foreground);
     --color-gray-500: var(--muted);
   }
 }
@@ -242,14 +248,15 @@
   background-color: var(--color-primary);
 }
 
-/* Secondary buttons are soft blue (DESIGN.md §9): primary-light fill, no
-   border, brand-blue label (5.0:1 light / 4.8:1 dark). */
+/* Secondary buttons (DESIGN.md §9): light mode uses the tertiary look
+   (neutral `--default` fill, foreground label); dark mode stays soft blue
+   (primary-light fill, brand-blue label, 4.8:1). Values per theme above. */
 .button__root--variant-secondary {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-button-secondary);
 }
 
 .button__label--variant-secondary {
-  color: var(--color-primary-light-foreground);
+  color: var(--color-button-secondary-foreground);
 }
 
 /* Buttons — every HeroUI Button / LinkButton label uses Nunito SemiBold
