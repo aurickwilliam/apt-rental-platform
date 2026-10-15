@@ -317,7 +317,6 @@ export default function ConversationView({
                   key={msg.id}
                   message={msg}
                   isMine={msg.sender_id === currentUserId}
-                  currentUserId={currentUserId}
                   otherUserName={activeContact.name}
                   onToggleReaction={toggleReaction}
                   onReply={handleReply}

@@ -26,6 +26,77 @@ export interface ContextMenuTarget {
   position: { x: number; y: number };
 }
 
+type SupabaseClient = ReturnType<typeof createClient>;
+
+/**
+ * Loads a conversation's messages together with their reactions and resolved
+ * reply originals. Pure with respect to React — it returns rows rather than
+ * setting state, so callers decide when to apply them.
+ */
+async function loadConversation(
+  supabase: SupabaseClient,
+  currentUserId: string,
+  otherUserId: string,
+  apartmentId: string | null
+): Promise<ChatMessage[]> {
+  const base = supabase
+    .from("chat")
+    .select("*")
+    .or(
+      `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),` +
+        `and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
+    )
+    .order("created_at", { ascending: true });
+
+  const { data, error } = apartmentId
+    ? await base.eq("apartment_id", apartmentId)
+    : await base.is("apartment_id", null);
+
+  if (error || !data) return [];
+
+  // The generated row type lags the chat table's extra columns; the columns
+  // this view reads (message, reply_to, timestamps) line up.
+  const rows = data as unknown as ChatMessage[];
+  const messageIds = rows.map((r) => r.id);
+
+  // Reactions for the page (one row per reacting user per message).
+  const reactionRows = messageIds.length
+    ? (
+        await supabase
+          .from("chat_reactions")
+          .select("message_id, user_id, emoji")
+          .in("message_id", messageIds)
+      ).data ?? []
+    : [];
+
+  // Quoted originals for reply previews (text placeholder for media).
+  const replyIds = [
+    ...new Set(rows.map((r) => r.reply_to).filter((v): v is string => !!v)),
+  ];
+  const replyRows = replyIds.length
+    ? (
+        await supabase
+          .from("chat")
+          .select("id, message, message_type, sender_id")
+          .in("id", replyIds)
+      ).data ?? []
+    : [];
+
+  const reactionsByMessage = groupReactions(
+    reactionRows as { message_id: string; user_id: string; emoji: string }[],
+    currentUserId
+  );
+
+  return attachReplyPreviews(
+    rows,
+    replyRows as Pick<ChatMessage, "id" | "message" | "message_type" | "sender_id">[],
+    currentUserId
+  ).map((m) => ({
+    ...m,
+    reactions: reactionsByMessage.get(m.id) ?? [],
+  }));
+}
+
 /**
  * Shared conversation state for the tenant and landlord chat views: message
  * fetch (with reactions and resolved reply previews), optimistic send, reply
@@ -43,7 +114,6 @@ export default function useConversation({
 }: UseConversationArgs) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [replyTarget, setReplyTarget] = useState<ChatMessage | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
 
@@ -130,24 +200,35 @@ export default function useConversation({
     setPrevOtherUserId(otherUserId);
     if (!otherUserId) {
       setMessages([]);
-      setIsLoading(false);
+      setReplyTarget(null);
+      setContextMenu(null);
     }
   }
 
+  // Loading is derived, not stored: a conversation is loading whenever it isn't
+  // the one already fetched. Setting a flag before the fetch would need a
+  // synchronous setState in the effect body, which cascades renders.
+  const fetchKey = otherUserId ? `${otherUserId}:${apartmentId ?? "any"}` : null;
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const isLoading = fetchKey !== null && loadedKey !== fetchKey;
+
   useEffect(() => {
-    if (!otherUserId) return;
+    if (!fetchKey) return;
 
     let isCancelled = false;
-    setIsLoading(true);
 
-    void fetchMessages().finally(() => {
-      if (!isCancelled) setIsLoading(false);
-    });
+    void fetchMessages()
+      .catch((err: unknown) => {
+        console.error("Failed to load messages:", err);
+      })
+      .finally(() => {
+        if (!isCancelled) setLoadedKey(fetchKey);
+      });
 
     return () => {
       isCancelled = true;
     };
-  }, [otherUserId, apartmentId, fetchMessages]);
+  }, [fetchKey, fetchMessages]);
 
   /** Sends a text message, optionally as a reply. Optimistic with rollback. */
   const sendMessage = useCallback(
