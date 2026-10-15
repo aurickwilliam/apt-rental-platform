@@ -23,6 +23,7 @@ import StatusChip from "./components/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import TenancyEmptyState from "./components/TenancyEmptyState";
 import ApplicationsList from "./components/ApplicationsList";
+import MyRentalSkeleton from "./components/MyRentalSkeleton";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -163,13 +164,7 @@ export default function MyRental() {
   }, [apartmentIdForFees]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-6xl mx-auto px-4 py-20 flex justify-center">
-          <Spinner color="accent" />
-        </div>
-      </div>
-    );
+    return <MyRentalSkeleton />;
   }
 
   if (error) {
@@ -194,13 +189,7 @@ export default function MyRental() {
 
   if (!tenancy) {
     if (applicationsLoading) {
-      return (
-        <div className="min-h-screen bg-background">
-          <div className="max-w-7xl mx-auto px-4 py-20 flex justify-center">
-            <Spinner color="accent" />
-          </div>
-        </div>
-      );
+      return <MyRentalSkeleton variant="applications" />;
     }
 
     return (
