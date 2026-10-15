@@ -19,12 +19,14 @@
   }
 
   .input, .textarea {
-    @apply rounded-xl border border-gray-300 bg-white placeholder:text-gray-400 transition-all;
+    /* border-border (not gray-300): identical in light mode, subtle in dark
+       mode instead of stark white outlines. */
+    @apply rounded-xl border border-border placeholder:text-gray-400 transition-all;
   }
 
   .input:hover, .input[data-hovered="true"],
   .textarea:hover, .textarea[data-hovered="true"] {
-    @apply border-gray-400;
+    @apply border-muted-foreground;
   }
 
   .input:focus-visible, .input[data-focus-visible="true"],
@@ -73,7 +75,8 @@
   }
 
   .select__trigger {
-    @apply rounded-xl border border-gray-300 bg-white transition-all;
+    /* Same as .input above: no hardcoded bg so dark mode works. */
+    @apply rounded-xl border border-gray-300 transition-all;
   }
 
   /* Placeholder text color — targets the value slot */
