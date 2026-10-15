@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Badge, Button, Chip, Drawer, Popover, Separator, useOverlayState } from "@heroui/react";
 import { IconClipboardList as ClipboardList, IconFilter as Filter } from "@tabler/icons-react";
 
-import { useTenantApplications } from "@/hooks/use-tenant-applications";
+import type { TenantApplication } from "@/hooks/use-tenant-applications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ApplicationStatus } from "@/app/tenant/applications/lib/statusStyles";
 
@@ -43,8 +43,15 @@ function applicationDate(createdAt: string): number {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
-export default function ApplicationsList({ className = "", showHeader = true }: { className?: string; showHeader?: boolean }) {
-  const { applications, loading, error } = useTenantApplications();
+interface ApplicationsListProps {
+  className?: string;
+  showHeader?: boolean;
+  applications: TenantApplication[];
+  loading: boolean;
+  error: string | null;
+}
+
+export default function ApplicationsList({ className = "", showHeader = true, applications, loading, error }: ApplicationsListProps) {
   const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const isMobile = useIsMobile();

@@ -15,7 +15,6 @@ import {
   Modal,
   Separator,
   useOverlayState,
-  Spinner,
 } from "@heroui/react";
 import {
   IconArrowLeft as ArrowLeft,
@@ -31,6 +30,7 @@ import { useCancelApplication } from "@/hooks/use-cancel-application";
 import { useRespondToReschedule } from "@/hooks/use-respond-to-reschedule";
 import { getApplicationStatusStyle } from "@/app/tenant/applications/lib/statusStyles";
 import DetailField from "@/app/tenant/applications/components/DetailField";
+import ApplicationDetailSkeleton from "@/app/tenant/applications/components/ApplicationDetailSkeleton";
 import DocumentRow from "@/app/tenant/applications/components/DocumentRow";
 import VisitRequestDetailsCard from "@/app/tenant/applications/components/VisitRequestDetailsCard";
 
@@ -73,11 +73,7 @@ export default function ApplicationDetailPage() {
   const application = applications.find((a) => a.id === applicationId) ?? null;
 
   if (appsLoading || visitLoading || profileLoading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
-        <Spinner color="accent" />
-      </div>
-    );
+    return <ApplicationDetailSkeleton />;
   }
 
   if (appsError || !application) {

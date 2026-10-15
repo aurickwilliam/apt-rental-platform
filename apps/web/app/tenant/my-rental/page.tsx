@@ -196,7 +196,7 @@ export default function MyRental() {
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
           {hasApplications || applicationsError ? (
-            <ApplicationsList />
+            <ApplicationsList applications={applications} loading={false} error={applicationsError} />
           ) : (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
@@ -709,7 +709,7 @@ export default function MyRental() {
                   <Modal.CloseTrigger />
                 </Modal.Header>
                 <Modal.Body>
-                  <ApplicationsList showHeader={false} />
+                  <ApplicationsList showHeader={false} applications={applications} loading={applicationsLoading} error={applicationsError} />
                 </Modal.Body>
               </Modal.Dialog>
             </Modal.Container>
