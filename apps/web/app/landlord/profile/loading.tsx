@@ -27,12 +27,21 @@ export default function LandlordProfileLoading() {
           </div>
         </div>
 
-        <div className="h-fit rounded-3xl border border-border bg-card p-4 sm:p-5">
-          <div className="flex flex-col gap-4">
-            <div className="size-11 animate-pulse rounded-2xl bg-default-200" />
-            <div className="h-5 w-32 animate-pulse rounded-lg bg-default-200" />
-            <div className="h-4 w-full animate-pulse rounded bg-default-200" />
-            <div className="h-10 w-full animate-pulse rounded-xl bg-default-200" />
+        <div className="grid h-fit grid-cols-1 content-start gap-3">
+          <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex flex-col gap-3">
+              <div className="h-6 w-44 animate-pulse rounded-lg bg-default-200" />
+              <div className="h-6 w-36 animate-pulse rounded-lg bg-default-200" />
+              <div className="h-4 w-full animate-pulse rounded bg-default-200" />
+              <div className="h-4 w-2/3 animate-pulse rounded bg-default-200" />
+            </div>
+          </div>
+          <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex flex-col gap-4">
+              <div className="size-11 animate-pulse rounded-2xl bg-default-200" />
+              <div className="h-5 w-32 animate-pulse rounded-lg bg-default-200" />
+              <div className="h-10 w-full animate-pulse rounded-xl bg-default-200" />
+            </div>
           </div>
         </div>
       </div>

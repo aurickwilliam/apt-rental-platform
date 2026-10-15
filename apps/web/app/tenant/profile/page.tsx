@@ -9,6 +9,7 @@ import type { ProfileInitial } from "@/app/components/profile/ProfileForm";
 import AddRoleSection from "@/app/components/profile/AddRoleSection";
 import ProfileHeader from "@/app/components/profile/ProfileHeader";
 import PassportProfileCard from "@/app/components/passport/PassportProfileCard";
+import VerificationStatusCard from "@/app/components/profile/VerificationStatusCard";
 
 function getInitials(firstName: string | null, lastName: string | null, email: string | null) {
   const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
@@ -100,7 +101,8 @@ export default async function TenantProfilePage() {
         </div>
 
         <div className="grid h-fit grid-cols-1 content-start gap-3">
-          <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" verification={verification} />
+          <VerificationStatusCard accountStatus={profile.account_status} role="tenant" verification={verification} />
+          <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" />
 
           {/* AddRoleSection renders nothing when the account already holds the
               target role, so the wrapper must be gated too — otherwise a
