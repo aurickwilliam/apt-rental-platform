@@ -129,7 +129,12 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
   const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
 
   return (
-    <div className="flex flex-1 min-h-0 w-full overflow-hidden bg-card">
+    // The thread and the contact list each scroll internally, so this frame
+    // is pinned to the viewport. Without a definite height the whole column
+    // outgrows the screen, `flex-1` resolves against unbounded height, and
+    // the window becomes the scroller — dragging the header and composer off
+    // screen. `pb-20`/`md:pb-0` on the portal `main` is mirrored here.
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <ContactSidebar
         contacts={contacts}
         activeTab={activeTab}
