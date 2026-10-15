@@ -41,15 +41,15 @@ export default function MiniCalendar({ focusDate, highlightDate, highlightLabel 
   }
 
   return (
-    <DashboardCard>
+    <DashboardCard className="flex flex-col justify-center">
+      <div className="flex justify-center">
       <Calendar
         aria-label="Rent calendar"
         value={selectedValue as unknown as never}
         focusedValue={focusedValue as unknown as never}
         onFocusChange={(value) => setFocusedValue(value as unknown as typeof focusedValue)}
         isReadOnly
-        className="w-full"
-        style={{ width: "100%" }}
+        className="w-full! max-w-[308px]!"
       >
         <Calendar.Header className="flex items-center justify-between pb-2" style={{ width: "100%" }}>
           <Calendar.Heading className="font-nunito text-base font-bold text-card-foreground" />
@@ -80,7 +80,7 @@ export default function MiniCalendar({ focusDate, highlightDate, highlightLabel 
                 className="group p-0.5 text-center font-inter text-sm text-muted-foreground"
               >
                 {({ formattedDate }) => (
-                  <div className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full group-data-[selected=true]:bg-orange-500 group-data-[selected=true]:text-white group-data-[today=true]:bg-primary group-data-[today=true]:text-white">
+                  <div className="mx-auto flex aspect-square w-full max-w-10 flex-col items-center justify-center rounded-full group-data-[selected=true]:bg-orange-500 group-data-[selected=true]:text-white group-data-[today=true]:bg-primary group-data-[today=true]:text-white">
                     <span className="leading-none">{formattedDate}</span>
                     {highlightKey && date.toString() === highlightKey && (
                       <Calendar.CellIndicator className="mt-0.5 h-1 w-1 rounded-full bg-orange-500 group-data-[selected=true]:bg-white" />
@@ -92,8 +92,9 @@ export default function MiniCalendar({ focusDate, highlightDate, highlightLabel 
           </Calendar.GridBody>
         </Calendar.Grid>
       </Calendar>
+      </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         {highlightDate && (
           <div className="flex items-center gap-2 font-inter text-[12px] text-muted-foreground">
             <div className="w-2 h-2 rounded-full bg-orange-500" />
