@@ -133,14 +133,14 @@ export default function MessageCard({
           </Avatar>
 
           {unreadCount > 0 ? (
-            <View className='absolute -top-1 -right-1 bg-accent rounded-full min-w-5 h-5 px-1 items-center justify-center'>
+            <View className='absolute -top-1 -right-1 bg-danger rounded-full min-w-5 h-5 px-1 items-center justify-center'>
               <Text className='text-white text-xs font-nunitoSemiBold'>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>
             </View>
           ) : isMarkedUnread ? (
             <View
-              className='absolute top-0 right-0 bg-accent rounded-full size-3.5 border-2 border-background'
+              className='absolute top-0 right-0 bg-danger rounded-full size-3.5 border-2 border-background'
               accessibilityElementsHidden
             />
           ) : null}
