@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/second-step.tsx": {
-    "mtime": 1792071053.7876422,
-    "ast_hash": "cd70c84047a105e35fba4b46ea82d40e",
+    "mtime": 1792071625.667138,
+    "ast_hash": "45376f4b18df3f513982403e958f5ae4",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/success.tsx": {

@@ -394,7 +394,9 @@ export default function SecondStep() {
                 }}
               />
               <Description>
-                {areaLimits ? formatRange(areaLimits.min, areaLimits.max) : ""}
+                {areaLimits
+                  ? `${areaLimits.min} to ${areaLimits.max} sqm for a ${apartmentType.toLowerCase()}`
+                  : "Select a property type first"}
               </Description>
               {visibleErrors.floorArea && <FieldError>{visibleErrors.floorArea}</FieldError>}
             </TextField>
