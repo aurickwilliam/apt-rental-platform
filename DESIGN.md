@@ -331,7 +331,7 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Web hero (browse detail):** `w-full h-128` grid — main `w-2/3` + up to two stacked photos in `w-1/3`, all `rounded-2xl hover:brightness-90 transition`; "See all photos" pill opens the shared gallery. With one photo, the main image fills the width.
 - **Mobile hero:** `h-168 p-5 justify-end` w/ gradient, or full-bleed `h-80 rounded-b-3xl`
 - **Ratios:** 1:1 thumbs, `w-36 h-52` gallery (≈3:4), `w-24 h-16` lightbox thumbs, `w-12 h-12` table thumbs
-- **Avatars:** HeroUI `Avatar` sm/md/lg; profile `size-36 border-4 border-background`; initials fallback `bg-primary text-white` (web) / `bg-gray-100 text-accent` (mobile); landlord `size-12 rounded-full border`
+- **Avatars:** HeroUI `Avatar` sm/md/lg; profile `size-24 border-4 border-background` (overlapping the cover by `-mt-12`); initials fallback `bg-primary text-white` (web) / `bg-gray-100 text-accent` (mobile); landlord `size-12 rounded-full border`
 - **Lightbox:** web browse/admin apartment details share `PhotoGalleryModal` (§14); mobile `react-native-image-viewing` (`presentationStyle overFullScreen`, `rgba(0,0,0,0.8)`)
 - Private Supabase storage: always signed URLs at read time
 - **PDF previews (web):** `app/components/display/PdfThumbnail.tsx` renders page 1 client-side with `pdfjs-dist` (lazy-loaded, only once the element scrolls into view, cached per storage path); falls back to a file icon. Use `cover` (top of page) in cards/rows and `contain` on detail previews. Mobile uses `react-native-pdf` (`PdfThumbnail.tsx`).
@@ -363,6 +363,8 @@ Conservative — functional, not decorative.
 | Container | `max-w-7xl` (80rem) | all page shells: `max-w-7xl mx-auto p-4` |
 
 Mobile-first (`grid-cols-1` → responsive); landlord layout = fixed sidebar + `bg-white rounded-xl` content.
+
+**Web own-profile layout (tenant, landlord, admin)** ✅: all three portals share the admin profile layout: `mx-auto w-full max-w-7xl p-4` with `grid xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-4`. The main column holds the header card (cover `h-28 sm:h-32`, `size-24` avatar, name, role and verification chips, "Joined" date) then the details card; the right column holds side cards: APT Passport (also the verification status/timeline) and Add-role for tenant/landlord, Account actions for admin. Cards are `rounded-3xl border border-border bg-card p-4 sm:p-5 shadow-none` with `font-nunito text-lg font-bold text-primary` headings. Admin-only information (activity log, internal ID) stays admin-only.
 
 **Page widths (web portals):** every page shell is `max-w-7xl mx-auto px-4 py-6 sm:py-8`. Sidebar destinations (Profile, Favorites, My Rental, APT Passport) use the full shell; never nest a narrower centered column inside it. Detail pages reached from a list may cap content at `max-w-4xl`, short single-purpose forms at `max-w-2xl`; a section whose pages link to each other (e.g. APT Passport wallet ↔ document detail) keeps one width so the left edge doesn't jump. Use `lg:` two-column grids (sticky narrow aside + main) to fill wide screens instead of stretching a single card.
 

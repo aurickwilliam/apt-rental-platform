@@ -51,14 +51,14 @@ export default function PassportProfileCard({ accountStatus, basePath, verificat
 
   return (
     <>
-    <Card className="rounded-2xl border border-border bg-card p-6 text-card-foreground">
+    <Card className="rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-none sm:p-5">
       <Card.Content className="flex flex-col gap-4 p-0">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
             {isVerified ? <IconFileCheck size={22} aria-hidden="true" /> : <IconLock size={22} aria-hidden="true" />}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-nunito text-lg font-semibold">APT Passport</h2>
+            <h2 className="font-nunito text-lg font-bold text-primary">APT Passport</h2>
             <p className="text-sm text-muted-foreground">
               {isVerified
                 ? "Identity verified · Passport ready"
@@ -70,7 +70,7 @@ export default function PassportProfileCard({ accountStatus, basePath, verificat
             </p>
           </div>
           {isVerified ? (
-            <Link href={basePath} className={buttonVariants({ variant: "primary" })}>
+            <Link href={basePath} className={buttonVariants({ variant: "primary", className: "w-full" })}>
               Open Passport
             </Link>
           ) : isPending ? null : (
@@ -78,6 +78,7 @@ export default function PassportProfileCard({ accountStatus, basePath, verificat
               ref={triggerRef}
               type="button"
               variant="primary"
+              className="w-full"
               onPress={() => setVerifyOpen(true)}
               onHoverStart={preloadVerificationPageState}
               onFocus={preloadVerificationPageState}

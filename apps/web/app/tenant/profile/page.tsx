@@ -34,7 +34,7 @@ export default async function TenantProfilePage() {
   const { data: profileData, error } = await supabase
     .from("users")
     .select(
-      "id, email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url, background_url"
+      "id, email, first_name, last_name, middle_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, roles, account_status, avatar_url, background_url, created_at"
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -44,12 +44,13 @@ export default async function TenantProfilePage() {
     account_status: string;
     avatar_url: string | null;
     background_url: string | null;
+    created_at: string | null;
   }) | null;
 
   if (error) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-4">
-        <Card className="border border-danger-200 bg-card text-card-foreground p-6 rounded-2xl">
+      <div className="mx-auto w-full max-w-7xl p-4">
+        <Card className="rounded-3xl border border-danger-200 bg-card p-4 text-card-foreground shadow-none sm:p-5">
           <h1 className="text-xl font-bold">Profile</h1>
           <p className="text-sm text-danger mt-2">
             Couldn&apos;t load your profile: {error.message}
@@ -77,36 +78,42 @@ export default async function TenantProfilePage() {
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Tenant";
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-4">
-      <ProfileHeader
-        authUserId={user.id}
-        displayName={displayName}
-        initials={getInitials(profile.first_name, profile.last_name, profile.email)}
-        email={profile.email}
-        role="tenant"
-        accountStatus={profile.account_status}
-        avatarUrl={profile.avatar_url}
-        backgroundUrl={profile.background_url}
-      />
+    <div className="mx-auto w-full max-w-7xl p-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+        <div className="grid min-w-0 grid-cols-1 content-start gap-3">
+          <ProfileHeader
+            authUserId={user.id}
+            displayName={displayName}
+            initials={getInitials(profile.first_name, profile.last_name, profile.email)}
+            role="tenant"
+            accountStatus={profile.account_status}
+            avatarUrl={profile.avatar_url}
+            backgroundUrl={profile.background_url}
+            joinedAt={profile.created_at}
+          />
 
-      <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" verification={verification} />
+          <Card className="rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-none sm:p-5">
+            <Card.Content className="p-0">
+              <ProfileForm initial={profile} />
+            </Card.Content>
+          </Card>
+        </div>
 
-      <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-        <Card.Content className="p-0">
-          <ProfileForm initial={profile} />
-        </Card.Content>
-      </Card>
+        <div className="grid h-fit grid-cols-1 content-start gap-3">
+          <PassportProfileCard accountStatus={profile.account_status} basePath="/tenant/passport" verification={verification} />
 
-      {/* AddRoleSection renders nothing when the account already holds the
-          target role, so the wrapper must be gated too — otherwise a
-          dual-role account gets an empty bordered card. */}
-      {!profile.roles.includes("landlord") && (
-        <Card className="border border-border bg-card text-card-foreground p-6 rounded-2xl">
-          <Card.Content className="p-0">
-            <AddRoleSection currentRoles={profile.roles ?? []} targetRole="landlord" />
-          </Card.Content>
-        </Card>
-      )}
+          {/* AddRoleSection renders nothing when the account already holds the
+              target role, so the wrapper must be gated too — otherwise a
+              dual-role account gets an empty bordered card. */}
+          {!profile.roles.includes("landlord") && (
+            <Card className="rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-none sm:p-5">
+              <Card.Content className="p-0">
+                <AddRoleSection currentRoles={profile.roles ?? []} targetRole="landlord" />
+              </Card.Content>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

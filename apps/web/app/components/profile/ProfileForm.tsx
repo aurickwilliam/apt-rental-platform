@@ -506,7 +506,7 @@ export default function ProfileForm({
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+          <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
             <IconUser
               size={20}
               className="shrink-0 text-primary"
@@ -545,7 +545,7 @@ export default function ProfileForm({
 
         <div className="grid gap-6 md:grid-cols-2">
           <section className="flex min-w-0 flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
               <IconId
                 size={20}
                 className="shrink-0 text-primary"
@@ -564,7 +564,7 @@ export default function ProfileForm({
           </section>
 
           <section className="flex min-w-0 flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
               <IconPhone
                 size={20}
                 className="shrink-0 text-primary"
@@ -579,7 +579,7 @@ export default function ProfileForm({
           </section>
 
           <section className="flex min-w-0 flex-col gap-4 border-t border-border pt-6 md:col-span-2">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
               <IconMapPin
                 size={20}
                 className="shrink-0 text-primary"
