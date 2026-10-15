@@ -6,8 +6,10 @@
 -- through Supabase Auth's updateUser + dual-inbox confirmation, then the
 -- caller-bound sync_my_profile_email() function copies the committed address.
 
--- Surviving per-column grants bypass a table-level REVOKE, so revoke the email
--- column explicitly from every client role.
+-- Revoke the email column and any table-wide UPDATE from every client role.
+-- Revoking a table-level privilege also revokes the matching column grants,
+-- so 20261014174610_restore_self_service_profile_update_grants re-grants the
+-- editable profile columns right after this.
 revoke update (email) on public.users from public, anon, authenticated;
 revoke update on public.users from public, anon, authenticated;
 revoke insert (email) on public.users from public, anon;

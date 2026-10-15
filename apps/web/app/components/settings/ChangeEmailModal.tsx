@@ -1,16 +1,24 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button, Form, Input, Modal, TextField, Label, toast, InputOTP, REGEXP_ONLY_DIGITS } from "@heroui/react";
-import { IconMail, IconShieldCheck } from "@tabler/icons-react";
+import { IconCircleCheck, IconMail, IconShieldCheck } from "@tabler/icons-react";
 
-import { EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS, EmailChangeError, getEmailChangeErrorField } from "@repo/utils";
+import {
+  EMAIL_CHANGE_CODE_LENGTH,
+  EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
+  EmailChangeError,
+  getEmailChangeErrorField,
+  type EmailChangeErrorReason,
+  type EmailChangeInbox,
+} from "@repo/utils";
 
 import {
   getEmailChangeAccount,
   requestEmailChange,
-  resendEmailChangeCode,
+  resendEmailChangeCodes,
   verifyEmailChangeCode,
 } from "@/app/(auth)/actions/change-email";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
@@ -19,9 +27,21 @@ import { useCountdown } from "@/hooks/use-countdown";
 
 const FORM_ID = "change-email-form";
 const CODE_SLOT_CLASS = "size-12 text-lg";
+const INBOXES: EmailChangeInbox[] = ["current", "new"];
+const INBOX_LABELS: Record<EmailChangeInbox, string> = {
+  current: "Current inbox code",
+  new: "New inbox code",
+};
 
 type Step = "request" | "verify" | "success";
+type InboxState<T> = Record<EmailChangeInbox, T>;
+
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
+const NOT_COMPLETE_ERROR =
+  "Both codes were accepted but the change isn't complete yet. Resend the codes and try again.";
+const NO_CODES: InboxState<string> = { current: "", new: "" };
+const NOT_CONFIRMED: InboxState<boolean> = { current: false, new: false };
+const NO_CODE_ERRORS: InboxState<string | null> = { current: null, new: null };
 
 interface ChangeEmailModalProps {
   isOpen: boolean;
@@ -32,9 +52,11 @@ interface ChangeEmailModalProps {
 // (app/settings/change-email.tsx). Opened from the Security tab, which
 // closes the Settings modal first. On success the form is replaced by a
 // confirmation. Emails, passwords and codes live only in this component's
-// state and are cleared on success or close.
+// state and are cleared on close.
 export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailModalProps) {
+  const router = useRouter();
   const [currentEmail, setCurrentEmail] = useState("");
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -45,16 +67,18 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("request");
 
-  const [currentCode, setCurrentCode] = useState("");
-  const [newCode, setNewCode] = useState("");
-  const [codeError, setCodeError] = useState<string | null>(null);
+  // Supabase uses up an accepted code, so a confirmed inbox is never sent again.
+  const [codes, setCodes] = useState<InboxState<string>>(NO_CODES);
+  const [confirmed, setConfirmed] = useState<InboxState<boolean>>(NOT_CONFIRMED);
+  const [codeErrors, setCodeErrors] = useState<InboxState<string | null>>(NO_CODE_ERRORS);
   const [verifying, startVerifying] = useTransition();
   const [resending, startResending] = useTransition();
   const [signOutWarning, setSignOutWarning] = useState(false);
+  const [profileSyncWarning, setProfileSyncWarning] = useState(false);
   const { secondsLeft, restart } = useCountdown(EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS);
 
-  // Each opening starts by reading canonical Auth state, so a pending change
-  // resumes from the server rather than saved form state.
+  // Each opening starts from the request step and reads canonical Auth state
+  // (below), so a pending change resumes from the server, not saved state.
   const [wasOpen, setWasOpen] = useState(isOpen);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
@@ -62,20 +86,30 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
       setStep("request");
       setError(null);
       setLoadingAccount(true);
-      void getEmailChangeAccount().then((account) => {
-        setLoadingAccount(false);
-        if (account.error) {
-          setError(new EmailChangeError(account.error).message);
-          return;
-        }
-        if (account.email) setCurrentEmail(account.email);
-        if (account.pendingNewEmail) {
-          setNewEmail(account.pendingNewEmail);
-          setStep("verify");
-        }
-      });
     }
   }
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    void getEmailChangeAccount().then((account) => {
+      if (cancelled) return;
+      setLoadingAccount(false);
+      if (account.error) {
+        setError(new EmailChangeError(account.error).message);
+        return;
+      }
+      setCurrentEmail(account.email ?? "");
+      setPendingNewEmail(account.pendingNewEmail ?? null);
+      if (account.pendingNewEmail) {
+        setNewEmail(account.pendingNewEmail);
+        setStep("verify");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const newEmailError = (() => {
     if (submitted && !newEmail.trim()) return "Please enter a new email address.";
@@ -87,17 +121,24 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
     return serverCurrentPasswordError;
   })();
 
+  const clearCodes = () => {
+    setCodes(NO_CODES);
+    setConfirmed(NOT_CONFIRMED);
+    setCodeErrors(NO_CODE_ERRORS);
+  };
+
   const reset = () => {
+    setCurrentEmail("");
+    setPendingNewEmail(null);
     setNewEmail("");
     setCurrentPassword("");
     setSubmitted(false);
     setServerNewEmailError(null);
     setServerCurrentPasswordError(null);
     setError(null);
-    setCurrentCode("");
-    setNewCode("");
-    setCodeError(null);
+    clearCodes();
     setSignOutWarning(false);
+    setProfileSyncWarning(false);
   };
 
   // Stays open while a request is in flight, so the result is never lost.
@@ -105,6 +146,23 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
     if (!open && (saving || verifying)) return;
     if (!open) reset();
     onOpenChange(open);
+  };
+
+  // Back to the request step, e.g. to fix a mistyped new address. Requesting
+  // again replaces the pending change.
+  const startOver = () => {
+    clearCodes();
+    setNewEmail("");
+    setSubmitted(false);
+    setStep("request");
+  };
+
+  const showFlowError = (reason: EmailChangeErrorReason) => {
+    if (reason === "no_pending_change") {
+      setPendingNewEmail(null);
+      startOver();
+    }
+    setError(new EmailChangeError(reason).message);
   };
 
   const handleRequest = (event: React.FormEvent<HTMLFormElement>) => {
@@ -117,58 +175,63 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
     setServerNewEmailError(null);
     setServerCurrentPasswordError(null);
     startSaving(async () => {
-      const { error: reason, newEmail: confirmed } = await requestEmailChange(newEmail, currentPassword);
-      if (!reason) {
+      const result = await requestEmailChange(newEmail, currentPassword);
+      if (!result.error) {
         setCurrentPassword("");
-        if (confirmed) setNewEmail(confirmed);
-        setCurrentCode("");
-        setNewCode("");
+        if (result.currentEmail) setCurrentEmail(result.currentEmail);
+        if (result.newEmail) {
+          setNewEmail(result.newEmail);
+          setPendingNewEmail(result.newEmail);
+        }
+        clearCodes();
         restart();
         setStep("verify");
         return;
       }
 
-      const message = new EmailChangeError(reason).message;
-      const field = getEmailChangeErrorField(reason);
+      const message = new EmailChangeError(result.error).message;
+      const field = getEmailChangeErrorField(result.error);
       if (field === "new") setServerNewEmailError(message);
       else if (field === "current") setServerCurrentPasswordError(message);
       else setError(message);
     });
   };
 
+  const unconfirmedInboxes = INBOXES.filter((inbox) => !confirmed[inbox]);
+  const canVerify =
+    !verifying && unconfirmedInboxes.every((inbox) => codes[inbox].length === EMAIL_CHANGE_CODE_LENGTH);
+
   const handleVerify = () => {
-    if (verifying || currentCode.length < 6 || newCode.length < 6) return;
-    setCodeError(null);
+    if (!canVerify) return;
+    setCodeErrors(NO_CODE_ERRORS);
     setError(null);
     startVerifying(async () => {
       try {
-        const first = await verifyEmailChangeCode(currentEmail, currentCode, newEmail);
-        if (first.error) {
-          setCodeError(new EmailChangeError(first.error).message);
-          return;
+        for (const inbox of unconfirmedInboxes) {
+          const result = await verifyEmailChangeCode(inbox, codes[inbox], newEmail);
+          if (result.error) {
+            if (getEmailChangeErrorField(result.error) === "code") {
+              const message = new EmailChangeError(result.error).message;
+              setCodeErrors({ ...NO_CODE_ERRORS, [inbox]: message });
+            } else {
+              showFlowError(result.error);
+            }
+            return;
+          }
+          if (result.completed) {
+            setSignOutWarning(result.signOutFailed ?? false);
+            setProfileSyncWarning(result.profileSyncFailed ?? false);
+            setCodes(NO_CODES);
+            toast.success("Email updated");
+            setStep("success");
+            // Server-rendered pages (navbar, profile) show the new address.
+            router.refresh();
+            return;
+          }
+          setConfirmed((previous) => ({ ...previous, [inbox]: true }));
+          setCodes((previous) => ({ ...previous, [inbox]: "" }));
         }
-        if (first.completed) {
-          setSignOutWarning(first.signOutFailed ?? false);
-          setCurrentCode("");
-          setNewCode("");
-          toast.success("Email updated");
-          setStep("success");
-          return;
-        }
-        const second = await verifyEmailChangeCode(newEmail, newCode, newEmail);
-        if (second.error) {
-          setCodeError(new EmailChangeError(second.error).message);
-          return;
-        }
-        if (!second.completed) {
-          setError("Both codes were accepted but the change is not complete yet. Check both inboxes for a newer code.");
-          return;
-        }
-        setSignOutWarning(second.signOutFailed ?? false);
-        setCurrentCode("");
-        setNewCode("");
-        toast.success("Email updated");
-        setStep("success");
+        setError(NOT_COMPLETE_ERROR);
       } catch (err) {
         console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
         setError(UNEXPECTED_ERROR);
@@ -176,16 +239,20 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
     });
   };
 
-  const handleResend = (inbox: "current" | "new") => {
+  // Supabase issues new codes for both inboxes, so earlier codes and
+  // confirmations no longer count.
+  const handleResend = () => {
     if (resending || secondsLeft > 0) return;
+    setError(null);
     startResending(async () => {
-      const { error: reason } = await resendEmailChangeCode(inbox === "current" ? currentEmail : newEmail);
+      const { error: reason } = await resendEmailChangeCodes();
       if (reason) {
-        setError(new EmailChangeError(reason).message);
+        showFlowError(reason);
         return;
       }
+      clearCodes();
       restart();
-      toast.success("Code sent");
+      toast.success("New codes sent to both inboxes");
     });
   };
 
@@ -212,6 +279,11 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                     in here{signOutWarning ? ", but other devices may still be signed in." : ", and any other devices were signed out."}{" "}
                     We’ve also emailed you a confirmation.
                   </p>
+                  {profileSyncWarning && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Your profile may show your old email for a little while.
+                    </p>
+                  )}
                 </Modal.Body>
                 <Modal.Footer>
                   <Button
@@ -236,7 +308,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                   <p className="text-sm text-muted-foreground">
                     {step === "request"
                       ? "Enter a new email and your current password. We’ll send a 6-digit code to both your current and new inboxes. Your current email stays active until both codes are confirmed."
-                      : "Enter the 6-digit code from each inbox. The change completes only after both are confirmed."}
+                      : `Enter the 6-digit code sent to each inbox. Your email changes to ${newEmail} only after both are confirmed.`}
                   </p>
 
                   {error && <ErrorBanner message={error} />}
@@ -287,106 +359,91 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                         errorMessage={currentPasswordError ?? undefined}
                         isDisabled={saving}
                       />
+
+                      {pendingNewEmail && (
+                        <p className="text-sm text-muted-foreground">
+                          A change to {pendingNewEmail} is still waiting. Sending new codes replaces it.
+                        </p>
+                      )}
                     </Form>
                   ) : (
                     <div className="mt-4 flex flex-col gap-6">
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">Current inbox code</p>
-                        <InputOTP
-                          aria-label="Current inbox 6-digit code"
-                          maxLength={6}
-                          value={currentCode}
-                          onChange={(value) => {
-                            setCurrentCode(value);
-                            if (codeError) setCodeError(null);
-                          }}
-                          isInvalid={!!codeError}
-                          isDisabled={verifying}
-                          pattern={REGEXP_ONLY_DIGITS}
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          className="justify-center"
-                        >
-                          <InputOTP.Group>
-                            <InputOTP.Slot index={0} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={1} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={2} className={CODE_SLOT_CLASS} />
-                          </InputOTP.Group>
-                          <InputOTP.Separator />
-                          <InputOTP.Group>
-                            <InputOTP.Slot index={3} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={4} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={5} className={CODE_SLOT_CLASS} />
-                          </InputOTP.Group>
-                        </InputOTP>
-                      </div>
-
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">New inbox code</p>
-                        <InputOTP
-                          aria-label="New inbox 6-digit code"
-                          maxLength={6}
-                          value={newCode}
-                          onChange={(value) => {
-                            setNewCode(value);
-                            if (codeError) setCodeError(null);
-                          }}
-                          isInvalid={!!codeError}
-                          isDisabled={verifying}
-                          pattern={REGEXP_ONLY_DIGITS}
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          className="justify-center"
-                        >
-                          <InputOTP.Group>
-                            <InputOTP.Slot index={0} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={1} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={2} className={CODE_SLOT_CLASS} />
-                          </InputOTP.Group>
-                          <InputOTP.Separator />
-                          <InputOTP.Group>
-                            <InputOTP.Slot index={3} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={4} className={CODE_SLOT_CLASS} />
-                            <InputOTP.Slot index={5} className={CODE_SLOT_CLASS} />
-                          </InputOTP.Group>
-                        </InputOTP>
-                      </div>
-
-                      {codeError && (
-                        <p role="alert" className="text-center text-sm text-danger">
-                          {codeError}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-center gap-4 text-sm">
-                        {secondsLeft > 0 ? (
-                          <span className="font-medium text-primary">Resend in {secondsLeft}s</span>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleResend("current")}
-                              disabled={resending}
-                              className="cursor-pointer text-primary disabled:opacity-50"
+                      {INBOXES.map((inbox) => (
+                        <div key={inbox} className="flex flex-col items-center gap-2">
+                          <p className="text-sm font-semibold text-foreground">{INBOX_LABELS[inbox]}</p>
+                          {confirmed[inbox] ? (
+                            <p className="flex items-center gap-1 text-sm font-medium text-success">
+                              <IconCircleCheck size={18} aria-hidden="true" />
+                              Confirmed
+                            </p>
+                          ) : (
+                            <InputOTP
+                              aria-label={`${INBOX_LABELS[inbox]}, 6 digits`}
+                              maxLength={EMAIL_CHANGE_CODE_LENGTH}
+                              value={codes[inbox]}
+                              onChange={(value) => {
+                                setCodes((previous) => ({ ...previous, [inbox]: value }));
+                                if (codeErrors[inbox]) {
+                                  setCodeErrors((previous) => ({ ...previous, [inbox]: null }));
+                                }
+                              }}
+                              isInvalid={!!codeErrors[inbox]}
+                              isDisabled={verifying}
+                              pattern={REGEXP_ONLY_DIGITS}
+                              inputMode="numeric"
+                              autoComplete="one-time-code"
+                              className="justify-center"
                             >
-                              {resending ? "Sending..." : "Resend current-inbox code"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleResend("new")}
-                              disabled={resending}
-                              className="cursor-pointer text-primary disabled:opacity-50"
-                            >
-                              {resending ? "Sending..." : "Resend new-inbox code"}
-                            </button>
-                          </>
-                        )}
+                              <InputOTP.Group>
+                                <InputOTP.Slot index={0} className={CODE_SLOT_CLASS} />
+                                <InputOTP.Slot index={1} className={CODE_SLOT_CLASS} />
+                                <InputOTP.Slot index={2} className={CODE_SLOT_CLASS} />
+                              </InputOTP.Group>
+                              <InputOTP.Separator />
+                              <InputOTP.Group>
+                                <InputOTP.Slot index={3} className={CODE_SLOT_CLASS} />
+                                <InputOTP.Slot index={4} className={CODE_SLOT_CLASS} />
+                                <InputOTP.Slot index={5} className={CODE_SLOT_CLASS} />
+                              </InputOTP.Group>
+                            </InputOTP>
+                          )}
+                          {codeErrors[inbox] && (
+                            <p role="alert" className="text-center text-sm text-danger">
+                              {codeErrors[inbox]}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+
+                      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="cursor-pointer text-primary"
+                          isDisabled={resending || verifying || secondsLeft > 0}
+                          onPress={handleResend}
+                        >
+                          {secondsLeft > 0
+                            ? `Resend codes in ${secondsLeft}s`
+                            : resending
+                              ? "Sending..."
+                              : "Resend codes"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="cursor-pointer text-primary"
+                          isDisabled={verifying}
+                          onPress={startOver}
+                        >
+                          Use a different email
+                        </Button>
                       </div>
 
                       <Button
                         className="w-full cursor-pointer"
                         isPending={verifying}
-                        isDisabled={verifying || currentCode.length < 6 || newCode.length < 6}
+                        isDisabled={!canVerify}
                         onPress={handleVerify}
                       >
                         {verifying ? "Verifying..." : "Verify and Update Email"}
@@ -410,7 +467,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       type="submit"
                       form={FORM_ID}
                       isPending={saving}
-                      isDisabled={saving}
+                      isDisabled={saving || loadingAccount}
                     >
                       {saving ? "Sending..." : "Send Verification Codes"}
                     </Button>

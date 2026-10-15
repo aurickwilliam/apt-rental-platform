@@ -8,10 +8,11 @@ import {
   EmailChangeError,
   getEmailChangeStatus,
   requestEmailChangeWith,
-  resendEmailChangeCodeWith,
+  resendEmailChangeCodesWith,
   signOutOtherSessionsAfterEmailChange,
   verifyEmailChangeCodeWith,
   type EmailChangeErrorReason,
+  type EmailChangeInbox,
 } from "@repo/utils";
 
 // Change email while signed in (Settings → Security), mirroring mobile.
@@ -93,15 +94,16 @@ export type VerifyEmailChangeResult = EmailChangeActionError & {
   email?: string;
   pendingNewEmail?: string | null;
   signOutFailed?: boolean;
+  profileSyncFailed?: boolean;
 };
 
 export async function verifyEmailChangeCode(
-  inboxEmail: string,
+  inbox: EmailChangeInbox,
   code: string,
   intendedNewEmail?: string,
 ): Promise<VerifyEmailChangeResult> {
   if (await recoveryBlocked()) return { error: "session_expired" };
-  if (typeof inboxEmail !== "string" || typeof code !== "string") {
+  if ((inbox !== "current" && inbox !== "new") || typeof code !== "string") {
     return { error: "unknown" };
   }
 
@@ -113,46 +115,33 @@ export async function verifyEmailChangeCode(
     }
     const verification = await verifyEmailChangeCodeWith(
       supabase.auth,
-      inboxEmail,
+      inbox,
       code,
       typeof intendedNewEmail === "string" ? intendedNewEmail : undefined,
     );
-    const status = await getEmailChangeStatus(supabase.auth);
     if (!verification.completed) {
-      return {
-        error: null,
-        completed: false,
-        email: status.email,
-        pendingNewEmail: status.pendingNewEmail,
-        signOutFailed: false,
-      };
+      return { error: null, ...verification };
     }
 
     const { error: syncError } = await supabase.rpc("sync_my_profile_email");
     if (syncError) {
-      console.error("Email change profile sync failed.");
+      console.error("Email change profile sync failed:", syncError.code);
     }
     const { signOutFailed } = await signOutOtherSessionsAfterEmailChange(supabase.auth);
-    return {
-      error: null,
-      completed: true,
-      email: status.email,
-      pendingNewEmail: status.pendingNewEmail,
-      signOutFailed,
-    };
+    return { error: null, ...verification, signOutFailed, profileSyncFailed: !!syncError };
   } catch (error) {
     return { error: toReason(error) };
   }
 }
 
-export async function resendEmailChangeCode(inboxEmail: string): Promise<EmailChangeActionError> {
+// Supabase issues new codes for both inboxes on every resend.
+export async function resendEmailChangeCodes(): Promise<EmailChangeActionError> {
   if (await recoveryBlocked()) return { error: "session_expired" };
-  if (typeof inboxEmail !== "string") return { error: "unknown" };
 
   try {
     const supabase = await createClient();
     if (await suspended(supabase)) return { error: "suspended" };
-    await resendEmailChangeCodeWith(supabase.auth, inboxEmail);
+    await resendEmailChangeCodesWith(supabase.auth);
     return { error: null };
   } catch (error) {
     return { error: toReason(error) };

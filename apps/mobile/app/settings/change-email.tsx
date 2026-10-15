@@ -1,5 +1,5 @@
 import { Keyboard, View, Text } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useRouter } from "expo-router";
 
 import { Button, FieldError, Input, InputOTP, Label, REGEXP_ONLY_DIGITS, Spinner, TextField, useToast, type InputOTPRef } from "heroui-native";
@@ -14,19 +14,34 @@ import { useCountdown } from "@/hooks/auth";
 import {
   getEmailChangeAccount,
   requestEmailChange,
-  resendEmailChangeCode,
+  resendEmailChangeCodes,
   verifyEmailChangeCode,
 } from "@/service/auth/emailChangeService";
+import { invalidateCurrentUser } from "@/utils/queryClient";
 import {
+  EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   EmailChangeError,
   getEmailChangeErrorField,
   isValidEmail,
+  type EmailChangeInbox,
 } from "@repo/utils";
 
 const GENERIC_ERROR = "Something went wrong. Please try again.";
+const NOT_COMPLETE_ERROR =
+  "Both codes were accepted but the change isn't complete yet. Resend the codes and try again.";
+const INBOXES: EmailChangeInbox[] = ["current", "new"];
+const INBOX_LABELS: Record<EmailChangeInbox, string> = {
+  current: "Current inbox code",
+  new: "New inbox code",
+};
 
 type Step = "request" | "verify" | "success";
+type InboxState<T> = Record<EmailChangeInbox, T>;
+
+const NO_CODES: InboxState<string> = { current: "", new: "" };
+const NOT_CONFIRMED: InboxState<boolean> = { current: false, new: false };
+const NO_CODE_ERRORS: InboxState<string | null> = { current: null, new: null };
 
 export default function ChangeEmail() {
   const router = useRouter();
@@ -45,16 +60,21 @@ export default function ChangeEmail() {
   const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentCode, setCurrentCode] = useState("");
-  const [newCode, setNewCode] = useState("");
-  const [currentCodeError, setCurrentCodeError] = useState<string | null>(null);
-  const [newCodeError, setNewCodeError] = useState<string | null>(null);
+  // Supabase uses up an accepted code, so a confirmed inbox is never sent again.
+  const [codes, setCodes] = useState<InboxState<string>>(NO_CODES);
+  const [confirmed, setConfirmed] = useState<InboxState<boolean>>(NOT_CONFIRMED);
+  const [codeErrors, setCodeErrors] = useState<InboxState<string | null>>(NO_CODE_ERRORS);
   const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState<"current" | "new" | null>(null);
+  const [resending, setResending] = useState(false);
   const [signOutWarning, setSignOutWarning] = useState(false);
+  const [profileSyncWarning, setProfileSyncWarning] = useState(false);
 
   const currentOtpRef = useRef<InputOTPRef>(null);
   const newOtpRef = useRef<InputOTPRef>(null);
+  const otpRefs: InboxState<RefObject<InputOTPRef | null>> = {
+    current: currentOtpRef,
+    new: newOtpRef,
+  };
   const { countdown, reset: resetCountdown } = useCountdown({
     duration: EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   });
@@ -63,8 +83,7 @@ export default function ChangeEmail() {
   useEffect(() => {
     return () => {
       setCurrentPassword("");
-      setCurrentCode("");
-      setNewCode("");
+      setCodes(NO_CODES);
     };
   }, []);
 
@@ -92,6 +111,36 @@ export default function ChangeEmail() {
       cancelled = true;
     };
   }, []);
+
+  const clearCodes = () => {
+    setCodes(NO_CODES);
+    setConfirmed(NOT_CONFIRMED);
+    setCodeErrors(NO_CODE_ERRORS);
+    currentOtpRef.current?.clear();
+    newOtpRef.current?.clear();
+  };
+
+  // Back to the request step, e.g. to fix a mistyped new address. Requesting
+  // again replaces the pending change.
+  const startOver = () => {
+    clearCodes();
+    setNewEmail("");
+    setSubmitted(false);
+    setStep("request");
+  };
+
+  const showFlowError = (err: unknown) => {
+    if (!(err instanceof EmailChangeError)) {
+      console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
+      setError(GENERIC_ERROR);
+      return;
+    }
+    if (err.reason === "no_pending_change") {
+      setPendingNewEmail(null);
+      startOver();
+    }
+    setError(err.message);
+  };
 
   const getNewEmailError = (): string | undefined => {
     if (newEmailError) return newEmailError;
@@ -122,10 +171,7 @@ export default function ChangeEmail() {
       setNewEmail(result.newEmail);
       setPendingNewEmail(result.newEmail);
       setCurrentPassword("");
-      setCurrentCode("");
-      setNewCode("");
-      currentOtpRef.current?.clear();
-      newOtpRef.current?.clear();
+      clearCodes();
       resetCountdown();
       setStep("verify");
     } catch (err) {
@@ -143,78 +189,80 @@ export default function ChangeEmail() {
     }
   };
 
+  const unconfirmedInboxes = INBOXES.filter((inbox) => !confirmed[inbox]);
+
   const handleVerify = async () => {
     if (verifying) return;
     Keyboard.dismiss();
-    if (currentCode.trim().length < 6 || newCode.trim().length < 6) {
-      if (currentCode.trim().length < 6) setCurrentCodeError("Enter the 6-digit code.");
-      if (newCode.trim().length < 6) setNewCodeError("Enter the 6-digit code.");
+    const incomplete = unconfirmedInboxes.filter(
+      (inbox) => codes[inbox].trim().length < EMAIL_CHANGE_CODE_LENGTH,
+    );
+    if (incomplete.length > 0) {
+      setCodeErrors({
+        ...NO_CODE_ERRORS,
+        ...Object.fromEntries(incomplete.map((inbox) => [inbox, "Enter the 6-digit code."])),
+      });
       return;
     }
 
     setVerifying(true);
-    setCurrentCodeError(null);
-    setNewCodeError(null);
+    setCodeErrors(NO_CODE_ERRORS);
     setError(null);
-    try {
-      // Verify the current inbox first so a typo in the new address surfaces
-      // as a pending mismatch rather than a completed change elsewhere.
-      const first = await verifyEmailChangeCode(currentEmail, currentCode, newEmail);
-      if (!first.completed) {
-        const second = await verifyEmailChangeCode(first.email === currentEmail ? newEmail : currentEmail, newCode, newEmail);
-        if (!second.completed) {
-          setError("Both codes were accepted but the change is not complete yet. Check both inboxes for a newer code.");
+    for (const inbox of unconfirmedInboxes) {
+      try {
+        const result = await verifyEmailChangeCode(inbox, codes[inbox], newEmail);
+        if (result.completed) {
+          setSignOutWarning(result.signOutFailed);
+          setProfileSyncWarning(result.profileSyncFailed);
+          setCodes(NO_CODES);
+          await invalidateCurrentUser();
+          toast.show({
+            variant: "success",
+            label: "Email updated",
+            description: result.signOutFailed
+              ? "Other devices may still be signed in."
+              : "Other devices were signed out.",
+          });
+          setStep("success");
+          setVerifying(false);
           return;
         }
-        setSignOutWarning(second.signOutFailed);
-      } else {
-        setSignOutWarning(first.signOutFailed);
-      }
-      setCurrentCode("");
-      setNewCode("");
-      currentOtpRef.current?.clear();
-      newOtpRef.current?.clear();
-      toast.show({
-        variant: "success",
-        label: "Email updated",
-        description: signOutWarning ? "Other devices may still be signed in." : "Other devices were signed out.",
-      });
-      setStep("success");
-    } catch (err) {
-      if (!(err instanceof EmailChangeError)) {
-        console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
-        setError(GENERIC_ERROR);
-      } else {
-        const field = getEmailChangeErrorField(err.reason);
-        if (field === "code") {
-          // Attribute code failures to the most likely field: keep it simple
-          // and show under both when the failing inbox is ambiguous.
-          setCurrentCodeError(err.message);
-          setNewCodeError(err.message);
+        setConfirmed((previous) => ({ ...previous, [inbox]: true }));
+        setCodes((previous) => ({ ...previous, [inbox]: "" }));
+      } catch (err) {
+        if (err instanceof EmailChangeError && getEmailChangeErrorField(err.reason) === "code") {
+          setCodeErrors({ ...NO_CODE_ERRORS, [inbox]: err.message });
+          otpRefs[inbox].current?.clear();
+          setCodes((previous) => ({ ...previous, [inbox]: "" }));
         } else {
-          setError(err.message);
+          showFlowError(err);
         }
+        setVerifying(false);
+        return;
       }
-    } finally {
-      setVerifying(false);
     }
+    setError(NOT_COMPLETE_ERROR);
+    setVerifying(false);
   };
 
-  const handleResend = async (inbox: "current" | "new") => {
+  // Supabase issues new codes for both inboxes, so earlier codes and
+  // confirmations no longer count.
+  const handleResend = async () => {
     if (resending || countdown > 0) return;
-    setResending(inbox);
+    setResending(true);
     try {
-      await resendEmailChangeCode(inbox === "current" ? currentEmail : newEmail);
+      await resendEmailChangeCodes();
+      clearCodes();
       resetCountdown();
       toast.show({
         variant: "success",
-        label: "Code sent",
-        description: inbox === "current" ? "Check your current inbox." : "Check your new inbox.",
+        label: "Codes sent",
+        description: "Check both your current and new inboxes.",
       });
     } catch (err) {
-      setError(err instanceof EmailChangeError ? err.message : GENERIC_ERROR);
+      showFlowError(err);
     } finally {
-      setResending(null);
+      setResending(false);
     }
   };
 
@@ -237,6 +285,11 @@ export default function ChangeEmail() {
             Your new email is ready to use. You’re still signed in here
             {signOutWarning ? ", but other devices may still be signed in." : ", and any other devices were signed out."}
           </Text>
+          {profileSyncWarning ? (
+            <Text className="text-muted text-sm font-inter text-center">
+              Your profile may show your old email for a little while.
+            </Text>
+          ) : null}
           <Button className="mt-4 w-full" onPress={() => router.back()}>
             <Button.Label>Done</Button.Label>
           </Button>
@@ -268,7 +321,7 @@ export default function ChangeEmail() {
       <Text className="text-base text-foreground font-inter">
         {step === "request"
           ? "Enter a new email and your current password. We’ll send a 6-digit code to both your current and new inboxes. Your current email stays active until both codes are confirmed."
-          : "Enter the 6-digit code from each inbox. The change completes only after both are confirmed."}
+          : `Enter the 6-digit code sent to each inbox. Your email changes to ${newEmail} only after both are confirmed.`}
       </Text>
 
       {step === "request" ? (
@@ -316,41 +369,43 @@ export default function ChangeEmail() {
         </View>
       ) : (
         <View className="flex gap-4 mt-5">
-          <View className="gap-2">
-            <Text className="text-foreground text-sm font-nunitoSemiBold">Current inbox code</Text>
-            <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} value={currentCode} onChange={setCurrentCode} ref={currentOtpRef}>
-              <InputOTP.Group>
-                <InputOTP.Slot index={0} />
-                <InputOTP.Slot index={1} />
-                <InputOTP.Slot index={2} />
-                <InputOTP.Slot index={3} />
-                <InputOTP.Slot index={4} />
-                <InputOTP.Slot index={5} />
-              </InputOTP.Group>
-            </InputOTP>
-            {!!currentCodeError && <Text className="text-danger text-sm font-inter">{currentCodeError}</Text>}
-            <Button variant="tertiary" size="sm" isDisabled={!!resending || countdown > 0} onPress={() => handleResend("current")}>
-              <Button.Label>{resending === "current" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend current-inbox code"}</Button.Label>
-            </Button>
-          </View>
+          {INBOXES.map((inbox) => (
+            <View key={inbox} className="gap-2">
+              <Text className="text-foreground text-sm font-nunitoSemiBold">{INBOX_LABELS[inbox]}</Text>
+              {confirmed[inbox] ? (
+                <Text className="text-success text-sm font-inter">Confirmed</Text>
+              ) : (
+                <InputOTP
+                  maxLength={EMAIL_CHANGE_CODE_LENGTH}
+                  pattern={REGEXP_ONLY_DIGITS}
+                  value={codes[inbox]}
+                  onChange={(value) => {
+                    setCodes((previous) => ({ ...previous, [inbox]: value }));
+                    if (codeErrors[inbox]) setCodeErrors((previous) => ({ ...previous, [inbox]: null }));
+                  }}
+                  isDisabled={verifying}
+                  ref={otpRefs[inbox]}
+                >
+                  <InputOTP.Group>
+                    <InputOTP.Slot index={0} />
+                    <InputOTP.Slot index={1} />
+                    <InputOTP.Slot index={2} />
+                    <InputOTP.Slot index={3} />
+                    <InputOTP.Slot index={4} />
+                    <InputOTP.Slot index={5} />
+                  </InputOTP.Group>
+                </InputOTP>
+              )}
+              {!!codeErrors[inbox] && <Text className="text-danger text-sm font-inter">{codeErrors[inbox]}</Text>}
+            </View>
+          ))}
 
-          <View className="gap-2">
-            <Text className="text-foreground text-sm font-nunitoSemiBold">New inbox code</Text>
-            <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} value={newCode} onChange={setNewCode} ref={newOtpRef}>
-              <InputOTP.Group>
-                <InputOTP.Slot index={0} />
-                <InputOTP.Slot index={1} />
-                <InputOTP.Slot index={2} />
-                <InputOTP.Slot index={3} />
-                <InputOTP.Slot index={4} />
-                <InputOTP.Slot index={5} />
-              </InputOTP.Group>
-            </InputOTP>
-            {!!newCodeError && <Text className="text-danger text-sm font-inter">{newCodeError}</Text>}
-            <Button variant="tertiary" size="sm" isDisabled={!!resending || countdown > 0} onPress={() => handleResend("new")}>
-              <Button.Label>{resending === "new" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend new-inbox code"}</Button.Label>
-            </Button>
-          </View>
+          <Button variant="tertiary" size="sm" isDisabled={resending || verifying || countdown > 0} onPress={handleResend}>
+            <Button.Label>{resending ? "Sending..." : countdown > 0 ? `Resend codes in ${countdown}s` : "Resend codes"}</Button.Label>
+          </Button>
+          <Button variant="tertiary" size="sm" isDisabled={verifying} onPress={startOver}>
+            <Button.Label>Use a different email</Button.Label>
+          </Button>
         </View>
       )}
 

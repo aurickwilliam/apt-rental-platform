@@ -110,7 +110,8 @@ export default function OTPVerification() {
 
       const { error: insertError } = await supabase.from('users').insert({
         user_id: authData.user.id,
-        email: emailValue || data.email!,
+        // Auth's canonical (lowercased) address: the profile email must match it.
+        email: authData.user.email ?? (emailValue || data.email!).trim().toLowerCase(),
         roles: [userSide],
         first_name: data.firstName,
         last_name: data.lastName,
