@@ -5775,8 +5775,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/SettingsRow.tsx": {
-    "mtime": 1791883024.2067041,
-    "ast_hash": "ece5f0bcef7f9c94d4e8ebf72ff643ba",
+    "mtime": 1792035619.5099194,
+    "ast_hash": "165fc18dbe5c47a86f467f96642ef01a",
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/ToggleSwitch.tsx": {
@@ -5810,8 +5810,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/tabs/SecurityTab.tsx": {
-    "mtime": 1792029485.9151635,
-    "ast_hash": "eae493e080c77b8928b7cd7fb43699d0",
+    "mtime": 1792035754.4780567,
+    "ast_hash": "78572017ed5dd0838e2675901d891ed1",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/profile/loading.tsx": {
@@ -7600,8 +7600,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/settings/ChangeEmailModal.tsx": {
-    "mtime": 1792034107.5181994,
-    "ast_hash": "6fe6af7a09c042ccce7fd73dd0f5abd8",
+    "mtime": 1792036572.022583,
+    "ast_hash": "71dd1337abad63ab86bb120dc6dab8e3",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-email-change-eligibility.ts": {
@@ -7715,8 +7715,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/components/EmailChangeCodeScreen.tsx": {
-    "mtime": 1792034092.5986555,
-    "ast_hash": "62c4b0633eba082341ffb17b10bf0123",
+    "mtime": 1792036572.0227156,
+    "ast_hash": "a5c94c0a5e13160ca43998a195e1cd28",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/CodeInput.tsx": {

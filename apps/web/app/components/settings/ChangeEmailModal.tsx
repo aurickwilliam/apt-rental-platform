@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button, Form, Input, Modal, TextField, Label, toast, Link as HeroLink, Spinner } from "@heroui/react";
+import { Button, Form, Input, Modal, TextField, Label, toast, Link as HeroLink, Skeleton } from "@heroui/react";
 import { IconMail, IconShieldCheck } from "@tabler/icons-react";
 
 import {
@@ -45,6 +45,21 @@ const CODE_STEPS: Record<EmailChangeInbox, { label: string; title: string; body:
 };
 
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
+
+// Shaped like the request form (current email, new email, password) while the
+// current address is read from Auth.
+function ChangeEmailFormSkeleton() {
+  return (
+    <div className="mt-4 flex flex-col gap-4" aria-busy="true" aria-label="Loading your account">
+      {[0, 1, 2].map((field) => (
+        <div key={field} className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-28 rounded-lg bg-grey-300!" />
+          <Skeleton className="h-10 w-full rounded-2xl bg-grey-300!" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface ChangeEmailModalProps {
   isOpen: boolean;
@@ -322,13 +337,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                 </Modal.Header>
 
                 <Modal.Body>
-                  {loadingAccount ? (
-                    // The step is unknown until Auth is read (a waiting change
-                    // opens at its code step), so show neither form yet.
-                    <div className="flex justify-center py-12">
-                      <Spinner size="lg" />
-                    </div>
-                  ) : codeStep ? (
+                  {codeStep ? (
                     <>
                       <p className="text-base text-foreground">
                         We sent a 6-digit code to <span className="font-semibold">{inboxEmail}</span>.{" "}
@@ -355,7 +364,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
 
                   {error && <ErrorBanner message={error} />}
 
-                  {loadingAccount ? null : step === "request" ? (
+                  {loadingAccount ? (
+                    <ChangeEmailFormSkeleton />
+                  ) : step === "request" ? (
                     <Form
                       id={FORM_ID}
                       className="mt-4 flex flex-col gap-4"
@@ -465,7 +476,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                   )}
                 </Modal.Body>
 
-                {step === "request" && !loadingAccount && (
+                {step === "request" && (
                   <Modal.Footer className="flex gap-3">
                     <Button
                       variant="danger-soft"

@@ -8,6 +8,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import PasswordField from "@/components/inputs/PasswordField";
+import ChangeEmailFormSkeleton from "../components/ChangeEmailFormSkeleton";
 
 import { useColors } from "@/hooks/useTheme";
 import { getEmailChangeAccount, requestEmailChange } from "@/service/auth/emailChangeService";
@@ -107,23 +108,13 @@ export default function ChangeEmail() {
     }
   };
 
-  if (loadingAccount) {
-    return (
-      <ScreenWrapper header={<StandardHeader title="Change Email" />} className="p-5">
-        <View className="flex-1 items-center justify-center py-20">
-          <Spinner size="lg" color={colors.primary} />
-        </View>
-      </ScreenWrapper>
-    );
-  }
-
   return (
     <ScreenWrapper
       scrollable
       header={<StandardHeader title="Change Email" />}
       footer={
         <View className="p-5">
-          <Button onPress={handleRequest} isDisabled={saving} className="w-full">
+          <Button onPress={handleRequest} isDisabled={saving || loadingAccount} className="w-full">
             <Button.Label>{saving ? "Sending codes..." : "Send Verification Codes"}</Button.Label>
             {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
           </Button>
@@ -136,43 +127,47 @@ export default function ChangeEmail() {
         current and new inboxes. Your current email stays active until both codes are confirmed.
       </Text>
 
-      <View className="flex gap-4 mt-5">
-        <TextField isDisabled>
-          <Label>Current Email:</Label>
-          <Input value={currentEmail} editable={false} autoCapitalize="none" />
-        </TextField>
+      {loadingAccount ? (
+        <ChangeEmailFormSkeleton />
+      ) : (
+        <View className="flex gap-4 mt-5">
+          <TextField isDisabled>
+            <Label>Current Email:</Label>
+            <Input value={currentEmail} editable={false} autoCapitalize="none" />
+          </TextField>
 
-        <TextField isRequired isInvalid={!!getNewEmailError()} isDisabled={saving}>
-          <Label>New Email:</Label>
-          <Input
-            placeholder="Enter your new email"
-            value={newEmail}
+          <TextField isRequired isInvalid={!!getNewEmailError()} isDisabled={saving}>
+            <Label>New Email:</Label>
+            <Input
+              placeholder="Enter your new email"
+              value={newEmail}
+              onChangeText={(value) => {
+                setNewEmail(value);
+                if (newEmailError) setNewEmailError(null);
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              editable={!saving}
+            />
+            {!!getNewEmailError() && <FieldError>{getNewEmailError()}</FieldError>}
+          </TextField>
+
+          <PasswordField
+            label="Current Password:"
+            placeholder="Enter your current password"
+            value={currentPassword}
             onChangeText={(value) => {
-              setNewEmail(value);
-              if (newEmailError) setNewEmailError(null);
+              setCurrentPassword(value);
+              if (currentPasswordError) setCurrentPasswordError(null);
             }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            textContentType="emailAddress"
-            editable={!saving}
+            error={getCurrentPasswordError()}
+            isDisabled={saving}
           />
-          {!!getNewEmailError() && <FieldError>{getNewEmailError()}</FieldError>}
-        </TextField>
-
-        <PasswordField
-          label="Current Password:"
-          placeholder="Enter your current password"
-          value={currentPassword}
-          onChangeText={(value) => {
-            setCurrentPassword(value);
-            if (currentPasswordError) setCurrentPasswordError(null);
-          }}
-          error={getCurrentPasswordError()}
-          isDisabled={saving}
-        />
-      </View>
+        </View>
+      )}
 
       <ErrorDialog isOpen={!!error} onClose={() => setError(null)} message={error} />
     </ScreenWrapper>
