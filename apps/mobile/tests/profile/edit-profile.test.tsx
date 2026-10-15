@@ -147,6 +147,18 @@ describe("mobile Edit Profile", () => {
     expect(mockRouter.replace).toHaveBeenCalledWith(`/(tabs)/(${portal})/profile`);
   });
 
+  it.each(["tenant", "landlord"])("returns a dual-role account to the active %s portal", async (portal) => {
+    mockPortal = portal;
+    mockProfile = { ...profileFixture, roles: ["tenant", "landlord"] };
+    mockRouter.canGoBack.mockReturnValue(false);
+    setup();
+    fireEvent.changeText(screen.getByLabelText("Mobile Number"), "+639181234567");
+    fireEvent.press(screen.getByRole("button", { name: "Save Changes" }));
+    await screen.findByText("Profile Updated");
+    fireEvent.press(screen.getByRole("button", { name: "Dismiss success" }));
+    expect(mockRouter.replace).toHaveBeenCalledWith(`/(tabs)/(${portal})/profile`);
+  });
+
   it("previews photos locally and includes the staged selection only on Save", async () => {
     setup();
     fireEvent.press(screen.getByRole("button", { name: "Change background photo" }));
