@@ -639,23 +639,23 @@ export default function MyRental() {
               </Link>
             </div>
           </div>
-          <Table className="bg-darker-white">
+          <Table className="bg-darker-white dark:bg-zinc-900">
             <Table.ScrollContainer>
               <Table.Content
                 aria-label="Payment history"
-                className="bg-darker-white"
+                className="bg-darker-white dark:bg-zinc-900"
               >
-                <Table.Header className="bg-darker-white text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
-                  <Table.Column isRowHeader className="text-black font-medium">
+                <Table.Header className="bg-darker-white dark:bg-zinc-900 text-[11px] text-black dark:text-zinc-200 tracking-wider font-medium">
+                  <Table.Column isRowHeader className="text-black dark:text-zinc-200 font-medium">
                     Date
                   </Table.Column>
-                  <Table.Column className="text-black font-medium">
+                  <Table.Column className="text-black dark:text-zinc-200 font-medium">
                     Description
                   </Table.Column>
-                  <Table.Column className="text-right text-black font-medium">
+                  <Table.Column className="text-right text-black dark:text-zinc-200 font-medium">
                     Amount
                   </Table.Column>
-                  <Table.Column className="text-right text-black font-medium">
+                  <Table.Column className="text-right text-black dark:text-zinc-200 font-medium">
                     Status
                   </Table.Column>
                 </Table.Header>

@@ -64,31 +64,22 @@
     opacity: 1;
   }
 
-  .select__trigger {
-    @apply rounded-xl border border-gray-300 bg-white transition-all;
-  }
+  /* No `.select__trigger` surface overrides. HeroUI's `Select` renders
+     `class="select__trigger"` and already themes itself from
+     `--field-background` / `--field-border`, falling back to `--default` —
+     which `@heroui/styles` scopes per theme (light `#ebebec`, dark `#27272a`).
+     A local `bg-white` rule declared after `@import "@heroui/styles"` wins on
+     source order and pinned every trigger white in dark mode.
+
+     Dark variants are not the fix here: Tailwind v4 does not emit `dark:`
+     variants from `@apply` inside `@layer components`, so they compile to
+     nothing. Theme the tokens instead. Same fix as the `.input` /
+     `.textarea` rules removed above. The app's focus ring comes from
+     `--heroui-focus`, which is the app's `--primary`. */
 
   /* Placeholder text color — targets the value slot */
   .select__value[data-placeholder="true"] {
     @apply text-gray-400;
-  }
-
-  /* Hover */
-  .select__trigger:hover,
-  .select__trigger[data-hovered="true"] {
-    @apply border-gray-400;
-  }
-
-  /* Focus */
-  .select__trigger[data-focus-visible="true"] {
-    @apply outline-none;
-    border-color: #376BF5 !important;
-    box-shadow: 0 0 0 2px rgb(55 107 245 / 0.15) !important;
-  }
-
-  /* Disabled */
-  .select__trigger[data-disabled="true"] {
-    @apply opacity-50 cursor-not-allowed;
   }
 }
 
