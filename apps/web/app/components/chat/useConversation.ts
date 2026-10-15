@@ -17,6 +17,8 @@ interface UseConversationArgs {
   apartmentId?: string | null;
   /** Reports that new messages arrived so the contact list can mark it read. */
   onConversationRead?: (conversationId: string) => void;
+  /** Called with a user-facing message when a send fails, for the error banner. */
+  onSendError?: (message: string) => void;
 }
 
 export interface ContextMenuTarget {
@@ -37,6 +39,7 @@ export default function useConversation({
   otherUserId,
   apartmentId,
   onConversationRead,
+  onSendError,
 }: UseConversationArgs) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,7 +49,9 @@ export default function useConversation({
 
   // Keep the callback fresh without re-subscribing the realtime channel.
   const onReadRef = useRef(onConversationRead);
-  onReadRef.current = onConversationRead;
+  useEffect(() => {
+    onReadRef.current = onConversationRead;
+  }, [onConversationRead]);
 
   const conversationId = useMemo(
     () => (otherUserId ? [currentUserId, otherUserId].sort().join("_") : null),
@@ -117,12 +122,20 @@ export default function useConversation({
     setMessages(hydrated);
   }, [apartmentId, currentUserId, otherUserId, supabase]);
 
-  useEffect(() => {
+  // Clearing on "no conversation" is a prop-to-state reset, so it happens
+  // during render by comparing against the previous id rather than inside an
+  // effect — `react-hooks/set-state-in-effect` is enforced in CI.
+  const [prevOtherUserId, setPrevOtherUserId] = useState(otherUserId);
+  if (prevOtherUserId !== otherUserId) {
+    setPrevOtherUserId(otherUserId);
     if (!otherUserId) {
       setMessages([]);
       setIsLoading(false);
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!otherUserId) return;
 
     let isCancelled = false;
     setIsLoading(true);
@@ -184,6 +197,7 @@ export default function useConversation({
       if (error || !data) {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         console.error("Failed to send:", error?.message);
+        onSendError?.(error?.message ?? "Failed to send");
         return;
       }
 
@@ -200,7 +214,7 @@ export default function useConversation({
         return [...withoutPending, sent];
       });
     },
-    [apartmentId, currentUserId, otherUserId, replyTarget, supabase]
+    [apartmentId, currentUserId, onSendError, otherUserId, replyTarget, supabase]
   );
 
   /**
@@ -218,7 +232,6 @@ export default function useConversation({
       setMessages((prev) =>
         prev.map((m) => {
           if (m.id !== messageId) return m;
-          const mine = m.reactions.filter((r) => r.is_mine);
           if (hadReaction) {
             return { ...m, reactions: m.reactions.filter((r) => r.emoji !== emoji || !r.is_mine) };
           }

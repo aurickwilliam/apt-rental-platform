@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import { Modal, ScrollShadow, TextField, Input, Label } from "@heroui/react";
 
-import { EMOJI_GROUPS } from "./reactionEmojis";
+import {
+  EMOJI_GROUPS,
+  searchReactionEmojis,
+  type ReactionEmoji,
+} from "./reactionEmojis";
 
 interface EmojiPickerProps {
   isOpen: boolean;
@@ -14,8 +18,8 @@ interface EmojiPickerProps {
 /**
  * Full emoji picker for reactions. Rendered as a HeroUI modal sheet so it
  * works at every viewport size without a popover that can overflow the chat
- * column. No third-party emoji dependency — the catalogue lives in
- * `reactionEmojis.ts`.
+ * column. No third-party emoji dependency — the catalogue and its search
+ * keywords live in `reactionEmojis.ts`.
  */
 export default function EmojiPicker({
   isOpen,
@@ -25,11 +29,7 @@ export default function EmojiPicker({
   const [query, setQuery] = useState("");
 
   // Filter across all groups; a single flat grid once the user types.
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return null;
-    return EMOJI_GROUPS.flatMap((g) => g.emojis).filter((e) => e.includes(q));
-  }, [query]);
+  const filtered = useMemo(() => searchReactionEmojis(query), [query]);
 
   const handleSelect = (emoji: string) => {
     onEmojiSelected(emoji);
@@ -66,17 +66,17 @@ export default function EmojiPicker({
                 className="min-h-0 flex-1 overflow-y-auto"
                 visibility="none"
               >
-                {filtered ? (
+                {filtered.length > 0 || query.trim() ? (
                   filtered.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">
                       No emoji found.
                     </p>
                   ) : (
                     <div className="grid grid-cols-8 gap-1">
-                      {filtered.map((emoji) => (
+                      {filtered.map((item) => (
                         <EmojiButton
-                          key={emoji}
-                          emoji={emoji}
+                          key={item.emoji}
+                          emoji={item.emoji}
                           onSelect={handleSelect}
                         />
                       ))}
@@ -90,10 +90,10 @@ export default function EmojiPicker({
                           {group.label}
                         </p>
                         <div className="grid grid-cols-8 gap-1">
-                          {group.emojis.map((emoji) => (
+                          {group.emojis.map((item: ReactionEmoji) => (
                             <EmojiButton
-                              key={emoji}
-                              emoji={emoji}
+                              key={item.emoji}
+                              emoji={item.emoji}
                               onSelect={handleSelect}
                             />
                           ))}

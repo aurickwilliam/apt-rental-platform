@@ -10,7 +10,6 @@ import { HEART_REACTION } from "./reactionEmojis";
 interface MessageBubbleProps {
   message: ChatMessage;
   isMine: boolean;
-  currentUserId: string;
   otherUserName?: string;
   onToggleReaction: (messageId: string, emoji: string) => void | Promise<void>;
   onReply: (message: ChatMessage) => void;
@@ -26,7 +25,6 @@ interface MessageBubbleProps {
 export default function MessageBubble({
   message,
   isMine,
-  currentUserId,
   otherUserName,
   onToggleReaction,
   onReply,
@@ -34,21 +32,38 @@ export default function MessageBubble({
   onOpenEmojiPicker,
 }: MessageBubbleProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [stripPlacement, setStripPlacement] = useState<"above" | "below">("above");
+  const groupRef = useRef<HTMLDivElement | null>(null);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const canInteract = !message.isPending && !message.id.startsWith("temp-");
   const myReaction = message.reactions.find((r) => r.is_mine)?.emoji;
+
+  // Height of the strip plus the gap it keeps from the bubble. Used to decide
+  // whether there is room to float it above, or whether it must flip below.
+  const STRIP_RESERVED_SPACE = 60;
+
+  // The chat column scrolls, so the flip has to be measured against the
+  // scroll container's top edge — not the window — or the strip gets clipped
+  // by `overflow-y-auto` on the newest messages.
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+
+    // The strip anchors to the top of the whole message group, so measure
+    // that, not just the bubble.
+    const group = groupRef.current ?? bubbleRef.current;
+    if (!group) return;
+
+    const scroller = group.closest<HTMLElement>("[data-chat-scroll]");
+    const boundaryTop = scroller?.getBoundingClientRect().top ?? 0;
+    const roomAbove = group.getBoundingClientRect().top - boundaryTop;
+
+    setStripPlacement(roomAbove < STRIP_RESERVED_SPACE ? "below" : "above");
+  };
 
   // Double-tap / double-click always hearts, matching mobile.
   const handleDoubleClick = () => {
     if (!canInteract) return;
     void onToggleReaction(message.id, HEART_REACTION);
-  };
-
-  const handleLongPress = () => {
-    if (!canInteract) return;
-    const rect = bubbleRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    onOpenContextMenu({ x: rect.left + rect.width / 2, y: rect.top });
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -84,10 +99,11 @@ export default function MessageBubble({
 
   return (
     <div
-      className={`flex flex-col max-w-[80%] ${
+      ref={groupRef}
+      className={`relative flex flex-col max-w-[80%] ${
         isMine ? "self-end items-end" : "self-start items-start"
       }`}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
     >
       {hasReply && (
@@ -133,11 +149,23 @@ export default function MessageBubble({
         </button>
       ) : null}
 
-      {/* Quick reactions on hover (desktop parity with mobile hold). */}
+      {/* Quick reactions on hover (desktop parity with mobile hold).
+
+          The wrapper above is `relative`, so this anchors to the message group
+          instead of the viewport. It flips below when the group sits too close
+          to the top of the scroll container, which is exactly where the newest
+          messages land in a bottom-anchored thread.
+
+          The `pb-1`/`pt-1` gap lives *inside* the strip's own box, so it is part
+          of the hover region — the pointer can cross it without leaving the
+          group and unmounting the strip. */}
       {isHovered && canInteract && (
         <div
-          className="absolute z-20 -translate-y-full pb-1"
-          style={{ [isMine ? "right" : "left"]: 0 }}
+          className={`absolute z-20 flex ${
+            stripPlacement === "above"
+              ? "-translate-y-full pb-1"
+              : "top-full translate-y-0 pt-1"
+          } ${isMine ? "right-0 items-end" : "left-0 items-start"}`}
         >
           <ReactionStrip
             myReaction={myReaction}

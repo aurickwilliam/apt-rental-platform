@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollShadow, Spinner } from "@heroui/react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
 
@@ -12,7 +12,6 @@ import EmojiPicker from "@/app/components/chat/EmojiPicker";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
-import { toReplyPreview } from "@/app/components/chat/chatReactions";
 import type { ChatMessage } from "@/app/components/chat/types";
 
 interface ConversationViewProps {
@@ -49,9 +48,12 @@ export default function ConversationView({
   className = "",
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isContactTyping, setIsContactTyping] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  // The message the full picker is reacting to. Held separately from
+  // `contextMenu` so the picker can be the only overlay on screen — the
+  // context menu's dismiss layer would otherwise sit on top of the modal.
+  const [emojiPickerTarget, setEmojiPickerTarget] = useState<ChatMessage | null>(null);
   const channelRef = useRef<ReturnType<
     ReturnType<typeof useConversation>["supabase"]["channel"]
   > | null>(null);
@@ -70,15 +72,33 @@ export default function ConversationView({
     clearReply,
     openContextMenu,
     closeContextMenu,
-    setReplyTarget,
   } = useConversation({
     currentUserId,
     otherUserId: activeContact?.id ?? null,
     apartmentId,
     onConversationRead,
+    onSendError: (message) =>
+      setSendError({ key: activeContact?.conversationKey ?? "", message }),
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Opening the picker always dismisses the context menu first, so only one
+  // overlay is ever mounted and the modal is never fighting a stale
+  // `fixed inset-0` layer for clicks.
+  const openEmojiPicker = useCallback(
+    (message: ChatMessage) => {
+      setEmojiPickerTarget(message);
+      closeContextMenu();
+      setIsEmojiPickerOpen(true);
+    },
+    [closeContextMenu]
+  );
+
+  const closeEmojiPicker = useCallback(() => {
+    setIsEmojiPickerOpen(false);
+    setEmojiPickerTarget(null);
+  }, []);
 
   // Mark incoming messages as read when this conversation is opened
   useEffect(() => {
@@ -181,82 +201,17 @@ export default function ConversationView({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isContactTyping]);
 
+  // Delegates to the hook, which owns the optimistic row, its rollback and the
+  // realtime dedupe. Clearing the banner up front means a successful send
+  // wipes any stale failure.
   const handleSend = useCallback(
-    async (content: string) => {
-      if (!activeContact) return;
-      if (!content.trim()) return;
-
-      const replyToId = replyTarget?.id ?? null;
-      const preview = replyTarget ? toReplyPreview(replyTarget, currentUserId) : null;
-
-      const optimistic: ChatMessage = {
-        id: crypto.randomUUID(),
-        sender_id: currentUserId,
-        receiver_id: activeContact.id,
-        message: content,
-        message_type: "text",
-        is_read: false,
-        read_at: null,
-        apartment_id: apartmentId ?? null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        reply_to: replyTarget?.id ?? null,
-        replyTo: preview,
-        reactions: [],
-        isPending: true,
-      };
-
-      setMessages((prev) => [...prev, optimistic]);
+    (content: string) => {
+      if (!activeContact || !content.trim()) return;
       setSendError(null);
-
-      try {
-        const { data, error } = await supabase
-          .from("chat")
-          .insert({
-            sender_id: currentUserId,
-            receiver_id: activeContact.id,
-            message: content,
-            apartment_id: apartmentId ?? null,
-            reply_to: replyTarget?.id ?? null,
-            is_read: false,
-          })
-          .select("id, message, message_type, created_at, updated_at, sender_id, reply_to")
-          .single();
-
-        if (error || !data) {
-          setMessages((prev) => prev.filter((m) => m.id !== `temp-${Date.now()}`));
-          console.error("Failed to send:", error?.message);
-          setSendError({ key: activeContact.conversationKey, message: error?.message ?? "Failed to send" });
-          return;
-        }
-
-        setMessages((prev) => {
-          const withoutPending = prev.filter((m) => m.message !== content || !m.isPending);
-          const sent: ChatMessage = {
-            id: data.id,
-            sender_id: currentUserId,
-            receiver_id: activeContact.id,
-            message: content,
-            message_type: "text",
-            is_read: false,
-            read_at: null,
-            apartment_id: apartmentId ?? null,
-            created_at: data.created_at,
-            updated_at: data.updated_at ?? data.created_at,
-            reply_to: data.reply_to,
-            replyTo: preview,
-            reactions: [],
-            isPending: false,
-          };
-          return [...prev.filter((m) => m.message !== content || !m.isPending), sent];
-        });
-      } catch (err) {
-        console.error("Failed to send:", err);
-        setSendError({ key: activeContact.conversationKey, message: err instanceof Error ? err.message : "Failed to send" });
-      } finally {
-        setReplyTarget(null);
-      }
-    }, [activeContact, apartmentId, currentUserId, replyTarget, supabase]);
+      void sendMessage(content, replyTarget?.id ?? null);
+    },
+    [activeContact, replyTarget, sendMessage]
+  );
 
   const handleTypingChange = useCallback(
     async (isTyping: boolean) => {
@@ -336,11 +291,14 @@ export default function ConversationView({
       </div>
 
       {/* Chat History */}
+      {/* `data-chat-scroll` is the clipping boundary the reaction strip measures
+          against when deciding whether it can float above a message. */}
       <ScrollShadow
+        data-chat-scroll
         className="min-h-0 flex-1 overflow-y-auto bg-muted/20 dark:bg-background p-4"
         visibility="none"
       >
-        {isLoading || messagesLoading ? (
+        {messagesLoading ? (
           <div className="flex justify-center py-8">
             <Spinner size="md" color="accent" />
           </div>
@@ -364,13 +322,7 @@ export default function ConversationView({
                   onToggleReaction={toggleReaction}
                   onReply={handleReply}
                   onOpenContextMenu={(position) => openContextMenu(msg, position)}
-                  onOpenEmojiPicker={() => {
-                    openContextMenu(msg, {
-                      x: window.innerWidth / 2,
-                      y: window.innerHeight / 2,
-                    });
-                    setIsEmojiPickerOpen(true);
-                  }}
+                  onOpenEmojiPicker={() => openEmojiPicker(msg)}
                 />
               ))
             )}
@@ -418,7 +370,7 @@ export default function ConversationView({
             void toggleReaction(contextMenu.message.id, emoji);
             closeContextMenu();
           }}
-          onOpenFullPicker={() => setIsEmojiPickerOpen(true)}
+          onOpenFullPicker={() => openEmojiPicker(contextMenu.message)}
           onReply={() => {
             handleReply(contextMenu.message);
             closeContextMenu();
@@ -433,10 +385,10 @@ export default function ConversationView({
       )}
 
       <EmojiPicker
-        isOpen={isEmojiPickerOpen}
-        onClose={() => setIsEmojiPickerOpen(false)}
+        isOpen={isEmojiPickerOpen && emojiPickerTarget !== null}
+        onClose={closeEmojiPicker}
         onEmojiSelected={(emoji) => {
-          if (contextMenu) void toggleReaction(contextMenu.message.id, emoji);
+          if (emojiPickerTarget) void toggleReaction(emojiPickerTarget.id, emoji);
         }}
       />
     </div>
