@@ -57,7 +57,13 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
           apartmentName={a.apartments?.name ?? null}
           apartmentId={a.apartment_id}
           createdAt={a.created_at}
-          location={[a.apartments?.barangay, a.apartments?.city]
+          location={[
+            a.apartments?.street_address,
+            a.apartments?.barangay,
+            a.apartments?.city,
+            a.apartments?.province,
+            a.apartments?.zip_code?.toString(),
+          ]
             .filter(Boolean)
             .join(", ")}
           thumbnailUrl={
@@ -78,32 +84,39 @@ export default function ApplicationsList({ className = "", showHeader = true }: 
             <ClipboardList size={20} className="text-primary" />
             <h2 className="text-lg font-semibold text-card-foreground">My Applications</h2>
           </div>
-          <Dropdown>
-            <Button variant="tertiary" size="sm" aria-label="Filter applications by status">
-              <Filter size={16} aria-hidden="true" />
-              Filter
-            </Button>
-            <Dropdown.Popover placement="bottom end" className="min-w-44">
-              <Dropdown.Menu
-                aria-label="Filter applications by status"
-                selectionMode="single"
-                disallowEmptySelection
-                selectedKeys={new Set([statusFilter])}
-                onSelectionChange={(keys) => {
-                  if (keys === "all") return;
-                  const [next] = Array.from(keys);
-                  if (next !== undefined) setStatusFilter(next as "all" | ApplicationStatus);
-                }}
-              >
-                {FILTER_OPTIONS.map((option) => (
-                  <Dropdown.Item key={option.id} id={option.id} textValue={option.label} className="cursor-pointer">
-                    <Dropdown.ItemIndicator className="text-primary!" />
-                    <Label>{option.label}</Label>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-inter text-muted-foreground">
+              {loading
+                ? "Loading Applications..."
+                : `${filteredApplications.length} Application${filteredApplications.length === 1 ? "" : "s"}`}
+            </p>
+            <Dropdown>
+              <Button variant="tertiary" size="sm" aria-label="Filter applications by status">
+                <Filter size={16} aria-hidden="true" />
+                Filter
+              </Button>
+              <Dropdown.Popover placement="bottom end" className="min-w-44">
+                <Dropdown.Menu
+                  aria-label="Filter applications by status"
+                  selectionMode="single"
+                  disallowEmptySelection
+                  selectedKeys={new Set([statusFilter])}
+                  onSelectionChange={(keys) => {
+                    if (keys === "all") return;
+                    const [next] = Array.from(keys);
+                    if (next !== undefined) setStatusFilter(next as "all" | ApplicationStatus);
+                  }}
+                >
+                  {FILTER_OPTIONS.map((option) => (
+                    <Dropdown.Item key={option.id} id={option.id} textValue={option.label} className="cursor-pointer">
+                      <Dropdown.ItemIndicator className="text-primary!" />
+                      <Label>{option.label}</Label>
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+          </div>
         </div>
       )}
 

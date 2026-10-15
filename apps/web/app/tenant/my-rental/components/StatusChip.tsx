@@ -8,9 +8,10 @@ export type BadgeVariant = "success" | "warning" | "danger" | "info" | "neutral"
 type StatusChipProps = {
   variant: BadgeVariant;
   children: ReactNode;
+  className?: string;
 };
 
-export default function StatusChip({ variant, children }: StatusChipProps) {
+export default function StatusChip({ variant, children, className = "" }: StatusChipProps) {
   const colors: Record<BadgeVariant, "success" | "warning" | "danger" | "accent" | "default"> = {
     success: "success",
     warning: "warning",
@@ -24,7 +25,7 @@ export default function StatusChip({ variant, children }: StatusChipProps) {
       size="sm" 
       variant="soft" 
       color={colors[variant]} 
-      className="text-[11px]"
+      className={`text-[11px] ${className}`}
     >
       {children}
     </Chip>

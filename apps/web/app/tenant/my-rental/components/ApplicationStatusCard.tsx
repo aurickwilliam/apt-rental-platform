@@ -59,18 +59,18 @@ export default function ApplicationStatusCard({
             <p className="min-w-0 flex-1 truncate text-lg font-nunito font-semibold text-card-foreground">
               {name}
             </p>
-            <StatusChip variant={statusVariant}>
+            <StatusChip variant={statusVariant} className="px-2.5 py-1 text-sm">
               <span className="flex items-center gap-1 font-nunito font-semibold">
-                <Icon size={14} style={{ color: style.iconColor }} aria-hidden="true" />
+                <Icon size={16} style={{ color: style.iconColor }} aria-hidden="true" />
                 {style.label}
               </span>
             </StatusChip>
           </div>
 
           {location && (
-            <div className="flex min-w-0 items-center gap-1 text-sm font-inter text-muted-foreground">
+            <div className="flex min-w-0 items-start gap-1 text-sm font-inter text-muted-foreground">
               <MapPin size={16} className="shrink-0" aria-hidden="true" />
-              <span className="truncate">{location}</span>
+              <span className="break-words">{location}</span>
             </div>
           )}
 
