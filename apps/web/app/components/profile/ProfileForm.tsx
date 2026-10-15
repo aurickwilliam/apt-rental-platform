@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import {
   Button,
+  ComboBox,
   FieldError,
   Input,
   Label,
@@ -28,7 +29,14 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 
-import { GENDERS, PROVINCES } from "@repo/constants";
+import {
+  GENDERS,
+  PROVINCES,
+  getBarangaysByCity,
+  getCitiesByProvince,
+  getPostalCode,
+  type Province,
+} from "@repo/constants";
 import { createBrowserClient } from "@repo/supabase";
 import { updateProfile } from "@/app/(auth)/actions/update-profile";
 import {
@@ -499,6 +507,47 @@ export default function ProfileForm({
   if (!province.trim()) missingLabels.push("province");
   if (!postalCode.trim()) missingLabels.push("postal code");
 
+  // Province -> city -> barangay cascade, as on mobile. A saved value that is
+  // not in the shared lists (older free-text data) stays selectable.
+  const withCurrent = (options: string[], current: string) =>
+    current && !options.includes(current) ? [current, ...options] : options;
+  const cityOptions = withCurrent(
+    province ? getCitiesByProvince(province as Province) : [],
+    city,
+  );
+  const barangayOptions = withCurrent(
+    city ? getBarangaysByCity(city) : [],
+    barangay,
+  );
+
+  const handleProvinceChange = (next: string) => {
+    if (next === province) return;
+    setProvince(next);
+    setCity("");
+    setBarangay("");
+    setPostalCode("");
+    revalidateIfShown("province", next);
+    for (const key of ["city", "barangay", "postal_code"] as const) {
+      setFieldError(key, "");
+    }
+  };
+
+  const handleCityChange = (next: string) => {
+    if (next === city) return;
+    setCity(next);
+    setBarangay("");
+    setPostalCode(next ? (getPostalCode(next) ?? "") : "");
+    revalidateIfShown("city", next);
+    for (const key of ["barangay", "postal_code"] as const) {
+      setFieldError(key, "");
+    }
+  };
+
+  const handleBarangayChange = (next: string) => {
+    setBarangay(next);
+    revalidateIfShown("barangay", next);
+  };
+
   const displayName =
     fullName || initial.email || "User";
 
@@ -851,40 +900,6 @@ export default function ProfileForm({
             <FieldError>{errors.street_address}</FieldError>
           </TextField>
 
-          <TextField
-            name="barangay"
-            isRequired
-            fullWidth
-            value={barangay}
-            onChange={(val: string) => {
-              setBarangay(val);
-              revalidateIfShown("barangay", val);
-            }}
-            onBlur={() => handleBlur("barangay")}
-            isInvalid={!!errors.barangay}
-          >
-            <Label>Barangay</Label>
-            <Input placeholder="Enter your barangay" className="bg-card! text-foreground!" />
-            <FieldError>{errors.barangay}</FieldError>
-          </TextField>
-
-          <TextField
-            name="city"
-            isRequired
-            fullWidth
-            value={city}
-            onChange={(val: string) => {
-              setCity(val);
-              revalidateIfShown("city", val);
-            }}
-            onBlur={() => handleBlur("city")}
-            isInvalid={!!errors.city}
-          >
-            <Label>City</Label>
-            <Input placeholder="Enter your city" className="bg-card! text-foreground!" />
-            <FieldError>{errors.city}</FieldError>
-          </TextField>
-
           <div>
             <input type="hidden" name="province" value={province} />
             <Select
@@ -892,16 +907,12 @@ export default function ProfileForm({
               fullWidth
               placeholder="Select your province"
               value={province || null}
-              onChange={(key) => {
-                const next = key ? String(key) : "";
-                setProvince(next);
-                revalidateIfShown("province", next);
-              }}
+              onChange={(key) => handleProvinceChange(key ? String(key) : "")}
               onBlur={() => handleBlur("province")}
               isInvalid={!!errors.province}
             >
               <Label>Province</Label>
-              <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Trigger className="bg-card! text-foreground! cursor-pointer">
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
@@ -918,6 +929,72 @@ export default function ProfileForm({
             {errors.province ? (
               <p className="text-sm text-danger mt-1">{errors.province}</p>
             ) : null}
+          </div>
+
+          <div>
+            <input type="hidden" name="city" value={city} />
+            <ComboBox
+              isRequired
+              fullWidth
+              isDisabled={!province}
+              selectedKey={city || null}
+              onSelectionChange={(key) => handleCityChange(key ? String(key) : "")}
+              onBlur={() => handleBlur("city")}
+              isInvalid={!!errors.city}
+            >
+              <Label>City</Label>
+              <ComboBox.InputGroup>
+                <Input
+                  placeholder={province ? "Search or select your city" : "Select a province first"}
+                  className="bg-card! text-foreground!"
+                />
+                <ComboBox.Trigger className="cursor-pointer" />
+              </ComboBox.InputGroup>
+              <ComboBox.Popover>
+                <ListBox>
+                  {cityOptions.map((option) => (
+                    <ListBox.Item key={option} id={option} textValue={option}>
+                      {option}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </ComboBox.Popover>
+              <FieldError>{errors.city}</FieldError>
+            </ComboBox>
+          </div>
+
+          <div>
+            <input type="hidden" name="barangay" value={barangay} />
+            <ComboBox
+              isRequired
+              fullWidth
+              isDisabled={!city}
+              selectedKey={barangay || null}
+              onSelectionChange={(key) => handleBarangayChange(key ? String(key) : "")}
+              onBlur={() => handleBlur("barangay")}
+              isInvalid={!!errors.barangay}
+            >
+              <Label>Barangay</Label>
+              <ComboBox.InputGroup>
+                <Input
+                  placeholder={city ? "Search or select your barangay" : "Select a city first"}
+                  className="bg-card! text-foreground!"
+                />
+                <ComboBox.Trigger className="cursor-pointer" />
+              </ComboBox.InputGroup>
+              <ComboBox.Popover>
+                <ListBox>
+                  {barangayOptions.map((option) => (
+                    <ListBox.Item key={option} id={option} textValue={option}>
+                      {option}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </ComboBox.Popover>
+              <FieldError>{errors.barangay}</FieldError>
+            </ComboBox>
           </div>
 
           <TextField
