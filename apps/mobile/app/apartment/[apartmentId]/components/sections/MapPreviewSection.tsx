@@ -95,25 +95,26 @@ export default function MapPreviewSection({
         title="View on Map"
       />
 
-      <TouchableOpacity
-        activeOpacity={0.7}
-        className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'
-        onPress={onOpenMap}
-      >
-        <View style={{ flex: 1 }} pointerEvents='none'>
-          <MapViewSwitcher
-            latitude={latitude}
-            longitude={longitude}
-            interactive={false}
-            style={{ flex: 1 }}
-          />
-        </View>
+      <View className='h-56 mx-5 mt-3 rounded-2xl overflow-hidden'>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={{ flex: 1 }}
+          onPress={onOpenMap}
+          accessibilityRole='button'
+          accessibilityLabel='Open map'
+        >
+          <View style={{ flex: 1 }} pointerEvents='none'>
+            <MapViewSwitcher
+              latitude={latitude}
+              longitude={longitude}
+              interactive={false}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </TouchableOpacity>
 
         <Button
-          onPress={(event: unknown) => {
-            (event as { stopPropagation?: () => void })?.stopPropagation?.();
-            setIsDirectionsModalVisible(true);
-          }}
+          onPress={() => setIsDirectionsModalVisible(true)}
           size="sm"
           variant="secondary"
           className='absolute bottom-4 right-4 shadow-xs'
@@ -122,7 +123,7 @@ export default function MapPreviewSection({
             Get Directions
           </Button.Label>
         </Button>
-      </TouchableOpacity>
+      </View>
 
       <AppDialog
         isOpen={isDirectionsModalVisible}

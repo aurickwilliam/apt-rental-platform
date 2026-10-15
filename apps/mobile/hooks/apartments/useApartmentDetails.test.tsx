@@ -91,4 +91,19 @@ describe("useApartmentDetails", () => {
 
     unmount();
   });
+
+  it("keeps a failed review fetch separate from the apartment error", async () => {
+    mockFetchReviewsPreview.mockRejectedValue(new Error("reviews down"));
+    const { QueryWrapper } = createWrapper();
+
+    const { result, unmount } = renderHook(() => useApartmentDetails(APARTMENT_ID), {
+      wrapper: QueryWrapper,
+    });
+
+    await waitFor(() => expect(result.current.reviewsError).toBe("reviews down"));
+    expect(result.current.error).toBeNull();
+    expect(result.current.apartment?.name).toBe("APT Homes");
+
+    unmount();
+  });
 });

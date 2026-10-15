@@ -4,15 +4,18 @@ import {
   Text,
   ScrollView,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import ImageViewing from 'react-native-image-viewing';
 
 import {
+  IconBuilding,
   IconStarFilled,
+  IconChevronDown,
   IconBed,
   IconBath,
   IconMaximize,
@@ -30,13 +33,20 @@ type ApartmentImage = {
 type ApartmentHeroSectionProps = {
   apartment: ApartmentDetails | null;
   images: ApartmentImage[];
+  onRatingPress?: () => void;
 };
+
+// Dark scrim behind the white hero text and the floating buttons (DESIGN.md: RentalHero).
+const BOTTOM_SCRIM_COLORS = ['transparent', 'rgba(0, 0, 0, 0.9)'] as const;
+const TOP_SCRIM_COLORS = ['rgba(0, 0, 0, 0.45)', 'transparent'] as const;
+const TOP_SCRIM_HEIGHT = 120;
 
 export default function ApartmentHeroSection({
   apartment,
   images,
+  onRatingPress,
 }: ApartmentHeroSectionProps) {
-  const { width } = Dimensions.get('window');
+  const { width } = useWindowDimensions();
 
   const [scrollX] = useState(() => new Animated.Value(0));
 
@@ -45,7 +55,17 @@ export default function ApartmentHeroSection({
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
 
-  const location = `${apartment?.street_address}, ${apartment?.city}, ${apartment?.province}`;
+  const location = [apartment?.street_address, apartment?.city, apartment?.province]
+    .filter(Boolean)
+    .join(', ');
+
+  const ratingCount = apartment?.no_ratings ?? 0;
+  const averageRating = apartment?.average_rating ?? null;
+  const hasRatings = averageRating !== null && ratingCount > 0;
+  const ratingLabel =
+    averageRating !== null && ratingCount > 0
+      ? `${averageRating.toFixed(1)} (${ratingCount} ${ratingCount === 1 ? 'rating' : 'ratings'})`
+      : 'No ratings yet';
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -58,7 +78,16 @@ export default function ApartmentHeroSection({
   };
 
   return (
-    <View className='h-168 bg-white relative'>
+    <View className='h-168 bg-surface-tertiary relative'>
+      {images.length === 0 && (
+        <View className='absolute inset-x-0 top-0 h-1/2 items-center justify-center gap-2'>
+          <IconBuilding size={48} color={colors.gray400} strokeWidth={1.5} />
+          <Text className='text-muted font-nunitoSemiBold text-base'>
+            No photos yet
+          </Text>
+        </View>
+      )}
+
       <ScrollView
         horizontal
         pagingEnabled
@@ -83,8 +112,22 @@ export default function ApartmentHeroSection({
         ))}
       </ScrollView>
 
+      {images.length > 0 && (
+        <LinearGradient
+          colors={TOP_SCRIM_COLORS}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: TOP_SCRIM_HEIGHT,
+          }}
+          pointerEvents='none'
+        />
+      )}
+
       <LinearGradient
-        colors={['transparent', '#000000']}
+        colors={BOTTOM_SCRIM_COLORS}
         style={{
           position: 'absolute',
           top: 0,
@@ -94,28 +137,37 @@ export default function ApartmentHeroSection({
           justifyContent: 'flex-end',
           padding: 20,
         }}
-        pointerEvents='none'
+        pointerEvents='box-none'
       >
-        <View>
-          <Text className='text-white font-nunitoBold text-2xl'>
+        <View pointerEvents='box-none'>
+          <Text className='text-white font-nunitoBold text-2xl' pointerEvents='none'>
             {apartment?.name || 'Unnamed Apartment'}
           </Text>
 
-          <View className='flex-row items-center mt-2 gap-2'>
+          <View className='flex-row items-center mt-2 gap-2' pointerEvents='none'>
             <IconMapPinFilled size={24} color={colors.primary} />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
               {location || 'No location provided'}
             </Text>
           </View>
 
-          <View className='flex-row items-center mt-5 gap-2'>
+          <Pressable
+            className='flex-row items-center mt-5 gap-2 self-start'
+            disabled={!hasRatings || !onRatingPress}
+            onPress={onRatingPress}
+            accessibilityRole='button'
+            accessibilityLabel={hasRatings ? `${ratingLabel}. Jump to ratings` : ratingLabel}
+          >
             <IconStarFilled size={20} color={colors.rating}  />
             <Text className={`text-white font-nunitoSemiBold text-base`}>
-              No ratings yet
+              {ratingLabel}
             </Text>
-          </View>
+            {hasRatings && onRatingPress && (
+              <IconChevronDown size={18} color={colors.secondaryForeground} />
+            )}
+          </Pressable>
 
-          <View className='flex-row items-center justify-between my-5 gap-6'>
+          <View className='flex-row items-center justify-between my-5 gap-6' pointerEvents='none'>
             <View className='flex-row items-center gap-2'>
               <IconBed size={24} color={colors.secondaryForeground} />
               <Text className={`text-white font-nunitoSemiBold text-sm`}>
@@ -141,7 +193,7 @@ export default function ApartmentHeroSection({
           </View>
         </View>
 
-        <View className='flex-row justify-center items-center'>
+        <View className='flex-row justify-center items-center' pointerEvents='none'>
           {images.map((_, index) => {
             const inputRange = [
               (index - 1) * width,

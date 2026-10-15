@@ -1,13 +1,23 @@
-import { View, Text } from "react-native";
+import { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Share,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import ScreenWrapper from "components/layout/ScreenWrapper";
+import ScreenWrapper, {
+  type ScreenWrapperScrollRef,
+} from "components/layout/ScreenWrapper";
 
 import {
   IconHeart,
   IconHeartFilled,
   IconChevronLeft,
+  IconShare,
 } from "@tabler/icons-react-native";
 
 import {
@@ -24,11 +34,34 @@ import {
 } from "./components";
 
 import { useApartmentDetails } from "@/hooks/apartments";
+import type { ApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
+import { useLightStatusBar } from "@/hooks/useLightStatusBar";
 import { useReviewEligibility } from "@/hooks/ratings";
+import { useCurrentUserId } from "@/hooks/auth";
+import { getInquiryConversationId } from "@/service/chat/chatRoutes";
+import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
 
 import { Button } from "heroui-native";
+
+function getApplyDisabledReason(
+  apartment: ApartmentDetails | null,
+  currentUserId: string | null,
+): string | null {
+  if (!apartment) return null;
+  if (currentUserId && apartment.landlord?.id === currentUserId) {
+    return "Your Listing";
+  }
+  if (apartment.status === "occupied" || apartment.status === "under_maintenance") {
+    return "Not Available";
+  }
+  return null;
+}
+
+// Matches the hero's `h-168` (672px) and the floating button row below the status bar.
+const HERO_HEIGHT = 672;
+const FLOATING_BUTTONS_HEIGHT = 56;
 
 export default function ApartmentScreen() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
@@ -36,8 +69,20 @@ export default function ApartmentScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
 
-  const { apartment, reviews, loading, error } =
-    useApartmentDetails(apartmentId);
+  const {
+    apartment,
+    reviews,
+    loading,
+    reviewsLoading,
+    error,
+    reviewsError,
+    refetch,
+    refetchReviews,
+  } = useApartmentDetails(apartmentId);
+  const currentUserId = useCurrentUserId();
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
+  const ratingsOffsetY = useRef(0);
+  const [isPastHero, setIsPastHero] = useState(false);
   const { isFavorite } = useFavorites();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
   const {
@@ -57,7 +102,42 @@ export default function ApartmentScreen() {
     await toggleFavoriteWithToast(apartmentId);
   };
 
+  const applyDisabledReason = getApplyDisabledReason(
+    apartment,
+    currentUserId,
+  );
+
+  // White status-bar icons while the hero photo sits behind them.
+  useLightStatusBar(!isPastHero);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const pastHero =
+      event.nativeEvent.contentOffset.y >
+      HERO_HEIGHT - insets.top - FLOATING_BUTTONS_HEIGHT;
+    setIsPastHero((current) => (current === pastHero ? current : pastHero));
+  };
+
+  const handleJumpToRatings = () => {
+    scrollRef.current?.scrollTo({ y: ratingsOffsetY.current, animated: true });
+  };
+
+  const handleShare = async () => {
+    if (!apartment) return;
+
+    try {
+      await Share.share({
+        message: buildApartmentShareMessage(
+          apartment,
+          process.env.EXPO_PUBLIC_WEB_URL,
+        ),
+      });
+    } catch (shareError) {
+      console.error("Failed to share apartment", shareError);
+    }
+  };
+
   const handleApplyNow = () => {
+    if (applyDisabledReason) return;
     router.push(`/apartment/${apartmentId}/apply/apartment-summary`);
   };
 
@@ -67,9 +147,7 @@ export default function ApartmentScreen() {
     const landlord = apartment.landlord;
     const fullName =
       `${landlord.first_name ?? ""} ${landlord.last_name ?? ""}`.trim();
-    const conversationId = `inquiry-${apartmentId}-${landlord.id}`;
-
-    console.log("Navigating to chat with landlord:", conversationId);
+    const conversationId = getInquiryConversationId(landlord.id, apartmentId);
 
     router.push({
       pathname: "/chat/[conversationId]",
@@ -123,9 +201,12 @@ export default function ApartmentScreen() {
         <Text className="text-gray-500 font-inter text-center mt-2">
           Please try again in a moment.
         </Text>
-        <View className="mt-6">
-          <Button size="sm" onPress={() => router.back()}>
+        <View className="mt-6 flex-row gap-3">
+          <Button size="sm" variant="tertiary" onPress={() => router.back()}>
             <Button.Label>Go Back</Button.Label>
+          </Button>
+          <Button size="sm" onPress={() => void refetch()}>
+            <Button.Label>Try Again</Button.Label>
           </Button>
         </View>
       </View>
@@ -134,8 +215,18 @@ export default function ApartmentScreen() {
 
   return (
     <View className="flex-1">
-      <ScreenWrapper scrollable bottomPadding={100} noTopPadding>
-        <ApartmentHeroSection apartment={apartment} images={apartmentImages} />
+      <ScreenWrapper
+        ref={scrollRef}
+        scrollable
+        bottomPadding={100}
+        noTopPadding
+        onScroll={handleScroll}
+      >
+        <ApartmentHeroSection
+          apartment={apartment}
+          images={apartmentImages}
+          onRatingPress={handleJumpToRatings}
+        />
 
         <ApartmentDetailsSection apartment={apartment} />
 
@@ -152,7 +243,6 @@ export default function ApartmentScreen() {
 
         <LandlordSection
           landlord={apartment?.landlord ?? null}
-          totalRentals={apartment?.no_ratings}
           onPress={handleLandlordProfileNavigation}
           onMessagePress={handleMessageLandlord}
         />
@@ -161,15 +251,23 @@ export default function ApartmentScreen() {
           leaseAgreementUrl={apartment?.lease_agreement_url}
         />
 
+        <View
+          onLayout={(event) => {
+            ratingsOffsetY.current = event.nativeEvent.layout.y;
+          }}
+        >
         <RatingsSection
           reviews={reviews}
+          isLoading={reviewsLoading}
+          error={reviewsError}
+          onRetry={() => void refetchReviews()}
           onSeeAll={() => router.push(`/apartment/${apartmentId}/ratings`)}
           canReview={canReview}
           checkingEligibility={checkingEligibility}
           onWriteReview={handleWriteReview}
         />
+        </View>
 
-        <View className="h-20" />
       </ScreenWrapper>
 
       <MoveInCostFooter
@@ -177,24 +275,49 @@ export default function ApartmentScreen() {
         securityDeposit={apartment?.security_deposit}
         advanceRent={apartment?.advance_rent}
         onApplyNow={handleApplyNow}
+        applyDisabledReason={applyDisabledReason}
       />
 
       <View className="absolute left-4" style={{ top: insets.top + 8 }}>
-        <Button onPress={() => router.back()} variant="tertiary" isIconOnly>
-          <IconChevronLeft size={24} color={colors.textPrimary} />
+        <Button
+          onPress={() => router.back()}
+          variant="tertiary"
+          isIconOnly
+          className="bg-black/35"
+          accessibilityLabel="Go back"
+        >
+          <IconChevronLeft size={24} color={colors.secondaryForeground} />
         </Button>
       </View>
 
-      <View className="absolute right-4" style={{ top: insets.top + 8 }}>
+      <View
+        className="absolute right-4 flex-row gap-2"
+        style={{ top: insets.top + 8 }}
+      >
+        <Button
+          onPress={() => void handleShare()}
+          variant="tertiary"
+          isIconOnly
+          className="bg-black/35"
+          isDisabled={!apartment}
+          accessibilityLabel="Share apartment"
+        >
+          <IconShare size={24} color={colors.secondaryForeground} />
+        </Button>
         <Button
           onPress={() => void handleFavoriteToggle()}
           variant="tertiary"
           isIconOnly
+          className="bg-black/35"
+          accessibilityLabel={
+            isFavorite(apartmentId) ? "Remove from favorites" : "Add to favorites"
+          }
+          accessibilityState={{ selected: isFavorite(apartmentId) }}
         >
           {isFavorite(apartmentId) ? (
             <IconHeartFilled size={24} color={colors.danger} />
           ) : (
-            <IconHeart size={24} color={colors.gray400} />
+            <IconHeart size={24} color={colors.secondaryForeground} />
           )}
         </Button>
       </View>

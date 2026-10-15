@@ -35,7 +35,7 @@ export default function ApartmentDescriptionSection({
           ellipsizeMode='tail'
           className='text-foreground font-inter text-sm'
         >
-          {description}
+          {description?.trim() || 'The owner has not added a description yet.'}
         </Text>
 
         {hasLongDescription && (

@@ -39,8 +39,8 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
 
       <View className='flex-row flex-wrap px-5 mt-5'>
         {hasPerks ? (
-          displayAmenities?.map((amenity, index) => (
-            <View key={index} className='w-1/2 mb-4'>
+          displayAmenities?.map((amenity) => (
+            <View key={amenity} className='w-1/2 mb-4'>
               <PerkItem perkId={amenity} />
             </View>
           ))
