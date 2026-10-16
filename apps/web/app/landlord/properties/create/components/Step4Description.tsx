@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Description, FieldError, InputGroup, Label, TextArea, TextField } from "@heroui/react";
 import { IconSearch } from "@tabler/icons-react";
+import { isRetiredAmenity, toggleAmenitySelection } from "@repo/constants";
 import { PERKS } from "../../../../components/inputs/perks";
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -17,17 +18,16 @@ export default function Step4Description({ formData, updateForm, errors }: Props
   const visiblePerks = useMemo(() => {
     const query = amenitySearch.toLowerCase().trim();
     return Object.values(PERKS).filter(
-      (perk) => query === "" || perk.name.toLowerCase().includes(query),
+      (perk) =>
+        // Retired perks (e.g. Furnished: use Furnished Type) only stay if picked.
+        (!isRetiredAmenity(perk.id) || formData.amenities.includes(perk.id)) &&
+        (query === "" || perk.name.toLowerCase().includes(query)),
     );
-  }, [amenitySearch]);
+  }, [amenitySearch, formData.amenities]);
 
   const toggleAmenity = (id: string) => {
-    const current = formData.amenities;
-    if (current.includes(id)) {
-      updateForm({ amenities: current.filter((a) => a !== id) });
-    } else {
-      updateForm({ amenities: [...current, id] });
-    }
+    // Picking an amenity turns off any it contradicts (e.g. No Cooking vs Kitchen).
+    updateForm({ amenities: toggleAmenitySelection(formData.amenities, id) });
   };
 
   return (
@@ -90,6 +90,10 @@ export default function Step4Description({ formData, updateForm, errors }: Props
             </InputGroup>
           </TextField>
         </div>
+
+        <p className="text-xs text-muted-foreground mb-3">
+          Some amenities can&apos;t go together, like No Cooking Allowed and Kitchen. Picking one removes the other.
+        </p>
 
         <div
           className={`grid grid-cols-2 gap-2.5 p-3 rounded-2xl border-2 transition ${

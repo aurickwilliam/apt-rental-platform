@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/LandlordSection.tsx": {
-    "mtime": 1792048366.7266262,
-    "ast_hash": "b6d175a74a19efdbfa004c633a540f27",
+    "mtime": 1792114024.2426226,
+    "ast_hash": "01705d8f7c54d1b57f333d959b11704c",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/LeaseAgreementSection.tsx": {
@@ -725,8 +725,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/MapPreviewSection.tsx": {
-    "mtime": 1792048366.7271101,
-    "ast_hash": "622c3485fb0827c80be2d9ce07b42267",
+    "mtime": 1792113909.8597765,
+    "ast_hash": "7a8dd3bfb91bde21e048e296688a08bc",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/MoveInCostFooterSection.tsx": {
@@ -735,8 +735,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/PerksSection.tsx": {
-    "mtime": 1792048366.7274482,
-    "ast_hash": "33776f0728a08351deae1b24733d9556",
+    "mtime": 1792113909.8593965,
+    "ast_hash": "7b2ad9a17ee9e248c0a5af2bb39ba59b",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/RatingsSection.tsx": {
@@ -1180,8 +1180,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fifth-step.tsx": {
-    "mtime": 1792073049.941458,
-    "ast_hash": "776576fcdc2c21dfb07e8ca767f766bb",
+    "mtime": 1792114518.280133,
+    "ast_hash": "6a8c6f0f8c2652097752faf2148be354",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx": {
@@ -1810,8 +1810,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/PerkItem.tsx": {
-    "mtime": 1788952892.2363102,
-    "ast_hash": "96cce06d1ce47a4510a9ce564bdcfa69",
+    "mtime": 1792114430.2605443,
+    "ast_hash": "b906db7dedc639eedcfc095ca6198c22",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/RejectDialog.tsx": {

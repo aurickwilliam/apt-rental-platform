@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { DocumentPickerAsset } from 'expo-document-picker'
 import { ImagePickerAsset } from 'expo-image-picker'
+import { toggleAmenitySelection } from '@repo/constants'
 
 export interface ApartmentFormData {
   // Step 1
@@ -99,9 +100,8 @@ export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormAct
 
   toggleAmenity: (amenity) =>
     set((state) => ({
-      amenities: state.amenities.includes(amenity)
-        ? state.amenities.filter((a) => a !== amenity)
-        : [...state.amenities, amenity],
+      // Picking an amenity turns off any it contradicts (e.g. No Cooking vs Kitchen).
+      amenities: toggleAmenitySelection(state.amenities, amenity),
     })),
 
   reachStep: (step) =>
