@@ -6,8 +6,9 @@ import type { ApartmentDetails } from 'hooks/apartments';
 
 type LandlordSectionProps = {
   landlord: ApartmentDetails['landlord'];
-  onPress: () => void;
-  onMessagePress: () => void;
+  /** Omitted for a listing preview, which leaves the card inert. */
+  onPress?: () => void;
+  onMessagePress?: () => void;
 };
 
 export default function LandlordSection({
