@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Button, Separator, Chip, Modal, useOverlayState } from "@heroui/react";
+import { Card, Button, Separator, Modal, useOverlayState } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconCalendar as Calendar, IconClock as Clock, IconUsers as Users, IconHourglass as Hourglass, IconCircleCheck as CheckCircle2, IconCircleX as XCircle, IconCalendarX as CalendarX } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import type { VisitRequest } from "@/service/visitRequestsService";
@@ -32,11 +34,11 @@ function formatTimeDisplay(time: string) {
   return `${hour12}:${minute} ${period}`;
 }
 
-const STATUS_CHIP: Record<VisitRequest["status"], { label: string; color: "warning" | "success" | "danger" | "default" }> = {
+const STATUS_CHIP: Record<VisitRequest["status"], { label: string; color: StatusTone }> = {
   pending: { label: "Pending", color: "warning" },
   approved: { label: "Confirmed", color: "success" },
   rejected: { label: "Rejected", color: "danger" },
-  cancelled: { label: "Cancelled", color: "default" },
+  cancelled: { label: "Cancelled", color: "danger" },
   rescheduled: { label: "Rescheduled", color: "warning" },
 };
 
@@ -69,9 +71,9 @@ export default function VisitRequestDetailsCard({
       <Card className="border border-border bg-card text-card-foreground p-5 rounded-2xl">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-card-foreground">Visit Request Details</h3>
-          <Chip variant="soft" color={chip.color} size="sm">
+          <StatusChip tone={chip.color} size="sm">
             {chip.label}
-          </Chip>
+          </StatusChip>
         </div>
 
         {visit.status === "pending" && (

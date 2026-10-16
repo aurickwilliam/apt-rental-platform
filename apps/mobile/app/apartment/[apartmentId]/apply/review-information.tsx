@@ -75,12 +75,15 @@ export default function ReviewInformation() {
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle="Review Application"
-        nextTitle="Submit Application"
         step={3}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5 flex-1">
         <Text className="text-lg font-nunitoSemiBold text-foreground">

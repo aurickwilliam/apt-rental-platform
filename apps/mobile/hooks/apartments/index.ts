@@ -6,3 +6,5 @@ export { useLandlordUnits } from './useLandlordUnits';
 export type { Apartment } from './useLandlordUnits';
 export { useLandlordActionBadges } from './useLandlordActionBadges';
 export type { ActionBadgeCounts } from './useLandlordActionBadges';
+
+export { useAddApartmentProgress } from './useAddApartmentProgress';

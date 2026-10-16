@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { IconChevronRight, IconHome } from "@tabler/icons-react";
-import { Button, Card, Chip, Modal } from "@heroui/react";
+import { Button, Card, Modal } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 import { formatPesoDisplay } from "@repo/utils";
 import ApartmentThumbnail from "../../../apartments/components/ApartmentThumbnail";
 import { DetailEmptyState } from "./UserDetailPrimitives";
@@ -101,17 +103,16 @@ function ApartmentList({ apartments, limit }: ApartmentListProps) {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    <Chip
+                    <StatusChip
                       size="sm"
-                      variant="soft"
-                      color={apartment.is_verified ? "success" : "default"}
+                      tone={apartment.is_verified ? "success" : "neutral"}
                     >
                       {apartment.is_verified ? "Verified" : "Unverified"}
-                    </Chip>
+                    </StatusChip>
                     {apartment.is_hidden_by_admin ? (
-                      <Chip size="sm" variant="soft" color="danger">
+                      <StatusChip size="sm" tone="danger">
                         Hidden
-                      </Chip>
+                      </StatusChip>
                     ) : null}
                   </div>
                 </div>
@@ -293,13 +294,12 @@ export default function UserRentalActivity({
                         <span className="min-w-0 truncate">
                           {item.apartment_name}
                         </span>
-                        <Chip
+                        <StatusChip tone={statusToneFor(item.status)}
                           size="sm"
-                          variant="soft"
                           className="shrink-0 capitalize"
                         >
                           {item.status}
-                        </Chip>
+                        </StatusChip>
                       </div>
                     ))
                   ) : (
@@ -320,13 +320,12 @@ export default function UserRentalActivity({
                           {item.apartment_name} ·{" "}
                           {dateFormatter.format(new Date(item.visit_date))}
                         </span>
-                        <Chip
+                        <StatusChip tone={statusToneFor(item.status)}
                           size="sm"
-                          variant="soft"
                           className="shrink-0 capitalize"
                         >
                           {item.status}
-                        </Chip>
+                        </StatusChip>
                       </div>
                     ))
                   ) : (

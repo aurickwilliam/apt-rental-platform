@@ -4,6 +4,8 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
@@ -42,7 +44,7 @@ function toPaidDate(iso: string): string {
 
 function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apartmentId: string }) {
   const status = paymentStatusLabel(payment.status);
-  const color: "success" | "warning" | "danger" | "default" =
+  const color: StatusTone =
     status === "Paid" ? "success" : status === "Pending" ? "warning" : "danger";
 
   return (
@@ -57,9 +59,9 @@ function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apa
               <Chip size="sm" variant="soft" color="default" className="text-[11px]">
                 {methodLabel(payment.method)}
               </Chip>
-              <Chip size="sm" variant="soft" color={color} className="text-[11px]">
+              <StatusChip size="sm" tone={color} className="text-[11px]">
                 {status}
-              </Chip>
+              </StatusChip>
             </div>
           </div>
         </Card.Header>

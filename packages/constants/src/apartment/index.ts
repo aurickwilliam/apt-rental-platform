@@ -12,3 +12,5 @@ export * from "./pets";
 export * from "./vehicles";
 export * from './employment'
 export * from './apartment-status'
+export * from './amenity-rules'
+export * from './apartment-description'

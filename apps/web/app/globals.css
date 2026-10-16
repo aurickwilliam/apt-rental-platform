@@ -84,6 +84,20 @@
   .select__value[data-placeholder="true"] {
     @apply text-gray-400;
   }
+
+  /* Status chips (DESIGN.md §16): StatusChip sets the --status-* values from
+     STATUS_COLORS in @repo/constants, the same palette mobile uses. */
+  .chip.status-chip {
+    --chip-bg: var(--status-bg);
+    --chip-fg: var(--status-fg);
+    border: 1px solid var(--status-border);
+  }
+
+  .dark .chip.status-chip {
+    --chip-bg: var(--status-bg-dark);
+    --chip-fg: var(--status-fg-dark);
+    border-color: var(--status-border-dark);
+  }
 }
 
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
@@ -91,6 +105,232 @@ body[data-scroll-locked] [data-slot="popover"],
 body[data-scroll-locked] [role="listbox"],
 body[data-scroll-locked] [role="option"] {
   pointer-events: auto !important;
+}
+
+/* Listing typography stays local to the wizard and its portaled confirmation.
+   Shared preview sections inherit these roles without changing browse pages. */
+.create-listing-flow {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.create-listing-flow :is(h1, h2, h3, h4, h5, h6, .label, .card__title, button) {
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+}
+
+.create-listing-flow h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-block-start: 0.5rem;
+}
+
+.create-listing-flow .label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.create-listing-flow .textarea {
+  border-radius: var(--radius-3xl);
+}
+
+/* Step 5 uses flat sections; shared browse cards remain unchanged. */
+.create-listing-flow .card.create-listing-preview-card {
+  min-width: 0;
+  padding: 1.25rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.create-listing-flow .card.create-listing-preview-boxed {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+  background-color: var(--card);
+}
+
+.create-listing-flow .create-listing-preview-card h3 {
+  margin-block-start: 0;
+}
+
+.create-listing-flow .listing-rent-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.create-listing-flow .listing-cost-breakdown {
+  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+/* The browse rating summary is a score, not an 18px section heading. */
+.create-listing-flow .create-listing-preview-ratings h3 {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@media (min-width: 40rem) {
+  .create-listing-flow .listing-rent-heading {
+    font-size: 2.25rem;
+  }
+
+  .create-listing-flow .create-listing-preview-ratings h3 {
+    font-size: 3.75rem;
+  }
+}
+
+/* Indicators are controls, not placeholders: give them readable contrast.
+   The parent Select still owns disabled opacity and open-state rotation. */
+.create-listing-flow .select__indicator {
+  color: var(--muted-foreground);
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
+}
+
+.create-listing-actions > .button {
+  width: min(10rem, calc((100% - 1rem) / 2));
+  padding-inline: 0.75rem;
+}
+
+/* Match mobile's secondary/accent amenity chips while retaining TagGroup's
+   accessible removal controls. Only the leading amenity icon is 16px. */
+.create-listing-selected-amenities .tag {
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--muted) 50%, var(--card));
+  color: var(--secondary-foreground);
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.create-listing-flow .create-listing-selected-amenities .tag:is(:hover, [data-hovered="true"]) {
+  background-color: color-mix(in srgb, var(--muted) 75%, var(--card));
+}
+
+.create-listing-selected-amenities .tag > svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--primary);
+}
+
+/* Amenities search: explicit border/focus treatment and readable icon colors.
+   HeroUI's `text-muted` is a background token in our web theme. */
+.create-listing-amenities-search .search-field__group {
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.create-listing-amenities-search .search-field__group:is(:hover, [data-hovered="true"]) {
+  border-color: var(--muted-foreground);
+}
+
+.create-listing-amenities-search .search-field__group:is(:focus-within, [data-focus-within="true"]) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.create-listing-amenities-search .search-field__search-icon {
+  color: var(--muted-foreground);
+}
+
+.create-listing-amenities-search .search-field__clear-button {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.create-listing-amenities-search .search-field__clear-button:is(:hover, [data-hovered="true"]) {
+  background-color: var(--border);
+  color: var(--foreground);
+}
+
+.create-listing-amenities-search .search-field__clear-button [data-slot="close-button-icon"] {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Scope to the portaled posting-form dropdowns, overriding HeroUI's
+   unlayered item radius without changing other dropdowns. */
+.create-listing-options .list-box {
+  padding: 0.5rem;
+}
+
+.create-listing-options .list-box-item {
+  border-radius: 9999px;
+  padding-inline: 0.75rem;
+}
+
+/* Pricing fields own their inset once, at the group level. HeroUI's inner
+   input padding must not add a second inset or extra space after the peso. */
+.create-listing-flow .create-listing-price-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.create-listing-flow .create-listing-price-field .number-field__input {
+  flex: 1;
+  padding-inline: 0;
+  text-align: start;
+}
+
+/* Posting-form steppers: keep the end controls inside their grid cells. */
+.create-listing-flow .number-field__group:has([slot="decrement"]):has([slot="increment"]) {
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  overflow: hidden;
+}
+
+/* The group clips the outer corners; square button edges avoid a second,
+   inset curve. Match the grid cells and remove padding/borders that overflow. */
+.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button) {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.create-listing-flow .number-field__increment-button {
+  border-inline-start: 1px solid var(--border);
+}
+
+.create-listing-flow .number-field__decrement-button {
+  border-inline-end: 1px solid var(--border);
+}
+
+.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button):not(:disabled):not([aria-disabled="true"]):is(:hover, [data-hovered="true"]) {
+  background-color: var(--muted);
+}
+
+/* Listing progress: keep HeroUI's keyboard/press handling, with the existing
+   circle-and-label layout. Override unlayered button defaults in this scope. */
+.button.create-listing-step {
+  --button-bg-hover: transparent;
+  --button-bg-pressed: transparent;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  height: auto;
+  min-height: 3rem;
+  padding: 0.5rem 0;
+  border-radius: var(--radius);
+  transform: none;
+}
+
+.button.create-listing-step:disabled {
+  opacity: 1;
 }
 
 /* Rental Preferences checkboxes (Settings → Rental Preferences only).

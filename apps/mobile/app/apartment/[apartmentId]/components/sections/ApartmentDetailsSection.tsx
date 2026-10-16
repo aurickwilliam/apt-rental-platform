@@ -19,9 +19,9 @@ function DetailBlock({ Icon, value }: DetailBlockProps) {
   const { colors } = useColors();
 
   return (
-    <View className='flex-row items-center gap-2 bg-surface p-3 rounded-2xl mb-2 border border-border'>
+    <View className='flex-1 flex-row items-center gap-2 p-3 bg-surface rounded-2xl border border-border'>
       <Icon size={24} color={colors.gray500} />
-      <Text className='text-foreground font-nunitoSemiBold text-sm'>
+      <Text className='flex-1 text-foreground font-nunitoSemiBold text-sm'>
         {value}
       </Text>
     </View>
@@ -57,10 +57,10 @@ export default function ApartmentDetailsSection({
   ]
 
   return (
-    <View className='px-5 flex-row flex-wrap'>
+    <View className="px-5 flex-row flex-wrap">
       {
-        detailData.map((detail) => (
-          <View key={detail.key} className='w-1/2 pr-2'>
+        detailData.map((detail, index) => (
+          <View key={detail.key} className={`w-1/2 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'} ${index >= 2 ? 'pt-3' : ''}`}>
             <DetailBlock
               Icon={detail.icon}
               value={detail.value}

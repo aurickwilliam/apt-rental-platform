@@ -201,7 +201,7 @@ describe("useSearchLogic", () => {
           bathrooms: "Any",
           sizeRange: [10, 300],
           furnishing: ["Semi-Furnished"],
-          floorLevel: ["Low Floor (1–5F)"],
+          floorLevel: ["2nd-5th Floor"],
           leaseDuration: ["6 Months"],
           amenities: [],
           verifiedOnly: false,

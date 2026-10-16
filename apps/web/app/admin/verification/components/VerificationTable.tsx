@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Chip, Table } from "@heroui/react";
+import { Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import VerificationImage from "./VerificationImage";
 import {
   submittedFormatter,
@@ -68,9 +69,9 @@ export default function VerificationTable({
                     {submittedFormatter.format(new Date(row.submittedAt))}
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip size="sm" variant="soft" color="warning">
+                    <StatusChip size="sm" tone="warning">
                       Pending
-                    </Chip>
+                    </StatusChip>
                   </Table.Cell>
                 </Table.Row>
               ))}

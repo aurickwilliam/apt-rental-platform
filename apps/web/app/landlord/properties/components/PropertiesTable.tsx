@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 
-import { Button, Chip, Dropdown, Table } from "@heroui/react";
+import { Button, Dropdown, Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
 
 import { STATUS_COLOR } from "./propertyConstants";
@@ -114,14 +115,13 @@ export default function PropertiesTable({
                 </Table.Cell>
 
                 <Table.Cell>
-                  <Chip
+                  <StatusChip
                     size="sm"
-                    variant="soft"
-                    color={STATUS_COLOR[property.status] ?? "default"}
+                    tone={STATUS_COLOR[property.status] ?? "neutral"}
                     className="capitalize"
                   >
                     {property.status}
-                  </Chip>
+                  </StatusChip>
                 </Table.Cell>
 
                 <Table.Cell className="text-right">

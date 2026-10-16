@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconCalendar as Calendar, IconClock as Clock } from "@tabler/icons-react";
 import { formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
 
@@ -39,9 +40,9 @@ export default function VisitRequestCard({ request, onPress, useResolvedSchedule
               <p className="text-sm font-semibold text-card-foreground truncate">{tenantName}</p>
               <p className="text-xs text-muted-foreground truncate">{request.apartment.name}</p>
             </div>
-            <Chip size="sm" variant="soft" color={getVisitStatusChipColor(request.status)} className="capitalize shrink-0">
+            <StatusChip size="sm" tone={getVisitStatusChipColor(request.status)} className="capitalize shrink-0">
               {getVisitStatusLabel(request.status)}
-            </Chip>
+            </StatusChip>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">

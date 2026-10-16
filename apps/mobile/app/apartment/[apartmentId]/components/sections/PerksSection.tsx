@@ -12,7 +12,8 @@ import SectionCard from '../SectionCard';
 const PERKS_LIMIT = 10;
 
 type PerksSectionProps = {
-  apartmentId: string;
+  /** Omitted for a listing preview: every perk shows, with no See all link. */
+  apartmentId?: string;
   amenities?: string[] | null;
 };
 
@@ -23,7 +24,9 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
   // A listing can repeat an amenity; show (and key) each one once.
   const uniqueAmenities = Array.from(new Set(amenities ?? []));
   const hasPerks = uniqueAmenities.length > 0;
-  const displayAmenities = uniqueAmenities.slice(0, PERKS_LIMIT);
+  const displayAmenities = apartmentId
+    ? uniqueAmenities.slice(0, PERKS_LIMIT)
+    : uniqueAmenities;
 
   return (
     <SectionCard>
@@ -32,7 +35,7 @@ export default function PerksSection({ apartmentId, amenities }: PerksSectionPro
         title="Included Perks"
         subtitle="These are already included in your rent."
         action={
-          uniqueAmenities.length > PERKS_LIMIT ? (
+          apartmentId && uniqueAmenities.length > PERKS_LIMIT ? (
             <SeeAllButton
               onPress={() => router.push(`/apartment/${apartmentId}/included-perks`)}
             />

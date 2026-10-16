@@ -1,15 +1,18 @@
 "use client";
 
-import { Chip, Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconTools } from "@tabler/icons-react";
 
 import { CATEGORIES } from "@/app/tenant/maintenance/data/maintenance-data";
 import type { ApartmentMaintenanceHistoryItem } from "@/service/apartmentMaintenanceHistoryService";
 
-const URGENCY_STYLE: Record<string, { bg: string; text: string }> = {
-  low: { bg: "#E5E7EB", text: "#6C757D" },
-  medium: { bg: "#FFF8E1", text: "#FACC15" },
-  high: { bg: "#FDA4AF", text: "#E50914" },
+// Same tones as mobile's useMaintenanceRequestUrgencyStyles.
+const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
+  low: { tone: "neutral" },
+  medium: { tone: "warning" },
+  high: { tone: "danger" },
 };
 
 function categoryLabel(value: string) {
@@ -70,16 +73,15 @@ export default function ApartmentMaintenanceHistory({
                   </p>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Chip
-                    variant="soft"
+                  <StatusChip
                     size="sm"
-                    style={{ backgroundColor: urgencyStyle.bg, color: urgencyStyle.text }}
+                    tone={urgencyStyle.tone}
                   >
                     {item.urgency}
-                  </Chip>
-                  <Chip variant="soft" size="sm" color="success">
+                  </StatusChip>
+                  <StatusChip size="sm" tone="success">
                     Resolved
-                  </Chip>
+                  </StatusChip>
                 </div>
               </div>
             );

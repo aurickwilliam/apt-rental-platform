@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Chip, Modal, Spinner, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Modal, Spinner, toast, useOverlayState } from "@heroui/react";
 import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
@@ -13,6 +13,7 @@ import { createCardPayment, createCheckoutSession, PaymongoError } from "@/servi
 import { usePayments } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useUser } from "@/hooks/use-user";
+import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
@@ -396,7 +397,7 @@ function PaymentContent() {
                     </p>
                   </div>
                   <div className="rounded-xl border border-border bg-card p-3">
-                    <Chip size="sm" variant="soft" color="success">Active lease</Chip>
+                    <StatusChip size="sm" tone="success">Active lease</StatusChip>
                     <p className="mt-1 text-base font-nunito font-bold text-foreground">{formatPesoDisplay(monthlyRent)} <span className="font-nunito font-semibold text-muted-foreground">/ month</span></p>
                   </div>
                 </div>

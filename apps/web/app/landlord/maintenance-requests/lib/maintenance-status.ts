@@ -1,3 +1,5 @@
+import type { StatusTone } from "@/lib/status-tone";
+
 export type LandlordMaintenanceStatus =
   | "Pending"
   | "In Progress"
@@ -6,20 +8,18 @@ export type LandlordMaintenanceStatus =
 
 export type LandlordMaintenanceUrgency = "low" | "medium" | "high";
 
-export function maintenanceStatusChipColor(
-  status: LandlordMaintenanceStatus,
-): "warning" | "accent" | "success" | "default" {
-  if (status === "Pending") return "warning";
-  if (status === "In Progress") return "accent";
+export function maintenanceStatusChipColor(status: LandlordMaintenanceStatus): StatusTone {
+  if (status === "Pending" || status === "In Progress") return "warning";
   if (status === "Resolved") return "success";
-  return "default";
+  return "danger";
 }
 
+// Same tones as mobile's useMaintenanceRequestUrgencyStyles.
 export const MAINTENANCE_URGENCY_STYLE: Record<
   LandlordMaintenanceUrgency,
-  { bg: string; text: string; label: string }
+  { tone: StatusTone; label: string }
 > = {
-  low: { bg: "#E5E7EB", text: "#6C757D", label: "Low" },
-  medium: { bg: "#FFF8E1", text: "#FACC15", label: "Medium" },
-  high: { bg: "#FDA4AF", text: "#E50914", label: "High" },
+  low: { tone: "neutral", label: "Low" },
+  medium: { tone: "warning", label: "Medium" },
+  high: { tone: "danger", label: "High" },
 };

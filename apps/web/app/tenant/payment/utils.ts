@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/lib/status-tone";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentMethod, PaymentStatus } from "./types";
 
@@ -66,11 +67,11 @@ export function paymentMethodToDisplay(method: PaymentMethod | string): string {
   return methodLabel(method);
 }
 
-export function statusVariant(status: PaymentStatus): "success" | "warning" | "danger" | "default" {
+export function statusVariant(status: PaymentStatus): StatusTone {
   if (status === "Paid") return "success";
   if (status === "Pending") return "warning";
   if (status === "Failed" || status === "Unpaid" || status === "Rejected") return "danger";
-  return "default";
+  return "neutral";
 }
 
 export function statusTone(status: PaymentStatus): { bg: string; text: string; dot: string } {

@@ -28,6 +28,11 @@ export function usePlaceAutocomplete(opts: UsePlaceAutocompleteOptions = {}) {
   const sessionTokenRef = useRef<string>(createPlacesSessionToken());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
+  // Set when the input is filled with a picked place's address, so that
+  // change does not start a new search (which reopened the suggestions).
+  const skipNextSearchRef = useRef(false);
+  const inputRef = useRef(input);
+  inputRef.current = input;
 
   const refreshSessionToken = useCallback(() => {
     sessionTokenRef.current = createPlacesSessionToken();
@@ -74,6 +79,10 @@ export function usePlaceAutocomplete(opts: UsePlaceAutocompleteOptions = {}) {
   useEffect(() => {
     if (!placesEnabled) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
     debounceRef.current = setTimeout(() => {
       void search(input);
     }, debounceMs);
@@ -88,9 +97,14 @@ export function usePlaceAutocomplete(opts: UsePlaceAutocompleteOptions = {}) {
       const details = await fetchPlaceDetails(placeId, sessionTokenRef.current);
       // New session after place_details completes (per Google billing docs: session ends after details)
       refreshSessionToken();
-      // Clear list after selection
+      // Clear list after selection; showing the address must not search again.
+      requestIdRef.current++;
       setPredictions([]);
-      setInput(details.formattedAddress);
+      setLoading(false);
+      if (details.formattedAddress !== inputRef.current) {
+        skipNextSearchRef.current = true;
+        setInput(details.formattedAddress);
+      }
       return details;
     },
     [placesEnabled, refreshSessionToken],

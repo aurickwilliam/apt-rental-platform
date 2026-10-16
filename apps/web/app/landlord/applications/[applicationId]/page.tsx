@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Button,
   Card,
-  Chip,
   FieldError,
   Label,
   Modal,
@@ -15,6 +14,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
@@ -51,10 +51,10 @@ function DocumentRow({ label, path, signedUrl, verified = false, emptyLabel }: {
           <p className="text-sm font-nunito font-medium text-card-foreground flex items-center gap-1.5">
             {label}
             {verified ? (
-              <Chip size="sm" variant="soft" color="success" className="font-nunito">
+              <StatusChip size="sm" tone="success" className="font-nunito">
                 <ShieldCheck size={12} />
                 Verified
-              </Chip>
+              </StatusChip>
             ) : null}
           </p>
           <p className="text-xs font-nunito text-muted-foreground truncate">{path ? "Tap View to open" : emptyLabel}</p>
@@ -236,7 +236,7 @@ export default function LandlordApplicationDetailPage() {
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><MapPin size={12} className="shrink-0" />{app.tenant_city || "—"}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><Phone size={12} className="shrink-0" />{app.tenant_mobile_number ?? "—"}</p>
             </div>
-            <Chip size="sm" variant="soft" color={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</Chip>
+            <StatusChip size="sm" tone={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</StatusChip>
           </div>
           {displayStatus === "Rejected" && app.rejected_reason && <div className="rounded-xl bg-danger/5 px-3 py-2.5"><p className="text-sm font-nunito font-semibold text-danger">Rejection reason</p><p className="text-sm font-nunito text-card-foreground mt-0.5">{app.rejected_reason}</p></div>}
           <Separator className="bg-border" />
@@ -279,7 +279,7 @@ export default function LandlordApplicationDetailPage() {
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><MapPin size={12} className="shrink-0" />{app.tenant_city || "—"}</p>
               <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><Phone size={12} className="shrink-0" />{app.tenant_mobile_number ?? "—"}</p>
             </div>
-            <Chip size="sm" variant="soft" color={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</Chip>
+            <StatusChip size="sm" tone={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</StatusChip>
           </div>
 
           {displayStatus === "Rejected" && app.rejected_reason && <div className="rounded-xl bg-danger/5 px-3 py-2 shrink-0"><p className="text-sm font-nunito font-semibold text-danger">Rejection reason</p><p className="text-sm font-nunito text-card-foreground mt-0.5 leading-tight">{app.rejected_reason}</p></div>}

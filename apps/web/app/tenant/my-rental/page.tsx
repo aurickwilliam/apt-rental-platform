@@ -22,7 +22,7 @@ import type {
 import DashboardCard from "./components/DashboardCard";
 import RentalHero from "./components/RentalHero";
 import SignedLeaseCard from "./components/SignedLeaseCard";
-import StatusChip from "./components/StatusChip";
+import StatusChip from "@/app/components/display/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import TenancyEmptyState from "./components/TenancyEmptyState";
 import ApplicationsList from "./components/ApplicationsList";
@@ -39,20 +39,20 @@ function normalizePaymentStatus(status?: string | null): PaymentStatus {
 }
 
 function statusBadge(status: PaymentStatus) {
-  if (status === "paid") return <StatusChip variant="success">Paid</StatusChip>;
-  if (status === "late") return <StatusChip variant="danger">Late</StatusChip>;
-  if (status === "rejected") return <StatusChip variant="danger">Rejected</StatusChip>;
-  return <StatusChip variant="warning">Pending</StatusChip>;
+  if (status === "paid") return <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>;
+  if (status === "late") return <StatusChip className="font-nunito text-[11px] font-semibold" tone="danger">Late</StatusChip>;
+  if (status === "rejected") return <StatusChip className="font-nunito text-[11px] font-semibold" tone="danger">Rejected</StatusChip>;
+  return <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">Pending</StatusChip>;
 }
 
 function maintenanceBadge(status: MaintenanceStatus) {
   if (status === "in_progress")
-    return <StatusChip variant="warning">In progress</StatusChip>;
+    return <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">In progress</StatusChip>;
   if (status === "resolved")
-    return <StatusChip variant="success">Done</StatusChip>;
+    return <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Done</StatusChip>;
   if (status === "cancelled")
-    return <StatusChip variant="neutral">Cancelled</StatusChip>;
-  return <StatusChip variant="neutral">Pending</StatusChip>;
+    return <StatusChip className="font-nunito text-[11px] font-semibold" tone="danger">Cancelled</StatusChip>;
+  return <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">Pending</StatusChip>;
 }
 
 function categoryLabel(value: string) {
@@ -375,7 +375,7 @@ export default function MyRental() {
                 Application History
               </Button>
             )}
-            <StatusChip variant="success">Active lease</StatusChip>
+            <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Active lease</StatusChip>
           </div>
         </div>
 
@@ -393,7 +393,7 @@ export default function MyRental() {
                 <>
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-nunito text-xl font-bold">Monthly rent</p>
-                    <StatusChip variant="success" solid>Paid</StatusChip>
+                    <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="flex min-w-0 flex-col gap-2 rounded-2xl bg-white/10 p-4">
@@ -468,11 +468,10 @@ export default function MyRental() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-nunito text-xl font-bold">Monthly rent</p>
                     {paymentStatus === "paid" ? (
-                      <StatusChip variant="success" solid>Paid</StatusChip>
+                      <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
                     ) : (
-                      <StatusChip
-                        variant={paymentStatus === "late" ? "danger" : "warning"}
-                        solid
+                      <StatusChip className="font-nunito text-[11px] font-semibold"
+                        tone={paymentStatus === "late" ? "danger" : "warning"}
                       >
                         {dueLabel}
                       </StatusChip>
@@ -659,7 +658,7 @@ export default function MyRental() {
               Maintenance
             </h2>
             <div className="flex items-center gap-2">
-              <StatusChip variant="warning">
+              <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">
                 {openMaintenanceCount} open
               </StatusChip>
               <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">

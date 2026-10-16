@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Chip, Table, Tabs } from "@heroui/react";
+import { Table, Tabs } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconBuilding, IconChevronRight } from "@tabler/icons-react";
 import type { VerificationRequest } from "../lib/get-dashboard-data";
 import SharedUserAvatar from "@/app/components/profile/UserAvatar";
@@ -174,9 +175,9 @@ export default function VerificationQueue({
                           {date(request.submittedAt)}
                         </Table.Cell>
                         <Table.Cell>
-                          <Chip size="sm" variant="soft" color="warning">
+                          <StatusChip size="sm" tone="warning">
                             Pending
-                          </Chip>
+                          </StatusChip>
                         </Table.Cell>
                       </Table.Row>
                     ))}
@@ -213,9 +214,9 @@ export default function VerificationQueue({
                       {request.kind === "users" ? "User" : "Apartment"} ·{" "}
                       {date(request.submittedAt)}
                     </span>
-                    <Chip size="sm" variant="soft" color="warning">
+                    <StatusChip size="sm" tone="warning">
                       Pending
-                    </Chip>
+                    </StatusChip>
                   </div>
                 </Link>
               </li>

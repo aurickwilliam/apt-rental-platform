@@ -15,6 +15,7 @@ import {
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
+  getBarangaysByCity,
 } from "@repo/constants";
 
 const GoogleMapPicker = dynamic(() => import("../../components/GoogleMapPicker"), { ssr: false });
@@ -73,7 +74,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Apartment Info
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -83,7 +84,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
       {/* Property type & specs */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-foreground">Property Details</p>
+        <h3 className="text-sm font-semibold text-foreground">Property Details</h3>
         <div className="grid grid-cols-2 gap-4">
           <Select
             value={formData.type ?? null}
@@ -98,7 +99,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.type}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {APARTMENT_TYPES.map((t) => (
                   <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -122,7 +123,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.furnished_type}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {FURNISHED_TYPES.map((t) => (
                   <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -245,7 +246,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
             <FieldError>{errors.floor_level}</FieldError>
 
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {FLOOR_LEVELS.map((t) => (
                   <ListBox.Item 
@@ -280,7 +281,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
             <FieldError>{errors.lease_duration}</FieldError>
 
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {LEASE_DURATIONS.map((t) => (
                   <ListBox.Item 
@@ -300,40 +301,30 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
       {/* Address */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-foreground">Address</p>
-
-        <TextField 
-          isRequired 
-          isInvalid={!!errors.street_address}
-        >
-          <Label>Street Address</Label>
-          <Input
-            placeholder="e.g. 123 Rizal Ave."
-            value={formData.street_address}
-            onChange={(e) => updateForm({ street_address: e.target.value })}
-            className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
-          />
-          <FieldError>{errors.street_address}</FieldError>
-        </TextField>
+        <h3 className="text-sm font-semibold text-foreground">Address</h3>
 
         <div className="grid grid-cols-2 gap-4">
-          <TextField 
-            isRequired 
-            isInvalid={!!errors.barangay}
-          >
-            <Label>Barangay</Label>
-            <Input
-              value={formData.barangay}
-              onChange={(e) => updateForm({ barangay: e.target.value })}
-              className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
-            />
-            <FieldError>{errors.barangay}</FieldError>
+          <TextField isRequired isInvalid={!!errors.province} isDisabled>
+            <Label>Province</Label>
+            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
+            <FieldError>{errors.province}</FieldError>
           </TextField>
 
           <Select
             placeholder="Select CAMANAVA city"
             value={formData.city || null}
-            onChange={(city) => updateForm({ city: city as string, province: "Metro Manila" })}
+            onChange={(city) =>
+              // Re-sending the pin clears a "pin must be inside <city>" error.
+              updateForm({
+                city: city as string,
+                province: "Metro Manila",
+                latitude: formData.latitude,
+                // A barangay from the previous city no longer applies.
+                ...(getBarangaysByCity(city as string).includes(formData.barangay)
+                  ? {}
+                  : { barangay: "" }),
+              })
+            }
             isInvalid={!!errors.city}
             isRequired
             className="w-full"
@@ -344,7 +335,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.city}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {CAMANAVA_CITIES.map((city) => (
                   <ListBox.Item key={city} id={city} textValue={city} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -354,13 +345,51 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               </ListBox>
             </Select.Popover>
           </Select>
+        </div>
 
-          <TextField isRequired isInvalid={!!errors.province} isDisabled>
-            <Label>Province</Label>
-            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
-            <FieldError>{errors.province}</FieldError>
+        <div className="grid grid-cols-2 gap-4">
+          <Select
+            placeholder={formData.city ? "Select barangay" : "Select a city first"}
+            value={formData.barangay || null}
+            onChange={(barangay) => updateForm({ barangay: barangay as string })}
+            isInvalid={!!errors.barangay}
+            isDisabled={!formData.city}
+            isRequired
+            className="w-full"
+          >
+            <Label>Barangay</Label>
+            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <FieldError>{errors.barangay}</FieldError>
+            <Select.Popover className="create-listing-options font-inter">
+              <ListBox className="max-h-64 overflow-y-auto">
+                {getBarangaysByCity(formData.city).map((barangay) => (
+                  <ListBox.Item key={barangay} id={barangay} textValue={barangay} className="cursor-pointer text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
+                    {barangay}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <TextField 
+            isRequired 
+            isInvalid={!!errors.street_address}
+          >
+            <Label>Street Address</Label>
+            <Input
+              placeholder="e.g. 123 Rizal Ave."
+              value={formData.street_address}
+              onChange={(e) => updateForm({ street_address: e.target.value })}
+              className="bg-card text-foreground border-border placeholder:text-muted-foreground focus-visible:border-primary"
+            />
+            <FieldError>{errors.street_address}</FieldError>
           </TextField>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4">
           <TextField 
             isRequired 
             isInvalid={!!errors.zip_code}
@@ -371,6 +400,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
+              placeholder="e.g. 1400"
               value={formData.zip_code}
               onChange={(e) => {
                 const onlyNums = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
@@ -383,14 +413,14 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         </div>
       </div>
 
-      {/* Map Coordinates */}
+      {/* Location */}
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">
-            Map Coordinates{" "}
-          </p>
+          <h3 className="text-sm font-semibold text-foreground">
+            Location
+          </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Your pin must be inside the selected CAMANAVA city.
+            Pin your property on the map. The pin must be inside the CAMANAVA city you selected above.
           </p>
         </div>
 
@@ -408,7 +438,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 14.5995"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+                className="font-inter w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400"
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
@@ -427,7 +457,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 120.9842"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+                className="font-inter w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400"
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>

@@ -10,7 +10,7 @@ import { signedLeaseStatus } from "@/lib/signed-lease";
 import { acknowledgeSignedLease } from "@/service/signedLeaseService";
 
 import DashboardCard from "./DashboardCard";
-import StatusChip from "./StatusChip";
+import StatusChip from "@/app/components/display/StatusChip";
 
 interface SignedLeaseCardProps {
   tenancyId: string;
@@ -84,11 +84,11 @@ export default function SignedLeaseCard({
           </div>
         </div>
         {status === "missing" ? (
-          <StatusChip variant="neutral">Not uploaded</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="neutral">Not uploaded</StatusChip>
         ) : status === "pending" ? (
-          <StatusChip variant="warning">Needs your confirmation</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">Needs your confirmation</StatusChip>
         ) : (
-          <StatusChip variant="success">Confirmed</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Confirmed</StatusChip>
         )}
       </div>
 

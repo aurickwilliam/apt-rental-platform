@@ -17,6 +17,7 @@ import {
   FURNISHED_TYPES,
   FLOOR_LEVELS,
   LEASE_DURATIONS,
+  isRetiredAmenity,
 } from "@repo/constants";
 import { PERKS } from "@/constants/perks";
 
@@ -117,6 +118,8 @@ export default function FilterBottomSheet({
     const q = amenitySearch.toLowerCase().trim();
     return Object.values(PERKS)
       .filter((p) => q === "" || p.name.toLowerCase().includes(q))
+      // Retired perks (e.g. Furnished: use the Furnishing filter) only stay if already picked.
+      .filter((p) => !isRetiredAmenity(p.id) || filters.amenities.includes(p.id))
       .sort((a, b) => {
         const aSelected = filters.amenities.includes(a.id);
         const bSelected = filters.amenities.includes(b.id);

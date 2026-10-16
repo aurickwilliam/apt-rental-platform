@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Button, Card, Chip } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconAlertTriangle, IconCheck, IconCircleDashed, IconMinus, IconPlus } from "@tabler/icons-react";
 
 import type { ApplicationDocumentSlot } from "@repo/constants";
@@ -35,9 +36,9 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
       <Card.Content className="flex flex-col gap-3 p-0">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-nunito text-lg font-semibold text-card-foreground">Application documents</h2>
-          <Chip size="sm" variant="soft" color={isReady ? "success" : "warning"} className="shrink-0 text-[11px]">
+          <StatusChip size="sm" tone={isReady ? "success" : "warning"} className="shrink-0 text-[11px]">
             {isReady ? "Ready to apply" : "Not ready yet"}
-          </Chip>
+          </StatusChip>
         </div>
 
         <ul className="divide-y divide-border">
