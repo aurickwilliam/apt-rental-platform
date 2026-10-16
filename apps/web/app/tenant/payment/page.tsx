@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Modal, Spinner, toast, useOverlayState } from "@heroui/react";
-import { IconCashBanknote as Banknote, IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconUser as User, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
+import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
@@ -115,6 +115,10 @@ function PaymentContent() {
   const address = apartment
     ? [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ")
     : "—";
+  const apartmentImage =
+    apartment?.apartment_images?.find((image) => image.is_cover)?.url ??
+    apartment?.apartment_images?.[0]?.url ??
+    null;
 
   // Apply the account default only before the tenant has chosen a checkout
   // method on this visit. A per-payment choice always wins over the default.
@@ -292,9 +296,6 @@ function PaymentContent() {
           <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
             <ArrowLeft size={16} /> Back
           </Button>
-          <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-            <Banknote size={14} className="text-primary" /> Rent Payment
-          </p>
           <div>
             <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
             <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay.</p>
@@ -330,63 +331,62 @@ function PaymentContent() {
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
           {/* Row 1, left: lease details */}
           <div className="lg:col-span-2 h-full">
-            {/* Apartment / lease card */}
-            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none h-full flex flex-col">
-              <Card.Header className="px-4 pt-4 pb-2">
-                <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  <House size={18} className="text-primary" /> {apartment.name}
-                </h3>
-                <p className="text-sm text-zinc-500 flex items-center gap-1 mt-1">
-                  <MapPin size={14} /> {address}
-                </p>
-              </Card.Header>
-              <Card.Content className="px-4 pb-4 flex-1 flex flex-col">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center gap-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 p-3">
-                    <span className="rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-2">
-                      <User size={16} className="text-zinc-500" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-zinc-500">Landlord</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
-                      <p className="text-sm text-zinc-500 truncate">{landlord?.email ?? "—"}</p>
+            <Card className="h-full rounded-2xl border border-border bg-card shadow-none">
+              <Card.Content className="p-4">
+                <div className="grid gap-4 lg:grid-cols-[11.5rem_minmax(0,1fr)]">
+                  {apartmentImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={apartmentImage} alt={apartment.name} className="h-44 w-full rounded-xl object-cover lg:h-full" />
+                  ) : (
+                    <div className="flex h-44 items-center justify-center rounded-xl bg-muted text-muted-foreground lg:h-full" aria-label="No apartment photo available">
+                      <House size={32} aria-hidden="true" />
                     </div>
-                    <UserAvatar
-                      src={landlord?.avatar_url}
-                      initials={`${landlord?.first_name?.[0] ?? "—"}${landlord?.last_name?.[0] ?? ""}`}
-                      alt={landlordName}
-                      size="sm"
-                      className="ml-auto hidden sm:flex"
-                      fallbackClassName="bg-primary text-white text-xs"
-                    />
-                  </div>
+                  )}
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease Start</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_start)}
+                  <div className="min-w-0">
+                    <div className="border-b border-border pb-3">
+                      <h3 className="flex items-center gap-2 text-lg font-nunito font-semibold text-foreground">
+                        <House size={20} className="shrink-0 text-primary" /> {apartment.name}
+                      </h3>
+                      <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
+                        <MapPin size={16} className="mt-0.5 shrink-0" /> <span>{address}</span>
                       </p>
                     </div>
-                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease End</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_end)}
-                      </p>
+
+                    <div className="mt-3 flex items-center gap-3">
+                      <UserAvatar
+                        src={landlord?.avatar_url}
+                        initials={`${landlord?.first_name?.[0] ?? "—"}${landlord?.last_name?.[0] ?? ""}`}
+                        alt={landlordName}
+                        size="md"
+                        fallbackClassName="bg-primary text-white text-sm"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">Landlord</p>
+                        <p className="truncate text-base font-nunito font-semibold text-foreground">{landlordName}</p>
+                        <p className="truncate text-sm text-muted-foreground">{landlord?.email ?? "—"}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2 mt-auto pt-3">
-                  <Chip size="sm" variant="soft" color="success">
-                    Active lease
-                  </Chip>
-                  <Chip size="sm" variant="soft" color="default">
-                    {apartment.city}
-                  </Chip>
-                  <Chip size="sm" variant="soft" color="default">
-                    {formatPesoDisplay(monthlyRent)} / month
-                  </Chip>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground">Lease start</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-base font-nunito font-semibold text-foreground">
+                      <CalendarDays size={16} className="text-muted-foreground" /> {formatLeaseDate(tenancy.lease_start)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground">Lease end</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-base font-nunito font-semibold text-foreground">
+                      <CalendarDays size={16} className="text-muted-foreground" /> {formatLeaseDate(tenancy.lease_end)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <Chip size="sm" variant="soft" color="success">Active lease</Chip>
+                    <p className="mt-1 text-base font-nunito font-bold text-foreground">{formatPesoDisplay(monthlyRent)} <span className="font-nunito font-semibold text-muted-foreground">/ month</span></p>
+                  </div>
                 </div>
               </Card.Content>
             </Card>

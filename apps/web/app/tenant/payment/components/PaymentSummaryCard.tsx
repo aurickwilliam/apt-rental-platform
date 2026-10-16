@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Separator } from "@heroui/react";
+import { Card, Chip, Separator } from "@heroui/react";
 import { formatPesoDisplay } from "../utils";
 
 interface PaymentSummaryCardProps {
@@ -18,45 +18,69 @@ function formatDueDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
 }
 
+type DueStatus = { label: string; color: "default" | "danger" | "warning" } | null;
+
+function getDueStatus(iso: string): DueStatus {
+  const due = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(due.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntilDue = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  if (daysUntilDue < 0) {
+    const daysOverdue = Math.abs(daysUntilDue);
+    return { label: `${daysOverdue} day${daysOverdue === 1 ? "" : "s"} overdue`, color: "danger" };
+  }
+  if (daysUntilDue === 0) return { label: "Due today", color: "danger" };
+  if (daysUntilDue <= 5) return { label: `${daysUntilDue} day${daysUntilDue === 1 ? "" : "s"} left`, color: "danger" };
+  return { label: `${daysUntilDue} days left`, color: "warning" };
+}
+
 export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, fees = [], className = "" }: PaymentSummaryCardProps) {
   const feesTotal = fees.reduce((sum, fee) => sum + fee.amount, 0);
   const total = monthlyRent + feesTotal;
+  const dueStatus = getDueStatus(dueDate);
   return (
-    <Card className={`rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none h-full flex flex-col ${className}`}>
-      <Card.Header className="px-4 pt-4 pb-0">
-        <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100">Payment Summary</h3>
-        <p className="text-xs text-zinc-500">Monthly rent • billed in full</p>
+    <Card className={`flex h-full flex-col rounded-2xl border border-border bg-card shadow-none ${className}`}>
+      <Card.Header className="px-4 pt-4 pb-3">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2 text-left">
+          <h3 className="text-lg font-nunito font-bold text-foreground">Payment Summary</h3>
+          <Chip size="sm" variant="soft" color="success" className="shrink-0">Monthly rent · Billed in full</Chip>
+        </div>
       </Card.Header>
-      <Card.Content className="px-4 py-3 space-y-2 flex-1 flex flex-col">
+      <Card.Content className="flex flex-1 flex-col space-y-3 px-4 pb-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500 dark:text-zinc-400">Billing Period</span>
-          <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="text-muted-foreground">Billing Period</span>
+          <span className="font-nunito font-semibold text-foreground">
             {month}, {year}
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500 dark:text-zinc-400">Due Date</span>
-          <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{formatDueDate(dueDate)}</span>
+          <span className="text-muted-foreground">Due Date</span>
+          <span className="flex items-center gap-2 text-right">
+            <span className="font-nunito font-semibold text-foreground">{formatDueDate(dueDate)}</span>
+            {dueStatus && <Chip size="sm" variant="soft" color={dueStatus.color}>{dueStatus.label}</Chip>}
+          </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500 dark:text-zinc-400">Monthly Rent</span>
-          <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100">{formatPesoDisplay(monthlyRent)}</span>
+          <span className="text-muted-foreground">Monthly Rent</span>
+          <span className="font-nunito font-semibold text-foreground">{formatPesoDisplay(monthlyRent)}</span>
         </div>
         {fees.slice(0, 3).map((fee) => (
           <div key={fee.title} className="flex items-center justify-between text-sm">
-            <span className="text-zinc-500 dark:text-zinc-400 truncate">Fee — {fee.title}</span>
-            <span className="font-nunito font-medium text-zinc-900 dark:text-zinc-100 shrink-0">+ {formatPesoDisplay(fee.amount)}</span>
+            <span className="truncate text-muted-foreground">Fee — {fee.title}</span>
+            <span className="shrink-0 font-nunito font-semibold text-foreground">+ {formatPesoDisplay(fee.amount)}</span>
           </div>
         ))}
         {fees.length > 3 && (
-          <p className="text-xs text-zinc-400">+{fees.length - 3} more fees included</p>
+          <p className="text-xs text-muted-foreground">+{fees.length - 3} more fees included</p>
         )}
 
-        <Separator className="my-2" />
+        <Separator className="my-1" />
 
-        <div className="flex items-center justify-between mt-auto pt-2">
-          <span className="text-sm font-nunito font-semibold text-primary">Total Payment</span>
-          <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(total)}</span>
+        <div className="mt-auto flex items-center justify-between rounded-xl bg-primary/10 p-3">
+          <span className="text-base font-nunito font-bold text-primary">Total Payment</span>
+          <span className="text-2xl font-nunito font-bold text-primary">{formatPesoDisplay(total)}</span>
         </div>
       </Card.Content>
     </Card>
