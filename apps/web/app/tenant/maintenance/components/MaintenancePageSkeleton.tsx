@@ -1,5 +1,3 @@
-"use client";
-
 import { Skeleton } from "@heroui/react";
 
 // Loading state that mirrors the request maintenance page layout, so
