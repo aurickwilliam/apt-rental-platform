@@ -84,11 +84,11 @@ export default function SignedLeaseCard({
           </div>
         </div>
         {status === "missing" ? (
-          <StatusChip tone="neutral">Not uploaded</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="neutral">Not uploaded</StatusChip>
         ) : status === "pending" ? (
-          <StatusChip tone="warning">Needs your confirmation</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">Needs your confirmation</StatusChip>
         ) : (
-          <StatusChip tone="success">Confirmed</StatusChip>
+          <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Confirmed</StatusChip>
         )}
       </div>
 

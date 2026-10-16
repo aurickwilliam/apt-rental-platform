@@ -15,6 +15,7 @@ import {
   useOverlayState,
 } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconFileUpload as FileUp, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
@@ -84,8 +85,8 @@ const SIGNED_LEASE_LABEL: Record<SignedLeaseStatus, string> = {
   acknowledged: "Confirmed",
 };
 
-const SIGNED_LEASE_CHIP_COLOR: Record<SignedLeaseStatus, "default" | "warning" | "success"> = {
-  missing: "default",
+const SIGNED_LEASE_CHIP_COLOR: Record<SignedLeaseStatus, StatusTone> = {
+  missing: "neutral",
   pending: "warning",
   acknowledged: "success",
 };
@@ -412,9 +413,9 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                       <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
                         Signed Lease
                       </p>
-                      <Chip size="sm" variant="soft" color={SIGNED_LEASE_CHIP_COLOR[tenantLeaseStatus]}>
+                      <StatusChip size="sm" tone={SIGNED_LEASE_CHIP_COLOR[tenantLeaseStatus]}>
                         {SIGNED_LEASE_LABEL[tenantLeaseStatus]}
-                      </Chip>
+                      </StatusChip>
                     </div>
                     <p className="text-xs text-muted-foreground">{signedLeaseHint(tenant)}</p>
                     <div className="flex gap-2">
