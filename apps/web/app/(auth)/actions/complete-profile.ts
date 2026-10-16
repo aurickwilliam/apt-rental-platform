@@ -111,5 +111,8 @@ export async function completeProfile(
   if (error) return { error: error.message };
 
   (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
-  redirect(role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental");
+  if (role === "landlord") redirect("/landlord/dashboard");
+  // Fresh tenants are offered rental personalization once; the personalize
+  // page itself skips returning users, so this never traps anyone.
+  redirect("/tenant/personalize?fresh=1");
 }
