@@ -6138,9 +6138,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/components/PropertyDetailClient.tsx": {
-    "mtime": 1791973963.9257057,
-    "seen": 1792055648.2616756,
-    "ast_hash": "f93be83af2801fe43594fc90981a9e32",
+    "mtime": 1792117904.7016556,
+    "seen": 1792119102.7559402,
+    "ast_hash": "c152247d4de93b9626ab42df925ff8c1",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/components/to-property.ts": {
@@ -6660,9 +6660,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/page.tsx": {
-    "mtime": 1792073884.6507337,
-    "seen": 1792073935.5245209,
-    "ast_hash": "5461a1607135c754b25bc66b7eaa1ccc",
+    "mtime": 1792118080.4949956,
+    "seen": 1792119102.773466,
+    "ast_hash": "baf8c7dc7e5c17f1134ced1c667fa7a0",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/types.ts": {
@@ -7194,9 +7194,9 @@
     "semantic_hash": ""
   },
   "apps/web/hooks/use-tenancy.ts": {
-    "mtime": 1792046269.3377154,
-    "seen": 1792055648.2618952,
-    "ast_hash": "64b97c353fa267a2774e9a7aea319233",
+    "mtime": 1792117777.6410992,
+    "seen": 1792119102.7907248,
+    "ast_hash": "811487bac5c0838e60f0de7ec598622c",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-tenant-applications.ts": {
@@ -7464,9 +7464,9 @@
     "semantic_hash": ""
   },
   "apps/web/service/landlordUnitDetailService.ts": {
-    "mtime": 1791973208.8167639,
-    "seen": 1792055648.261952,
-    "ast_hash": "f566d809789eddae4044e0279d70cbc2",
+    "mtime": 1792117757.4331229,
+    "seen": 1792119102.799382,
+    "ast_hash": "9f757e78cde5e9afc7971bb648d4f787",
     "semantic_hash": ""
   },
   "apps/web/service/landlordVisitRequestsService.ts": {
@@ -7920,9 +7920,9 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1792029337.923272,
-    "seen": 1792055648.2620473,
-    "ast_hash": "1ba2ed246428eaf9079de38a53e1964f",
+    "mtime": 1792117277.977069,
+    "seen": 1792119102.8140924,
+    "ast_hash": "1ef0a4f453d6278c99fe4610ba14f75b",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -8256,15 +8256,15 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792112641.3634334,
-    "seen": 1792113948.44085,
-    "ast_hash": "d46dae0f92b8b3a188486854bb194267",
+    "mtime": 1792118485.5913217,
+    "seen": 1792119102.8236213,
+    "ast_hash": "19055e09b45e79f3b5ba936eeb76f000",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792068144.825804,
-    "seen": 1792068592.9541712,
-    "ast_hash": "b4b08a01b8cc08c74c7ecba81610d405",
+    "mtime": 1792118389.8585455,
+    "seen": 1792119102.823627,
+    "ast_hash": "2c908e77eab4c74202cf1fb337616075",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -8979,6 +8979,42 @@
     "mtime": 1792112641.379585,
     "seen": 1792113948.4018836,
     "ast_hash": "d0e015f4865aa6cc6663c607d9a3ad34",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/[apartmentId]/components/SignedLeaseModal.tsx": {
+    "mtime": 1792117721.7045188,
+    "seen": 1792119102.755944,
+    "ast_hash": "de5bfc9df699953ad9e7fe3966b73c73",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/my-rental/components/SignedLeaseCard.tsx": {
+    "mtime": 1792117970.8890646,
+    "seen": 1792119102.772619,
+    "ast_hash": "7822ae4565d191ad2bffae55cb57014e",
+    "semantic_hash": ""
+  },
+  "apps/web/hooks/use-signed-lease-viewer.ts": {
+    "mtime": 1792117637.0237308,
+    "seen": 1792119102.7898636,
+    "ast_hash": "a634823fdfbe1a6a1de7cfaccc695ba2",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/signed-lease.test.mjs": {
+    "mtime": 1792117602.748391,
+    "seen": 1792119102.7960453,
+    "ast_hash": "2219765b4586b7fcf524a32efad9cda3",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/signed-lease.ts": {
+    "mtime": 1792117594.8279965,
+    "seen": 1792119102.7960482,
+    "ast_hash": "0bd28b06446427efedf4f5fe7066c058",
+    "semantic_hash": ""
+  },
+  "apps/web/service/signedLeaseService.ts": {
+    "mtime": 1792117620.0937178,
+    "seen": 1792119102.8005073,
+    "ast_hash": "9e135ff154a545edfeb7880c2b8077f3",
     "semantic_hash": ""
   }
 }
