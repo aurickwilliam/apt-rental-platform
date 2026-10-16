@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox, Separator, Input, Label, TextField } from "@heroui/react";
+import { Separator, Input, Label, TextField } from "@heroui/react";
 import type { CardFormErrors } from "@repo/utils";
 import { formatExpiryDate, validateCardNumber } from "@repo/utils";
 import type { CardInformation } from "../types";
@@ -86,14 +86,9 @@ export default function CardPaymentForm({ value, onChange, errors }: CardPayment
           {errors?.cardholderName && <p className="text-xs text-red-600 mt-1">{errors.cardholderName}</p>}
         </TextField>
 
-        <label className="mt-2 flex items-center gap-2 cursor-pointer select-none">
-          <Checkbox isSelected={value.isPaymentSaved} onChange={(v) => onChange({ isPaymentSaved: v })} className="size-5">
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-          </Checkbox>
-          <span className="text-sm text-zinc-700 dark:text-zinc-300">Save this card for future use?</span>
-        </label>
+        <p className="mt-2 text-xs text-muted-foreground">
+          For your security, card details are never saved to your APT account.
+        </p>
       </div>
     </div>
   );

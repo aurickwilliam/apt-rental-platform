@@ -1,5 +1,10 @@
 export type PaymentMethod = "GCash" | "Maya" | "QRPh" | "Debit/Credit-Card" | "Cash";
 
+export type PaymentMethodPreference = {
+  savedMethods: PaymentMethod[];
+  defaultMethod: PaymentMethod | null;
+};
+
 export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid";
 
 export interface PaymentRecord {
@@ -17,11 +22,6 @@ export interface PaymentRecord {
   reference_id: string;
   tenancy_id: string;
 }
-
-export type SelectedPaymentMethod =
-  | { kind: "saved"; id: string; method: PaymentMethod }
-  | { kind: "new"; method: PaymentMethod }
-  | null;
 
 export interface TenancyMock {
   id: string;
@@ -56,7 +56,6 @@ export type CardInformation = {
   expiryDate: string;
   cardholderName: string;
   cvv: string;
-  isPaymentSaved: boolean;
   isCardNumberValid?: boolean;
 };
 

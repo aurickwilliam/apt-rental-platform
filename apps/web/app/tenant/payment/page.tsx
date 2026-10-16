@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, Modal, Spinner, toast, useOverlayState } from "@heroui/react";
 import { IconCashBanknote as Banknote, IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconUser as User, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
@@ -17,15 +17,16 @@ import UserAvatar from "@/app/components/profile/UserAvatar";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentFooter from "./components/PaymentFooter";
+import PaymentPreferencesModal from "./components/PaymentPreferencesModal";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
+import { usePaymentMethodPreferences } from "@/hooks/use-payment-method-preferences";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
   expiryDate: "",
   cardholderName: "",
   cvv: "",
-  isPaymentSaved: false,
   isCardNumberValid: false,
 };
 
@@ -43,6 +44,7 @@ function PaymentContent() {
   const [cashDate, setCashDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
   const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null);
   const errorState = useOverlayState({
     isOpen: paymentError !== null,
@@ -53,6 +55,7 @@ function PaymentContent() {
   const router = useRouter();
 
   const { profile } = useUser();
+  const paymentPreferences = usePaymentMethodPreferences(profile?.id ?? null);
   const { tenancy, currentPayment, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
@@ -112,6 +115,12 @@ function PaymentContent() {
   const address = apartment
     ? [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ")
     : "—";
+
+  // Apply the account default only before the tenant has chosen a checkout
+  // method on this visit. A per-payment choice always wins over the default.
+  if (activeMethod === null && paymentPreferences.data.defaultMethod) {
+    setActiveMethod(paymentPreferences.data.defaultMethod);
+  }
 
   const handlePay = async () => {
     if (isProcessing || isPeriodPaid) return;
@@ -391,6 +400,7 @@ function PaymentContent() {
           {/* Row 2: payment method (full width) */}
           <div className="lg:col-span-3 space-y-4">
             <PaymentMethodSelector
+              selectedMethod={activeMethod}
               onPaymentMethodChange={(method) => {
                 setActiveMethod(method);
                 setPaymentError(null);
@@ -407,6 +417,9 @@ function PaymentContent() {
                 setCashErrors({});
               }}
               cashErrors={cashErrors}
+              preferences={paymentPreferences.data}
+              preferencesLoading={paymentPreferences.loading}
+              onManagePreferences={() => setIsPreferenceModalOpen(true)}
             />
           </div>
         </div>
@@ -437,6 +450,24 @@ function PaymentContent() {
           </Modal.Container>
         </Modal.Backdrop>
       </Modal.Root>
+
+      <PaymentPreferencesModal
+        isOpen={isPreferenceModalOpen}
+        onOpenChange={setIsPreferenceModalOpen}
+        preferences={paymentPreferences.data}
+        isSaving={paymentPreferences.loading}
+        onSave={async (preferences) => {
+          try {
+            const saved = await paymentPreferences.save(preferences);
+            if (saved.defaultMethod) setActiveMethod(saved.defaultMethod);
+            toast.success("Payment preferences saved.");
+            setIsPreferenceModalOpen(false);
+          } catch (error) {
+            console.error("Couldn't save payment preferences:", error);
+            toast.danger("Couldn't save your payment preferences. Please try again.");
+          }
+        }}
+      />
     </div>
   );
 }
