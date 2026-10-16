@@ -19,7 +19,7 @@
   },
   "apps/mobile/__tests__/smoke.test.ts": {
     "mtime": 1786940437.802322,
-    "seen": 1792055648.2603898,
+    "seen": 1792127109.0687895,
     "ast_hash": "5fc31e619b77e5e8f646e1bb34da8cd7",
     "semantic_hash": ""
   },
@@ -6720,9 +6720,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/components/CardPaymentForm.tsx": {
-    "mtime": 1791973208.620669,
-    "seen": 1792055648.2617955,
-    "ast_hash": "0cea5a6c0b0c50c5534c721cdbefc972",
+    "mtime": 1792126681.4645474,
+    "seen": 1792126962.044051,
+    "ast_hash": "5a338dc1409b0a4dbc8db489de5cffa4",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/components/CashPaymentForm.tsx": {
@@ -6743,16 +6743,10 @@
     "ast_hash": "ede4de58e4b1c2fd07895eccf168c12c",
     "semantic_hash": ""
   },
-  "apps/web/app/tenant/payment/components/PaymentMethodButton.tsx": {
-    "mtime": 1791977005.780836,
-    "seen": 1792055648.2618005,
-    "ast_hash": "dce25bd0bb941c8d2bc7153a624d17cf",
-    "semantic_hash": ""
-  },
   "apps/web/app/tenant/payment/components/PaymentMethodSelector.tsx": {
-    "mtime": 1791973716.7429216,
-    "seen": 1792055648.2618017,
-    "ast_hash": "3d3133a293ca35ef9a25795a5de5c64b",
+    "mtime": 1792126800.3590045,
+    "seen": 1792126962.0449128,
+    "ast_hash": "1764236709bc3a0e8b4bea4907c0088e",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/components/PaymentSummaryCard.tsx": {
@@ -6786,9 +6780,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/constants.ts": {
-    "mtime": 1791973208.64388,
-    "seen": 1792055648.261809,
-    "ast_hash": "6d335e0d8ba41a2d5e58c4a8442392a1",
+    "mtime": 1792127037.647381,
+    "seen": 1792127109.3321433,
+    "ast_hash": "f09825faad19e48ccf9b3832267b15ac",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/history/page.tsx": {
@@ -6798,9 +6792,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/page.tsx": {
-    "mtime": 1791973716.8793933,
-    "seen": 1792055648.261812,
-    "ast_hash": "3de1b501c2b25316178ff601b1174075",
+    "mtime": 1792126681.4640343,
+    "seen": 1792126962.04602,
+    "ast_hash": "2ea4baa353a3980e3084be265cebf61c",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/success/page.tsx": {
@@ -6810,9 +6804,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/types.ts": {
-    "mtime": 1791973208.6609714,
-    "seen": 1792055648.2618144,
-    "ast_hash": "c29c5765435eecfeefc4347df3155c40",
+    "mtime": 1792126681.463524,
+    "seen": 1792126962.0461748,
+    "ast_hash": "126cc2d2589c4afaddb8ed2f0fa9e89e",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/payment/utils.ts": {
@@ -7920,9 +7914,9 @@
     "semantic_hash": ""
   },
   "packages/supabase/src/types.ts": {
-    "mtime": 1792117277.977069,
-    "seen": 1792119102.8140924,
-    "ast_hash": "1ef0a4f453d6278c99fe4610ba14f75b",
+    "mtime": 1792126681.4630213,
+    "seen": 1792126962.0759497,
+    "ast_hash": "da7faba722b7a5fa557a50201bae166c",
     "semantic_hash": ""
   },
   "packages/supabase/tsconfig.json": {
@@ -8982,9 +8976,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/components/SignedLeaseModal.tsx": {
-    "mtime": 1792117721.7045188,
-    "seen": 1792119102.755944,
-    "ast_hash": "de5bfc9df699953ad9e7fe3966b73c73",
+    "mtime": 1792123059.5716486,
+    "seen": 1792126962.026382,
+    "ast_hash": "b49d7b16f0e11b15dba6ffa51921c297",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/SignedLeaseCard.tsx": {
@@ -9015,6 +9009,24 @@
     "mtime": 1792117620.0937178,
     "seen": 1792119102.8005073,
     "ast_hash": "9e135ff154a545edfeb7880c2b8077f3",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/payment/components/PaymentPreferencesModal.tsx": {
+    "mtime": 1792126782.0186062,
+    "seen": 1792126962.0449164,
+    "ast_hash": "80905e5bce31c71062df879bac28ebc0",
+    "semantic_hash": ""
+  },
+  "apps/web/hooks/use-payment-method-preferences.ts": {
+    "mtime": 1792126864.373943,
+    "seen": 1792126962.0548842,
+    "ast_hash": "12ef8a04e12a403bb71b8fbb0e6e33ef",
+    "semantic_hash": ""
+  },
+  "apps/web/service/paymentPreferencesService.ts": {
+    "mtime": 1792129145.4690566,
+    "seen": 1792129279.9635477,
+    "ast_hash": "65c4d9edf6cdcb972853a681ee61c875",
     "semantic_hash": ""
   }
 }
