@@ -158,6 +158,15 @@ body[data-scroll-locked] [role="option"] {
    is too subtle against the payment-card surface. Scope these visual overrides
    to checkout: an unselected method gets a clear neutral ring, while selection
    uses the APT blue ring/fill with a white center dot. */
+
+/* HeroUI's vertical radio group adds a 16px top margin to every radio
+   (`.radio-group[data-orientation="vertical"] [data-slot="radio"]`). Inside the
+   joined payment-method list that margin lands above each divider and pushes
+   the row content off center, so drop it here. */
+.payment-method-radios.radio-group[data-orientation="vertical"] [data-slot="radio"] {
+  margin-top: 0;
+}
+
 .payment-method-radios .radio__control {
   width: 20px;
   height: 20px;

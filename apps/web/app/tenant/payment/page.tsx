@@ -346,7 +346,7 @@ function PaymentContent() {
           <div className="lg:col-span-2 h-full">
             <Card className="h-full rounded-2xl border border-border bg-card shadow-none">
               <Card.Content className="p-4">
-                <div className="grid gap-4 lg:grid-cols-[11.5rem_minmax(0,1fr)]">
+                <div className="grid gap-4 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
                   {apartmentImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={apartmentImage} alt={apartment.name} className="h-44 w-full rounded-xl object-cover lg:h-full" />
@@ -377,7 +377,6 @@ function PaymentContent() {
                       <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">Landlord</p>
                         <p className="truncate text-base font-nunito font-semibold text-foreground">{landlordName}</p>
-                        <p className="truncate text-sm text-muted-foreground">{landlord?.email ?? "—"}</p>
                       </div>
                     </div>
                   </div>

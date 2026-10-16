@@ -15,7 +15,7 @@ interface PaymentSummaryCardProps {
 function formatDueDate(iso: string): string {
   const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(d);
 }
 
 type DueStatus = { label: string; color: "default" | "danger" | "warning" } | null;
@@ -55,12 +55,16 @@ export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, 
             {month}, {year}
           </span>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Due Date</span>
-          <span className="flex items-center gap-2 text-right">
-            <span className="font-nunito font-semibold text-foreground">{formatDueDate(dueDate)}</span>
-            {dueStatus && <Chip size="sm" variant="soft" color={dueStatus.color}>{dueStatus.label}</Chip>}
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span className="flex items-center gap-2">
+            <span className="text-muted-foreground">Due Date</span>
+            {dueStatus && (
+              <Chip size="sm" variant="soft" color={dueStatus.color} className="shrink-0">
+                {dueStatus.label}
+              </Chip>
+            )}
           </span>
+          <span className="text-right font-nunito font-semibold text-foreground">{formatDueDate(dueDate)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Monthly Rent</span>

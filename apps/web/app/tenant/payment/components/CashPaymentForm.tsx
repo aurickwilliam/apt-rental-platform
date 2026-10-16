@@ -35,7 +35,7 @@ function toCalendarDate(d: Date) {
 
 function formatDisplay(d: Date | null): string {
   if (!d) return "";
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(d);
 }
 
 export default function CashPaymentForm({ paymentDate, onPaymentDateChange, errors }: CashPaymentFormProps) {
