@@ -1,4 +1,4 @@
-export type PaymentStatus = "paid" | "pending" | "late";
+export type PaymentStatus = "paid" | "pending" | "late" | "rejected";
 export type MaintenanceStatus = "pending" | "in_progress" | "resolved" | "cancelled";
 
 export interface PaymentHistoryItem {

@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Chip, Modal, Spinner, useOverlayState } from "@heroui/react";
-import StatusChip from "@/app/components/display/StatusChip";
-import { IconCashBanknote as Banknote, IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconUser as User, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
+import { Button, Card, Modal, toast, useOverlayState } from "@heroui/react";
+import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
@@ -14,19 +13,23 @@ import { createCardPayment, createCheckoutSession, PaymongoError } from "@/servi
 import { usePayments } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useUser } from "@/hooks/use-user";
+import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
+import { PaymentPageHeader, PaymentPageShell } from "./components/PaymentPageLayout";
+import PaymentPageSkeleton from "./components/PaymentPageSkeleton";
 import PaymentFooter from "./components/PaymentFooter";
+import PaymentPreferencesModal from "./components/PaymentPreferencesModal";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
+import { usePaymentMethodPreferences } from "@/hooks/use-payment-method-preferences";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
   expiryDate: "",
   cardholderName: "",
   cvv: "",
-  isPaymentSaved: false,
   isCardNumberValid: false,
 };
 
@@ -44,6 +47,7 @@ function PaymentContent() {
   const [cashDate, setCashDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
   const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null);
   const errorState = useOverlayState({
     isOpen: paymentError !== null,
@@ -54,6 +58,7 @@ function PaymentContent() {
   const router = useRouter();
 
   const { profile } = useUser();
+  const paymentPreferences = usePaymentMethodPreferences(profile?.id ?? null);
   const { tenancy, currentPayment, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
@@ -105,6 +110,12 @@ function PaymentContent() {
   // no pending fees this is the shared `period.isFullyPaid`.
   const isPeriodPaid =
     totalDue > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= totalDue;
+  const isCashPaymentPending = (paymentsQuery.data ?? []).some(
+    (payment) =>
+      payment.method === "cash" &&
+      payment.status === "pending" &&
+      payment.period_start === period.periodStart,
+  );
 
   const landlordName =
     landlord?.first_name || landlord?.last_name
@@ -113,11 +124,28 @@ function PaymentContent() {
   const address = apartment
     ? [apartment.street_address, apartment.barangay, apartment.city, apartment.province].filter(Boolean).join(", ")
     : "—";
+  const apartmentImage =
+    apartment?.apartment_images?.find((image) => image.is_cover)?.url ??
+    apartment?.apartment_images?.[0]?.url ??
+    null;
+
+  // Apply the account default only before the tenant has chosen a checkout
+  // method on this visit. A per-payment choice always wins over the default.
+  if (activeMethod === null && paymentPreferences.data.defaultMethod) {
+    setActiveMethod(paymentPreferences.data.defaultMethod);
+  }
 
   const handlePay = async () => {
     if (isProcessing || isPeriodPaid) return;
     if (!activeMethod) {
       setPaymentError({ message: "Please select a payment method before proceeding.", title: "No Payment Method" });
+      return;
+    }
+    if (activeMethod === "Cash" && isCashPaymentPending) {
+      setPaymentError({
+        title: "Cash Payment Pending",
+        message: "Your cash payment is awaiting landlord confirmation. You can submit another request only if it is declined.",
+      });
       return;
     }
     if (!tenancy || !apartment) {
@@ -246,52 +274,31 @@ function PaymentContent() {
   };
 
   if (tenancyLoading || paymentsQuery.loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment…</p>
-      </div>
-    );
+    return <PaymentPageSkeleton />;
   }
 
   if (tenancyError || !tenancy || !apartment) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
-          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-            <ArrowLeft size={16} /> Back
-          </Button>
-          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
-            <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
-              <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-                {tenancyError ?? "No active rental found on this account."}
-              </p>
-              <Button onPress={() => void refetch()} className="rounded-full font-nunito">
-                Try Again
-              </Button>
-            </Card.Content>
-          </Card>
-        </div>
-      </div>
+      <PaymentPageShell>
+        <PaymentPageHeader />
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
+          <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
+            <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+              {tenancyError ?? "No active rental found on this account."}
+            </p>
+            <Button onPress={() => void refetch()} className="rounded-full font-nunito">
+              Try Again
+            </Button>
+          </Card.Content>
+        </Card>
+      </PaymentPageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
-        {/* Header */}
-        <div className="flex flex-col gap-1">
-          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-            <ArrowLeft size={16} /> Back
-          </Button>
-          <p className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-            <Banknote size={14} className="text-primary" /> Rent Payment
-          </p>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
-            <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay.</p>
-          </div>
-        </div>
+    <>
+      <PaymentPageShell>
+        <PaymentPageHeader />
 
         {/* Non-blocking paid notice — page stays interactive, Pay grays out below */}
         {isPeriodPaid && (
@@ -322,63 +329,61 @@ function PaymentContent() {
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
           {/* Row 1, left: lease details */}
           <div className="lg:col-span-2 h-full">
-            {/* Apartment / lease card */}
-            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col">
-              <Card.Header className="px-4 pt-4 pb-2">
-                <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  <House size={18} className="text-primary" /> {apartment.name}
-                </h3>
-                <p className="text-sm text-zinc-500 flex items-center gap-1 mt-1">
-                  <MapPin size={14} /> {address}
-                </p>
-              </Card.Header>
-              <Card.Content className="px-4 pb-4 flex-1 flex flex-col">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center gap-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 p-3">
-                    <span className="rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-2">
-                      <User size={16} className="text-zinc-500" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-zinc-500">Landlord</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 truncate">{landlordName}</p>
-                      <p className="text-sm text-zinc-500 truncate">{landlord?.email ?? "—"}</p>
+            <Card className="h-full rounded-2xl border border-border bg-card shadow-none">
+              <Card.Content className="p-4">
+                <div className="grid gap-4 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
+                  {apartmentImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={apartmentImage} alt={apartment.name} className="h-44 w-full rounded-xl object-cover lg:h-full" />
+                  ) : (
+                    <div className="flex h-44 items-center justify-center rounded-xl bg-muted text-muted-foreground lg:h-full" aria-label="No apartment photo available">
+                      <House size={32} aria-hidden="true" />
                     </div>
-                    <UserAvatar
-                      src={landlord?.avatar_url}
-                      initials={`${landlord?.first_name?.[0] ?? "—"}${landlord?.last_name?.[0] ?? ""}`}
-                      alt={landlordName}
-                      size="sm"
-                      className="ml-auto hidden sm:flex"
-                      fallbackClassName="bg-primary text-white text-xs"
-                    />
-                  </div>
+                  )}
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease Start</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_start)}
+                  <div className="min-w-0">
+                    <div className="border-b border-border pb-3">
+                      <h3 className="flex items-center gap-2 text-lg font-nunito font-semibold text-foreground">
+                        <House size={20} className="shrink-0 text-primary" /> {apartment.name}
+                      </h3>
+                      <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
+                        <MapPin size={16} className="mt-0.5 shrink-0" /> <span>{address}</span>
                       </p>
                     </div>
-                    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-                      <p className="text-xs uppercase tracking-wider text-zinc-400">Lease End</p>
-                      <p className="text-base font-nunito font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
-                        <CalendarDays size={16} className="text-zinc-400" /> {formatLeaseDate(tenancy.lease_end)}
-                      </p>
+
+                    <div className="mt-3 flex items-center gap-3">
+                      <UserAvatar
+                        src={landlord?.avatar_url}
+                        initials={`${landlord?.first_name?.[0] ?? "—"}${landlord?.last_name?.[0] ?? ""}`}
+                        alt={landlordName}
+                        size="md"
+                        fallbackClassName="bg-primary text-white text-sm"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">Landlord</p>
+                        <p className="truncate text-base font-nunito font-semibold text-foreground">{landlordName}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2 mt-auto pt-3">
-                  <StatusChip size="sm" tone="success">
-                    Active lease
-                  </StatusChip>
-                  <Chip size="sm" variant="soft" color="default">
-                    {apartment.city}
-                  </Chip>
-                  <Chip size="sm" variant="soft" color="default">
-                    {formatPesoDisplay(monthlyRent)} / month
-                  </Chip>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground">Lease start</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-base font-nunito font-semibold text-foreground">
+                      <CalendarDays size={16} className="text-muted-foreground" /> {formatLeaseDate(tenancy.lease_start)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground">Lease end</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-base font-nunito font-semibold text-foreground">
+                      <CalendarDays size={16} className="text-muted-foreground" /> {formatLeaseDate(tenancy.lease_end)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3">
+                    <StatusChip size="sm" tone="success">Active lease</StatusChip>
+                    <p className="mt-1 text-base font-nunito font-bold text-foreground">{formatPesoDisplay(monthlyRent)} <span className="font-nunito font-semibold text-muted-foreground">/ month</span></p>
+                  </div>
                 </div>
               </Card.Content>
             </Card>
@@ -392,6 +397,7 @@ function PaymentContent() {
           {/* Row 2: payment method (full width) */}
           <div className="lg:col-span-3 space-y-4">
             <PaymentMethodSelector
+              selectedMethod={activeMethod}
               onPaymentMethodChange={(method) => {
                 setActiveMethod(method);
                 setPaymentError(null);
@@ -408,15 +414,19 @@ function PaymentContent() {
                 setCashErrors({});
               }}
               cashErrors={cashErrors}
+              preferences={paymentPreferences.data}
+              preferencesLoading={paymentPreferences.loading}
+              onManagePreferences={() => setIsPreferenceModalOpen(true)}
+              isCashPaymentPending={isCashPaymentPending}
             />
           </div>
         </div>
 
         {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer parity) */}
         <div className="sticky bottom-4 z-20 mt-4">
-          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid} />
+          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
-      </div>
+      </PaymentPageShell>
 
       {/* Error dialog (mobile ErrorDialog parity, HeroUI Modal) */}
       <Modal.Root state={errorState}>
@@ -438,7 +448,25 @@ function PaymentContent() {
           </Modal.Container>
         </Modal.Backdrop>
       </Modal.Root>
-    </div>
+
+      <PaymentPreferencesModal
+        isOpen={isPreferenceModalOpen}
+        onOpenChange={setIsPreferenceModalOpen}
+        preferences={paymentPreferences.data}
+        isSaving={paymentPreferences.loading}
+        onSave={async (preferences) => {
+          try {
+            const saved = await paymentPreferences.save(preferences);
+            if (saved.defaultMethod) setActiveMethod(saved.defaultMethod);
+            toast.success("Payment preferences saved.");
+            setIsPreferenceModalOpen(false);
+          } catch (error) {
+            console.error("Couldn't save payment preferences:", error);
+            toast.danger("Couldn't save your payment preferences. Please try again.");
+          }
+        }}
+      />
+    </>
   );
 }
 

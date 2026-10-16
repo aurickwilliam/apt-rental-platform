@@ -116,13 +116,16 @@ export async function fetchLandlordPaymentById(id: string): Promise<PaymentRecor
   return data ? toPaymentRecord(data as unknown as LandlordPaymentRow) : null;
 }
 
-// Only cash rows awaiting landlord confirmation are hand-flippable; the
-// webhook owns e-wallet/card rows. RLS + status-column grant gate this too.
-export async function updateLandlordPaymentStatus(id: string): Promise<{ success: boolean; error?: string }> {
+// Only cash rows awaiting landlord confirmation are hand-resolved; the
+// webhook owns e-wallet/card rows. RLS + database transition guard gate this.
+export async function updateLandlordPaymentStatus(
+  id: string,
+  status: "paid" | "rejected",
+): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
   const { error, data } = await supabase
     .from("payment")
-    .update({ status: "paid" })
+    .update({ status })
     .eq("id", id)
     .eq("method", "cash")
     .eq("status", "pending")

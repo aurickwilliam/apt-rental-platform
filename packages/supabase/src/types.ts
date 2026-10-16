@@ -760,6 +760,38 @@ export type Database = {
           },
         ]
       }
+      payment_method_preferences: {
+        Row: {
+          created_at: string
+          default_method: string | null
+          saved_methods: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_method?: string | null
+          saved_methods?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_method?: string | null
+          saved_methods?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_method_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment: {
         Row: {
           amount: number | null

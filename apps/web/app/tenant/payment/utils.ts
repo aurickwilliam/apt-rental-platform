@@ -44,7 +44,8 @@ export function paymentStatusLabel(status: string | null | undefined): PaymentSt
   const v = (status ?? "").toLowerCase();
   if (v === "paid" || v === "completed" || v === "succeeded") return "Paid";
   if (v === "pending") return "Pending";
-  if (v === "failed" || v === "rejected" || v === "unpaid") return v === "unpaid" ? "Unpaid" : "Failed";
+  if (v === "rejected" || v === "declined") return "Rejected";
+  if (v === "failed" || v === "unpaid") return v === "unpaid" ? "Unpaid" : "Failed";
   return "Pending";
 }
 
@@ -69,7 +70,7 @@ export function paymentMethodToDisplay(method: PaymentMethod | string): string {
 export function statusVariant(status: PaymentStatus): StatusTone {
   if (status === "Paid") return "success";
   if (status === "Pending") return "warning";
-  if (status === "Failed" || status === "Unpaid") return "danger";
+  if (status === "Failed" || status === "Unpaid" || status === "Rejected") return "danger";
   return "neutral";
 }
 

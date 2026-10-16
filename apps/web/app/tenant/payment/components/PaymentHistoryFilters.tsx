@@ -4,7 +4,7 @@ import { Button, Chip, Separator, Modal, useOverlayState } from "@heroui/react";
 import { IconAdjustmentsHorizontal as SlidersHorizontal, IconX as X } from "@tabler/icons-react";
 import type { PaymentHistoryFilter, PaymentStatus } from "../types";
 
-const STATUS_OPTIONS: PaymentStatus[] = ["Paid", "Pending", "Failed", "Unpaid"];
+const STATUS_OPTIONS: PaymentStatus[] = ["Paid", "Pending", "Failed", "Unpaid", "Rejected"];
 const SORT_OPTIONS: PaymentHistoryFilter["sort"][] = ["Newest", "Oldest"];
 
 interface PaymentHistoryFiltersProps {
