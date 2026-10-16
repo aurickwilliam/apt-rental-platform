@@ -1,5 +1,7 @@
 import { IconCreditCard } from "@tabler/icons-react";
-import { Card, Chip, Separator } from "@heroui/react";
+import { Card, Separator } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 import { formatPesoDisplay } from "@repo/utils";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState, MetricItem } from "./UserDetailPrimitives";
@@ -17,13 +19,6 @@ interface UserPaymentsProps {
   payments: UserPayment[];
   paidTotal: number;
   transactionCount: number;
-}
-
-function paymentColor(status: string): "success" | "warning" | "danger" | "default" {
-  if (status === "paid") return "success";
-  if (status === "pending") return "warning";
-  if (status === "failed" || status === "expired") return "danger";
-  return "default";
 }
 
 export default function UserPayments({
@@ -61,14 +56,13 @@ export default function UserPayments({
               · {latest.method} · {latest.apartment_name}
             </span>
           </span>
-          <Chip
+          <StatusChip
             size="sm"
-            variant="soft"
-            color={paymentColor(latest.status)}
+            tone={statusToneFor(latest.status)}
             className="shrink-0 capitalize"
           >
             {latest.status}
-          </Chip>
+          </StatusChip>
           </div>
         </>
       ) : (

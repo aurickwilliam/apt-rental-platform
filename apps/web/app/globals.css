@@ -84,6 +84,20 @@
   .select__value[data-placeholder="true"] {
     @apply text-gray-400;
   }
+
+  /* Status chips (DESIGN.md §16): StatusChip sets the --status-* values from
+     STATUS_COLORS in @repo/constants, the same palette mobile uses. */
+  .chip.status-chip {
+    --chip-bg: var(--status-bg);
+    --chip-fg: var(--status-fg);
+    border: 1px solid var(--status-border);
+  }
+
+  .dark .chip.status-chip {
+    --chip-bg: var(--status-bg-dark);
+    --chip-fg: var(--status-fg-dark);
+    border-color: var(--status-border-dark);
+  }
 }
 
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */

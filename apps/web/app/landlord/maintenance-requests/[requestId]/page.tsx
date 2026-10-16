@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Card, Chip, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconTools as Hammer, IconMapPin as MapPin, IconPhone as Phone } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 
@@ -137,12 +138,12 @@ export default function LandlordMaintenanceDetailPage() {
             </p>
           </div>
           <div className="flex gap-1.5 shrink-0">
-            <Chip size="sm" variant="soft" style={{ backgroundColor: urgency.bg, color: urgency.text }}>
+            <StatusChip size="sm" tone={urgency.tone}>
               {urgency.label}
-            </Chip>
-            <Chip size="sm" variant="soft" color={maintenanceStatusChipColor(request.status)}>
+            </StatusChip>
+            <StatusChip size="sm" tone={maintenanceStatusChipColor(request.status)}>
               {request.status}
-            </Chip>
+            </StatusChip>
           </div>
         </div>
 
@@ -220,9 +221,9 @@ export default function LandlordMaintenanceDetailPage() {
               <p className="text-[15px] font-nunito font-semibold text-primary">
                 {formatPesoDisplay(request.fee_amount)}
               </p>
-              <Chip size="sm" variant="soft" color={request.fee_status === "paid" ? "success" : "warning"}>
+              <StatusChip size="sm" tone={request.fee_status === "paid" ? "success" : "warning"}>
                 {request.fee_status === "paid" ? "Paid" : "Added to next rent"}
-              </Chip>
+              </StatusChip>
             </div>
           </div>
         )}

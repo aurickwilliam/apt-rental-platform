@@ -8,7 +8,7 @@ import { formatDate } from "@repo/utils";
 
 import { getApplicationStatusStyle, type ApplicationStatus } from "@/app/tenant/applications/lib/statusStyles";
 
-import StatusChip from "./StatusChip";
+import StatusChip from "@/app/components/display/StatusChip";
 
 type Props = {
   id: string;
@@ -33,7 +33,6 @@ export default function ApplicationStatusCard({
 }: Props) {
   const style = getApplicationStatusStyle(status);
   const Icon = style.Icon;
-  const statusVariant = style.chipColor === "default" ? "neutral" : style.chipColor;
   const name = apartmentName ?? "Apartment";
 
   return (
@@ -61,9 +60,9 @@ export default function ApplicationStatusCard({
             <p className="min-w-0 flex-1 truncate text-lg font-nunito font-semibold text-card-foreground">
               {name}
             </p>
-            <StatusChip variant={statusVariant} className="px-2.5 py-1 text-sm">
+            <StatusChip tone={style.chipColor} className="px-2.5 py-1 text-sm">
               <span className="flex items-center gap-1 font-nunito font-semibold">
-                <Icon size={16} style={{ color: style.iconColor }} aria-hidden="true" />
+                <Icon size={16} aria-hidden="true" />
                 {style.label}
               </span>
             </StatusChip>

@@ -1,5 +1,7 @@
 import { IconTools } from "@tabler/icons-react";
-import { Card, Chip, Separator } from "@heroui/react";
+import { Card, Separator } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState, MetricItem } from "./UserDetailPrimitives";
 
@@ -56,9 +58,9 @@ export default function UserMaintenance({
                   {submittedFormatter.format(new Date(item.created_at))}
                 </span>
               </span>
-              <Chip size="sm" variant="soft" className="shrink-0 capitalize">
+              <StatusChip tone={statusToneFor(item.status)} size="sm" className="shrink-0 capitalize">
                 {item.status.replaceAll("_", " ")}
-              </Chip>
+              </StatusChip>
             </li>
           ))}
           </ul>

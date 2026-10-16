@@ -1,3 +1,5 @@
+import type { StatusTone } from "@/lib/status-tone";
+
 export interface AdminApartment {
   id: string;
   name: string;
@@ -10,33 +12,11 @@ export interface AdminApartment {
   thumbnail_url: string | null;
 }
 
-export function statusChipStyle(status: string): {
-  color: "success" | "warning" | "default";
-  className?: string;
-} {
-  switch (status) {
-    case "available":
-      // Mobile colors "available" primary; Chip has no primary colorway,
-      // so tint with the primary tokens directly.
-      return { color: "default", className: "bg-primary/10 text-primary" };
-    case "occupied":
-      return { color: "success" };
-    case "under_maintenance":
-      return { color: "warning" };
-    default:
-      return { color: "default" };
-  }
+export function verificationChipColor(isVerified: boolean): StatusTone {
+  return isVerified ? "success" : "neutral";
 }
 
-export function verificationChipColor(
-  isVerified: boolean,
-): "success" | "default" {
-  return isVerified ? "success" : "default";
-}
-
-export function visibilityChipColor(
-  isHidden: boolean,
-): "danger" | "success" {
+export function visibilityChipColor(isHidden: boolean): StatusTone {
   return isHidden ? "danger" : "success";
 }
 

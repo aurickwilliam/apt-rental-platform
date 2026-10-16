@@ -11,6 +11,7 @@ import {
   useOverlayState,
   Separator,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
@@ -243,14 +244,13 @@ export default function PropertyDetailsSheet({
                           </p>
                         </div>
 
-                        <Chip
+                        <StatusChip
                           size="sm"
-                          variant="primary"
-                          color={STATUS_COLOR[selected.status] ?? "default"}
+                          tone={STATUS_COLOR[selected.status] ?? "neutral"}
                           className="capitalize"
                         >
                           {selected.status}
-                        </Chip>
+                        </StatusChip>
                       </div>
                     </div>
 

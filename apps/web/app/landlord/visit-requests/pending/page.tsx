@@ -10,7 +10,7 @@ import { useLandlordVisitRequests } from "@/hooks/use-landlord-visit-requests";
 import type { LandlordVisitStatus } from "@/service/landlordVisitRequestsService";
 
 import VisitRequestCard from "../components/VisitRequestCard";
-import { getVisitStatusChipColor, getVisitStatusLabel } from "../lib/visit-status-styles";
+import { getVisitStatusLabel } from "../lib/visit-status-styles";
 
 const STATUS_OPTIONS: LandlordVisitStatus[] = ["pending", "rejected", "rescheduled", "cancelled"];
 
@@ -114,7 +114,7 @@ export default function PendingVisitRequestsPage() {
                       key={s}
                       size="sm"
                       variant={statuses.includes(s) ? "primary" : "soft"}
-                      color={statuses.includes(s) ? "accent" : getVisitStatusChipColor(s)}
+                      color={statuses.includes(s) ? "accent" : "default"}
                       className="cursor-pointer capitalize"
                       onClick={() => setStatuses((prev) => toggle(prev, s))}
                     >

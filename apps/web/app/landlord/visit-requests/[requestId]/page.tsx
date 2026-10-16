@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Button,
   Card,
-  Chip,
   FieldError,
   Label,
   ListBox,
@@ -18,6 +17,7 @@ import {
   TextField,
   useOverlayState,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconPhoto as ImageIcon, IconMapPin as MapPin } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
 import { formatAddress, formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
@@ -223,9 +223,9 @@ export default function LandlordVisitRequestDetailPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-medium">Status</span>
-              <Chip size="sm" variant="soft" color={getVisitStatusChipColor(request.status)} className="capitalize shrink-0">
+              <StatusChip size="sm" tone={getVisitStatusChipColor(request.status)} className="capitalize shrink-0">
                 {getVisitStatusLabel(request.status)}
-              </Chip>
+              </StatusChip>
             </div>
 
             <Separator />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { IconShieldCheck } from "@tabler/icons-react";
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { verificationChipColor } from "../../lib/user-display";
 import { submittedFormatter } from "../../../verification/lib/verification-display";
 import { DetailEmptyState } from "./UserDetailPrimitives";
@@ -39,14 +40,13 @@ export default function UserVerificationCard({
             />
             Verification
           </h2>
-          <Chip
+          <StatusChip
             size="md"
-            variant="soft"
-            color={verificationChipColor(accountStatus)}
+            tone={verificationChipColor(accountStatus)}
             className="capitalize"
           >
             {accountStatus}
-          </Chip>
+          </StatusChip>
         </div>
         {latest ? (
           <div className="mt-3 text-sm">

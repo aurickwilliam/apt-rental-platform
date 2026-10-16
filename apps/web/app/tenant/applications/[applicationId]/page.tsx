@@ -5,7 +5,6 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
   Button,
-  Chip,
   Accordion,
   AccordionItem,
   AccordionTrigger,
@@ -16,6 +15,7 @@ import {
   Separator,
   useOverlayState,
 } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import {
   IconArrowLeft as ArrowLeft,
   IconBan as Ban,
@@ -146,12 +146,12 @@ export default function ApplicationDetailPage() {
           <h1 className="truncate text-2xl font-nunito font-bold text-primary">{apartment?.name ?? "Listing"}</h1>
           <p className="mt-1 text-sm font-inter text-muted-foreground">Submitted {formatLongDate(application.created_at)}</p>
         </div>
-        <Chip variant="soft" color={style.chipColor as never} className="px-2.5 py-1 text-sm">
+        <StatusChip tone={style.chipColor} className="px-2.5 py-1 text-sm">
           <span className="flex items-center gap-1 font-nunito font-semibold">
-            <StatusIcon size={16} style={{ color: style.iconColor }} aria-hidden="true" />
-          {style.label}
+            <StatusIcon size={16} aria-hidden="true" />
+            {style.label}
           </span>
-        </Chip>
+        </StatusChip>
       </div>
 
       <div className="grid items-start gap-6 xl:items-stretch xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">

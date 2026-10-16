@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Spinner } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
@@ -43,9 +44,9 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
               <Chip size="sm" variant="soft" color="default" className="text-[11px]">
                 {methodLabel(payment.method)}
               </Chip>
-              <Chip size="sm" variant="soft" color={statusVariant(status)} className="text-[11px]">
+              <StatusChip size="sm" tone={statusVariant(status)} className="text-[11px]">
                 {status}
-              </Chip>
+              </StatusChip>
             </div>
           </div>
         </Card.Header>
