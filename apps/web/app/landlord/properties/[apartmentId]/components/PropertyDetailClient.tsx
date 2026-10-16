@@ -11,9 +11,10 @@ import {
   Dropdown,
   Label,
   Modal,
+  toast,
   useOverlayState,
 } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
+import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconFileUpload as FileUp, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -23,14 +24,18 @@ import {
   paymentStatusLabel,
   statusVariant,
 } from "@/app/tenant/payment/utils";
+import { signedLeaseStatus, type SignedLeaseStatus } from "@/lib/signed-lease";
+import { useSignedLeaseViewer } from "@/hooks/use-signed-lease-viewer";
 import {
   removeLandlordUnit,
   vacateLandlordUnit,
   type LandlordUnitApartment,
   type LandlordUnitDetail,
+  type LandlordUnitTenant,
 } from "@/service/landlordUnitDetailService";
 import { toProperty } from "./to-property";
 import { useLeaseViewer } from "./use-lease-viewer";
+import SignedLeaseModal from "./SignedLeaseModal";
 import { STATUS_COLOR } from "../../components/propertyConstants";
 import { PERKS } from "@/app/components/inputs/perks";
 import ApartmentImagesModal from "../../components/modals/ApartmentImagesModal";
@@ -72,6 +77,32 @@ function DetailField({ label, value }: { label: string; value?: string | number 
   );
 }
 
+const SIGNED_LEASE_LABEL: Record<SignedLeaseStatus, string> = {
+  missing: "Not uploaded",
+  pending: "Awaiting tenant",
+  acknowledged: "Confirmed",
+};
+
+const SIGNED_LEASE_CHIP_COLOR: Record<SignedLeaseStatus, "default" | "warning" | "success"> = {
+  missing: "default",
+  pending: "warning",
+  acknowledged: "success",
+};
+
+function signedLeaseHint(tenant: LandlordUnitTenant): string {
+  const status = signedLeaseStatus(tenant.signedLeasePath, tenant.tenantAcknowledgedAt);
+  if (status === "missing") {
+    return "Upload the contract both parties signed so the tenant can review and confirm it.";
+  }
+  const uploaded = tenant.signedLeaseUploadedAt
+    ? `Uploaded ${formatLeaseDate(tenant.signedLeaseUploadedAt)}`
+    : "On file";
+  if (status === "acknowledged" && tenant.tenantAcknowledgedAt) {
+    return `${uploaded} · Confirmed by the tenant ${formatLeaseDate(tenant.tenantAcknowledgedAt)}`;
+  }
+  return `${uploaded} · The tenant has not confirmed it yet.`;
+}
+
 export default function PropertyDetailClient({ detail }: { detail: LandlordUnitDetail }) {
   const router = useRouter();
   const [apartment, setApartment] = useState(detail.apartment);
@@ -87,10 +118,14 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [signedLeaseOpen, setSignedLeaseOpen] = useState(false);
   const { viewLease, viewing: viewingLease } = useLeaseViewer();
+  const { viewSignedLease, viewing: viewingSignedLease } = useSignedLeaseViewer();
 
   const property = toProperty(apartment);
   const isOccupied = apartment.status === "occupied";
+  const tenant = detail.tenant;
+  const tenantLeaseStatus = signedLeaseStatus(tenant?.signedLeasePath, tenant?.tenantAcknowledgedAt);
   const extraImages = apartment.apartment_images.filter((img) => !img.is_cover);
   const amenities = apartment.amenities
     .map((id) => ({ id, perk: PERKS[id] }))
@@ -109,6 +144,17 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
     setActionError(null);
     const err = await viewLease(apartment.lease_agreement_url);
     if (err) setActionError(err);
+  };
+
+  const handleViewSignedLease = async (path: string | null) => {
+    setActionError(null);
+    const err = await viewSignedLease(path);
+    if (err) setActionError(err);
+  };
+
+  const handleSignedLeaseUploaded = () => {
+    toast.success("Signed lease saved");
+    router.refresh();
   };
 
   const handleVacate = async () => {
@@ -331,33 +377,68 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
         <div className="flex flex-col gap-4 min-w-0">
           {isOccupied ? (
             <>
-              {detail.tenant && (
+              {tenant && (
                 <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
                   <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
                     Tenant Information
                   </p>
                   <div className="flex items-center gap-3">
                     <UserAvatar
-                      src={detail.tenant.avatarUrl}
-                      initials={getInitials(detail.tenant.fullName)}
-                      alt={detail.tenant.fullName}
+                      src={tenant.avatarUrl}
+                      initials={getInitials(tenant.fullName)}
+                      alt={tenant.fullName}
                       size="md"
                       className="shrink-0 bg-primary text-white"
                       fallbackClassName="bg-primary text-white"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-nunito font-semibold text-card-foreground truncate">
-                        {detail.tenant.fullName}
+                        {tenant.fullName}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {detail.tenant.email} · {detail.tenant.mobileNumber}
+                        {tenant.email} · {tenant.mobileNumber}
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <DetailField label="Lease Start" value={formatLeaseDate(detail.tenant.leaseStart)} />
-                    <DetailField label="Lease End" value={formatLeaseDate(detail.tenant.leaseEnd)} />
+                    <DetailField label="Lease Start" value={formatLeaseDate(tenant.leaseStart)} />
+                    <DetailField label="Lease End" value={formatLeaseDate(tenant.leaseEnd)} />
                   </div>
+
+                  {/* Executed contract: private bucket, one file per tenancy. */}
+                  <div className="flex flex-col gap-2 rounded-2xl border border-border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
+                        Signed Lease
+                      </p>
+                      <Chip size="sm" variant="soft" color={SIGNED_LEASE_CHIP_COLOR[tenantLeaseStatus]}>
+                        {SIGNED_LEASE_LABEL[tenantLeaseStatus]}
+                      </Chip>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{signedLeaseHint(tenant)}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 justify-center font-nunito"
+                        onPress={() => setSignedLeaseOpen(true)}
+                      >
+                        <FileUp size={14} />
+                        {tenant.signedLeasePath ? "Replace" : "Upload"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="flex-1 justify-center font-nunito"
+                        isDisabled={!tenant.signedLeasePath || viewingSignedLease}
+                        onPress={() => void handleViewSignedLease(tenant.signedLeasePath)}
+                      >
+                        <FileText size={14} />
+                        View
+                      </Button>
+                    </div>
+                  </div>
+
                   <Link href="/landlord/messages" className="no-underline">
                     <Button variant="outline" size="sm" className="w-full justify-center font-nunito">
                       <MessageCircle size={14} />
@@ -468,6 +549,17 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
         currentUrl={apartment.lease_agreement_url}
         onUpdated={(newUrl) => setApartment((prev) => ({ ...prev, lease_agreement_url: newUrl }))}
       />
+      {tenant && (
+        <SignedLeaseModal
+          isOpen={signedLeaseOpen}
+          onClose={() => setSignedLeaseOpen(false)}
+          tenancyId={tenant.tenancyId}
+          currentPath={tenant.signedLeasePath}
+          uploadedAt={tenant.signedLeaseUploadedAt}
+          acknowledgedAt={tenant.tenantAcknowledgedAt}
+          onUploaded={handleSignedLeaseUploaded}
+        />
+      )}
       <DescriptionModal
         isOpen={descriptionModalOpen}
         onClose={() => setDescriptionModalOpen(false)}

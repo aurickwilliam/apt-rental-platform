@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Button, Link, Modal, Spinner, Table, useOverlayState } from "@heroui/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Link, Modal, Spinner, Table, toast, useOverlayState } from "@heroui/react";
 import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight, IconX as X } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
+import { useSignedLeaseViewer } from "@/hooks/use-signed-lease-viewer";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
@@ -20,6 +21,7 @@ import type {
 
 import DashboardCard from "./components/DashboardCard";
 import RentalHero from "./components/RentalHero";
+import SignedLeaseCard from "./components/SignedLeaseCard";
 import StatusChip from "./components/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import TenancyEmptyState from "./components/TenancyEmptyState";
@@ -119,6 +121,10 @@ function getInitials(name: string) {
     .join("");
 }
 
+type QuickAction =
+  | { label: string; icon: typeof House; tint: string; href: string }
+  | { label: string; icon: typeof House; tint: string; onPress: () => void };
+
 export default function MyRental() {
   const { tenancy, payments, currentPayment, loading, error, refetch } = useTenancy();
   const {
@@ -133,6 +139,7 @@ export default function MyRental() {
     loading: maintenanceLoading,
     error: maintenanceError,
   } = useMaintenanceRequestHistory(tenancy?.apartment.id ?? null);
+  const { viewSignedLease, viewing: viewingSignedLease } = useSignedLeaseViewer();
 
   const today = useMemo(() => new Date(), []);
   const headerDate = useMemo(() => formatHeaderDate(today), [today]);
@@ -163,6 +170,21 @@ export default function MyRental() {
       cancelled = true;
     };
   }, [apartmentIdForFees]);
+
+  // Web has no notification feed, so an unconfirmed contract gets one toast per
+  // upload while the card below carries the actual confirmation.
+  const leaseNudgeKey =
+    tenancy?.signed_lease_path && !tenancy.tenant_acknowledged_at
+      ? `${tenancy.id}:${tenancy.signed_lease_path}`
+      : null;
+  const nudgedLeaseRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!leaseNudgeKey || nudgedLeaseRef.current === leaseNudgeKey) return;
+    nudgedLeaseRef.current = leaseNudgeKey;
+    toast.info("Signed lease ready for review", {
+      description: "Your landlord uploaded the signed lease. Open it below and confirm it matches your agreement.",
+    });
+  }, [leaseNudgeKey]);
 
   if (loading) {
     return <MyRentalSkeleton />;
@@ -262,7 +284,16 @@ export default function MyRental() {
     };
   });
 
-  const actions: { label: string; icon: typeof House; href?: string; tint: string }[] = [
+  const handleViewSignedLease = async () => {
+    if (!tenancy.signed_lease_path) {
+      toast.info("Your landlord has not uploaded the signed lease yet.");
+      return;
+    }
+    const viewError = await viewSignedLease(tenancy.signed_lease_path);
+    if (viewError) toast.danger(viewError);
+  };
+
+  const actions: QuickAction[] = [
     {
       label: "View Description",
       icon: House,
@@ -270,8 +301,9 @@ export default function MyRental() {
       tint: "blue",
     },
     {
-      label: "View lease",
+      label: "Signed lease",
       icon: FileText,
+      onPress: () => void handleViewSignedLease(),
       tint: "teal",
     },
     {
@@ -534,8 +566,19 @@ export default function MyRental() {
               {actions.map((action) => {
                 const Icon = action.icon;
                 const tint = actionTints[action.tint];
+                const content = (
+                  <>
+                    <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${tint.iconBg}`}>
+                      <Icon size={20} className={tint.icon} aria-hidden="true" />
+                    </span>
+                    <span className="flex-1 font-nunito text-sm font-semibold text-card-foreground">
+                      {action.label}
+                    </span>
+                    <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                  </>
+                );
 
-                if (action.href) {
+                if ("href" in action) {
                   return (
                     <Link
                       key={action.label}
@@ -545,32 +588,21 @@ export default function MyRental() {
                       <div
                         className={`flex items-center gap-3 rounded-2xl p-4 transition-transform hover:scale-[1.02] ${tint.card}`}
                       >
-                        <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${tint.iconBg}`}>
-                          <Icon size={20} className={tint.icon} aria-hidden="true" />
-                        </span>
-                        <span className="flex-1 font-nunito text-sm font-semibold text-card-foreground">
-                          {action.label}
-                        </span>
-                        <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                        {content}
                       </div>
                     </Link>
                   );
                 }
 
                 return (
-                  <div
+                  <button
                     key={action.label}
-                    aria-disabled="true"
-                    className={`flex cursor-not-allowed items-center gap-3 rounded-2xl p-4 opacity-60 ${tint.card}`}
+                    type="button"
+                    onClick={action.onPress}
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl p-4 text-left transition-transform hover:scale-[1.02] ${tint.card}`}
                   >
-                    <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${tint.iconBg}`}>
-                      <Icon size={20} className={tint.icon} aria-hidden="true" />
-                    </span>
-                    <span className="flex-1 font-nunito text-sm font-semibold text-card-foreground">
-                      {action.label}
-                    </span>
-                    <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-                  </div>
+                    {content}
+                  </button>
                 );
               })}
             </div>
@@ -605,6 +637,19 @@ export default function MyRental() {
             </Link>
           </DashboardCard>
         </div>
+
+        <SignedLeaseCard
+          tenancyId={tenancy.id}
+          path={tenancy.signed_lease_path}
+          uploadedAt={tenancy.signed_lease_uploaded_at}
+          acknowledgedAt={tenancy.tenant_acknowledged_at}
+          onView={() => void handleViewSignedLease()}
+          viewing={viewingSignedLease}
+          onAcknowledged={() => {
+            toast.success("Lease confirmed");
+            void refetch();
+          }}
+        />
 
         <DashboardCard>
           <div className="flex items-center justify-between mb-3">
