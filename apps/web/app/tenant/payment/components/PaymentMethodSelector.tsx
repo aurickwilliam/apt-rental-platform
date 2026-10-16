@@ -65,7 +65,7 @@ function PaymentMethodOption({
   layout,
 }: {
   method: PaymentMethod;
-  layout: "default" | "other";
+  layout: "default" | "saved" | "other";
 }) {
   const entry = PAYMENT_METHODS.find((item) => item.key === method);
   const label = entry?.label ?? method;
@@ -115,7 +115,8 @@ export default function PaymentMethodSelector({
   const showCardForm = selectedMethod === "Debit/Credit-Card";
   const showCashForm = selectedMethod === "Cash";
   const defaultMethod = preferences.defaultMethod ?? preferences.savedMethods[0] ?? null;
-  const otherMethods = PAYMENT_METHODS.filter((method) => method.key !== defaultMethod);
+  const savedMethods = preferences.savedMethods;
+  const otherMethods = PAYMENT_METHODS.filter((method) => !savedMethods.includes(method.key));
 
   return (
     <section aria-labelledby="payment-method-heading">
@@ -140,7 +141,7 @@ export default function PaymentMethodSelector({
                   <IconCreditCard size={18} />
                 </span>
                 <div>
-                  <p className="text-sm font-nunito font-semibold text-foreground">Saved preference</p>
+                  <p className="text-sm font-nunito font-semibold text-foreground">Saved preferences</p>
                   <p className="text-xs text-muted-foreground">Your default payment type is selected for faster checkout.</p>
                 </div>
               </div>
@@ -148,49 +149,58 @@ export default function PaymentMethodSelector({
                 aria-label="Saved payment preference"
                 value={selectedMethod ?? undefined}
                 onChange={(value) => onPaymentMethodChange(value as PaymentMethod)}
+                className="payment-method-radios"
               >
-                <PaymentMethodOption method={defaultMethod} layout="default" />
+                {savedMethods.map((method) => (
+                  <PaymentMethodOption
+                    key={method}
+                    method={method}
+                    layout={method === defaultMethod ? "default" : "saved"}
+                  />
+                ))}
               </RadioGroup>
             </div>
           )}
 
-          <Accordion
-            className={defaultMethod ? "mt-3" : undefined}
-            defaultExpandedKeys={(defaultMethod ? new Set<string>() : new Set(["other-methods"])) as never}
-          >
-            <AccordionItem id="other-methods" className="overflow-hidden rounded-xl border border-border bg-card">
-              <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-3 text-left">
-                <span className="flex items-start gap-2">
-                  <span className="rounded-lg bg-secondary p-2 text-primary" aria-hidden="true">
-                    <IconCreditCard size={18} />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-nunito font-semibold text-foreground">
-                      {defaultMethod ? "Other payment methods" : "Payment methods"}
+          {otherMethods.length > 0 && (
+            <Accordion
+              className={defaultMethod ? "mt-3" : undefined}
+              defaultExpandedKeys={(defaultMethod ? new Set<string>() : new Set(["other-methods"])) as never}
+            >
+              <AccordionItem id="other-methods" className="overflow-hidden rounded-xl border border-border bg-card">
+                <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-3 text-left">
+                  <span className="flex items-start gap-2">
+                    <span className="rounded-lg bg-secondary p-2 text-primary" aria-hidden="true">
+                      <IconCreditCard size={18} />
                     </span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {defaultMethod ? "Choose a different method for this payment." : "Choose how you want to pay this month’s rent."}
+                    <span>
+                      <span className="block text-sm font-nunito font-semibold text-foreground">
+                        {defaultMethod ? "Other payment methods" : "Payment methods"}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {defaultMethod ? "Choose a different method for this payment." : "Choose how you want to pay this month’s rent."}
+                      </span>
                     </span>
                   </span>
-                </span>
-                <AccordionIndicator className="shrink-0 text-muted-foreground" />
-              </AccordionTrigger>
-              <AccordionPanel>
-                <AccordionBody className="border-t border-border p-3">
-                  <RadioGroup
+                  <AccordionIndicator className="shrink-0 text-muted-foreground" />
+                </AccordionTrigger>
+                <AccordionPanel>
+                  <AccordionBody className="border-t border-border p-3">
+                    <RadioGroup
                     aria-label="Other payment methods"
                     value={selectedMethod ?? undefined}
                     onChange={(value) => onPaymentMethodChange(value as PaymentMethod)}
-                    className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
-                  >
-                    {otherMethods.map((method) => (
-                      <PaymentMethodOption key={method.key} method={method.key} layout="other" />
-                    ))}
-                  </RadioGroup>
-                </AccordionBody>
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
+                    className="payment-method-radios grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+                    >
+                      {otherMethods.map((method) => (
+                        <PaymentMethodOption key={method.key} method={method.key} layout="other" />
+                      ))}
+                    </RadioGroup>
+                  </AccordionBody>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          )}
 
           {preferencesLoading && <p className="mt-3 text-xs text-muted-foreground">Loading saved preferences…</p>}
           {showCardForm && <CardPaymentForm value={cardInformation} onChange={onCardInformationChange} errors={cardErrors} />}

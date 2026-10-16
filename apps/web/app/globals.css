@@ -154,6 +154,75 @@ body[data-scroll-locked] [role="option"] {
   color: #ffffff;
 }
 
+/* Tenant payment method radios. HeroUI's stock 16px rounded-square control
+   is too subtle against the payment-card surface. Scope these visual overrides
+   to checkout: an unselected method gets a clear neutral ring, while selection
+   uses the APT blue ring/fill with a white center dot. */
+.payment-method-radios .radio__control {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+  border-radius: 9999px;
+  border-color: var(--muted-foreground);
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.payment-method-radios .radio[data-selected] .radio__control,
+.payment-method-radios .radio:has(input:checked) .radio__control {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.payment-method-radios .radio[data-selected] .radio__indicator:empty::before,
+.payment-method-radios .radio:has(input:checked) .radio__indicator:empty::before {
+  background-color: var(--primary-foreground);
+  scale: 0.45;
+}
+
+.payment-method-radios .radio:has([data-slot="radio-content"][data-focus-visible="true"]) .radio__control {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* Payment-preference checkboxes mirror the circular Rental Preferences
+   controls while retaining HeroUI's checkmark. */
+.payment-preference-checks .checkbox__control {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+  border-radius: 9999px;
+  border-color: var(--muted-foreground);
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.payment-preference-checks .checkbox__control::before {
+  border-radius: 9999px;
+}
+
+.payment-preference-checks .checkbox[data-selected="true"] .checkbox__control,
+.payment-preference-checks .checkbox[aria-checked="true"] .checkbox__control {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.payment-preference-checks .checkbox[data-selected="true"] .checkbox__control::before,
+.payment-preference-checks .checkbox[aria-checked="true"] .checkbox__control::before {
+  background-color: var(--primary);
+  opacity: 1;
+  scale: 1;
+}
+
+.payment-preference-checks [data-slot="checkbox-default-indicator--checkmark"] {
+  width: 12px;
+  height: 12px;
+  color: var(--primary-foreground);
+}
+
+.payment-preference-checks .checkbox:has([data-slot="checkbox-content"][data-focus-visible="true"]) .checkbox__control {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
 /* Settings dropdown menus: bluish hover/focus and a retained blue
    selected state (HeroUI defaults to gray hover with no selected fill).
    Unlayered so these beat HeroUI's unlayered defaults. color-mix keeps

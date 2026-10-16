@@ -60,7 +60,6 @@ export default function PaymentPreferencesModal({
       <Modal.Backdrop isDismissable={!isSubmitting}>
         <Modal.Container placement="center" size="sm" scroll="inside">
           <Modal.Dialog className="rounded-2xl">
-            <Modal.CloseTrigger isDisabled={isSubmitting} />
             <Modal.Header>
               <Modal.Heading className="font-nunito text-2xl font-bold text-foreground">Payment preferences</Modal.Heading>
             </Modal.Header>
@@ -71,7 +70,7 @@ export default function PaymentPreferencesModal({
 
               <section aria-labelledby="saved-methods-heading">
                 <h3 id="saved-methods-heading" className="text-sm font-nunito font-semibold text-foreground">Saved methods</h3>
-                <CheckboxGroup value={savedMethods} onChange={handleSavedMethodsChange} className="mt-3 gap-2">
+                <CheckboxGroup value={savedMethods} onChange={handleSavedMethodsChange} className="payment-preference-checks mt-3 gap-2">
                   {PAYMENT_METHODS.map((method) => (
                     <Checkbox key={method.key} value={method.key}>
                       <Checkbox.Content>
@@ -93,7 +92,7 @@ export default function PaymentPreferencesModal({
                     aria-label="Default payment method"
                     value={defaultMethod ?? undefined}
                     onChange={(value) => setDefaultMethod(value as PaymentMethod)}
-                    className="mt-3 gap-2"
+                    className="payment-method-radios mt-3 gap-2"
                   >
                     {savedMethods.map((method) => (
                       <Radio key={method} value={method}>
@@ -109,9 +108,9 @@ export default function PaymentPreferencesModal({
                 </section>
               )}
             </Modal.Body>
-            <Modal.Footer>
-              <Button variant="ghost" onPress={state.close} isDisabled={isSubmitting}>Cancel</Button>
-              <Button onPress={() => void handleSave()} isPending={isSubmitting} isDisabled={isSaving}>Save preferences</Button>
+            <Modal.Footer className="grid grid-cols-2 gap-3">
+              <Button variant="ghost" onPress={state.close} isDisabled={isSubmitting} className="w-full">Cancel</Button>
+              <Button onPress={() => void handleSave()} isPending={isSubmitting} isDisabled={isSaving} className="w-full">Save preferences</Button>
             </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
