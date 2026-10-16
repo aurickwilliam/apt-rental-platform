@@ -38,7 +38,7 @@ describe("search preference sanitization", () => {
         bathrooms: "1",
         sizeRange: [15, 60],
         furnishing: ["Semi-Furnished"],
-        floorLevel: ["Low Floor (1–5F)"],
+        floorLevel: ["2nd-5th Floor"],
         leaseDuration: ["6 Months"],
         amenities: ["WiFi"],
         verifiedOnly: true,

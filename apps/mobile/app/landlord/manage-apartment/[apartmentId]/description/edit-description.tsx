@@ -5,7 +5,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 
-import { Button, TextArea, TextField, Label, FieldError } from "heroui-native"
+import { Button, TextArea, TextField, Label, FieldError, Description } from "heroui-native"
+import { MAX_DESCRIPTION_LENGTH, getDescriptionError } from '@repo/constants'
 
 import { supabase } from '@repo/supabase'
 
@@ -41,8 +42,9 @@ export default function EditDescription() {
 
   // Validation
   const validate = (): boolean => {
-    if (!description.trim()) {
-      setError('Description is required.');
+    const descriptionError = getDescriptionError(description);
+    if (descriptionError) {
+      setError(descriptionError);
       return false;
     }
     if (description.trim() === originalDescription.trim()) {
@@ -89,11 +91,15 @@ export default function EditDescription() {
           placeholder="Enter apartment description"
           className="h-125"
           value={description}
+          maxLength={MAX_DESCRIPTION_LENGTH}
           onChangeText={(text) => {
             setDescription(text);
             if (error) setError('');
           }}
         />
+        <Description className="text-right">
+          {description.length.toLocaleString("en-PH")} / {MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}
+        </Description>
         <FieldError>{error}</FieldError>
       </TextField>
 

@@ -3,12 +3,14 @@ import { View, Text } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import AmenityRulesInfoButton from '@/components/display/AmenityRulesInfoButton'
 
 import { Chip, SearchField, Separator } from 'heroui-native'
 
 import { IconX } from '@tabler/icons-react-native'
 
 import { PERKS } from 'constants/perks'
+import { isRetiredAmenity } from '@repo/constants'
 
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 
@@ -29,7 +31,7 @@ export default function Amenities() {
     return allPerks.filter((perk) => {
       const isSelected = amenities.includes(perk.id)
       const matchesSearch = query === '' || perk.name.toLowerCase().includes(query)
-      return !isSelected && matchesSearch
+      return !isSelected && !isRetiredAmenity(perk.id) && matchesSearch
     })
   }, [allPerks, amenities, searchValue])
 
@@ -46,7 +48,7 @@ export default function Amenities() {
     <ScreenWrapper
       className='p-5'
       scrollable
-      header={<StandardHeader title='Add Perks & Amenities' />}
+      header={<StandardHeader title='Add Perks & Amenities' rightComponent={<AmenityRulesInfoButton />} />}
     >
       <SearchField value={searchValue} onChange={setSearchValue}>
         <SearchField.Group className='bg-surface-secondary'>

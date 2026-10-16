@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react-native";
 
 interface LandlordCardProps {
+  appearance?: "card" | "plain";
   fullName: string;
   profilePictureUrl?: string | null;
   withRentalInfo?: boolean;
@@ -37,6 +38,7 @@ function InitialsAvatar({ fullName }: { fullName: string }) {
 }
 
 export default function LandlordCard({
+  appearance = "card",
   fullName,
   profilePictureUrl,
   withRentalInfo = false,
@@ -48,9 +50,9 @@ export default function LandlordCard({
   const { colors } = useColors();
 
   return (
-    <PressableFeedback onPress={onPress} className="rounded-3xl">
+    <PressableFeedback onPress={onPress} className={appearance === "plain" ? "rounded-none" : "rounded-3xl"}>
       <PressableFeedback.Highlight />
-      <Card className="bg-surface border border-border shadow-none rounded-3xl">
+      <Card className={appearance === "plain" ? "bg-transparent border-0 shadow-none rounded-none px-0" : "bg-surface border border-border shadow-none rounded-3xl"}>
         <Card.Body className="flex-row items-center gap-3">
           {/* Avatar */}
           {profilePictureUrl ? (

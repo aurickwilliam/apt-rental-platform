@@ -28,6 +28,8 @@ const ApplyStartModal = dynamic(
 );
 
 interface PriceCardProps {
+  isPreview?: boolean;
+  className?: string;
   price: number;
   apartmentStatus?: string | null;
   securityDeposit: number | undefined;
@@ -40,6 +42,8 @@ interface PriceCardProps {
 }
 
 export default function PriceCard({
+  isPreview = false,
+  className = "",
   price,
   apartmentStatus,
   securityDeposit = 0,
@@ -55,7 +59,7 @@ export default function PriceCard({
   const isUnavailable = isApartmentUnavailable(apartmentStatus);
 
   const handleApply = () => {
-    if (isUnavailable) return;
+    if (isPreview || isUnavailable) return;
     if (applyViewer && applyApartment) setIsApplyOpen(true);
     else if (apartmentId) router.push(`${basePath}/${apartmentId}/apply`);
   };
@@ -87,16 +91,16 @@ export default function PriceCard({
   return (
     <>
       {/* Desktop: full card with visible cost breakdown */}
-      <div className="hidden lg:block">
-        <Card className="border border-border shadow-none w-full">
+      <div className={isPreview ? "block" : "hidden lg:block"}>
+        <Card className={`border border-border shadow-none w-full ${className}`}>
           <Card.Header>
-            <Card.Title className="text-2xl sm:text-3xl font-medium text-primary">
+            <Card.Title className="listing-rent-heading text-2xl sm:text-3xl font-medium text-primary">
               {formattedPrice}<span className="text-base sm:text-xl">/month</span>
             </Card.Title>
           </Card.Header>
 
           <Card.Content>
-            <div className="flex flex-col gap-3 bg-muted p-4 rounded-lg">
+            <div className="listing-cost-breakdown flex flex-col gap-3 bg-muted p-4 rounded-lg">
               {costBreakdown.map(({ label, value, sub }) => (
                 <div key={label} className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
@@ -119,17 +123,18 @@ export default function PriceCard({
           </Card.Content>
 
           <Card.Footer className="flex flex-col gap-2">
-            <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isUnavailable}>
+            <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isPreview || isUnavailable}>
               {isUnavailable ? "Not Available" : "Apply Now"}
             </Button>
 
-            {apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
+            {!isPreview && apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
             {/* Report Button */}
             <Button
               variant="tertiary"
               className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
               fullWidth
+              isDisabled={isPreview}
             >
               <IconFlag size={16} />
               Report
@@ -139,6 +144,7 @@ export default function PriceCard({
       </div>
 
       {/* Mobile: inline actions stay in page flow */}
+      {!isPreview && <>
       <div className="lg:hidden flex flex-col gap-2">
         {apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
@@ -177,6 +183,7 @@ export default function PriceCard({
         </div>
       </div>
 
+      </>}
       <Modal isOpen={breakdownModal.isOpen} onOpenChange={breakdownModal.setOpen}>
         <Modal.Backdrop>
           <Modal.Container size="sm">
@@ -220,7 +227,7 @@ export default function PriceCard({
           </Modal.Container>
         </Modal.Backdrop>
       </Modal>
-      {applyViewer && applyApartment ? (
+      {!isPreview && applyViewer && applyApartment ? (
         <ApplyStartModal
           isOpen={isApplyOpen}
           onOpenChange={setIsApplyOpen}

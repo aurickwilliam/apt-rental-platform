@@ -13,11 +13,17 @@ import { IconX as X, IconPhotoPlus as ImagePlus, IconStar as Star } from "@table
 
 import { createBrowserClient } from "@repo/supabase";
 import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
+import {
+  APARTMENT_IMAGES_BUCKET,
+  type UploadedApartmentImage,
+  uploadApartmentImage,
+} from "@/lib/apartment-image-upload";
 
 type ApartmentImage = {
-  id:       string;
-  url:      string;
-  is_cover: boolean;
+  id:         string;
+  url:        string;
+  url_thumb?: string | null;
+  is_cover:   boolean;
 };
 
 type Props = {
@@ -26,11 +32,6 @@ type Props = {
   apartmentId: string;
   images:      ApartmentImage[];
   onImagesChange: (images: ApartmentImage[]) => void;
-};
-
-const generateFilename = (apartmentId: string, originalName: string) => {
-  const ext = originalName.split(".").pop();
-  return `${apartmentId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 };
 
 export default function ApartmentImagesModal({
@@ -58,29 +59,28 @@ export default function ApartmentImagesModal({
     setUploading(true);
 
     for (const file of files) {
-      const filename = generateFilename(apartmentId, file.name);
-
-      const { error: uploadError } = await supabase.storage
-        .from("apartment-images")
-        .upload(filename, file);
-
-      if (uploadError) { console.error(uploadError); continue; }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("apartment-images")
-        .getPublicUrl(filename);
+      let uploaded: UploadedApartmentImage;
+      try {
+        uploaded = await uploadApartmentImage(supabase, apartmentId, file);
+      } catch (uploadError) {
+        console.error(uploadError);
+        continue;
+      }
 
       const isCover = localImages.length === 0;
 
       const { data: newImage, error: insertError } = await supabase
         .from("apartment_images")
-        .insert({ apartment_id: apartmentId, url: publicUrl, is_cover: isCover })
+        .insert({ apartment_id: apartmentId, url: uploaded.url, url_thumb: uploaded.url_thumb, is_cover: isCover })
         .select()
         .single();
 
-      if (!insertError && newImage) {
-        setLocalImages((prev) => [...prev, newImage as ApartmentImage]);
+      if (insertError || !newImage) {
+        console.error(insertError);
+        await supabase.storage.from(APARTMENT_IMAGES_BUCKET).remove(uploaded.paths);
+        continue;
       }
+      setLocalImages((prev) => [...prev, newImage as ApartmentImage]);
     }
 
     setUploading(false);
@@ -92,9 +92,11 @@ export default function ApartmentImagesModal({
     setDeleting(image.id);
 
     // Extract storage path from URL
-    const path = image.url.split("/apartment-images/")[1];
+    const paths = [image.url, image.url_thumb]
+      .map((url) => url?.split(`/${APARTMENT_IMAGES_BUCKET}/`)[1])
+      .filter((path): path is string => !!path);
 
-    await supabase.storage.from("apartment-images").remove([path]);
+    await supabase.storage.from(APARTMENT_IMAGES_BUCKET).remove(paths);
     await supabase.from("apartment_images").delete().eq("id", image.id);
 
     const updated = localImages.filter((img) => img.id !== image.id);

@@ -12,6 +12,8 @@ import {
 
 import { IconChevronDown as ChevronDown, IconSearch as Search, IconX as X } from "@tabler/icons-react";
 
+import { isRetiredAmenity, toggleAmenitySelection } from "@repo/constants";
+
 import { Perk } from "./perks";
 
 type Props = {
@@ -23,16 +25,16 @@ type Props = {
 export default function AmenitiesSelect({ amenities, selected, onChange }: Props) {
   const [search, setSearch] = useState("");
 
-  const filtered = amenities.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = amenities.filter(
+    (a) =>
+      // Retired perks (e.g. Furnished: use Furnished Type) only stay if picked.
+      (!isRetiredAmenity(a.id) || selected.includes(a.id)) &&
+      a.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const toggle = (id: string) => {
-    onChange(
-      selected.includes(id)
-        ? selected.filter((a) => a !== id)
-        : [...selected, id]
-    );
+    // Picking an amenity turns off any it contradicts (e.g. No Cooking vs Kitchen).
+    onChange(toggleAmenitySelection(selected, id));
   };
 
   const getLabel = (id: string) => amenities.find((a) => a.id === id)?.name ?? id;

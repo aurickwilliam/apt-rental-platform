@@ -126,12 +126,15 @@ export default function SecondProcess() {
   }
 
   return (
-    <ScreenWrapper scrollable ref={scrollRef}>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle="Rental Preferences"
-        nextTitle="Review Application"
         step={2}
       />
+      }
+      scrollable ref={scrollRef}
+    >
 
       <View className="p-5" ref={contentRef}>
         <View

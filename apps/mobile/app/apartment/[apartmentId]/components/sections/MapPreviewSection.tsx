@@ -17,7 +17,10 @@ type MapPreviewSectionProps = {
   apartmentName?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  onOpenMap: () => void;
+  /** Omitted for a listing preview: the map is not tappable. */
+  onOpenMap?: () => void;
+  /** Shows the Get Directions button (off for a listing preview). */
+  showDirections?: boolean;
 };
 
 export default function MapPreviewSection({
@@ -25,6 +28,7 @@ export default function MapPreviewSection({
   latitude,
   longitude,
   onOpenMap,
+  showDirections = true,
 }: MapPreviewSectionProps) {
   const { colors } = useColors();
 
@@ -33,7 +37,7 @@ export default function MapPreviewSection({
 
   const openDirections = async (mode: DirectionMode) => {
     if (latitude == null || longitude == null) {
-      onOpenMap();
+      onOpenMap?.();
       return;
     }
 
@@ -90,20 +94,21 @@ export default function MapPreviewSection({
   };
 
   return (
-    <SectionCard flush>
+    <SectionCard>
         <SectionHeader
           icon={<IconMap size={26} color={colors.textPrimary} />}
           title="View on Map"
-          className="p-5 pb-3 mt-0"
+           className="p-0 pb-3 mt-0"
         />
 
-        <View className='h-64 mx-2 mb-2 rounded-2xl overflow-hidden'>
+        <View className='h-64 rounded-2xl overflow-hidden'>
         <TouchableOpacity
           activeOpacity={0.7}
           style={{ flex: 1 }}
           onPress={onOpenMap}
-          accessibilityRole='button'
-          accessibilityLabel='Open map'
+          disabled={!onOpenMap}
+          accessibilityRole={onOpenMap ? 'button' : undefined}
+          accessibilityLabel={onOpenMap ? 'Open map' : 'Map location'}
         >
           <View style={{ flex: 1 }} pointerEvents='none'>
             <MapViewSwitcher
@@ -115,16 +120,18 @@ export default function MapPreviewSection({
           </View>
         </TouchableOpacity>
 
-        <Button
-          onPress={() => setIsDirectionsModalVisible(true)}
-          size="sm"
-          className='absolute bottom-4 right-4 shadow-md'
-        >
-          <IconNavigation size={16} color={colors.secondaryForeground} />
-          <Button.Label>
-            Get Directions
-          </Button.Label>
-        </Button>
+        {showDirections && (
+          <Button
+            onPress={() => setIsDirectionsModalVisible(true)}
+            size="sm"
+            className='absolute bottom-4 right-4 shadow-md'
+          >
+            <IconNavigation size={16} color={colors.secondaryForeground} />
+            <Button.Label>
+              Get Directions
+            </Button.Label>
+          </Button>
+        )}
         </View>
       <AppDialog
         isOpen={isDirectionsModalVisible}

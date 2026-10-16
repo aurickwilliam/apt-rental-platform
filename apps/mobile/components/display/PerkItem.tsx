@@ -49,10 +49,12 @@ export default function PerkItem({
     "Unknown perk";
 
   return (
-    <View className="flex-row items-center gap-3">
+    // The text shrinks to the space left after the icon and wraps, so long names
+    // ("Near School / University") stay inside a half-width cell.
+    <View className="flex-row items-center gap-3 pr-2">
       {Icon && <Icon size={iconSize} color={iconColor} />}
       <Text
-        className="text-foreground text-sm font-inter mt-1"
+        className="shrink text-foreground text-sm font-inter mt-1"
         style={{ fontSize: textSize }}
       >
         {text}

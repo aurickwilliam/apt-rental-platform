@@ -1,9 +1,18 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { NumberField, Button, Label, Description, FieldError, Select, ListBox } from "@heroui/react";
 import { IconFileText, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  ADVANCE_RENT_MONTH_OPTIONS,
+  MAX_RENT_DUE_DAY,
+  MIN_MONTHLY_RENT,
+  MIN_RENT_DUE_DAY,
+  SECURITY_DEPOSIT_MONTH_OPTIONS,
+  formatPricingMonths,
+  pricingAmountFromMonths,
+  validateApartmentPricing,
+} from "@repo/utils";
 import type { ApartmentFormData, FormErrors } from "../page";
-import { MIN_MONTHLY_RENT } from "../page";
 
 interface Props {
   formData: ApartmentFormData;
@@ -12,8 +21,16 @@ interface Props {
 }
 
 export default function Step3Pricing({ formData, updateForm, errors }: Props) {
-  const securityDepositAmount = formData.security_deposit_months * formData.monthly_rent;
-  const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
+  const [hasBlurredRent, setHasBlurredRent] = useState(false);
+  const pricingErrors = validateApartmentPricing({
+    monthlyRent: formData.monthly_rent,
+    securityDepositMonths: formData.security_deposit_months,
+    advanceRentMonths: formData.advance_rent_months,
+    rentDueDay: formData.rent_due_day,
+  });
+  const monthlyRentError = errors.monthly_rent ?? (hasBlurredRent ? pricingErrors.monthlyRent : undefined);
+  const securityDepositAmount = pricingAmountFromMonths(formData.monthly_rent, formData.security_deposit_months);
+  const advanceRentAmount = pricingAmountFromMonths(formData.monthly_rent, formData.advance_rent_months);
   const total = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
   const leaseAgreementRef = useRef<HTMLInputElement>(null);
 
@@ -26,7 +43,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Pricing
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -34,25 +51,44 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
         </p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
-          minValue={MIN_MONTHLY_RENT}
+          isRequired
           value={formData.monthly_rent}
           onChange={(value) => updateForm({ monthly_rent: value })}
-          isInvalid={!!errors.monthly_rent}
+          isInvalid={!!monthlyRentError}
         >
           <Label>Monthly Rent</Label>
-          <NumberField.Group className="rounded-lg border border-border focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2 bg-card">
+          <NumberField.Group className="create-listing-price-field rounded-lg border border-border focus-within:border-primary! focus-within:border-2! bg-card">
             <span className="text-muted-foreground text-sm pointer-events-none">₱</span>
-            <NumberField.Input className="w-full bg-transparent text-foreground" />
+            <NumberField.Input onBlur={() => setHasBlurredRent(true)} placeholder="e.g. 5,000" className="w-full bg-transparent text-foreground" />
           </NumberField.Group>
           <Description className="text-muted-foreground">
             The base monthly rental rate tenants will see on the listing.
           </Description>
-          <FieldError>{errors.monthly_rent}</FieldError>
+          <FieldError>{monthlyRentError}</FieldError>
         </NumberField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <NumberField
+          isRequired
+          minValue={MIN_RENT_DUE_DAY}
+          maxValue={MAX_RENT_DUE_DAY}
+          step={1}
+          value={formData.rent_due_day}
+          onChange={(value) => updateForm({ rent_due_day: value })}
+          isInvalid={!!errors.rent_due_day}
+        >
+          <Label>Rent Due Day</Label>
+          <NumberField.Group className="create-listing-price-field rounded-lg border border-border focus-within:border-primary! focus-within:border-2! bg-card">
+            <NumberField.Input placeholder="Enter a day (1–31)" className="w-full bg-transparent text-foreground" />
+          </NumberField.Group>
+          <Description className="text-muted-foreground">
+            Day of the month rent is due ({MIN_RENT_DUE_DAY}–{MAX_RENT_DUE_DAY}). Shorter months use their last day.
+          </Description>
+          <FieldError>{errors.rent_due_day}</FieldError>
+        </NumberField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
         <div>
           <Select
             placeholder="Select months"
@@ -67,13 +103,9 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.security_deposit_months}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
-                {[
-                  { value: 0, label: "None" },
-                  { value: 1, label: "1 month" },
-                  { value: 2, label: "2 months" },
-                ].map((option) => (
+                {SECURITY_DEPOSIT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>
@@ -98,12 +130,9 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.advance_rent_months}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
-                {[
-                  { value: 0, label: "None" },
-                  { value: 1, label: "1 month" },
-                ].map((option) => (
+                {ADVANCE_RENT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
                     {option.label}
                   </ListBox.Item>
@@ -117,11 +146,11 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
       </div>
 
       {/* Move-in cost summary — only show when values are set */}
-      {formData.monthly_rent > 0 && (
+      {Number.isFinite(formData.monthly_rent) && formData.monthly_rent >= MIN_MONTHLY_RENT && (
         <div className="bg-muted border border-border rounded-2xl p-5 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             Estimated Move-in Cost
-          </p>
+          </h3>
 
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm">
@@ -131,13 +160,17 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Security Deposit</span>
+              <span className="text-muted-foreground">
+                Security Deposit ({formData.security_deposit_months === 0 ? "0 months" : formatPricingMonths(formData.security_deposit_months)})
+              </span>
               <span className="font-medium">
                 ₱ {securityDepositAmount.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Advance Rent</span>
+              <span className="text-muted-foreground">
+                Advance Rent ({formData.advance_rent_months === 0 ? "0 months" : formatPricingMonths(formData.advance_rent_months)})
+              </span>
               <span className="font-medium">
                 ₱ {advanceRentAmount.toLocaleString()}
               </span>
@@ -153,9 +186,9 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
 
       {/* Lease Agreement Upload */}
       <div>
-        <p className="text-sm font-medium mb-1">
+        <h3 className="text-sm font-medium mb-1">
           Lease Agreement Document <span className="text-danger">*</span>
-        </p>
+        </h3>
         <p className="text-xs text-muted-foreground mb-3">
           Upload a sample lease agreement for potential tenants to review. (PDF or DOCX)
         </p>

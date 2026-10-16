@@ -4,11 +4,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import AmenityRulesInfoButton from '@/components/display/AmenityRulesInfoButton'
 import Divider from 'components/display/Divider'
 
 import { Button, Chip, SearchField, Spinner } from "heroui-native"
 
 import { PERKS } from 'constants/perks'
+import { isRetiredAmenity, toggleAmenitySelection } from '@repo/constants'
 
 import { supabase } from '@repo/supabase'
 
@@ -53,11 +55,8 @@ export default function EditPerks() {
   }, [apartmentId])
 
   const toggleAmenity = useCallback((perkId: string) => {
-    setAmenities((prev) =>
-      prev.includes(perkId)
-        ? prev.filter((id) => id !== perkId)
-        : [...prev, perkId]
-    )
+    // Picking an amenity turns off any it contradicts (e.g. No Cooking vs Kitchen).
+    setAmenities((prev) => toggleAmenitySelection(prev, perkId))
   }, [])
 
   const allPerks = useMemo(() => Object.values(PERKS), [])
@@ -76,7 +75,7 @@ export default function EditPerks() {
     return allPerks.filter((perk) => {
       const isSelected = amenities.includes(perk.id)
       const matchesSearch = query === '' || perk.name.toLowerCase().includes(query)
-      return !isSelected && matchesSearch
+      return !isSelected && !isRetiredAmenity(perk.id) && matchesSearch
     })
   }, [allPerks, amenities, searchValue])
 
@@ -123,7 +122,7 @@ export default function EditPerks() {
   }
 
   return (
-    <ScreenWrapper header={<StandardHeader title='Edit Perks' />}>
+    <ScreenWrapper header={<StandardHeader title='Edit Perks' rightComponent={<AmenityRulesInfoButton />} />}>
       <View className='flex-1'>
 
         {/* Scrollable content */}

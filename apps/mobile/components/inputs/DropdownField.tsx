@@ -84,7 +84,9 @@ export default function DropdownField({
       return;
     }
 
-    if (open) Keyboard.dismiss(); 
+    // Opening hides any keyboard from the screen behind; closing hides the
+    // search box's keyboard (it would otherwise stay up over the form).
+    Keyboard.dismiss();
     setIsOpen(open);
     if (!open) setSearchQuery('');
   };
@@ -159,8 +161,10 @@ export default function DropdownField({
                     <Pressable
                       className={`p-3 rounded-xl flex-row items-center justify-between ${isSelected ? 'bg-accent/10' : 'bg-transparent'}`}
                       onPress={() => {
+                        Keyboard.dismiss();
                         onSelect(isSelected ? null : item);
                         setIsOpen(false);
+                        setSearchQuery('');
                       }}
                     >
                       <Text className="text-base text-foreground text-left font-inter">
