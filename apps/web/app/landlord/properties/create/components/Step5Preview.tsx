@@ -28,7 +28,7 @@ import type { ApartmentFormData } from "../page";
 const GoogleMapPreview = dynamic(() => import("../../components/GoogleMapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-72 rounded-2xl bg-muted animate-pulse border border-border" />
+    <div className="w-full h-72 rounded-3xl bg-muted animate-pulse border border-border" />
   ),
 });
 

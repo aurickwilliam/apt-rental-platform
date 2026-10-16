@@ -284,7 +284,7 @@ export default function GoogleMapPicker({
       )}
 
       <div
-        className={`relative w-full ${mapHeightClass} overflow-hidden rounded-lg border transition ${
+        className={`relative w-full ${mapHeightClass} overflow-hidden rounded-3xl border transition ${
           error ? "border-danger" : "border-border"
         }`}
       >
