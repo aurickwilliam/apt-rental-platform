@@ -20,6 +20,10 @@ export interface BrowseApartment {
   bedrooms?: number;
   bathrooms?: number;
   areaSqm?: number;
+  /** Raw city for recommendation scoring; not rendered directly. */
+  city?: string;
+  /** Raw amenity ids for recommendation scoring; absent when not selected. */
+  amenities?: string[];
 }
 
 export interface BrowseResults {

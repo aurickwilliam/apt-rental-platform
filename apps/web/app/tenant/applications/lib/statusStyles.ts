@@ -9,7 +9,6 @@ export type StatusStyle = {
   description: string;
   Icon: LucideIcon;
   chipColor: StatusTone;
-  iconColor: string;
 };
 
 export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyle {
@@ -20,7 +19,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Your application is being reviewed by the landlord. We'll notify you once there's an update.",
         Icon: Clock,
         chipColor: "warning",
-        iconColor: "#FACC15",
       };
     case "approved":
       return {
@@ -28,7 +26,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Your application has been approved! The landlord will reach out to finalize your lease.",
         Icon: CheckCircle,
         chipColor: "success",
-        iconColor: "#22C55E",
       };
     case "rejected":
       return {
@@ -36,7 +33,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Unfortunately, your application was not approved this time.",
         Icon: XCircle,
         chipColor: "danger",
-        iconColor: "#E50914",
       };
     case "cancelled":
       return {
@@ -44,7 +40,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Your application has been cancelled.",
         Icon: XCircle,
         chipColor: "danger",
-        iconColor: "#9CA3AF",
       };
     case "closed":
       return {
@@ -52,7 +47,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "This apartment has already been leased to another applicant, so this application is now closed.",
         Icon: XCircle,
         chipColor: "neutral",
-        iconColor: "#9CA3AF",
       };
     default:
       return {
@@ -60,7 +54,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "",
         Icon: XCircle,
         chipColor: "neutral",
-        iconColor: "#9CA3AF",
       };
   }
 }

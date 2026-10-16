@@ -261,9 +261,16 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
         sections.map((section, sectionIndex) => (
           <section key={section.id} aria-label={section.title} className="min-w-0">
             <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-              <h3 className="min-w-0 truncate text-lg font-medium">
-                {section.title}
-              </h3>
+              <div className="min-w-0">
+                <h3 className="min-w-0 truncate text-lg font-medium">
+                  {section.title}
+                </h3>
+                {section.subtitle ? (
+                  <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                    {section.subtitle}
+                  </p>
+                ) : null}
+              </div>
               {section.seeAllHref ? (
                 <Link
                   href={section.seeAllHref}
