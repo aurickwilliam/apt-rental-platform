@@ -20,6 +20,10 @@ export default function MoveInCostBreakdown({
   advanceRent,
 }: MoveInCostBreakdownProps) {
   const total = calcMoveInCost(monthlyRent, securityDeposit, advanceRent);
+  const rent = Number(monthlyRent);
+  const deposit = Number(securityDeposit);
+  const depositMonths =
+    rent > 0 && deposit > 0 && deposit % rent === 0 ? deposit / rent : null;
 
   return (
     <View className="gap-3">
@@ -30,8 +34,15 @@ export default function MoveInCostBreakdown({
         </Text>
       </View>
 
-      <View className="flex-row justify-between items-center">
-        <Text className="text-muted font-inter text-base">Security Deposit</Text>
+      <View className="flex-row justify-between items-center gap-3">
+        <Text className="text-muted font-inter text-base flex-shrink">
+          Security Deposit
+          {depositMonths !== null ? (
+            <Text className="text-sm">
+              {` (${depositMonths} month${depositMonths !== 1 ? "s" : ""})`}
+            </Text>
+          ) : null}
+        </Text>
         <Text className="text-foreground font-nunitoSemiBold text-base">
           {formatOrNone(securityDeposit)}
         </Text>
