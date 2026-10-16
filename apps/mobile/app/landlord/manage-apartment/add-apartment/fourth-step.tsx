@@ -18,9 +18,11 @@ import {
   FieldError,
   Button,
   Chip,
+  Description,
 } from "heroui-native";
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
+import { MAX_DESCRIPTION_LENGTH, getDescriptionError } from "@repo/constants";
 
 import { useColors } from "hooks/useTheme";
 
@@ -43,9 +45,8 @@ export default function FourthStep() {
   const validate = () => {
     const newErrors: typeof errors = {};
 
-    if (!description.trim()) {
-      newErrors.description = "Apartment description is required.";
-    }
+    const descriptionError = getDescriptionError(description);
+    if (descriptionError) newErrors.description = descriptionError;
 
     if (amenities.length === 0) {
       newErrors.amenities = "Please add at least one amenity.";
@@ -82,6 +83,7 @@ export default function FourthStep() {
           <TextArea
             placeholder="Write a detailed description of the apartment, including its features, amenities, and any other relevant information that would attract potential renters."
             value={description}
+            maxLength={MAX_DESCRIPTION_LENGTH}
             onChangeText={(text) => {
               setDescription(text);
               if (errors.description)
@@ -89,6 +91,9 @@ export default function FourthStep() {
             }}
             className="h-50"
           />
+          <Description className="text-right">
+            {description.length.toLocaleString("en-PH")} / {MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}
+          </Description>
           {errors.description && <FieldError>{errors.description}</FieldError>}
         </TextField>
 

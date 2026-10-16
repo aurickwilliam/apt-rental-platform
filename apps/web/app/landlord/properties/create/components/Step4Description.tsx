@@ -4,6 +4,7 @@ import { Description, FieldError, InputGroup, Label, TextArea, TextField } from 
 import { IconSearch } from "@tabler/icons-react";
 import { isRetiredAmenity, toggleAmenitySelection } from "@repo/constants";
 import { PERKS } from "../../../../components/inputs/perks";
+import { MAX_DESCRIPTION_LENGTH } from "@repo/constants";
 import type { ApartmentFormData, FormErrors } from "../page";
 
 interface Props {
@@ -51,13 +52,16 @@ export default function Step4Description({ formData, updateForm, errors }: Props
           placeholder="Tell tenants about the property — location highlights, nearby establishments, house rules, what's included, etc."
           value={formData.description}
           onChange={(e) => updateForm({ description: e.target.value })}
+          maxLength={MAX_DESCRIPTION_LENGTH}
           variant="primary"
           rows={6}
           className="w-full rounded-lg border border-border bg-card text-foreground shadow-none outline-none ring-0 placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/20 data-[focus-visible=true]:border-primary data-[focus-visible=true]:ring-1 data-[focus-visible=true]:ring-primary/20"
         />
 
         {/* Description / Character counter slot */}
-        <Description className="text-muted-foreground">{`${formData.description.length} characters`}</Description>
+        <Description className="text-muted-foreground text-right">
+          {`${formData.description.length.toLocaleString("en-PH")} / ${MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}`}
+        </Description>
         
         {/* Error feedback slot */}
         <FieldError>{errors.description}</FieldError>

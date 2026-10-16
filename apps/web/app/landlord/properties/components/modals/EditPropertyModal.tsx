@@ -43,6 +43,8 @@ import {
   isCamanavaCity,
   isCamanavaZipForCity,
   getBarangaysByCity,
+  MAX_DESCRIPTION_LENGTH,
+  getDescriptionError,
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
@@ -61,7 +63,8 @@ type EditErrorField =
   | "barangay"
   | "city"
   | "zip_code"
-  | "latitude";
+  | "latitude"
+  | "description";
 
 type EditErrors = Partial<Record<EditErrorField, string>>;
 
@@ -140,6 +143,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
     }
 
     const city = form.city ?? "";
+    const descriptionError = getDescriptionError(form.description ?? "");
+    if (descriptionError) next.description = descriptionError;
     if (!form.street_address?.trim()) next.street_address = "Street address is required.";
     if (!form.barangay?.trim()) next.barangay = "Barangay is required.";
     if (!isCamanavaCity(city)) next.city = "Select a city within CAMANAVA.";
@@ -265,7 +270,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           onChange={(e) => updateForm("name", e.target.value)}
                         />
                       </TextField>
-                      <TextField>
+                      <TextField isInvalid={!!errors.description}>
                         <Label>
                           Description
                         </Label>
@@ -274,8 +279,13 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           placeholder="Describe the unit..."
                           value={form.description ?? ""}
                           onChange={(e) => updateForm("description", e.target.value)}
+                          maxLength={MAX_DESCRIPTION_LENGTH}
                           rows={10}
                         />
+                        <Description className="text-right">
+                          {`${(form.description ?? "").length.toLocaleString("en-PH")} / ${MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}`}
+                        </Description>
+                        <FieldError>{errors.description}</FieldError>
                       </TextField>
                     </div>
                   </section>

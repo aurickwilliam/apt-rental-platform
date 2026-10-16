@@ -10,6 +10,7 @@ import {
   isCamanavaCity,
   isCamanavaZipForCity,
   getBarangaysByCity,
+  getDescriptionError,
 } from "@repo/constants";
 import {
   DEFAULT_RENT_DUE_DAY,
@@ -388,7 +389,8 @@ export default function CreateApartmentPage() {
     }
 
     if (step === 4) {
-      if (!data.description.trim()) errors.description = "Description is required.";
+      const descriptionError = getDescriptionError(data.description);
+      if (descriptionError) errors.description = descriptionError;
       if (data.amenities.length === 0) errors.amenities = "Select at least one amenity.";
     }
 
