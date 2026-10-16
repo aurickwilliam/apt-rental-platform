@@ -48,10 +48,12 @@ function validate(values: {
   rentDueDay: string;
   securityDepositMonths: number;
   advanceRentMonths: number;
-  leaseAgreement: string;
+  leaseAgreement: boolean;
 }): FieldErrors {
   const errors: FieldErrors = validateApartmentPricing({
-    monthlyRent: values.monthlyRent.trim() ? Number(values.monthlyRent) : Number.NaN,
+    monthlyRent: values.monthlyRent.trim()
+      ? Number(values.monthlyRent)
+      : Number.NaN,
     securityDepositMonths: values.securityDepositMonths,
     advanceRentMonths: values.advanceRentMonths,
     rentDueDay: values.rentDueDay.trim() ? Number(values.rentDueDay) : null,
@@ -68,7 +70,10 @@ function monthLabels(options: readonly number[]): string[] {
   return options.map(formatPricingMonths);
 }
 
-function monthsFromLabel(options: readonly number[], label: string | null): number {
+function monthsFromLabel(
+  options: readonly number[],
+  label: string | null,
+): number {
   return options.find((months) => formatPricingMonths(months) === label) ?? 0;
 }
 
@@ -98,7 +103,7 @@ export default function ThirdStep() {
       rentDueDay,
       securityDepositMonths,
       advanceRentMonths,
-      leaseAgreement,
+      leaseAgreement: !!leaseAgreement,
     });
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -108,30 +113,37 @@ export default function ThirdStep() {
   }
 
   function handleNext() {
-    if (checkStep()) router.push("/landlord/manage-apartment/add-apartment/fourth-step");
+    if (checkStep())
+      router.push("/landlord/manage-apartment/add-apartment/fourth-step");
   }
 
   const rentAmount = Number(monthlyRent) || 0;
-  const securityDeposit = pricingAmountFromMonths(rentAmount, securityDepositMonths);
+  const securityDeposit = pricingAmountFromMonths(
+    rentAmount,
+    securityDepositMonths,
+  );
   const advanceRent = pricingAmountFromMonths(rentAmount, advanceRentMonths);
-  const totalMoveInCost = calcMoveInCost(monthlyRent, securityDeposit, advanceRent);
+  const totalMoveInCost = calcMoveInCost(
+    monthlyRent,
+    securityDeposit,
+    advanceRent,
+  );
 
   return (
     <ScreenWrapper
       header={
-      <ApplicationHeader
-        currentTitle="Pricing & Terms"
-        step={3}
-        totalSteps={ADD_APARTMENT_TOTAL_STEPS}
-        stepLabels={ADD_APARTMENT_STEP_LABELS}
-        stepHrefs={ADD_APARTMENT_STEP_HREFS}
-        furthestStep={furthestStep}
-        onBeforeLeave={checkStep}
-      />
+        <ApplicationHeader
+          currentTitle="Pricing & Terms"
+          step={3}
+          totalSteps={ADD_APARTMENT_TOTAL_STEPS}
+          stepLabels={ADD_APARTMENT_STEP_LABELS}
+          stepHrefs={ADD_APARTMENT_STEP_HREFS}
+          furthestStep={furthestStep}
+          onBeforeLeave={checkStep}
+        />
       }
       scrollable
     >
-
       <View className="p-5 flex-1">
         <View className="flex gap-3">
           <TextField isRequired isInvalid={!!errors.monthlyRent}>
@@ -146,7 +158,9 @@ export default function ThirdStep() {
                 clearError("monthlyRent");
               }}
             />
-            {errors.monthlyRent && <FieldError>{errors.monthlyRent}</FieldError>}
+            {errors.monthlyRent && (
+              <FieldError>{errors.monthlyRent}</FieldError>
+            )}
           </TextField>
 
           <TextField isRequired isInvalid={!!errors.rentDueDay}>
@@ -169,7 +183,10 @@ export default function ThirdStep() {
             options={monthLabels(SECURITY_DEPOSIT_MONTH_OPTIONS)}
             value={formatPricingMonths(securityDepositMonths)}
             onSelect={(label) => {
-              setField("securityDepositMonths", monthsFromLabel(SECURITY_DEPOSIT_MONTH_OPTIONS, label));
+              setField(
+                "securityDepositMonths",
+                monthsFromLabel(SECURITY_DEPOSIT_MONTH_OPTIONS, label),
+              );
               clearError("securityDepositMonths");
             }}
             error={errors.securityDepositMonths}
@@ -181,7 +198,10 @@ export default function ThirdStep() {
             options={monthLabels(ADVANCE_RENT_MONTH_OPTIONS)}
             value={formatPricingMonths(advanceRentMonths)}
             onSelect={(label) => {
-              setField("advanceRentMonths", monthsFromLabel(ADVANCE_RENT_MONTH_OPTIONS, label));
+              setField(
+                "advanceRentMonths",
+                monthsFromLabel(ADVANCE_RENT_MONTH_OPTIONS, label),
+              );
               clearError("advanceRentMonths");
             }}
             error={errors.advanceRentMonths}
@@ -241,17 +261,10 @@ export default function ThirdStep() {
           label="Lease Agreement:"
           placeholder="No lease agreement uploaded yet."
           required
-          value={leaseAgreement
-            ? {
-              uri: leaseAgreement,
-              name: 'lease_agreement',
-              mimeType: 'application/pdf',
-              size: 0,
-              lastModified: 0
-            } : null}
+          value={leaseAgreement}
           error={errors.leaseAgreement}
           onChange={(asset) => {
-            setField("leaseAgreement", asset?.uri ?? '');
+            setField("leaseAgreement", asset);
             clearError("leaseAgreement");
           }}
         />

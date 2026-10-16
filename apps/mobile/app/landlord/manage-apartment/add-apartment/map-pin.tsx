@@ -76,7 +76,7 @@ export default function MapPin() {
   const handleConfirm = () => {
     setField("latitude", markerCoords.latitude);
     setField("longitude", markerCoords.longitude);
-    setField("mapConfirmed", true);
+    setField("mapConfirmed", false);
     router.back();
   };
 
@@ -138,10 +138,16 @@ export default function MapPin() {
         <View className="p-5 gap-4 bg-background">
           <View className="flex-row justify-between">
             <Text className="text-foreground font-nunitoSemiBold">
-              Lat: <Text className="text-muted font-inter">{markerCoords.latitude.toFixed(6)}</Text>
+              Latitude:{" "}
+              <Text className="text-muted font-inter">
+                {markerCoords.latitude.toFixed(6)}
+              </Text>
             </Text>
             <Text className="text-foreground font-nunitoSemiBold">
-              Lng: <Text className="text-muted font-inter">{markerCoords.longitude.toFixed(6)}</Text>
+              Longitude:{" "}
+              <Text className="text-muted font-inter">
+                {markerCoords.longitude.toFixed(6)}
+              </Text>
             </Text>
           </View>
 

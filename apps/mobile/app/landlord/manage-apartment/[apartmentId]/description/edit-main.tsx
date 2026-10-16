@@ -173,9 +173,10 @@ export default function EditMain() {
 
       // Set lease agreement URI if exists
       if (apartment.lease_agreement_url) {
+        const fileName = apartment.lease_agreement_url.split('/').pop() ?? 'lease-agreement';
         setLeaseAsset({
           uri: apartment.lease_agreement_url,
-          name: 'lease_agreement',
+          name: fileName,
           mimeType: 'application/pdf',
           size: 0,
           lastModified: 0

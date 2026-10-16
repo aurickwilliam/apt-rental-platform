@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { DocumentPickerAsset } from 'expo-document-picker'
 import { ImagePickerAsset } from 'expo-image-picker'
 
 export interface ApartmentFormData {
@@ -29,7 +30,7 @@ export interface ApartmentFormData {
   rentDueDay: string
   securityDepositMonths: number
   advanceRentMonths: number
-  leaseAgreement: string
+  leaseAgreement: DocumentPickerAsset | null
 
   // Step 4
   description: string
@@ -76,7 +77,7 @@ const initialState: ApartmentFormData = {
   rentDueDay: '5',
   securityDepositMonths: 0,
   advanceRentMonths: 0,
-  leaseAgreement: '',
+  leaseAgreement: null,
   description: '', 
   amenities: [],
   furthestStep: 1,

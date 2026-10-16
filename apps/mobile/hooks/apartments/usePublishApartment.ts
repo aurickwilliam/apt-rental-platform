@@ -121,16 +121,17 @@ export function usePublishApartment() {
 
       // 3. Upload lease agreement
       if (store.leaseAgreement) {
-        const ext = store.leaseAgreement.split('.').pop()?.toLowerCase() ?? 'pdf'
+        const { uri, name, mimeType } = store.leaseAgreement
+        const ext = name.split('.').pop()?.toLowerCase() ?? 'pdf'
         const fileName = `${apartment.id}/lease-agreement.${ext}`
 
-        const file = new File(store.leaseAgreement)
+        const file = new File(uri)
         const bytes = await file.bytes()
 
         const { error: uploadError } = await supabase.storage
           .from('lease-agreements')
           .upload(fileName, bytes, {
-            contentType: getMimeType(store.leaseAgreement),
+            contentType: mimeType ?? getMimeType(name),
             upsert: true,
           })
 
