@@ -53,6 +53,10 @@ export type CurrentTenancy = {
   // Day of the month rent falls due (server source of truth, default 5).
   rent_due_day: number;
   status: string;
+  // Executed contract uploaded by the landlord; tenants view and confirm it.
+  signed_lease_path: string | null;
+  signed_lease_uploaded_at: string | null;
+  tenant_acknowledged_at: string | null;
   apartment: TenancyApartment;
   landlord: TenancyLandlord | null;
 };
@@ -87,6 +91,9 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
       monthly_rent,
       rent_due_day,
       status,
+      signed_lease_path,
+      signed_lease_uploaded_at,
+      tenant_acknowledged_at,
       apartment:apartments (
         id,
         name,
