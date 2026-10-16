@@ -5,7 +5,7 @@ export type PaymentMethodPreference = {
   defaultMethod: PaymentMethod | null;
 };
 
-export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid";
+export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid" | "Rejected";
 
 export interface PaymentRecord {
   id: string;

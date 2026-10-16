@@ -107,6 +107,12 @@ function PaymentContent() {
   // no pending fees this is the shared `period.isFullyPaid`.
   const isPeriodPaid =
     totalDue > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= totalDue;
+  const isCashPaymentPending = (paymentsQuery.data ?? []).some(
+    (payment) =>
+      payment.method === "cash" &&
+      payment.status === "pending" &&
+      payment.period_start === period.periodStart,
+  );
 
   const landlordName =
     landlord?.first_name || landlord?.last_name
@@ -130,6 +136,13 @@ function PaymentContent() {
     if (isProcessing || isPeriodPaid) return;
     if (!activeMethod) {
       setPaymentError({ message: "Please select a payment method before proceeding.", title: "No Payment Method" });
+      return;
+    }
+    if (activeMethod === "Cash" && isCashPaymentPending) {
+      setPaymentError({
+        title: "Cash Payment Pending",
+        message: "Your cash payment is awaiting landlord confirmation. You can submit another request only if it is declined.",
+      });
       return;
     }
     if (!tenancy || !apartment) {
@@ -420,13 +433,14 @@ function PaymentContent() {
               preferences={paymentPreferences.data}
               preferencesLoading={paymentPreferences.loading}
               onManagePreferences={() => setIsPreferenceModalOpen(true)}
+              isCashPaymentPending={isCashPaymentPending}
             />
           </div>
         </div>
 
         {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer parity) */}
         <div className="sticky bottom-4 z-20 mt-4">
-          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid} />
+          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
       </div>
 

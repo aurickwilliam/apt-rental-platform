@@ -144,8 +144,8 @@ export function useLandlordPayment(paymentId: string | null) {
   return { payment, loading, error, refetch };
 }
 
-// Landlord confirms pending cash → paid. Optimistic flip with rollback; settles
-// mark-stale only (no extra refetch) — the notification trigger is the signal.
+// Landlord resolves pending cash → paid or rejected. Rejected cash may be
+// resubmitted by the tenant for the same billing period.
 export function useLandlordPaymentConfirmation() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -153,7 +153,7 @@ export function useLandlordPaymentConfirmation() {
   const confirm = useCallback(async (paymentId: string): Promise<boolean> => {
     setPending(true);
     setError(null);
-    const result = await updateLandlordPaymentStatus(paymentId);
+      const result = await updateLandlordPaymentStatus(paymentId, "paid");
     setPending(false);
     if (!result.success) {
       setError(result.error ?? "Could not update payment status.");
@@ -162,7 +162,19 @@ export function useLandlordPaymentConfirmation() {
     return true;
   }, []);
 
+  const reject = useCallback(async (paymentId: string): Promise<boolean> => {
+    setPending(true);
+    setError(null);
+    const result = await updateLandlordPaymentStatus(paymentId, "rejected");
+    setPending(false);
+    if (!result.success) {
+      setError(result.error ?? "Could not reject payment.");
+      return false;
+    }
+    return true;
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
-  return { confirm, pending, error, clearError };
+  return { confirm, reject, pending, error, clearError };
 }

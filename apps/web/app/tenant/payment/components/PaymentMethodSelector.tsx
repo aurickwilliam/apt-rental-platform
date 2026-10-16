@@ -12,7 +12,7 @@ import {
   Radio,
   RadioGroup,
 } from "@heroui/react";
-import { IconCashBanknote, IconCreditCard, IconSettings } from "@tabler/icons-react";
+import { IconCashBanknote, IconClockHour4, IconCreditCard, IconSettings } from "@tabler/icons-react";
 import type { CardFormErrors } from "@repo/utils";
 
 import { PAYMENT_METHODS } from "../constants";
@@ -32,6 +32,7 @@ interface PaymentMethodSelectorProps {
   preferences: PaymentMethodPreference;
   preferencesLoading: boolean;
   onManagePreferences: () => void;
+  isCashPaymentPending: boolean;
 }
 
 function PaymentMethodLogo({ method }: { method: PaymentMethod }) {
@@ -63,9 +64,11 @@ function PaymentMethodLogo({ method }: { method: PaymentMethod }) {
 function PaymentMethodOption({
   method,
   layout,
+  isDisabled = false,
 }: {
   method: PaymentMethod;
   layout: "default" | "saved" | "other";
+  isDisabled?: boolean;
 }) {
   const entry = PAYMENT_METHODS.find((item) => item.key === method);
   const label = entry?.label ?? method;
@@ -77,9 +80,9 @@ function PaymentMethodOption({
         : `Pay using ${label}.`;
 
   return (
-    <Radio value={method} className="min-w-0">
+    <Radio value={method} isDisabled={isDisabled} className="min-w-0">
       <Radio.Content
-        className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all data-[selected=true]:border-primary data-[selected=true]:bg-primary/5"
+        className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all data-[selected=true]:border-primary data-[selected=true]:bg-primary/5 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-60"
       >
         <Radio.Control>
           <Radio.Indicator />
@@ -111,6 +114,7 @@ export default function PaymentMethodSelector({
   preferences,
   preferencesLoading,
   onManagePreferences,
+  isCashPaymentPending,
 }: PaymentMethodSelectorProps) {
   const showCardForm = selectedMethod === "Debit/Credit-Card";
   const showCashForm = selectedMethod === "Cash";
@@ -156,6 +160,7 @@ export default function PaymentMethodSelector({
                     key={method}
                     method={method}
                     layout={method === defaultMethod ? "default" : "saved"}
+                    isDisabled={method === "Cash" && isCashPaymentPending}
                   />
                 ))}
               </RadioGroup>
@@ -192,14 +197,24 @@ export default function PaymentMethodSelector({
                     onChange={(value) => onPaymentMethodChange(value as PaymentMethod)}
                     className="payment-method-radios grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
                     >
-                      {otherMethods.map((method) => (
-                        <PaymentMethodOption key={method.key} method={method.key} layout="other" />
+                  {otherMethods.map((method) => (
+                        <PaymentMethodOption key={method.key} method={method.key} layout="other" isDisabled={method.key === "Cash" && isCashPaymentPending} />
                       ))}
                     </RadioGroup>
                   </AccordionBody>
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
+          )}
+
+          {isCashPaymentPending && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500 dark:bg-amber-950/40 dark:text-amber-200" role="status">
+              <IconClockHour4 size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="font-nunito font-semibold">Awaiting landlord confirmation</p>
+                <p className="mt-0.5 text-xs">You can submit another cash payment only if this request is declined.</p>
+              </div>
+            </div>
           )}
 
           {preferencesLoading && <p className="mt-3 text-xs text-muted-foreground">Loading saved preferences…</p>}

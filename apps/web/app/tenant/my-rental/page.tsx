@@ -34,12 +34,14 @@ function normalizePaymentStatus(status?: string | null): PaymentStatus {
   const value = status?.toLowerCase() ?? "";
   if (value === "paid" || value === "completed") return "paid";
   if (value === "late" || value === "overdue") return "late";
+  if (value === "rejected" || value === "declined") return "rejected";
   return "pending";
 }
 
 function statusBadge(status: PaymentStatus) {
   if (status === "paid") return <StatusChip variant="success">Paid</StatusChip>;
   if (status === "late") return <StatusChip variant="danger">Late</StatusChip>;
+  if (status === "rejected") return <StatusChip variant="danger">Rejected</StatusChip>;
   return <StatusChip variant="warning">Pending</StatusChip>;
 }
 
