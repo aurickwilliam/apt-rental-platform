@@ -170,7 +170,7 @@ export default function FifthStep() {
 
         <RatingsSection reviews={[]} />
 
-        <SectionCard>
+        <SectionCard appearance="card">
           <SectionHeader
             icon={<IconCash size={26} color={colors.textPrimary} />}
             title="Move-in Cost"

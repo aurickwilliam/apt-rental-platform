@@ -13,6 +13,7 @@ import {
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface LandlordCardProps {
+  className?: string;
   name: string;
   avatarUrl?: string | null;
   onMessagePress?: () => void;
@@ -33,6 +34,7 @@ const getInitials = (value: string) => {
 };
 
 export default function LandlordCard({
+  className = "",
   name,
   avatarUrl,
   onMessagePress,
@@ -44,7 +46,7 @@ export default function LandlordCard({
   const avatarSrc = avatarUrl?.trim() || undefined;
 
   return (
-    <Card className="border border-border shadow-none">
+    <Card className={`border border-border shadow-none ${className}`}>
       <Card.Content className="flex flex-row items-center justify-between gap-4">
         <UserAvatar
           src={avatarSrc}

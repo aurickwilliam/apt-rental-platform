@@ -94,14 +94,14 @@ export default function MapPreviewSection({
   };
 
   return (
-    <SectionCard flush>
+    <SectionCard>
         <SectionHeader
           icon={<IconMap size={26} color={colors.textPrimary} />}
           title="View on Map"
-          className="p-5 pb-3 mt-0"
+           className="p-0 pb-3 mt-0"
         />
 
-        <View className='h-64 mx-2 mb-2 rounded-2xl overflow-hidden'>
+        <View className='h-64 rounded-2xl overflow-hidden'>
         <TouchableOpacity
           activeOpacity={0.7}
           style={{ flex: 1 }}

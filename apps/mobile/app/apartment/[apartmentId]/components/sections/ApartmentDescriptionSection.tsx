@@ -28,14 +28,16 @@ export default function ApartmentDescriptionSection({
   const text = description?.trim() || 'The owner has not added a description yet.';
 
   return (
-    <SectionCard>
-      <SectionHeader
+    <View className="gap-3">
+      <View className="px-5">
+        <SectionHeader
         icon={<IconBuilding size={26} color={colors.textPrimary} />}
         title="Everything About Your Apartment"
         className="p-0 mt-0"
-      />
+        />
+      </View>
 
-      <View className='mt-3'>
+      <SectionCard appearance="card">
         <Text
           numberOfLines={isReadMore ? undefined : COLLAPSED_LINES}
           ellipsizeMode='tail'
@@ -70,7 +72,7 @@ export default function ApartmentDescriptionSection({
             </Button>
           </View>
         )}
-      </View>
-    </SectionCard>
+      </SectionCard>
+    </View>
   );
 }

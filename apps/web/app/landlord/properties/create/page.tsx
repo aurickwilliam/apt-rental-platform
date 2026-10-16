@@ -491,7 +491,7 @@ export default function CreateApartmentPage() {
       <div className="px-6 py-8">
         {step === 5 && (
           <div className="max-w-7xl mx-auto w-full">
-            <Step5Preview formData={formData} />
+            <Step5Preview formData={formData} landlord={profile} />
           </div>
         )}
 

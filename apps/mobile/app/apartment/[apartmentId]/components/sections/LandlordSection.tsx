@@ -23,6 +23,7 @@ export default function LandlordSection({
   return (
     <View className='px-5'>
       <LandlordCard
+        appearance="card"
         fullName={fullName || 'Landlord'}
         profilePictureUrl={landlord?.avatar_url}
         onPress={onPress}

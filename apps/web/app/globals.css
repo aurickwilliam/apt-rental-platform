@@ -133,6 +133,55 @@ body[data-scroll-locked] [role="option"] {
   border-radius: var(--radius-3xl);
 }
 
+/* Step 5 uses flat sections; shared browse cards remain unchanged. */
+.create-listing-flow .card.create-listing-preview-card {
+  min-width: 0;
+  padding: 1.25rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.create-listing-flow .card.create-listing-preview-boxed {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+  background-color: var(--card);
+}
+
+.create-listing-flow .create-listing-preview-card h3 {
+  margin-block-start: 0;
+}
+
+.create-listing-flow .listing-rent-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.create-listing-flow .listing-cost-breakdown {
+  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+/* The browse rating summary is a score, not an 18px section heading. */
+.create-listing-flow .create-listing-preview-ratings h3 {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@media (min-width: 40rem) {
+  .create-listing-flow .listing-rent-heading {
+    font-size: 2.25rem;
+  }
+
+  .create-listing-flow .create-listing-preview-ratings h3 {
+    font-size: 3.75rem;
+  }
+}
+
 /* Indicators are controls, not placeholders: give them readable contrast.
    The parent Select still owns disabled opacity and open-state rotation. */
 .create-listing-flow .select__indicator {
