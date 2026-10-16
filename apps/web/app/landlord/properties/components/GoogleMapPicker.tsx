@@ -25,13 +25,11 @@ interface GoogleMapInstance {
   setCenter(position: GoogleLatLngLiteral): void;
   getCenter(): GoogleLatLng | undefined;
   getZoom(): number | undefined;
-  getMapTypeId(): string | undefined;
 }
 
 interface MapView {
   center: GoogleLatLngLiteral;
   zoom: number;
-  mapTypeId: string;
 }
 
 interface GoogleMarkerInstance {
@@ -50,10 +48,6 @@ interface GoogleMapsNamespace {
       mapTypeId?: string;
       colorScheme: "DARK" | "LIGHT";
       mapTypeControl?: boolean;
-      mapTypeControlOptions?: {
-        style?: unknown;
-        position?: number;
-      };
       streetViewControl?: boolean;
       fullscreenControl?: boolean;
     },
@@ -67,8 +61,6 @@ interface GoogleMapsNamespace {
     clearInstanceListeners(instance: unknown): void;
     trigger(instance: unknown, eventName: string): void;
   };
-  ControlPosition: Record<string, number>;
-  MapTypeControlStyle: Record<string, unknown>;
 }
 
 function getGoogleMaps(): GoogleMapsNamespace | null {
@@ -169,17 +161,13 @@ export default function GoogleMapPicker({
             : DEFAULT_CENTER;
 
         // Google only reads colorScheme at construction. Restore the camera
-        // and selected map type when rebuilding after an Appearance change.
+        // when rebuilding after an Appearance change. Always use Map view.
         const map = new maps.Map(containerRef.current, {
           center: savedViewRef.current?.center ?? initial,
           zoom: savedViewRef.current?.zoom ?? (hasPin ? 15 : 13),
-          mapTypeId: savedViewRef.current?.mapTypeId ?? "roadmap",
+          mapTypeId: "roadmap",
           colorScheme: resolvedTheme === "dark" ? "DARK" : "LIGHT",
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-            style: maps.MapTypeControlStyle.DEFAULT,
-            position: maps.ControlPosition.LEFT_BOTTOM,
-          },
+          mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
         });
@@ -223,7 +211,6 @@ export default function GoogleMapPicker({
           savedViewRef.current = {
             center: { lat: center.lat(), lng: center.lng() },
             zoom: map.getZoom() ?? 13,
-            mapTypeId: map.getMapTypeId() ?? "roadmap",
           };
         }
         maps?.event.clearInstanceListeners(map);

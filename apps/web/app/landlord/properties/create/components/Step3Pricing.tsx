@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { NumberField, Button, Label, Description, FieldError, Select, ListBox } from "@heroui/react";
 import { IconFileText, IconUpload, IconX } from "@tabler/icons-react";
 import {
@@ -10,6 +10,7 @@ import {
   SECURITY_DEPOSIT_MONTH_OPTIONS,
   formatPricingMonths,
   pricingAmountFromMonths,
+  validateApartmentPricing,
 } from "@repo/utils";
 import type { ApartmentFormData, FormErrors } from "../page";
 
@@ -20,6 +21,14 @@ interface Props {
 }
 
 export default function Step3Pricing({ formData, updateForm, errors }: Props) {
+  const [hasBlurredRent, setHasBlurredRent] = useState(false);
+  const pricingErrors = validateApartmentPricing({
+    monthlyRent: formData.monthly_rent,
+    securityDepositMonths: formData.security_deposit_months,
+    advanceRentMonths: formData.advance_rent_months,
+    rentDueDay: formData.rent_due_day,
+  });
+  const monthlyRentError = errors.monthly_rent ?? (hasBlurredRent ? pricingErrors.monthlyRent : undefined);
   const securityDepositAmount = pricingAmountFromMonths(formData.monthly_rent, formData.security_deposit_months);
   const advanceRentAmount = pricingAmountFromMonths(formData.monthly_rent, formData.advance_rent_months);
   const total = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
@@ -34,7 +43,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Pricing
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -42,25 +51,26 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
         </p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
-          minValue={MIN_MONTHLY_RENT}
+          isRequired
           value={formData.monthly_rent}
           onChange={(value) => updateForm({ monthly_rent: value })}
-          isInvalid={!!errors.monthly_rent}
+          isInvalid={!!monthlyRentError}
         >
           <Label>Monthly Rent</Label>
-          <NumberField.Group className="rounded-lg border border-border focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2 bg-card">
+          <NumberField.Group className="create-listing-price-field rounded-lg border border-border focus-within:border-primary! focus-within:border-2! bg-card">
             <span className="text-muted-foreground text-sm pointer-events-none">₱</span>
-            <NumberField.Input className="w-full bg-transparent text-foreground" />
+            <NumberField.Input onBlur={() => setHasBlurredRent(true)} placeholder="e.g. 5,000" className="w-full bg-transparent text-foreground" />
           </NumberField.Group>
           <Description className="text-muted-foreground">
             The base monthly rental rate tenants will see on the listing.
           </Description>
-          <FieldError>{errors.monthly_rent}</FieldError>
+          <FieldError>{monthlyRentError}</FieldError>
         </NumberField>
 
         <NumberField
+          isRequired
           minValue={MIN_RENT_DUE_DAY}
           maxValue={MAX_RENT_DUE_DAY}
           step={1}
@@ -69,8 +79,8 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           isInvalid={!!errors.rent_due_day}
         >
           <Label>Rent Due Day</Label>
-          <NumberField.Group className="rounded-lg border border-border focus-within:border-primary! focus-within:border-2! px-3 flex items-center gap-2 bg-card">
-            <NumberField.Input className="w-full bg-transparent text-foreground" />
+          <NumberField.Group className="create-listing-price-field rounded-lg border border-border focus-within:border-primary! focus-within:border-2! bg-card">
+            <NumberField.Input placeholder="Enter a day (1–31)" className="w-full bg-transparent text-foreground" />
           </NumberField.Group>
           <Description className="text-muted-foreground">
             Day of the month rent is due ({MIN_RENT_DUE_DAY}–{MAX_RENT_DUE_DAY}). Shorter months use their last day.
@@ -78,7 +88,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
           <FieldError>{errors.rent_due_day}</FieldError>
         </NumberField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
         <div>
           <Select
             placeholder="Select months"
@@ -136,7 +146,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
       </div>
 
       {/* Move-in cost summary — only show when values are set */}
-      {formData.monthly_rent > 0 && (
+      {Number.isFinite(formData.monthly_rent) && formData.monthly_rent >= MIN_MONTHLY_RENT && (
         <div className="bg-muted border border-border rounded-2xl p-5 flex flex-col gap-3">
           <h3 className="text-sm font-semibold text-foreground">
             Estimated Move-in Cost
@@ -150,13 +160,17 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Security Deposit</span>
+              <span className="text-muted-foreground">
+                Security Deposit ({formData.security_deposit_months === 0 ? "0 months" : formatPricingMonths(formData.security_deposit_months)})
+              </span>
               <span className="font-medium">
                 ₱ {securityDepositAmount.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Advance Rent</span>
+              <span className="text-muted-foreground">
+                Advance Rent ({formData.advance_rent_months === 0 ? "0 months" : formatPricingMonths(formData.advance_rent_months)})
+              </span>
               <span className="font-medium">
                 ₱ {advanceRentAmount.toLocaleString()}
               </span>

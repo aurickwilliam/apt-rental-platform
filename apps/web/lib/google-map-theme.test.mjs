@@ -9,7 +9,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 
-test("map follows resolved Appearance while retaining camera, map type and latest pin", async () => {
+test("map follows resolved Appearance while retaining camera and latest pin in Map view only", async () => {
   const slots = [];
   const pendingEffects = [];
   const maps = [];
@@ -55,7 +55,6 @@ test("map follows resolved Appearance while retaining camera, map type and lates
       setCenter(position) { this.center = position; }
       getCenter() { return { lat: () => this.center.lat, lng: () => this.center.lng }; }
       getZoom() { return this.zoom; }
-      getMapTypeId() { return this.mapTypeId; }
     },
     Marker: class {
       constructor(options) { Object.assign(this, options); this.handlers = {}; markers.push(this); }
@@ -65,8 +64,6 @@ test("map follows resolved Appearance while retaining camera, map type and lates
       setMap(map) { this.map = map; }
     },
     event: { clearInstanceListeners: instance => cleared.push(instance), trigger() {} },
-    ControlPosition: { LEFT_BOTTOM: 1 },
-    MapTypeControlStyle: { DEFAULT: 0 },
   };
   const modules = {
     react,
@@ -97,20 +94,22 @@ test("map follows resolved Appearance while retaining camera, map type and lates
   await render();
   await render();
   assert.equal(maps[0].colorScheme, "DARK");
+  assert.equal(maps[0].mapTypeId, "roadmap");
+  assert.equal(maps[0].mapTypeControl, false, "Map/Satellite switch is hidden");
 
   props = { ...props, latitude: 14.7, longitude: 120.95 };
   await render();
   assert.equal(markers[0].position.lat, 14.7);
   maps[0].center = { lat: 14.8, lng: 121 };
   maps[0].zoom = 17;
-  maps[0].mapTypeId = "satellite";
   theme = "light";
   await render();
   await render();
   assert.equal(maps[1].colorScheme, "LIGHT");
   assert.equal(maps[1].center.lat, 14.8, "theme changes do not recenter on the pin");
   assert.equal(maps[1].zoom, 17);
-  assert.equal(maps[1].mapTypeId, "satellite");
+  assert.equal(maps[1].mapTypeId, "roadmap");
+  assert.equal(maps[1].mapTypeControl, false);
   assert.equal(markers[0].map, null, "old marker is detached");
   assert.ok(cleared.includes(maps[0]));
   assert.ok(cleared.includes(markers[0]));

@@ -117,6 +117,27 @@ body[data-scroll-locked] [role="option"] {
   font-family: var(--font-nunito), ui-sans-serif, sans-serif;
 }
 
+.create-listing-flow h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-block-start: 0.5rem;
+}
+
+.create-listing-flow .label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Indicators are controls, not placeholders: give them readable contrast.
+   The parent Select still owns disabled opacity and open-state rotation. */
+.create-listing-flow .select__indicator {
+  color: var(--muted-foreground);
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
+}
+
 .create-listing-actions > .button {
   width: min(10rem, calc((100% - 1rem) / 2));
   padding-inline: 0.75rem;
@@ -131,6 +152,51 @@ body[data-scroll-locked] [role="option"] {
 .create-listing-options .list-box-item {
   border-radius: 9999px;
   padding-inline: 0.75rem;
+}
+
+/* Pricing fields own their inset once, at the group level. HeroUI's inner
+   input padding must not add a second inset or extra space after the peso. */
+.create-listing-flow .create-listing-price-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.create-listing-flow .create-listing-price-field .number-field__input {
+  flex: 1;
+  padding-inline: 0;
+  text-align: start;
+}
+
+/* Posting-form steppers: keep the end controls inside their grid cells. */
+.create-listing-flow .number-field__group:has([slot="decrement"]):has([slot="increment"]) {
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  overflow: hidden;
+}
+
+/* The group clips the outer corners; square button edges avoid a second,
+   inset curve. Match the grid cells and remove padding/borders that overflow. */
+.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button) {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.create-listing-flow .number-field__increment-button {
+  border-inline-start: 1px solid var(--border);
+}
+
+.create-listing-flow .number-field__decrement-button {
+  border-inline-end: 1px solid var(--border);
+}
+
+.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button):not(:disabled):not([aria-disabled="true"]):is(:hover, [data-hovered="true"]) {
+  background-color: var(--muted);
 }
 
 /* Listing progress: keep HeroUI's keyboard/press handling, with the existing

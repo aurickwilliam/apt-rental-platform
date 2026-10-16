@@ -13,8 +13,6 @@ import {
   getDescriptionError,
 } from "@repo/constants";
 import {
-  DEFAULT_RENT_DUE_DAY,
-  MIN_MONTHLY_RENT,
   pricingAmountFromMonths,
   validateApartmentPricing,
 } from "@repo/utils";
@@ -82,8 +80,10 @@ const INITIAL_FORM: ApartmentFormData = {
   latitude: null,
   longitude: null,
   isPinConfirmed: false,
-  monthly_rent: MIN_MONTHLY_RENT,
-  rent_due_day: DEFAULT_RENT_DUE_DAY,
+  // React Aria NumberField uses NaN for an empty controlled number input.
+  // Shared pricing validation rejects it before advancing or submitting.
+  monthly_rent: Number.NaN,
+  rent_due_day: Number.NaN,
   security_deposit_months: 0,
   advance_rent_months: 0,
   lease_agreement: null,

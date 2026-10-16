@@ -56,12 +56,13 @@ export default function Step5Preview({ formData }: Props) {
     .filter(Boolean)
     .join(", ");
 
-  const securityDepositAmount = formData.security_deposit_months * formData.monthly_rent;
-  const advanceRentAmount = formData.advance_rent_months * formData.monthly_rent;
-  const totalMoveInCost = formData.monthly_rent + securityDepositAmount + advanceRentAmount;
+  const monthlyRent = Number.isFinite(formData.monthly_rent) ? formData.monthly_rent : 0;
+  const securityDepositAmount = formData.security_deposit_months * monthlyRent;
+  const advanceRentAmount = formData.advance_rent_months * monthlyRent;
+  const totalMoveInCost = monthlyRent + securityDepositAmount + advanceRentAmount;
 
   const costBreakdown: { label: string; value: string; sub?: string }[] = [
-    { label: "Monthly Rent", value: formatPesoDisplay(formData.monthly_rent) },
+    { label: "Monthly Rent", value: formatPesoDisplay(monthlyRent) },
     {
       label: "Security Deposit",
       value: formatPesoDisplay(securityDepositAmount),
@@ -87,7 +88,7 @@ export default function Step5Preview({ formData }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="mb-2">
-        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Preview
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -152,7 +153,7 @@ export default function Step5Preview({ formData }: Props) {
             <Card className="border border-border shadow-none w-full">
               <Card.Header>
                 <Card.Title className="text-2xl sm:text-3xl font-medium text-primary">
-                  {formatPesoDisplay(formData.monthly_rent)}<span className="text-base sm:text-xl">/month</span>
+                  {formatPesoDisplay(monthlyRent)}<span className="text-base sm:text-xl">/month</span>
                 </Card.Title>
               </Card.Header>
 

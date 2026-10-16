@@ -48,7 +48,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Photos & Title
         </h2>
         <p className="text-muted-foreground text-sm">

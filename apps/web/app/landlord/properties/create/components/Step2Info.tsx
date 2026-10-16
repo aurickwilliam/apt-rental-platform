@@ -74,7 +74,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
+        <h2 className="text-2xl font-bold font-nunito text-primary mb-1">
           Apartment Info
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -400,6 +400,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
+              placeholder="e.g. 1400"
               value={formData.zip_code}
               onChange={(e) => {
                 const onlyNums = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
@@ -437,7 +438,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 14.5995"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+                className="font-inter w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400"
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.latitude}</FieldError>
@@ -456,7 +457,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             <NumberField.Group className="flex items-center w-full bg-card rounded-xl border border-border transition-colors focus-within:border-primary! focus-within:ring-2 focus-within:ring-primary/20">
               <NumberField.Input 
                 placeholder="e.g. 120.9842"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400" 
+                className="font-inter w-full bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-default-400"
               />
             </NumberField.Group>
             <FieldError className="text-xs text-danger">{errors.longitude}</FieldError>
