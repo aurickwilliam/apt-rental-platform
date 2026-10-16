@@ -182,8 +182,8 @@ export default function SignedLeaseModal({
               ) : null}
             </Modal.Body>
 
-            <Modal.Footer className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" isDisabled={uploading} onPress={onClose} className="rounded-full font-nunito">
+            <Modal.Footer className="flex gap-2">
+              <Button variant="ghost" size="sm" isDisabled={uploading} onPress={onClose} className="flex-1 rounded-full font-nunito">
                 Cancel
               </Button>
               <Button
@@ -191,7 +191,7 @@ export default function SignedLeaseModal({
                 isPending={uploading}
                 isDisabled={!file || !!fileError}
                 onPress={() => void handleUpload()}
-                className="rounded-full font-nunito"
+                className="flex-1 rounded-full font-nunito"
               >
                 {isReplacing ? "Replace file" : "Upload file"}
               </Button>
