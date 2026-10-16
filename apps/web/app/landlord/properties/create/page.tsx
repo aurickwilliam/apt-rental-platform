@@ -20,7 +20,7 @@ import {
 } from "@repo/utils";
 import { useUser } from "@/hooks/use-user";
 import { APARTMENT_IMAGES_BUCKET, uploadApartmentImage } from "@/lib/apartment-image-upload";
-import { IconArrowLeft, IconCircleCheck } from "@tabler/icons-react";
+import { IconCircleCheck } from "@tabler/icons-react";
 
 
 import Step1Photos from "./components/Step1Photos";
@@ -110,9 +110,11 @@ function uniqueStoragePath(apartmentId: string, fileName: string): string {
 export default function CreateApartmentPage() {
   const { profile } = useUser();
   const [step, setStep] = useState(1);
+  const [furthestStep, setFurthestStep] = useState(1);
   const [formData, setFormData] = useState<ApartmentFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [isValidatingLocation, setIsValidatingLocation] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -145,11 +147,11 @@ export default function CreateApartmentPage() {
       : { latitude: `The map pin must be inside the selected CAMANAVA city (${formData.city}).` };
   };
 
-  const handleNext = async () => {
+  const validateBeforeContinue = async (): Promise<boolean> => {
     const stepErrors = validateStep(step, formData);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
-      return;
+      return false;
     }
 
     if (step === 2) {
@@ -158,7 +160,7 @@ export default function CreateApartmentPage() {
         const locationErrors = await validateLocationBeforeContinue();
         if (Object.keys(locationErrors).length > 0) {
           setErrors(locationErrors);
-          return;
+          return false;
         }
       } finally {
         setIsValidatingLocation(false);
@@ -166,10 +168,35 @@ export default function CreateApartmentPage() {
     }
 
     setErrors({});
-    setStep((s) => Math.min(s + 1, 5));
+    return true;
+  };
+
+  const handleNext = async () => {
+    if (isValidatingLocation || isSubmitting || !(await validateBeforeContinue())) return;
+
+    const nextStep = Math.min(step + 1, STEPS.length);
+    setFurthestStep((previous) => Math.max(previous, nextStep));
+    setStep(nextStep);
+  };
+
+  const handleStepSelect = async (target: number) => {
+    if (target === step || target > furthestStep || isValidatingLocation || isSubmitting) return;
+    if (target > step && !(await validateBeforeContinue())) return;
+
+    setErrors({});
+    setStep(target);
   };
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+
+  const handleDiscard = () => {
+    setFormData(INITIAL_FORM);
+    setErrors({});
+    setStep(1);
+    setFurthestStep(1);
+    setIsCancelOpen(false);
+    router.replace("/landlord/properties");
+  };
 
   const handleSubmitClick = () => {
     // Validate everything before asking for confirmation; jump to the
@@ -398,21 +425,11 @@ export default function CreateApartmentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto py-6">
-        <Button
-          onPress={router.back}
-          variant="outline"
-        >
-          <IconArrowLeft size={20} />
-          Back
-        </Button>
-      </div>
-
+    <div className="create-listing-flow min-h-screen bg-background">
       {/* Top progress bar */}
-      <div className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
+      <nav aria-label="Listing progress" className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
+          <ol className="flex items-center justify-between">
             {STEPS.map((s, i) => {
 
               const num = i + 1;
@@ -420,15 +437,30 @@ export default function CreateApartmentPage() {
               const isDone = step > num;
 
               return (
-                <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
-                  <div className="flex items-center w-full">
+                <li key={s.short} className="relative flex-1 min-w-0">
+                  <div aria-hidden="true" className="absolute inset-x-0 top-6 -translate-y-1/2 flex items-center pointer-events-none">
                     {/* line before */}
                     <div
                       className={`flex-1 h-0.5 transition-colors ${i === 0 ? "invisible" : isDone || isActive ? "bg-primary" : "bg-border"}`}
                     />
 
-                    {/* circle */}
+                    <div className="w-8 shrink-0" />
+                    {/* line after */}
                     <div
+                      className={`flex-1 h-0.5 transition-colors ${i === STEPS.length - 1 ? "invisible" : isDone ? "bg-primary" : "bg-border"}`}
+                    />
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    className="create-listing-step"
+                    aria-label={`Step ${num}: ${s.label}`}
+                    aria-current={isActive ? "step" : undefined}
+                    isDisabled={num > furthestStep || isValidatingLocation || isSubmitting}
+                    onPress={() => handleStepSelect(num)}
+                  >
+                    <span
+                      aria-hidden="true"
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all ${
                         isDone
                           ? "bg-primary text-white"
@@ -438,26 +470,22 @@ export default function CreateApartmentPage() {
                       }`}
                     >
                       {isDone ? <IconCircleCheck size={16} /> : num}
-                    </div>
-                    {/* line after */}
-                    <div
-                      className={`flex-1 h-0.5 transition-colors ${i === STEPS.length - 1 ? "invisible" : isDone ? "bg-primary" : "bg-border"}`}
-                    />
-                  </div>
+                    </span>
 
-                  <span
-                    className={`text-xs hidden sm:block text-center transition-colors ${
-                      isActive ? "text-primary font-medium" : isDone ? "text-primary/60" : "text-muted-foreground"
-                    }`}
-                  >
-                    {s.short}
-                  </span>
-                </div>
+                    <span
+                      className={`text-xs hidden sm:block text-center transition-colors ${
+                        isActive ? "text-primary font-medium" : isDone ? "text-primary/60" : "text-muted-foreground"
+                      }`}
+                    >
+                      {s.short}
+                    </span>
+                  </Button>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
-      </div>
+      </nav>
 
       {/* Step content */}
       <div className="px-6 py-8">
@@ -474,28 +502,25 @@ export default function CreateApartmentPage() {
           {step === 4 && <Step4Description formData={formData} updateForm={updateForm} errors={errors} />}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-10 pt-6 border-t border-border">
+          <div className="create-listing-actions flex justify-between gap-4 mt-10 pt-6 border-t border-border">
             <Button
-              variant="tertiary"
-              onPress={handleBack}
-              isDisabled={step === 1}
-              className="px-6"
+              variant={step === 1 ? "danger-soft" : "tertiary"}
+              onPress={step === 1 ? () => setIsCancelOpen(true) : handleBack}
+              isDisabled={isValidatingLocation || isSubmitting}
             >
-              Back
+              {step === 1 ? "Cancel" : "Back"}
             </Button>
             {step < 5 ? (
               <Button
                 onPress={handleNext}
                 isPending={step === 2 && isValidatingLocation}
                 isDisabled={isValidatingLocation}
-                className="px-8"
               >
                 Continue
               </Button>
             ) : (
               <Button
                 onPress={handleSubmitClick}
-                className="px-8"
               >
                 Submit Listing
               </Button>
@@ -503,6 +528,38 @@ export default function CreateApartmentPage() {
           </div>
         </div>
       </div>
+
+      {/* Discard confirmation */}
+      <Modal>
+        <Modal.Backdrop isOpen={isCancelOpen} onOpenChange={setIsCancelOpen}>
+          <Modal.Container size="sm">
+            <Modal.Dialog className="create-listing-flow">
+              {({ close }) => (
+                <>
+                  <Modal.Header>
+                    <Modal.Heading className="font-medium text-xl">
+                      Discard listing?
+                    </Modal.Heading>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <p className="text-sm text-muted-foreground">
+                      Your progress and selected photos will be discarded.
+                    </p>
+                  </Modal.Body>
+                  <Modal.Footer className="flex gap-2">
+                    <Button autoFocus variant="tertiary" onPress={close} className="flex-1">
+                      Keep editing
+                    </Button>
+                    <Button variant="danger" onPress={handleDiscard} className="flex-1">
+                      Discard listing
+                    </Button>
+                  </Modal.Footer>
+                </>
+              )}
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
 
       {/* Submit confirmation */}
       <Modal>
@@ -513,7 +570,7 @@ export default function CreateApartmentPage() {
           }}
         >
           <Modal.Container size="sm">
-            <Modal.Dialog>
+            <Modal.Dialog className="create-listing-flow">
               {({ close }) => (
                 <>
                   <Modal.Header>

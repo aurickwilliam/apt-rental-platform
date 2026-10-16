@@ -87,7 +87,7 @@ export default function Step5Preview({ formData }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="mb-2">
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
           Preview
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -109,9 +109,9 @@ export default function Step5Preview({ formData }: Props) {
               <h1 className="text-2xl sm:text-3xl font-medium text-primary break-words">
                 {formData.name || "Untitled Listing"}
               </h1>
-              <h3 className="text-sm sm:text-base text-foreground/80 break-words">
+              <p className="text-sm sm:text-base text-foreground/80 break-words">
                 {fullAddress || "No address provided"}
-              </h3>
+              </p>
             </div>
 
             {/* Quick stats grid */}
@@ -119,9 +119,9 @@ export default function Step5Preview({ formData }: Props) {
               {stats.map(({ icon: Icon, label }) => (
                 <div key={label} className="flex gap-2 items-center min-w-0">
                   <Icon size={22} className="text-grey-700 shrink-0" />
-                  <h2 className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
+                  <p className="text-sm sm:text-base font-medium text-grey-700 min-w-0 break-words">
                     {label}
-                  </h2>
+                  </p>
                 </div>
               ))}
             </div>

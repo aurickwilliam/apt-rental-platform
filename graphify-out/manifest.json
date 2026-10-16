@@ -700,8 +700,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/ApartmentDescriptionSection.tsx": {
-    "mtime": 1792048366.7251945,
-    "ast_hash": "b428f28d7aa13f072970f15d1e289ab0",
+    "mtime": 1792117077.467733,
+    "ast_hash": "9349832ff52be7a46b2d8a9945606239",
     "semantic_hash": ""
   },
   "apps/mobile/app/apartment/[apartmentId]/components/sections/ApartmentDetailsSection.tsx": {
@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/[apartmentId]/description/edit-description.tsx": {
-    "mtime": 1787060341.8779254,
-    "ast_hash": "43294c177105f4559fdb37bf114c5d68",
+    "mtime": 1792116997.59867,
+    "ast_hash": "d26b8e133d76fb9ed918e56d1b74b4fc",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/[apartmentId]/description/edit-main.tsx": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/fourth-step.tsx": {
-    "mtime": 1792073049.9418757,
-    "ast_hash": "447cccdf1a787f5f8e398ddf40c0d567",
+    "mtime": 1792117001.8120456,
+    "ast_hash": "aa59a20084c06a1fe960f4cd5a351883",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/manage-apartment/add-apartment/index.tsx": {
@@ -5220,8 +5220,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/modals/EditPropertyModal.tsx": {
-    "mtime": 1792073609.6175961,
-    "ast_hash": "e597cef2280d81e71dba437a6864f277",
+    "mtime": 1792117034.4394324,
+    "ast_hash": "c5ccb7a38e2f76fb179fe8048572f88c",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/components/modals/LeaseAgreementModal.tsx": {
@@ -5260,8 +5260,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step4Description.tsx": {
-    "mtime": 1792115533.1582184,
-    "ast_hash": "74e10caca81fdc02d94ec334d044d814",
+    "mtime": 1792117034.4387448,
+    "ast_hash": "bd62b29824bb0c61a1b3dabfc2b520c4",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/components/Step5Preview.tsx": {
@@ -5275,8 +5275,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/create/page.tsx": {
-    "mtime": 1792072206.8180656,
-    "ast_hash": "87e863e1eb5e3a6c375ac712de34aea9",
+    "mtime": 1792117034.4391217,
+    "ast_hash": "1835aeeef4597dbd8ef08f8651dd89d0",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/page.tsx": {
@@ -6340,8 +6340,8 @@
     "semantic_hash": ""
   },
   "packages/constants/src/apartment/index.ts": {
-    "mtime": 1792115381.27859,
-    "ast_hash": "720d9ab20530d6a240945c5a34bff792",
+    "mtime": 1792116972.5591433,
+    "ast_hash": "57ef9f4214f27481b25d5a84514a365c",
     "semantic_hash": ""
   },
   "packages/constants/src/apartment/lease-duration.ts": {
@@ -6845,8 +6845,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792115725.867309,
-    "ast_hash": "c2dad02b52d66dcb7dca9f5f55c7f211",
+    "mtime": 1792117191.8434324,
+    "ast_hash": "f7c200c4d3d1abe75a9b0becfddad0bb",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
@@ -8047,6 +8047,21 @@
   "supabase/tests/profile_update_permissions.test.sql": {
     "mtime": 1792030736.461174,
     "ast_hash": "b062d9c58879b9dce8cabe56b37c6a4d",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/apartment-description.test.mjs": {
+    "mtime": 1792116972.5629785,
+    "ast_hash": "395d519480ddec778a390d1ec9845a70",
+    "semantic_hash": ""
+  },
+  "packages/constants/src/apartment/apartment-description.ts": {
+    "mtime": 1792116972.5588207,
+    "ast_hash": "fd2c8ddf6ce5f9caa5d5668376fc4776",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261016022131_apartment_description_length.sql": {
+    "mtime": 1792116972.565001,
+    "ast_hash": "c1588287c19c5cf02ce2af746ce47635",
     "semantic_hash": ""
   }
 }

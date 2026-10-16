@@ -34,7 +34,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
           Pricing
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -93,7 +93,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.security_deposit_months}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {SECURITY_DEPOSIT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -120,7 +120,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.advance_rent_months}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {ADVANCE_RENT_MONTH_OPTIONS.map((months) => ({ value: months, label: formatPricingMonths(months) })).map((option) => (
                   <ListBox.Item key={option.value} id={String(option.value)} textValue={option.label} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -138,9 +138,9 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
       {/* Move-in cost summary — only show when values are set */}
       {formData.monthly_rent > 0 && (
         <div className="bg-muted border border-border rounded-2xl p-5 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             Estimated Move-in Cost
-          </p>
+          </h3>
 
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm">
@@ -172,9 +172,9 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
 
       {/* Lease Agreement Upload */}
       <div>
-        <p className="text-sm font-medium mb-1">
+        <h3 className="text-sm font-medium mb-1">
           Lease Agreement Document <span className="text-danger">*</span>
-        </p>
+        </h3>
         <p className="text-xs text-muted-foreground mb-3">
           Upload a sample lease agreement for potential tenants to review. (PDF or DOCX)
         </p>

@@ -99,6 +99,8 @@ Mobile `gray-500` is `#626B73` (dark `#9CA3AF`), matching mobile secondary text.
 
 ### Web-only theme (`apps/web/app/globals.css`)
 
+The shared landlord Google map picker and its read-only listing preview follow the resolved Appearance theme using Google's native light/dark map color scheme. Theme switches preserve the selected pin, camera position, zoom and map type; satellite imagery is unchanged. No CSS inversion/filter is applied to map tiles or controls.
+
 `:root`: `--radius 0.625rem`, `--background #F8F9FA`, `--foreground #333333`, `--card #FFFFFF`, `--primary #376BF5`, `--brand #376BF5` (dark `#5B8BF7`; `text-brand` for headings and links, like mobile `text-accent`), `--secondary #EFF6FF` / `--secondary-foreground #2F5FE0` / `--secondary-hover #E2ECFE` (soft blue; dark `#1A2340` / `#5B8BF7` / `#1C2647`), `--sky #0369A1` / `--sky-light #E0F2FE` (dark `#7DD3FC` / `#0C2A3D`), `--color-rating #FBBF24`, `--muted #E5E7EB`, `--muted-foreground #6C757D`, `--accent #EFF6FF`, `--destructive #E50914`, `--border #D1D5DB`, `--ring #376BF5`. HeroUI themed purely by `--heroui-primary/--heroui-focus` (no `HeroUIProvider` config); dark mode keeps `--primary #376BF5`.
 
 ⚠ Undefined legacy tokens: `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `mediumGrey`, `COLORS.redHead`; tenant pages' one-off `zinc-*` palette (§24.2, §24.5).
@@ -131,6 +133,8 @@ Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile class
 | Web page H1 | `text-5xl` | 48px |
 
 **Conventions:** mobile screen titles and big stat values `font-nunitoBold` (`text-xl`+; e.g. `text-accent text-3xl font-nunitoBold`; brand blue, not orange); section headers `text-foreground text-lg font-nunitoSemiBold` + 24px icon; card titles `text-base/xl font-nunitoSemiBold`, labels `text-muted text-sm font-nunitoSemiBold`; web headers `text-5xl text-brand font-bold` + `text-sm text-muted-foreground` subtitle; labels HeroUI `Label` (web), required `*` in `text-danger`; web eyebrows/table headers `text-[11px] uppercase tracking-wider`; money `font-nunitoSemiBold` (line items) / `font-nunitoBold` (totals, stat values) in `text-primary`/`text-accent` via `formatPesoDisplay`; chat `text-sm leading-6` (body copy, `font-inter`).
+
+The web create-listing flow uses Nunito for step/section headings, field labels, buttons, progress labels and preview card titles; Inter for body copy, entered values, help/error text and dropdown options. The scope also covers the portaled publish/discard confirmation dialogs, without changing shared browse components globally. Posting-form dropdown options use pill-shaped hover/focus/selection surfaces with 8px list padding and 12px horizontal item padding; HeroUI's minimum item height is retained.
 
 ⚠ Do NOT use `font-noto-serif`, `font-dm-serif`, `font-poppinsSemiBold` (no font loaded — silent fallback). New families require `typography.ts` + both `globals.css` + mobile font loading.
 
@@ -275,6 +279,8 @@ Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3x
 - **Sidebar** ✅ (shared `AppSidebar`): `w-64` (256px), collapsible to `w-16` rail; items `gap-3`, active `bg-sidebar-primary text-sidebar-primary-foreground`, icons `w-5 h-5`; footer user block; content `bg-background min-h-screen w-full`. Collapse preference persists per portal (`admin-`/`tenant-`/`landlord-sidebar-collapsed`); mobile uses the `MobileSidebarNavigation` FAB menu with `pb-20 md:pb-0` content clearance.
 - **Admin sidebar:** starts expanded at `w-64` with a collapse icon to the right of the linked logo. In the `w-16` collapsed rail, the APT mark becomes the expand control on hover or keyboard focus; icons stay centered with hover labels above the avatar menu. Save the preference locally; mobile retains its menu. Tenant and landlord portals mirror this behavior with their own storage keys and Tabler icons.
 - **Footer** ✅: full-width `bg-primary text-white`; desktop `md:flex justify-between gap-10`; mobile HeroUI `Accordion`; socials `ghost isIconOnly bg-white/20 hover:bg-white/30` size 26; links `text-white/80 hover:text-white`; `Separator h-0.5 bg-white`
+- **Create-listing progress** ✅: sticky circle-and-label stepper (Photos · Info · Pricing · Details · Preview), vertically centered with equal header padding and no top Back button; bottom Back/Continue navigation remains. HeroUI buttons make circles and labels one keyboard-accessible target with `aria-current="step"`. Previously reached steps stay available; backward jumps preserve the draft, forward jumps revalidate the current step (including the Info location check), and unreached steps stay disabled. Step navigation is disabled during location validation or submission.
+- **Create-listing actions** ✅: the bottom left action is Cancel on step 1 and Back on steps 2–5; both bottom buttons have matching widths (up to 160px, shrinking equally on narrow screens). Cancel opens a discard confirmation with Keep editing (initial focus, preserves the draft) and Discard listing (clears the draft and returns to Properties); dismissing the dialog also preserves progress.
 - No breadcrumb usage in production pages; no route transitions
 
 ### Mobile

@@ -34,7 +34,7 @@ export default function Step4Description({ formData, updateForm, errors }: Props
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
           Description & Amenities
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -71,9 +71,9 @@ export default function Step4Description({ formData, updateForm, errors }: Props
       <div>
         <div className="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <p className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-foreground"}`}>
+            <h3 className={`text-sm font-semibold ${errors.amenities ? "text-danger" : "text-foreground"}`}>
               Amenities <span className="text-danger">*</span>
-            </p>
+            </h3>
             {formData.amenities.length > 0 && (
               <p className="text-xs text-primary font-medium">
                 {formData.amenities.length} selected

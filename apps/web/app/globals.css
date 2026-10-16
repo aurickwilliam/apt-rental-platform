@@ -107,6 +107,51 @@ body[data-scroll-locked] [role="option"] {
   pointer-events: auto !important;
 }
 
+/* Listing typography stays local to the wizard and its portaled confirmation.
+   Shared preview sections inherit these roles without changing browse pages. */
+.create-listing-flow {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.create-listing-flow :is(h1, h2, h3, h4, h5, h6, .label, .card__title, button) {
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+}
+
+.create-listing-actions > .button {
+  width: min(10rem, calc((100% - 1rem) / 2));
+  padding-inline: 0.75rem;
+}
+
+/* Scope to the portaled posting-form dropdowns, overriding HeroUI's
+   unlayered item radius without changing other dropdowns. */
+.create-listing-options .list-box {
+  padding: 0.5rem;
+}
+
+.create-listing-options .list-box-item {
+  border-radius: 9999px;
+  padding-inline: 0.75rem;
+}
+
+/* Listing progress: keep HeroUI's keyboard/press handling, with the existing
+   circle-and-label layout. Override unlayered button defaults in this scope. */
+.button.create-listing-step {
+  --button-bg-hover: transparent;
+  --button-bg-pressed: transparent;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  height: auto;
+  min-height: 3rem;
+  padding: 0.5rem 0;
+  border-radius: var(--radius);
+  transform: none;
+}
+
+.button.create-listing-step:disabled {
+  opacity: 1;
+}
+
 /* Rental Preferences checkboxes (Settings → Rental Preferences only).
    HeroUI's checkbox visuals resolve through inherited theme variables, so
    scoping the variables here recolors both states without touching other

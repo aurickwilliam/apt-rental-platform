@@ -48,7 +48,7 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
           Photos & Title
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -73,9 +73,9 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
 
       {/* Cover / Thumbnail */}
       <div>
-        <p className="text-sm font-medium mb-2">
+        <h3 className="text-sm font-medium mb-2">
           Thumbnail Photo <span className="text-danger">*</span>
-        </p>
+        </h3>
         <Input
           ref={thumbnailRef}
           type="file"
@@ -135,9 +135,9 @@ export default function Step1Photos({ formData, updateForm, errors }: Props) {
 
       {/* Additional Photos */}
       <div>
-        <p className="text-sm font-medium mb-2">
+        <h3 className="text-sm font-medium mb-2">
           Additional Photos <span className="text-danger">*</span>
-        </p>
+        </h3>
         <input
           ref={additionalRef}
           type="file"

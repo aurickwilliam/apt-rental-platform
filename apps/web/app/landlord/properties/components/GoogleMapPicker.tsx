@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 const DEFAULT_CENTER = { lat: 14.665, lng: 120.967 };
 const SCRIPT_ID = "google-maps-js";
@@ -22,6 +23,15 @@ interface GoogleMapMouseEvent {
 interface GoogleMapInstance {
   addListener(eventName: string, handler: (e: GoogleMapMouseEvent) => void): void;
   setCenter(position: GoogleLatLngLiteral): void;
+  getCenter(): GoogleLatLng | undefined;
+  getZoom(): number | undefined;
+  getMapTypeId(): string | undefined;
+}
+
+interface MapView {
+  center: GoogleLatLngLiteral;
+  zoom: number;
+  mapTypeId: string;
 }
 
 interface GoogleMarkerInstance {
@@ -37,6 +47,8 @@ interface GoogleMapsNamespace {
     options: {
       center: GoogleLatLngLiteral;
       zoom: number;
+      mapTypeId?: string;
+      colorScheme: "DARK" | "LIGHT";
       mapTypeControl?: boolean;
       mapTypeControlOptions?: {
         style?: unknown;
@@ -116,21 +128,27 @@ export default function GoogleMapPicker({
   mapHeightClass = "h-80",
   readOnly = false,
 }: Props) {
+  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const markerRef = useRef<GoogleMarkerInstance | null>(null);
   const onPickRef = useRef(onPick);
+  const coordinatesRef = useRef({ latitude, longitude });
+  const savedViewRef = useRef<MapView | null>(null);
 
   useEffect(() => {
     onPickRef.current = onPick;
   });
 
+  useEffect(() => {
+    coordinatesRef.current = { latitude, longitude };
+  }, [latitude, longitude]);
+
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   const [status, setStatus] = useState<Status>(() => (!apiKey ? "missing-key" : "loading"));
-  const [initialCoords] = useState(() => ({ latitude, longitude }));
 
   useEffect(() => {
-    if (!apiKey) return;
+    if (!apiKey || !resolvedTheme) return;
 
     let cancelled = false;
 
@@ -143,14 +161,20 @@ export default function GoogleMapPicker({
           return;
         }
 
+        const coords = coordinatesRef.current;
+        const hasPin = coords.latitude != null && coords.longitude != null;
         const initial: GoogleLatLngLiteral =
-          initialCoords.latitude != null && initialCoords.longitude != null
-            ? { lat: initialCoords.latitude, lng: initialCoords.longitude }
+          coords.latitude != null && coords.longitude != null
+            ? { lat: coords.latitude, lng: coords.longitude }
             : DEFAULT_CENTER;
 
+        // Google only reads colorScheme at construction. Restore the camera
+        // and selected map type when rebuilding after an Appearance change.
         const map = new maps.Map(containerRef.current, {
-          center: initial,
-          zoom: initialCoords.latitude != null && initialCoords.longitude != null ? 15 : 13,
+          center: savedViewRef.current?.center ?? initial,
+          zoom: savedViewRef.current?.zoom ?? (hasPin ? 15 : 13),
+          mapTypeId: savedViewRef.current?.mapTypeId ?? "roadmap",
+          colorScheme: resolvedTheme === "dark" ? "DARK" : "LIGHT",
           mapTypeControl: true,
           mapTypeControlOptions: {
             style: maps.MapTypeControlStyle.DEFAULT,
@@ -166,9 +190,9 @@ export default function GoogleMapPicker({
           onPickRef.current?.(e.latLng.lat(), e.latLng.lng());
         });
 
-        if (initialCoords.latitude != null && initialCoords.longitude != null) {
+        if (coords.latitude != null && coords.longitude != null) {
           const marker = new maps.Marker({
-            position: { lat: initialCoords.latitude, lng: initialCoords.longitude },
+            position: { lat: coords.latitude, lng: coords.longitude },
             map,
             draggable: !readOnly,
           });
@@ -184,14 +208,34 @@ export default function GoogleMapPicker({
 
         setStatus("ready");
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("Google Maps initialization failed", error);
         if (!cancelled) setStatus("error");
       });
 
     return () => {
       cancelled = true;
+      const maps = getGoogleMaps();
+      const map = mapRef.current;
+      if (map) {
+        const center = map.getCenter();
+        if (center) {
+          savedViewRef.current = {
+            center: { lat: center.lat(), lng: center.lng() },
+            zoom: map.getZoom() ?? 13,
+            mapTypeId: map.getMapTypeId() ?? "roadmap",
+          };
+        }
+        maps?.event.clearInstanceListeners(map);
+        mapRef.current = null;
+      }
+      if (markerRef.current) {
+        maps?.event.clearInstanceListeners(markerRef.current);
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
     };
-  }, [apiKey, initialCoords, readOnly]);
+  }, [apiKey, resolvedTheme, readOnly]);
 
   useEffect(() => {
     const maps = getGoogleMaps();
@@ -226,23 +270,6 @@ export default function GoogleMapPicker({
     }
   }, [latitude, longitude, readOnly, status]);
 
-  useEffect(() => {
-    return () => {
-      const maps = getGoogleMaps();
-      if (maps) {
-        if (markerRef.current) {
-          maps.event.clearInstanceListeners(markerRef.current);
-          markerRef.current.setMap(null);
-          markerRef.current = null;
-        }
-        if (mapRef.current) {
-          maps.event.clearInstanceListeners(mapRef.current);
-          mapRef.current = null;
-        }
-      }
-    };
-  }, []);
-
   // Recalculate tiles after mount/open transitions (e.g. expand modal
   // animation) so the map never renders half-loaded.
   useEffect(() => {
@@ -252,9 +279,6 @@ export default function GoogleMapPicker({
       const map = mapRef.current;
       if (!maps || !map) return;
       maps.event.trigger(map, "resize");
-      if (latitude != null && longitude != null) {
-        map.setCenter({ lat: latitude, lng: longitude });
-      }
     }, 350);
     return () => clearTimeout(timer);
   }, [status, latitude, longitude]);
@@ -263,7 +287,7 @@ export default function GoogleMapPicker({
     <div className="flex flex-col gap-1.5">
       {showHeader && (
         <>
-          <p className="text-sm font-medium">
+          <p className="font-nunito text-sm font-medium">
             Pin Location <span className="text-danger">*</span>
           </p>
           <p className="text-xs text-muted-foreground mb-1">

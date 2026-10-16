@@ -74,7 +74,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-2xl font-medium font-noto-serif text-primary mb-1">
+        <h2 className="text-2xl font-medium font-nunito text-primary mb-1">
           Apartment Info
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -84,7 +84,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
       {/* Property type & specs */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-foreground">Property Details</p>
+        <h3 className="text-sm font-semibold text-foreground">Property Details</h3>
         <div className="grid grid-cols-2 gap-4">
           <Select
             value={formData.type ?? null}
@@ -99,7 +99,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.type}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {APARTMENT_TYPES.map((t) => (
                   <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -123,7 +123,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.furnished_type}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {FURNISHED_TYPES.map((t) => (
                   <ListBox.Item key={t} id={t} textValue={t} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -246,7 +246,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
             <FieldError>{errors.floor_level}</FieldError>
 
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {FLOOR_LEVELS.map((t) => (
                   <ListBox.Item 
@@ -281,7 +281,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
             <FieldError>{errors.lease_duration}</FieldError>
 
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {LEASE_DURATIONS.map((t) => (
                   <ListBox.Item 
@@ -301,7 +301,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
 
       {/* Address */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-foreground">Address</p>
+        <h3 className="text-sm font-semibold text-foreground">Address</h3>
 
         <div className="grid grid-cols-2 gap-4">
           <TextField isRequired isInvalid={!!errors.province} isDisabled>
@@ -335,7 +335,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.city}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox>
                 {CAMANAVA_CITIES.map((city) => (
                   <ListBox.Item key={city} id={city} textValue={city} className="text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -363,7 +363,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
               <Select.Indicator />
             </Select.Trigger>
             <FieldError>{errors.barangay}</FieldError>
-            <Select.Popover>
+            <Select.Popover className="create-listing-options font-inter">
               <ListBox className="max-h-64 overflow-y-auto">
                 {getBarangaysByCity(formData.city).map((barangay) => (
                   <ListBox.Item key={barangay} id={barangay} textValue={barangay} className="cursor-pointer text-foreground rounded-lg hover:bg-muted! data-[focus-visible=true]:bg-muted data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary">
@@ -415,9 +415,9 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
       {/* Location */}
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             Location
-          </p>
+          </h3>
           <p className="text-xs text-muted-foreground mt-1">
             Pin your property on the map. The pin must be inside the CAMANAVA city you selected above.
           </p>
