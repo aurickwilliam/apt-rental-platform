@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Modal, Spinner, toast, useOverlayState } from "@heroui/react";
-import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconArrowLeft as ArrowLeft, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
+import { Button, Card, Modal, toast, useOverlayState } from "@heroui/react";
+import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
@@ -17,6 +17,8 @@ import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
+import { PaymentPageHeader, PaymentPageShell } from "./components/PaymentPageLayout";
+import PaymentPageSkeleton from "./components/PaymentPageSkeleton";
 import PaymentFooter from "./components/PaymentFooter";
 import PaymentPreferencesModal from "./components/PaymentPreferencesModal";
 import type { CashPaymentErrors } from "./types";
@@ -272,49 +274,31 @@ function PaymentContent() {
   };
 
   if (tenancyLoading || paymentsQuery.loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment…</p>
-      </div>
-    );
+    return <PaymentPageSkeleton />;
   }
 
   if (tenancyError || !tenancy || !apartment) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
-          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-            <ArrowLeft size={16} /> Back
-          </Button>
-          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
-            <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
-              <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-                {tenancyError ?? "No active rental found on this account."}
-              </p>
-              <Button onPress={() => void refetch()} className="rounded-full font-nunito">
-                Try Again
-              </Button>
-            </Card.Content>
-          </Card>
-        </div>
-      </div>
+      <PaymentPageShell>
+        <PaymentPageHeader />
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
+          <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
+            <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
+              {tenancyError ?? "No active rental found on this account."}
+            </p>
+            <Button onPress={() => void refetch()} className="rounded-full font-nunito">
+              Try Again
+            </Button>
+          </Card.Content>
+        </Card>
+      </PaymentPageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
-        {/* Header */}
-        <div className="flex flex-col gap-1">
-          <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-            <ArrowLeft size={16} /> Back
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-nunito font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Rent Payment</h1>
-            <p className="text-sm text-zinc-500 mt-1">Review your lease, choose a method, and pay.</p>
-          </div>
-        </div>
+    <>
+      <PaymentPageShell>
+        <PaymentPageHeader />
 
         {/* Non-blocking paid notice — page stays interactive, Pay grays out below */}
         {isPeriodPaid && (
@@ -442,7 +426,7 @@ function PaymentContent() {
         <div className="sticky bottom-4 z-20 mt-4">
           <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
-      </div>
+      </PaymentPageShell>
 
       {/* Error dialog (mobile ErrorDialog parity, HeroUI Modal) */}
       <Modal.Root state={errorState}>
@@ -482,7 +466,7 @@ function PaymentContent() {
           }
         }}
       />
-    </div>
+    </>
   );
 }
 
