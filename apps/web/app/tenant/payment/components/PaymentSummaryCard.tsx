@@ -22,7 +22,7 @@ export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, 
   const feesTotal = fees.reduce((sum, fee) => sum + fee.amount, 0);
   const total = monthlyRent + feesTotal;
   return (
-    <Card className={`rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col ${className}`}>
+    <Card className={`rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none h-full flex flex-col ${className}`}>
       <Card.Header className="px-4 pt-4 pb-0">
         <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100">Payment Summary</h3>
         <p className="text-xs text-zinc-500">Monthly rent • billed in full</p>

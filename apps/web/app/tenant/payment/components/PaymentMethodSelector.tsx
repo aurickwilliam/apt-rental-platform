@@ -132,7 +132,7 @@ export default function PaymentMethodSelector({
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-border bg-card shadow-sm">
+      <Card className="rounded-2xl border border-border bg-card shadow-none">
         <Card.Content className="p-4">
           {defaultMethod && (
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">

@@ -269,7 +269,7 @@ function PaymentContent() {
           <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
             <ArrowLeft size={16} /> Back
           </Button>
-          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+          <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
             <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
               <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
                 {tenancyError ?? "No active rental found on this account."}
@@ -331,7 +331,7 @@ function PaymentContent() {
           {/* Row 1, left: lease details */}
           <div className="lg:col-span-2 h-full">
             {/* Apartment / lease card */}
-            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm h-full flex flex-col">
+            <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none h-full flex flex-col">
               <Card.Header className="px-4 pt-4 pb-2">
                 <h3 className="text-base font-nunito font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                   <House size={18} className="text-primary" /> {apartment.name}
