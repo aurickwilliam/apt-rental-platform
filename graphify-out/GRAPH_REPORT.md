@@ -1,17 +1,17 @@
 # Graph Report - apt-rental-platform  (2026-10-17)
 
 ## Corpus Check
-- 1571 files · ~1,148,661 words
+- 1571 files · ~1,148,679 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 32 file(s) not represented in the graph (top: (none) 14, .ttf 7, .kiro 3)
 
 ## Summary
-- 7495 nodes · 22441 edges · 276 communities (250 shown, 26 thin omitted)
+- 7495 nodes · 22442 edges · 276 communities (250 shown, 26 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 688 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `39f8549d`
+- Built from commit: `3f7cfb57`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
