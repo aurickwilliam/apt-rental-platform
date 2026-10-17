@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Spinner, useToast } from "heroui-native";
-import { IconFilter2, IconPlus } from "@tabler/icons-react-native";
+import { IconChartBar, IconFilter2, IconLock, IconPlus } from "@tabler/icons-react-native";
 import {
   financeCategoryLabel,
   financeMonthLabel,
@@ -15,6 +15,8 @@ import {
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
+import EmptyState from "@/components/display/EmptyState";
 import EmptyProperties from "@/app/(tabs)/components/units/EmptyProperties";
 import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
 import { useCurrentUser } from "@/hooks/auth";
@@ -73,7 +75,7 @@ function LandlordAnalytics() {
   const [budgetEditor, setBudgetEditor] = useState<BudgetEditor | null>(null);
   const [collectionStatus, setCollectionStatus] =
     useState<CollectionStatus | null>(null);
-  const [reviewConfirm, setReviewConfirm] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const scope = { month, apartmentId };
   const filterValues = filterDraft ?? scope;
@@ -99,30 +101,26 @@ function LandlordAnalytics() {
       : [];
   const changeTab = (value: string) => {
     setTab(value as FinanceTab);
-    setReviewConfirm(false);
+    setReviewDialogOpen(false);
     setReviewError(null);
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   };
   const changeMonth = (value: string) => {
     setMonth(value);
-    setReviewConfirm(false);
+    setReviewDialogOpen(false);
     setReviewError(null);
   };
   const changeProperty = (value: string | null) => {
     setApartmentId(value);
-    setReviewConfirm(false);
+    setReviewDialogOpen(false);
     setReviewError(null);
   };
   const reviewExpenses = async () => {
-    if (!reviewConfirm) {
-      setReviewConfirm(true);
-      return;
-    }
     if (finance.review.isPending) return;
     setReviewError(null);
     try {
       await finance.review.mutateAsync();
-      setReviewConfirm(false);
+      setReviewDialogOpen(false);
       toast.show({
         label: "Expenses reviewed",
         description: "Operating income is now available for this month.",
@@ -134,6 +132,7 @@ function LandlordAnalytics() {
     }
   };
   const loadingReport = finance.userLoading || (!data && finance.report.isLoading);
+  const accessUnavailable = !finance.enabled && !finance.userError;
   const expenseFooter = <View className="px-5 py-3 border-t border-border bg-background">
     <Button isDisabled={loadingReport} onPress={() => router.push({ pathname: "/landlord/add-expense", params: { month, ...(apartmentId ? { apartmentId } : {}) } })}>
       <IconPlus size={20} color="#FFFFFF" />
@@ -165,17 +164,25 @@ function LandlordAnalytics() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Profit & planning" />}
+        scrollable
         className="p-5"
       >
-        <FinanceError
-          message={
-            !finance.enabled && !finance.userError
-              ? "Sign in with an active landlord account to view finances."
+        <EmptyState
+          className="py-16"
+          icon={accessUnavailable
+            ? <IconLock size={48} color={colors.gray500} />
+            : <IconChartBar size={48} color={colors.gray500} />}
+          title={accessUnavailable ? "Finances unavailable" : "Couldn't load your finances"}
+          description={
+            accessUnavailable
+              ? "Switch to your landlord portal to view and manage finances for your properties."
               : financeErrorMessage(finance.report.error ?? finance.userError)
           }
-          onRetry={() => {
-            void finance.retry();
-          }}
+          action={!accessUnavailable ? (
+            <Button variant="secondary" onPress={() => { void finance.retry(); }}>
+              <Button.Label>Try again</Button.Label>
+            </Button>
+          ) : undefined}
         />
       </ScreenWrapper>
     );
@@ -383,51 +390,15 @@ function LandlordAnalytics() {
                     }
                   />
                   {!active.reviewed && (
-                    <>
-                      {reviewConfirm && (
-                        <Text className="font-inter text-sm text-foreground">
-                          I have entered all expenses paid in{" "}
-                          {financeMonthLabel(month)} for{" "}
-                          {apartmentId
-                            ? data.properties.find(
-                                (property) => property.id === apartmentId,
-                              )?.name
-                            : "all my properties"}
-                          , including any zero-expense properties.
-                        </Text>
-                      )}
-                      <Button
-                        variant="secondary"
-                        isDisabled={finance.review.isPending}
-                        onPress={() => {
-                          void reviewExpenses();
-                        }}
-                      >
-                        <Button.Label>
-                          {finance.review.isPending
-                            ? "Confirming…"
-                            : reviewConfirm
-                              ? "Confirm expenses are complete"
-                              : "Mark expenses reviewed"}
-                        </Button.Label>
-                      </Button>
-                      {reviewConfirm && (
-                        <Button
-                          variant="ghost"
-                          onPress={() => setReviewConfirm(false)}
-                        >
-                          <Button.Label>Keep reviewing</Button.Label>
-                        </Button>
-                      )}
-                      {reviewError && (
-                        <Text
-                          accessibilityRole="alert"
-                          className="font-inter text-sm text-danger"
-                        >
-                          {reviewError}
-                        </Text>
-                      )}
-                    </>
+                    <Button
+                      isDisabled={finance.review.isPending}
+                      onPress={() => {
+                        setReviewError(null);
+                        setReviewDialogOpen(true);
+                      }}
+                    >
+                      <Button.Label>Mark expenses reviewed</Button.Label>
+                    </Button>
                   )}
                 </FinanceCard>
                 <FinanceHeading
@@ -538,6 +509,28 @@ function LandlordAnalytics() {
         }
       />
       {/* Every sheet stays mounted while closed: HeroUI snaps one open on a closed → open transition. */}
+      <ConfirmDialog
+        isOpen={reviewDialogOpen}
+        onOpenChange={(open) => {
+          setReviewDialogOpen(open);
+          if (!open) setReviewError(null);
+        }}
+        title="Confirm expenses are complete"
+        description={`I have entered all expenses paid in ${financeMonthLabel(month)} for ${
+          apartmentId
+            ? (data.properties.find((property) => property.id === apartmentId)
+                ?.name ?? "this property")
+            : "all my properties"
+        }, including any zero-expense properties.`}
+        confirmLabel={finance.review.isPending ? "Confirming…" : "Confirm"}
+        confirmVariant="primary"
+        cancelLabel="Keep reviewing"
+        isConfirmDisabled={finance.review.isPending}
+        errorMessage={reviewError}
+        onConfirm={() => {
+          void reviewExpenses();
+        }}
+      />
       <FinanceFilterSheet
         isOpen={filterDraft !== null}
         value={filterValues}

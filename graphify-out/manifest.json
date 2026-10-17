@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/auth-complete-profile.tsx": {
-    "mtime": 1791871813.533436,
-    "ast_hash": "28997331b7399d04558284e83e3c1b10",
+    "mtime": 1792218335.8543003,
+    "ast_hash": "84b9a0fb1351cc518f16557c9161f519",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/complete-profile.tsx": {
@@ -130,13 +130,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.test.tsx": {
-    "mtime": 1791382558.505043,
-    "ast_hash": "2b1be0975de862f55b96320f60be6f48",
+    "mtime": 1792218148.5452337,
+    "ast_hash": "48ce23535e983aff6354b991bdb3f0f9",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-in.tsx": {
-    "mtime": 1791953697.6442251,
-    "ast_hash": "f140b6f5da3167c4ee267cee6baaa4ec",
+    "mtime": 1792218131.4237165,
+    "ast_hash": "271179f71db459c08f0ddd99f9de8932",
     "semantic_hash": ""
   },
   "apps/mobile/app/(auth)/sign-up.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/_layout.tsx": {
-    "mtime": 1791795489.8048468,
-    "ast_hash": "720685a490d78d8f0dada4997ac0f285",
+    "mtime": 1792218492.0129418,
+    "ast_hash": "ea8200dab5a6da9833e535ba528cda9e",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/CustomTabBar.tsx": {
@@ -605,8 +605,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/portal-layout.test.tsx": {
-    "mtime": 1790780652.7338712,
-    "ast_hash": "45500a80dedcb0f8a066f9360fbe8294",
+    "mtime": 1792218492.013254,
+    "ast_hash": "30cac4f45e092726a5fa723196ceeff2",
     "semantic_hash": ""
   },
   "apps/mobile/app/_layout.tsx": {
@@ -1030,8 +1030,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/analytics.tsx": {
-    "mtime": 1792204862.0924006,
-    "ast_hash": "b6bda248057de5deed094ef5baacdded",
+    "mtime": 1792219046.8012872,
+    "ast_hash": "9605787abca376a0026c7c9be430a3ff",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/maintenance-requests/[requestId].tsx": {
@@ -2190,13 +2190,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.test.tsx": {
-    "mtime": 1791382558.507805,
-    "ast_hash": "57008bf1a062d66089286757a9313607",
+    "mtime": 1792218148.545398,
+    "ast_hash": "463ff8445708101b78a91ba96cf78779",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/useGoogleAuth.ts": {
-    "mtime": 1791382558.5080395,
-    "ast_hash": "c1216d1d57f021cedb55316432576099",
+    "mtime": 1792218131.4241266,
+    "ast_hash": "e7913e35d675d4b78e85ad99d2255fa3",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/auth/usePasswordSignInStatus.ts": {
@@ -2790,13 +2790,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/portalPreference.test.ts": {
-    "mtime": 1790780652.7363966,
-    "ast_hash": "3cdb53a2331b8daee16838ca56bd9c1c",
+    "mtime": 1792218335.8549392,
+    "ast_hash": "bc7d24bd1ca6a2bf22f39dbe9c01b4e1",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/portalPreference.ts": {
-    "mtime": 1790780652.7366195,
-    "ast_hash": "a81a56fe33a366b759e274e47879e071",
+    "mtime": 1792218131.4232547,
+    "ast_hash": "fcca26837ebcf0ff0c665170a1b2e572",
     "semantic_hash": ""
   },
   "apps/mobile/service/auth/profileService.test.ts": {
@@ -6845,18 +6845,18 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792196285.5864265,
-    "ast_hash": "6fb4b5170a9494c8c415be80a41b371d",
+    "mtime": 1792221254.4113579,
+    "ast_hash": "6ba8709832b7323e0838ff271073ac88",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792204926.9093578,
-    "ast_hash": "74a2205e464d53a439eb156cee3370f6",
+    "mtime": 1792221269.2232573,
+    "ast_hash": "5b54952caa0d4de313f3ccd4ff3489bc",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792209184.059747,
-    "ast_hash": "2df7c7e16be0f6a2557b9e9a90806cf7",
+    "mtime": 1792218824.4103582,
+    "ast_hash": "f4dd3908e29f2eb756d20650d4ab0b06",
     "semantic_hash": ""
   },
   "README.md": {
@@ -6875,8 +6875,8 @@
     "semantic_hash": ""
   },
   "docs/admin-provisioning.md": {
-    "mtime": 1790518210.0095158,
-    "ast_hash": "74760a4bc27f6d1f0d4706d72e71f29c",
+    "mtime": 1792221276.9072843,
+    "ast_hash": "17cac889d03958d0fe2bb576f1b7cfa8",
     "semantic_hash": ""
   },
   "docs/identity-verification-recommendation.md": {
@@ -8200,8 +8200,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/hooks/finance/useLandlordFinances.ts": {
-    "mtime": 1792195901.3015451,
-    "ast_hash": "53cf77f71b7f66af7f29daef0ff67973",
+    "mtime": 1792219255.1140811,
+    "ast_hash": "946db3de725f77806c3043287d538dd8",
     "semantic_hash": ""
   },
   "apps/mobile/service/finance/financeService.test.ts": {
@@ -8235,18 +8235,18 @@
     "semantic_hash": ""
   },
   "supabase/test-support/landlord-finances-bootstrap.sql": {
-    "mtime": 1792168920.3695447,
-    "ast_hash": "f5c97a509ab6160c0c89aeee67da45ee",
+    "mtime": 1792219310.31208,
+    "ast_hash": "5985d9fa801ea9546028aa847f02a9c8",
     "semantic_hash": ""
   },
   "supabase/test-support/landlord-finances-regression.sql": {
-    "mtime": 1792168040.8890326,
-    "ast_hash": "9d0c2fa6496c5d0de7b9bcea6a133462",
+    "mtime": 1792219078.2004323,
+    "ast_hash": "8da2d175cfa40692b35c39aac834ecfc",
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/analytics-filters.test.tsx": {
-    "mtime": 1792204889.347564,
-    "ast_hash": "2fd1ebdab6a602bf6e9a9061744388d1",
+    "mtime": 1792219046.8015363,
+    "ast_hash": "112342757225f19d48b43eecfbe9b849",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceFilterSheet.tsx": {
@@ -8292,6 +8292,26 @@
   "apps/mobile/components/finance/FinanceGuidelinesDialog.tsx": {
     "mtime": 1792209117.5606809,
     "ast_hash": "bc45d4b179836079a88808b67ef19e75",
+    "semantic_hash": ""
+  },
+  "apps/mobile/hooks/finance/useLandlordFinances.test.tsx": {
+    "mtime": 1792219208.155025,
+    "ast_hash": "d4c59674400278f7009dcb75f0a260e4",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261017064029_allow_mixed_role_landlord_finances.sql": {
+    "mtime": 1792219310.3109293,
+    "ast_hash": "b007f685d9df25d7b0c05dbbb29a020f",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261017070948_allow_mixed_role_tenant_transactions.sql": {
+    "mtime": 1792221074.835349,
+    "ast_hash": "1fe7285f6ae0b3ca5386e08ea01eadb0",
+    "semantic_hash": ""
+  },
+  "supabase/tests/phase4_mixed_role_tenant_transactions.test.sql": {
+    "mtime": 1792221142.5728776,
+    "ast_hash": "ac07cc8978a9f66015ef71d3c1d50d49",
     "semantic_hash": ""
   }
 }

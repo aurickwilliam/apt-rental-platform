@@ -5,7 +5,12 @@ import { useState } from "react";
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
-import { choosePortal, portalHome, type Portal } from "@/service/auth/portalPreference";
+import {
+  choosePortal,
+  hasMobilePortalRole,
+  portalHome,
+  type Portal,
+} from "@/service/auth/portalPreference";
 import {
   buildSuspendedMessage,
   getMySuspensionStatus,
@@ -73,9 +78,14 @@ export function useGoogleAuth() {
         return;
       }
 
-      if ((profile.roles ?? []).includes("admin")) {
+      const heldRoles = profile.roles ?? [];
+      if (!hasMobilePortalRole(heldRoles)) {
         await supabase.auth.signOut();
-        setError("Admin accounts are available on the web portal only.");
+        setError(
+          heldRoles.includes("admin")
+            ? "Admin accounts are available on the web portal only."
+            : "No supported mobile role found.",
+        );
         setLoading(false);
         return;
       }
@@ -91,7 +101,7 @@ export function useGoogleAuth() {
           params: {
             email: data.session.user.email ?? "",
             ...(requestedRole ? { userSide: requestedRole } : {}),
-            suggestedRole: choosePortal(profile.roles ?? [], null) ?? "tenant",
+            suggestedRole: choosePortal(heldRoles, null) ?? "tenant",
             firstName: data.session.user.user_metadata?.full_name?.split(" ")[0] ?? "",
             lastName: data.session.user.user_metadata?.full_name?.split(" ")[1] ?? "",
           },
@@ -99,7 +109,6 @@ export function useGoogleAuth() {
         return;
       }
 
-      const heldRoles: string[] = profile.roles ?? [];
       const portal = await usePortalStore.getState().restore(userId, heldRoles);
       if (!portal) {
         await supabase.auth.signOut();

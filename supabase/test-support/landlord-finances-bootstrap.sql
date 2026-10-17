@@ -33,4 +33,5 @@ create policy payments on public.payment for select to authenticated using (
     where landlord_id=(select id from public.users where user_id=auth.uid())));
 \ir ../migrations/20261016163249_landlord_profit_planning.sql
 \ir ../migrations/20261016163757_cache_landlord_finance_policy_identity.sql
+\ir ../migrations/20261017064029_allow_mixed_role_landlord_finances.sql
 \ir landlord-finances-regression.sql

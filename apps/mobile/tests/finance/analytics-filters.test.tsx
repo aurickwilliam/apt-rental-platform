@@ -1,13 +1,17 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextProps, TextInputProps } from "react-native";
-import { fireEvent, render, within } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
 import type { FinanceScope } from "@/service/finance/financeService";
 
+const mockReview = jest.fn(() => Promise.resolve());
+const mockRetry = jest.fn();
 const mockFinance = {
   enabled: true,
+  retry: mockRetry,
   ownerId: "owner",
+  review: { isPending: false, mutateAsync: mockReview },
   report: {
     isLoading: false,
     isRefetching: false,
@@ -33,11 +37,13 @@ const mockFinance = {
   },
 };
 type MockFinance = Omit<typeof mockFinance, "report"> & {
+  userError?: Error;
   report: Omit<typeof mockFinance.report, "data"> & { data?: typeof mockFinance.report.data };
 };
 const mockUseLandlordFinances = jest.fn((_scope: FinanceScope): MockFinance => mockFinance);
 const mockSheetOpenStates = jest.fn();
 const mockSheetContentProps = jest.fn();
+const mockButtonProps = jest.fn();
 const mockExpenseSheet = jest.fn((_props: unknown) => null);
 const mockRouterPush = jest.fn();
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
@@ -70,12 +76,18 @@ jest.mock("@/components/finance/FinanceSkeleton", () => {
   const { View } = jest.requireActual("react-native");
   return function Skeleton({ tab }: { tab: string }) { return <View testID={`finance-skeleton-${tab}`} />; };
 });
-jest.mock("@tabler/icons-react-native", () => ({
+jest.mock("@tabler/icons-react-native", () => {
+  const { View } = jest.requireActual("react-native");
+  return {
+  IconChartBar: () => <View testID="finance-error-icon" />,
+  IconLock: () => <View testID="finance-lock-icon" />,
   IconFilter2: () => null,
   IconPlus: () => null,
+  IconCheck: () => null,
   IconChevronLeft: () => null,
   IconChevronRight: () => null,
-}));
+  };
+});
 jest.mock("@/components/layout/StandardHeader", () => {
   const { Text, View } = jest.requireActual("react-native");
   return function Header({
@@ -161,7 +173,8 @@ jest.mock("heroui-native", () => {
     children,
     isDisabled,
     ...props
-  }: PropsWithChildren<PressableProps & { isDisabled?: boolean }>) {
+  }: PropsWithChildren<PressableProps & { isDisabled?: boolean; variant?: string }>) {
+    mockButtonProps({ ...props, isDisabled, children });
     return (
       <Pressable {...props} disabled={isDisabled}>
         {children}
@@ -183,6 +196,9 @@ jest.mock("heroui-native", () => {
     const { value, onChange } = React.useContext(SearchContext);
     return value.length ? <Pressable {...props} onPress={() => onChange("")} /> : null;
   }
+  function DialogRoot({ children, isOpen }: PropsWithChildren<{ isOpen: boolean }>) {
+    return isOpen ? <View>{children}</View> : null;
+  }
   return {
     Button,
     SearchField: Object.assign(SearchRoot, {
@@ -194,6 +210,14 @@ jest.mock("heroui-native", () => {
     useBottomSheetAwareHandlers: () => ({}),
     Spinner: () => null,
     useToast: () => ({ toast: { show: jest.fn() } }),
+    Dialog: Object.assign(DialogRoot, {
+      Portal: Container,
+      Overlay: Container,
+      Content: Container,
+      Title: Text,
+      Description: Text,
+      Close: () => null,
+    }),
     BottomSheet: Object.assign(SheetRoot, {
       Portal: Container,
       Overlay: SheetOverlay,
@@ -291,6 +315,28 @@ describe("analytics header filters", () => {
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
   });
   afterEach(() => jest.useRealTimers());
+
+  test("unavailable access uses the landlord empty state without a retry action", () => {
+    mockUseLandlordFinances.mockReturnValue({ ...mockFinance, enabled: false });
+    const screen = render(<AnalyticsScreen />);
+
+    expect(screen.getByTestId("finance-lock-icon")).toBeTruthy();
+    expect(screen.getByText("Finances unavailable")).toBeTruthy();
+    expect(screen.getByText("Switch to your landlord portal to view and manage finances for your properties.")).toBeTruthy();
+    expect(screen.queryByText("Try again")).toBeNull();
+    expect(screen.queryByText("Add expense")).toBeNull();
+  });
+
+  test("a loading failure uses the empty state with a working retry action", () => {
+    mockUseLandlordFinances.mockReturnValue({ ...mockFinance, userError: new Error("Profile unavailable") });
+    const screen = render(<AnalyticsScreen />);
+
+    expect(screen.getByTestId("finance-error-icon")).toBeTruthy();
+    expect(screen.getByText("Couldn't load your finances")).toBeTruthy();
+    expect(screen.getByText("Failed")).toBeTruthy();
+    fireEvent.press(screen.getByText("Try again"));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
 
   test("initial loading uses the finance layout and disables footer and filter actions", () => {
     mockUseLandlordFinances.mockReturnValue({ ...mockFinance, report: { ...mockFinance.report, isLoading: true, data: undefined } });
@@ -572,5 +618,56 @@ describe("analytics header filters", () => {
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
+  });
+
+  test("Mark expenses reviewed is a primary button that opens a confirmation dialog", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+
+    const button = mockButtonProps.mock.calls
+      .map(([props]) => props as { children?: PropsWithChildren; variant?: string })
+      .find((props) => (props.children as { props?: { children?: string } })?.props?.children === "Mark expenses reviewed");
+    expect(button).toBeDefined();
+    expect(button?.variant).toBeUndefined();
+
+    expect(screen.queryByText("Confirm expenses are complete")).toBeNull();
+    fireEvent.press(screen.getByText("Mark expenses reviewed"));
+    expect(screen.getByText("Confirm expenses are complete")).toBeTruthy();
+    expect(screen.getByText("I have entered all expenses paid in October 2026 for all my properties, including any zero-expense properties.")).toBeTruthy();
+    expect(mockReview).not.toHaveBeenCalled();
+  });
+
+  test("the confirmation names the filtered property and closes on Keep reviewing", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByText("Apply filters"));
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    fireEvent.press(screen.getByText("Mark expenses reviewed"));
+    expect(screen.getByText("I have entered all expenses paid in October 2026 for Villa, including any zero-expense properties.")).toBeTruthy();
+    fireEvent.press(screen.getByText("Keep reviewing"));
+    expect(screen.queryByText("Confirm expenses are complete")).toBeNull();
+    expect(mockReview).not.toHaveBeenCalled();
+  });
+
+  test("confirming runs the review once and closes the dialog", async () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    fireEvent.press(screen.getByText("Mark expenses reviewed"));
+    fireEvent.press(screen.getByText("Confirm"));
+    await waitFor(() => expect(mockReview).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText("Confirm expenses are complete")).toBeNull();
+  });
+
+  test("a failed review keeps the dialog open with the error", async () => {
+    mockReview.mockRejectedValueOnce(new Error("nope"));
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    fireEvent.press(screen.getByText("Mark expenses reviewed"));
+    fireEvent.press(screen.getByText("Confirm"));
+    expect(await screen.findByText("Failed")).toBeTruthy();
+    expect(screen.getByText("Confirm expenses are complete")).toBeTruthy();
+    consoleError.mockRestore();
   });
 });

@@ -12,10 +12,10 @@ create temp table fixture as select gen_random_uuid() owner,gen_random_uuid() ow
   date_trunc('month',current_date)::date as month,
   (date_trunc('month',current_date)-interval '1 month')::date as previous;
 grant select on fixture to authenticated,anon;
-insert into public.users(id,user_id,roles,first_name) select owner,owner_auth,'{landlord}'::text[],'Owner' from fixture
+insert into public.users(id,user_id,roles,first_name) select owner,owner_auth,'{tenant,admin,landlord}'::text[],'Owner' from fixture
   union all select other,other_auth,'{landlord}','Other' from fixture
   union all select tenant,tenant_auth,'{tenant}','Tenant' from fixture
-  union all select admin,admin_auth,'{admin,landlord}','Admin' from fixture;
+  union all select admin,admin_auth,'{admin}','Admin' from fixture;
 insert into public.apartments(id,landlord_id,name,monthly_rent) select apt,owner,'Villa',10000 from fixture
   union all select apt2,owner,'Second',5000 from fixture
   union all select foreign_apt,other,'Foreign',9999 from fixture;
@@ -90,6 +90,7 @@ do $$ begin
   end;
 end $$;
 select set_config('request.jwt.claim.sub',(select other_auth::text from fixture),true);
+select pg_temp.assert((select jsonb_array_length(public.get_landlord_finances(month)->'properties')=1 from fixture),'landlord-only accounts retain their own reports');
 select pg_temp.assert((select count(*)=0 from public.landlord_expenses),'another landlord cannot read expenses');
 select pg_temp.assert((select count(*)=0 from public.landlord_budgets),'another landlord cannot read budgets');
 select pg_temp.assert((select count(*)=0 from public.landlord_finance_reviews),'another landlord cannot read reviews');
@@ -103,10 +104,22 @@ do $$ begin
   begin perform public.get_landlord_finances(current_date); raise exception 'tenant report allowed'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub',(select admin_auth::text from fixture),true);
+select pg_temp.assert((select count(*)=0 from public.landlord_expenses),'admin-only cannot read another landlord expenses');
+select pg_temp.assert((select count(*)=0 from public.landlord_budgets),'admin-only cannot read another landlord budgets');
+select pg_temp.assert((select count(*)=0 from public.landlord_finance_reviews),'admin-only cannot read another landlord reviews');
 do $$ begin
   begin perform public.get_landlord_finances(current_date); raise exception 'admin report allowed'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
+update public.users set roles='{tenant,admin}' where id=(select owner from fixture);
+select set_config('request.jwt.claim.sub',(select owner_auth::text from fixture),true);
+set local role authenticated;
+select pg_temp.assert((select count(*)=0 from public.landlord_expenses),'revoked landlord membership hides previously owned expenses');
+do $$ begin
+  begin perform public.get_landlord_finances(current_date); raise exception 'revoked landlord report allowed'; exception when insufficient_privilege then null; end;
+end $$;
+reset role;
+update public.users set roles='{tenant,admin,landlord}' where id=(select owner from fixture);
 update public.users set is_suspended=true where id=(select owner from fixture);
 select set_config('request.jwt.claim.sub',(select owner_auth::text from fixture),true);
 set local role authenticated;

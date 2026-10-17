@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/auth";
+import { usePortalStore } from "@/stores/usePortalStore";
 import {
   confirmExpenseReview,
   deleteBudget,
@@ -24,11 +25,18 @@ import type { FinanceBudget, FinanceCategory } from "@repo/utils";
 export function useLandlordFinances(scope: FinanceScope) {
   const user = useCurrentUser();
   const client = useQueryClient();
-  const ownerId = user.data?.id ?? null;
+  const portal = usePortalStore((state) => state.portal);
+  const authUserId = usePortalStore((state) => state.authUserId);
   const enabled =
-    !!ownerId &&
+    !!user.data?.id &&
     !!user.data?.roles?.includes("landlord") &&
-    !user.data?.roles?.includes("admin");
+    portal === "landlord" &&
+    authUserId === user.data?.user_id;
+  const ownerId = enabled ? user.data!.id : null;
+  const requireFinanceAccess = () => {
+    if (!ownerId) throw new Error("Switch to your landlord portal to manage finances.");
+    return ownerId;
+  };
   const key = [
     "landlord-finances",
     ownerId,
@@ -37,7 +45,10 @@ export function useLandlordFinances(scope: FinanceScope) {
   ] as const;
   const report = useQuery({
     queryKey: key,
-    queryFn: () => fetchFinances(scope),
+    queryFn: () => {
+      requireFinanceAccess();
+      return fetchFinances(scope);
+    },
     enabled,
   });
   const invalidate = async () => {
@@ -60,26 +71,38 @@ export function useLandlordFinances(scope: FinanceScope) {
     }: {
       draft: ExpenseDraft;
       editing: boolean;
-    }) => saveExpense(ownerId!, draft, editing),
+    }) => {
+      return saveExpense(requireFinanceAccess(), draft, editing);
+    },
     onSuccess: invalidate,
   });
   const removeExpense = useMutation({
-    mutationFn: (id: string) => deleteExpense(ownerId!, id),
+    mutationFn: (id: string) => {
+      return deleteExpense(requireFinanceAccess(), id);
+    },
     onSuccess: invalidate,
   });
   const budget = useMutation({
-    mutationFn: (value: Omit<FinanceBudget, "id">) => saveBudget(value),
+    mutationFn: (value: Omit<FinanceBudget, "id">) => {
+      requireFinanceAccess();
+      return saveBudget(value);
+    },
     onSuccess: invalidate,
   });
   const removeBudget = useMutation({
-    mutationFn: (id: string) => deleteBudget(ownerId!, id),
+    mutationFn: (id: string) => {
+      return deleteBudget(requireFinanceAccess(), id);
+    },
     onSuccess: invalidate,
   });
   const review = useMutation({
-    mutationFn: () => confirmExpenseReview(scope),
+    mutationFn: () => {
+      requireFinanceAccess();
+      return confirmExpenseReview(scope);
+    },
     onSuccess: invalidate,
   });
-  const retry = () => (user.error ? user.refetch() : report.refetch());
+  const retry = () => (user.error ? user.refetch() : enabled ? report.refetch() : undefined);
   return {
     report,
     expense,
