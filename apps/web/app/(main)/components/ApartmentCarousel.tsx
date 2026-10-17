@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@heroui/react";
+import { useRouter } from "next/navigation";
 
 import {
   Carousel,
@@ -29,6 +30,7 @@ interface RenderApartmentsCarouselProps {
 
 export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
+  const router = useRouter();
 
   return (
     <Carousel setApi={setApi} className="mt-10">
@@ -66,6 +68,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
                 price={apt.price}
                 rating={apt.rating}
                 thumbnailUrl={apt.image}
+                onPress={() => router.push(`/browse/${apt.id}`)}
               />
             </CarouselItem>
           ))
