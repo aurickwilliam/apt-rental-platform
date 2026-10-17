@@ -256,6 +256,12 @@ Standard anatomy (both platforms): surface bg, hairline border, no shadow, round
 
 Pressable cards use `PressableFeedback` (mobile). Hierarchy: primary `rounded-3xl` (mobile) / `rounded-xl` (web), nested `rounded-xl`.
 
+### Landlord profit & planning (mobile) ✅
+
+`landlord/analytics` uses the standard cool-gray screen, white/dark `bg-surface` cards, hairline borders and 24px card corners. A white filter icon in `StandardHeader.rightComponent` opens a HeroUI bottom sheet containing the Property and Month selectors; Apply filters commits both choices together, while Cancel or dismissal discards the draft. A badge counts non-default filters (specific property and/or a past month), and the button's accessible label includes the applied selections. The page starts with one `primaryLight` earnings panel; Nunito totals and labels, Inter explanations, right-aligned peso amounts. Overview / Expenses / Budget are HeroUI tabs; Add expense stays in the safe-area footer. Shared finance presentations live in `components/finance/` (`FinanceCard`, `FinanceHeading`, `MoneyRow`, `FinanceSelect`, `FinanceTabs`). Entry forms use HeroUI bottom sheets with keyboard-aware inputs.
+
+Charts use brand blue for collected rent and `chartSky` for recorded spending, a text-color optional net-income line, and labeled legends/controls (never color alone). Income has 3/6/12-month controls, selectable bars and a View data alternative; category bars switch amount/share and filter transactions; budget bars spell out overages even above 100%; collection segments open filtered rent lists; property bars switch collected/expenses/net and filter the report. Missing expense reviews show “Not calculated”, never zero-profit estimates; capital improvements, cash-month receipts, rental-period balances and reserve plans are explicitly distinguished. Reserve goals never look like funded savings. No new colors, fonts, or design tokens are introduced.
+
 ---
 
 ## 12. Lists

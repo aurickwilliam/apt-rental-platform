@@ -1,0 +1,601 @@
+import { useState } from "react";
+import { Keyboard, Text, View } from "react-native";
+import {
+  BottomSheet,
+  Button,
+  FieldError,
+  Input,
+  Label,
+  TextField,
+  useBottomSheetAwareHandlers,
+} from "heroui-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { randomUUID } from "expo-crypto";
+import {
+  FINANCE_CATEGORIES,
+  financeMonthLabel,
+  formatPesoDisplay,
+  manilaToday,
+  parseFinanceAmount,
+  suggestFinanceBudget,
+  validateExpenseDate,
+  type BudgetKind,
+  type ExpenseTreatment,
+  type FinanceBudget,
+  type FinanceCategory,
+} from "@repo/utils";
+import { FinanceSelect } from "./FinanceControls";
+import {
+  financeErrorMessage,
+  type ExpenseDraft,
+  type ExpenseRecord,
+  type FinanceProperty,
+} from "@/service/finance/financeService";
+
+function SheetInput({
+  label,
+  value,
+  onChange,
+  error,
+  numeric = false,
+  maxLength = 200,
+  placeholder,
+  disabled = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  numeric?: boolean;
+  maxLength?: number;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const handlers = useBottomSheetAwareHandlers();
+  return (
+    <TextField isInvalid={!!error} isDisabled={disabled}>
+      <Label>{label}</Label>
+      <Input
+        value={value}
+        onChangeText={onChange}
+        accessibilityLabel={label}
+        placeholder={placeholder}
+        keyboardType={numeric ? "decimal-pad" : "default"}
+        maxLength={maxLength}
+        {...handlers}
+      />
+      <FieldError>{error}</FieldError>
+    </TextField>
+  );
+}
+
+interface CommonProps {
+  /** HeroUI snaps a sheet open on a closed → open transition, so callers keep the sheet mounted. */
+  isOpen: boolean;
+  properties: FinanceProperty[];
+  apartmentId: string | null;
+  month: string;
+  onClose: () => void;
+}
+
+export function ExpenseEntrySheet({
+  isOpen,
+  properties,
+  apartmentId,
+  month,
+  initial,
+  category: initialCategory,
+  onClose,
+  onSave,
+  onDelete,
+}: CommonProps & {
+  initial?: ExpenseRecord;
+  category?: FinanceCategory | null;
+  onSave: (draft: ExpenseDraft, editing: boolean) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const seedCategory = initial?.category ?? initialCategory ?? "maintenance";
+  const seedTreatment =
+    initial?.treatment ??
+    (seedCategory === "furniture" || seedCategory === "turnover"
+      ? "capital"
+      : "operating");
+  const seedDate =
+    initial?.spent_on ??
+    (month === manilaToday().slice(0, 7) ? manilaToday() : `${month}-01`);
+  const [id, setId] = useState(() => initial?.id ?? randomUUID());
+  const [property, setProperty] = useState(
+    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
+  );
+  const [category, setCategory] = useState<FinanceCategory>(seedCategory);
+  const [treatment, setTreatment] = useState<ExpenseTreatment>(seedTreatment);
+  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+  const [date, setDate] = useState(seedDate);
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  // The sheet stays mounted while closed, so every opening reseeds a fresh draft.
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setId(initial?.id ?? randomUUID());
+      setProperty(
+        initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
+      );
+      setCategory(seedCategory);
+      setTreatment(seedTreatment);
+      setAmount(initial ? String(initial.amount) : "");
+      setDate(seedDate);
+      setDescription(initial?.description ?? "");
+      setSubmitted(false);
+      setBusy(false);
+      setError(null);
+      setConfirmDelete(false);
+    }
+  }
+  const amountValue = parseFinanceAmount(amount);
+  const dateError = validateExpenseDate(date);
+  const handleSave = async () => {
+    if (busy) return;
+    setSubmitted(true);
+    if (amountValue === null || dateError || !description.trim() || !property)
+      return;
+    Keyboard.dismiss();
+    setBusy(true);
+    setError(null);
+    try {
+      await onSave(
+        {
+          id,
+          apartment_id: property,
+          category,
+          treatment,
+          amount: amountValue,
+          spent_on: date,
+          description: description.trim(),
+        },
+        !!initial,
+      );
+      onClose();
+    } catch (err) {
+      console.error(
+        "Finance expense save failed",
+        err && typeof err === "object" && "code" in err ? err.code : "unknown",
+      );
+      setError(financeErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const handleDelete = async () => {
+    if (busy || !initial) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await onDelete(initial.id);
+      onClose();
+    } catch (err) {
+      console.error("Finance expense delete failed");
+      setError(financeErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <BottomSheet
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !busy) onClose();
+      }}
+    >
+      <BottomSheet.Portal>
+        <BottomSheet.Overlay />
+        <BottomSheet.Content
+          snapPoints={["90%"]}
+          enableDynamicSizing={false}
+          enablePanDownToClose={!busy}
+        >
+          <BottomSheetScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 16 }}
+          >
+            <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
+              {initial ? "Edit expense" : "Add expense"}
+            </BottomSheet.Title>
+            <BottomSheet.Description className="font-inter text-sm text-muted">
+              Record money already spent. Reserve allocations and late rent are
+              not expenses.
+            </BottomSheet.Description>
+            <FinanceSelect
+              label="Property"
+              value={property}
+              options={properties.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={setProperty}
+              disabled={busy || !!initial}
+            />
+            <FinanceSelect
+              label="Category"
+              value={category}
+              options={FINANCE_CATEGORIES.filter(
+                (item) => !["emergency", "vacancy"].includes(item.id),
+              ).map((item) => ({ value: item.id, label: item.label }))}
+              disabled={busy}
+              onChange={(value) => {
+                setCategory(value as FinanceCategory);
+                setTreatment(
+                  value === "furniture" || value === "turnover"
+                    ? "capital"
+                    : "operating",
+                );
+              }}
+            />
+            <FinanceSelect
+              label="Expense treatment"
+              value={treatment}
+              onChange={(value) => setTreatment(value as ExpenseTreatment)}
+              disabled={busy}
+              options={[
+                { value: "operating", label: "Operating expense" },
+                {
+                  value: "capital",
+                  label: "Property improvement / replacement",
+                },
+              ]}
+            />
+            <Text className="font-inter text-xs text-muted">
+              Improvements and replacements are tracked separately from
+              operating income. This is a cash-planning tool, not a tax
+              calculation.
+            </Text>
+            <SheetInput
+              label="Amount (₱)"
+              value={amount}
+              onChange={setAmount}
+              numeric
+              disabled={busy}
+              placeholder="0.00"
+              maxLength={12}
+              error={
+                submitted && amountValue === null
+                  ? "Enter a positive amount with at most two decimals."
+                  : undefined
+              }
+            />
+            <SheetInput
+              label="Date paid (YYYY-MM-DD)"
+              value={date}
+              onChange={setDate}
+              disabled={busy}
+              maxLength={10}
+              error={submitted ? (dateError ?? undefined) : undefined}
+            />
+            <SheetInput
+              label="Description"
+              value={description}
+              onChange={setDescription}
+              disabled={busy}
+              placeholder="e.g. Kitchen sink repair"
+              error={
+                submitted && !description.trim()
+                  ? "Describe this expense."
+                  : undefined
+              }
+            />
+            {error && (
+              <Text
+                accessibilityRole="alert"
+                selectable
+                className="text-danger text-sm font-inter"
+              >
+                {error}
+              </Text>
+            )}
+            <Button onPress={handleSave} isDisabled={busy}>
+              <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
+            </Button>
+            <Button variant="secondary" onPress={onClose} isDisabled={busy}>
+              <Button.Label>Cancel</Button.Label>
+            </Button>
+            {initial && (
+              <View className="gap-2 border-t border-border pt-4">
+                {confirmDelete && (
+                  <Text className="font-inter text-sm text-danger">
+                    Delete this expense? This cannot be undone and the month
+                    will need reviewing again.
+                  </Text>
+                )}
+                <Button
+                  variant="danger-soft"
+                  isDisabled={busy}
+                  onPress={() =>
+                    confirmDelete ? void handleDelete() : setConfirmDelete(true)
+                  }
+                >
+                  <Button.Label>
+                    {confirmDelete ? "Confirm delete" : "Delete expense"}
+                  </Button.Label>
+                </Button>
+              </View>
+            )}
+          </BottomSheetScrollView>
+        </BottomSheet.Content>
+      </BottomSheet.Portal>
+    </BottomSheet>
+  );
+}
+
+export function BudgetEntrySheet({
+  isOpen,
+  properties,
+  apartmentId,
+  month,
+  initial,
+  presetCategory,
+  presetKind,
+  onClose,
+  onSave,
+  onDelete,
+}: CommonProps & {
+  initial?: FinanceBudget;
+  presetCategory?: FinanceCategory;
+  presetKind?: BudgetKind;
+  onSave: (budget: Omit<FinanceBudget, "id">) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const seedProperty =
+    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
+  const seedCategory = initial?.category ?? presetCategory ?? "maintenance";
+  const seedKind = initial?.kind ?? presetKind ?? "expense";
+  const seedMonths =
+    initial?.months_remaining ??
+    (seedCategory === "insurance" || seedCategory === "taxes" ? 12 : 6);
+  const [property, setProperty] = useState(seedProperty);
+  const [category, setCategory] = useState<FinanceCategory>(seedCategory);
+  const [kind, setKind] = useState<BudgetKind>(seedKind);
+  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+  const [target, setTarget] = useState(
+    initial?.target_amount ? String(initial.target_amount) : "",
+  );
+  const [months, setMonths] = useState(String(seedMonths));
+  const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  // The sheet stays mounted while closed, so every opening reseeds a fresh draft.
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setProperty(seedProperty);
+      setCategory(seedCategory);
+      setKind(seedKind);
+      setAmount(initial ? String(initial.amount) : "");
+      setTarget(initial?.target_amount ? String(initial.target_amount) : "");
+      setMonths(String(seedMonths));
+      setSubmitted(false);
+      setBusy(false);
+      setError(null);
+      setConfirmDelete(false);
+    }
+  }
+  const amountValue = parseFinanceAmount(amount, true);
+  const targetValue = target.trim() ? parseFinanceAmount(target) : null;
+  const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
+  const validGoal =
+    !target.trim() ||
+    (targetValue !== null && monthsValue >= 1 && monthsValue <= 600);
+  const suggestion = suggestFinanceBudget({
+    category,
+    kind,
+    target_amount: targetValue,
+    months_remaining: monthsValue,
+  });
+  const handleSave = async () => {
+    if (busy) return;
+    setSubmitted(true);
+    if (amountValue === null || !validGoal || !property) return;
+    Keyboard.dismiss();
+    setBusy(true);
+    setError(null);
+    try {
+      await onSave({
+        apartment_id: property,
+        month,
+        category,
+        kind,
+        amount: amountValue,
+        target_amount: targetValue,
+        months_remaining: targetValue === null ? null : monthsValue,
+      });
+      onClose();
+    } catch (err) {
+      console.error("Finance budget save failed");
+      setError(financeErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const handleDelete = async () => {
+    if (busy || !initial) return;
+    setBusy(true);
+    try {
+      await onDelete(initial.id);
+      onClose();
+    } catch (err) {
+      console.error("Finance budget delete failed");
+      setError(financeErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <BottomSheet
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !busy) onClose();
+      }}
+    >
+      <BottomSheet.Portal>
+        <BottomSheet.Overlay />
+        <BottomSheet.Content
+          snapPoints={["90%"]}
+          enableDynamicSizing={false}
+          enablePanDownToClose={!busy}
+        >
+          <BottomSheetScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 16 }}
+          >
+            <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
+              {initial ? "Edit budget" : "Plan a budget"}
+            </BottomSheet.Title>
+            <BottomSheet.Description className="font-inter text-sm text-muted">
+              {financeMonthLabel(month)} · Plans only. No money is moved or
+              saved automatically.
+            </BottomSheet.Description>
+            <FinanceSelect
+              label="Property"
+              value={property}
+              options={properties.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={setProperty}
+              disabled={busy || !!initial}
+            />
+            <FinanceSelect
+              label="Plan type"
+              value={kind}
+              options={[
+                { value: "expense", label: "Spending budget" },
+                { value: "reserve", label: "Planned reserve" },
+              ]}
+              disabled={busy || !!initial}
+              onChange={(value) => {
+                setKind(value as BudgetKind);
+                if (
+                  value === "expense" &&
+                  ["emergency", "vacancy"].includes(category)
+                )
+                  setCategory("maintenance");
+              }}
+            />
+            <FinanceSelect
+              label="Category"
+              value={category}
+              options={FINANCE_CATEGORIES.filter(
+                (item) =>
+                  kind === "reserve" ||
+                  !["emergency", "vacancy"].includes(item.id),
+              ).map((item) => ({ value: item.id, label: item.label }))}
+              onChange={(value) => setCategory(value as FinanceCategory)}
+              disabled={busy || !!initial}
+            />
+            <SheetInput
+              label={
+                kind === "expense"
+                  ? "Monthly spending limit (₱)"
+                  : "Planned allocation this month (₱)"
+              }
+              value={amount}
+              onChange={setAmount}
+              numeric
+              disabled={busy}
+              placeholder="0.00"
+              maxLength={12}
+              error={
+                submitted && amountValue === null
+                  ? "Enter zero or a positive amount with at most two decimals."
+                  : undefined
+              }
+            />
+            <View className="border-t border-border pt-4 gap-3">
+              <Text className="font-nunitoSemiBold text-base text-foreground">
+                Optional goal or known bill
+              </Text>
+              <SheetInput
+                label="Amount still needed / annual bill (₱)"
+                value={target}
+                onChange={setTarget}
+                numeric
+                disabled={busy}
+                maxLength={12}
+                placeholder="e.g. 12000"
+                error={
+                  submitted && target.trim() && targetValue === null
+                    ? "Enter a positive target amount."
+                    : undefined
+                }
+              />
+              <SheetInput
+                label="Months to spread this amount over"
+                value={months}
+                onChange={setMonths}
+                numeric
+                disabled={busy}
+                maxLength={3}
+                error={
+                  submitted && !validGoal
+                    ? "Enter a whole number from 1 to 600."
+                    : undefined
+                }
+              />
+              {suggestion && (
+                <View className="bg-surface-secondary rounded-2xl p-3 gap-2">
+                  <Text className="font-nunitoBold text-sm text-accent">
+                    Suggested: {formatPesoDisplay(suggestion.amount)} / month
+                  </Text>
+                  <Text className="font-inter text-xs text-muted">
+                    {suggestion.basis}
+                  </Text>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    isDisabled={busy}
+                    onPress={() => setAmount(String(suggestion.amount))}
+                  >
+                    <Button.Label>Use suggestion</Button.Label>
+                  </Button>
+                </View>
+              )}
+            </View>
+            {error && (
+              <Text
+                accessibilityRole="alert"
+                selectable
+                className="text-danger text-sm font-inter"
+              >
+                {error}
+              </Text>
+            )}
+            <Button isDisabled={busy} onPress={handleSave}>
+              <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
+            </Button>
+            <Button variant="secondary" isDisabled={busy} onPress={onClose}>
+              <Button.Label>Cancel</Button.Label>
+            </Button>
+            {initial && (
+              <Button
+                variant="danger-soft"
+                isDisabled={busy}
+                onPress={() =>
+                  confirmDelete ? void handleDelete() : setConfirmDelete(true)
+                }
+              >
+                <Button.Label>
+                  {confirmDelete ? "Confirm remove budget" : "Remove budget"}
+                </Button.Label>
+              </Button>
+            )}
+          </BottomSheetScrollView>
+        </BottomSheet.Content>
+      </BottomSheet.Portal>
+    </BottomSheet>
+  );
+}

@@ -596,11 +596,27 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Reviews & ratings** | Detail ratings, `rate-apartment`, `useSubmitReview` (photo uploads with rollback) | Read-only display (`RatingsSection`, `RenderReviews`) | `reviews`, `review-images` |
 | **Favorites** | `useFavorites` (React Query set state + DB writes, virtualized `FlatList`, caller-owned toasts) | `useFavorites` + `favoritesService` | `favorites` |
 | **Landlord units** | `(tabs)/(landlord)/units.tsx`, `manage-apartment/` (edit wizard, reviews, tenant profiles), `add-apartment/` (publish wizard with `useApartmentFormStore`) | `landlord/properties/` (list, create wizard with Leaflet map, edit modals) | `apartments`, `apartment_images`, `lease-agreements` |
-| **Landlord analytics** | `landlord/analytics.tsx` — React Query: single apartment-ID lookup then parallel count reads (`useDashboardStats`) | `landlord/dashboard/` — **dummy data** (debt D11) | (none) |
+| **Landlord analytics** | `landlord/analytics.tsx` — profit/expense/budget tracking via `hooks/finance/useLandlordFinances` and `service/finance/financeService`; see §12.1 | Existing revenue dashboard; expense/budget UI is mobile-only | `payment`, `tenancies`, `apartments`, `landlord_expenses`, `landlord_budgets`, `landlord_finance_reviews` |
 | **Notifications** | `(notification)/` screens (`tenant-notif` / `landlord-notif` → shared `NotificationScreen`) backed by `useNotifications` (React Query feed + unread count, both on one shared `notifications:{userId}` realtime channel via refcounted registry `useNotificationRealtime`), DB-trigger-generated rows (`create_notification`, service-role-only), Expo push via `push-notify` edge function (payload carries `notificationId`; clients mark the row read on tap/banner action), in-app HeroUI toast banner (`useInAppNotificationBanner`, realtime-driven, chat toasts suppressed while viewing that chat), role-aware deep links (`buildNotificationDeepLink`), delivery gated by per-user `notification_preferences` (master + per-type, enforced in `push-notify` and the client) | Not implemented | `notifications`, `push_tokens`, `notification_preferences` |
 | **Account verification** | `verify-account/`, `document-id/` (upload screen is a stub — nothing uploads) | Not implemented | — |
 | **Admin** | Not implemented | Not implemented (middleware role stub only) | `users.role = 'admin'` |
 | **Profile / settings** | `profile/tenant|landlord/[id]`, `edit-profile` (avatar/background upload), `settings/*` | Not implemented (navbar links are dead — debt D12) | `users`, `avatars`, `background_photos` |
+
+---
+
+### 12.1 Landlord finance tracking
+
+Finance is caller-owned: the three finance tables have owner/landlord-role and restrictive active-account RLS using the internal `users.id`. Admins cannot read private landlord finances. Expense ownership/property and budget identity fields are immutable to clients through column-scoped grants. All finance RPCs are `SECURITY INVOKER`, with an empty search path and no anonymous execution. Existing payment writes and the dashboard RPC are unchanged.
+
+`get_landlord_finances(month, apartment)` aggregates 12 months (within a selectable 24-month history), category spending, per-property performance, budget actuals and rental-period collection totals. Dates use Asia/Manila; the current month's comparison uses equivalent elapsed days, clamped to the preceding month's end. Cash-month income includes only confirmed paid rows with a tenancy and rental period; legacy unclassified payments are excluded and disclosed, not guessed to be rental income. Operating expenses and capital improvements are separate. Reserves are plans, never expenses or funds moved.
+
+Income remains unavailable until the landlord explicitly reviews the selected month's expenses for every selected property, including zero-expense properties. The expense trigger invalidates both affected month reviews on edits/date moves/deletes. `confirm_landlord_finance_month` confirms the current selection; `save_landlord_finance_budget` upserts one property/month/category/kind plan. Goal suggestions divide entered amounts by entered months; no predictive forecasting or savings transfers are implemented.
+
+`landlord_rent_ledger` derives the selected calendar month's rent from active tenancies and ended tenancies with a recorded lease end, using the shared clamped due-day/move-in convention. Confirmed payments for that rental period reduce outstanding rent; pending/rejected checkout attempts never create additional dues. Collection status is as of today, separate from cash received during the selected month. Removed listings are excluded; ended leases without an end date cannot safely generate expected rent.
+
+React Query keys include account, property and month. Mutations invalidate exact cached keys for that account's affected finance families; no server data is copied into Zustand or device storage. Expense and rent drill-downs use bounded 30-row keyset pages; lists are virtualized. Expense form UUIDs make uncertain insert retries idempotent. Account changes remount the page to discard drafts. `packages/utils/src/landlordFinance.ts` holds shared money/date validation, finance arithmetic and transparent goal rules. Web can reuse those rules without changing its existing revenue dashboard.
+
+The isolated SQL regression harness is `supabase/test-support/landlord-finances-bootstrap.sql` (run only against an empty local PostgreSQL database); it loads minimal dependency fixtures, the finance migrations and rolled-back authorization/accounting tests. It is not a hosted-project setup script.
 
 ---
 

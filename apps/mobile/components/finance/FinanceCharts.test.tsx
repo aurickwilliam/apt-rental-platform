@@ -1,0 +1,254 @@
+import type { ComponentProps, PropsWithChildren } from "react";
+import { fireEvent, render } from "@testing-library/react-native";
+import { type PressableProps, type TextProps, View } from "react-native";
+import type { BarChart } from "react-native-gifted-charts";
+import IncomeTrendChart from "./IncomeTrendChart";
+import ExpenseCategoryChart from "./ExpenseCategoryChart";
+import PropertyPerformanceChart from "./PropertyPerformanceChart";
+import CollectionHealthChart from "./CollectionHealthChart";
+import BudgetProgressChart from "./BudgetProgressChart";
+import type { FinanceMonth } from "@repo/utils";
+
+const mockBarChart = jest.fn();
+jest.mock("react-native-gifted-charts", () => ({
+  BarChart: (props: ComponentProps<typeof BarChart>) => {
+    mockBarChart(props);
+    const { Text: ChartText } = jest.requireActual("react-native");
+    return <ChartText testID="chart">Chart</ChartText>;
+  },
+}));
+jest.mock("@/hooks/useTheme", () => ({
+  useColors: () => ({
+    colors: {
+      primary: "#376BF5",
+      chartSky: "#0891B2",
+      textPrimary: "#333333",
+      textSecondary: "#626B73",
+      border: "#E5EAF2",
+      danger: "#E50914",
+    },
+  }),
+}));
+jest.mock("heroui-native", () => {
+  const { Pressable, Text } = jest.requireActual("react-native");
+  const Button = ({
+    children,
+    onPress,
+    isDisabled,
+    ...props
+  }: PropsWithChildren<PressableProps & { isDisabled?: boolean }>) => (
+    <Pressable
+      {...props}
+      onPress={onPress}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={{ ...props.accessibilityState, disabled: isDisabled }}
+    >
+      {children}
+    </Pressable>
+  );
+  Button.Label = function ButtonLabel({ children, ...props }: TextProps) {
+    return <Text {...props}>{children}</Text>;
+  };
+  return { Button };
+});
+jest.mock("./FinanceControls", () => {
+  const { Pressable, Text } = jest.requireActual("react-native");
+  return {
+    FinanceCard: ({ children }: PropsWithChildren) => <>{children}</>,
+    FinanceHeading: ({
+      title,
+      action,
+    }: {
+      title: string;
+      action?: React.ReactNode;
+    }) => (
+      <>
+        <Text>{title}</Text>
+        {action}
+      </>
+    ),
+    MoneyRow: ({ label, amount }: { label: string; amount: number | null }) => (
+      <Text>
+        {label}: {amount === null ? "Not calculated" : amount}
+      </Text>
+    ),
+    FinanceTabs: ({
+      options,
+      onChange,
+    }: {
+      options: { value: string; label: string }[];
+      onChange: (value: string) => void;
+    }) => (
+      <>
+        {options.map((option) => (
+          <Pressable
+            key={option.value}
+            accessibilityRole="button"
+            onPress={() => onChange(option.value)}
+          >
+            <Text>{option.label}</Text>
+          </Pressable>
+        ))}
+      </>
+    ),
+  };
+});
+
+const months: FinanceMonth[] = Array.from({ length: 12 }, (_, index) => ({
+  month: `2026-${String(index + 1).padStart(2, "0")}`,
+  collected: 10000,
+  operating: 2000,
+  capital: 1000,
+  reviewed: true,
+}));
+
+describe("interactive finance charts", () => {
+  beforeEach(() => mockBarChart.mockClear());
+  test("range, bar selection and transaction drill-down use the selected month", () => {
+    const onViewExpenses = jest.fn();
+    const screen = render(
+      <IncomeTrendChart months={months} onViewExpenses={onViewExpenses} />,
+    );
+    // Layout is delivered by React Native, not a hard-coded device width.
+    const container = screen
+      .UNSAFE_getAllByType(View)
+      .find((node) => node.props.onLayout);
+    fireEvent(container!, "layout", {
+      nativeEvent: { layout: { width: 320 } },
+    });
+    expect(mockBarChart.mock.lastCall?.[0].data).toHaveLength(12);
+    fireEvent.press(screen.getByText("3M"));
+    expect(mockBarChart.mock.lastCall?.[0].data).toHaveLength(6);
+    const props = mockBarChart.mock.lastCall![0] as ComponentProps<
+      typeof BarChart
+    >;
+    // The same data selection has a non-chart alternative for screen readers.
+    fireEvent.press(screen.getByText("View data / select month"));
+    fireEvent.press(screen.getByLabelText(/October 2026, collected/));
+    fireEvent.press(screen.getByText("View expenses for this month"));
+    expect(onViewExpenses).toHaveBeenCalledWith("2026-10");
+    expect(props.width).toBe(272);
+  });
+  test("legend controls cannot hide both bar series", () => {
+    const screen = render(
+      <IncomeTrendChart months={months} onViewExpenses={jest.fn()} />,
+    );
+    fireEvent.press(screen.getByLabelText("Toggle collected"));
+    fireEvent.press(screen.getByLabelText("Toggle expenses"));
+    expect(
+      screen.getByLabelText("Toggle expenses").props.accessibilityState
+        .selected,
+    ).toBe(true);
+  });
+  test("net line requires complete expense reviews", () => {
+    const screen = render(
+      <IncomeTrendChart
+        months={months.map((month) => ({ ...month, reviewed: false }))}
+        onViewExpenses={jest.fn()}
+      />,
+    );
+    expect(screen.getByLabelText("Toggle net")).toBeDisabled();
+    expect(
+      screen.getByText(/Missing records aren’t assumed to be zero/),
+    ).toBeTruthy();
+  });
+  test("negative net income is passed below the chart baseline", () => {
+    const screen = render(
+      <IncomeTrendChart
+        months={months.map((month) => ({ ...month, operating: 15000 }))}
+        onViewExpenses={jest.fn()}
+      />,
+    );
+    const container = screen
+      .UNSAFE_getAllByType(View)
+      .find((node) => node.props.onLayout);
+    fireEvent(container!, "layout", {
+      nativeEvent: { layout: { width: 320 } },
+    });
+    fireEvent.press(screen.getByLabelText("Toggle net"));
+    expect(mockBarChart.mock.lastCall?.[0].mostNegativeValue).toBe(-5000);
+    expect(mockBarChart.mock.lastCall?.[0].showLine).toBe(true);
+  });
+  test("expense categories switch to share and filter transactions", () => {
+    const onSelect = jest.fn();
+    const screen = render(
+      <ExpenseCategoryChart
+        categories={[
+          { category: "maintenance", amount: 3000, previous_amount: 1000 },
+          { category: "insurance", amount: 1000, previous_amount: 0 },
+        ]}
+        selected={null}
+        onSelect={onSelect}
+      />,
+    );
+    fireEvent.press(screen.getByText("% of expenses"));
+    expect(screen.getByText("75%")).toBeTruthy();
+    fireEvent.press(
+      screen.getByLabelText(/Maintenance & repairs,.*75 percent/),
+    );
+    expect(onSelect).toHaveBeenCalledWith("maintenance");
+  });
+  test("property net ranking never treats missing expenses as zero", () => {
+    const onSelect = jest.fn();
+    const screen = render(
+      <PropertyPerformanceChart
+        properties={[
+          { ...months[0], id: "a", name: "Villa", reviewed: false },
+          { ...months[0], id: "b", name: "House" },
+        ]}
+        onSelect={onSelect}
+      />,
+    );
+    fireEvent.press(screen.getByText("Net income"));
+    expect(screen.getByText("Not reviewed ›")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/House, net,/));
+    expect(onSelect).toHaveBeenCalledWith("b");
+  });
+  test("collection segments open filtered rent lists", () => {
+    const onSelect = jest.fn();
+    const screen = render(
+      <CollectionHealthChart
+        data={{
+          expected: 10000,
+          collected: 6000,
+          pending: 1000,
+          overdue: 3000,
+          overdueCount: 1,
+          age7: 3000,
+          age30: 0,
+          ageOlder: 0,
+        }}
+        onSelect={onSelect}
+      />,
+    );
+    fireEvent.press(screen.getByLabelText(/View overdue,/));
+    expect(onSelect).toHaveBeenCalledWith("overdue");
+  });
+  test("over-budget amounts are explicit and reserve targets remain plans", () => {
+    const onEdit = jest.fn();
+    const screen = render(
+      <BudgetProgressChart
+        properties={[{ id: "a", name: "Villa" }]}
+        budgets={[
+          {
+            id: "b",
+            apartment_id: "a",
+            month: "2026-10-01",
+            category: "maintenance",
+            kind: "expense",
+            amount: 3000,
+            spent: 4200,
+            target_amount: null,
+            months_remaining: null,
+          },
+        ]}
+        onEdit={onEdit}
+        onCreate={jest.fn()}
+      />,
+    );
+    expect(screen.getByText(/over budget · 140% used/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/Over budget. Edit budget/));
+    expect(onEdit).toHaveBeenCalled();
+  });
+});
