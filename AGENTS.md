@@ -36,7 +36,7 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 
 - pnpm@10.34.5 monorepo (Node 22.17.0 — see `.nvmrc`), workspace roots: `apps/*`, `packages/*`
 - Backend: Supabase (Postgres, Auth, Realtime, Storage)
-- CI: one required `ci` job (`.github/workflows/ci.yml`) runs mobile lint + jest and web lint + typecheck + tests; no formatter config. `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`, also covering `packages/passport` and `packages/utils`) via `pnpm --filter mobile test`; `apps/web` has `node:test` suites for pure helpers in `lib/*.test.mjs` via `pnpm --filter web test`
+- CI: one required `ci` job (`.github/workflows/ci.yml`) runs population-command tests, mobile lint + jest and web lint + typecheck + tests; no formatter config. `apps/mobile` has a Jest suite (`jest-expo` + `@testing-library/react-native` + `fast-check`, also covering `packages/passport` and `packages/utils`) via `pnpm --filter mobile test`; `apps/web` has `node:test` suites for pure helpers in `lib/*.test.mjs` via `pnpm --filter web test`
 
 ### `apps/web` — Next.js 16 (App Router)
 - Styling: **Tailwind CSS v4** + PostCSS (`@tailwindcss/postcss`)
@@ -85,6 +85,8 @@ Rental management platform for the Philippine market (CAMANAVA area focus), serv
 ```bash
 pnpm web          # pnpm --filter web dev
 pnpm mobile       # pnpm --filter mobile start
+pnpm db:populate --help  # operator-only demo activity: preview/apply/reset/cleanup
+pnpm db:populate:test   # generator/CLI tests; PostgreSQL contract suite is opt-in
 ```
 
 Individual app scripts:
@@ -118,6 +120,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 - Account suspension is **app-level**: `public.users.is_suspended` (+ `suspension_reason`) is the source of truth, enforced by the restrictive `Active accounts only` RLS policies and the `admin_set_user_access()` RPC (admin-only, audited, deletes sessions). Never use Supabase Auth's `ban_duration`; suspended users authenticate normally, and clients read their own state via `get_my_suspension_status()` to show the notice (mobile `suspensionService`/`useSuspensionGuard`, web `/suspended`). Service-role code paths (edge functions, notification push) must check `is_suspended` themselves.
 - When a table has multiple FKs to `public.users` (e.g. `reviews`, `chat`), disambiguate joins explicitly: `users!reviews_tenant_id_fkey`.
 - Use DB migrations for schema changes; direct SQL only for read-only queries or one-off DML.
+- Demo activity is managed only by `pnpm db:populate` (`scripts/db-populate/`, private `demo_population` schema), never client-facing RPCs or blanket resets. It reuses existing users/listings, freezes one deterministic dataset, tracks inserted rows and allowed apartment patches, and refuses reset/cleanup after edits or new dependencies. Hosted writes require a reviewed preview token and explicit project confirmation; do not run them as part of implementing the tool. Keep integrity triggers enabled and review the importer audit hashes when trigger bodies change. See `docs/demo-population.md` for setup, limits and tests.
 - Before remote backend operations, confirm the target against the active app's public Supabase URL; the CLI link can point to a different project. Profile UPDATE must stay column-scoped: after removing a broad table grant, explicitly retain the intended profile/onboarding columns and `updated_at`, never `email` or server-managed identity/access fields. Owner-only and active-account RLS still apply.
 - `apartments` INSERT is column-scoped like UPDATE: clients never set `is_verified`, moderation (`is_hidden_by_admin`, `hidden_*`), ratings/counters or timestamps. New client listings are forced to `status = 'available'`, `is_verified = false` (verification is `is_verified` + `apartment_verifications`; `status` is occupancy only, and clients may not set `unverified`). `apartment-images` uploads are landlord-only and deletes owner-only.
 - Storage buckets are private by default; store **storage paths** (not public URLs) in DB columns, generate signed URLs on read. **Exception:** `apartment-images` is **public** (`public=true`, 10 MB limit) — `apartment_images.url` / `url_thumb` store permanent CDN public URLs (`getPublicUrl`) and render via `expo-image cachePolicy="disk"` with no signing (verified `storage.buckets.public=true` on `apartment-images`).

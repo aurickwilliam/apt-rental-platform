@@ -9,7 +9,9 @@
   ],
   "scripts": {
     "web": "pnpm --filter web dev",
-    "mobile": "pnpm --filter mobile start"
+    "mobile": "pnpm --filter mobile start",
+    "db:populate": "node --experimental-strip-types --import ./scripts/db-populate/register.mjs scripts/db-populate.mjs",
+    "db:populate:test": "node --experimental-strip-types --import ./scripts/db-populate/register.mjs --test scripts/db-populate/*.test.mjs"
   },
   "repository": {
     "type": "git",
