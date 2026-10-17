@@ -6,10 +6,12 @@ import {
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react-native";
+import { useColors } from "@/hooks/useTheme";
 import {
   BottomSheet,
   Button,
-  Input,
+  SearchField,
   useBottomSheetAwareHandlers,
 } from "heroui-native";
 import { financeMonthLabel, shiftFinanceMonth } from "@repo/utils";
@@ -44,17 +46,21 @@ function PropertySearch({
 }) {
   const handlers = useBottomSheetAwareHandlers();
   return (
-    <Input
-      accessibilityLabel="Search properties"
-      placeholder="Search properties…"
-      value={value}
-      onChangeText={onChange}
-      autoCorrect={false}
-      autoFocus={false}
-      returnKeyType="done"
-      onSubmitEditing={() => Keyboard.dismiss()}
-      {...handlers}
-    />
+    <SearchField value={value} onChange={onChange}>
+      <SearchField.Group>
+        <SearchField.SearchIcon />
+        <SearchField.Input
+          accessibilityLabel="Search properties"
+          placeholder="Search properties…"
+          autoCorrect={false}
+          autoFocus={false}
+          returnKeyType="done"
+          onSubmitEditing={() => Keyboard.dismiss()}
+          {...handlers}
+        />
+        <SearchField.ClearButton accessibilityLabel="Clear property search" />
+      </SearchField.Group>
+    </SearchField>
   );
 }
 
@@ -68,6 +74,7 @@ export default function FinanceFilterSheet({
   onClose,
 }: FinanceFilterSheetProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useColors();
   const [tab, setTab] = useState("property");
   const [search, setSearch] = useState("");
   const [year, setYear] = useState(Number(value.month.slice(0, 4)));
@@ -201,22 +208,20 @@ export default function FinanceFilterSheet({
                 {propertyOptions.map((item) => (
                   <Button
                     key={item.id ?? "all"}
-                    variant={
-                      item.id === value.apartmentId ? "secondary" : "ghost"
-                    }
+                    variant="ghost"
                     accessibilityRole="radio"
                     accessibilityState={{
                       checked: item.id === value.apartmentId,
                     }}
                     accessibilityLabel={`Property: ${item.name}`}
-                    className="h-auto min-h-12 py-3 justify-start"
+                    className={`h-auto min-h-12 py-3 justify-start${item.id === value.apartmentId ? " bg-primary-light" : ""}`}
                     onPress={() => onChange({ ...value, apartmentId: item.id })}
                   >
-                    <Button.Label className="flex-1" numberOfLines={2}>
+                    <Button.Label className={`flex-1${item.id === value.apartmentId ? " text-primary-light-foreground" : ""}`} numberOfLines={2}>
                       {item.name}
                     </Button.Label>
                     {item.id === value.apartmentId && (
-                      <Text accessible={false} className="text-accent">
+                      <Text accessible={false} className="text-primary-light-foreground">
                         ✓
                       </Text>
                     )}
@@ -238,7 +243,7 @@ export default function FinanceFilterSheet({
                     isDisabled={year <= Number(oldestMonth.slice(0, 4))}
                     onPress={() => setYear(year - 1)}
                   >
-                    <Button.Label>‹</Button.Label>
+                    <IconChevronLeft size={28} color={colors.textPrimary} />
                   </Button>
                   <Text
                     accessibilityRole="header"
@@ -253,7 +258,7 @@ export default function FinanceFilterSheet({
                     isDisabled={year >= Number(currentMonth.slice(0, 4))}
                     onPress={() => setYear(year + 1)}
                   >
-                    <Button.Label>›</Button.Label>
+                    <IconChevronRight size={28} color={colors.textPrimary} />
                   </Button>
                 </View>
                 <View className="flex-row flex-wrap">

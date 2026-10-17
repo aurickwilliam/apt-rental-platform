@@ -32,7 +32,10 @@ const mockFinance = {
     },
   },
 };
-const mockUseLandlordFinances = jest.fn((_scope: FinanceScope) => mockFinance);
+type MockFinance = Omit<typeof mockFinance, "report"> & {
+  report: Omit<typeof mockFinance.report, "data"> & { data?: typeof mockFinance.report.data };
+};
+const mockUseLandlordFinances = jest.fn((_scope: FinanceScope): MockFinance => mockFinance);
 const mockSheetOpenStates = jest.fn();
 const mockSheetContentProps = jest.fn();
 const mockExpenseSheet = jest.fn((_props: unknown) => null);
@@ -62,9 +65,15 @@ jest.mock("@/hooks/finance/useLandlordFinances", () => ({
 jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Failed",
 }));
+jest.mock("@/components/finance/FinanceSkeleton", () => {
+  const { View } = jest.requireActual("react-native");
+  return function Skeleton({ tab }: { tab: string }) { return <View testID={`finance-skeleton-${tab}`} />; };
+});
 jest.mock("@tabler/icons-react-native", () => ({
   IconFilter2: () => null,
   IconPlus: () => null,
+  IconChevronLeft: () => null,
+  IconChevronRight: () => null,
 }));
 jest.mock("@/components/layout/StandardHeader", () => {
   const { Text, View } = jest.requireActual("react-native");
@@ -161,9 +170,26 @@ jest.mock("heroui-native", () => {
   Button.Label = function ButtonLabel({ children }: TextProps) {
     return <Text>{children}</Text>;
   };
+  const SearchContext = React.createContext({ value: "", onChange: (_value: string) => {} });
+  function SearchRoot({ children, value, onChange }: PropsWithChildren<{ value: string; onChange: (value: string) => void }>) {
+    return <SearchContext.Provider value={{ value, onChange }}>{children}</SearchContext.Provider>;
+  }
+  function SearchInput(props: TextInputProps) {
+    const { value, onChange } = React.useContext(SearchContext);
+    return <TextInput value={value} onChangeText={onChange} {...props} />;
+  }
+  function ClearSearch(props: PressableProps) {
+    const { value, onChange } = React.useContext(SearchContext);
+    return value.length ? <Pressable {...props} onPress={() => onChange("")} /> : null;
+  }
   return {
     Button,
-    Input: (props: TextInputProps) => <TextInput {...props} />,
+    SearchField: Object.assign(SearchRoot, {
+      Group: Container,
+      SearchIcon: () => <View testID="property-search-icon" />,
+      Input: SearchInput,
+      ClearButton: ClearSearch,
+    }),
     useBottomSheetAwareHandlers: () => ({}),
     Spinner: () => null,
     useToast: () => ({ toast: { show: jest.fn() } }),
@@ -256,20 +282,38 @@ jest.mock(
       return null;
     },
 );
-jest.mock(
-  "@/app/(tabs)/components/dashboard/DashboardSkeleton",
-  () =>
-    function Skeleton() {
-      return null;
-    },
-);
 
 describe("analytics header filters", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseLandlordFinances.mockImplementation(() => mockFinance);
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
   });
   afterEach(() => jest.useRealTimers());
+
+  test("initial loading uses the finance layout and disables footer and filter actions", () => {
+    mockUseLandlordFinances.mockReturnValue({ ...mockFinance, report: { ...mockFinance.report, isLoading: true, data: undefined } });
+    const screen = render(<AnalyticsScreen />);
+    expect(screen.getByTestId("finance-skeleton-overview")).toBeTruthy();
+    expect(screen.getByLabelText("Filters")).toBeDisabled();
+    expect(screen.getByText("Add expense")).toBeDisabled();
+  });
+
+  test("changing scope keeps the selected tab's skeleton", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Budget tab"));
+    mockUseLandlordFinances.mockImplementation(() => ({ ...mockFinance, report: { ...mockFinance.report, isLoading: true, data: undefined } }));
+    screen.rerender(<AnalyticsScreen />);
+    expect(screen.getByTestId("finance-skeleton-budget")).toBeTruthy();
+  });
+
+  test("a background refresh keeps loaded content and footer actions", () => {
+    mockUseLandlordFinances.mockReturnValue({ ...mockFinance, report: { ...mockFinance.report, isRefetching: true } });
+    const screen = render(<AnalyticsScreen />);
+    expect(screen.queryByTestId("finance-skeleton-overview")).toBeNull();
+    expect(screen.getByLabelText(/^Filters,/)).not.toBeDisabled();
+    expect(screen.getByText("Add expense")).not.toBeDisabled();
+  });
 
   test("the header button opens the selectors, which are absent from page content", () => {
     const screen = render(<AnalyticsScreen />);
@@ -332,6 +376,7 @@ describe("analytics header filters", () => {
 
   test("both filters apply together and remain selected when reopened", () => {
     const screen = render(<AnalyticsScreen />);
+    expect(screen.getByLabelText("Report month: October 2026")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     fireEvent.press(screen.getByLabelText("Month tab"));
@@ -347,6 +392,7 @@ describe("analytics header filters", () => {
     });
     expect(screen.queryByText("Apply filters")).toBeNull();
     expect(screen.getByText("2")).toBeTruthy();
+    expect(screen.getByLabelText("Report month: September 2026")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Filters, Villa, September 2026"));
     expect(screen.getByLabelText("Property: Villa").props.accessibilityState.checked).toBe(true);
     expect(screen.getByText("Villa · September 2026")).toBeTruthy();
@@ -389,6 +435,52 @@ describe("analytics header filters", () => {
       apartmentId: null,
     });
     expect(screen.queryByText("1")).toBeNull();
+  });
+
+  test("search icon stays visible and clearing restores listings without changing the selected property", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    expect(screen.getByTestId("property-search-icon")).toBeTruthy();
+    expect(screen.queryByLabelText("Clear property search")).toBeNull();
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.changeText(screen.getByLabelText("Search properties"), "house");
+    expect(screen.queryByLabelText("Property: Villa")).toBeNull();
+    expect(screen.getByLabelText("Property: House")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("Clear property search"));
+    expect(screen.getByLabelText("Search properties").props.value).toBe("");
+    expect(screen.getByLabelText("Property: House")).toBeTruthy();
+    expect(screen.getByLabelText("Property: Villa").props.accessibilityState.checked).toBe(true);
+    expect(screen.getByTestId("property-search-icon")).toBeTruthy();
+    expect(screen.queryByLabelText("Clear property search")).toBeNull();
+  });
+
+  test("only the selected property has the soft primary blue background", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    expect(screen.getByLabelText("Property: All properties").props.className).toContain("bg-primary-light");
+    expect(screen.getByLabelText("Property: Villa").props.className).not.toContain("bg-primary-light");
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    expect(screen.getByLabelText("Property: Villa").props.className).toContain("bg-primary-light");
+    expect(screen.getByLabelText("Property: All properties").props.className).not.toContain("bg-primary-light");
+  });
+
+  test("the page labels the applied apartment and hides the label for all properties", () => {
+    const screen = render(<AnalyticsScreen />);
+    expect(screen.queryByText("Filtered property")).toBeNull();
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    expect(screen.queryByText("Filtered property")).toBeNull();
+    fireEvent.press(screen.getByText("Apply filters"));
+    expect(screen.getByLabelText("Filtered property: Villa")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: House"));
+    fireEvent.press(screen.getByText("Apply filters"));
+    expect(screen.getByLabelText("Filtered property: House")).toBeTruthy();
+    expect(screen.queryByLabelText("Filtered property: Villa")).toBeNull();
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByText("Reset"));
+    fireEvent.press(screen.getByText("Apply filters"));
+    expect(screen.queryByText("Filtered property")).toBeNull();
   });
 
   test("property search filters inline without mounting another sheet", () => {

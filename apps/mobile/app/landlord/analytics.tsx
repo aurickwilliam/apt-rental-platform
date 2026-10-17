@@ -16,7 +16,7 @@ import {
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyProperties from "@/app/(tabs)/components/units/EmptyProperties";
-import DashboardSkeleton from "@/app/(tabs)/components/dashboard/DashboardSkeleton";
+import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -85,6 +85,7 @@ function LandlordAnalytics() {
     tab === "expenses",
   );
   const data = finance.report.data;
+  const selectedProperty = data?.properties.find((property) => property.id === apartmentId);
   const active = data?.months.at(-1);
   const reserve =
     data?.budgets
@@ -132,13 +133,26 @@ function LandlordAnalytics() {
       setReviewError(financeErrorMessage(error));
     }
   };
-  if (finance.userLoading || finance.report.isLoading)
+  const loadingReport = finance.userLoading || (!data && finance.report.isLoading);
+  const expenseFooter = <View className="px-5 py-3 border-t border-border bg-background">
+    <Button isDisabled={loadingReport} onPress={() => setExpenseEditor({})}>
+      <IconPlus size={20} color="#FFFFFF" />
+      <Button.Label>Add expense</Button.Label>
+    </Button>
+  </View>;
+  if (loadingReport)
     return (
       <ScreenWrapper
-        header={<StandardHeader title="Profit & planning" />}
+        header={<StandardHeader title="Profit & planning" rightComponent={
+          <Button variant="ghost" isIconOnly isDisabled accessibilityLabel="Filters">
+            <IconFilter2 size={22} color="#FFFFFF" />
+          </Button>
+        } />}
         scrollable
+        footer={expenseFooter}
+        className="p-5 gap-5"
       >
-        <DashboardSkeleton />
+        <FinanceSkeleton tab={tab} />
       </ScreenWrapper>
     );
   if (
@@ -209,14 +223,7 @@ function LandlordAnalytics() {
         />
       }
       dismissKeyboardOnTouch={false}
-      footer={
-        <View className="px-5 py-3 border-t border-border bg-background">
-          <Button onPress={() => setExpenseEditor({})}>
-            <IconPlus size={20} color="#FFFFFF" />
-            <Button.Label>Add expense</Button.Label>
-          </Button>
-        </View>
-      }
+      footer={expenseFooter}
     >
       <FlatList
         ref={listRef}
@@ -237,6 +244,14 @@ function LandlordAnalytics() {
         }
         ListHeaderComponent={
           <View className="gap-5">
+            <View className="gap-1">
+              {selectedProperty && <>
+                <Text className="font-inter text-xs text-muted">Filtered property</Text>
+                <Text accessibilityRole="header" accessibilityLabel={`Filtered property: ${selectedProperty.name}`}
+                  className="font-nunitoBold text-lg text-foreground">{selectedProperty.name}</Text>
+              </>}
+              <Text accessibilityLabel={`Report month: ${financeMonthLabel(month)}`} className="font-inter text-sm text-muted">{financeMonthLabel(month)}</Text>
+            </View>
             <EarningsSummaryCard
               data={data}
               month={month}
