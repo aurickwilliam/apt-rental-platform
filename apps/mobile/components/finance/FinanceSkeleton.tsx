@@ -6,6 +6,61 @@ interface FinanceSkeletonProps {
   tab: "overview" | "expenses" | "budget";
 }
 
+export function ExpenseEntrySkeleton() {
+  return (
+    <View
+      accessible
+      accessibilityLabel="Loading expense form"
+      accessibilityRole="progressbar"
+      accessibilityState={{ busy: true }}
+    >
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <SkeletonGroup
+          isLoading
+          className="gap-4"
+          testID="expense-entry-skeleton"
+        >
+          <SkeletonGroup.Item className="h-4 w-full rounded-md" />
+          <SkeletonGroup.Item className="h-4 w-4/5 rounded-md" />
+          {[0, 1, 2].map((field) => (
+            <View key={field} className="gap-2">
+              <SkeletonGroup.Item className="h-4 w-28 rounded-md" />
+              <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+            </View>
+          ))}
+          <View className="gap-2">
+            <SkeletonGroup.Item className="h-3 w-full rounded-md" />
+            <SkeletonGroup.Item className="h-3 w-4/5 rounded-md" />
+          </View>
+          {[0, 1, 2].map((field) => (
+            <View key={`details-${field}`} className="gap-2">
+              <SkeletonGroup.Item className="h-4 w-24 rounded-md" />
+              <SkeletonGroup.Item className="h-12 w-full rounded-2xl" />
+            </View>
+          ))}
+        </SkeletonGroup>
+      </View>
+    </View>
+  );
+}
+
+export function ExpenseEntryFooterSkeleton() {
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <SkeletonGroup isLoading className="flex-row gap-3">
+        <SkeletonGroup.Item className="h-12 flex-1 rounded-full" />
+        <SkeletonGroup.Item className="h-12 flex-1 rounded-full" />
+      </SkeletonGroup>
+    </View>
+  );
+}
+
 function ChartPlaceholder() {
   return <FinanceCard>
     <SkeletonGroup.Item className="h-6 w-40 rounded-md" />

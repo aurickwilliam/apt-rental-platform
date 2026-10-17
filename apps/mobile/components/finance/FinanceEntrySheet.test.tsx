@@ -24,6 +24,7 @@ jest.mock("@gorhom/bottom-sheet", () => ({
 jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Save failed. Try again.",
 }));
+const mockPortalProps = jest.fn();
 jest.mock("heroui-native", () => {
   const { Pressable, Text, TextInput, View } =
     jest.requireActual("react-native");
@@ -44,8 +45,12 @@ jest.mock("heroui-native", () => {
   Button.Label = function ButtonLabel({ children }: TextProps) {
     return <Text>{children}</Text>;
   };
+  function BottomSheetPortal(props: PropsWithChildren<{ disableFullWindowOverlay?: boolean }>) {
+    mockPortalProps(props);
+    return <View>{props.children}</View>;
+  }
   const BottomSheet = Object.assign(Container, {
-    Portal: Container,
+    Portal: BottomSheetPortal,
     Content: Container,
     Overlay: () => null,
     Title: Text,
@@ -199,6 +204,16 @@ describe("finance entry forms", () => {
     ).toBeTruthy();
     expect(screen.getByText(/not future spending/)).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  // DateField opens the iOS picker as a React Native Modal, and the default
+  // iOS full-window overlay renders above native modals — the picker would
+  // open invisibly behind the sheet.
+  test("the expense sheet renders without the iOS full-window overlay so the date picker can appear above it", () => {
+    render(<ExpenseEntrySheet {...common} onSave={jest.fn()} onDelete={jest.fn()} />);
+    expect(mockPortalProps).toHaveBeenCalledWith(
+      expect.objectContaining({ disableFullWindowOverlay: true }),
+    );
   });
 
   test("a valid expense uses a stable UUID and explicit treatment", async () => {

@@ -429,7 +429,9 @@ function ExpenseEditor({
         if (!open) close();
       }}
     >
-      <BottomSheet.Portal>
+      {/* No full-window overlay: on iOS that layer draws above native modals,
+          hiding the picker DateField opens as a React Native Modal. */}
+      <BottomSheet.Portal disableFullWindowOverlay>
         <BottomSheet.Overlay />
         <BottomSheet.Content
           snapPoints={["90%"]}

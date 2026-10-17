@@ -1,10 +1,15 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Spinner, useToast } from "heroui-native";
+import { useToast } from "heroui-native";
+import { View } from "react-native";
 import { manilaToday, shiftFinanceMonth } from "@repo/utils";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import { ExpenseEntryPage } from "@/components/finance/FinanceEntrySheet";
 import { FinanceError } from "@/components/finance/FinanceControls";
+import {
+  ExpenseEntryFooterSkeleton,
+  ExpenseEntrySkeleton,
+} from "@/components/finance/FinanceSkeleton";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
 import { financeErrorMessage } from "@/service/finance/financeService";
@@ -34,9 +39,15 @@ function AddExpense() {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Add expense" onBackPress={close} />}
+        scrollable
         className="p-5"
+        footer={
+          <View className="px-5 py-3 border-t border-border bg-background">
+            <ExpenseEntryFooterSkeleton />
+          </View>
+        }
       >
-        <Spinner accessibilityLabel="Loading properties" />
+        <ExpenseEntrySkeleton />
       </ScreenWrapper>
     );
   if (
