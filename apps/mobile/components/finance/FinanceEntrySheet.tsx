@@ -38,7 +38,9 @@ import {
 } from "@/service/finance/financeService";
 
 const MAX_FORMATTED_AMOUNT_LENGTH = "₱ 999,999,999.99".length;
-const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORIES.filter((item) => !["emergency", "vacancy"].includes(item.id));
+const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORIES.filter(
+  (item) => !["emergency", "vacancy"].includes(item.id),
+);
 const MAX_EXPENSE_DESCRIPTION_LENGTH = 200;
 
 function SheetInput({
@@ -70,7 +72,9 @@ function SheetInput({
       <Input
         isInvalid={!!error}
         className={error ? "finance-field-invalid" : undefined}
-        style={error ? { borderColor: colors.danger, borderWidth: 2 } : undefined}
+        style={
+          error ? { borderColor: colors.danger, borderWidth: 2 } : undefined
+        }
         value={value}
         onChangeText={onChange}
         accessibilityLabel={label}
@@ -172,15 +176,34 @@ function ExpenseEditor({
   }
   const amountValue = parseFinanceAmount(amount);
   const dateError = validateExpenseDate(date);
-  const propertyError = properties.some((item) => item.id === property) ? undefined : "Choose one of your properties.";
-  const categoryError = EXPENSE_CATEGORY_OPTIONS.some((item) => item.id === category) ? undefined : "Choose an expense category.";
-  const treatmentError = treatment === "operating" || treatment === "capital" ? undefined : "Choose an expense treatment.";
-  const descriptionError = !description.trim() ? "Describe this expense."
-    : description.trim().length > MAX_EXPENSE_DESCRIPTION_LENGTH ? "Use 200 characters or fewer." : undefined;
+  const propertyError = properties.some((item) => item.id === property)
+    ? undefined
+    : "Choose one of your properties.";
+  const categoryError = EXPENSE_CATEGORY_OPTIONS.some(
+    (item) => item.id === category,
+  )
+    ? undefined
+    : "Choose an expense category.";
+  const treatmentError =
+    treatment === "operating" || treatment === "capital"
+      ? undefined
+      : "Choose an expense treatment.";
+  const descriptionError = !description.trim()
+    ? "Describe this expense."
+    : description.trim().length > MAX_EXPENSE_DESCRIPTION_LENGTH
+      ? "Use 200 characters or fewer."
+      : undefined;
   const handleSave = async () => {
     if (busy) return;
     setSubmitted(true);
-    if (amountValue === null || dateError || propertyError || categoryError || treatmentError || descriptionError)
+    if (
+      amountValue === null ||
+      dateError ||
+      propertyError ||
+      categoryError ||
+      treatmentError ||
+      descriptionError
+    )
       return;
     Keyboard.dismiss();
     setBusy(true);
@@ -259,7 +282,10 @@ function ExpenseEditor({
         error={submitted ? categoryError : undefined}
         highlightSelection
         value={category}
-        options={EXPENSE_CATEGORY_OPTIONS.map((item) => ({ value: item.id, label: item.label }))}
+        options={EXPENSE_CATEGORY_OPTIONS.map((item) => ({
+          value: item.id,
+          label: item.label,
+        }))}
         disabled={busy}
         onChange={(value) => {
           setCategory(value as FinanceCategory);
@@ -292,10 +318,10 @@ function ExpenseEditor({
         income. This is a cash-planning tool, not a tax calculation.
       </Text>
       <SheetInput
-              label="Amount (₱)"
-              required
-              value={amount === "." ? "." : formatPesoDisplay(amount)}
-              onChange={(text) => setAmount(handlePesoChange(text).raw)}
+        label="Amount (₱)"
+        required
+        value={amount === "." ? "." : formatPesoDisplay(amount)}
+        onChange={(text) => setAmount(handlePesoChange(text).raw)}
         numeric
         disabled={busy}
         placeholder="0.00"
@@ -306,14 +332,18 @@ function ExpenseEditor({
             : undefined
         }
       />
-            <DateField
-              label="Date paid"
-              required
-              value={new Date(`${date}T12:00:00`)}
-              onChange={(selected) => setDate(`${selected.getFullYear()}-${String(selected.getMonth() + 1).padStart(2, "0")}-${String(selected.getDate()).padStart(2, "0")}`)}
-              maximumDate={new Date(`${manilaToday()}T12:00:00`)}
-              disabled={busy}
-              error={submitted ? (dateError ?? undefined) : undefined}
+      <DateField
+        label="Date paid"
+        required
+        value={new Date(`${date}T12:00:00`)}
+        onChange={(selected) =>
+          setDate(
+            `${selected.getFullYear()}-${String(selected.getMonth() + 1).padStart(2, "0")}-${String(selected.getDate()).padStart(2, "0")}`,
+          )
+        }
+        maximumDate={new Date(`${manilaToday()}T12:00:00`)}
+        disabled={busy}
+        error={submitted ? (dateError ?? undefined) : undefined}
       />
       <SheetInput
         label="Description"

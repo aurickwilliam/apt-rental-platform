@@ -264,6 +264,8 @@ Above the earnings card, always show the applied report month (Inter muted text)
 
 Loading uses `components/finance/FinanceSkeleton`, not the dashboard's stat tiles: the earnings panel, summary rows and tab strip precede tab-specific chart, transaction or budget placeholders, using the same 20px page padding and card corners as loaded content. Header filters and the safe-area Add expense footer stay visible but disabled until loading finishes. Background refreshes retain existing content; placeholders are hidden from assistive technology behind one labeled busy state.
 
+The expanded earnings breakdown keeps only figures: it ends with a `LinkButton` ("How these figures are calculated", underlined Nunito SemiBold `primaryLightForeground` label) instead of explanatory paragraphs. The link opens one `AppDialog` with headed sections for collected rent, operating income, improvements & planned reserves, expense review and payment-date comparison, plus a Got it action; the body scrolls inside the modal so the dialog title, close button and footer stay fixed. Guideline copy never sits on the card.
+
 Add expense opens `/landlord/add-expense`, a full page with `StandardHeader`, a keyboard-aware scrollable form and a fixed safe-area footer with equal-width Cancel / Save expense buttons. Analytics passes only the selected property ID and month; drafts stay local. Creation and sheet-based editing share the expense editor in `components/finance/FinanceEntrySheet`; editing and the budget planner remain sheets.
 
 Expense Amount uses the same `formatPesoDisplay` / `handlePesoChange` helpers as apartment posting: a peso prefix and live thousands separators, with a raw numeric draft for validation and saving. Decimals remain editable; the display length accommodates the maximum permitted amount including formatting.
@@ -349,6 +351,7 @@ Charts use brand blue for collected rent and `chartSky` for recorded spending, a
 ### Mobile (HeroUI Native)
 
 - **Dialog** ✅: `Portal > Overlay > Content`, `Close variant="ghost"` top-right; backdrop 20%/40%
+  - `AppDialog` ✅: shared wrapper (optional `titleIcon`, `description`, `footer`); `scrollable` wraps long bodies in a max-height (360px) `ScrollView` while the title, close button and footer stay fixed
   - `ConfirmDialog` ✅: footer `justify-end gap-3` — `ghost sm` cancel + `sm` confirm (default `danger`)
   - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success-text`, dismiss `secondary sm`
   - `RejectDialog` ✅: `TextField` + `TextArea numberOfLines={3}`, footer `secondary` Cancel / `danger-soft` Reject (both `flex-1`)

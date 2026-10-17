@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
-import { Button, Separator } from "heroui-native";
+import { Button, LinkButton, Separator } from "heroui-native";
 import {
   financeAfterReserve,
   financeIncome,
@@ -9,6 +9,7 @@ import {
   manilaToday,
 } from "@repo/utils";
 import { MoneyRow } from "./FinanceControls";
+import FinanceGuidelinesDialog from "./FinanceGuidelinesDialog";
 import type { FinanceData } from "@/service/finance/financeService";
 
 interface EarningsSummaryCardProps {
@@ -23,6 +24,7 @@ export default function EarningsSummaryCard({
   onReview,
 }: EarningsSummaryCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
   const active = data.months.at(-1)!;
   const income = financeIncome(active);
   const reserve = data.budgets
@@ -103,21 +105,14 @@ export default function EarningsSummaryCard({
               amount={active.capital}
             />
             <MoneyRow label="Planned reserves (not spent)" amount={reserve} />
-            <Text className="font-inter text-xs text-muted leading-5">
-              Only confirmed rent payments linked to a tenancy and rental period
-              count as collected rent. Untagged payments and security deposits
-              are excluded. Operating income is cash-based and excludes
-              improvements, loan payments, depreciation and reserve allocations;
-              it is not taxable profit or an account balance. Cash after
-              spending also subtracts improvements and planned reserves. Review
-              all selected properties’ expenses, including zero-spending months.
-              Expense edits reopen review.
-            </Text>
-            <Text className="font-inter text-xs text-muted">
-              Payment dates use the recorded payment date. Current-month results
-              are through {today}; the comparison uses equivalent elapsed days,
-              clamped to the previous month’s end.
-            </Text>
+            <LinkButton
+              className="self-start"
+              onPress={() => setGuidelinesOpen(true)}
+            >
+              <LinkButton.Label className="text-sm font-nunitoSemiBold text-accent underline">
+                How these figures are calculated
+              </LinkButton.Label>
+            </LinkButton>
           </View>
         )}
         {data.unclassified > 0 && (
@@ -128,6 +123,10 @@ export default function EarningsSummaryCard({
           </Text>
         )}
       </View>
+      <FinanceGuidelinesDialog
+        isOpen={guidelinesOpen}
+        onOpenChange={setGuidelinesOpen}
+      />
     </View>
   );
 }

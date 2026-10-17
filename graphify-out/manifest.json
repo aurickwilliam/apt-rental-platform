@@ -1725,8 +1725,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/display/AppDialog.tsx": {
-    "mtime": 1791382521.7223322,
-    "ast_hash": "4c69a4a521aba2f2e3d87bff96806c12",
+    "mtime": 1792209145.923692,
+    "ast_hash": "a2d7a1380443b37711de389c1b2a001c",
     "semantic_hash": ""
   },
   "apps/mobile/components/display/ConfirmDialog.tsx": {
@@ -3145,8 +3145,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/support/heroUINativeStub.tsx": {
-    "mtime": 1792030736.4416897,
-    "ast_hash": "71069ef0428f8484a375130326dde666",
+    "mtime": 1792209137.0182219,
+    "ast_hash": "95e59ec938f2f09341b5a28a47ec3dc8",
     "semantic_hash": ""
   },
   "apps/mobile/tests/verify-account/constants/captureSequences.test.ts": {
@@ -6855,8 +6855,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792208348.3251672,
-    "ast_hash": "b7d190777a70d1b7b55b5b1d52f9944b",
+    "mtime": 1792209184.059747,
+    "ast_hash": "2df7c7e16be0f6a2557b9e9a90806cf7",
     "semantic_hash": ""
   },
   "README.md": {
@@ -8160,8 +8160,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/EarningsSummaryCard.tsx": {
-    "mtime": 1792195820.620169,
-    "ast_hash": "0c041f018bcb9d47748b74a34e73fb38",
+    "mtime": 1792209777.2415442,
+    "ast_hash": "29a51a3ea780e5452f9684c2708e68fe",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/ExpenseCategoryChart.tsx": {
@@ -8185,8 +8185,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.tsx": {
-    "mtime": 1792208324.12165,
-    "ast_hash": "e58ce0caa382368451092511bb5dc4db",
+    "mtime": 1792208457.574591,
+    "ast_hash": "de29ea0688cf64ba8cb356fbd0a3c5a0",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/IncomeTrendChart.tsx": {
@@ -8282,6 +8282,16 @@
   "apps/mobile/components/finance/PropertySearch.tsx": {
     "mtime": 1792207294.030874,
     "ast_hash": "b00b5b520c5d014a3e8bf60a25264f45",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/EarningsSummaryCard.test.tsx": {
+    "mtime": 1792209152.4433103,
+    "ast_hash": "7b3f91eedc6bbc38ec56625577875ec2",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/FinanceGuidelinesDialog.tsx": {
+    "mtime": 1792209117.5606809,
+    "ast_hash": "bc45d4b179836079a88808b67ef19e75",
     "semantic_hash": ""
   }
 }
