@@ -14,15 +14,15 @@ test("occupied and maintenance units cannot start an application from details", 
 
 // Query-contract checks cover server components without adding a React renderer
 // or loading Next's server-only Supabase client into the node:test runner.
-for (const path of [
-  "../app/browse/lib/fetch-browse-results.ts",
-  "../app/browse/lib/fetch-browse-sections.ts",
-  "../app/(main)/page.tsx",
-  "../app/browse/[apartmentId]/components/ApartmentDetailView.tsx",
+for (const [path, expectedStatusFilter] of [
+  ["../app/browse/lib/fetch-browse-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
+  ["../app/browse/lib/fetch-browse-sections.ts", /\.in\("status", \["available", "unverified"\]\)/],
+  ["../app/(main)/page.tsx", /\.eq\("status", "available"\)/],
+  ["../app/browse/[apartmentId]/components/ApartmentDetailView.tsx", /\.in\("status", \["available", "unverified"\]\)/],
 ]) {
   test(`${path} filters discovery before pagination/counting`, () => {
     const source = readFileSync(new URL(path, import.meta.url), "utf8");
-    assert.match(source, /\.in\("status", \["available", "unverified"\]\)/);
+    assert.match(source, expectedStatusFilter);
   });
 }
 
