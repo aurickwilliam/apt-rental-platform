@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Spinner, useToast } from "heroui-native";
 import { IconChartBar, IconFilter2, IconLock, IconPlus } from "@tabler/icons-react-native";
 import {
@@ -59,6 +60,7 @@ type BudgetEditor = {
 };
 
 function LandlordAnalytics() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useColors();
   const { toast } = useToast();
@@ -133,14 +135,24 @@ function LandlordAnalytics() {
   };
   const loadingReport = finance.userLoading || (!data && finance.report.isLoading);
   const accessUnavailable = !finance.enabled && !finance.userError;
-  const expenseFooter = <View className="px-5 py-3 border-t border-border bg-background">
-    <Button isDisabled={loadingReport} onPress={() => router.push({ pathname: "/landlord/add-expense", params: { month, ...(apartmentId ? { apartmentId } : {}) } })}>
+  const expenseFab = <View
+    pointerEvents="box-none"
+    className="absolute right-5"
+    style={{ bottom: insets.bottom + 16 }}
+  >
+    <Button
+      accessibilityLabel="Add expense"
+      className="h-14 px-5 rounded-full shadow-lg active:opacity-80"
+      isDisabled={loadingReport}
+      onPress={() => router.push({ pathname: "/landlord/add-expense", params: { month, ...(apartmentId ? { apartmentId } : {}) } })}
+    >
       <IconPlus size={20} color="#FFFFFF" />
       <Button.Label>Add expense</Button.Label>
     </Button>
   </View>;
   if (loadingReport)
     return (
+      <View className="flex-1">
       <ScreenWrapper
         header={<StandardHeader title="Profit & planning" rightComponent={
           <Button variant="ghost" isIconOnly isDisabled accessibilityLabel="Filters">
@@ -148,11 +160,13 @@ function LandlordAnalytics() {
           </Button>
         } />}
         scrollable
-        footer={expenseFooter}
+        bottomPadding={104}
         className="p-5 gap-5"
       >
         <FinanceSkeleton tab={tab} />
       </ScreenWrapper>
+      {expenseFab}
+      </View>
     );
   if (
     finance.userError ||
@@ -199,6 +213,7 @@ function LandlordAnalytics() {
     );
 
   return (
+    <View className="flex-1">
     <ScreenWrapper
       header={
         <StandardHeader
@@ -230,13 +245,12 @@ function LandlordAnalytics() {
         />
       }
       dismissKeyboardOnTouch={false}
-      footer={expenseFooter}
     >
       <FlatList
         ref={listRef}
         data={expenseRows}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 104 }}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         refreshControl={
@@ -589,6 +603,8 @@ function LandlordAnalytics() {
         }}
       />
     </ScreenWrapper>
+    {expenseFab}
+    </View>
   );
 }
 

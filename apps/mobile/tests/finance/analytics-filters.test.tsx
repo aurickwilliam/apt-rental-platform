@@ -599,7 +599,7 @@ describe("analytics header filters", () => {
 
   // HeroUI only snaps a sheet open on a closed → open transition, so the page keeps
   // every sheet mounted and drives it with `isOpen`.
-  test("Add expense opens its own page while edit and budget sheets stay mounted closed", () => {
+  test("the Add expense FAB opens its own page while edit and budget sheets stay mounted closed", () => {
     const screen = render(<AnalyticsScreen />);
     expect(mockLedgerSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
@@ -610,7 +610,15 @@ describe("analytics header filters", () => {
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
-    fireEvent.press(screen.getByText("Add expense"));
+    const addExpenseFab = screen.getByLabelText("Add expense");
+    expect(addExpenseFab.props.className).toContain("shadow-lg");
+    expect(addExpenseFab.props.className).toContain("rounded-full");
+    const floatingContainer = screen.UNSAFE_getAllByType(View).find(
+      (view) => view.props.className === "absolute right-5",
+    );
+    expect(floatingContainer?.props.style).toEqual({ bottom: 50 });
+    expect(floatingContainer?.props.pointerEvents).toBe("box-none");
+    fireEvent.press(addExpenseFab);
     expect(mockExpenseSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false, initial: undefined }),
     );
