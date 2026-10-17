@@ -1,14 +1,13 @@
 import { useRef, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { BottomSheet, Button, Spinner, useToast } from "heroui-native";
+import { Button, Spinner, useToast } from "heroui-native";
 import { IconFilter2, IconPlus } from "@tabler/icons-react-native";
 import {
   financeCategoryLabel,
   financeMonthLabel,
   formatPesoDisplay,
   manilaToday,
-  shiftFinanceMonth,
   type BudgetKind,
   type FinanceBudget,
   type FinanceCategory,
@@ -34,7 +33,6 @@ import {
   FinanceCard,
   FinanceError,
   FinanceHeading,
-  FinanceSelect,
   FinanceTabs,
   MoneyRow,
 } from "@/components/finance/FinanceControls";
@@ -45,6 +43,7 @@ import CollectionHealthChart from "@/components/finance/CollectionHealthChart";
 import PropertyPerformanceChart from "@/components/finance/PropertyPerformanceChart";
 import BudgetProgressChart from "@/components/finance/BudgetProgressChart";
 import CollectionLedgerSheet from "@/components/finance/CollectionLedgerSheet";
+import FinanceFilterSheet from "@/components/finance/FinanceFilterSheet";
 import {
   BudgetEntrySheet,
   ExpenseEntrySheet,
@@ -97,10 +96,6 @@ function LandlordAnalytics() {
     tab === "expenses"
       ? (expenses.data?.pages.flatMap((page) => page.rows) ?? [])
       : [];
-  const monthOptions = Array.from({ length: 24 }, (_, index) => {
-    const value = shiftFinanceMonth(today.slice(0, 7), -index);
-    return { value, label: financeMonthLabel(value) };
-  });
   const changeTab = (value: string) => {
     setTab(value as FinanceTab);
     setReviewConfirm(false);
@@ -528,64 +523,20 @@ function LandlordAnalytics() {
         }
       />
       {/* Every sheet stays mounted while closed: HeroUI snaps one open on a closed → open transition. */}
-      <BottomSheet
+      <FinanceFilterSheet
         isOpen={filterDraft !== null}
-        onOpenChange={(open) => {
-          if (!open) setFilterDraft(null);
+        value={filterValues}
+        currentMonth={today.slice(0, 7)}
+        properties={data.properties}
+        onChange={setFilterDraft}
+        onClose={() => setFilterDraft(null)}
+        onApply={() => {
+          if (!filterDraft) return;
+          changeMonth(filterDraft.month);
+          changeProperty(filterDraft.apartmentId);
+          setFilterDraft(null);
         }}
-      >
-        <BottomSheet.Portal>
-          <BottomSheet.Overlay />
-          <BottomSheet.Content>
-            <View className="gap-4">
-              <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
-                Filters
-              </BottomSheet.Title>
-              <BottomSheet.Description className="font-inter text-sm text-muted">
-                Choose the property and month for your report.
-              </BottomSheet.Description>
-              <FinanceSelect
-                label="Property"
-                value={filterValues.apartmentId ?? "all"}
-                onChange={(value) =>
-                  setFilterDraft({
-                    ...filterValues,
-                    apartmentId: value === "all" ? null : value,
-                  })
-                }
-                options={[
-                  { value: "all", label: "All properties" },
-                  ...data.properties.map((property) => ({
-                    value: property.id,
-                    label: property.name,
-                  })),
-                ]}
-              />
-              <FinanceSelect
-                label="Month"
-                value={filterValues.month}
-                options={monthOptions}
-                onChange={(value) =>
-                  setFilterDraft({ ...filterValues, month: value })
-                }
-              />
-              <Button
-                onPress={() => {
-                  if (!filterDraft) return;
-                  changeMonth(filterDraft.month);
-                  changeProperty(filterDraft.apartmentId);
-                  setFilterDraft(null);
-                }}
-              >
-                <Button.Label>Apply filters</Button.Label>
-              </Button>
-              <Button variant="tertiary" onPress={() => setFilterDraft(null)}>
-                <Button.Label>Cancel</Button.Label>
-              </Button>
-            </View>
-          </BottomSheet.Content>
-        </BottomSheet.Portal>
-      </BottomSheet>
+      />
       {finance.ownerId && (
         <CollectionLedgerSheet
           ownerId={finance.ownerId}

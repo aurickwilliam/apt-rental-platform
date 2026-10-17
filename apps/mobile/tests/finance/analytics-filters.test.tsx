@@ -1,6 +1,7 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import type { PressableProps, TextProps } from "react-native";
+import type { PressableProps, TextProps, TextInputProps } from "react-native";
 import { fireEvent, render, within } from "@testing-library/react-native";
+import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
 import type { FinanceScope } from "@/service/finance/financeService";
 
@@ -33,9 +34,19 @@ const mockFinance = {
 };
 const mockUseLandlordFinances = jest.fn((_scope: FinanceScope) => mockFinance);
 const mockSheetOpenStates = jest.fn();
+const mockSheetContentProps = jest.fn();
 const mockExpenseSheet = jest.fn((_props: unknown) => null);
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
+
+jest.mock("@gorhom/bottom-sheet", () => {
+  const { View, ScrollView } = jest.requireActual("react-native");
+  return {
+    BottomSheetScrollView: ScrollView,
+    BottomSheetFooter: ({ children }: PropsWithChildren) => <View testID="filter-footer">{children}</View>,
+  };
+});
+jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 62, bottom: 34, left: 0, right: 0 }) }));
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock("@/hooks/auth", () => ({
@@ -90,7 +101,7 @@ jest.mock("@/components/layout/ScreenWrapper", () => {
 });
 jest.mock("heroui-native", () => {
   const React = jest.requireActual<typeof import("react")>("react");
-  const { Pressable, Text, View } = jest.requireActual("react-native");
+  const { Pressable, Text, TextInput, View } = jest.requireActual("react-native");
   const SheetContext = React.createContext({
     isOpen: false,
     onOpenChange: (_open: boolean) => {},
@@ -113,7 +124,8 @@ jest.mock("heroui-native", () => {
       </SheetContext.Provider>
     );
   }
-  function SheetContent({ children }: PropsWithChildren) {
+  function SheetContent({ children, ...props }: PropsWithChildren<{ contentContainerClassName?: string; footerComponent?: (props: never) => ReactNode }>) {
+    mockSheetContentProps(props);
     const { isOpen } = React.useContext(SheetContext);
     const previousOpen = React.useRef(isOpen);
     const [visible, setVisible] = React.useState(false);
@@ -124,7 +136,7 @@ jest.mock("heroui-native", () => {
       else if (!isOpen && previousOpen.current) setVisible(false);
       previousOpen.current = isOpen;
     }, [isOpen]);
-    return visible ? <View>{children}</View> : null;
+    return visible ? <View>{children}{props.footerComponent?.({} as never)}</View> : null;
   }
   function SheetOverlay() {
     const { isOpen, onOpenChange } = React.useContext(SheetContext);
@@ -151,6 +163,8 @@ jest.mock("heroui-native", () => {
   };
   return {
     Button,
+    Input: (props: TextInputProps) => <TextInput {...props} />,
+    useBottomSheetAwareHandlers: () => ({}),
     Spinner: () => null,
     useToast: () => ({ toast: { show: jest.fn() } }),
     BottomSheet: Object.assign(SheetRoot, {
@@ -168,34 +182,11 @@ jest.mock("@/components/finance/FinanceControls", () => {
     FinanceCard: ({ children }: PropsWithChildren) => <View>{children}</View>,
     FinanceHeading: () => null,
     FinanceError: () => null,
-    FinanceTabs: () => null,
+    FinanceTabs: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
+      {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
+    </View>,
     MoneyRow: () => null,
-    FinanceSelect: ({
-      label,
-      value,
-      options,
-      onChange,
-    }: {
-      label: string;
-      value: string;
-      options: { value: string; label: string }[];
-      onChange: (value: string) => void;
-    }) => (
-      <View>
-        <Text>
-          {label}: {value}
-        </Text>
-        {options.map((option) => (
-          <Pressable
-            key={option.value}
-            accessibilityLabel={`${label}: ${option.label}`}
-            onPress={() => onChange(option.value)}
-          >
-            <Text>{option.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
+    FinanceSelect: () => { throw new Error("Report filters must not open nested selectors"); },
   };
 });
 jest.mock(
@@ -282,8 +273,8 @@ describe("analytics header filters", () => {
 
   test("the header button opens the selectors, which are absent from page content", () => {
     const screen = render(<AnalyticsScreen />);
-    expect(screen.queryByText("Property: all")).toBeNull();
-    expect(screen.queryByText("Month: 2026-10")).toBeNull();
+    expect(screen.queryByLabelText("Search properties")).toBeNull();
+    expect(screen.queryByText("Apply filters")).toBeNull();
     const button = screen.getByLabelText(
       "Filters, All properties, October 2026",
     );
@@ -293,8 +284,8 @@ describe("analytics header filters", () => {
       ),
     ).toBeTruthy();
     fireEvent.press(button);
-    expect(screen.getByText("Property: all")).toBeTruthy();
-    expect(screen.getByText("Month: 2026-10")).toBeTruthy();
+    expect(screen.getByLabelText("Property: All properties")).toBeTruthy();
+    expect(screen.getByText("All properties · October 2026")).toBeTruthy();
   });
 
   test("the sheet is mounted closed before the first header press", () => {
@@ -305,10 +296,45 @@ describe("analytics header filters", () => {
     expect(screen.getByText("Apply filters")).toBeTruthy();
   });
 
+  test("the list fills a bounded sheet and the fixed footer buttons share a row equally", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    expect(mockSheetContentProps).toHaveBeenLastCalledWith(expect.objectContaining({ contentContainerClassName: "h-full" }));
+    const scroll = screen.UNSAFE_getAllByType(ScrollView).find((item) => item.props.enableFooterMarginAdjustment)!;
+    expect(scroll.props.style).toEqual({ flex: 1 });
+    expect(scroll.props.enableFooterMarginAdjustment).toBe(true);
+    expect(within(scroll).queryByText("Apply filters")).toBeNull();
+    expect(within(screen.getByTestId("filter-footer")).getByText("Apply filters")).toBeTruthy();
+    const actions = screen.UNSAFE_getAllByType(View).find((item) => item.props.className === "flex-row gap-3");
+    expect(actions).toBeTruthy();
+    const buttons = actions!.findAllByProps({ className: "flex-1" });
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    expect(within(actions!).getByText("Cancel")).toBeTruthy();
+    expect(within(actions!).getByText("Apply filters")).toBeTruthy();
+  });
+
+  test("one scroll view stays mounted across tabs and keyboard handling respects the safe area", () => {
+    const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    const scroll = screen.UNSAFE_getAllByType(ScrollView).find((item) => item.props.enableFooterMarginAdjustment)!;
+    expect(mockSheetContentProps).toHaveBeenLastCalledWith(expect.objectContaining({
+      topInset: 62, keyboardBehavior: "fillParent", keyboardBlurBehavior: "restore", enableBlurKeyboardOnGesture: true,
+    }));
+    expect(screen.getByLabelText("Search properties").props.autoFocus).toBe(false);
+    fireEvent(screen.getByLabelText("Search properties"), "submitEditing");
+    expect(dismiss).toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(screen.UNSAFE_getAllByType(ScrollView).filter((item) => item.props.enableFooterMarginAdjustment)).toEqual([scroll]);
+    expect(scroll.props.keyboardDismissMode).toBe("on-drag");
+    dismiss.mockRestore();
+  });
+
   test("both filters apply together and remain selected when reopened", () => {
     const screen = render(<AnalyticsScreen />);
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByLabelText("Month tab"));
     fireEvent.press(screen.getByLabelText("Month: September 2026"));
     expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({
       month: "2026-10",
@@ -322,8 +348,8 @@ describe("analytics header filters", () => {
     expect(screen.queryByText("Apply filters")).toBeNull();
     expect(screen.getByText("2")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Filters, Villa, September 2026"));
-    expect(screen.getByText("Property: villa")).toBeTruthy();
-    expect(screen.getByText("Month: 2026-09")).toBeTruthy();
+    expect(screen.getByLabelText("Property: Villa").props.accessibilityState.checked).toBe(true);
+    expect(screen.getByText("Villa · September 2026")).toBeTruthy();
   });
 
   test("Cancel discards pending filter changes", () => {
@@ -336,7 +362,7 @@ describe("analytics header filters", () => {
       apartmentId: null,
     });
     fireEvent.press(screen.getByLabelText(/^Filters,/));
-    expect(screen.getByText("Property: all")).toBeTruthy();
+    expect(screen.getByLabelText("Property: All properties").props.accessibilityState.checked).toBe(true);
   });
 
   test("dismissing the sheet discards changes and it can open again", () => {
@@ -347,7 +373,7 @@ describe("analytics header filters", () => {
     expect(mockSheetOpenStates).toHaveBeenLastCalledWith(false);
     expect(screen.queryByText("Apply filters")).toBeNull();
     fireEvent.press(screen.getByLabelText(/^Filters,/));
-    expect(screen.getByText("Property: all")).toBeTruthy();
+    expect(screen.getByLabelText("Property: All properties").props.accessibilityState.checked).toBe(true);
   });
 
   test("filters can return to their defaults", () => {
@@ -363,6 +389,73 @@ describe("analytics header filters", () => {
       apartmentId: null,
     });
     expect(screen.queryByText("1")).toBeNull();
+  });
+
+  test("property search filters inline without mounting another sheet", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.changeText(screen.getByLabelText("Search properties"), "  VILLA ");
+    expect(screen.getByLabelText("Property: Villa")).toBeTruthy();
+    expect(screen.queryByLabelText("Property: House")).toBeNull();
+    fireEvent.changeText(screen.getByLabelText("Search properties"), "nothing");
+    expect(screen.getByText("No matching properties.")).toBeTruthy();
+    expect(screen.getByLabelText("Property: All properties")).toBeTruthy();
+    expect(screen.getAllByText("Apply filters")).toHaveLength(1);
+    expect(screen.queryByLabelText("Property")).toBeNull();
+  });
+
+  test("month grid enforces the 24-month range and keeps draft selections across tabs", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(screen.getByLabelText("Next year")).toBeDisabled();
+    expect(screen.getByLabelText("Month: November 2026")).toBeDisabled();
+    fireEvent.press(screen.getByLabelText("Previous year"));
+    fireEvent.press(screen.getByLabelText("Previous year"));
+    expect(screen.getByLabelText("Previous year")).toBeDisabled();
+    expect(screen.getByLabelText("Month: October 2024")).toBeDisabled();
+    expect(screen.getByLabelText("Month: November 2024")).not.toBeDisabled();
+    fireEvent.press(screen.getByLabelText("Month: November 2024"));
+    fireEvent.press(screen.getByLabelText("Property tab"));
+    expect(screen.getByLabelText("Property: Villa").props.accessibilityState.checked).toBe(true);
+    expect(screen.getByText("Villa · November 2024")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(screen.getByLabelText("Month: November 2024").props.accessibilityState.checked).toBe(true);
+    fireEvent.press(screen.getByText("Apply filters"));
+    expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({ month: "2024-11", apartmentId: "villa" });
+  });
+
+  test("Reset changes only the draft until Apply", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    fireEvent.press(screen.getByLabelText("Month: September 2026"));
+    fireEvent.press(screen.getByText("Apply filters"));
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByText("Reset"));
+    expect(screen.getByText("All properties · October 2026")).toBeTruthy();
+    expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({ month: "2026-09", apartmentId: "villa" });
+    fireEvent.press(screen.getByText("Cancel"));
+    expect(screen.getByLabelText("Filters, Villa, September 2026")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByText("Reset"));
+    fireEvent.press(screen.getByText("Apply filters"));
+    expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({ month: "2026-10", apartmentId: null });
+  });
+
+  test("reopening clears search and restores the selected month year", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.changeText(screen.getByLabelText("Search properties"), "villa");
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    fireEvent.press(screen.getByLabelText("Previous year"));
+    fireEvent.press(screen.getByText("Cancel"));
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    expect(screen.getByLabelText("Search properties").props.value).toBe("");
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(screen.getByText("2026")).toBeTruthy();
   });
 
   // HeroUI only snaps a sheet open on a closed → open transition, so the page keeps
