@@ -1,7 +1,21 @@
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextInputProps, TextProps } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { BudgetEntrySheet, ExpenseEntrySheet } from "./FinanceEntrySheet";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { BudgetEntrySheet, ExpenseEntrySheet, ExpenseEntryPage } from "./FinanceEntrySheet";
+
+jest.mock("@/components/layout/ScreenWrapper", () => {
+  const { View } = jest.requireActual("react-native");
+  return function Wrapper({ children, footer }: PropsWithChildren<{ footer: ReactNode }>) {
+    return <View><View testID="expense-page-form">{children}</View><View testID="expense-page-footer">{footer}</View></View>;
+  };
+});
+jest.mock("@/components/layout/StandardHeader", () => () => null);
+jest.mock("@/components/inputs/DateField", () => {
+  const { View, Text } = jest.requireActual("react-native");
+  return function DatePicker({ label, value, onChange, maximumDate, error }: { label: string; value: Date; onChange: (date: Date) => void; maximumDate: Date; error?: string }) {
+    return <View accessibilityLabel={label} value={value} maximumDate={maximumDate} onDateChange={onChange}><Text>{error}</Text></View>;
+  };
+});
 
 jest.mock("expo-crypto", () => ({ randomUUID: () => "stable-form-id" }));
 jest.mock("@gorhom/bottom-sheet", () => ({
@@ -56,17 +70,22 @@ jest.mock("./FinanceControls", () => {
       options,
       onChange,
       disabled,
+      searchable,
+      error,
     }: {
       label: string;
       value: string;
       options: { value: string; label: string }[];
       onChange: (value: string) => void;
       disabled: boolean;
+      searchable?: boolean;
+      error?: string;
     }) => (
-      <View>
+      <View testID={searchable ? "searchable-property-picker" : undefined}>
         <Text>
           {label}: {value}
         </Text>
+        {error && <Text accessibilityRole="alert">{error}</Text>}
         {options.map((option) => (
           <Pressable
             key={option.value}
@@ -100,16 +119,80 @@ describe("finance entry forms", () => {
     jest.restoreAllMocks();
   });
 
+  test("the add page keeps Save and Cancel outside the form and uses the shared validation and save", async () => {
+    const onSave = jest.fn().mockResolvedValue(undefined);
+    const screen = render(<ExpenseEntryPage {...common} onSave={onSave} />);
+    expect(within(screen.getByTestId("expense-page-form")).queryByText("Save expense")).toBeNull();
+    expect(within(screen.getByTestId("expense-page-footer")).getByText("Cancel")).toBeTruthy();
+    expect(screen.getByText("Property: apt")).toBeTruthy();
+    expect(screen.getAllByTestId("searchable-property-picker")).toHaveLength(1);
+    fireEvent.press(screen.getByText("Save expense"));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "2500");
+    fireEvent.changeText(screen.getByLabelText("Description"), "AC repair");
+    fireEvent.press(screen.getByText("Save expense"));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ apartment_id: "apt", amount: 2500, description: "AC repair" }), false));
+    expect(common.onClose).toHaveBeenCalled();
+  });
+
+  test("expense amount formats typing and pasted pesos, preserves decimals, and can be cleared", () => {
+    const screen = render(<ExpenseEntryPage {...common} onSave={jest.fn()} />);
+    const field = () => screen.getByLabelText("Amount (₱)");
+    fireEvent.changeText(field(), "1000");
+    expect(field().props.value).toBe("₱ 1,000");
+    fireEvent.changeText(field(), "₱ 1,000.");
+    expect(field().props.value).toBe("₱ 1,000.");
+    fireEvent.changeText(field(), "₱ 999,999,999.99");
+    expect(field().props.value).toBe("₱ 999,999,999.99");
+    expect(field().props.maxLength).toBeGreaterThanOrEqual(field().props.value.length);
+    fireEvent.changeText(field(), "");
+    expect(field().props.value).toBe("");
+  });
+
+  test("the date picker limits future days and saves the selected calendar day without timezone conversion", async () => {
+    const onSave = jest.fn().mockResolvedValue(undefined);
+    const screen = render(<ExpenseEntryPage {...common} onSave={onSave} />);
+    expect(screen.getByLabelText("Date paid").props.maximumDate).toEqual(new Date(2026, 9, 17, 12));
+    fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 5, 12));
+    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    fireEvent.press(screen.getByText("Save expense"));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ spent_on: "2026-10-05" }), false));
+  });
+
+  test("required selection errors appear after Save and clear when corrected", async () => {
+    const onSave = jest.fn().mockResolvedValue(undefined);
+    const screen = render(<ExpenseEntryPage {...common} apartmentId="unowned" category="emergency" onSave={onSave} />);
+    expect(screen.queryByText("Choose one of your properties.")).toBeNull();
+    fireEvent.press(screen.getByText("Save expense"));
+    expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
+    expect(screen.getByLabelText("Amount (₱)").props.className).toBe("finance-field-invalid");
+    expect(screen.getByLabelText("Description").props.className).toBe("finance-field-invalid");
+    expect(screen.getByLabelText("Description").props.style).toEqual({ borderColor: "#E50914", borderWidth: 2 });
+    expect(screen.getByLabelText("Amount (₱)").props.style).toEqual({ borderColor: "#E50914", borderWidth: 2 });
+    expect(screen.getByText("Choose an expense category.")).toBeTruthy();
+    expect(screen.getByText("Describe this expense.")).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByLabelText("Category: Maintenance & repairs"));
+    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    expect(screen.queryByText("Choose one of your properties.")).toBeNull();
+    expect(screen.getByLabelText("Amount (₱)").props.className).toBeUndefined();
+    expect(screen.getByLabelText("Description").props.className).toBeUndefined();
+    expect(screen.getByLabelText("Description").props.style).toBeUndefined();
+    expect(screen.queryByText("Choose an expense category.")).toBeNull();
+    fireEvent.press(screen.getByText("Save expense"));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+  });
+
   test("invalid amounts and future expenses cannot be saved", () => {
     const onSave = jest.fn();
     const screen = render(
       <ExpenseEntrySheet {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "0");
-    fireEvent.changeText(
-      screen.getByLabelText("Date paid (YYYY-MM-DD)"),
-      "2026-10-18",
-    );
+    fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 18, 12));
     fireEvent.press(screen.getByText("Save expense"));
     expect(
       screen.getByText(/positive amount with at most two decimals/),
@@ -124,6 +207,7 @@ describe("finance entry forms", () => {
       <ExpenseEntrySheet {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1250.25");
+    expect(screen.getByLabelText("Amount (₱)").props.value).toBe("₱ 1,250.25");
     fireEvent.changeText(
       screen.getByLabelText("Description"),
       "  Sink repair  ",
@@ -250,7 +334,7 @@ describe("finance entry forms", () => {
       />,
     );
     expect(screen.getByText("Edit expense")).toBeTruthy();
-    expect(screen.getByLabelText("Amount (₱)").props.value).toBe("1000");
+    expect(screen.getByLabelText("Amount (₱)").props.value).toBe("₱ 1,000");
     expect(screen.getByLabelText("Description").props.value).toBe("Chair");
     expect(screen.getByText("Expense treatment: capital")).toBeTruthy();
     screen.rerender(

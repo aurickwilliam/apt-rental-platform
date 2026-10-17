@@ -8,18 +8,14 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react-native";
 import { useColors } from "@/hooks/useTheme";
-import {
-  BottomSheet,
-  Button,
-  SearchField,
-  useBottomSheetAwareHandlers,
-} from "heroui-native";
+import { BottomSheet, Button } from "heroui-native";
 import { financeMonthLabel, shiftFinanceMonth } from "@repo/utils";
 import type {
   FinanceProperty,
   FinanceScope,
 } from "@/service/finance/financeService";
 import { FinanceTabs } from "./FinanceControls";
+import PropertySearch from "./PropertySearch";
 
 const REPORT_MONTH_COUNT = 24;
 const FILTER_TABS = [
@@ -35,33 +31,6 @@ interface FinanceFilterSheetProps {
   onChange: (value: FinanceScope) => void;
   onApply: () => void;
   onClose: () => void;
-}
-
-function PropertySearch({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const handlers = useBottomSheetAwareHandlers();
-  return (
-    <SearchField value={value} onChange={onChange}>
-      <SearchField.Group>
-        <SearchField.SearchIcon />
-        <SearchField.Input
-          accessibilityLabel="Search properties"
-          placeholder="Search properties…"
-          autoCorrect={false}
-          autoFocus={false}
-          returnKeyType="done"
-          onSubmitEditing={() => Keyboard.dismiss()}
-          {...handlers}
-        />
-        <SearchField.ClearButton accessibilityLabel="Clear property search" />
-      </SearchField.Group>
-    </SearchField>
-  );
 }
 
 export default function FinanceFilterSheet({
@@ -217,11 +186,17 @@ export default function FinanceFilterSheet({
                     className={`h-auto min-h-12 py-3 justify-start${item.id === value.apartmentId ? " bg-primary-light" : ""}`}
                     onPress={() => onChange({ ...value, apartmentId: item.id })}
                   >
-                    <Button.Label className={`flex-1${item.id === value.apartmentId ? " text-primary-light-foreground" : ""}`} numberOfLines={2}>
+                    <Button.Label
+                      className={`flex-1${item.id === value.apartmentId ? " text-primary-light-foreground" : ""}`}
+                      numberOfLines={2}
+                    >
                       {item.name}
                     </Button.Label>
                     {item.id === value.apartmentId && (
-                      <Text accessible={false} className="text-primary-light-foreground">
+                      <Text
+                        accessible={false}
+                        className="text-primary-light-foreground"
+                      >
                         ✓
                       </Text>
                     )}

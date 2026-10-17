@@ -135,7 +135,7 @@ function LandlordAnalytics() {
   };
   const loadingReport = finance.userLoading || (!data && finance.report.isLoading);
   const expenseFooter = <View className="px-5 py-3 border-t border-border bg-background">
-    <Button isDisabled={loadingReport} onPress={() => setExpenseEditor({})}>
+    <Button isDisabled={loadingReport} onPress={() => router.push({ pathname: "/landlord/add-expense", params: { month, ...(apartmentId ? { apartmentId } : {}) } })}>
       <IconPlus size={20} color="#FFFFFF" />
       <Button.Label>Add expense</Button.Label>
     </Button>

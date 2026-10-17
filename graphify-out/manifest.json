@@ -1025,13 +1025,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/_layout.tsx": {
-    "mtime": 1787060341.875006,
-    "ast_hash": "42377a5536ffea47eed1f7bf3dd362bd",
+    "mtime": 1792207325.760695,
+    "ast_hash": "1614d752e213691d20979899e7775efe",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/analytics.tsx": {
-    "mtime": 1792204214.4434438,
-    "ast_hash": "49566940fb89d36ede2b52ffe4701b2a",
+    "mtime": 1792204862.0924006,
+    "ast_hash": "b6bda248057de5deed094ef5baacdded",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/maintenance-requests/[requestId].tsx": {
@@ -1860,13 +1860,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DateField.test.tsx": {
-    "mtime": 1791382521.7227502,
-    "ast_hash": "21eb7071f034e894c667baf48b1a2afa",
+    "mtime": 1792207693.1780634,
+    "ast_hash": "920a0f00cbaf78d35efcf5f06d7c93cc",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DateField.tsx": {
-    "mtime": 1791382521.7228396,
-    "ast_hash": "1d0cf90f40b15d56f6f73de4567b5802",
+    "mtime": 1792207655.8779607,
+    "ast_hash": "710a4bc56d515e79f4d7fa61fcf706d8",
     "semantic_hash": ""
   },
   "apps/mobile/components/inputs/DropdownField.tsx": {
@@ -6850,13 +6850,13 @@
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792168631.591388,
-    "ast_hash": "f9c3cbeebb323bcacdb1728b31bdee7b",
+    "mtime": 1792204926.9093578,
+    "ast_hash": "74a2205e464d53a439eb156cee3370f6",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792204221.0430067,
-    "ast_hash": "cfe01514d811ee576d25cee5808f0fc6",
+    "mtime": 1792208348.3251672,
+    "ast_hash": "b7d190777a70d1b7b55b5b1d52f9944b",
     "semantic_hash": ""
   },
   "README.md": {
@@ -8175,18 +8175,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
-    "mtime": 1792195829.367997,
-    "ast_hash": "19df5a518ee3ba3c252d7f2689a46d75",
+    "mtime": 1792208324.1219203,
+    "ast_hash": "6e88e73d5ab32cef2d33ac5ddc379fc0",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.test.tsx": {
-    "mtime": 1792195836.8848777,
-    "ast_hash": "44f84a6cd446eb34c39d92a694f0bb73",
+    "mtime": 1792208324.1222873,
+    "ast_hash": "494250a3c197851544c29b30735f497d",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.tsx": {
-    "mtime": 1792195884.5788903,
-    "ast_hash": "5cb8ffaf5ab5ecdcc3aa47eb7d71a661",
+    "mtime": 1792208324.12165,
+    "ast_hash": "e58ce0caa382368451092511bb5dc4db",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/IncomeTrendChart.tsx": {
@@ -8245,13 +8245,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/analytics-filters.test.tsx": {
-    "mtime": 1792204221.0426774,
-    "ast_hash": "bf3cdff2e6c8673b24b3adb953a6965a",
+    "mtime": 1792204889.347564,
+    "ast_hash": "2fd1ebdab6a602bf6e9a9061744388d1",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceFilterSheet.tsx": {
-    "mtime": 1792201484.732577,
-    "ast_hash": "31226ec3872d3cdba69ca5fee6fcb730",
+    "mtime": 1792207344.7389758,
+    "ast_hash": "be959c335af824f15f0a0bb46ba3e4e6",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceSkeleton.test.tsx": {
@@ -8262,6 +8262,26 @@
   "apps/mobile/components/finance/FinanceSkeleton.tsx": {
     "mtime": 1792202577.130992,
     "ast_hash": "de177427c61486a0192b9e3eda40f5dc",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/landlord/add-expense.tsx": {
+    "mtime": 1792207313.941881,
+    "ast_hash": "9bb1bf52df3eae1ae0f326f83a125963",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/finance/add-expense.test.tsx": {
+    "mtime": 1792204926.908879,
+    "ast_hash": "8377d9c5c335fbbc5d9b5833f6467e7c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/FinancePropertySelect.test.tsx": {
+    "mtime": 1792208005.2863653,
+    "ast_hash": "181171dc42e2b31156b6ad3c06a01099",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/PropertySearch.tsx": {
+    "mtime": 1792207294.030874,
+    "ast_hash": "b00b5b520c5d014a3e8bf60a25264f45",
     "semantic_hash": ""
   }
 }

@@ -39,6 +39,7 @@ const mockUseLandlordFinances = jest.fn((_scope: FinanceScope): MockFinance => m
 const mockSheetOpenStates = jest.fn();
 const mockSheetContentProps = jest.fn();
 const mockExpenseSheet = jest.fn((_props: unknown) => null);
+const mockRouterPush = jest.fn();
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
 
@@ -51,7 +52,7 @@ jest.mock("@gorhom/bottom-sheet", () => {
 });
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 62, bottom: 34, left: 0, right: 0 }) }));
 
-jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
+jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockRouterPush }) }));
 jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => ({ data: { id: "owner" } }),
 }));
@@ -552,7 +553,7 @@ describe("analytics header filters", () => {
 
   // HeroUI only snaps a sheet open on a closed → open transition, so the page keeps
   // every sheet mounted and drives it with `isOpen`.
-  test("the finance sheets stay mounted while closed and open on press", () => {
+  test("Add expense opens its own page while edit and budget sheets stay mounted closed", () => {
     const screen = render(<AnalyticsScreen />);
     expect(mockLedgerSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
@@ -565,8 +566,9 @@ describe("analytics header filters", () => {
     );
     fireEvent.press(screen.getByText("Add expense"));
     expect(mockExpenseSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: true, initial: undefined }),
+      expect.objectContaining({ isOpen: false, initial: undefined }),
     );
+    expect(mockRouterPush).toHaveBeenCalledWith({ pathname: "/landlord/add-expense", params: { month: "2026-10" } });
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );

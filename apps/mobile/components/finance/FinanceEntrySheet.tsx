@@ -15,6 +15,7 @@ import {
   FINANCE_CATEGORIES,
   financeMonthLabel,
   formatPesoDisplay,
+  handlePesoChange,
   manilaToday,
   parseFinanceAmount,
   suggestFinanceBudget,
@@ -25,12 +26,20 @@ import {
   type FinanceCategory,
 } from "@repo/utils";
 import { FinanceSelect } from "./FinanceControls";
+import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import StandardHeader from "@/components/layout/StandardHeader";
+import DateField from "@/components/inputs/DateField";
+import { useColors } from "@/hooks/useTheme";
 import {
   financeErrorMessage,
   type ExpenseDraft,
   type ExpenseRecord,
   type FinanceProperty,
 } from "@/service/finance/financeService";
+
+const MAX_FORMATTED_AMOUNT_LENGTH = "₱ 999,999,999.99".length;
+const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORIES.filter((item) => !["emergency", "vacancy"].includes(item.id));
+const MAX_EXPENSE_DESCRIPTION_LENGTH = 200;
 
 function SheetInput({
   label,
@@ -41,6 +50,7 @@ function SheetInput({
   maxLength = 200,
   placeholder,
   disabled = false,
+  required = false,
 }: {
   label: string;
   value: string;
@@ -50,12 +60,17 @@ function SheetInput({
   maxLength?: number;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
 }) {
   const handlers = useBottomSheetAwareHandlers();
+  const { colors } = useColors();
   return (
-    <TextField isInvalid={!!error} isDisabled={disabled}>
+    <TextField isInvalid={!!error} isDisabled={disabled} isRequired={required}>
       <Label>{label}</Label>
       <Input
+        isInvalid={!!error}
+        className={error ? "finance-field-invalid" : undefined}
+        style={error ? { borderColor: colors.danger, borderWidth: 2 } : undefined}
         value={value}
         onChangeText={onChange}
         accessibilityLabel={label}
@@ -78,7 +93,30 @@ interface CommonProps {
   onClose: () => void;
 }
 
-export function ExpenseEntrySheet({
+interface ExpenseEditorProps extends CommonProps {
+  initial?: ExpenseRecord;
+  category?: FinanceCategory | null;
+  onSave: (draft: ExpenseDraft, editing: boolean) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
+  presentation?: "sheet" | "page";
+}
+
+export function ExpenseEntrySheet(
+  props: Omit<ExpenseEditorProps, "presentation">,
+) {
+  return <ExpenseEditor {...props} presentation="sheet" />;
+}
+
+export function ExpenseEntryPage(
+  props: Omit<
+    ExpenseEditorProps,
+    "presentation" | "isOpen" | "initial" | "onDelete"
+  >,
+) {
+  return <ExpenseEditor {...props} isOpen presentation="page" />;
+}
+
+function ExpenseEditor({
   isOpen,
   properties,
   apartmentId,
@@ -88,12 +126,8 @@ export function ExpenseEntrySheet({
   onClose,
   onSave,
   onDelete,
-}: CommonProps & {
-  initial?: ExpenseRecord;
-  category?: FinanceCategory | null;
-  onSave: (draft: ExpenseDraft, editing: boolean) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-}) {
+  presentation,
+}: ExpenseEditorProps) {
   const seedCategory = initial?.category ?? initialCategory ?? "maintenance";
   const seedTreatment =
     initial?.treatment ??
@@ -138,10 +172,15 @@ export function ExpenseEntrySheet({
   }
   const amountValue = parseFinanceAmount(amount);
   const dateError = validateExpenseDate(date);
+  const propertyError = properties.some((item) => item.id === property) ? undefined : "Choose one of your properties.";
+  const categoryError = EXPENSE_CATEGORY_OPTIONS.some((item) => item.id === category) ? undefined : "Choose an expense category.";
+  const treatmentError = treatment === "operating" || treatment === "capital" ? undefined : "Choose an expense treatment.";
+  const descriptionError = !description.trim() ? "Describe this expense."
+    : description.trim().length > MAX_EXPENSE_DESCRIPTION_LENGTH ? "Use 200 characters or fewer." : undefined;
   const handleSave = async () => {
     if (busy) return;
     setSubmitted(true);
-    if (amountValue === null || dateError || !description.trim() || !property)
+    if (amountValue === null || dateError || propertyError || categoryError || treatmentError || descriptionError)
       return;
     Keyboard.dismiss();
     setBusy(true);
@@ -171,7 +210,7 @@ export function ExpenseEntrySheet({
     }
   };
   const handleDelete = async () => {
-    if (busy || !initial) return;
+    if (busy || !initial || !onDelete) return;
     setBusy(true);
     setError(null);
     try {
@@ -184,11 +223,180 @@ export function ExpenseEntrySheet({
       setBusy(false);
     }
   };
+  const close = () => {
+    if (!busy) {
+      Keyboard.dismiss();
+      onClose();
+    }
+  };
+  const form = (
+    <View className="gap-4">
+      {presentation === "sheet" && (
+        <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
+          {initial ? "Edit expense" : "Add expense"}
+        </BottomSheet.Title>
+      )}
+      <Text className="font-inter text-sm text-muted">
+        Record money already spent. Reserve allocations and late rent are not
+        expenses.
+      </Text>
+      <FinanceSelect
+        label="Property"
+        required
+        error={submitted ? propertyError : undefined}
+        searchable={presentation === "page"}
+        value={property}
+        options={properties.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }))}
+        onChange={setProperty}
+        disabled={busy || !!initial}
+      />
+      <FinanceSelect
+        label="Category"
+        required
+        error={submitted ? categoryError : undefined}
+        highlightSelection
+        value={category}
+        options={EXPENSE_CATEGORY_OPTIONS.map((item) => ({ value: item.id, label: item.label }))}
+        disabled={busy}
+        onChange={(value) => {
+          setCategory(value as FinanceCategory);
+          setTreatment(
+            value === "furniture" || value === "turnover"
+              ? "capital"
+              : "operating",
+          );
+        }}
+      />
+      <FinanceSelect
+        label="Expense treatment"
+        required
+        error={submitted ? treatmentError : undefined}
+        sheetHeight="50%"
+        highlightSelection
+        value={treatment}
+        onChange={(value) => setTreatment(value as ExpenseTreatment)}
+        disabled={busy}
+        options={[
+          { value: "operating", label: "Operating expense" },
+          {
+            value: "capital",
+            label: "Property improvement / replacement",
+          },
+        ]}
+      />
+      <Text className="font-inter text-xs text-muted">
+        Improvements and replacements are tracked separately from operating
+        income. This is a cash-planning tool, not a tax calculation.
+      </Text>
+      <SheetInput
+              label="Amount (₱)"
+              required
+              value={amount === "." ? "." : formatPesoDisplay(amount)}
+              onChange={(text) => setAmount(handlePesoChange(text).raw)}
+        numeric
+        disabled={busy}
+        placeholder="0.00"
+        maxLength={MAX_FORMATTED_AMOUNT_LENGTH}
+        error={
+          submitted && amountValue === null
+            ? "Enter a positive amount with at most two decimals."
+            : undefined
+        }
+      />
+            <DateField
+              label="Date paid"
+              required
+              value={new Date(`${date}T12:00:00`)}
+              onChange={(selected) => setDate(`${selected.getFullYear()}-${String(selected.getMonth() + 1).padStart(2, "0")}-${String(selected.getDate()).padStart(2, "0")}`)}
+              maximumDate={new Date(`${manilaToday()}T12:00:00`)}
+              disabled={busy}
+              error={submitted ? (dateError ?? undefined) : undefined}
+      />
+      <SheetInput
+        label="Description"
+        required
+        maxLength={MAX_EXPENSE_DESCRIPTION_LENGTH}
+        value={description}
+        onChange={setDescription}
+        disabled={busy}
+        placeholder="e.g. Kitchen sink repair"
+        error={submitted ? descriptionError : undefined}
+      />
+      {error && (
+        <Text
+          accessibilityRole="alert"
+          selectable
+          className="text-danger text-sm font-inter"
+        >
+          {error}
+        </Text>
+      )}
+      {presentation === "sheet" && (
+        <>
+          <Button onPress={handleSave} isDisabled={busy}>
+            <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
+          </Button>
+          <Button variant="secondary" onPress={onClose} isDisabled={busy}>
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+        </>
+      )}
+      {initial && (
+        <View className="gap-2 border-t border-border pt-4">
+          {confirmDelete && (
+            <Text className="font-inter text-sm text-danger">
+              Delete this expense? This cannot be undone and the month will need
+              reviewing again.
+            </Text>
+          )}
+          <Button
+            variant="danger-soft"
+            isDisabled={busy}
+            onPress={() =>
+              confirmDelete ? void handleDelete() : setConfirmDelete(true)
+            }
+          >
+            <Button.Label>
+              {confirmDelete ? "Confirm delete" : "Delete expense"}
+            </Button.Label>
+          </Button>
+        </View>
+      )}
+    </View>
+  );
+  if (presentation === "page")
+    return (
+      <ScreenWrapper
+        header={<StandardHeader title="Add expense" onBackPress={close} />}
+        scrollable
+        className="p-5"
+        footer={
+          <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
+            <Button
+              className="flex-1"
+              variant="tertiary"
+              onPress={close}
+              isDisabled={busy}
+            >
+              <Button.Label>Cancel</Button.Label>
+            </Button>
+            <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
+              <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
+            </Button>
+          </View>
+        }
+      >
+        {form}
+      </ScreenWrapper>
+    );
   return (
     <BottomSheet
       isOpen={isOpen}
       onOpenChange={(open) => {
-        if (!open && !busy) onClose();
+        if (!open) close();
       }}
     >
       <BottomSheet.Portal>
@@ -200,129 +408,9 @@ export function ExpenseEntrySheet({
         >
           <BottomSheetScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 16 }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
           >
-            <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
-              {initial ? "Edit expense" : "Add expense"}
-            </BottomSheet.Title>
-            <BottomSheet.Description className="font-inter text-sm text-muted">
-              Record money already spent. Reserve allocations and late rent are
-              not expenses.
-            </BottomSheet.Description>
-            <FinanceSelect
-              label="Property"
-              value={property}
-              options={properties.map((item) => ({
-                value: item.id,
-                label: item.name,
-              }))}
-              onChange={setProperty}
-              disabled={busy || !!initial}
-            />
-            <FinanceSelect
-              label="Category"
-              value={category}
-              options={FINANCE_CATEGORIES.filter(
-                (item) => !["emergency", "vacancy"].includes(item.id),
-              ).map((item) => ({ value: item.id, label: item.label }))}
-              disabled={busy}
-              onChange={(value) => {
-                setCategory(value as FinanceCategory);
-                setTreatment(
-                  value === "furniture" || value === "turnover"
-                    ? "capital"
-                    : "operating",
-                );
-              }}
-            />
-            <FinanceSelect
-              label="Expense treatment"
-              value={treatment}
-              onChange={(value) => setTreatment(value as ExpenseTreatment)}
-              disabled={busy}
-              options={[
-                { value: "operating", label: "Operating expense" },
-                {
-                  value: "capital",
-                  label: "Property improvement / replacement",
-                },
-              ]}
-            />
-            <Text className="font-inter text-xs text-muted">
-              Improvements and replacements are tracked separately from
-              operating income. This is a cash-planning tool, not a tax
-              calculation.
-            </Text>
-            <SheetInput
-              label="Amount (₱)"
-              value={amount}
-              onChange={setAmount}
-              numeric
-              disabled={busy}
-              placeholder="0.00"
-              maxLength={12}
-              error={
-                submitted && amountValue === null
-                  ? "Enter a positive amount with at most two decimals."
-                  : undefined
-              }
-            />
-            <SheetInput
-              label="Date paid (YYYY-MM-DD)"
-              value={date}
-              onChange={setDate}
-              disabled={busy}
-              maxLength={10}
-              error={submitted ? (dateError ?? undefined) : undefined}
-            />
-            <SheetInput
-              label="Description"
-              value={description}
-              onChange={setDescription}
-              disabled={busy}
-              placeholder="e.g. Kitchen sink repair"
-              error={
-                submitted && !description.trim()
-                  ? "Describe this expense."
-                  : undefined
-              }
-            />
-            {error && (
-              <Text
-                accessibilityRole="alert"
-                selectable
-                className="text-danger text-sm font-inter"
-              >
-                {error}
-              </Text>
-            )}
-            <Button onPress={handleSave} isDisabled={busy}>
-              <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
-            </Button>
-            <Button variant="secondary" onPress={onClose} isDisabled={busy}>
-              <Button.Label>Cancel</Button.Label>
-            </Button>
-            {initial && (
-              <View className="gap-2 border-t border-border pt-4">
-                {confirmDelete && (
-                  <Text className="font-inter text-sm text-danger">
-                    Delete this expense? This cannot be undone and the month
-                    will need reviewing again.
-                  </Text>
-                )}
-                <Button
-                  variant="danger-soft"
-                  isDisabled={busy}
-                  onPress={() =>
-                    confirmDelete ? void handleDelete() : setConfirmDelete(true)
-                  }
-                >
-                  <Button.Label>
-                    {confirmDelete ? "Confirm delete" : "Delete expense"}
-                  </Button.Label>
-                </Button>
-              </View>
-            )}
+            {form}
           </BottomSheetScrollView>
         </BottomSheet.Content>
       </BottomSheet.Portal>
@@ -488,6 +576,7 @@ export function BudgetEntrySheet({
             />
             <FinanceSelect
               label="Category"
+              highlightSelection
               value={category}
               options={FINANCE_CATEGORIES.filter(
                 (item) =>

@@ -606,6 +606,8 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 
 ### 12.1 Landlord finance tracking
 
+Expense creation uses the mobile `/landlord/add-expense` route, reusing the finance report cache and expense mutation. Only property ID and month travel in route params; form fields stay in local state. The route validates the property against owned report properties and clamps invalid month params to the current month. The shared expense editor renders as a full page for creation and a sheet for editing, retaining its retry-stable UUID and shared validation.
+
 Finance is caller-owned: the three finance tables have owner/landlord-role and restrictive active-account RLS using the internal `users.id`. Admins cannot read private landlord finances. Expense ownership/property and budget identity fields are immutable to clients through column-scoped grants. All finance RPCs are `SECURITY INVOKER`, with an empty search path and no anonymous execution. Existing payment writes and the dashboard RPC are unchanged.
 
 `get_landlord_finances(month, apartment)` aggregates 12 months (within a selectable 24-month history), category spending, per-property performance, budget actuals and rental-period collection totals. Dates use Asia/Manila; the current month's comparison uses equivalent elapsed days, clamped to the preceding month's end. Cash-month income includes only confirmed paid rows with a tenancy and rental period; legacy unclassified payments are excluded and disclosed, not guessed to be rental income. Operating expenses and capital improvements are separate. Reserves are plans, never expenses or funds moved.
