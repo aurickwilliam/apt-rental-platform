@@ -144,4 +144,20 @@ describe("role-neutral mobile sign-in", () => {
     expect(mockRestore).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
   });
+
+  it("routes a mixed admin and consumer-role account to its saved portal", async () => {
+    mockSingle.mockResolvedValue({ data: { roles: ["admin", "tenant", "landlord"] }, error: null });
+    mockRestore.mockResolvedValue("landlord");
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() =>
+      expect(mockRestore).toHaveBeenCalledWith("account-a", ["admin", "tenant", "landlord"]),
+    );
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard");
+  });
 });

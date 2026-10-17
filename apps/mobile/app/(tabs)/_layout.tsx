@@ -5,7 +5,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useProfile } from 'hooks/auth';
 import { supabase } from '@repo/supabase';
 import { usePortalStore } from '@/stores/usePortalStore';
-import { portalHome } from '@/service/auth/portalPreference';
+import { hasMobilePortalRole, portalHome } from '@/service/auth/portalPreference';
 import { useColors } from 'hooks/useTheme';
 import { getSplashBackground } from '@/utils/splashBackground';
 
@@ -19,7 +19,7 @@ export default function TabsLayout() {
   const portalLoading = usePortalStore((state) => state.loading);
 
   const heldRoles: string[] = profile?.roles ?? [];
-  const hasAppAccess = !heldRoles.includes('admin') && (heldRoles.includes('tenant') || heldRoles.includes('landlord'));
+  const hasAppAccess = hasMobilePortalRole(heldRoles);
 
   useEffect(() => {
     if (loading || !profile || (authUserId === profile.user_id && (portalLoading || (portal && profile.roles.includes(portal))))) return;

@@ -217,26 +217,35 @@
 
 @layer components {
   /* Unfocused / no value — 1px field border, same colour as DropdownField/DateField */
-  .input__input:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
+  .input__input:not(.finance-field-invalid):not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
   .search-field__input:not(:focus):not([disabled]):not([readonly]):not([readOnly]),
   .text-area__input:not(:focus):not([readonly]):not([disabled]),
-  .select__trigger:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
+  .select__trigger:not(.finance-field-invalid):not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
     --field-border-width: 1px !important;
     border-color: var(--field-border) !important;
     outline-color: transparent !important;
   }
   /* Focused (editable only) — 2px blue */
-  .input__input:focus:not([readonly]):not([readOnly]):not([disabled]):not([data-disabled="true"]):not([aria-readonly="true"]):not([data-readonly="true"]):not([aria-invalid="true"]):not([data-invalid="true"]),
+  .input__input:not(.finance-field-invalid):focus:not([readonly]):not([readOnly]):not([disabled]):not([data-disabled="true"]):not([aria-readonly="true"]):not([data-readonly="true"]):not([aria-invalid="true"]):not([data-invalid="true"]),
   .search-field__input:focus:not([readonly]):not([readOnly]):not([disabled]),
   .text-area__input:focus:not([readonly]):not([disabled]),
-  .select__trigger:focus:not([disabled]):not([data-disabled="true"]),
-  .select__trigger[data-focus="true"]:not([data-disabled="true"]):not([aria-invalid="true"]),
-  .select__trigger[data-open="true"]:not([data-disabled="true"]) {
+  .select__trigger:not(.finance-field-invalid):focus:not([disabled]):not([data-disabled="true"]),
+  .select__trigger:not(.finance-field-invalid)[data-focus="true"]:not([data-disabled="true"]):not([aria-invalid="true"]),
+  .select__trigger:not(.finance-field-invalid)[data-open="true"]:not([data-disabled="true"]) {
     --field-border-width: 2px !important;
     border-color: var(--focus) !important;
     outline-color: var(--focus) !important;
     outline-width: 2px !important;
   }
+  /* Expense-form errors stay red while focused or open. */
+  .input__input.finance-field-invalid,
+  .select__trigger.finance-field-invalid {
+    --field-border-width: 2px !important;
+    border-width: 2px !important;
+    border-color: var(--danger) !important;
+    outline-color: transparent !important;
+  }
+
   /* Readonly/disabled — 1px field border, never blue */
   .input__input[readonly], .input__input[readOnly], .search-field__input[readonly],
   .text-area__input[readonly], .input__input[disabled],

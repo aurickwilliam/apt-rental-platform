@@ -113,3 +113,21 @@ export const ListGroup = Object.assign(Passthrough, {
 });
 export const Separator = () => null;
 export const Chip = Object.assign(Passthrough, { Label: TextStub });
+
+// Dialogs: only mounted while open, like the installed HeroUI Portal.
+interface DialogStubProps extends ChildrenProps {
+  isOpen?: boolean;
+}
+
+function DialogStub({ children, isOpen = false }: DialogStubProps) {
+  return isOpen ? <View>{children}</View> : null;
+}
+
+export const Dialog = Object.assign(DialogStub, {
+  Portal: Passthrough,
+  Overlay: Passthrough,
+  Content: Passthrough,
+  Title: TextStub,
+  Description: TextStub,
+  Close: PressableStub,
+});
