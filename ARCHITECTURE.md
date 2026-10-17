@@ -300,7 +300,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 
 ## 5. Database Architecture
 
-**Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated. **Exception:** the notification schema (2026-08-14 onward) is tracked in `supabase/migrations/`; the 2026-08-13 chat/image DDL (attachment URL, RPC v2, thumbs) was applied to the live DB and its migration files later removed from the repo — see debt D17.
+**Schema location.** The hosted Supabase schema is canonical; the repository tracks changes in `supabase/migrations/` and client-facing generated types in `packages/supabase/src/types.ts`. Older base-schema DDL is not fully represented by the migration history (see debt D17). Before a remote operation, verify the target against the apps' public Supabase URLs, not the CLI link, which may point elsewhere. Schema changes use reviewed migrations; data population is a separate operator operation.
 
 **Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_portal_conversations(p_portal)` for the mobile lists; `get_conversations_v2` kept unchanged for older app builds, recorded in migration `20261014083034_record_get_conversations_v2`; v1 superseded and stripped of direct anon grants).
 
@@ -313,6 +313,14 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 - **Read-side aggregation columns.** `apartments` carries denormalized counters (`no_favorites`, `no_ratings`, `average_rating`).
 - **Chat has no conversations table.** A conversation is derived: an ordered pair of users plus `apartment_id` (nullable). Conversation lists come from the `get_conversations` RPC (see §8).
 - **Payment rows are written nowhere in the codebase.** The `payment` table (amount, method, status, date, due_date, period_start/end, `reference_no`, `proof_url`) is only ever read (see §7).
+
+---
+
+### 5.2 Operator-only demo activity
+
+`pnpm db:populate` is a local Node/psql operator tool, not an app API. It builds connected rental, payment, maintenance, application, visit, favorite, review and text-chat journeys using existing identities/listings. Pure Passport selection and rent-period rules are reused from shared packages. The unexposed, RLS-enabled `demo_population` registry stores one fixed plan, baseline row IDs and before/after records; only direct `postgres` sessions without an Auth JWT can use its invoker functions. No client grants or generated public API types are added.
+
+Preview and verification are read-only. Apply/reset/cleanup require a matching reviewed preview token, explicit app-project confirmation, audited triggers, current-state revalidation and short database write locks; all changes commit atomically. Reset replays the saved IDs/dates, while cleanup restores only tracked changes and refuses edits/dependencies. Integrity triggers stay enabled. Push delivery is suppressed only within the operator transaction; application-deletion webhooks are suppressed only for tracked demo rows being cleaned, preserving reused Passport documents. There are no identity/listing inserts, provider calls or file writes. See `docs/demo-population.md` for commands, deployment and test boundaries.
 
 ---
 
