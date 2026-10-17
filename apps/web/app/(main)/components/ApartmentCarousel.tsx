@@ -59,7 +59,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
       <CarouselContent className="mt-4 pb-4">
         {
           apartment.map(apt => (
-            <CarouselItem key={apt.id} className="basis-auto">
+            <CarouselItem key={apt.id} className="w-44 basis-auto sm:w-56">
               <ApartmentCard
                 name={apt.name}
                 location={apt.location}
