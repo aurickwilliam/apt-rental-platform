@@ -4188,9 +4188,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/(main)/components/ApartmentCarousel.tsx": {
-    "mtime": 1791973473.5220819,
-    "seen": 1792055648.261281,
-    "ast_hash": "3c835ba4561f8029d97f6698dc7c9089",
+    "mtime": 1792213657.1194503,
+    "seen": 1792213699.3520887,
+    "ast_hash": "74a806fd32850d35db49b8bc19d69344",
     "semantic_hash": ""
   },
   "apps/web/app/(main)/components/DiscoverNowBtn.tsx": {

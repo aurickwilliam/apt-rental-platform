@@ -1,4 +1,4 @@
-# Graph Report - apt-rental-platform  (2026-10-17)
+  # Graph Report - apt-rental-platform  (2026-10-17)
 
 ## Corpus Check
 - 1571 files · ~1,148,661 words
