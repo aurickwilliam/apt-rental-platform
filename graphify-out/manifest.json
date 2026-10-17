@@ -4188,9 +4188,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/(main)/components/ApartmentCarousel.tsx": {
-    "mtime": 1792213657.1194503,
-    "seen": 1792213699.3520887,
-    "ast_hash": "74a806fd32850d35db49b8bc19d69344",
+    "mtime": 1792213993.3364525,
+    "seen": 1792214053.900472,
+    "ast_hash": "e1e687780726795cc08a1243b2b46514",
     "semantic_hash": ""
   },
   "apps/web/app/(main)/components/DiscoverNowBtn.tsx": {
@@ -5178,9 +5178,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/apply/lib/load-apply-page.ts": {
-    "mtime": 1791973208.1922343,
-    "seen": 1792055648.2614872,
-    "ast_hash": "f1db4e78332a4978629de698b276ae13",
+    "mtime": 1792214565.3216722,
+    "seen": 1792214620.3394372,
+    "ast_hash": "0577b9f768aeeacfd5259d6244ce538b",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/apply/lib/validate-application.ts": {
