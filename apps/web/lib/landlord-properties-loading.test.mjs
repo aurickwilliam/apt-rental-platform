@@ -61,7 +61,7 @@ test("My Properties loading keeps its title, four stats, four actions and eight-
   assert.equal(tree.props["aria-busy"], "true");
   assert.equal(tree.props["aria-label"], "Loading properties");
   const elements = nodes(tree);
-  assert.equal(elements.find(node => node.type === "h1").props.children, "My Properties");
+  assert.ok([elements.find(node => node.type === "h1").props.children].flat().includes("My Properties"));
   assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
   assert.equal(elements.find(node => node.props.className?.includes("lg:grid-cols-4")).props.children.length, 4);
   assert.equal(elements.find(node => node.props.className?.includes("xl:grid-cols-4")).props.children.length, 4);

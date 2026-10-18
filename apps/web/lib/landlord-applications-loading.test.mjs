@@ -56,7 +56,7 @@ const text = tree => nodes(tree).flatMap(node => [node.props?.children].flat(Inf
 
 test("Applications route skeleton keeps its header and mirrors desktop rows and mobile cards", () => {
   const elements = nodes(load("loading.tsx").default());
-  assert.equal(elements.find(node => node.type === "h1").props.children, "Applications");
+  assert.ok(text(elements.find(node => node.type === "h1")).includes("Applications"));
   assert.ok(elements.some(node => node.props["aria-busy"] === "true" && node.props["aria-label"] === "Loading applications"));
   assert.deepEqual(elements.filter(node => node.type === "Table.Column").map(node => node.props.children), [
     "Tenant", "Property", "Location", "Date", "Status",

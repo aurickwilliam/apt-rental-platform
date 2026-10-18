@@ -15,8 +15,11 @@ export default function PaymentsHeader({ children }: { children?: ReactNode }) {
       </Button>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconCashBanknote size={22} className="text-primary" /> Payments
+          <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <IconCashBanknote size={28} aria-hidden="true" />
+            </span>
+            Payments
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Payments for this unit will appear here.</p>
         </div>
