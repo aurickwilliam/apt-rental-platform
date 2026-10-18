@@ -84,6 +84,7 @@ const navItems = [
   { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
   { href: "/landlord/applications", label: "Applications", icon: "FileCheck", prefetchOnIntent: true },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", prefetchOnIntent: true },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", prefetchOnIntent: true },
   { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ];
 
@@ -112,11 +113,15 @@ test("desktop overview links prefetch on pointer or keyboard intent and retain n
   maintenance.props.onMouseEnter();
   maintenance.props.onFocus();
   assert.equal(harness.prefetched.at(-1), "/landlord/maintenance-requests");
+  const payments = elements.find(node => node.type === "Link" && node.props.href === "/landlord/payments");
+  payments.props.onMouseEnter();
+  payments.props.onFocus();
+  assert.equal(harness.prefetched.at(-1), "/landlord/payments");
   assert.equal(elements.find(node => node.type === "Link" && node.props.href === "/landlord/messages").props.onFocus, undefined);
 });
 
 test("sidebar selection follows the route in either direction, not a click-only local state", () => {
-  for (const pathname of ["/landlord/properties", "/landlord/maintenance-requests", "/landlord/applications", "/landlord/dashboard", "/landlord/maintenance-requests"]) {
+  for (const pathname of ["/landlord/properties", "/landlord/payments", "/landlord/maintenance-requests", "/landlord/applications", "/landlord/dashboard", "/landlord/payments"]) {
     const harness = sidebarHarness(pathname);
     const links = nodes(harness.AppSidebar({ navItems, userName: "Landlord", userRole: "Landlord" }));
     assert.equal(links.find(node => node.type === "Link" && node.props["aria-current"] === "page").props.href, pathname);
@@ -130,7 +135,7 @@ test("opening mobile menu warms only opted-in routes; selection uses client navi
   dropdown.props.onOpenChange(false);
   assert.deepEqual(harness.prefetched, []);
   dropdown.props.onOpenChange(true);
-  assert.deepEqual(harness.prefetched, ["/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests"]);
+  assert.deepEqual(harness.prefetched, ["/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
   elements.find(node => node.type === "Dropdown.Menu").props.onAction("/landlord/properties");
   assert.deepEqual(harness.pushed, ["/landlord/properties"]);
 });

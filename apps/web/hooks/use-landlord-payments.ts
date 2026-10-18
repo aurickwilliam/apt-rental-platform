@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAsyncResource } from "@/hooks/use-async-resource";
 import {
   fetchLandlordApartments,
   fetchLandlordPaymentById,
@@ -11,6 +12,8 @@ import {
 } from "@/service/landlordPaymentService";
 
 export type { LandlordApartment, PaymentRecord };
+
+const NO_PAYMENTS: PaymentRecord[] = [];
 
 function toMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -55,53 +58,34 @@ export function useLandlordApartments() {
 }
 
 export function useLandlordPayments(apartmentId: string | null) {
-  const [payments, setPayments] = useState<PaymentRecord[]>([]);
-  const [loading, setLoading] = useState(apartmentId !== null);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    if (!apartmentId) return;
-    const activeId = apartmentId;
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async () => {
+    if (!apartmentId) return NO_PAYMENTS;
     try {
-      setPayments(await fetchLandlordPayments(activeId));
+      return await fetchLandlordPayments(apartmentId);
     } catch (err) {
-      setError(toMessage(err));
-    } finally {
-      setLoading(false);
+      throw new Error(toMessage(err));
     }
   }, [apartmentId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      if (!apartmentId) {
-        setPayments([]);
-        setLoading(false);
-        setError(null);
-        return;
-      }
-      void refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [apartmentId, refresh]);
+  const { data, loading, error, refresh, setData } = useAsyncResource(load, NO_PAYMENTS, "Failed to load payments.");
 
   const applyOptimisticPaid = useCallback((paymentId: string) => {
-    setPayments((rows) => rows.map((row) => (row.id === paymentId ? { ...row, status: "paid" } : row)));
-  }, []);
+    setData((rows) => rows.map((row) => (row.id === paymentId ? { ...row, status: "paid" } : row)));
+  }, [setData]);
 
   const rollback = useCallback((previous: PaymentRecord[]) => {
-    setPayments(previous);
-  }, []);
+    setData(previous);
+  }, [setData]);
 
-  if (!apartmentId) {
-    return { payments: [], loading: false, error: null, refresh, applyOptimisticPaid, rollback };
-  }
-  return { payments, loading, error, refresh, applyOptimisticPaid, rollback };
+  // A unit change is loading immediately, before its effect runs. Never expose
+  // the preceding unit's rows (including after the new unit's request fails).
+  return {
+    payments: apartmentId && !loading && !error ? data : NO_PAYMENTS,
+    loading: apartmentId !== null && loading,
+    error: apartmentId ? error : null,
+    refresh,
+    applyOptimisticPaid,
+    rollback,
+  };
 }
 
 export function useLandlordPayment(paymentId: string | null) {
