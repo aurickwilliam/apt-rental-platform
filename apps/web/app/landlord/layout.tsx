@@ -10,11 +10,11 @@ import { canViewPassport } from "@/lib/passport-access";
 const PASSPORT_HREF = "/landlord/passport";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
+  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", prefetchOnIntent: true },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", prefetchOnIntent: true },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", prefetchOnIntent: true },
   { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck" },
   { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ] as const;

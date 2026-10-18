@@ -174,6 +174,8 @@ type NavItem = {
   href: string;
   label: string;
   icon: string;
+  /** Warm this route on hover/focus and when the mobile menu opens. */
+  prefetchOnIntent?: boolean;
 };
 
 export type SwitchTarget = { href: string; label: string };
@@ -408,7 +410,7 @@ export function AppSidebar({
         aria-label="Portal pages"
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
-        {navItems.map(({ label, href, icon }) => {
+        {navItems.map(({ label, href, icon, prefetchOnIntent }) => {
           const active = isActive(pathname, href);
           const Icon =
             iconSet === "tabler"
@@ -418,6 +420,8 @@ export function AppSidebar({
             <Link
               href={href}
               key={href}
+              onMouseEnter={prefetchOnIntent ? () => router.prefetch(href) : undefined}
+              onFocus={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               aria-current={active ? "page" : undefined}
               aria-label={collapsed ? label : undefined}
               title={collapsed ? label : undefined}
@@ -752,13 +756,18 @@ function MobileSidebarMenu({
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 
-  // Prefetch the profile route while the menu is open (see desktop above).
+  // Unlike desktop Links, menu actions don't automatically prefetch routes.
   const handleMobileMenuOpenChange = useCallback(
     (value: boolean) => {
       setMobileMenuOpen(value);
       if (value && profileHref) router.prefetch(profileHref);
+      if (value) {
+        navItems.forEach(({ href, prefetchOnIntent }) => {
+          if (prefetchOnIntent) router.prefetch(href);
+        });
+      }
     },
-    [router, profileHref],
+    [router, profileHref, navItems],
   );
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 

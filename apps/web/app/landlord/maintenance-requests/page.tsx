@@ -17,7 +17,8 @@ import {
   type LandlordMaintenanceStatus,
 } from "./lib/maintenance-status";
 import MaintenanceEmptyState from "./components/MaintenanceEmptyState";
-import { MaintenanceTableSkeleton } from "./components/MaintenanceSkeletons";
+import MaintenanceHeader from "./components/MaintenanceHeader";
+import { MaintenanceCountSkeleton, MaintenanceResultsSkeleton } from "./components/MaintenanceSkeletons";
 
 const STATUS_OPTIONS = ["All", "Pending", "In Progress", "Resolved", "Cancelled"] as const;
 const URGENCY_OPTIONS = [
@@ -72,13 +73,8 @@ export default function MaintenanceRequestsPage() {
   const openDetail = (id: string) => router.push(`/landlord/maintenance-requests/${id}`);
 
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
-      <div>
-        <h1 className="text-2xl font-bold font-nunito text-card-foreground">Maintenance Requests</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Review and manage tenant maintenance requests for your properties.
-        </p>
-      </div>
+    <div className="p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy={loading}>
+      <MaintenanceHeader />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 max-w-md">
@@ -171,20 +167,12 @@ export default function MaintenanceRequestsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
+      {loading ? <MaintenanceCountSkeleton /> : (
+        <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
+      )}
 
       {loading ? (
-        <>
-          <div className="hidden md:block">
-            <MaintenanceTableSkeleton />
-          </div>
-          <div className="grid gap-3 md:hidden">
-            <div className="rounded-3xl border border-border bg-card p-4 animate-pulse">
-              <div className="h-4 w-2/3 rounded bg-muted" />
-              <div className="h-3 w-1/3 rounded bg-muted mt-2" />
-            </div>
-          </div>
-        </>
+        <MaintenanceResultsSkeleton />
       ) : error ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12">
           <p className="text-sm font-medium text-red-600">{error}</p>
