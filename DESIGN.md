@@ -394,6 +394,10 @@ Mobile-first (`grid-cols-1` → responsive); landlord layout = fixed sidebar + `
 
 **Page widths (web portals):** every page shell is `max-w-7xl mx-auto px-4 py-6 sm:py-8`. Sidebar destinations (Profile, Favorites, My Rental, APT Passport) use the full shell; never nest a narrower centered column inside it. Detail pages reached from a list may cap content at `max-w-4xl`, short single-purpose forms at `max-w-2xl`; a section whose pages link to each other (e.g. APT Passport wallet ↔ document detail) keeps one width so the left edge doesn't jump. Use `lg:` two-column grids (sticky narrow aside + main) to fill wide screens instead of stretching a single card.
 
+The web My Rental calendar marks today with a black circular border (no fill of its own), rent due with an orange fill, and the displayed month's last day with a primary-blue fill. Month navigation updates the month-end marker and legend together. When rent due falls on month end, orange takes precedence with a blue dot; today's border remains visible on either filled marker.
+
+My Rental uses available content width (container queries), not viewport width alone, for its dashboard: rent/calendar and quick actions/landlord become two columns at 64rem of content width. Lease details use three columns only at 36rem of rent-card content width. Quick Action tiles fill equal-width, equal-height grid cells: one column below 28rem of card content, two from 28rem, four from 44rem. Narrow layouts wrap headers and signed-lease actions; payment history scrolls within its card, never the page. Loading placeholders mirror these layouts.
+
 ### Mobile
 
 No breakpoints; `useWindowDimensions` math (grid card = `(width − 32 − 8) / 2`, list = full width); grid/list toggle on search; safe areas via `useSafeAreaInsets` (`ScreenWrapper`, `StandardHeader`, `CustomTabBar`, footers). Platform differences: tab bar (NativeTabs iOS vs pill Android), date pickers (spinner sheet iOS vs inline Android), keyboard `extraHeight 50 iOS / 100 Android`.

@@ -196,7 +196,7 @@ export default function MyRental() {
     return (
       <div className="min-h-screen bg-background">
         <div
-          className="max-w-7xl mx-auto px-4 py-8 space-y-4 w-full flex-1 flex flex-col justify-center items-center"
+          className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4 w-full flex-1 flex flex-col justify-center items-center"
           style={{ minHeight: "calc(100dvh - 4rem)" }}
         >
           <DashboardCard className="max-w-xl w-full">
@@ -219,7 +219,7 @@ export default function MyRental() {
 
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
           {hasApplications || applicationsError ? (
             <ApplicationsList applications={applications} loading={false} error={applicationsError} />
           ) : (
@@ -363,7 +363,7 @@ export default function MyRental() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
+      <div className="@container/rental max-w-7xl mx-auto min-w-0 px-4 py-6 sm:py-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="font-inter text-xs uppercase tracking-wider text-muted-foreground">
             {headerDate}
@@ -386,16 +386,16 @@ export default function MyRental() {
           descriptionHref={`/tenant/browse/${apartment.id}`}
         />
 
-        <div className="grid gap-3 lg:grid-cols-[2fr_1fr]">
-          <div className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white">
+        <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
+          <div className="@container/rent relative min-w-0 rounded-2xl bg-primary p-4 text-white sm:p-6">
             <div className="relative flex h-full flex-col">
               {isPeriodPaid ? (
                 <>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-nunito text-xl font-bold">Monthly rent</p>
                     <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
                   </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-3 grid min-w-0 gap-3 @min-[32rem]/rent:grid-cols-2">
                   <div className="flex min-w-0 flex-col gap-2 rounded-2xl bg-white/10 p-4">
                     <p className="font-nunito text-xl font-bold">
                       {paymentPeriodLabel}
@@ -403,7 +403,7 @@ export default function MyRental() {
                     <p className="font-inter text-sm text-white/85">
                       Payment received for this month.
                     </p>
-                    <div className="mt-2 grid gap-4 border-t border-white/20 pt-4 sm:grid-cols-2">
+                    <div className="mt-2 grid gap-4 border-t border-white/20 pt-4 @min-[40rem]/rent:grid-cols-2">
                       <div>
                         <p className="font-nunito text-xs font-semibold text-white/70">Lease start</p>
                         <p className="font-inter text-sm text-white">
@@ -465,7 +465,7 @@ export default function MyRental() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-nunito text-xl font-bold">Monthly rent</p>
                     {paymentStatus === "paid" ? (
                       <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
@@ -477,17 +477,17 @@ export default function MyRental() {
                       </StatusChip>
                     )}
                   </div>
-                  <p className="mt-2 font-nunito text-5xl font-bold">
+                  <p className="mt-2 break-words font-nunito text-4xl font-bold @min-[28rem]/rent:text-5xl">
                     {formatPesoDisplay(totalDue)}
                   </p>
-                  <p className="mt-2 flex items-center gap-2 font-inter text-base font-semibold text-white/90">
+                  <p className="mt-2 flex items-start gap-2 font-inter text-sm font-semibold text-white/90 @min-[28rem]/rent:text-base">
                     <CalendarDays size={20} className="shrink-0" aria-hidden="true" />
-                    {paymentPeriodLabel} - Due {formatShortDate(isPeriodPaid ? nextPeriod.dueDate : rent.dueDate)}
+                    <span className="min-w-0">{paymentPeriodLabel} - Due {formatShortDate(isPeriodPaid ? nextPeriod.dueDate : rent.dueDate)}</span>
                   </p>
                   {pendingFeesTotal > 0 && (
                     <div className="mt-1 space-y-0.5">
                       {pendingFees.slice(0, 3).map((fee) => (
-                        <p key={fee.title} className="font-inter text-xs text-white/80">
+                        <p key={fee.title} className="break-words font-inter text-xs text-white/80">
                           + {formatPesoDisplay(fee.amount)} Maintenance fee — {fee.title}
                         </p>
                       ))}
@@ -500,38 +500,38 @@ export default function MyRental() {
               )}
               {!isPeriodPaid && (
                 <>
-                  <div className="mt-8 grid gap-5 border-t border-white/20 pt-5 sm:grid-cols-3 sm:divide-x sm:divide-white/20">
-                    <div className="flex items-center gap-3">
+                  <div className="mt-6 grid gap-4 border-t border-white/20 pt-5 @min-[36rem]/rent:grid-cols-3 @min-[36rem]/rent:divide-x @min-[36rem]/rent:divide-white/20">
+                    <div className="flex min-w-0 items-center gap-2">
                       <CalendarDays size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-base font-semibold text-white/70">Lease start</p>
-                        <p className="font-inter text-lg font-semibold text-white">
+                        <p className="font-nunito text-sm font-semibold text-white/70">Lease start</p>
+                        <p className="font-inter text-base font-semibold text-white">
                           {formatShortDate(tenancy.lease_start)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:pl-5">
+                    <div className="flex min-w-0 items-center gap-2 @min-[36rem]/rent:pl-4">
                       <CalendarDays size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-base font-semibold text-white/70">Lease end</p>
-                        <p className="font-inter text-lg font-semibold text-white">
+                        <p className="font-nunito text-sm font-semibold text-white/70">Lease end</p>
+                        <p className="font-inter text-base font-semibold text-white">
                           {tenancy.lease_end
                             ? formatShortDate(tenancy.lease_end)
                             : "Ongoing"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:pl-5">
+                    <div className="flex min-w-0 items-center gap-2 @min-[36rem]/rent:pl-4">
                       <CurrencyPeso size={28} className="shrink-0 text-white/80" aria-hidden="true" />
                       <div>
-                        <p className="font-nunito text-base font-semibold text-white/70">Monthly rent</p>
-                        <p className="font-inter text-lg font-semibold text-white">
+                        <p className="font-nunito text-sm font-semibold text-white/70">Monthly rent</p>
+                        <p className="break-words font-inter text-base font-semibold text-white">
                           {formatPesoDisplay(monthlyRent)}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-5 flex items-center gap-3 md:mt-auto">
+                  <div className="mt-auto flex items-center gap-3 pt-5">
                     <Link href="/tenant/payment" className="flex-1 no-underline">
                       <Button className="h-12 w-full rounded-full bg-white font-nunito text-base font-bold text-primary">
                         <CreditCard size={18} />
@@ -558,21 +558,22 @@ export default function MyRental() {
           />
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[2fr_1fr] items-stretch">
+        <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] items-stretch">
           <DashboardCard>
             <p className="font-nunito text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Quick actions
             </p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rental-quick-actions mt-4 grid auto-rows-fr grid-cols-1 gap-3 @min-[28rem]/dashboard:grid-cols-2 @min-[44rem]/dashboard:grid-cols-4">
               {actions.map((action) => {
                 const Icon = action.icon;
                 const tint = actionTints[action.tint];
+                const tileClassName = `flex h-full min-h-20 w-full min-w-0 items-center gap-3 rounded-2xl p-4 text-left no-underline transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary @min-[44rem]/dashboard:gap-2 @min-[44rem]/dashboard:p-3 ${tint.card}`;
                 const content = (
                   <>
-                    <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${tint.iconBg}`}>
+                    <span className={`flex size-10 shrink-0 items-center justify-center rounded-full @min-[44rem]/dashboard:size-8 ${tint.iconBg}`}>
                       <Icon size={20} className={tint.icon} aria-hidden="true" />
                     </span>
-                    <span className="flex-1 font-nunito text-sm font-semibold text-card-foreground">
+                    <span className="min-w-0 flex-1 font-nunito text-sm font-semibold text-card-foreground @min-[44rem]/dashboard:text-[13px]">
                       {action.label}
                     </span>
                     <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -584,13 +585,9 @@ export default function MyRental() {
                     <Link
                       key={action.label}
                       href={action.href}
-                      className="no-underline"
+                      className={tileClassName}
                     >
-                      <div
-                        className={`flex items-center gap-3 rounded-2xl p-4 transition-transform hover:scale-[1.02] ${tint.card}`}
-                      >
-                        {content}
-                      </div>
+                      {content}
                     </Link>
                   );
                 }
@@ -600,7 +597,7 @@ export default function MyRental() {
                     key={action.label}
                     type="button"
                     onClick={action.onPress}
-                    className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl p-4 text-left transition-transform hover:scale-[1.02] ${tint.card}`}
+                    className={`${tileClassName} cursor-pointer`}
                   >
                     {content}
                   </button>
@@ -653,7 +650,7 @@ export default function MyRental() {
         />
 
         <DashboardCard>
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-nunito text-sm font-semibold text-card-foreground">
               Maintenance
             </h2>
@@ -681,7 +678,7 @@ export default function MyRental() {
             {maintenancePreview.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start gap-2.5 border-b border-border py-2.5 last:border-0 last:pb-0"
+                className="flex flex-wrap items-start gap-2.5 border-b border-border py-2.5 last:border-0 last:pb-0"
               >
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
@@ -701,7 +698,7 @@ export default function MyRental() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-nunito text-sm font-semibold leading-tight text-card-foreground">
+                  <p className="break-words font-nunito text-sm font-semibold leading-tight text-card-foreground">
                     {item.title}
                   </p>
                   <p className="mt-0.5 font-inter text-xs text-muted-foreground">
@@ -716,11 +713,11 @@ export default function MyRental() {
         </DashboardCard>
 
         <DashboardCard>
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-nunito text-sm font-semibold text-card-foreground">
               Payment history
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <p className="font-inter text-xs text-muted-foreground">
                 Last updated {formatShortMonthDate(today)}
               </p>
@@ -729,10 +726,11 @@ export default function MyRental() {
               </Link>
             </div>
           </div>
-          <Table>
-            <Table.ScrollContainer>
+          <Table className="min-w-0 max-w-full">
+            <Table.ScrollContainer className="max-w-full overflow-x-auto">
               <Table.Content
                 aria-label="Payment history"
+                className="min-w-[32rem]"
               >
                 <Table.Header className="font-inter text-[11px] tracking-wider text-card-foreground">
                   <Table.Column isRowHeader className="font-nunito font-semibold text-card-foreground">

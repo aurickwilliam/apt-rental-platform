@@ -186,12 +186,12 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
   return (
     <div className={`flex flex-col ${showHeader ? "gap-6 pt-4" : "gap-3"} ${className}`}>
       {showHeader && (
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <ClipboardList size={20} className="text-primary" />
             <h2 className="text-lg font-semibold text-card-foreground">My Applications</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm font-inter text-muted-foreground">
               {loading
                 ? "Loading Applications..."
