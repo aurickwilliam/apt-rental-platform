@@ -173,7 +173,7 @@ export default function ApartmentsList({
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
-        <PullToRefreshControl onRefresh={onRefresh} />
+        <PullToRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     />
   );

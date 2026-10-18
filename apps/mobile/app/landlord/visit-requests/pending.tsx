@@ -129,7 +129,7 @@ export default function PendingVisitRequests() {
           flexGrow: !loading && filteredRequests.length === 0 ? 1 : 0,
         }}
         refreshControl={
-          <PullToRefreshControl onRefresh={handleRefresh} />
+          <PullToRefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         ListHeaderComponent={
           <>

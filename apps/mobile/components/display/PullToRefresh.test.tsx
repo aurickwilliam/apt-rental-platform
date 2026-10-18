@@ -22,7 +22,9 @@ jest.mock("heroui-native", () => {
 describe("PullToRefresh", () => {
   it("hides the native indicator while preserving the refresh gesture", () => {
     const onRefresh = jest.fn();
-    const { UNSAFE_getByType } = render(<PullToRefreshControl onRefresh={onRefresh} />);
+    const { UNSAFE_getByType } = render(
+      <PullToRefreshControl refreshing={false} onRefresh={onRefresh} />,
+    );
 
     const control = UNSAFE_getByType(RefreshControl);
     expect(control.props).toMatchObject({
@@ -34,6 +36,25 @@ describe("PullToRefresh", () => {
 
     control.props.onRefresh();
     expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores repeats pulled while the caller's refresh is still running", () => {
+    const onRefresh = jest.fn();
+    const { rerender, UNSAFE_getByType } = render(
+      <PullToRefreshControl refreshing={false} onRefresh={onRefresh} />,
+    );
+
+    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+
+    rerender(<PullToRefreshControl refreshing onRefresh={onRefresh} />);
+    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+
+    // Once the caller's state settles, the gesture works again.
+    rerender(<PullToRefreshControl refreshing={false} onRefresh={onRefresh} />);
+    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    expect(onRefresh).toHaveBeenCalledTimes(2);
   });
 
   it("shows only the HeroUI spinner while refreshing", () => {

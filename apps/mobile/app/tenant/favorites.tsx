@@ -156,7 +156,10 @@ export default function TenantFavorites() {
             flexGrow: apartments.length === 0 ? 1 : 0,
           }}
           refreshControl={
-            <PullToRefreshControl onRefresh={refreshFavoriteApartments} />
+            <PullToRefreshControl
+              refreshing={refreshingApartments}
+              onRefresh={refreshFavoriteApartments}
+            />
           }
           ListHeaderComponent={<PullToRefreshIndicator refreshing={refreshingApartments} />}
           ListEmptyComponent={

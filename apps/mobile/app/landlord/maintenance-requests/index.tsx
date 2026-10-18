@@ -102,7 +102,7 @@ export default function MaintenanceRequests() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <PullToRefreshControl onRefresh={handleRefresh} />
+          <PullToRefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         contentContainerStyle={{
           paddingHorizontal: 20,

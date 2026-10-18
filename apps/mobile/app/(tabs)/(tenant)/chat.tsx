@@ -206,7 +206,7 @@ export default function Chat() {
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom,
         }}
         refreshControl={
-          <PullToRefreshControl onRefresh={onRefresh} />
+          <PullToRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
 

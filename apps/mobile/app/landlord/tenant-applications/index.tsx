@@ -95,7 +95,7 @@ export default function TenantApplications() {
           paddingBottom: 30,
           flexGrow: !loading && filteredApplications.length === 0 ? 1 : 0,
         }}
-        refreshControl={<PullToRefreshControl onRefresh={onRefresh} />}
+        refreshControl={<PullToRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           <>
             <PullToRefreshIndicator refreshing={refreshing} />

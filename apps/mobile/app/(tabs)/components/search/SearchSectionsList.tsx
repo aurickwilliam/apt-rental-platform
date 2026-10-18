@@ -108,7 +108,10 @@ export default function SearchSectionsList({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       refreshControl={
-        <PullToRefreshControl onRefresh={onRefresh} />
+        <PullToRefreshControl
+          refreshing={isFetching && !isLoading}
+          onRefresh={onRefresh}
+        />
       }
       ListHeaderComponent={
         <PullToRefreshIndicator refreshing={isFetching && !isLoading} />

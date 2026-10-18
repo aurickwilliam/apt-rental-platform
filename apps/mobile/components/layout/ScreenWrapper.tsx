@@ -95,7 +95,10 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
             scrollEventThrottle={onScroll ? 16 : undefined}
             refreshControl={
               onRefresh ? (
-                <PullToRefreshControl onRefresh={onRefresh} />
+                <PullToRefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                />
               ) : undefined
             }
             contentContainerStyle={{

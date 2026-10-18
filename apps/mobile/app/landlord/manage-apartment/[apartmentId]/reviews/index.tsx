@@ -52,7 +52,7 @@ export default function ReviewsPage() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 32 }}
         refreshControl={
-          <PullToRefreshControl onRefresh={refetch} />
+          <PullToRefreshControl refreshing={refreshing} onRefresh={refetch} />
         }
         ListHeaderComponent={
           <>
