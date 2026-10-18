@@ -19,7 +19,10 @@ let mockNotifications: {
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock("heroui-native", () => ({ useToast: () => ({ toast: { show: mockToastShow } }) }));
-jest.mock("@repo/utils", () => ({ getRelativeTime: () => "just now" }));
+jest.mock("@repo/utils", () => ({
+  ...jest.requireActual<typeof import("@repo/utils")>("@repo/utils"),
+  getRelativeTime: () => "just now",
+}));
 jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => ({ data: { id: "user-1", user_id: "auth-1", roles: [mockRole] } }),
 }));
@@ -43,8 +46,13 @@ jest.mock("@/app/(notification)/components/NotificationCard", () => {
   const { Pressable, Text } = jest.requireActual<typeof import("react-native")>("react-native");
   return {
     __esModule: true,
-    default: ({ title, onPress }: { title: string; onPress: () => void }) =>
-      React.createElement(Pressable, { onPress }, React.createElement(Text, null, title)),
+    default: ({ title, preview, onPress }: { title: string; preview?: string; onPress: () => void }) =>
+      React.createElement(
+        Pressable,
+        { onPress },
+        React.createElement(Text, null, title),
+        preview ? React.createElement(Text, null, preview) : null,
+      ),
   };
 });
 
@@ -105,4 +113,45 @@ it("does nothing visible for a notification with no target", () => {
 
   expect(mockPush).not.toHaveBeenCalled();
   expect(mockToastShow).not.toHaveBeenCalled();
+});
+
+/** Every text leaf the mocked card tree renders, in order. */
+const renderedTexts = () => {
+  const collect = (node: unknown): string[] => {
+    if (typeof node === "string") return [node];
+    if (Array.isArray(node)) return node.flatMap(collect);
+    if (node && typeof node === "object" && "children" in node) {
+      return collect((node as { children: unknown }).children);
+    }
+    return [];
+  };
+  return collect(screen.toJSON());
+};
+
+it("renders the quoted message preview of a reaction notification", () => {
+  mockNotifications = [
+    notification({
+      type: "message",
+      title: "Emma Stone",
+      message: "Reacted ❤️ to your message",
+      data: { screen: "chat", event: "reaction", messagePreview: "See you at 6pm" },
+    }),
+  ];
+  render(<NotificationList filter="All" />);
+
+  expect(renderedTexts()).toEqual(["Emma Stone", "See you at 6pm"]);
+});
+
+it("renders no preview line when the payload has no usable preview", () => {
+  mockNotifications = [
+    notification({
+      type: "message",
+      title: "Emma Stone",
+      message: "Reacted ❤️ to your message",
+      data: { screen: "chat", event: "reaction", messagePreview: "   " },
+    }),
+  ];
+  render(<NotificationList filter="All" />);
+
+  expect(renderedTexts()).toEqual(["Emma Stone"]);
 });

@@ -39,7 +39,7 @@ export default function VerifySubmitConfirm({
             aria-label="Submit for verification"
             className="w-[calc(100vw-2rem)] max-w-sm overflow-y-auto rounded-2xl sm:w-full"
           >
-            <Modal.Body className="flex flex-col gap-4 p-2">
+            <Modal.Body className="@container flex flex-col gap-4 p-2">
               <div className="flex flex-col gap-1.5">
                 <h2 className="font-nunito text-lg font-bold text-foreground">
                   Submit for verification?
@@ -53,23 +53,30 @@ export default function VerifySubmitConfirm({
                 <ChecklistItem ready={idPhotosReady} label="Your required ID photos are ready." />
                 <ChecklistItem ready={selfieReady} label="Your selfie is ready." />
               </ul>
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              {/* Container-based layout (not viewport-based): this capped
+                dialog never fits both buttons side by side, so they stack
+                at 87% width, centered, with no dead space on either side.
+                If the dialog ever widens past their combined width, they
+                share one row at intrinsic width. */}
+              <div className="mt-1 flex flex-col-reverse items-center gap-2 @[360px]:flex-row @[360px]:justify-end">
                 <Button
                   type="button"
                   variant="ghost"
+                  size="sm"
                   onPress={onClose}
                   isDisabled={isSubmitting}
-                  className="min-h-10 border border-primary/25 bg-primary/10 px-6 text-sm font-semibold text-primary hover:bg-primary/15"
+                  className="w-[95%] border border-primary/25 bg-primary/10 px-6 text-sm font-semibold text-primary hover:bg-primary/15 @[360px]:w-auto"
                 >
                   Go back and review
                 </Button>
                 <Button
                   type="button"
                   variant="primary"
+                  size="sm"
                   onPress={onConfirm}
                   isDisabled={isSubmitting}
                   isPending={isSubmitting}
-                  className="min-h-10 px-6 text-sm font-semibold"
+                  className="w-[95%] px-6 text-sm font-semibold @[360px]:w-auto"
                 >
                   Confirm &amp; submit
                 </Button>
