@@ -5964,15 +5964,15 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/dashboard/loading.tsx": {
-    "mtime": 1791973208.409197,
-    "seen": 1792256917.995218,
-    "ast_hash": "eff51059c7bda9e72372f34b68c56a68",
+    "mtime": 1792310945.8431137,
+    "seen": 1792310999.1844182,
+    "ast_hash": "082629328e2904ec1e82b9e5c8509575",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/dashboard/page.tsx": {
-    "mtime": 1791973641.3544314,
-    "seen": 1792256917.9952192,
-    "ast_hash": "190423e24d56f44201b1637de38a47e6",
+    "mtime": 1792310945.8446302,
+    "seen": 1792310999.1844213,
+    "ast_hash": "ecc32ded9413366f82f0b41d099af438",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/layout.tsx": {
@@ -8220,9 +8220,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792292124.6602192,
-    "seen": 1792292285.191376,
-    "ast_hash": "28cbefd3ba61903c21e28f004a4f58cf",
+    "mtime": 1792310945.8463008,
+    "seen": 1792310999.2691724,
+    "ast_hash": "d2963454e1b1af9c0be189e56525966c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9841,6 +9841,24 @@
     "mtime": 1792292124.6602192,
     "seen": 1792292285.1398177,
     "ast_hash": "924a5eeeb94e941f32d537328a5cb922",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/dashboard/components/DashboardHeader.tsx": {
+    "mtime": 1792310945.8416095,
+    "seen": 1792310999.1834934,
+    "ast_hash": "55fcc602c513f000dcd48f2dc5b1919e",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/dashboard/components/DashboardSkeleton.tsx": {
+    "mtime": 1792310945.8431137,
+    "seen": 1792310999.1834967,
+    "ast_hash": "c7ec20d19f05862534dfd3c8386491ec",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/landlord-dashboard-loading.test.mjs": {
+    "mtime": 1792311092.8025477,
+    "seen": 1792311142.8925626,
+    "ast_hash": "0f1dda7b57caa3272d602ca0ffec4217",
     "semantic_hash": ""
   }
 }
