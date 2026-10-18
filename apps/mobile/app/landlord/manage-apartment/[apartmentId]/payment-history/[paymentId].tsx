@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Button } from 'heroui-native'
+import { Button, Spinner } from 'heroui-native'
 import { IconChevronLeft } from '@tabler/icons-react-native'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -101,7 +101,7 @@ export default function LandlordPaymentReceipt() {
               </Button>
             </>
           ) : (
-            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Spinner size="lg" color="#FFFFFF" accessibilityLabel="Loading receipt" />
           )}
         </View>
       ) : (

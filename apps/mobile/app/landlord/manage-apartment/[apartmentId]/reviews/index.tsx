@@ -1,14 +1,17 @@
 import { useLocalSearchParams } from 'expo-router'
-import { FlatList, RefreshControl, Text, View } from 'react-native'
+import { FlatList, Text, View } from 'react-native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
 import RatingCard from '@/components/cards/RatingCard'
 import RatingCardSkeleton from '@/components/cards/RatingCardSkeleton'
 import DropdownButton from '@/components/buttons/DropdownButton'
-import { useColors } from 'hooks/useTheme'
 
 import { useApartmentReviews, type ReviewSortOption } from 'hooks/ratings'
 import StarRating from '@/components/display/StarRating'
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from '@/components/display/PullToRefresh'
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   'Most Recent',
@@ -18,7 +21,6 @@ const SORT_OPTIONS: ReviewSortOption[] = [
 
 export default function ReviewsPage() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
-  const { colors } = useColors()
 
   const {
     loading,
@@ -50,33 +52,32 @@ export default function ReviewsPage() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 32 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refetch}
-            tintColor={colors.primary}
-          />
+          <PullToRefreshControl onRefresh={refetch} />
         }
         ListHeaderComponent={
-          totalReviews > 0 ? (
-            <View className='flex-row items-center justify-between mb-2'>
-              <View className='flex-row items-center gap-1.5'>
-                <StarRating rating={overallRating} size={20} />
-                <Text className='text-foreground text-base font-nunitoSemiBold'>
-                  {overallRating.toFixed(1)}
-                </Text>
-                <Text className='text-muted text-sm font-inter'>
-                  · {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}
-                </Text>
-              </View>
+          <>
+            <PullToRefreshIndicator refreshing={refreshing} />
+            {totalReviews > 0 ? (
+              <View className='flex-row items-center justify-between mb-2'>
+                <View className='flex-row items-center gap-1.5'>
+                  <StarRating rating={overallRating} size={20} />
+                  <Text className='text-foreground text-base font-nunitoSemiBold'>
+                    {overallRating.toFixed(1)}
+                  </Text>
+                  <Text className='text-muted text-sm font-inter'>
+                    · {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}
+                  </Text>
+                </View>
 
-              <DropdownButton
-                label='Sort by'
-                options={SORT_OPTIONS}
-                value={sortBy}
-                onSelect={setSortBy}
-              />
-            </View>
-          ) : null
+                <DropdownButton
+                  label='Sort by'
+                  options={SORT_OPTIONS}
+                  value={sortBy}
+                  onSelect={setSortBy}
+                />
+              </View>
+            ) : null}
+          </>
         }
         ListEmptyComponent={
           <View className='items-center justify-center py-16 gap-1'>

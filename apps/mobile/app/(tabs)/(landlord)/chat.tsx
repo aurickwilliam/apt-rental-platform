@@ -3,18 +3,21 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
 // slight vertical drift and cancels the rows' swipe actions.
-import { FlatList, RefreshControl } from 'react-native-gesture-handler'
+import { FlatList } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from '@/components/display/PullToRefresh'
 import ConversationListHeader from '@/app/(tabs)/components/chat/ConversationListHeader'
 import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRow'
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
 import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays'
 
 import { useConversationRowActions, useConversations } from '@/hooks/chat'
-import { useColors } from '@/hooks/useTheme'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import {
   buildConversationListItems,
@@ -34,7 +37,6 @@ type ConversationFilter = 'Tenant' | 'Inquiries';
 export default function Chat() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<ConversationFilter>('Tenant');
@@ -148,7 +150,8 @@ export default function Chat() {
         data={loading || error ? [] : items}
         keyExtractor={(item) => item.key}
         renderItem={renderItem}
-        ListHeaderComponent={
+        ListHeaderComponent={<>
+          <PullToRefreshIndicator refreshing={refreshing} />
           <ConversationListHeader
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -174,7 +177,7 @@ export default function Chat() {
               </Tabs>
             )}
           </ConversationListHeader>
-        }
+        </>}
         ListEmptyComponent={listEmpty}
         keyboardShouldPersistTaps='handled'
         keyboardDismissMode='on-drag'
@@ -186,12 +189,7 @@ export default function Chat() {
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET + insets.bottom,
         }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
+          <PullToRefreshControl onRefresh={onRefresh} />
         }
       />
 

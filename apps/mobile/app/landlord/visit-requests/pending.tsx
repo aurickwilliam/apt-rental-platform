@@ -1,11 +1,15 @@
 import { useMemo, useState } from "react";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { IconFilter } from '@tabler/icons-react-native';
 import { Button, SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "@/components/display/PullToRefresh";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestFilterSheet, {
   type VisitRequestFilters,
@@ -125,16 +129,13 @@ export default function PendingVisitRequests() {
           flexGrow: !loading && filteredRequests.length === 0 ? 1 : 0,
         }}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
+          <PullToRefreshControl onRefresh={handleRefresh} />
         }
         ListHeaderComponent={
-          <View className="gap-4">
-            <View className="flex-row items-center gap-2">
+          <>
+            <PullToRefreshIndicator refreshing={isRefreshing} />
+            <View className="gap-4">
+              <View className="flex-row items-center gap-2">
               <View className="flex-1">
                 <SearchField value={searchQuery} onChange={setSearchQuery}>
                   <SearchField.Group>
@@ -162,7 +163,7 @@ export default function PendingVisitRequests() {
                   </View>
                 )}
               </View>
-            </View>
+              </View>
 
             {loading ? (
               <View className="gap-3">
@@ -175,7 +176,8 @@ export default function PendingVisitRequests() {
                 Total: {filteredRequests.length}
               </Text>
             )}
-          </View>
+            </View>
+          </>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
         ListEmptyComponent={loading ? null : <EmptyPending />}

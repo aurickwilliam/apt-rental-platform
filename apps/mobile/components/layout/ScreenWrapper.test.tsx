@@ -45,12 +45,7 @@ it("uses the native gesture without either native indicator, showing only HeroUI
   );
 
   const control = screen.getByTestId("scroll-view").props.refreshControl;
-  expect(control.props).toMatchObject({
-    refreshing: true,
-    tintColor: "transparent",
-    colors: ["transparent"],
-    progressBackgroundColor: "transparent",
-  });
+  expect(control.props).toMatchObject({ onRefresh });
   control.props.onRefresh();
   expect(onRefresh).toHaveBeenCalledTimes(1);
   expect(screen.getByLabelText("Refreshing")).toBeTruthy();

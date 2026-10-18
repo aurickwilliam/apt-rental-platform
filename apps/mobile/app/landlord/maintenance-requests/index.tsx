@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SearchField, Button } from "heroui-native";
 import { IconFilter2 } from "@tabler/icons-react-native";
@@ -9,6 +9,10 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import MaintenanceRequestCard from "./components/MaintenanceRequestCard";
 import MaintenanceRequestCardSkeleton from "./components/MaintenanceRequestCardSkeleton";
 import EmptyMaintenanceRequestsList from "./components/EmptyMaintenanceRequestsList";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "@/components/display/PullToRefresh";
 import MaintenanceRequestFilterSheet, {
   type MaintenanceRequestFilters,
 } from "./components/MaintenanceRequestFilterSheet";
@@ -98,12 +102,7 @@ export default function MaintenanceRequests() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
+          <PullToRefreshControl onRefresh={handleRefresh} />
         }
         contentContainerStyle={{
           paddingHorizontal: 20,
@@ -112,22 +111,24 @@ export default function MaintenanceRequests() {
           flexGrow: filteredRequests.length === 0 ? 1 : 0,
         }}
         ListHeaderComponent={
-          <View className="gap-4">
-            <View className="flex-row items-center gap-2">
-              <View className="flex-1">
-                <SearchField value={searchQuery} onChange={setSearchQuery}>
-                  <SearchField.Group>
-                    <SearchField.SearchIcon />
-                    <SearchField.Input
-                      placeholder="Search issues, tenants, apartments..."
-                      className="flex-1 shadow-none"
-                    />
-                    <SearchField.ClearButton />
-                  </SearchField.Group>
-                </SearchField>
-              </View>
+          <>
+            <PullToRefreshIndicator refreshing={refreshing} />
+            <View className="gap-4">
+              <View className="flex-row items-center gap-2">
+                <View className="flex-1">
+                  <SearchField value={searchQuery} onChange={setSearchQuery}>
+                    <SearchField.Group>
+                      <SearchField.SearchIcon />
+                      <SearchField.Input
+                        placeholder="Search issues, tenants, apartments..."
+                        className="flex-1 shadow-none"
+                      />
+                      <SearchField.ClearButton />
+                    </SearchField.Group>
+                  </SearchField>
+                </View>
 
-              <View className="relative">
+                <View className="relative">
                 <Button
                   onPress={() => setFilterOpen(true)}
                   variant="tertiary"
@@ -143,8 +144,8 @@ export default function MaintenanceRequests() {
                     </Text>
                   </View>
                 )}
+                </View>
               </View>
-            </View>
 
             {!isInitialLoad && (
               <Text className="text-gray-500 text-sm font-inter mb-3">
@@ -160,7 +161,8 @@ export default function MaintenanceRequests() {
                 ))}
               </View>
             )}
-          </View>
+            </View>
+          </>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
         ListEmptyComponent={isInitialLoad ? null : <EmptyMaintenanceRequestsList />}

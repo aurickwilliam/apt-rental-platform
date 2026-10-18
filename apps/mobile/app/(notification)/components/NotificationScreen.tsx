@@ -9,6 +9,7 @@ import DropdownButton from 'components/buttons/DropdownButton';
 import NotificationList from '@/app/(notification)/components/NotificationList';
 import { useNotifications, useNotificationActions } from '@/hooks/notifications';
 import { useCurrentUser } from '@/hooks/auth';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 import type { NotificationFilter } from '@/app/(notification)/components/NotificationList';
 
@@ -22,6 +23,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
   const currentUserId = currentUserQuery.data?.id ?? null;
 
   const { unreadCount, refetch, loading } = useNotifications();
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
   const { markAllAsRead } = useNotificationActions(currentUserId);
 
   return (
@@ -31,8 +33,8 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
       header={
         <StandardHeader title={title}/>
       }
-      refreshing={false}
-      onRefresh={refetch}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
     >
       {loading ? (
         <View className="flex-row items-center justify-between gap-3">

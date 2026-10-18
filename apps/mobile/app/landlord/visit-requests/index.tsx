@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react-native';
@@ -12,15 +12,19 @@ import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestCalendar from "./components/VisitRequestCalendar";
 import EmptyApproved from "./components/EmptyApproved";
 import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "@/components/display/PullToRefresh";
 
 import { formatDate, formatFullName } from "@repo/utils";
 
-import { useColors } from "@/hooks/useTheme";
 import {
   useLandlordVisitRequests,
   type LandlordVisitRequest
 } from "@/hooks/visitRequests";
 import { useLandlordActionBadges } from "@/hooks/apartments";
+import { useColors } from "@/hooks/useTheme";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
@@ -70,6 +74,7 @@ function PastToggle({
   onToggle: () => void;
 }) {
   const { colors } = useColors();
+
   return (
     <Pressable
       onPress={onToggle}
@@ -96,7 +101,6 @@ function PastToggle({
 
 export default function VisitRequests() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -217,26 +221,23 @@ export default function VisitRequests() {
           flexGrow: filteredApproved.length === 0 ? 1 : 0,
         }}
         refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
+            <PullToRefreshControl onRefresh={handleRefresh} />
           }
         ListHeaderComponent={
-          <View className="gap-5">
-            <Card className="shadow-none border border-border p-3 rounded-3xl">
-              <Card.Body>
-                <VisitRequestCalendar
-                  markedDates={markedDates}
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                  pendingCount={pendingCount}
-                  onPendingPress={handlePendingPress}
-                />
-              </Card.Body>
-            </Card>
+          <>
+            <PullToRefreshIndicator refreshing={isRefreshing} />
+            <View className="gap-5">
+              <Card className="shadow-none border border-border p-3 rounded-3xl">
+                <Card.Body>
+                  <VisitRequestCalendar
+                    markedDates={markedDates}
+                    selectedDate={selectedDate}
+                    onSelectDate={setSelectedDate}
+                    pendingCount={pendingCount}
+                    onPendingPress={handlePendingPress}
+                  />
+                </Card.Body>
+              </Card>
 
             <View className="gap-3 mb-3">
               <View className="flex-row items-center justify-between">
@@ -267,7 +268,8 @@ export default function VisitRequests() {
                 </View>
               )}
             </View>
-          </View>
+            </View>
+          </>
         }
         ItemSeparatorComponent={() => null}
         ListEmptyComponent={loading ? null : <EmptyApproved />}

@@ -1,7 +1,11 @@
-import { View, FlatList, RefreshControl } from "react-native";
-import { Button, Spinner } from "heroui-native";
+import { View, FlatList } from "react-native";
+import { Button } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
 import EmptyState from "components/display/EmptyState";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "components/display/PullToRefresh";
 import { useColors } from "hooks/useTheme";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
 import SearchSection, { SearchSectionSkeleton } from "./SearchSection";
@@ -104,22 +108,10 @@ export default function SearchSectionsList({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       refreshControl={
-        <RefreshControl
-          // Native indicator is fully suppressed — the HeroUI Spinner in
-          // ListHeaderComponent below is the only visible loading indicator.
-          refreshing={false}
-          onRefresh={onRefresh}
-          colors={['transparent']}
-          tintColor="transparent"
-          progressBackgroundColor="transparent"
-        />
+        <PullToRefreshControl onRefresh={onRefresh} />
       }
       ListHeaderComponent={
-        isFetching && !isLoading ? (
-          <View className="items-center py-4 justify-center">
-            <Spinner size="lg" color={colors.primary} accessibilityLabel="Refreshing" />
-          </View>
-        ) : null
+        <PullToRefreshIndicator refreshing={isFetching && !isLoading} />
       }
     />
   );
