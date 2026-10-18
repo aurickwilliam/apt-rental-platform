@@ -16,9 +16,14 @@ export interface PropertyPerformance extends FinanceMonth {
   id: string;
   name: string;
 }
+export interface FinanceIncomeMonth {
+  month: string;
+  collected: number;
+}
 export interface FinanceData {
   properties: FinanceProperty[];
   months: FinanceMonth[];
+  incomeMonths?: FinanceIncomeMonth[];
   comparison: { collected: number; operating: number; reviewed: boolean };
   categories: {
     category: FinanceCategory;
@@ -88,7 +93,23 @@ export async function fetchFinances(scope: FinanceScope): Promise<FinanceData> {
   ) {
     throw new Error("The finance report could not be read.");
   }
-  return data as unknown as FinanceData;
+  // RPC JSON uses snake_case. A type assertion alone does not rename its keys.
+  const report = data as unknown as FinanceData;
+  if (data.income_months === undefined) return report;
+  if (!Array.isArray(data.income_months)) {
+    throw new Error("The finance month summary could not be read.");
+  }
+  const incomeMonths = data.income_months.map((row): FinanceIncomeMonth => {
+    if (
+      !row || typeof row !== "object" || Array.isArray(row) ||
+      typeof row.month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(row.month) ||
+      typeof row.collected !== "number" || !Number.isFinite(row.collected)
+    ) {
+      throw new Error("The finance month summary could not be read.");
+    }
+    return { month: row.month, collected: row.collected };
+  });
+  return { ...report, incomeMonths };
 }
 
 export async function fetchExpensePage(

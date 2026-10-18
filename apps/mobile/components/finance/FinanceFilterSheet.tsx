@@ -12,11 +12,12 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react-native";
 import { useColors } from "@/hooks/useTheme";
-import { BottomSheet, Button } from "heroui-native";
+import { BottomSheet, Button, SkeletonGroup } from "heroui-native";
 import { financeMonthLabel, shiftFinanceMonth } from "@repo/utils";
 import type {
   FinanceProperty,
   FinanceScope,
+  FinanceIncomeMonth,
 } from "@/service/finance/financeService";
 import { FinanceTabs } from "./FinanceControls";
 import PropertySearch from "./PropertySearch";
@@ -32,6 +33,10 @@ interface FinanceFilterSheetProps {
   value: FinanceScope;
   currentMonth: string;
   properties: FinanceProperty[];
+  incomeMonths?: FinanceIncomeMonth[];
+  incomeMonthsLoading: boolean;
+  incomeMonthsError: boolean;
+  onRetryIncomeMonths: () => void;
   onChange: (value: FinanceScope) => void;
   onApply: () => void;
   onClose: () => void;
@@ -42,6 +47,10 @@ export default function FinanceFilterSheet({
   value,
   currentMonth,
   properties,
+  incomeMonths,
+  incomeMonthsLoading,
+  incomeMonthsError,
+  onRetryIncomeMonths,
   onChange,
   onApply,
   onClose,
@@ -76,6 +85,10 @@ export default function FinanceFilterSheet({
   const propertyName =
     properties.find((property) => property.id === value.apartmentId)?.name ??
     "All properties";
+  const collectionsByMonth = new Map(
+    (incomeMonthsError ? [] : incomeMonths ?? []).map((item) => [item.month, item.collected]),
+  );
+  const indicatorsPending = incomeMonthsLoading && !incomeMonths;
   const close = useCallback(() => {
     Keyboard.dismiss();
     onClose();
@@ -213,6 +226,22 @@ export default function FinanceFilterSheet({
               </>
             ) : (
               <>
+                <View className="flex-row items-center gap-2 px-1">
+                  <View className="h-2 w-2 rounded-full bg-accent" />
+                  <Text className="font-inter text-xs text-muted">
+                    Rent collected
+                  </Text>
+                </View>
+                {incomeMonthsError ? (
+                  <View className="gap-1">
+                    <Text accessibilityRole="alert" className="font-inter text-xs text-muted">
+                      Could not load rent indicators. You can still choose a month.
+                    </Text>
+                    <Button variant="ghost" size="sm" className="self-start" onPress={onRetryIncomeMonths}>
+                      <Button.Label>Retry rent indicators</Button.Label>
+                    </Button>
+                  </View>
+                ) : null}
                 <View className="flex-row items-center justify-between">
                   <Button
                     isIconOnly
@@ -239,30 +268,59 @@ export default function FinanceFilterSheet({
                     <IconChevronRight size={28} color={colors.textPrimary} />
                   </Button>
                 </View>
-                <View className="flex-row flex-wrap">
+                <SkeletonGroup
+                  isLoading={indicatorsPending}
+                  className="flex-row flex-wrap"
+                >
                   {Array.from({ length: 12 }, (_, index) => {
                     const month = `${year}-${String(index + 1).padStart(2, "0")}`;
                     const selected = month === value.month;
+                    const available = month >= oldestMonth && month <= currentMonth;
+                    const collected = available ? collectionsByMonth.get(month) : undefined;
+                    const hasIncome = collected !== undefined && collected > 0;
+                    const rentStatus = !available
+                      ? "outside report range"
+                      : collected === undefined
+                        ? "rent data unavailable"
+                        : hasIncome ? "rent collected" : "no rent collected";
                     return (
                       <View key={month} className="w-1/3 p-1">
                         <Button
                           variant={selected ? "primary" : "tertiary"}
-                          isDisabled={
-                            month < oldestMonth || month > currentMonth
-                          }
-                          accessibilityLabel={`Month: ${financeMonthLabel(month)}`}
+                          isDisabled={!available}
+                          accessibilityLabel={`Month: ${financeMonthLabel(month)}, ${rentStatus}`}
                           accessibilityRole="radio"
                           accessibilityState={{ checked: selected }}
                           onPress={() => onChange({ ...value, month })}
                         >
-                          <Button.Label>
-                            {financeMonthLabel(month).slice(0, 3)}
-                          </Button.Label>
+                          <View className="flex-row items-center gap-1.5">
+                            {indicatorsPending && available ? (
+                              <SkeletonGroup.Item
+                                accessible={false}
+                                testID={`rent-indicator-loading-${month}`}
+                                className="h-2 w-2 shrink-0 rounded-full"
+                                style={
+                                  selected
+                                    ? { backgroundColor: "rgba(255,255,255,0.5)" }
+                                    : undefined
+                                }
+                              />
+                            ) : hasIncome ? (
+                              <View
+                                accessible={false}
+                                testID={`rent-collected-${month}`}
+                                className={`h-2 w-2 shrink-0 rounded-full ${selected ? "bg-accent-foreground" : "bg-accent"}`}
+                              />
+                            ) : null}
+                            <Button.Label>
+                              {financeMonthLabel(month).slice(0, 3)}
+                            </Button.Label>
+                          </View>
                         </Button>
                       </View>
                     );
                   })}
-                </View>
+                </SkeletonGroup>
                 <Text className="font-inter text-xs text-muted">
                   Reports are available for the last {REPORT_MONTH_COUNT}{" "}
                   months.

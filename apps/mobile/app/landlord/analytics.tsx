@@ -31,6 +31,7 @@ import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import {
   useFinanceExpenses,
+  useFinanceIncomeMonths,
   useLandlordFinances,
 } from "@/hooks/finance/useLandlordFinances";
 import {
@@ -100,6 +101,11 @@ function LandlordAnalytics() {
   const scope = { month, apartmentId };
   const filterValues = filterDraft ?? scope;
   const finance = useLandlordFinances(scope);
+  const incomeMonths = useFinanceIncomeMonths(
+    today.slice(0, 7),
+    filterValues.apartmentId,
+    filterDraft !== null,
+  );
   const expenses = useFinanceExpenses(
     finance.ownerId,
     scope,
@@ -675,6 +681,10 @@ function LandlordAnalytics() {
           value={filterValues}
           currentMonth={today.slice(0, 7)}
           properties={data.properties}
+          incomeMonths={incomeMonths.data}
+          incomeMonthsLoading={incomeMonths.isFetching}
+          incomeMonthsError={incomeMonths.isError}
+          onRetryIncomeMonths={() => { void incomeMonths.refetch(); }}
           onChange={setFilterDraft}
           onClose={() => setFilterDraft(null)}
           onApply={() => {

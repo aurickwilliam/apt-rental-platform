@@ -19,12 +19,12 @@ import {
   type ExpenseCursor,
   type ExpenseDraft,
   type FinanceScope,
+  type FinanceIncomeMonth,
 } from "@/service/finance/financeService";
-import type { FinanceBudget, FinanceCategory } from "@repo/utils";
+import { shiftFinanceMonth, type FinanceBudget, type FinanceCategory } from "@repo/utils";
 
-export function useLandlordFinances(scope: FinanceScope) {
+function useFinanceAccess() {
   const user = useCurrentUser();
-  const client = useQueryClient();
   const portal = usePortalStore((state) => state.portal);
   const authUserId = usePortalStore((state) => state.authUserId);
   const enabled =
@@ -33,6 +33,12 @@ export function useLandlordFinances(scope: FinanceScope) {
     portal === "landlord" &&
     authUserId === user.data?.user_id;
   const ownerId = enabled ? user.data!.id : null;
+  return { user, enabled, ownerId };
+}
+
+export function useLandlordFinances(scope: FinanceScope) {
+  const { user, enabled, ownerId } = useFinanceAccess();
+  const client = useQueryClient();
   const requireFinanceAccess = () => {
     if (!ownerId) throw new Error("Switch to your landlord portal to manage finances.");
     return ownerId;
@@ -54,7 +60,7 @@ export function useLandlordFinances(scope: FinanceScope) {
   const invalidate = async () => {
     // Writes can change two months, review flags and chart windows. Invalidate
     // this owner's finance family only, not another account or unrelated data.
-    const queries = ["landlord-finances", "landlord-expenses"].flatMap(
+    const queries = ["landlord-finances", "landlord-expenses", "landlord-finance-income-months"].flatMap(
       (family) =>
         client.getQueryCache().findAll({ queryKey: [family, ownerId] }),
     );
@@ -116,6 +122,35 @@ export function useLandlordFinances(scope: FinanceScope) {
     userError: user.error,
     userLoading: user.isLoading,
   };
+}
+
+/** Load the picker for its draft property, independently of the applied report. */
+export function useFinanceIncomeMonths(
+  currentMonth: string,
+  apartmentId: string | null,
+  isOpen: boolean,
+) {
+  const { enabled, ownerId } = useFinanceAccess();
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: ["landlord-finance-income-months", ownerId, currentMonth, apartmentId],
+    enabled: enabled && isOpen,
+    queryFn: async (): Promise<FinanceIncomeMonth[]> => {
+      if (!ownerId) throw new Error("Switch to your landlord portal to view finances.");
+      const loadReport = (month: string) => client.fetchQuery({
+        queryKey: ["landlord-finances", ownerId, month, apartmentId],
+        queryFn: () => fetchFinances({ month, apartmentId }),
+      });
+      const latest = await loadReport(currentMonth);
+      if (latest.incomeMonths) return latest.incomeMonths;
+      // Older deployments return a 12-month chart only. Reuse two bounded,
+      // cached reports to cover the picker without requiring a DB deployment.
+      const earlier = await loadReport(shiftFinanceMonth(currentMonth, -12));
+      return [...earlier.months, ...latest.months].map(({ month, collected }) => ({
+        month, collected,
+      }));
+    },
+  });
 }
 
 export function useFinanceExpenses(

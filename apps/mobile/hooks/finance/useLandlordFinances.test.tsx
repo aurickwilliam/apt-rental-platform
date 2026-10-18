@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
-import { useLandlordFinances } from "./useLandlordFinances";
+import { useFinanceIncomeMonths, useLandlordFinances } from "./useLandlordFinances";
 import { usePortalStore } from "@/stores/usePortalStore";
 
 const mockFetchFinances = jest.fn();
@@ -29,6 +29,17 @@ function setup() {
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
   return renderHook(() => useLandlordFinances({ month: "2026-10", apartmentId: null }), { wrapper });
+}
+
+function setupIncomeMonths(apartmentId: string | null = null, isOpen = true) {
+  const client = new QueryClient({ defaultOptions: {
+    queries: { retry: false, gcTime: 0 },
+    mutations: { gcTime: 0 },
+  } });
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  return renderHook(() => useFinanceIncomeMonths("2026-10", apartmentId, isOpen), { wrapper });
 }
 
 describe("landlord finance portal access", () => {
@@ -86,5 +97,65 @@ describe("landlord finance portal access", () => {
     });
     expect(result.current.ownerId).toBeNull();
     expect(mockSaveExpense).not.toHaveBeenCalled();
+  });
+});
+
+describe("finance month picker indicators", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRoles = ["tenant", "admin", "landlord"];
+    usePortalStore.setState({ authUserId: "account", portal: "landlord", loading: false });
+  });
+  afterEach(() => act(() => usePortalStore.getState().reset()));
+
+  it("uses the RPC month summary when the deployment provides one", async () => {
+    mockFetchFinances.mockResolvedValue({
+      properties: [],
+      months: [],
+      incomeMonths: [{ month: "2026-10", collected: 12000 }],
+    });
+    const { result } = setupIncomeMonths();
+    await waitFor(() =>
+      expect(result.current.data).toEqual([{ month: "2026-10", collected: 12000 }]),
+    );
+    expect(mockFetchFinances).toHaveBeenCalledTimes(1);
+  });
+
+  it("covers the picker from two cached reports on older deployments", async () => {
+    mockFetchFinances.mockImplementation((scope: { month: string }) =>
+      Promise.resolve({
+        properties: [],
+        months: [
+          {
+            month: scope.month,
+            collected: scope.month === "2026-10" ? 500 : 900,
+            operating: 0,
+            capital: 0,
+            reviewed: false,
+          },
+        ],
+      }),
+    );
+    const { result } = setupIncomeMonths("villa");
+    await waitFor(() => expect(result.current.data).toHaveLength(2));
+    expect(mockFetchFinances).toHaveBeenCalledWith({ month: "2026-10", apartmentId: "villa" });
+    expect(mockFetchFinances).toHaveBeenCalledWith({ month: "2025-10", apartmentId: "villa" });
+    expect(result.current.data).toEqual([
+      { month: "2025-10", collected: 900 },
+      { month: "2026-10", collected: 500 },
+    ]);
+  });
+
+  it("stays idle until the sheet opens for a landlord", async () => {
+    mockFetchFinances.mockResolvedValue({ properties: [], months: [] });
+    const closed = setupIncomeMonths(null, false);
+    await act(async () => {});
+    expect(mockFetchFinances).not.toHaveBeenCalled();
+    closed.unmount();
+    mockRoles = ["tenant"];
+    const withoutRole = setupIncomeMonths();
+    await act(async () => {});
+    expect(withoutRole.result.current.data).toBeUndefined();
+    expect(mockFetchFinances).not.toHaveBeenCalled();
   });
 });

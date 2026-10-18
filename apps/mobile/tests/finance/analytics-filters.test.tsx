@@ -4,6 +4,7 @@ import { fireEvent, render, waitFor, within } from "@testing-library/react-nativ
 import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
 import type { FinanceData, FinanceScope } from "@/service/finance/financeService";
+import { shiftFinanceMonth } from "@repo/utils";
 
 const mockReview = jest.fn(() => Promise.resolve());
 const mockRetry = jest.fn();
@@ -30,6 +31,7 @@ const mockFinance = {
           reviewed: false,
         },
       ],
+      incomeMonths: [] as NonNullable<FinanceData["incomeMonths"]>,
       budgets: [] as FinanceData["budgets"],
       collections: { overdue: 0 },
       performance: [],
@@ -41,6 +43,18 @@ type MockFinance = Omit<typeof mockFinance, "report"> & {
   report: Omit<typeof mockFinance.report, "data"> & { data?: typeof mockFinance.report.data };
 };
 const mockUseLandlordFinances = jest.fn((_scope: FinanceScope): MockFinance => mockFinance);
+const mockIncomeRetry = jest.fn();
+const mockIncomeResult = {
+  data: Array.from({ length: 24 }, (_, index) => ({
+    month: shiftFinanceMonth("2026-10", -index), collected: 0,
+  })) as FinanceData["incomeMonths"],
+  isFetching: false,
+  isError: false,
+  refetch: mockIncomeRetry,
+};
+const mockUseFinanceIncomeMonths = jest.fn(
+  (_month: string, _apartmentId: string | null, _isOpen: boolean) => mockIncomeResult,
+);
 const mockSheetOpenStates = jest.fn();
 const mockSheetContentProps = jest.fn();
 const mockButtonProps = jest.fn();
@@ -73,6 +87,8 @@ jest.mock("@/hooks/useTheme", () => ({
 jest.mock("@/hooks/finance/useLandlordFinances", () => ({
   useLandlordFinances: (scope: FinanceScope) => mockUseLandlordFinances(scope),
   useFinanceExpenses: () => ({}),
+  useFinanceIncomeMonths: (month: string, apartmentId: string | null, isOpen: boolean) =>
+    mockUseFinanceIncomeMonths(month, apartmentId, isOpen),
 }));
 jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Failed",
@@ -206,9 +222,16 @@ jest.mock("heroui-native", () => {
   function DialogRoot({ children, isOpen }: PropsWithChildren<{ isOpen: boolean }>) {
     return isOpen ? <View>{children}</View> : null;
   }
+  function SkeletonGroupRoot({ children }: PropsWithChildren<{ isLoading?: boolean }>) {
+    return <View>{children}</View>;
+  }
+  function SkeletonGroupItem({ testID }: { testID?: string }) {
+    return testID ? <View testID={testID} /> : null;
+  }
   return {
     Button,
     LinkButton,
+    SkeletonGroup: Object.assign(SkeletonGroupRoot, { Item: SkeletonGroupItem }),
     SearchField: Object.assign(SearchRoot, {
       Group: Container,
       SearchIcon: () => <View testID="property-search-icon" />,
@@ -322,6 +345,7 @@ describe("analytics header filters", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLandlordFinances.mockImplementation(() => mockFinance);
+    mockUseFinanceIncomeMonths.mockImplementation(() => mockIncomeResult);
     delete mockRouteParams.month;
     delete mockRouteParams.apartmentId;
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
@@ -518,7 +542,7 @@ describe("analytics header filters", () => {
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     fireEvent.press(screen.getByLabelText("Month tab"));
-    fireEvent.press(screen.getByLabelText("Month: September 2026"));
+    fireEvent.press(screen.getByLabelText(/^Month: September 2026,/));
     expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({
       month: "2026-10",
       apartmentId: null,
@@ -642,20 +666,74 @@ describe("analytics header filters", () => {
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     fireEvent.press(screen.getByLabelText("Month tab"));
     expect(screen.getByLabelText("Next year")).toBeDisabled();
-    expect(screen.getByLabelText("Month: November 2026")).toBeDisabled();
+    expect(screen.getByLabelText(/^Month: November 2026,/)).toBeDisabled();
     fireEvent.press(screen.getByLabelText("Previous year"));
     fireEvent.press(screen.getByLabelText("Previous year"));
     expect(screen.getByLabelText("Previous year")).toBeDisabled();
-    expect(screen.getByLabelText("Month: October 2024")).toBeDisabled();
-    expect(screen.getByLabelText("Month: November 2024")).not.toBeDisabled();
-    fireEvent.press(screen.getByLabelText("Month: November 2024"));
+    expect(screen.getByLabelText(/^Month: October 2024,/)).toBeDisabled();
+    expect(screen.getByLabelText(/^Month: November 2024,/)).not.toBeDisabled();
+    fireEvent.press(screen.getByLabelText(/^Month: November 2024,/));
     fireEvent.press(screen.getByLabelText("Property tab"));
     expect(screen.getByLabelText("Property: Villa").props.accessibilityState.checked).toBe(true);
     expect(screen.getByText("Villa · November 2024")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Month tab"));
-    expect(screen.getByLabelText("Month: November 2024").props.accessibilityState.checked).toBe(true);
+    expect(screen.getByLabelText(/^Month: November 2024,/).props.accessibilityState.checked).toBe(true);
     fireEvent.press(screen.getByText("Apply filters"));
     expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({ month: "2024-11", apartmentId: "villa" });
+  });
+
+  test("the month grid marks only months with recorded rent collections", () => {
+    mockUseFinanceIncomeMonths.mockReturnValue({
+      ...mockIncomeResult,
+      data: [
+        { month: "2026-10", collected: 12000 },
+        { month: "2026-09", collected: 0 },
+      ],
+    });
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByText("Month"));
+    expect(screen.getByText("Rent collected")).toBeTruthy();
+    expect(
+      screen.getByLabelText("Month: October 2026, rent collected"),
+    ).toBeTruthy();
+    expect(
+      screen.getByLabelText("Month: September 2026, no rent collected"),
+    ).toBeTruthy();
+    expect(screen.getByTestId("rent-collected-2026-10").props.className).toContain("bg-accent-foreground");
+    expect(screen.queryByTestId("rent-collected-2026-09")).toBeNull();
+    expect(screen.queryByText(/No dot means/)).toBeNull();
+  });
+
+  test("month dots use the draft property before applying filters", () => {
+    mockUseFinanceIncomeMonths.mockImplementation((_month, property) => ({
+      ...mockIncomeResult,
+      data: [{ month: "2026-09", collected: property === "villa" ? 1000 : 0 }],
+    }));
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Property: Villa"));
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(mockUseFinanceIncomeMonths).toHaveBeenLastCalledWith("2026-10", "villa", true);
+    expect(screen.getByTestId("rent-collected-2026-09").props.className).toContain("bg-accent");
+    expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({ month: "2026-10", apartmentId: null });
+  });
+
+  test("missing and failed month data are not presented as zero rent", () => {
+    mockUseFinanceIncomeMonths.mockReturnValue({ ...mockIncomeResult, data: undefined, isFetching: true });
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText(/^Filters,/));
+    fireEvent.press(screen.getByLabelText("Month tab"));
+    expect(screen.getByTestId("rent-indicator-loading-2026-09")).toBeTruthy();
+    expect(screen.queryByTestId("rent-collected-2026-09")).toBeNull();
+    expect(screen.queryByTestId("rent-indicator-loading-2026-11")).toBeNull();
+    expect(screen.getByLabelText("Month: September 2026, rent data unavailable")).toBeTruthy();
+    mockUseFinanceIncomeMonths.mockReturnValue({ ...mockIncomeResult, data: undefined, isError: true });
+    screen.rerender(<AnalyticsScreen />);
+    expect(screen.queryByTestId("rent-indicator-loading-2026-09")).toBeNull();
+    fireEvent.press(screen.getByText("Retry rent indicators"));
+    expect(mockIncomeRetry).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Month: September 2026, rent data unavailable")).not.toBeDisabled();
   });
 
   test("Reset changes only the draft until Apply", () => {
@@ -663,7 +741,7 @@ describe("analytics header filters", () => {
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     fireEvent.press(screen.getByLabelText("Month tab"));
-    fireEvent.press(screen.getByLabelText("Month: September 2026"));
+    fireEvent.press(screen.getByLabelText(/^Month: September 2026,/));
     fireEvent.press(screen.getByText("Apply filters"));
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByText("Reset"));

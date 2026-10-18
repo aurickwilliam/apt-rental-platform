@@ -10,7 +10,9 @@ create temp table fixture as select gen_random_uuid() owner,gen_random_uuid() ow
   gen_random_uuid() foreign_apt,gen_random_uuid() tenancy,gen_random_uuid() tenancy2,
   gen_random_uuid() expense,gen_random_uuid() second_expense,
   date_trunc('month',current_date)::date as month,
-  (date_trunc('month',current_date)-interval '1 month')::date as previous;
+  (date_trunc('month',current_date)-interval '1 month')::date as previous,
+  (date_trunc('month',(current_timestamp at time zone 'Asia/Manila')::date)-interval '23 months')::date as oldest_pick,
+  (date_trunc('month',(current_timestamp at time zone 'Asia/Manila')::date)-interval '24 months')::date as before_oldest;
 grant select on fixture to authenticated,anon;
 insert into public.users(id,user_id,roles,first_name) select owner,owner_auth,'{tenant,admin,landlord}'::text[],'Owner' from fixture
   union all select other,other_auth,'{landlord}','Other' from fixture
@@ -27,7 +29,9 @@ insert into public.payment(apartment_id,tenancy_id,date,amount,status,period_sta
   select apt,tenancy,month,10000,'pending',month from fixture union all
   select apt,tenancy,month,10000,'rejected',month from fixture union all
   select apt,null,month,3000,'paid',null from fixture union all
-  select apt,tenancy,previous,10000,'paid',previous from fixture;
+  select apt,tenancy,previous,10000,'paid',previous from fixture union all
+  select apt,tenancy,oldest_pick,2000,'paid',oldest_pick from fixture union all
+  select apt,tenancy,before_oldest,700,'paid',before_oldest from fixture;
 
 set local role anon;
 do $$ begin
@@ -48,6 +52,11 @@ select pg_temp.assert((select (public.get_landlord_finances(month)->'months'->-1
 select pg_temp.assert((select sum(outstanding)=11000 from fixture f cross join lateral public.landlord_rent_ledger(f.month) l),'partial receipts reduce rent due and failed attempts do not duplicate it');
 select pg_temp.assert((select count(*)=1 from fixture f cross join lateral public.landlord_rent_ledger(f.month) l where l.id=f.tenancy2 and extract(day from due_date)=extract(day from (f.month+interval '1 month - 1 day'))),'due day clamped at month end');
 select pg_temp.assert((select (public.get_landlord_finances(month)->'comparison'->>'collected')::numeric=10000 from fixture),'comparison uses previous same-elapsed-day cash');
+select pg_temp.assert((select jsonb_array_length(public.get_landlord_finances(month)->'income_months')=24 from fixture),'picker summary spans the selectable 24-month window');
+select pg_temp.assert((select public.get_landlord_finances(month)->'income_months'->0->>'month'=to_char(oldest_pick,'YYYY-MM') from fixture),'picker summary starts 23 months back');
+select pg_temp.assert((select (public.get_landlord_finances(month)->'income_months'->0->>'collected')::numeric=2000 from fixture),'picker summary reports older collected rent');
+select pg_temp.assert((select (public.get_landlord_finances(month,apt2)->'income_months'->0->>'collected')::numeric=0 from fixture),'picker summary follows the selected property');
+select pg_temp.assert((select (public.get_landlord_finances(oldest_pick,apt)->'comparison'->>'collected')::numeric=700 from fixture),'oldest selectable month still compares against its previous month');
 insert into public.landlord_expenses(id,landlord_id,apartment_id,category,treatment,amount,spent_on,description)
   select expense,owner,apt,'maintenance','operating',1000,month,'Repair' from fixture;
 insert into public.landlord_expenses(id,landlord_id,apartment_id,category,treatment,amount,spent_on,description)

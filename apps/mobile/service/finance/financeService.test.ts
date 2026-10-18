@@ -43,4 +43,34 @@ describe("finance service boundaries", () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
     await expect(fetchFinances({ month: "2026-10", apartmentId: null })).rejects.toThrow("could not be read");
   });
+  test("the month summary is mapped from the RPC's snake_case key", async () => {
+    mockRpc.mockResolvedValue({
+      data: {
+        months: [],
+        income_months: [
+          { month: "2026-09", collected: 4500 },
+          { month: "2026-10", collected: 0 },
+        ],
+      },
+      error: null,
+    });
+    await expect(fetchFinances({ month: "2026-10", apartmentId: null })).resolves.toMatchObject({
+      incomeMonths: [
+        { month: "2026-09", collected: 4500 },
+        { month: "2026-10", collected: 0 },
+      ],
+    });
+  });
+  test("reports from deployments without the month summary still load", async () => {
+    mockRpc.mockResolvedValue({ data: { months: [] }, error: null });
+    const report = await fetchFinances({ month: "2026-10", apartmentId: null });
+    expect(report.incomeMonths).toBeUndefined();
+  });
+  test("malformed month summaries are rejected instead of shown as zero rent", async () => {
+    mockRpc.mockResolvedValue({
+      data: { months: [], income_months: [{ month: "2026-13", collected: 10 }] },
+      error: null,
+    });
+    await expect(fetchFinances({ month: "2026-10", apartmentId: null })).rejects.toThrow("month summary");
+  });
 });
