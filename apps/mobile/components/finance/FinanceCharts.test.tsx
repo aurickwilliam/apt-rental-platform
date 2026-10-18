@@ -226,7 +226,7 @@ describe("interactive finance charts", () => {
     expect(mockBarChart.mock.lastCall?.[0].mostNegativeValue).toBe(-5000);
     expect(mockBarChart.mock.lastCall?.[0].showLine).toBe(true);
   });
-  test("expense categories switch to share and filter transactions", () => {
+  test("expense categories show the peso amount and its share without a mode switch", () => {
     const onSelect = jest.fn();
     const screen = render(
       <ExpenseCategoryChart
@@ -234,17 +234,49 @@ describe("interactive finance charts", () => {
           { category: "maintenance", amount: 3000, previous_amount: 1000 },
           { category: "insurance", amount: 1000, previous_amount: 0 },
         ]}
-        selected={null}
         onSelect={onSelect}
       />,
     );
-    fireEvent.press(screen.getByText("% of expenses"));
+    expect(screen.getByText("₱ 3,000")).toBeTruthy();
+    expect(screen.getByText("₱ 1,000")).toBeTruthy();
     expect(screen.getByText("75%")).toBeTruthy();
+    expect(screen.getByText("25%")).toBeTruthy();
+    expect(
+      screen.getByText("Previous comparable period: ₱ 1,000"),
+    ).toBeTruthy();
+    expect(screen.getByText("Previous comparable period: ₱ 0")).toBeTruthy();
+    expect(screen.queryByText("Amount")).toBeNull();
+    expect(screen.queryByText("% of expenses")).toBeNull();
+    expect(screen.queryByText("Show all categories")).toBeNull();
     fireEvent.press(
       screen.getByLabelText(/Maintenance & repairs,.*75 percent/),
     );
     expect(onSelect).toHaveBeenCalledWith("maintenance");
   });
+
+  test("expense categories show an empty state when nothing is recorded", () => {
+    const screen = render(
+      <ExpenseCategoryChart
+        categories={[]}
+        onSelect={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("No expenses recorded")).toBeTruthy();
+    expect(
+      screen.getByText("Nothing recorded this month or the previous month."),
+    ).toBeTruthy();
+
+    screen.rerender(
+      <ExpenseCategoryChart
+        categories={[
+          { category: "maintenance", amount: 0, previous_amount: 0 },
+        ]}
+        onSelect={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("No expenses recorded")).toBeTruthy();
+  });
+
   test("property net ranking never treats missing expenses as zero", () => {
     const onSelect = jest.fn();
     const screen = render(

@@ -28,11 +28,13 @@ export function FinanceHeading({
   description,
   action,
   titleClassName,
+  descriptionClassName,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
   titleClassName?: string;
+  descriptionClassName?: string;
 }) {
   return (
     <View className="flex-row items-start justify-between gap-3">
@@ -44,7 +46,9 @@ export function FinanceHeading({
           {title}
         </Text>
         {description && (
-          <Text className="font-inter text-xs text-muted leading-5">
+          <Text
+            className={`font-inter text-xs text-muted leading-5${descriptionClassName ? ` ${descriptionClassName}` : ""}`}
+          >
             {description}
           </Text>
         )}

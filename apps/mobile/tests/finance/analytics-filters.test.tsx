@@ -4,7 +4,7 @@ import { fireEvent, render, waitFor, within } from "@testing-library/react-nativ
 import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
 import type { FinanceData, FinanceScope } from "@/service/finance/financeService";
-import { shiftFinanceMonth } from "@repo/utils";
+import { shiftFinanceMonth, type FinanceCategory } from "@repo/utils";
 
 const mockReview = jest.fn(() => Promise.resolve());
 const mockRetry = jest.fn();
@@ -58,12 +58,14 @@ const mockUseFinanceIncomeMonths = jest.fn(
 const mockSheetOpenStates = jest.fn();
 const mockSheetContentProps = jest.fn();
 const mockButtonProps = jest.fn();
-const mockExpenseSheet = jest.fn((_props: unknown) => null);
 const mockRouterPush = jest.fn();
 const mockRouteParams: { month?: string; apartmentId?: string } = {};
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
 const mockPropertyChart = jest.fn((_props: { onViewAll: () => void }) => null);
+const mockCategoryChart = jest.fn(
+  (_props: { onSelect: (category: FinanceCategory) => void }) => null,
+);
 
 jest.mock("@gorhom/bottom-sheet", () => {
   const { View, ScrollView } = jest.requireActual("react-native");
@@ -86,7 +88,6 @@ jest.mock("@/hooks/useTheme", () => ({
 }));
 jest.mock("@/hooks/finance/useLandlordFinances", () => ({
   useLandlordFinances: (scope: FinanceScope) => mockUseLandlordFinances(scope),
-  useFinanceExpenses: () => ({}),
   useFinanceIncomeMonths: (month: string, apartmentId: string | null, isOpen: boolean) =>
     mockUseFinanceIncomeMonths(month, apartmentId, isOpen),
 }));
@@ -203,8 +204,11 @@ jest.mock("heroui-native", () => {
       </Pressable>
     );
   }
-  Button.Label = function ButtonLabel({ children }: TextProps) {
-    return <Text>{children}</Text>;
+  Button.Label = function ButtonLabel({
+    children,
+    className,
+  }: TextProps & { className?: string }) {
+    return <Text className={className}>{children}</Text>;
   };
   const LinkButton = Object.assign(Button, { Label: Button.Label });
   const SearchContext = React.createContext({ value: "", onChange: (_value: string) => {} });
@@ -261,8 +265,30 @@ jest.mock("heroui-native", () => {
 jest.mock("@/components/finance/FinanceControls", () => {
   const { Pressable, Text, View } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({ children }: PropsWithChildren) => <View>{children}</View>,
-    FinanceHeading: ({ title }: { title: string }) => <Text>{title}</Text>,
+    FinanceCard: ({
+      children,
+      className,
+    }: PropsWithChildren<{ className?: string }>) => (
+      <View className={className}>{children}</View>
+    ),
+    FinanceHeading: ({
+      title,
+      titleClassName,
+      description,
+      descriptionClassName,
+    }: {
+      title: string;
+      titleClassName?: string;
+      description?: string;
+      descriptionClassName?: string;
+    }) => (
+      <>
+        <Text className={titleClassName}>{title}</Text>
+        {description && (
+          <Text className={descriptionClassName}>{description}</Text>
+        )}
+      </>
+    ),
     FinanceError: () => null,
     FinanceTabs: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
       {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
@@ -289,8 +315,10 @@ jest.mock(
 jest.mock(
   "@/components/finance/ExpenseCategoryChart",
   () =>
-    function Chart() {
-      return null;
+    function Chart(props: { onSelect: (category: FinanceCategory) => void }) {
+      mockCategoryChart(props);
+      const { Text } = jest.requireActual("react-native");
+      return <Text>Where expenses go</Text>;
     },
 );
 jest.mock(
@@ -324,10 +352,6 @@ jest.mock(
     },
 );
 jest.mock("@/components/finance/FinanceEntrySheet", () => ({
-  ExpenseEntrySheet: (props: { isOpen: boolean; initial?: unknown }) => {
-    mockExpenseSheet(props);
-    return null;
-  },
   BudgetEntrySheet: (props: { isOpen: boolean; initial?: unknown }) => {
     mockBudgetSheet(props);
     return null;
@@ -418,6 +442,29 @@ describe("analytics header filters", () => {
     expect(mockRouterPush).toHaveBeenCalledWith({
       pathname: "/landlord/property-performance",
       params: { month: "2026-10" },
+    });
+  });
+
+  test("a category opens its transactions page for the applied month", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    const chart = mockCategoryChart.mock.calls.at(-1)![0];
+    chart.onSelect("maintenance");
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      pathname: "/landlord/category-expenses",
+      params: { month: "2026-10", category: "maintenance" },
+    });
+  });
+
+  test("the category page carries the filtered property", () => {
+    Object.assign(mockRouteParams, { month: "2026-09", apartmentId: "house" });
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    const chart = mockCategoryChart.mock.calls.at(-1)![0];
+    chart.onSelect("insurance");
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      pathname: "/landlord/category-expenses",
+      params: { month: "2026-09", apartmentId: "house", category: "insurance" },
     });
   });
 
@@ -770,12 +817,9 @@ describe("analytics header filters", () => {
 
   // HeroUI only snaps a sheet open on a closed → open transition, so the page keeps
   // every sheet mounted and drives it with `isOpen`.
-  test("the Add expense FAB opens its own page while edit and budget sheets stay mounted closed", () => {
+  test("the Add expense FAB opens its own page while the budget sheet stays mounted closed", () => {
     const screen = render(<AnalyticsScreen />);
     expect(mockLedgerSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
-    expect(mockExpenseSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
@@ -790,24 +834,69 @@ describe("analytics header filters", () => {
     expect(floatingContainer?.props.style).toEqual({ bottom: 50 });
     expect(floatingContainer?.props.pointerEvents).toBe("box-none");
     fireEvent.press(addExpenseFab);
-    expect(mockExpenseSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false, initial: undefined }),
-    );
     expect(mockRouterPush).toHaveBeenCalledWith({ pathname: "/landlord/add-expense", params: { month: "2026-10" } });
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
   });
 
-  test("Mark expenses reviewed is a primary button that opens a confirmation dialog", () => {
+  test("the review card sits above the category chart", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    expect(
+      screen
+        .getAllByText(/^(Review this month|Where expenses go|Expense transactions)$/)
+        .map((node) => node.props.children),
+    ).toEqual(["Review this month", "Where expenses go"]);
+  });
+
+  test("the Expenses tab no longer lists transactions", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Expenses tab"));
+    expect(screen.queryByText("Expense transactions")).toBeNull();
+    expect(
+      screen.queryByText("Tap a transaction to edit or delete it."),
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        "No expenses recorded. Add an expense, or review this month if you had none.",
+      ),
+    ).toBeNull();
+    expect(screen.getByText("Planning guidelines")).toBeTruthy();
+  });
+
+  test("the review card is a blue card with a white outline action", () => {
     const screen = render(<AnalyticsScreen />);
     fireEvent.press(screen.getByLabelText("Expenses tab"));
 
+    const reviewCard = screen
+      .UNSAFE_getAllByType(View)
+      .find((node) =>
+        (node.props.className as string | undefined)
+          ?.split(" ")
+          .includes("bg-primary"),
+      );
+    expect(reviewCard).toBeTruthy();
+    expect(screen.getByText("Review this month").props.className).toContain(
+      "text-white",
+    );
+    expect(
+      screen.getByText(
+        "Check every expense for the selected properties before confirming. Zero spending is valid only after review.",
+      ).props.className,
+    ).toContain("text-white");
+
     const button = mockButtonProps.mock.calls
-      .map(([props]) => props as { children?: PropsWithChildren; variant?: string })
+      .map(([props]) => props as { children?: PropsWithChildren; variant?: string; className?: string })
       .find((props) => (props.children as { props?: { children?: string } })?.props?.children === "Mark expenses reviewed");
     expect(button).toBeDefined();
-    expect(button?.variant).toBeUndefined();
+    expect(button?.variant).toBe("outline");
+    expect(button?.className?.split(" ")).toEqual(
+      expect.arrayContaining(["bg-white", "border-white"]),
+    );
+    expect(screen.getByText("Mark expenses reviewed").props.className).toContain(
+      "text-primary",
+    );
 
     expect(screen.queryByText("Confirm expenses are complete")).toBeNull();
     fireEvent.press(screen.getByText("Mark expenses reviewed"));

@@ -100,13 +100,12 @@ export default function FinanceSkeleton({ tab }: FinanceSkeletonProps) {
           </FinanceCard>
         </>}
         {tab === "expenses" && <>
-          <ChartPlaceholder />
           <FinanceCard>
             <SkeletonGroup.Item className="h-6 w-40 rounded-md" />
             <SkeletonGroup.Item className="h-4 w-full rounded-md" />
             <SkeletonGroup.Item className="h-10 w-full rounded-full" />
           </FinanceCard>
-          {[0, 1, 2].map((row) => <SkeletonGroup.Item key={row} className="h-24 w-full rounded-2xl" />)}
+          <ChartPlaceholder />
         </>}
         {tab === "budget" && <>
           {[0, 1, 2].map((row) => <FinanceCard key={row}>
