@@ -37,6 +37,16 @@ export function financeMonthLabel(month: string): string {
   });
 }
 
+/** Resolves a `YYYY-MM` route param to a month the finance report accepts. */
+export function financeMonthFromParam(value: unknown, currentMonth: string): string {
+  return typeof value === "string" &&
+    /^\d{4}-(0[1-9]|1[0-2])$/.test(value) &&
+    value <= currentMonth &&
+    value >= shiftFinanceMonth(currentMonth, -23)
+    ? value
+    : currentMonth;
+}
+
 /** Empty, scientific notation, negative, non-finite and >2 decimal values are rejected. */
 export function parseFinanceAmount(value: string, allowZero = false): number | null {
   if (!/^\d+(\.\d{1,2})?$/.test(value.trim())) return null;

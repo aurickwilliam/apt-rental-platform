@@ -8,7 +8,7 @@ interface FinanceGuidelinesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** How every Profit & planning figure is computed, kept out of the card body. */
+/** Explains Profit & planning figures and the limits of the planning tools. */
 export default function FinanceGuidelinesDialog({
   isOpen,
   onOpenChange,
@@ -35,14 +35,22 @@ export default function FinanceGuidelinesDialog({
       title: "Payment dates & comparison",
       body: `Payment dates use the recorded payment date. Current-month results are through ${today}; the comparison uses equivalent elapsed days, clamped to the previous month’s end.`,
     },
+    {
+      title: "Planning guidance",
+      body: "Budgets and reserve goals help you plan, but they do not move, hold or transfer money. They are not tax, accounting, legal or investment advice.",
+    },
+    {
+      title: "What the report includes",
+      body: "Collection expectations cover active leases and ended leases with a recorded end date. Removed listings are excluded. PayMongo transactions currently use test funds.",
+    },
   ];
 
   return (
     <AppDialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title="How these figures are calculated"
-      description="What counts toward each figure, and what does not."
+      title="Profit & planning guidelines"
+      description="How figures are calculated and how to use your plan."
       scrollable
       footer={
         <Button size="sm" onPress={() => onOpenChange(false)}>

@@ -1,7 +1,8 @@
 import fc from "fast-check";
 import {
-  financeAfterReserve, financeIncome, manilaToday, parseFinanceAmount, rentAgeBucket,
-  shiftFinanceMonth, suggestFinanceBudget, validateExpenseDate,
+  financeAfterReserve, financeIncome, financeMonthFromParam, manilaToday,
+  parseFinanceAmount, rentAgeBucket, shiftFinanceMonth, suggestFinanceBudget,
+  validateExpenseDate,
 } from "./landlordFinance";
 
 describe("landlord finance rules", () => {
@@ -9,6 +10,14 @@ describe("landlord finance rules", () => {
     expect(manilaToday(new Date("2026-10-16T16:30:00Z"))).toBe("2026-10-17");
     expect(shiftFinanceMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftFinanceMonth("2026-12", 1)).toBe("2027-01");
+  });
+  test("route months outside the report window fall back to the current month", () => {
+    expect(financeMonthFromParam("2026-09", "2026-10")).toBe("2026-09");
+    expect(financeMonthFromParam("2024-11", "2026-10")).toBe("2024-11");
+    expect(financeMonthFromParam("2024-10", "2026-10")).toBe("2026-10");
+    expect(financeMonthFromParam("2027-01", "2026-10")).toBe("2026-10");
+    expect(financeMonthFromParam("2026-13", "2026-10")).toBe("2026-10");
+    expect(financeMonthFromParam(undefined, "2026-10")).toBe("2026-10");
   });
   test.each(["", "NaN", "Infinity", "1e3", "-2", "1.234", "1,000", "9999999999", "0"])("rejects invalid expense amount %s", (value) => {
     expect(parseFinanceAmount(value)).toBeNull();

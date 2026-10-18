@@ -16,6 +16,7 @@ export default function LandlordLayout() {
       <Stack.Screen name="tenant-applications/[applicationId]" />
       <Stack.Screen name="analytics" />
       <Stack.Screen name="add-expense" />
+      <Stack.Screen name="property-performance" />
     </Stack>
   );
 }

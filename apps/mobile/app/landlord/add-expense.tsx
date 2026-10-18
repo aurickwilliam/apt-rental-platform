@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useToast } from "heroui-native";
 import { View } from "react-native";
-import { manilaToday, shiftFinanceMonth } from "@repo/utils";
+import { financeMonthFromParam, manilaToday } from "@repo/utils";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import { ExpenseEntryPage } from "@/components/finance/FinanceEntrySheet";
@@ -22,13 +22,7 @@ function AddExpense() {
   const router = useRouter();
   const { toast } = useToast();
   const currentMonth = manilaToday().slice(0, 7);
-  const month =
-    typeof params.month === "string" &&
-    /^\d{4}-(0[1-9]|1[0-2])$/.test(params.month) &&
-    params.month <= currentMonth &&
-    params.month >= shiftFinanceMonth(currentMonth, -23)
-      ? params.month
-      : currentMonth;
+  const month = financeMonthFromParam(params.month, currentMonth);
   const finance = useLandlordFinances({ month, apartmentId: null });
   const data = finance.report.data;
   const close = () => {

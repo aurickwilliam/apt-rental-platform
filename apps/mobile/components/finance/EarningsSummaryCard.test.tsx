@@ -70,7 +70,7 @@ describe("earnings summary card", () => {
     expect(screen.queryByText(/Only confirmed rent payments/)).toBeNull();
 
     fireEvent.press(link);
-    expect(screen.getAllByText("How these figures are calculated")).toHaveLength(2);
+    expect(screen.getByText("Profit & planning guidelines")).toBeTruthy();
     expect(screen.getByText(/Only confirmed rent payments linked to a tenancy/)).toBeTruthy();
     expect(screen.getByText(/Net operating income is cash-based/)).toBeTruthy();
     expect(screen.getByText(/Planned reserves are amounts you intend to set aside/)).toBeTruthy();

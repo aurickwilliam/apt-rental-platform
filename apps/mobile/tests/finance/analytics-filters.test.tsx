@@ -3,7 +3,7 @@ import type { PressableProps, TextProps, TextInputProps } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
-import type { FinanceScope } from "@/service/finance/financeService";
+import type { FinanceData, FinanceScope } from "@/service/finance/financeService";
 
 const mockReview = jest.fn(() => Promise.resolve());
 const mockRetry = jest.fn();
@@ -30,7 +30,7 @@ const mockFinance = {
           reviewed: false,
         },
       ],
-      budgets: [],
+      budgets: [] as FinanceData["budgets"],
       collections: { overdue: 0 },
       performance: [],
     },
@@ -46,8 +46,10 @@ const mockSheetContentProps = jest.fn();
 const mockButtonProps = jest.fn();
 const mockExpenseSheet = jest.fn((_props: unknown) => null);
 const mockRouterPush = jest.fn();
+const mockRouteParams: { month?: string; apartmentId?: string } = {};
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
+const mockPropertyChart = jest.fn((_props: { onViewAll: () => void }) => null);
 
 jest.mock("@gorhom/bottom-sheet", () => {
   const { View, ScrollView } = jest.requireActual("react-native");
@@ -58,7 +60,10 @@ jest.mock("@gorhom/bottom-sheet", () => {
 });
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 62, bottom: 34, left: 0, right: 0 }) }));
 
-jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockRouterPush }) }));
+jest.mock("expo-router", () => ({
+  useLocalSearchParams: () => mockRouteParams,
+  useRouter: () => ({ push: mockRouterPush }),
+}));
 jest.mock("@/hooks/auth", () => ({
   useCurrentUser: () => ({ data: { id: "owner" } }),
 }));
@@ -86,6 +91,7 @@ jest.mock("@tabler/icons-react-native", () => {
   IconCheck: () => null,
   IconChevronLeft: () => null,
   IconChevronRight: () => null,
+  IconTargetArrow: () => null,
   };
 });
 jest.mock("@/components/layout/StandardHeader", () => {
@@ -184,6 +190,7 @@ jest.mock("heroui-native", () => {
   Button.Label = function ButtonLabel({ children }: TextProps) {
     return <Text>{children}</Text>;
   };
+  const LinkButton = Object.assign(Button, { Label: Button.Label });
   const SearchContext = React.createContext({ value: "", onChange: (_value: string) => {} });
   function SearchRoot({ children, value, onChange }: PropsWithChildren<{ value: string; onChange: (value: string) => void }>) {
     return <SearchContext.Provider value={{ value, onChange }}>{children}</SearchContext.Provider>;
@@ -201,6 +208,7 @@ jest.mock("heroui-native", () => {
   }
   return {
     Button,
+    LinkButton,
     SearchField: Object.assign(SearchRoot, {
       Group: Container,
       SearchIcon: () => <View testID="property-search-icon" />,
@@ -231,7 +239,7 @@ jest.mock("@/components/finance/FinanceControls", () => {
   const { Pressable, Text, View } = jest.requireActual("react-native");
   return {
     FinanceCard: ({ children }: PropsWithChildren) => <View>{children}</View>,
-    FinanceHeading: () => null,
+    FinanceHeading: ({ title }: { title: string }) => <Text>{title}</Text>,
     FinanceError: () => null,
     FinanceTabs: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
       {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
@@ -244,7 +252,8 @@ jest.mock(
   "@/components/finance/IncomeTrendChart",
   () =>
     function Chart() {
-      return null;
+      const { Text } = jest.requireActual("react-native");
+      return <Text>Income trends</Text>;
     },
 );
 jest.mock(
@@ -271,7 +280,8 @@ jest.mock(
 jest.mock(
   "@/components/finance/PropertyPerformanceChart",
   () =>
-    function Chart() {
+    function Chart(props: { onViewAll: () => void }) {
+      mockPropertyChart(props);
       return null;
     },
 );
@@ -312,9 +322,90 @@ describe("analytics header filters", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLandlordFinances.mockImplementation(() => mockFinance);
+    delete mockRouteParams.month;
+    delete mockRouteParams.apartmentId;
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
   });
   afterEach(() => jest.useRealTimers());
+
+  test("Needs attention appears before Income trends in the overview", () => {
+    const screen = render(<AnalyticsScreen />);
+    expect(
+      screen.getAllByText(/^(Needs attention|Income trends)$/)
+        .map((heading) => heading.props.children),
+    ).toEqual(["Needs attention", "Income trends"]);
+  });
+
+  test("the monthly plan shows an empty state until budgets or reserves exist", () => {
+    const screen = render(<AnalyticsScreen />);
+    expect(screen.getByText("No plan for this month yet")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Set spending limits and reserve goals for this month to see your plan here.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("View budgets & suggestions")).toBeTruthy();
+    const budget: FinanceData["budgets"][number] = {
+      id: "budget",
+      apartment_id: "villa",
+      month: "2026-10-01",
+      category: "maintenance",
+      kind: "expense",
+      amount: 3000,
+      spent: 0,
+      target_amount: null,
+      months_remaining: null,
+    };
+    mockUseLandlordFinances.mockReturnValue({
+      ...mockFinance,
+      report: {
+        ...mockFinance.report,
+        data: {
+          ...mockFinance.report.data!,
+          budgets: [budget],
+        },
+      },
+    });
+    screen.rerender(<AnalyticsScreen />);
+    expect(screen.queryByText("No plan for this month yet")).toBeNull();
+    expect(screen.getByText("View budgets & suggestions")).toBeTruthy();
+  });
+
+  test("planning guidelines open a clear explanation dialog", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByText("Planning guidelines"));
+    expect(screen.getByText("Profit & planning guidelines")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Budgets and reserve goals help you plan, but they do not move, hold or transfer money. They are not tax, accounting, legal or investment advice.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Collection expectations cover active leases and ended leases with a recorded end date. Removed listings are excluded. PayMongo transactions currently use test funds.",
+      ),
+    ).toBeTruthy();
+  });
+
+  test("view all opens the full property performance page for the shown month", () => {
+    render(<AnalyticsScreen />);
+    const chart = mockPropertyChart.mock.calls.at(-1)![0];
+    chart.onViewAll();
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      pathname: "/landlord/property-performance",
+      params: { month: "2026-10" },
+    });
+  });
+
+  test("a property selected from the full list filters the returned report", () => {
+    Object.assign(mockRouteParams, { month: "2026-09", apartmentId: "house" });
+    const screen = render(<AnalyticsScreen />);
+    expect(mockUseLandlordFinances).toHaveBeenLastCalledWith({
+      month: "2026-09",
+      apartmentId: "house",
+    });
+    expect(screen.getByLabelText("Filtered property: House")).toBeTruthy();
+  });
 
   test("unavailable access uses the landlord empty state without a retry action", () => {
     mockUseLandlordFinances.mockReturnValue({ ...mockFinance, enabled: false });
@@ -511,9 +602,10 @@ describe("analytics header filters", () => {
     expect(screen.getByLabelText("Property: All properties").props.className).not.toContain("bg-primary-light");
   });
 
-  test("the page labels the applied apartment and hides the label for all properties", () => {
+  test("the page labels the selected property above the report month", () => {
     const screen = render(<AnalyticsScreen />);
     expect(screen.queryByText("Filtered property")).toBeNull();
+    expect(screen.getByLabelText("All properties")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/^Filters,/));
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     expect(screen.queryByText("Filtered property")).toBeNull();
@@ -528,6 +620,7 @@ describe("analytics header filters", () => {
     fireEvent.press(screen.getByText("Reset"));
     fireEvent.press(screen.getByText("Apply filters"));
     expect(screen.queryByText("Filtered property")).toBeNull();
+    expect(screen.getByLabelText("All properties")).toBeTruthy();
   });
 
   test("property search filters inline without mounting another sheet", () => {

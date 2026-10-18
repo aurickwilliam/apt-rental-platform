@@ -6,7 +6,11 @@ import {
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react-native";
+import {
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+} from "@tabler/icons-react-native";
 import { useColors } from "@/hooks/useTheme";
 import { BottomSheet, Button } from "heroui-native";
 import { financeMonthLabel, shiftFinanceMonth } from "@repo/utils";
@@ -193,12 +197,11 @@ export default function FinanceFilterSheet({
                       {item.name}
                     </Button.Label>
                     {item.id === value.apartmentId && (
-                      <Text
+                      <IconCheck
                         accessible={false}
-                        className="text-primary-light-foreground"
-                      >
-                        ✓
-                      </Text>
+                        size={18}
+                        color={colors.primaryLightForeground}
+                      />
                     )}
                   </Button>
                 ))}

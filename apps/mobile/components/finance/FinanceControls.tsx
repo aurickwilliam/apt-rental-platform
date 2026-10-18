@@ -7,9 +7,17 @@ import { formatPesoDisplay } from "@repo/utils";
 import PropertySearch from "./PropertySearch";
 import { useColors } from "@/hooks/useTheme";
 
-export function FinanceCard({ children }: { children: ReactNode }) {
+export function FinanceCard({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <View className="bg-surface border border-border rounded-3xl p-4 gap-4">
+    <View
+      className={`bg-surface border border-border rounded-3xl p-4 gap-4${className ? ` ${className}` : ""}`}
+    >
       {children}
     </View>
   );
@@ -19,17 +27,19 @@ export function FinanceHeading({
   title,
   description,
   action,
+  titleClassName,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
+  titleClassName?: string;
 }) {
   return (
     <View className="flex-row items-start justify-between gap-3">
       <View className="flex-1 gap-1">
         <Text
           accessibilityRole="header"
-          className="font-nunitoBold text-lg text-foreground"
+          className={`font-nunitoBold text-lg text-foreground${titleClassName ? ` ${titleClassName}` : ""}`}
         >
           {title}
         </Text>

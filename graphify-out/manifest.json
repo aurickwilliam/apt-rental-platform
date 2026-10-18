@@ -1025,13 +1025,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/_layout.tsx": {
-    "mtime": 1792229464.3286436,
-    "ast_hash": "1614d752e213691d20979899e7775efe",
+    "mtime": 1792340280.9891038,
+    "ast_hash": "1cc471620283da5727e42c945f8d82ca",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/analytics.tsx": {
-    "mtime": 1792256711.6452007,
-    "ast_hash": "51f7fb200907204b10715543ba83d727",
+    "mtime": 1792341687.8883302,
+    "ast_hash": "3d58d58250d87833e7a24501920a383f",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/maintenance-requests/[requestId].tsx": {
@@ -8145,8 +8145,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/CollectionHealthChart.tsx": {
-    "mtime": 1792229342.4127257,
-    "ast_hash": "91e7d295028a02a88827a996727d0bfa",
+    "mtime": 1792337960.0111253,
+    "ast_hash": "f8bd4f9eb61ca8a9b77f7fe85ab05a92",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/CollectionLedgerSheet.tsx": {
@@ -8165,13 +8165,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceCharts.test.tsx": {
-    "mtime": 1792334837.8017898,
-    "ast_hash": "afc0808efd90334e2795e391bc8c815f",
+    "mtime": 1792341105.1509726,
+    "ast_hash": "ea09c86ba7fe3e32f52ebddc7c25c588",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
-    "mtime": 1792229464.329282,
-    "ast_hash": "6e88e73d5ab32cef2d33ac5ddc379fc0",
+    "mtime": 1792336867.6330771,
+    "ast_hash": "da9e4af17d8ffeee3462550b76c4db12",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.test.tsx": {
@@ -8190,8 +8190,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/PropertyPerformanceChart.tsx": {
-    "mtime": 1792229342.414859,
-    "ast_hash": "cac8014ef9da699d87f68a59ac5f7f02",
+    "mtime": 1792341182.315655,
+    "ast_hash": "9e3dcb1dba77e58b20260324d4c4dc39",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/finance/useLandlordFinances.ts": {
@@ -8210,13 +8210,13 @@
     "semantic_hash": ""
   },
   "packages/utils/src/landlordFinance.test.ts": {
-    "mtime": 1792229342.4638453,
-    "ast_hash": "e2209484129f27599f6e976c88f4b409",
+    "mtime": 1792340261.1535237,
+    "ast_hash": "628e1fd77819887d172eb872795ae122",
     "semantic_hash": ""
   },
   "packages/utils/src/landlordFinance.ts": {
-    "mtime": 1792229342.4783473,
-    "ast_hash": "eaff5c46f8a93de0bb822674a2674946",
+    "mtime": 1792340253.1854472,
+    "ast_hash": "f05f1c736033aa27762e7ef35a61514c",
     "semantic_hash": ""
   },
   "supabase/migrations/20261016163249_landlord_profit_planning.sql": {
@@ -8240,13 +8240,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/analytics-filters.test.tsx": {
-    "mtime": 1792256735.3601906,
-    "ast_hash": "ec62783312d00ef424873b40977e6710",
+    "mtime": 1792341687.8885796,
+    "ast_hash": "3ca7d1d33a4a10883c41256fea6cab1f",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceFilterSheet.tsx": {
-    "mtime": 1792229464.330073,
-    "ast_hash": "be959c335af824f15f0a0bb46ba3e4e6",
+    "mtime": 1792341017.9684808,
+    "ast_hash": "7103a087c8c89855930d0071b276651e",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceSkeleton.test.tsx": {
@@ -8260,8 +8260,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/add-expense.tsx": {
-    "mtime": 1792255341.4578023,
-    "ast_hash": "9e3ea1d23c15bc59e1c44fef64fb91a8",
+    "mtime": 1792340256.9225187,
+    "ast_hash": "2e86b0fd9696f3805ac8ee199a26dafe",
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/add-expense.test.tsx": {
@@ -8280,13 +8280,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/EarningsSummaryCard.test.tsx": {
-    "mtime": 1792229465.5668545,
-    "ast_hash": "7b3f91eedc6bbc38ec56625577875ec2",
+    "mtime": 1792341498.6586094,
+    "ast_hash": "59c0ca0a6a9e856c870a891740f9d89e",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceGuidelinesDialog.tsx": {
-    "mtime": 1792229465.5681136,
-    "ast_hash": "bc45d4b179836079a88808b67ef19e75",
+    "mtime": 1792341443.3628035,
+    "ast_hash": "d23031346ae74246701dbc8cbdbfb97c",
     "semantic_hash": ""
   },
   "apps/mobile/hooks/finance/useLandlordFinances.test.tsx": {
@@ -8392,6 +8392,21 @@
   "docs/demo-population.md": {
     "mtime": 1792229339.9230053,
     "ast_hash": "9b80cc5e0e1c8bff8f2a337bf2800e19",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/landlord/property-performance.tsx": {
+    "mtime": 1792341265.0729332,
+    "ast_hash": "b2a6311777e27082b7af3ebaff407501",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/PropertyPerformanceList.tsx": {
+    "mtime": 1792341186.5667963,
+    "ast_hash": "cfa3c6e1d7aa426b65937d186d74a715",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/finance/property-performance.test.tsx": {
+    "mtime": 1792341105.1513877,
+    "ast_hash": "cd5f086807354c2d295238acd7a55f94",
     "semantic_hash": ""
   }
 }

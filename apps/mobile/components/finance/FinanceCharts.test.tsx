@@ -5,6 +5,7 @@ import type { BarChart } from "react-native-gifted-charts";
 import IncomeTrendChart from "./IncomeTrendChart";
 import ExpenseCategoryChart from "./ExpenseCategoryChart";
 import PropertyPerformanceChart from "./PropertyPerformanceChart";
+import PropertyPerformanceList from "./PropertyPerformanceList";
 import CollectionHealthChart from "./CollectionHealthChart";
 import BudgetProgressChart from "./BudgetProgressChart";
 import type { FinanceMonth } from "@repo/utils";
@@ -27,6 +28,8 @@ jest.mock("@/hooks/useTheme", () => ({
       textSecondary: "#626B73",
       border: "#E5EAF2",
       danger: "#E50914",
+      warning: "#FACC15",
+      gray500: "#626B73",
     },
   }),
 }));
@@ -251,12 +254,50 @@ describe("interactive finance charts", () => {
           { ...months[0], id: "b", name: "House" },
         ]}
         onSelect={onSelect}
+        onViewAll={jest.fn()}
       />,
     );
     fireEvent.press(screen.getByText("Net income"));
-    expect(screen.getByText("Not reviewed ›")).toBeTruthy();
+    expect(screen.getByText("Not reviewed")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/House, net,/));
     expect(onSelect).toHaveBeenCalledWith("b");
+  });
+  test("view all hands the full ranked list to its own page", () => {
+    const onViewAll = jest.fn();
+    const screen = render(
+      <PropertyPerformanceChart
+        properties={[
+          { ...months[0], id: "a", name: "Villa", collected: 40000 },
+          { ...months[0], id: "b", name: "House", collected: 30000 },
+          { ...months[0], id: "c", name: "Condo", collected: 20000 },
+          { ...months[0], id: "d", name: "Studio", collected: 10000 },
+        ]}
+        onSelect={jest.fn()}
+        onViewAll={onViewAll}
+      />,
+    );
+    expect(screen.getByText("Villa")).toBeTruthy();
+    expect(screen.queryByText("Studio")).toBeNull();
+    fireEvent.press(screen.getByText("View all 4 properties"));
+    expect(onViewAll).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Show top 3")).toBeNull();
+  });
+  test("the full page keeps every property without a filter affordance", () => {
+    const screen = render(
+      <PropertyPerformanceList
+        properties={[
+          { ...months[0], id: "a", name: "Villa", collected: 40000 },
+          { ...months[0], id: "b", name: "House", collected: 30000 },
+          { ...months[0], id: "c", name: "Condo", collected: 20000 },
+          { ...months[0], id: "d", name: "Studio", collected: 10000 },
+        ]}
+        metric="collected"
+      />,
+    );
+    ["Villa", "House", "Condo", "Studio"].forEach((name) => {
+      expect(screen.getByText(name)).toBeTruthy();
+    });
+    expect(screen.queryByLabelText(/Filter this property/)).toBeNull();
   });
   test("collection segments open filtered rent lists", () => {
     const onSelect = jest.fn();
@@ -277,6 +318,39 @@ describe("interactive finance charts", () => {
     );
     fireEvent.press(screen.getByLabelText(/View overdue,/));
     expect(onSelect).toHaveBeenCalledWith("overdue");
+    expect(screen.getByText("Expected rent: 10000")).toBeTruthy();
+    expect(screen.queryByText("No billable tenancies this month")).toBeNull();
+  });
+  test("a month without billable tenancies shows an empty state instead of zero rows", () => {
+    const onSelect = jest.fn();
+    const screen = render(
+      <CollectionHealthChart
+        data={{
+          expected: 0,
+          collected: 0,
+          pending: 0,
+          overdue: 0,
+          overdueCount: 0,
+          age7: 0,
+          age30: 0,
+          ageOlder: 0,
+        }}
+        onSelect={onSelect}
+      />,
+    );
+    expect(screen.getByText("No billable tenancies this month")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Expected rent and payment status will appear here once a tenancy is billed for this month.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Expected rent: 0")).toBeNull();
+    expect(screen.queryByText("Collected")).toBeNull();
+    expect(screen.queryByText("Not yet due")).toBeNull();
+    expect(screen.queryByText("Overdue")).toBeNull();
+    expect(screen.queryByLabelText(/^View collected/)).toBeNull();
+    expect(screen.queryByText(/Late rent is outstanding income/)).toBeNull();
+    expect(onSelect).not.toHaveBeenCalled();
   });
   test("over-budget amounts are explicit and reserve targets remain plans", () => {
     const onEdit = jest.fn();
