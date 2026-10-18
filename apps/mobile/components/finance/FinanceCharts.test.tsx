@@ -1,5 +1,5 @@
 import type { ComponentProps, PropsWithChildren } from "react";
-import { fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render } from "@testing-library/react-native";
 import { type PressableProps, type TextProps, View } from "react-native";
 import type { BarChart } from "react-native-gifted-charts";
 import IncomeTrendChart from "./IncomeTrendChart";
@@ -22,6 +22,7 @@ jest.mock("@/hooks/useTheme", () => ({
     colors: {
       primary: "#376BF5",
       chartSky: "#0891B2",
+      dangerMid: "#FF4B4B",
       textPrimary: "#333333",
       textSecondary: "#626B73",
       border: "#E5EAF2",
@@ -105,6 +106,57 @@ const months: FinanceMonth[] = Array.from({ length: 12 }, (_, index) => ({
 
 describe("interactive finance charts", () => {
   beforeEach(() => mockBarChart.mockClear());
+  test.each([
+    { emptyMonths: [] },
+    {
+      emptyMonths: months.map((month) => ({
+        ...month,
+        collected: 0,
+        operating: 0,
+        capital: 0,
+        reviewed: false,
+      })),
+    },
+  ])("empty ranges show a message instead of a chart", ({ emptyMonths }) => {
+    const screen = render(
+      <IncomeTrendChart months={emptyMonths} onViewExpenses={jest.fn()} />,
+    );
+    expect(screen.getByText("No income activity yet")).toBeTruthy();
+    expect(
+      screen.getByText("Collected rent and recorded expenses will appear here."),
+    ).toBeTruthy();
+    expect(screen.queryByText("View expenses for this month")).toBeNull();
+    expect(screen.queryByLabelText("Toggle collected")).toBeNull();
+    expect(screen.queryByText(/Review each month/)).toBeNull();
+    expect(mockBarChart).not.toHaveBeenCalled();
+    expect(screen.getByText("3M")).toBeTruthy();
+    expect(screen.getByText("6M")).toBeTruthy();
+    expect(screen.getByText("12M")).toBeTruthy();
+  });
+  test("switching ranges restores the chart when an older month has activity", () => {
+    const screen = render(
+      <IncomeTrendChart
+        months={months.map((month, index) => ({
+          ...month,
+          collected: index === 0 ? 10000 : 0,
+          operating: 0,
+          capital: 0,
+        }))}
+        onViewExpenses={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("No income activity yet")).toBeTruthy();
+    fireEvent.press(screen.getByText("12M"));
+    expect(screen.queryByText("No income activity yet")).toBeNull();
+    const container = screen
+      .UNSAFE_getAllByType(View)
+      .find((node) => node.props.onLayout);
+    fireEvent(container!, "layout", { nativeEvent: { layout: { width: 320 } } });
+    expect(screen.getByTestId("chart")).toBeTruthy();
+    fireEvent.press(screen.getByText("3M"));
+    expect(screen.queryByTestId("chart")).toBeNull();
+    expect(screen.getByText("No income activity yet")).toBeTruthy();
+  });
   test("range, bar selection and transaction drill-down use the selected month", () => {
     const onViewExpenses = jest.fn();
     const screen = render(
@@ -123,9 +175,10 @@ describe("interactive finance charts", () => {
     const props = mockBarChart.mock.lastCall![0] as ComponentProps<
       typeof BarChart
     >;
-    // The same data selection has a non-chart alternative for screen readers.
-    fireEvent.press(screen.getByText("View data / select month"));
-    fireEvent.press(screen.getByLabelText(/October 2026, collected/));
+    act(() => props.data?.[0].onPress?.());
+    expect(screen.getByText("October 2026")).toBeTruthy();
+    expect(screen.queryByText("View data / select month")).toBeNull();
+    expect(screen.queryByText("Hide data")).toBeNull();
     fireEvent.press(screen.getByText("View expenses for this month"));
     expect(onViewExpenses).toHaveBeenCalledWith("2026-10");
     expect(props.width).toBe(272);

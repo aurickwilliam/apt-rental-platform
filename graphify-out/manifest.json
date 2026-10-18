@@ -6850,8 +6850,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792256735.3605218,
-    "ast_hash": "06bb1f06d937fc7c5ee7c7055ad7a81c",
+    "mtime": 1792334385.3202918,
+    "ast_hash": "16437c8cb11a2d66cde3546a89c47263",
     "semantic_hash": ""
   },
   "README.md": {
@@ -8165,8 +8165,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceCharts.test.tsx": {
-    "mtime": 1792229342.413737,
-    "ast_hash": "70ba424d4e2573b627314dc6e1caef79",
+    "mtime": 1792334837.8017898,
+    "ast_hash": "afc0808efd90334e2795e391bc8c815f",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
@@ -8185,8 +8185,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/IncomeTrendChart.tsx": {
-    "mtime": 1792229342.4146738,
-    "ast_hash": "c8cefd5120c97fd3d414a11d755aa306",
+    "mtime": 1792334837.80201,
+    "ast_hash": "a7386b9dc5ebd0b35841424d2f1afedc",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/PropertyPerformanceChart.tsx": {
