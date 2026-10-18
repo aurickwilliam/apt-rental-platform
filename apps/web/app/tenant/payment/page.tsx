@@ -422,8 +422,10 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer parity) */}
-        <div className="sticky bottom-4 z-20 mt-4">
+        {/* Pay footer — in-flow sticky (never overlays inputs, mobile footer
+            parity). `data-fab-clearance` keeps the floating notifications
+            bell off the Pay button. */}
+        <div data-fab-clearance="payment-footer" className="sticky bottom-4 z-20 mt-4">
           <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
       </PaymentPageShell>

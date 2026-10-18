@@ -43,8 +43,17 @@ export default function ApartmentCard({
 
   return (
     <div
-      className="w-full min-w-0 cursor-pointer"
+      className="w-full min-w-0 cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       onClick={onPress}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget || !onPress) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onPress();
+        }
+      }}
+      tabIndex={onPress ? 0 : undefined}
+      aria-label={`View ${name}`}
       role="button"
     >
       <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-full h-full relative p-0">
@@ -60,11 +69,11 @@ export default function ApartmentCard({
             className="object-cover rounded-xl w-full aspect-square h-auto"
           />
 
-          <div className="p-2">
+          <div data-slot="apartment-card-details" className="p-2">
             <h3 className="text-[15px] font-semibold truncate">{name}</h3>
 
             <div className="flex items-center gap-1">
-              <p className="bg-surface-variant text-xs">
+              <p data-slot="apartment-card-location" className="bg-surface-variant text-xs">
                 {location}
               </p>
             </div>
@@ -72,7 +81,7 @@ export default function ApartmentCard({
         </div>
 
         <Card.Footer className="p-2 flex justify-between items-center">
-          <p className="text-[15px] font-medium text-primary">
+          <p data-slot="apartment-card-price" className="text-[15px] font-medium text-primary">
             {formatPesoDisplay(price)}
           </p>
 

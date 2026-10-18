@@ -41,19 +41,17 @@ export default function MaintenanceRequestPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Wrench size={22} aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold font-nunito text-card-foreground">
-                Request Maintenance
-              </h1>
-              <p className="font-inter text-sm text-muted-foreground">
-                Let your landlord know about an issue with your unit. We&apos;ll
-                notify them right away and keep you posted on the status.
-              </p>
-            </div>
+          <div>
+            <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Wrench size={28} aria-hidden="true" />
+              </span>
+              Request Maintenance
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Let your landlord know about an issue with your unit. We&apos;ll
+              notify them right away and keep you posted on the status.
+            </p>
           </div>
 
           {tenancyLoading ? (

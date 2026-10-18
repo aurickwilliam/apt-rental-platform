@@ -2,17 +2,18 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
+import { Button, Card, Chip, ListBox, Select } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
-import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
+import { IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
 import type { PaymentRecord } from "@/service/paymentService";
 import { formatReferenceId, methodLabel, paymentStatusLabel, periodMonthLabel } from "@/app/tenant/payment/utils";
 import { useLandlordApartments, useLandlordPayments } from "@/hooks/use-landlord-payments";
 import PaymentHistoryFilters from "@/app/tenant/payment/components/PaymentHistoryFilters";
+import PaymentsHeader from "./components/PaymentsHeader";
+import PaymentsSkeleton, { PaymentCardsSkeleton } from "./components/PaymentsSkeleton";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -83,7 +84,6 @@ function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apa
 }
 
 function PaymentsContent() {
-  const router = useRouter();
   const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -119,18 +119,14 @@ function PaymentsContent() {
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
   }, [filtered, filters.sort]);
 
-  if (unitsQuery.loading || (activeApartmentId && paymentsQuery.loading)) {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center py-20">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payments…</p>
-      </div>
-    );
+  if (unitsQuery.loading) {
+    return <PaymentsSkeleton />;
   }
 
   if (unitsQuery.error || paymentsQuery.error) {
     return (
       <div className="p-4 space-y-4">
+        <PaymentsHeader />
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
           {unitsQuery.error ?? paymentsQuery.error ?? "We could not load payments."}
         </p>
@@ -152,7 +148,7 @@ function PaymentsContent() {
   if (unitsQuery.apartments.length === 0) {
     return (
       <div className="p-4 space-y-2">
-        <h1 className="text-2xl font-bold">Payments</h1>
+        <PaymentsHeader />
         <p className="text-sm text-zinc-500">No units found. Payments for your units will appear here.</p>
       </div>
     );
@@ -160,27 +156,16 @@ function PaymentsContent() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex flex-col gap-1">
-        <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-          <ArrowLeft size={16} /> Back
+      <PaymentsHeader>
+        <Button variant="secondary" size="sm" className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
+          <SlidersHorizontal size={14} /> Filters
+          {activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+              {activeCount}
+            </span>
+          )}
         </Button>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Banknote size={22} className="text-primary" /> Payments
-            </h1>
-            <p className="text-sm text-zinc-500 mt-1">Payments for this unit will appear here.</p>
-          </div>
-          <Button variant="secondary" size="sm" className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
-            <SlidersHorizontal size={14} /> Filters
-            {activeCount > 0 && (
-              <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
-                {activeCount}
-              </span>
-            )}
-          </Button>
-        </div>
-      </div>
+      </PaymentsHeader>
 
       <Select
         placeholder="Select unit"
@@ -203,7 +188,7 @@ function PaymentsContent() {
         </Select.Popover>
       </Select>
 
-      {filtered.length === 0 ? (
+      {paymentsQuery.loading ? <PaymentCardsSkeleton /> : filtered.length === 0 ? (
         <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
             <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
@@ -245,14 +230,7 @@ function PaymentsContent() {
 
 export default function PaymentsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-4 flex flex-col items-center justify-center py-20">
-          <Spinner size="lg" color="current" className="text-primary" />
-          <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payments…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<PaymentsSkeleton />}>
       <PaymentsContent />
     </Suspense>
   );

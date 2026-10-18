@@ -35,7 +35,7 @@ export default function RentalHero({ name, address, imageUrl, descriptionHref }:
         className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent"
       />
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-5">
-        <p className="truncate font-nunito text-2xl font-bold text-white">{name}</p>
+        <p className="line-clamp-2 break-words font-nunito text-xl font-bold text-white sm:text-2xl">{name}</p>
         <p className="flex items-start gap-1.5 font-inter text-sm text-white/90">
           <MapPin size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span className="line-clamp-2">{address}</span>

@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
+import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
+import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import { createClient } from "@repo/supabase/server";
 
 import { canViewPassport } from "@/lib/passport-access";
@@ -8,11 +10,11 @@ import { canViewPassport } from "@/lib/passport-access";
 const PASSPORT_HREF = "/landlord/passport";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
+  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", prefetchOnIntent: true },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", prefetchOnIntent: true },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", prefetchOnIntent: true },
   { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck" },
   { href: "/landlord/messages", label: "Messages", icon: "Messages" },
 ] as const;
@@ -71,6 +73,7 @@ export default async function DashboardLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <DraggableNotificationBell activePortal="landlord" />
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
@@ -85,6 +88,9 @@ export default async function DashboardLayout({
       />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="landlord" />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotificationsOverlay activePortal="landlord" />
       </Suspense>
     </div>
   );

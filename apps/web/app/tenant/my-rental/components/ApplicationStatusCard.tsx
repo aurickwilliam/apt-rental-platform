@@ -37,15 +37,15 @@ export default function ApplicationStatusCard({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-      <div className="flex min-h-24 items-stretch">
-        <div className="relative w-28 shrink-0 self-stretch bg-muted sm:w-40">
+      <div className="flex min-h-24 flex-col items-stretch sm:flex-row">
+        <div className="relative h-40 w-full shrink-0 self-stretch bg-muted sm:h-auto sm:w-40">
           {thumbnailUrl ? (
             <Image
               src={thumbnailUrl}
               alt=""
               fill
               unoptimized
-              sizes="(max-width: 640px) 112px, 160px"
+              sizes="(max-width: 640px) 100vw, 160px"
               className="object-cover"
             />
           ) : (
@@ -56,7 +56,7 @@ export default function ApplicationStatusCard({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2 p-5">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-lg font-nunito font-semibold text-card-foreground">
               {name}
             </p>

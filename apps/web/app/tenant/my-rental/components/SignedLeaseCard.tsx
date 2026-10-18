@@ -72,7 +72,7 @@ export default function SignedLeaseCard({
   return (
     <DashboardCard>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
+        <div className="flex min-w-0 flex-1 basis-64 items-start gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/50">
             <FileText size={20} className="text-teal-600 dark:text-teal-300" aria-hidden="true" />
           </span>
@@ -92,7 +92,7 @@ export default function SignedLeaseCard({
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-col gap-2 @min-[32rem]/dashboard:flex-row @min-[32rem]/dashboard:flex-wrap">
         <Button
           variant="outline"
           className="rounded-full"

@@ -78,7 +78,9 @@ export default function ContactSidebar({
   return (
     // The 300px floor that suited a split pane starves the thread on
     // narrow screens, so the list only takes a fixed share from md up.
-    <div className={`w-full min-h-0 flex-col border-r border-border bg-card md:flex md:w-1/3 md:min-w-[300px] md:max-w-[400px] md:shrink-0 ${className}`}>
+    // `data-fab-clearance` keeps the floating notifications bell off the
+    // conversation rows; it settles on the opposite edge instead.
+    <div data-fab-clearance="messages-contact-list" className={`w-full min-h-0 flex-col border-r border-border bg-card md:flex md:w-1/3 md:min-w-[300px] md:max-w-[400px] md:shrink-0 ${className}`}>
       <div className="p-4 border-b border-border">
         <p className="text-xs text-muted-foreground">Conversations</p>
       </div>

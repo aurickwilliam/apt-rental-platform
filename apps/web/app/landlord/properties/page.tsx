@@ -2,6 +2,7 @@ import { createClient } from "@repo/supabase/server";
 import { IconHome as House, IconDoorEnter as DoorOpen, IconDoorExit as DoorClosed, IconCurrencyPeso as PhilippinePeso } from "@tabler/icons-react";
 import PropertiesTableSection from "./components/PropertiesTableSection";
 import PropertyActions from "./components/PropertyActions";
+import PropertiesHeader from "./components/PropertiesHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -100,14 +101,7 @@ export default async function Properties() {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-1">
-        <h1 className="text-5xl text-brand font-bold font-noto-serif">
-          My Properties
-        </h1>
-      </div>
-      <p className="text-muted-foreground text-sm mb-6">
-        Manage your listings, track occupancy, and monitor revenue.
-      </p>
+      <PropertiesHeader />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
