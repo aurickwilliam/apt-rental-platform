@@ -12,7 +12,7 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).
 
-**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons (mobile light mode: neutral tertiary look), yellow `#FBBF24` for star ratings only (mobile and web ✅); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
+**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons (mobile light mode: neutral tertiary look), yellow `#FBBF24` for ratings only (mobile and web ✅; uses and the web overall-score exception are listed in §3); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
 
 **Mobile-first:** the Expo app is the primary product; web mirrors its palette and semantics. Design mobile-first, adapt to web.
 
@@ -49,7 +49,7 @@ All values exact. Shared light/dark pairs from `packages/constants/src/colors.ts
 | `sky` (mobile `--color-secondary`, web `--sky`) ✅ | `#0369A1` | `#7DD3FC` | Second blue: landlord role (chip, role tab), accordion underline, highlights. Never a fill behind white text in dark mode |
 | `skyLight` (mobile `--color-secondary-light`, web `--sky-light`) | `#E0F2FE` | `#0C2A3D` | Sky tints (landlord chip; sky label 5.2:1 / 8.9:1) |
 | `chartSky` ✅ | `#0891B2` | `#0891B2` | Chart series beside `primary` (sky `#0369A1` is too close to brand blue to tell apart; cyan passes the CVD and normal-vision checks in both themes) |
-| `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars only; rating numbers stay text colors (yellow text fails contrast) |
+| `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars. By explicit visual direction, the shared web apartment rating breakdown's large overall score also matches this yellow; this is a low-contrast exception on light surfaces. Other rating numbers stay text colors |
 | `secondaryForeground` | `#FFFFFF` | `#FFFFFF` | White foreground (icons/text on filled buttons) |
 | `actionMore` / `actionPin` / `actionArchive` ✅ (mobile) | `#6B7280` / `#D97706` / `#7C3AED` | same | Conversation swipe actions only: filled circles with white icons (≥3:1), label below in text color |
 
@@ -120,6 +120,8 @@ Two families (via `packages/constants/src/typography.ts`, both platforms):
 | Headings | **Nunito** (`Nunito-*` / `font-nunito`) | regular, medium, semibold, bold |
 
 Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile classes: `font-inter` (body copy), `font-nunitoMedium/SemiBold/Bold`. On mobile, all emphasized text (titles, section headers, card titles, labels, values, prices, tab/badge labels) uses Nunito — Inter medium/semibold classes (`font-interMedium`/`font-interSemiBold`) are web-only.
+
+The web tenant Maintenance and Favorites headers follow the APT Passport header: Nunito bold `text-3xl text-primary`, a 28px icon in a `size-11 rounded-lg bg-primary/10` tile, and a `mt-1 text-sm text-muted-foreground` description below the full title row (aligned with the icon's left edge).
 
 ### Scale & roles (Tailwind sizes, both platforms)
 
@@ -393,6 +395,12 @@ Mobile-first (`grid-cols-1` → responsive); landlord layout = fixed sidebar + `
 **Web own-profile layout (tenant, landlord, admin)** ✅: all three portals share the admin profile layout: `mx-auto w-full max-w-7xl p-4` with `grid xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-4`. The main column holds the header card (cover `h-28 sm:h-32`, `size-24` avatar, name, role and verification chips, "Joined" date) then the details card; the right column holds side cards: Verification Status (tenant/landlord, mirrors the mobile card: status line, description, Apply/Re-Apply button, progress timeline until verified), APT Passport (locked until verified) and Add-role for tenant/landlord, Account actions for admin. Cards are `rounded-3xl border border-border bg-card p-4 sm:p-5 shadow-none` with `font-nunito text-lg font-bold text-primary` headings. Admin-only information (activity log, internal ID) stays admin-only.
 
 **Page widths (web portals):** every page shell is `max-w-7xl mx-auto px-4 py-6 sm:py-8`. Sidebar destinations (Profile, Favorites, My Rental, APT Passport) use the full shell; never nest a narrower centered column inside it. Detail pages reached from a list may cap content at `max-w-4xl`, short single-purpose forms at `max-w-2xl`; a section whose pages link to each other (e.g. APT Passport wallet ↔ document detail) keeps one width so the left edge doesn't jump. Use `lg:` two-column grids (sticky narrow aside + main) to fill wide screens instead of stretching a single card.
+
+Favorites uses a bordered toolbar for the saved count, grouped grid/list controls and Browse action. Saved-card grids use one column below 36rem of content width, two from 36rem and three from 64rem, even with only one saved apartment (no full-width stretching or filler). The shared browse card has Favorites-only styling under `.favorites-grid`: 4:3 images, bordered flat surfaces, larger Nunito titles/prices and roomier padding. List cards keep those surfaces and typography, show unit details and monthly pricing, and stack below 36rem. Its route-level loading boundary keeps the shared Favorites shell/header visible with toolbar and card placeholders while server account checks finish, like Passport. Client data loading reuses the same card placeholders in the selected grid/list view; empty/error states provide Browse/Retry actions.
+
+The web My Rental calendar marks today with a black circular border (no fill of its own), rent due with an orange fill, and the displayed month's last day with a primary-blue fill. Month navigation updates the month-end marker and legend together. When rent due falls on month end, orange takes precedence with a blue dot; today's border remains visible on either filled marker.
+
+My Rental uses available content width (container queries), not viewport width alone, for its dashboard: rent/calendar and quick actions/landlord become two columns at 64rem of content width. Lease details use three columns only at 36rem of rent-card content width. Quick Action tiles fill equal-width, equal-height grid cells: one column below 28rem of card content, two from 28rem, four from 44rem. Narrow layouts wrap headers and signed-lease actions; payment history scrolls within its card, never the page. Loading placeholders mirror these layouts.
 
 ### Mobile
 

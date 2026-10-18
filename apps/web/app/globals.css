@@ -333,6 +333,88 @@ body[data-scroll-locked] [role="option"] {
   opacity: 1;
 }
 
+/* Favorites reuses the browse card without restyling browse itself. These
+   unlayered overrides intentionally take precedence over HeroUI defaults. */
+.favorites-grid .card,
+.favorite-list-card,
+.favorites-state-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.favorites-grid .card,
+.favorite-list-card {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.favorites-grid .card:hover,
+.favorite-list-card:hover {
+  border-color: var(--primary);
+}
+
+.favorites-grid img {
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.favorites-grid [data-slot="apartment-card-details"] {
+  padding: 1rem 1rem 0;
+}
+
+.favorites-grid h3 {
+  font-family: var(--font-nunito);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.favorites-grid [data-slot="apartment-card-location"] {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.favorites-grid .card__footer {
+  margin-top: auto;
+  padding: 1rem;
+}
+
+.favorites-grid [data-slot="apartment-card-price"] {
+  font-family: var(--font-nunito);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.favorites-grid .card__footer svg {
+  color: var(--color-rating);
+}
+
+.favorites-state-card {
+  padding: 0;
+}
+
+.favorites-state-card .card__content {
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.favorite-list-card .card__content {
+  display: block;
+  padding: 0;
+}
+
+.favorite-list-heart {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
 /* Rental Preferences checkboxes (Settings → Rental Preferences only).
    HeroUI's checkbox visuals resolve through inherited theme variables, so
    scoping the variables here recolors both states without touching other

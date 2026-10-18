@@ -5304,9 +5304,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingBreakdown.tsx": {
-    "mtime": 1791973424.2096753,
-    "seen": 1792256917.9950457,
-    "ast_hash": "fadc63713db05a07e624fd80679f9dac",
+    "mtime": 1792290092.2552118,
+    "seen": 1792290156.3957973,
+    "ast_hash": "655b5be3869f4e885f9e140d71d1f934",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingsSection.tsx": {
@@ -5856,9 +5856,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/ui/ApartmentCard.tsx": {
-    "mtime": 1791973208.3801844,
-    "seen": 1792256917.9951935,
-    "ast_hash": "1340d5e98270fb116c66b1f55921e26d",
+    "mtime": 1792291394.9071238,
+    "seen": 1792291699.2894082,
+    "ast_hash": "3354b20e497114469e24021112f3c0b2",
     "semantic_hash": ""
   },
   "apps/web/app/components/ui/AuthPromptModal.tsx": {
@@ -6492,15 +6492,15 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/favorites/components/FavoriteListCard.tsx": {
-    "mtime": 1791973685.7626402,
-    "seen": 1792256917.9953384,
-    "ast_hash": "b26a5c6bb5027571f971a7878331f8d9",
+    "mtime": 1792291630.9765303,
+    "seen": 1792291699.3072073,
+    "ast_hash": "871c95f85598bfe932d04b930b033cf9",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/favorites/components/FavoritesClient.tsx": {
-    "mtime": 1791973685.7636483,
-    "seen": 1792256917.99534,
-    "ast_hash": "e155c1080be2b111e49b39c3c6e39534",
+    "mtime": 1792292124.6602192,
+    "seen": 1792292285.1398075,
+    "ast_hash": "f16d3db09da92db0490a135d4e2f545e",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/favorites/page.tsx": {
@@ -6540,9 +6540,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/maintenance/page.tsx": {
-    "mtime": 1792069645.891911,
-    "seen": 1792256917.9953535,
-    "ast_hash": "a52d2f226b6b2f3f05346fc28772eb9b",
+    "mtime": 1792290533.7994468,
+    "seen": 1792290612.3424854,
+    "ast_hash": "d6cc738ac2c2cf5784fdfd5a7263fdab",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/ContactSidebar.tsx": {
@@ -6582,15 +6582,15 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/ApplicationStatusCard.tsx": {
-    "mtime": 1792165291.9126747,
-    "seen": 1792256917.9953623,
-    "ast_hash": "44f325710d3fa60159b5735095655c8c",
+    "mtime": 1792289103.2684538,
+    "seen": 1792289682.6714287,
+    "ast_hash": "3db8ff3aea0c971b61251f80947a2cfe",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/ApplicationStatusCardSkeleton.tsx": {
-    "mtime": 1792042631.3640735,
-    "seen": 1792256917.9953635,
-    "ast_hash": "cf0c0222f88bd7bbde1fb754d3f4140a",
+    "mtime": 1792289138.29268,
+    "seen": 1792289682.6714325,
+    "ast_hash": "e3a1bb8d7f2e3aac8791e347d0a99e15",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/ApplicationsEmptyState.tsx": {
@@ -6600,33 +6600,33 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/ApplicationsList.tsx": {
-    "mtime": 1792042593.762149,
-    "seen": 1792256917.995366,
-    "ast_hash": "2963aeecef3931f705b80b20109076f9",
+    "mtime": 1792289103.2679515,
+    "seen": 1792289682.6715927,
+    "ast_hash": "f999d7086b33f7147d1fc70ea1615640",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/DashboardCard.tsx": {
-    "mtime": 1792071811.8946884,
-    "seen": 1792256917.9953675,
-    "ast_hash": "4f947b86bde2b9e3bd94231b8642f257",
+    "mtime": 1792289103.2659495,
+    "seen": 1792289682.671595,
+    "ast_hash": "d8e8e197c0deaf12358921ff7172e712",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/MiniCalendar.tsx": {
-    "mtime": 1792072412.404293,
-    "seen": 1792256917.995369,
-    "ast_hash": "e411cf0af28883309496c541834da7e8",
+    "mtime": 1792289487.7668622,
+    "seen": 1792289682.6715972,
+    "ast_hash": "a0c8dc483e5229b0d8349bd58584bad7",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/MyRentalSkeleton.tsx": {
-    "mtime": 1792049534.6773612,
-    "seen": 1792256917.9953701,
-    "ast_hash": "d42f7285a3cda6609b41b8281c9d05f7",
+    "mtime": 1792289138.29268,
+    "seen": 1792289682.6715994,
+    "ast_hash": "097fdb9b8f8b4d32b11cae2d6f98674b",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/RentalHero.tsx": {
-    "mtime": 1792048257.4879453,
-    "seen": 1792256917.9953716,
-    "ast_hash": "52f1516d451c561d8e447916990ccf55",
+    "mtime": 1792289103.2669523,
+    "seen": 1792289682.6716013,
+    "ast_hash": "409a68026219eb3df989db59925ebbcd",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/TenancyEmptyState.tsx": {
@@ -6642,9 +6642,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/page.tsx": {
-    "mtime": 1792165779.552153,
-    "seen": 1792256917.9953783,
-    "ast_hash": "3e402267ab5b8eb49a83f8463d6bb9d0",
+    "mtime": 1792289589.5623827,
+    "seen": 1792289682.672049,
+    "ast_hash": "bf80e5ec674bb235e859ee6f777d4ab3",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/types.ts": {
@@ -8220,9 +8220,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792166735.3685331,
-    "seen": 1792256917.9958098,
-    "ast_hash": "666b1063395356d3ade2b7313ea42e5f",
+    "mtime": 1792292124.6602192,
+    "seen": 1792292285.191376,
+    "ast_hash": "28cbefd3ba61903c21e28f004a4f58cf",
     "semantic_hash": ""
   },
   "README.md": {
@@ -8940,9 +8940,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/my-rental/components/SignedLeaseCard.tsx": {
-    "mtime": 1792165291.9126747,
-    "seen": 1792256917.995373,
-    "ast_hash": "dff3bff5439bbee5d5ef92ce62199e3f",
+    "mtime": 1792289138.2936819,
+    "seen": 1792289682.6716042,
+    "ast_hash": "53168d2f16dd4a3e8aa28b2db6692779",
     "semantic_hash": ""
   },
   "apps/web/hooks/use-signed-lease-viewer.ts": {
@@ -9793,6 +9793,54 @@
     "mtime": 1786940437.7938042,
     "seen": 1792256917.9957893,
     "ast_hash": "25ecf32cfc831fd8444ffb5497636926",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/rental-calendar.test.mjs": {
+    "mtime": 1792288551.2315557,
+    "seen": 1792288591.8611608,
+    "ast_hash": "e48edd30b84a0e98b5f46eeb41779906",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/rental-layout.test.mjs": {
+    "mtime": 1792289441.6127398,
+    "seen": 1792289682.693578,
+    "ast_hash": "3d1bac1c6bc711741160932a8d217aa0",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/rating-breakdown.test.mjs": {
+    "mtime": 1792290092.257734,
+    "seen": 1792290156.461374,
+    "ast_hash": "f2dc5eef91ff1f78a736d020552c7abd",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/maintenance-header.test.mjs": {
+    "mtime": 1792290558.2611518,
+    "seen": 1792290612.36303,
+    "ast_hash": "3f6ebd5155c852d8c755e5465a59cde6",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/favorites-ui.test.mjs": {
+    "mtime": 1792292241.1790097,
+    "seen": 1792292285.1628938,
+    "ast_hash": "f59a7299d6df9cd740425a6befd2b6b3",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/favorites/components/FavoritesPageLayout.tsx": {
+    "mtime": 1792292124.6592197,
+    "seen": 1792292285.1398118,
+    "ast_hash": "dd794faed1fde4f401696971313b08cb",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/favorites/components/FavoritesSkeleton.tsx": {
+    "mtime": 1792292124.6592197,
+    "seen": 1792292285.1398149,
+    "ast_hash": "e2c1c2b96b0344b8d817cd41191fafb2",
+    "semantic_hash": ""
+  },
+  "apps/web/app/tenant/favorites/loading.tsx": {
+    "mtime": 1792292124.6602192,
+    "seen": 1792292285.1398177,
+    "ast_hash": "924a5eeeb94e941f32d537328a5cb922",
     "semantic_hash": ""
   }
 }
