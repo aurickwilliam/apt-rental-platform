@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "@/app/components/layout/AppSidebar";
 import SettingsOverlay from "@/app/components/settings/SettingsOverlay";
+import NotificationsOverlay from "@/app/components/notifications/NotificationsOverlay";
+import DraggableNotificationBell from "@/app/components/notifications/DraggableNotificationBell";
 import { requireAdmin } from "./_lib/require-admin";
 
 const ADMIN_NAV = [
@@ -39,6 +41,7 @@ export default async function AdminLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <DraggableNotificationBell activePortal="admin" />
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">
           {children}
         </main>
@@ -55,6 +58,9 @@ export default async function AdminLayout({
       />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={profile.roles} activePortal="admin" />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotificationsOverlay activePortal="admin" />
       </Suspense>
     </div>
   );

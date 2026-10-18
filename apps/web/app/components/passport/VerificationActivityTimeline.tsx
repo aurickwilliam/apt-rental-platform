@@ -76,10 +76,10 @@ export default function VerificationActivityTimeline({
           }
         : {
             key: "current",
-            title: "Awaiting admin review",
+            title: "Awaiting review",
             tone: "primary",
             date: null,
-            caption: "Current status · Pending",
+            caption: "We’ll notify you when verification is complete.",
           };
 
   const isApproved = row.status === "approved";
@@ -89,10 +89,15 @@ export default function VerificationActivityTimeline({
       key: "submitted",
       title: "Documents submitted",
       // Once approved, the submission recedes: a quiet completed step
-      // beneath the emphasized outcome. Pending/rejected rows keep the
-      // stronger completed marker so progress stays legible mid-flow.
+      // beneath the emphasized outcome. Pending rows keep the stronger
+      // completed marker so progress stays legible mid-flow; the pending
+      // date stands alone while rejected rows keep the Completed suffix.
       tone: isApproved ? "muted" : "success",
-      date: submittedDate ? `${submittedDate} · Completed` : null,
+      date: submittedDate
+        ? row.status === "pending"
+          ? submittedDate
+          : `${submittedDate} · Completed`
+        : null,
       dimmed: isApproved,
     },
     head,

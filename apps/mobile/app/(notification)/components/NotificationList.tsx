@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useToast } from 'heroui-native'
-import { getRelativeTime } from '@repo/utils'
+import { getNotificationPreview, getRelativeTime } from '@repo/utils'
 
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
@@ -76,6 +76,7 @@ export default function NotificationList({ filter }: NotificationListProps) {
           title={n.title}
           type={n.type as NotificationCardType}
           message={n.message}
+          preview={getNotificationPreview(n.data) ?? undefined}
           date={getRelativeTime(new Date(n.created_at))}
           unread={!n.is_read}
           onPress={() => {

@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
+import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
+import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import { createClient } from "@repo/supabase/server";
 
 import { canViewPassport } from "@/lib/passport-access";
@@ -71,6 +73,7 @@ export default async function DashboardLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <DraggableNotificationBell activePortal="landlord" />
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
@@ -85,6 +88,9 @@ export default async function DashboardLayout({
       />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="landlord" />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotificationsOverlay activePortal="landlord" />
       </Suspense>
     </div>
   );

@@ -386,8 +386,11 @@ export default function ConversationView({
       className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card ${className}`}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Header */}
-      <div className="p-3 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
+      {/* Header. `data-fab-dock` parks the floating notifications bell in the
+          empty right end of this row on the messages route — pinned and never
+          draggable, so it cannot cover the thread; `data-fab-clearance` still
+          keeps it off this row on routes that offer no dock. */}
+      <div data-fab-clearance="conversation-header" data-fab-dock="conversation-header" className="p-3 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
         {onBack && (
           <button
             type="button"
