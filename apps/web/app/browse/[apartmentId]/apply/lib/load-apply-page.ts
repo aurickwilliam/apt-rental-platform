@@ -22,8 +22,9 @@ export interface ApplyPageData {
 
 /**
  * Shared loader for both apply routes (`/browse/…/apply` and
- * `/tenant/browse/…/apply`). Signed-out visitors go to sign-in and accounts
- * without the tenant role to browse. Returns null when the listing is gone.
+ * `/tenant/browse/…/apply`). Signed-out visitors go to tenant account
+ * creation and accounts without the tenant role to browse. Returns null when
+ * the listing is gone.
  * The Passport itself loads on the client (linking the verified ID is a
  * write), and readiness is recomputed there as the form changes.
  */
@@ -32,7 +33,7 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/sign-in");
+  if (!user) redirect("/sign-up?role=tenant");
 
   const { data: profile, error: profileError } = await supabase
     .from("users")

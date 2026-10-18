@@ -176,13 +176,6 @@ export const PAYMENT_METHODS = [
   { key: "Cash", label: "Cash", icon: "cash" as const },
 ] as const;
 
-export const SAVED_PAYMENT_METHODS = [
-  { id: "saved-gcash", method: "GCash" as const, label: "GCash", src: "/payment-logos/gcash-logo.png" },
-  { id: "saved-maya", method: "Maya" as const, label: "Maya", src: "/payment-logos/maya-logo.png" },
-  { id: "saved-visa", method: "Debit/Credit-Card" as const, label: "Visa •• 4242", src: "/payment-logos/visa-logo.png" },
-  { id: "saved-mc", method: "Debit/Credit-Card" as const, label: "Mastercard •• 1234", src: "/payment-logos/mastercard-logo.png" },
-];
-
 // ---------------------------------------------------------------------------
 // UI-only checkout simulation (mobile parity, no backend).
 // Mirrors the mobile paymongo edge-function mock contract:

@@ -1,4 +1,5 @@
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { IconShieldCheck } from "@tabler/icons-react";
 import { verificationChipColor } from "../../users/lib/user-display";
 import { submittedFormatter } from "../lib/verification-display";
@@ -31,10 +32,9 @@ export default function VerificationStatusCard({
           Verification status
         </h2>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Chip
+          <StatusChip
             size="md"
-            variant="soft"
-            color={
+            tone={
               status === "approved" || status === "verified"
                 ? "success"
                 : verificationChipColor(status)
@@ -42,15 +42,14 @@ export default function VerificationStatusCard({
             className="capitalize"
           >
             Submission: {status}
-          </Chip>
-          <Chip
+          </StatusChip>
+          <StatusChip
             size="md"
-            variant="soft"
-            color={verificationChipColor(subjectStatus)}
+            tone={verificationChipColor(subjectStatus)}
             className="capitalize"
           >
             {subjectLabel}: {subjectStatus}
-          </Chip>
+          </StatusChip>
         </div>
         <dl className="mt-4 grid gap-4">
           <InfoField

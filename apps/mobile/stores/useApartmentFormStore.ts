@@ -1,5 +1,7 @@
 import { create } from 'zustand'
+import type { DocumentPickerAsset } from 'expo-document-picker'
 import { ImagePickerAsset } from 'expo-image-picker'
+import { toggleAmenitySelection } from '@repo/constants'
 
 export interface ApartmentFormData {
   // Step 1
@@ -27,13 +29,16 @@ export interface ApartmentFormData {
 
   monthlyRent: string
   rentDueDay: string
-  securityDeposit: string
-  advanceRent: string
-  leaseAgreement: string
+  securityDepositMonths: number
+  advanceRentMonths: number
+  leaseAgreement: DocumentPickerAsset | null
 
   // Step 4
   description: string
   amenities: string[]
+
+  /** Furthest step reached with every earlier step passed (progress bar jumps). */
+  furthestStep: number
 }
 
 interface ApartmentFormActions {
@@ -44,6 +49,7 @@ interface ApartmentFormActions {
   setField: <K extends keyof ApartmentFormData>(key: K, value: ApartmentFormData[K]) => void
   setDescription: (description: string) => void
   toggleAmenity: (amenity: string) => void
+  reachStep: (step: number) => void
   reset: () => void
 }
 
@@ -55,7 +61,8 @@ const initialState: ApartmentFormData = {
   streetName: '',
   barangay: '',
   city: '',
-  province: '',
+  // Listings are limited to CAMANAVA, Metro Manila.
+  province: 'Metro Manila',
   postalCode: '',
   mapConfirmed: false,
   furnishingType: '',
@@ -69,11 +76,12 @@ const initialState: ApartmentFormData = {
   leaseDuration: '',
   monthlyRent: '',
   rentDueDay: '5',
-  securityDeposit: '',
-  advanceRent: '',
-  leaseAgreement: '',
+  securityDepositMonths: 0,
+  advanceRentMonths: 0,
+  leaseAgreement: null,
   description: '', 
   amenities: [],
+  furthestStep: 1,
 }
 
 export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormActions>((set) => ({
@@ -92,10 +100,12 @@ export const useApartmentFormStore = create<ApartmentFormData & ApartmentFormAct
 
   toggleAmenity: (amenity) =>
     set((state) => ({
-      amenities: state.amenities.includes(amenity)
-        ? state.amenities.filter((a) => a !== amenity)
-        : [...state.amenities, amenity],
+      // Picking an amenity turns off any it contradicts (e.g. No Cooking vs Kitchen).
+      amenities: toggleAmenitySelection(state.amenities, amenity),
     })),
+
+  reachStep: (step) =>
+    set((state) => (step > state.furthestStep ? { furthestStep: step } : state)),
 
   reset: () => set(initialState),
 }))

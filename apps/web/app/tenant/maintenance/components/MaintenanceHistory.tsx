@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Chip, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
+import { Button, Card, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconTool as Wrench } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
@@ -10,17 +12,17 @@ import {
   type MaintenanceRequest,
 } from "@/hooks/use-maintenance-request-history";
 
-const URGENCY_STYLE: Record<string, { bg: string; text: string }> = {
-  low: { bg: "#E5E7EB", text: "#6C757D" },
-  medium: { bg: "#FFF8E1", text: "#FACC15" },
-  high: { bg: "#FDA4AF", text: "#E50914" },
+// Same tones as mobile's useMaintenanceRequestUrgencyStyles.
+const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
+  low: { tone: "neutral" },
+  medium: { tone: "warning" },
+  high: { tone: "danger" },
 };
 
-function statusChipColor(status: MaintenanceRequest["status"]): "warning" | "success" | "default" | "accent" {
-  if (status === "Pending") return "warning";
-  if (status === "In Progress") return "accent";
+function statusChipColor(status: MaintenanceRequest["status"]): StatusTone {
+  if (status === "Pending" || status === "In Progress") return "warning";
   if (status === "Resolved") return "success";
-  return "default";
+  return "danger";
 }
 
 function categoryLabel(value: string) {
@@ -63,7 +65,7 @@ export default function MaintenanceHistory({
   };
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm">
       <Card.Content className="p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
@@ -71,7 +73,7 @@ export default function MaintenanceHistory({
             Your requests
           </h2>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="font-inter text-sm text-muted-foreground mb-4">
           Track status and cancel open requests. Photos load via short-lived signed URLs.
         </p>
 
@@ -80,9 +82,9 @@ export default function MaintenanceHistory({
             <Spinner color="accent" />
           </div>
         ) : error ? (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="font-inter text-sm text-red-600">{error}</p>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
+          <p className="font-inter text-sm text-muted-foreground text-center py-6">
             No maintenance requests yet.
           </p>
         ) : (
@@ -97,29 +99,29 @@ export default function MaintenanceHistory({
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-card-foreground truncate">
+                      <p className="font-nunito text-sm font-semibold text-card-foreground truncate">
                         {request.title}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="font-inter text-xs text-muted-foreground mt-0.5">
                         {categoryLabel(request.category)} ·{" "}
                         {new Date(request.created_at).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <Chip
-                        variant="soft"
+                      <StatusChip
                         size="sm"
-                        style={{ backgroundColor: urgencyStyle.bg, color: urgencyStyle.text }}
+                        tone={urgencyStyle.tone}
+                        className="font-nunito font-semibold"
                       >
                         {request.urgency}
-                      </Chip>
-                      <Chip variant="soft" size="sm" color={statusChipColor(request.status)}>
+                      </StatusChip>
+                      <StatusChip size="sm" tone={statusChipColor(request.status)} className="font-nunito font-semibold">
                         {request.status}
-                      </Chip>
+                      </StatusChip>
                     </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">
+                  <p className="font-inter text-sm text-muted-foreground mt-2 whitespace-pre-line">
                     {request.message}
                   </p>
 
@@ -146,11 +148,11 @@ export default function MaintenanceHistory({
 
                   {request.resolved_at && (
                     <div className="mt-3 rounded-lg bg-muted p-3">
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-inter text-xs text-muted-foreground">
                         Resolved {new Date(request.resolved_at).toLocaleString()}
                       </p>
                       {request.resolution_notes && (
-                        <p className="text-sm text-card-foreground mt-1">
+                        <p className="font-inter text-sm text-card-foreground mt-1">
                           {request.resolution_notes}
                         </p>
                       )}
@@ -162,7 +164,7 @@ export default function MaintenanceHistory({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-fit"
+                        className="w-fit font-nunito font-semibold"
                         isDisabled={cancellingId === request.id}
                         onPress={() => openCancel(request.id)}
                       >
@@ -184,7 +186,7 @@ export default function MaintenanceHistory({
                   <Modal.Heading>Cancel maintenance request</Modal.Heading>
                 </Modal.Header>
                 <Modal.Body>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-inter text-sm text-muted-foreground">
                     Are you sure you want to cancel this request? This cannot be undone.
                   </p>
                 </Modal.Body>

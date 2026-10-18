@@ -3,7 +3,9 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Card, Chip, Spinner, useOverlayState } from "@heroui/react";
+import { Button, Card, Chip, useOverlayState } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
+import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import type { PaymentHistoryFilter } from "../types";
 import type { PaymentRecord } from "@/service/paymentService";
@@ -11,6 +13,7 @@ import { formatPesoDisplay, methodLabel, paymentStatusLabel, periodMonthLabel } 
 import { usePayment, usePayments } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
 import PaymentHistoryFilters from "../components/PaymentHistoryFilters";
+import PaymentHistorySkeleton from "../components/PaymentHistorySkeleton";
 import ReceiptModal from "../components/ReceiptModal";
 
 function toYear(payment: PaymentRecord): string {
@@ -38,7 +41,7 @@ function SectionHeader({ year, currentYear }: { year: string; currentYear: strin
 
 function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
   const status = paymentStatusLabel(payment.status);
-  const color: "success" | "warning" | "danger" | "default" =
+  const color: StatusTone =
     status === "Paid" ? "success" : status === "Pending" ? "warning" : status === "Failed" ? "danger" : "danger";
 
   return (
@@ -55,9 +58,9 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
               <span className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(payment.amount ?? 0)}</span>
-              <Chip size="sm" variant="soft" color={color} className="text-[11px]">
+              <StatusChip size="sm" tone={color} className="text-[11px]">
                 {status}
-              </Chip>
+              </StatusChip>
             </div>
           </div>
         </Card.Content>
@@ -122,12 +125,7 @@ function HistoryContent() {
   }, [filtered, filters.sort]);
 
   if (tenancyLoading || paymentsQuery.loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment history…</p>
-      </div>
-    );
+    return <PaymentHistorySkeleton />;
   }
 
   if (tenancyError || paymentsQuery.error || !tenancy) {
@@ -252,14 +250,7 @@ function HistoryContent() {
 
 export default function TenantPaymentHistoryPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center px-5">
-          <Spinner size="lg" color="current" className="text-primary" />
-          <p className="text-zinc-500 mt-4 text-base font-inter text-center">Loading payment history…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<PaymentHistorySkeleton />}>
       <HistoryContent />
     </Suspense>
   );

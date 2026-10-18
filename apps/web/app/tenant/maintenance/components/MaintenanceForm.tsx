@@ -17,7 +17,7 @@ import {
   ToggleButtonGroup,
   toast,
 } from "@heroui/react";
-import { IconUpload as UploadCloud, IconX as X, IconPhoto as ImageIcon } from "@tabler/icons-react";
+import { IconUpload as UploadCloud, IconX as X, IconPhoto as ImageIcon, IconCheck as Check } from "@tabler/icons-react";
 import { CATEGORIES, FORM_LIMITS } from "../data/maintenance-data";
 import { useSubmitMaintenanceRequest } from "@/hooks/use-submit-maintenance-request";
 import type { MaintenanceUrgency } from "@/service/maintenanceService";
@@ -27,11 +27,11 @@ const URGENCY_LEVELS: {
   label: string;
   bg: string;
   text: string;
-  ring: string;
+  solidBg: string;
 }[] = [
-  { id: "low", label: "Low", bg: "#E5E7EB", text: "#6C757D", ring: "#6C757D" },
-  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#FACC15", ring: "#FACC15" },
-  { id: "high", label: "High", bg: "#FDA4AF", text: "#E50914", ring: "#E50914" },
+  { id: "low", label: "Low", bg: "#E5E7EB", text: "#475569", solidBg: "#475569" },
+  { id: "medium", label: "Medium", bg: "#FFF8E1", text: "#92400E", solidBg: "#92400E" },
+  { id: "high", label: "High", bg: "#FDA4AF", text: "#991B1B", solidBg: "#991B1B" },
 ];
 
 const MAX_FILE_SIZE_BYTES = FORM_LIMITS.maxFileSizeMB * 1024 * 1024;
@@ -159,14 +159,14 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
   };
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm font-nunito">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm">
       <Card.Content className="p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <p className="text-xs font-nunito font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <p className="text-lg font-nunito font-semibold text-card-foreground mb-1">
             Maintenance Details
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="font-inter text-base text-card-foreground">
             Tell us what&apos;s going on and we&apos;ll pass it along to your landlord.
           </p>
         </div>
@@ -185,8 +185,8 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-1.5">
             Issue Title
           </Label>
-          <Input placeholder="Enter a short title for the issue..." />
-          <FieldError>{errors.title}</FieldError>
+          <Input placeholder="Enter a short title for the issue..." className="font-inter" />
+          <FieldError className="font-inter">{errors.title}</FieldError>
         </TextField>
 
         {/* Issue Category */}
@@ -205,7 +205,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
             Issue Category
           </Label>
           <ComboBox.InputGroup>
-            <Input placeholder="Select a category..." />
+            <Input placeholder="Select a category..." className="font-inter" />
             <ComboBox.Trigger />
           </ComboBox.InputGroup>
           <ComboBox.Popover>
@@ -218,7 +218,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
               ))}
             </ListBox>
           </ComboBox.Popover>
-          <FieldError>{errors.category}</FieldError>
+          <FieldError className="font-inter">{errors.category}</FieldError>
         </ComboBox>
 
         {/* Issue Description */}
@@ -238,15 +238,15 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           <TextArea
             rows={5}
             placeholder="Describe the issue in detail..."
-            className="resize-none"
+            className="resize-none font-inter"
           />
-          <FieldError>{errors.description}</FieldError>
+          <FieldError className="font-inter">{errors.description}</FieldError>
         </TextField>
 
         {/* Urgency */}
         <div>
           <Label className="block text-sm font-nunito font-semibold text-card-foreground mb-2">
-            How urgent is this issue? <span className="text-primary">*</span>
+            How urgent is this issue? <span className="text-danger">*</span>
           </Label>
           <ToggleButtonGroup
             aria-label="How urgent is this issue?"
@@ -260,22 +260,28 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
             }}
             className="flex flex-wrap gap-2"
           >
-            {URGENCY_LEVELS.map((level) => (
-              <ToggleButton
-                key={level.id}
-                id={level.id}
-                className="rounded-full px-4 py-1.5 text-sm font-nunito font-semibold transition-all"
-                style={({ isSelected }) => ({
-                  backgroundColor: level.bg,
-                  color: level.text,
-                  boxShadow: isSelected ? `0 0 0 2px ${level.ring}` : "none",
-                })}
-              >
-                {level.label}
-              </ToggleButton>
-            ))}
+            {URGENCY_LEVELS.map((level) => {
+              const selected = urgency === level.id;
+              return (
+                <ToggleButton
+                  key={level.id}
+                  id={level.id}
+                  className="rounded-full px-4 py-1.5 text-sm font-nunito font-semibold transition-all"
+                  style={{
+                    backgroundColor: selected ? level.solidBg : level.bg,
+                    color: selected ? "#FFFFFF" : level.text,
+                    boxShadow: "none",
+                  }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    {selected && <Check size={14} aria-hidden="true" />}
+                    {level.label}
+                  </span>
+                </ToggleButton>
+              );
+            })}
           </ToggleButtonGroup>
-          {errors.urgency && <p className="text-xs text-danger mt-1">{errors.urgency}</p>}
+          {errors.urgency && <p className="font-inter text-xs text-danger mt-1">{errors.urgency}</p>}
         </div>
 
         {/* Add Photos */}
@@ -294,7 +300,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            className="w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 font-inter text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
@@ -305,7 +311,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
               {files.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-card pl-2.5 pr-1.5 py-1.5 text-xs text-muted-foreground"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-card pl-2.5 pr-1.5 py-1.5 font-inter text-xs text-muted-foreground"
                 >
                   <ImageIcon size={14} className="text-muted-foreground shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
@@ -321,11 +327,11 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
               ))}
             </ul>
           )}
-          {fileError && <p className="text-xs text-danger mt-2">{fileError}</p>}
+          {fileError && <p className="font-inter text-xs text-danger mt-2">{fileError}</p>}
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="w-full rounded-full font-nunito mt-2" isDisabled={isSubmitting}>
+        <Button type="submit" className="h-12 w-full rounded-full font-nunito text-base font-bold mt-2" isDisabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Submit Request"}
         </Button>
       </form>

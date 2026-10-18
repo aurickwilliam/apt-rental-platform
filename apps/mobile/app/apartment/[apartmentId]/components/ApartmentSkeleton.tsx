@@ -9,7 +9,7 @@ import { APARTMENT_HERO_HEIGHT } from "./sections/ApartmentHeroSection";
 
 const FLOATING_BUTTON_ROW_TOP_OFFSET = 8;
 
-// Icon + title row used by every section card (mirrors SectionHeader).
+// Icon + title row used by each flat section (mirrors SectionHeader).
 function HeaderRow({ titleWidth }: { titleWidth: string }) {
   return (
     <View className="flex-row items-center gap-2">
@@ -19,17 +19,19 @@ function HeaderRow({ titleWidth }: { titleWidth: string }) {
   );
 }
 
-// Same shell as SectionCard.
+// Same opt-in card treatment as SectionCard.
 function CardShell({
   children,
   className = "",
+  appearance = "plain",
 }: {
   children: ReactNode;
   className?: string;
+  appearance?: "plain" | "card";
 }) {
   return (
     <View
-      className={`mx-5 bg-surface rounded-3xl border border-border ${className}`}
+      className={`mx-5 ${appearance === "card" ? "bg-surface rounded-3xl border border-border p-5" : "border-b border-border"} ${className}`}
     >
       {children}
     </View>
@@ -80,22 +82,27 @@ export default function ApartmentSkeleton() {
             {/* Detail chips */}
             <View className="px-5 flex-row flex-wrap">
               {[0, 1, 2, 3].map((chip) => (
-                <View key={chip} className="w-1/2 pr-2 mb-2">
-                  <SkeletonGroup.Item className="h-13 w-full rounded-2xl" />
+                <View key={chip} className={`w-1/2 ${chip % 2 === 0 ? 'pr-1.5' : 'pl-1.5'} ${chip >= 2 ? 'pt-3' : ''}`}>
+                  <View className="flex-row items-center gap-2 p-3 bg-surface rounded-2xl border border-border">
+                    <SkeletonGroup.Item className="size-6 rounded-md" />
+                    <SkeletonGroup.Item className="h-4 flex-1 rounded-md" />
+                  </View>
                 </View>
               ))}
             </View>
 
             {/* Description */}
-            <CardShell className="p-5 gap-3">
-              <HeaderRow titleWidth="w-3/4" />
-              <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
-              <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
-              <SkeletonGroup.Item className="h-4 w-2/3 rounded-xl" />
-            </CardShell>
+            <View className="gap-3">
+              <View className="px-5"><HeaderRow titleWidth="w-3/4" /></View>
+              <CardShell appearance="card" className="gap-3">
+                <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
+                <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
+                <SkeletonGroup.Item className="h-4 w-2/3 rounded-xl" />
+              </CardShell>
+            </View>
 
             {/* Perks */}
-            <CardShell className="p-5 gap-3">
+            <CardShell className="py-5 gap-3">
               <HeaderRow titleWidth="w-1/2" />
               <SkeletonGroup.Item className="h-4 w-3/4 rounded-xl" />
               <View className="flex-row flex-wrap mt-2">
@@ -111,15 +118,15 @@ export default function ApartmentSkeleton() {
             </CardShell>
 
             {/* Map */}
-            <CardShell>
-              <View className="p-5 pb-3">
+            <CardShell className="py-5">
+              <View className="pb-3">
                 <HeaderRow titleWidth="w-1/3" />
               </View>
-              <SkeletonGroup.Item className="h-64 mx-2 mb-2 rounded-2xl" />
+              <SkeletonGroup.Item className="h-64 rounded-2xl" />
             </CardShell>
 
             {/* Landlord */}
-            <CardShell className="p-4 flex-row items-center gap-3">
+            <CardShell appearance="card" className="flex-row items-center gap-3">
               <SkeletonGroup.Item className="size-12 rounded-full" />
               <View className="flex-1 gap-2">
                 <SkeletonGroup.Item className="h-5 w-1/2 rounded-xl" />
@@ -129,7 +136,7 @@ export default function ApartmentSkeleton() {
             </CardShell>
 
             {/* Lease agreement */}
-            <CardShell className="p-5 gap-3">
+            <CardShell className="py-5 gap-3">
               <HeaderRow titleWidth="w-2/3" />
               <SkeletonGroup.Item className="h-4 w-full rounded-xl" />
               <SkeletonGroup.Item className="h-4 w-1/2 rounded-xl" />

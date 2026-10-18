@@ -1,8 +1,9 @@
+import type { StatusTone } from "@/lib/status-tone";
 import type { DisplayStatus } from "@/hooks/use-landlord-applications";
 
 export type { DisplayStatus };
 
-export function statusChipColor(s: DisplayStatus): "warning" | "success" | "danger" | "default" {
+export function statusChipColor(s: DisplayStatus): StatusTone {
   switch (s) {
     case "Applied":
       return "warning";
@@ -11,6 +12,6 @@ export function statusChipColor(s: DisplayStatus): "warning" | "success" | "dang
     case "Rejected":
       return "danger";
     case "Cancelled":
-      return "default";
+      return "danger";
   }
 }

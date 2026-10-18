@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/lib/status-tone";
 import { IconClock as Clock, IconCircleCheck as CheckCircle, IconCircleX as XCircle } from "@tabler/icons-react";
 import type { Icon as LucideIcon } from "@tabler/icons-react";
 
@@ -7,8 +8,7 @@ export type StatusStyle = {
   label: string;
   description: string;
   Icon: LucideIcon;
-  chipColor: "warning" | "success" | "danger" | "default";
-  iconColor: string;
+  chipColor: StatusTone;
 };
 
 export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyle {
@@ -19,7 +19,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Your application is being reviewed by the landlord. We'll notify you once there's an update.",
         Icon: Clock,
         chipColor: "warning",
-        iconColor: "#FACC15",
       };
     case "approved":
       return {
@@ -27,7 +26,6 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Your application has been approved! The landlord will reach out to finalize your lease.",
         Icon: CheckCircle,
         chipColor: "success",
-        iconColor: "#22C55E",
       };
     case "rejected":
       return {
@@ -35,31 +33,27 @@ export function getApplicationStatusStyle(status: ApplicationStatus): StatusStyl
         description: "Unfortunately, your application was not approved this time.",
         Icon: XCircle,
         chipColor: "danger",
-        iconColor: "#E50914",
       };
     case "cancelled":
       return {
         label: "Cancelled",
         description: "Your application has been cancelled.",
         Icon: XCircle,
-        chipColor: "default",
-        iconColor: "#9CA3AF",
+        chipColor: "danger",
       };
     case "closed":
       return {
         label: "Closed",
         description: "This apartment has already been leased to another applicant, so this application is now closed.",
         Icon: XCircle,
-        chipColor: "default",
-        iconColor: "#9CA3AF",
+        chipColor: "neutral",
       };
     default:
       return {
         label: "Unknown",
         description: "",
         Icon: XCircle,
-        chipColor: "default",
-        iconColor: "#9CA3AF",
+        chipColor: "neutral",
       };
   }
 }

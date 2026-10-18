@@ -760,6 +760,38 @@ export type Database = {
           },
         ]
       }
+      payment_method_preferences: {
+        Row: {
+          created_at: string
+          default_method: string | null
+          saved_methods: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_method?: string | null
+          saved_methods?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_method?: string | null
+          saved_methods?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_method_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment: {
         Row: {
           amount: number | null
@@ -1095,7 +1127,11 @@ export type Database = {
           notes: string | null
           rent_due_day: number
           security_deposit: number | null
+          signed_lease_path: string | null
+          signed_lease_uploaded_at: string | null
+          signed_lease_uploaded_by: string | null
           status: string
+          tenant_acknowledged_at: string | null
           tenant_id: string
           updated_at: string | null
         }
@@ -1111,7 +1147,11 @@ export type Database = {
           notes?: string | null
           rent_due_day?: number
           security_deposit?: number | null
+          signed_lease_path?: string | null
+          signed_lease_uploaded_at?: string | null
+          signed_lease_uploaded_by?: string | null
           status?: string
+          tenant_acknowledged_at?: string | null
           tenant_id: string
           updated_at?: string | null
         }
@@ -1127,7 +1167,11 @@ export type Database = {
           notes?: string | null
           rent_due_day?: number
           security_deposit?: number | null
+          signed_lease_path?: string | null
+          signed_lease_uploaded_at?: string | null
+          signed_lease_uploaded_by?: string | null
           status?: string
+          tenant_acknowledged_at?: string | null
           tenant_id?: string
           updated_at?: string | null
         }
@@ -1142,6 +1186,13 @@ export type Database = {
           {
             foreignKeyName: "tenancies_landlord_id_fkey"
             columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancies_signed_lease_uploaded_by_fkey"
+            columns: ["signed_lease_uploaded_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1555,6 +1606,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acknowledge_signed_lease: {
+        Args: { p_tenancy_id: string }
+        Returns: undefined
+      }
       admin_resolve_user_report: {
         Args: { p_note: string; p_report_id: string; p_status: string }
         Returns: undefined
@@ -1779,6 +1834,10 @@ export type Database = {
         Returns: undefined
       }
       set_onboarding_role: { Args: { requested_role: string }; Returns: string }
+      set_tenancy_signed_lease: {
+        Args: { p_path: string; p_tenancy_id: string }
+        Returns: undefined
+      }
       sync_my_profile_email: { Args: never; Returns: undefined }
       unblock_user: { Args: { p_user_id: string }; Returns: undefined }
       validate_camanava_location: {

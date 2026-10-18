@@ -11,6 +11,7 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof CheckCircle2; color: str
   Pending: { icon: AlertCircle, color: "text-amber-500", title: "Payment Pending", footer: "Awaiting payment confirmation.", badge: "Pending" },
   Failed: { icon: XCircle, color: "text-red-600", title: "Payment Failed", footer: "Payment could not be completed.", badge: "Failed" },
   Unpaid: { icon: XCircle, color: "text-red-600", title: "Unpaid", footer: "Payment is still required.", badge: "Unpaid" },
+  Rejected: { icon: XCircle, color: "text-red-600", title: "Cash Payment Rejected", footer: "You may submit another cash payment request.", badge: "Rejected" },
 };
 
 interface ReceiptCardProps {

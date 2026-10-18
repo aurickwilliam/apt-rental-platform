@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Chip, Table } from "@heroui/react";
+import { Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
 import {
   reportDateFormatter,
@@ -59,9 +60,9 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
                     )}
                   </Table.Cell>
                   <Table.Cell>
-                    <Chip size="sm" variant="soft" color={reportStatusColor(report.status)} className="capitalize">
+                    <StatusChip size="sm" tone={reportStatusColor(report.status)} className="capitalize">
                       {report.status}
-                    </Chip>
+                    </StatusChip>
                   </Table.Cell>
                   <Table.Cell className="whitespace-nowrap text-sm text-muted-foreground">
                     {reportDateFormatter.format(new Date(report.created_at))}

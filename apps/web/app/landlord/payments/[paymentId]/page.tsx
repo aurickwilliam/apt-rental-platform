@@ -14,7 +14,9 @@ function ReceiptContent() {
   const paymentId = params.paymentId ?? null;
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const confirmState = useOverlayState({ isOpen: confirmOpen, onOpenChange: setConfirmOpen });
+  const rejectState = useOverlayState({ isOpen: rejectOpen, onOpenChange: setRejectOpen });
 
   const paymentQuery = useLandlordPayment(paymentId);
   const payment = paymentQuery.payment;
@@ -31,6 +33,15 @@ function ReceiptContent() {
     const ok = await confirmMutation.confirm(paymentId);
     if (ok) {
       setConfirmOpen(false);
+      void paymentQuery.refetch();
+    }
+  };
+
+  const handleReject = async () => {
+    if (!paymentId) return;
+    const ok = await confirmMutation.reject(paymentId);
+    if (ok) {
+      setRejectOpen(false);
       void paymentQuery.refetch();
     }
   };
@@ -75,16 +86,28 @@ function ReceiptContent() {
       <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full max-w-xl mx-auto py-6">
         <ReceiptView payment={payment} />
         {isCashPending ? (
-          <Button
-            onPress={() => {
-              confirmMutation.clearError();
-              setConfirmOpen(true);
-            }}
-            isDisabled={confirmMutation.pending}
-            className="bg-white text-primary rounded-full font-nunito"
-          >
-            {confirmMutation.pending ? "Confirming…" : "Mark as Paid"}
-          </Button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button
+              variant="danger"
+              onPress={() => {
+                confirmMutation.clearError();
+                setRejectOpen(true);
+              }}
+              isDisabled={confirmMutation.pending}
+            >
+              Decline
+            </Button>
+            <Button
+              onPress={() => {
+                confirmMutation.clearError();
+                setConfirmOpen(true);
+              }}
+              isDisabled={confirmMutation.pending}
+              className="bg-white text-primary rounded-full font-nunito"
+            >
+              {confirmMutation.pending ? "Confirming…" : "Mark as Paid"}
+            </Button>
+          </div>
         ) : payment.status === "pending" ? (
           <p className="text-white/70 text-sm font-inter text-center">Awaiting payment confirmation.</p>
         ) : null}
@@ -109,6 +132,32 @@ function ReceiptContent() {
                 </Button>
                 <Button size="sm" onPress={() => void handleConfirm()} isDisabled={confirmMutation.pending} className="rounded-full font-nunito">
                   {confirmMutation.pending ? "Confirming…" : "Confirm"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal.Root>
+
+      <Modal.Root state={rejectState}>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="sm">
+            <Modal.Dialog className="rounded-2xl">
+              <Modal.Header className="text-base font-nunito font-semibold">Decline Cash Payment</Modal.Header>
+              <Modal.Body className="space-y-2">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  Decline this cash payment for {periodLabel ?? "this period"}? The tenant will be able to submit another cash payment request.
+                </p>
+                {confirmMutation.error ? (
+                  <p className="text-sm text-red-600">{confirmMutation.error}</p>
+                ) : null}
+              </Modal.Body>
+              <Modal.Footer className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onPress={() => setRejectOpen(false)} className="rounded-full font-nunito">
+                  Cancel
+                </Button>
+                <Button variant="danger" size="sm" onPress={() => void handleReject()} isDisabled={confirmMutation.pending} className="rounded-full font-nunito">
+                  {confirmMutation.pending ? "Declining…" : "Decline"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

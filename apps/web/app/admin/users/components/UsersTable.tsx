@@ -1,4 +1,5 @@
-import { Chip, Table } from "@heroui/react";
+import { Table } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { sortDescriptorFor, sortForColumn } from "@/lib/admin-filters";
 import UserAvatar from "./UserAvatar";
 import {
@@ -83,14 +84,13 @@ export default function UsersTable({
                           <p className="flex items-center gap-2 font-nunito text-sm font-bold">
                             {name}
                             {user.is_suspended ? (
-                              <Chip
+                              <StatusChip
                                 size="sm"
-                                variant="soft"
-                                color="danger"
+                                tone="danger"
                                 className="text-[11px]"
                               >
                                 Suspended
-                              </Chip>
+                              </StatusChip>
                             ) : null}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -103,14 +103,13 @@ export default function UsersTable({
                       {formatRoles(user.roles)}
                     </Table.Cell>
                     <Table.Cell>
-                      <Chip
+                      <StatusChip
                         size="sm"
-                        variant="soft"
-                        color={verificationChipColor(user.account_status)}
+                        tone={verificationChipColor(user.account_status)}
                         className="capitalize"
                       >
                         {user.account_status}
-                      </Chip>
+                      </StatusChip>
                     </Table.Cell>
                     <Table.Cell className="whitespace-nowrap text-sm text-muted-foreground">
                       {joinedFormatter.format(new Date(user.created_at))}

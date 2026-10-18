@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
+import {
+  ADD_APARTMENT_STEP_HREFS,
+  ADD_APARTMENT_STEP_LABELS,
+  ADD_APARTMENT_TOTAL_STEPS,
+} from "constants/addApartmentSteps";
 import DropdownField from "components/inputs/DropdownField";
 import MapViewSwitcher from "@/components/maps/MapViewSwitcher";
 
@@ -16,22 +22,26 @@ import {
   Description,
   Checkbox,
   ControlField,
+  Separator,
 } from "heroui-native";
 
 import {
   APARTMENT_TYPES,
-  PROVINCES,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
   APARTMENT_FLOOR_AREA,
   APARTMENT_ROOM_LIMITS,
-  CITIES,
+  CAMANAVA_CITIES,
+  isCamanavaCity,
+  isCamanavaZipForCity,
+  getBarangaysByCity,
 } from "@repo/constants";
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native';
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
+import { isPinInsideCamanavaCity } from "@/service/apartments/apartmentLocationService";
 
 import { useColors } from "hooks/useTheme";
 
@@ -74,6 +84,8 @@ export default function SecondStep() {
   const { colors } = useColors();
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [checkingPin, setCheckingPin] = useState(false);
+  const furthestStep = useAddApartmentProgress(2);
 
   const {
     name,
@@ -96,9 +108,38 @@ export default function SecondStep() {
     leaseDuration,
   } = useApartmentFormStore();
 
-  const cityOptions: string[] = province
-    ? (CITIES[province as keyof typeof CITIES] ?? [])
-    : [];
+  // An error belongs to the value it was raised for. Once that value changes
+  // (here, or on the map-pin screen through the shared store) it disappears.
+  const fieldValues: Record<keyof FormErrors, string> = {
+    apartmentType,
+    streetName,
+    barangay,
+    city,
+    province,
+    postalCode,
+    floorArea,
+    bathrooms: String(bathrooms),
+    bedrooms: String(bedrooms),
+    maxOccupants: String(maxOccupants),
+    furnishingType,
+    mapConfirmed: `${mapConfirmed}|${latitude}|${longitude}|${city}`,
+    floorLevel: floorLevel ?? "",
+    leaseDuration,
+  };
+  const [errorValues, setErrorValues] = useState(fieldValues);
+  const visibleErrors: FormErrors = Object.fromEntries(
+    Object.entries(errors).filter(
+      ([field, message]) =>
+        message &&
+        errorValues[field as keyof FormErrors] ===
+          fieldValues[field as keyof FormErrors],
+    ),
+  );
+
+  const showErrors = (next: FormErrors) => {
+    setErrors(next);
+    setErrorValues(fieldValues);
+  };
 
   const typeRoomLimits = APARTMENT_ROOM_LIMITS[apartmentType];
   const roomLimits = typeRoomLimits ?? DEFAULT_ROOM_LIMITS;
@@ -196,12 +237,17 @@ export default function SecondStep() {
     if (!apartmentType) errs.apartmentType = "Apartment type is required";
     if (!streetName.trim()) errs.streetName = "Street name is required";
     if (!barangay.trim()) errs.barangay = "Barangay is required";
-    if (!province.trim()) {
-      errs.province = "Province is required";
-    } else if (!city.trim()) {
-      errs.city = "City is required";
+    else if (isCamanavaCity(city) && !getBarangaysByCity(city).includes(barangay))
+      errs.barangay = `Select a barangay of ${city}`;
+    if (province !== "Metro Manila") {
+      errs.province = "Properties can only be listed in Metro Manila";
     }
-    if (!postalCode.trim()) errs.postalCode = "Zip code is required";
+    if (!isCamanavaCity(city)) errs.city = "Select a city within CAMANAVA";
+    if (!postalCode.trim()) {
+      errs.postalCode = "Zip code is required";
+    } else if (isCamanavaCity(city) && !isCamanavaZipForCity(city, postalCode)) {
+      errs.postalCode = `Enter a valid ${city} zip code`;
+    }
     if (!floorArea.trim()) {
       errs.floorArea = "Floor area is required";
     } else {
@@ -260,26 +306,61 @@ export default function SecondStep() {
     return errs;
   };
 
-  const handleNext = () => {
+  // Shows this step's errors; true when it is fine to leave.
+  const checkStep = async (): Promise<boolean> => {
     const validationErrors = validateStep();
 
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+      showErrors(validationErrors);
+      return false;
+    }
+
+    // Same boundary check the database runs on publish, so a wrong pin is
+    // caught here rather than at the last step.
+    if (latitude == null || longitude == null) {
+      showErrors({ mapConfirmed: "Please pin your property location on the map" });
+      return false;
+    }
+    setCheckingPin(true);
+    try {
+      const inside = await isPinInsideCamanavaCity(city, latitude, longitude);
+      if (!inside) {
+        showErrors({ mapConfirmed: `The map pin must be inside ${city}` });
+        return false;
+      }
+    } catch (err) {
+      console.error("CAMANAVA pin check failed", err);
+      showErrors({ mapConfirmed: "We couldn't verify this pin. Please try again" });
+      return false;
+    } finally {
+      setCheckingPin(false);
     }
 
     setErrors({});
-    router.push("/landlord/manage-apartment/add-apartment/third-step");
+    return true;
+  };
+
+  const handleNext = async () => {
+    if (await checkStep()) {
+      router.push("/landlord/manage-apartment/add-apartment/third-step");
+    }
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle={"Basic Info"}
-        nextTitle={"Pricing & Terms"}
         step={2}
-        totalSteps={5}
+        totalSteps={ADD_APARTMENT_TOTAL_STEPS}
+        stepLabels={ADD_APARTMENT_STEP_LABELS}
+        stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={checkStep}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5">
         {/* Name and Type */}
@@ -307,7 +388,7 @@ export default function SecondStep() {
               options={APARTMENT_TYPES}
               bottomSheetLabel={"Select Apartment Type"}
               value={apartmentType}
-              error={errors.apartmentType}
+              error={visibleErrors.apartmentType}
               onSelect={(value) => {
                 setField("apartmentType", value || "");
                 clearError("apartmentType");
@@ -316,7 +397,7 @@ export default function SecondStep() {
           </View>
 
           <View className="flex gap-3 mt-3">
-            <TextField isRequired isInvalid={!!errors.floorArea}>
+            <TextField isRequired isInvalid={!!visibleErrors.floorArea}>
               <Label>Floor Area (sqm):</Label>
               <Input
                 placeholder="Enter floor area"
@@ -331,9 +412,11 @@ export default function SecondStep() {
                 }}
               />
               <Description>
-                {areaLimits ? formatRange(areaLimits.min, areaLimits.max) : ""}
+                {areaLimits
+                  ? `${areaLimits.min} to ${areaLimits.max} sqm for a ${apartmentType.toLowerCase()}`
+                  : "Select a property type first"}
               </Description>
-              {errors.floorArea && <FieldError>{errors.floorArea}</FieldError>}
+              {visibleErrors.floorArea && <FieldError>{visibleErrors.floorArea}</FieldError>}
             </TextField>
 
             <DropdownField
@@ -343,7 +426,7 @@ export default function SecondStep() {
               options={FURNISHED_TYPES}
               bottomSheetLabel={"Select Furnishing Type"}
               value={furnishingType}
-              error={errors.furnishingType}
+              error={visibleErrors.furnishingType}
               onSelect={(value) => {
                 setField("furnishingType", value || "");
                 clearError("furnishingType");
@@ -360,7 +443,7 @@ export default function SecondStep() {
               bottomSheetLabel={"Select Floor Level"}
               value={floorLevel ?? ""}
               disabled={isFloorLevelDisabled}
-              error={errors.floorLevel}
+              error={visibleErrors.floorLevel}
               onSelect={(value) => {
                 setField("floorLevel", value || "");
                 clearError("floorLevel");
@@ -379,7 +462,7 @@ export default function SecondStep() {
               options={LEASE_DURATIONS}
               bottomSheetLabel={"Select Lease Duration"}
               value={leaseDuration}
-              error={errors.leaseDuration}
+              error={visibleErrors.leaseDuration}
               onSelect={(value) => {
                 setField("leaseDuration", value || "");
                 clearError("leaseDuration");
@@ -427,9 +510,9 @@ export default function SecondStep() {
                   </TouchableOpacity>
                 </View>
               </View>
-              {errors.bathrooms && (
+              {visibleErrors.bathrooms && (
                 <Text className="text-danger text-sm font-inter mt-1">
-                  {errors.bathrooms}
+                  {visibleErrors.bathrooms}
                 </Text>
               )}
             </View>
@@ -475,9 +558,9 @@ export default function SecondStep() {
                   </TouchableOpacity>
                 </View>
               </View>
-              {errors.bedrooms && (
+              {visibleErrors.bedrooms && (
                 <Text className="text-danger text-sm font-inter mt-1">
-                  {errors.bedrooms}
+                  {visibleErrors.bedrooms}
                 </Text>
               )}
             </View>
@@ -525,22 +608,69 @@ export default function SecondStep() {
                   </TouchableOpacity>
                 </View>
               </View>
-              {errors.maxOccupants && (
+              {visibleErrors.maxOccupants && (
                 <Text className="text-danger text-sm font-inter mt-1">
-                  {errors.maxOccupants}
+                  {visibleErrors.maxOccupants}
                 </Text>
               )}
             </View>
           )}
         </View>
 
+        <Separator className="my-8" />
+
         {/* Apartment Address */}
-        <View className="flex gap-3 mt-10">
+        <View className="flex gap-3">
           <Text className="text-foreground text-lg font-nunitoSemiBold">
             Apartment Address
           </Text>
 
-          <TextField isRequired isInvalid={!!errors.streetName}>
+          <TextField isDisabled isInvalid={!!visibleErrors.province}>
+            <Label>Province:</Label>
+            <Input value="Metro Manila" editable={false} />
+            <Description>Listings are limited to the CAMANAVA area of Metro Manila.</Description>
+            {visibleErrors.province && <FieldError>{visibleErrors.province}</FieldError>}
+          </TextField>
+
+          <DropdownField
+            label="City:"
+            bottomSheetLabel="Select your city"
+            placeholder="Select CAMANAVA city"
+            options={[...CAMANAVA_CITIES]}
+            value={city}
+            onSelect={(value) => {
+              setField("city", value || "");
+              setField("province", "Metro Manila");
+              if (barangay && !getBarangaysByCity(value || "").includes(barangay)) {
+                setField("barangay", "");
+              }
+              clearError("barangay");
+              clearError("city");
+              clearError("postalCode");
+              clearError("mapConfirmed");
+            }}
+            required
+            error={visibleErrors.city}
+          />
+
+          <DropdownField
+            label="Barangay:"
+            bottomSheetLabel="Select your barangay"
+            placeholder={city ? "Select your barangay" : "Select a city first"}
+            options={getBarangaysByCity(city)}
+            value={barangay}
+            onSelect={(value) => {
+              setField("barangay", value || "");
+              clearError("barangay");
+            }}
+            enableSearch
+            searchPlaceholder="Search barangays..."
+            required
+            disabled={!city}
+            error={visibleErrors.barangay}
+          />
+
+          <TextField isRequired isInvalid={!!visibleErrors.streetName}>
             <Label>Unit No./Street Name:</Label>
             <Input
               placeholder="Enter street name"
@@ -550,95 +680,42 @@ export default function SecondStep() {
                 clearError("streetName");
               }}
             />
-            {errors.streetName && <FieldError>{errors.streetName}</FieldError>}
+            {visibleErrors.streetName && <FieldError>{visibleErrors.streetName}</FieldError>}
           </TextField>
 
-          <TextField isRequired isInvalid={!!errors.barangay}>
-            <Label>Barangay:</Label>
-            <Input
-              placeholder="Enter barangay name"
-              value={barangay}
-              onChangeText={(value) => {
-                setField("barangay", value);
-                clearError("barangay");
-              }}
-            />
-            {errors.barangay && <FieldError>{errors.barangay}</FieldError>}
-          </TextField>
-
-          {/* Province — now above City */}
-          <DropdownField
-            label="Province:"
-            bottomSheetLabel="Select your province"
-            placeholder="Select your province"
-            options={PROVINCES}
-            value={province}
-            onSelect={(value) => {
-              // Clear city if it no longer belongs to the new province
-              const newCities: string[] =
-                CITIES[value as keyof typeof CITIES] ?? [];
-              if (city && !newCities.includes(city)) {
-                setField("city", "");
-                clearError("city");
-              }
-              setField("province", value || "");
-              clearError("province");
-            }}
-            enableSearch
-            searchPlaceholder="Search provinces..."
-            required
-            error={errors.province}
-          />
-
-          {/* City — dependent on province */}
-          <DropdownField
-            label="City:"
-            bottomSheetLabel="Select your city"
-            placeholder={
-              province ? "Select your city" : "Select a province first"
-            }
-            options={cityOptions}
-            value={city}
-            onSelect={(value) => {
-              setField("city", value || "");
-              clearError("city");
-            }}
-            enableSearch
-            searchPlaceholder="Search cities..."
-            required
-            disabled={!province}
-            error={errors.city}
-          />
-
-          <TextField isRequired isInvalid={!!errors.postalCode}>
+          <TextField isRequired isInvalid={!!visibleErrors.postalCode}>
             <Label>Zip Code:</Label>
             <Input
               placeholder="Enter zip code"
               value={postalCode}
               keyboardType="numeric"
+              maxLength={4}
               onChangeText={(value) => {
-                setField("postalCode", value);
+                setField("postalCode", value.replace(/[^0-9]/g, ""));
                 clearError("postalCode");
               }}
             />
-            {errors.postalCode && <FieldError>{errors.postalCode}</FieldError>}
+            {visibleErrors.postalCode && <FieldError>{visibleErrors.postalCode}</FieldError>}
           </TextField>
         </View>
 
+        <Separator className="my-8" />
+
         {/* Apartment Location */}
-        <View className="flex gap-2 mt-10">
+        <View className="flex gap-2">
           <Text className="text-foreground text-lg font-nunitoSemiBold">
-            Apartment Map Location
+            Apartment Location
           </Text>
 
           <Text className="text-muted text-base font-inter">
-            Check if the pin location is correct. Drag the pin to the correct
-            location if needed.
+            Pin your property on the map, inside the city above. Searching an
+            address there can also fill in the fields above; drag the pin to
+            fine-tune.
           </Text>
 
           {/* Map Button */}
           <TouchableOpacity
-            className="rounded-3xl h-52 w-full overflow-hidden"
+            className="rounded-3xl h-52 w-full overflow-hidden border border-border"
             onPress={() =>
               router.push("/landlord/manage-apartment/add-apartment/map-pin")
             }
@@ -692,7 +769,7 @@ export default function SecondStep() {
 
           <ControlField
             isSelected={mapConfirmed}
-            isInvalid={!!errors.mapConfirmed}
+            isInvalid={!!visibleErrors.mapConfirmed}
             onSelectedChange={(selected) => {
               setField("mapConfirmed", selected);
               clearError("mapConfirmed");
@@ -703,9 +780,9 @@ export default function SecondStep() {
               <Checkbox className="mt-0.5" />
             </ControlField.Indicator>
             <View className="flex-1">
-              <Label>I confirm that the pin location is correct</Label>
-              {errors.mapConfirmed && (
-                <FieldError>{errors.mapConfirmed}</FieldError>
+              <Label isRequired>I confirm that the pin location is correct</Label>
+              {visibleErrors.mapConfirmed && (
+                <FieldError>{visibleErrors.mapConfirmed}</FieldError>
               )}
             </View>
           </ControlField>
@@ -716,13 +793,13 @@ export default function SecondStep() {
           <Button
             variant="outline"
             onPress={() => router.back()}
-            className="flex-1"
+            className="flex-1 bg-surface"
           >
             <Button.Label>Back</Button.Label>
           </Button>
 
-          <Button onPress={handleNext} className="flex-1">
-            <Button.Label>Next</Button.Label>
+          <Button onPress={handleNext} className="flex-1" isDisabled={checkingPin}>
+            <Button.Label>{checkingPin ? "Checking pin..." : "Next"}</Button.Label>
           </Button>
         </View>
       </View>

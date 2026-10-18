@@ -1,18 +1,21 @@
 "use client";
 
 import { PERKS } from "../../../components/inputs/perks";
+import type { ReactNode } from "react";
 
 // import { Button } from "@heroui/react";
 
 interface AmenitiesProps {
   apartmentPerks: string[];
+  headingIcon?: ReactNode;
 }
 
-export default function Amenities({ apartmentPerks }: AmenitiesProps) {
+export default function Amenities({ apartmentPerks, headingIcon }: AmenitiesProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium">
+        <h3 className="flex items-center gap-2 text-lg font-medium">
+          {headingIcon}
           Amenities
         </h3>
 

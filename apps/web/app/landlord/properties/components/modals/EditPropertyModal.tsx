@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 
 import {
   Button, 
+  Description,
+  FieldError,
   Input, 
   Label,
   ListBox, 
@@ -16,7 +18,18 @@ import {
 } from "@heroui/react";
 
 import { createBrowserClient } from "@repo/supabase";
+import {
+  ADVANCE_RENT_MONTH_OPTIONS,
+  MIN_MONTHLY_RENT,
+  SECURITY_DEPOSIT_MONTH_OPTIONS,
+  formatPesoDisplay,
+  formatPricingMonths,
+  pricingAmountFromMonths,
+  pricingMonthsFromAmount,
+  validateApartmentPricing,
+} from "@repo/utils";
 import { toNullableNumber } from "@/service/landlordUnitDetailService";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 
 import AmenitiesSelect from "../../../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../../../components/inputs/perks";
@@ -27,6 +40,11 @@ import {
   FLOOR_LEVELS, 
   LEASE_DURATIONS,
   CAMANAVA_CITIES,
+  isCamanavaCity,
+  isCamanavaZipForCity,
+  getBarangaysByCity,
+  MAX_DESCRIPTION_LENGTH,
+  getDescriptionError,
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
@@ -35,6 +53,27 @@ const GoogleMapPicker = dynamic(() => import("../GoogleMapPicker"), { ssr: false
 
 function SectionTitle({ children }: { children: string }) {
   return <p className="text-xs font-medium text-primary uppercase">{children}</p>;
+}
+
+type EditErrorField =
+  | "monthly_rent"
+  | "security_deposit"
+  | "advance_rent"
+  | "street_address"
+  | "barangay"
+  | "city"
+  | "zip_code"
+  | "latitude"
+  | "description";
+
+type EditErrors = Partial<Record<EditErrorField, string>>;
+
+function initialDepositMonths(property: Property): number | null {
+  return pricingMonthsFromAmount(property.monthly_rent, property.security_deposit, SECURITY_DEPOSIT_MONTH_OPTIONS);
+}
+
+function initialAdvanceMonths(property: Property): number | null {
+  return pricingMonthsFromAmount(property.monthly_rent, property.advance_rent, ADVANCE_RENT_MONTH_OPTIONS);
 }
 
 type Props = {
@@ -46,59 +85,158 @@ type Props = {
 
 export default function EditPropertyModal({ isOpen, property, onClose, onSaved }: Props) {
   const [form, setForm] = useState<Partial<Property>>({ ...property });
+  const [depositMonths, setDepositMonths] = useState<number | null>(() => initialDepositMonths(property));
+  const [advanceMonths, setAdvanceMonths] = useState<number | null>(() => initialAdvanceMonths(property));
+  const [errors, setErrors] = useState<EditErrors>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const resetForm = () => {
+    setForm({ ...property });
+    setDepositMonths(initialDepositMonths(property));
+    setAdvanceMonths(initialAdvanceMonths(property));
+    setErrors({});
+    setSaveError(null);
+  };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setForm({ ...property });
+      resetForm();
       onClose();
     }
   };
 
+  const clearError = (field: EditErrorField) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
   const updateForm = <K extends keyof Property>(key: K, value: Property[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    clearError(key as EditErrorField);
+  };
+
+  const monthlyRent = form.monthly_rent ?? 0;
+  // Listings priced before the shared rule keep their amounts until the
+  // landlord changes the rent or picks new options.
+  const pricingChanged =
+    monthlyRent !== property.monthly_rent ||
+    depositMonths !== initialDepositMonths(property) ||
+    advanceMonths !== initialAdvanceMonths(property);
+
+  const validate = (): EditErrors => {
+    const next: EditErrors = {};
+
+    if (pricingChanged) {
+      const pricingErrors = validateApartmentPricing({
+        monthlyRent,
+        securityDepositMonths: depositMonths,
+        advanceRentMonths: advanceMonths,
+      });
+      if (pricingErrors.monthlyRent) next.monthly_rent = pricingErrors.monthlyRent;
+      if (pricingErrors.securityDepositMonths) next.security_deposit = pricingErrors.securityDepositMonths;
+      if (pricingErrors.advanceRentMonths) next.advance_rent = pricingErrors.advanceRentMonths;
+    }
+
+    const city = form.city ?? "";
+    const descriptionError = getDescriptionError(form.description ?? "");
+    if (descriptionError) next.description = descriptionError;
+    if (!form.street_address?.trim()) next.street_address = "Street address is required.";
+    if (!form.barangay?.trim()) next.barangay = "Barangay is required.";
+    if (!isCamanavaCity(city)) next.city = "Select a city within CAMANAVA.";
+    if (form.zip_code == null) {
+      next.zip_code = "Zip code is required.";
+    } else if (isCamanavaCity(city) && !isCamanavaZipForCity(city, String(form.zip_code))) {
+      next.zip_code = `Enter a valid ${city} zip code.`;
+    }
+    if (form.latitude == null || form.longitude == null) {
+      next.latitude = "Please pin your property location on the map.";
+    }
+
+    return next;
+  };
+
+  const validatePinLocation = async (): Promise<string | null> => {
+    const supabase = createBrowserClient();
+    const { data, error } = await supabase.rpc("validate_camanava_location", {
+      p_city: form.city!,
+      p_latitude: form.latitude!,
+      p_longitude: form.longitude!,
+    });
+
+    if (error) {
+      console.error(error);
+      return "We couldn't verify this pin. Please try again.";
+    }
+    return data ? null : `The map pin must be inside the selected CAMANAVA city (${form.city}).`;
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    const supabase = createBrowserClient();
-
-    const { error } = await supabase
-      .from("apartments")
-      .update({
-        name: form.name ?? undefined,
-        description: form.description ?? undefined,
-        monthly_rent: form.monthly_rent,
-        // Nullable numerics: empty/NaN coerce to null (never "" or NaN).
-        security_deposit: form.security_deposit ?? null,
-        advance_rent: form.advance_rent ?? null,
-        type: form.type ?? undefined,
-        street_address: form.street_address ?? undefined,
-        barangay: form.barangay ?? undefined,
-        city: form.city ?? undefined,
-        province: form.province ?? undefined,
-        zip_code: form.zip_code ?? null,
-        // Non-nullable in DB: fall back to the stored value when cleared.
-        no_bedrooms: form.no_bedrooms ?? property.no_bedrooms ?? undefined,
-        no_bathrooms: form.no_bathrooms ?? property.no_bathrooms ?? undefined,
-        area_sqm: form.area_sqm ?? property.area_sqm ?? undefined,
-        max_occupants: form.max_occupants ?? null,
-        furnished_type: form.furnished_type ?? undefined,
-        floor_level: form.floor_level ?? undefined,
-        lease_duration: form.lease_duration ?? undefined,
-        latitude: form.latitude ?? null,
-        longitude: form.longitude ?? null,
-        amenities: form.amenities ?? undefined,
-      })
-      .eq("id", property.id);
-
-    if (!error) {
-      const updated = { ...property, ...form } as Property;
-      onSaved(updated);
-    } else {
-      alert(error.message);
+    setSaveError(null);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
-    setSaving(false);
+
+    setSaving(true);
+    try {
+      const pinError = await validatePinLocation();
+      if (pinError) {
+        setErrors({ latitude: pinError });
+        return;
+      }
+
+      const pricing = pricingChanged
+        ? {
+            monthly_rent: monthlyRent,
+            security_deposit: pricingAmountFromMonths(monthlyRent, depositMonths ?? 0),
+            advance_rent: pricingAmountFromMonths(monthlyRent, advanceMonths ?? 0),
+          }
+        : {};
+
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("apartments")
+        .update({
+          name: form.name ?? undefined,
+          description: form.description ?? undefined,
+          ...pricing,
+          type: form.type ?? undefined,
+          street_address: form.street_address ?? undefined,
+          barangay: form.barangay ?? undefined,
+          city: form.city ?? undefined,
+          province: "Metro Manila",
+          zip_code: form.zip_code ?? null,
+          // Non-nullable in DB: fall back to the stored value when cleared.
+          no_bedrooms: form.no_bedrooms ?? property.no_bedrooms ?? undefined,
+          no_bathrooms: form.no_bathrooms ?? property.no_bathrooms ?? undefined,
+          area_sqm: form.area_sqm ?? property.area_sqm ?? undefined,
+          max_occupants: form.max_occupants ?? null,
+          furnished_type: form.furnished_type ?? undefined,
+          floor_level: form.floor_level ?? undefined,
+          lease_duration: form.lease_duration ?? undefined,
+          latitude: form.latitude ?? null,
+          longitude: form.longitude ?? null,
+          amenities: form.amenities ?? undefined,
+        })
+        .eq("id", property.id);
+
+      if (error) {
+        // Database rules (pricing, CAMANAVA) carry user-facing messages.
+        console.error(error);
+        setSaveError(error.message);
+        return;
+      }
+
+      onSaved({ ...property, ...form, province: "Metro Manila", ...pricing } as Property);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -132,7 +270,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           onChange={(e) => updateForm("name", e.target.value)}
                         />
                       </TextField>
-                      <TextField>
+                      <TextField isInvalid={!!errors.description}>
                         <Label>
                           Description
                         </Label>
@@ -141,8 +279,13 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           placeholder="Describe the unit..."
                           value={form.description ?? ""}
                           onChange={(e) => updateForm("description", e.target.value)}
+                          maxLength={MAX_DESCRIPTION_LENGTH}
                           rows={10}
                         />
+                        <Description className="text-right">
+                          {`${(form.description ?? "").length.toLocaleString("en-PH")} / ${MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}`}
+                        </Description>
+                        <FieldError>{errors.description}</FieldError>
                       </TextField>
                     </div>
                   </section>
@@ -156,39 +299,70 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     </SectionTitle>
 
                     <div className="flex flex-col gap-3">
-                      <TextField>
+                      <TextField isInvalid={!!errors.monthly_rent}>
                         <Label>
                           Monthly Rent (₱)
                         </Label>
 
                         <Input
                           type="number"
+                          min={MIN_MONTHLY_RENT}
                           value={String(form.monthly_rent ?? "")}
                           onChange={(e) => updateForm("monthly_rent", Number(e.target.value))}
                         />
+                        <FieldError>{errors.monthly_rent}</FieldError>
                       </TextField>
-                      <TextField>
-                        <Label>
-                          Security Deposit (₱)
-                        </Label>
 
-                        <Input
-                          type="number"
-                          value={form.security_deposit == null ? "" : String(form.security_deposit)}
-                          onChange={(e) => updateForm("security_deposit", toNullableNumber(e.target.value))}
-                        />
-                      </TextField>
-                      <TextField>
-                        <Label>
-                          Advance Rent (₱)
-                        </Label>
-
-                        <Input
-                          type="number"
-                          value={form.advance_rent == null ? "" : String(form.advance_rent)}
-                          onChange={(e) => updateForm("advance_rent", toNullableNumber(e.target.value))}
-                        />
-                      </TextField>
+                      {[
+                        {
+                          field: "security_deposit" as const,
+                          label: "Security Deposit",
+                          options: SECURITY_DEPOSIT_MONTH_OPTIONS,
+                          value: depositMonths,
+                          storedAmount: property.security_deposit,
+                          onChange: setDepositMonths,
+                        },
+                        {
+                          field: "advance_rent" as const,
+                          label: "Advance Rent",
+                          options: ADVANCE_RENT_MONTH_OPTIONS,
+                          value: advanceMonths,
+                          storedAmount: property.advance_rent,
+                          onChange: setAdvanceMonths,
+                        },
+                      ].map(({ field, label, options, value, storedAmount, onChange }) => (
+                        <Select
+                          key={field}
+                          placeholder="Select months"
+                          value={value == null ? null : String(value)}
+                          onChange={(selected) => {
+                            onChange(selected == null ? null : Number(selected));
+                            clearError(field);
+                          }}
+                          isInvalid={!!errors[field]}
+                        >
+                          <Label>{label}</Label>
+                          <Select.Trigger className="cursor-pointer">
+                            <Select.Value />
+                            <Select.Indicator />
+                          </Select.Trigger>
+                          {value == null && (
+                            <Description className="text-muted-foreground">
+                              Current amount {formatPesoDisplay(storedAmount ?? 0)} isn&apos;t a whole month of rent. Choose an option when you update pricing.
+                            </Description>
+                          )}
+                          <FieldError>{errors[field]}</FieldError>
+                          <Select.Popover>
+                            <ListBox>
+                              {options.map((months) => (
+                                <ListBox.Item key={months} id={String(months)} textValue={formatPricingMonths(months)} className="cursor-pointer">
+                                  {formatPricingMonths(months)}
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                      ))}
                     </div>
                   </section>
 
@@ -255,7 +429,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Select.Popover>
                           <ListBox>
-                            {FLOOR_LEVELS.map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}
+                            {/* A saved floor level that is no longer offered stays selectable. */}
+                            {(form.floor_level && !FLOOR_LEVELS.includes(form.floor_level)
+                              ? [form.floor_level, ...FLOOR_LEVELS]
+                              : FLOOR_LEVELS
+                            ).map((l) => <ListBox.Item key={l} id={l}>{l}</ListBox.Item>)}
                           </ListBox>
                         </Select.Popover>
                       </Select>
@@ -276,7 +454,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
                         <Select.Popover>
                           <ListBox>
-                            {LEASE_DURATIONS.map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}
+                            {/* A saved duration that is no longer offered (e.g. "Monthly") stays selectable. */}
+                            {(form.lease_duration && !(LEASE_DURATIONS as readonly string[]).includes(form.lease_duration)
+                              ? [form.lease_duration, ...LEASE_DURATIONS]
+                              : [...LEASE_DURATIONS]
+                            ).map((d) => <ListBox.Item key={d} id={d}>{d}</ListBox.Item>)}
                           </ListBox>
                         </Select.Popover>
                       </Select>
@@ -335,24 +517,9 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     </SectionTitle>
 
                     <div className="flex flex-col gap-3">
-                      <TextField>
-                        <Label>
-                          Street Address
-                        </Label>
-                        <Input 
-                          value={form.street_address ?? ""} 
-                          onChange={(e) => updateForm("street_address", e.target.value)} 
-                        />
-                      </TextField>
-
-                      <TextField>
-                        <Label>
-                          Barangay
-                        </Label>
-                        <Input 
-                          value={form.barangay ?? ""} 
-                          onChange={(e) => updateForm("barangay", e.target.value)} 
-                        />
+                      <TextField isDisabled>
+                        <Label>Province</Label>
+                        <Input value="Metro Manila" />
                       </TextField>
 
                       <Select
@@ -360,8 +527,14 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         onChange={(city) => {
                           updateForm("city", (city as string) ?? null);
                           updateForm("province", "Metro Manila");
+                          // A barangay from the previous city no longer applies.
+                          if (!getBarangaysByCity((city as string) ?? "").includes(form.barangay ?? "")) {
+                            updateForm("barangay", "");
+                          }
+                          clearError("latitude");
                         }}
                         placeholder="Select CAMANAVA city"
+                        isInvalid={!!errors.city}
                       >
                         <Label>
                           City
@@ -370,6 +543,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           <Select.Value />
                           <Select.Indicator />
                         </Select.Trigger>
+                        <FieldError>{errors.city}</FieldError>
                         <Select.Popover>
                           <ListBox>
                             {CAMANAVA_CITIES.map((city) => (
@@ -379,29 +553,67 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         </Select.Popover>
                       </Select>
 
-                      <TextField isDisabled>
-                        <Label>Province</Label>
-                        <Input value="Metro Manila" />
+                      <Select
+                        value={form.barangay || null}
+                        onChange={(barangay) => updateForm("barangay", (barangay as string) ?? null)}
+                        placeholder={form.city ? "Select barangay" : "Select a city first"}
+                        isInvalid={!!errors.barangay}
+                        isDisabled={!form.city}
+                      >
+                        <Label>
+                          Barangay
+                        </Label>
+                        <Select.Trigger className="cursor-pointer">
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <FieldError>{errors.barangay}</FieldError>
+                        <Select.Popover>
+                          <ListBox className="max-h-64 overflow-y-auto">
+                            {/* A saved barangay outside the city's list stays selectable. */}
+                            {(form.barangay && !getBarangaysByCity(form.city ?? "").includes(form.barangay)
+                              ? [form.barangay, ...getBarangaysByCity(form.city ?? "")]
+                              : getBarangaysByCity(form.city ?? "")
+                            ).map((barangay) => (
+                              <ListBox.Item key={barangay} id={barangay} textValue={barangay} className="cursor-pointer">
+                                {barangay}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+
+                      <TextField isInvalid={!!errors.street_address}>
+                        <Label>
+                          Street Address
+                        </Label>
+                        <Input
+                          value={form.street_address ?? ""}
+                          onChange={(e) => updateForm("street_address", e.target.value)}
+                        />
+                        <FieldError>{errors.street_address}</FieldError>
                       </TextField>
-                      
-                      <TextField>
+
+                      <TextField isInvalid={!!errors.zip_code}>
                         <Label>
                           Zip Code
                         </Label>
                         <Input 
-                          type="number" 
+                          inputMode="numeric"
+                          maxLength={4}
                           value={form.zip_code == null ? "" : String(form.zip_code)} 
-                          onChange={(e) => updateForm("zip_code", toNullableNumber(e.target.value))} 
+                          onChange={(e) => updateForm("zip_code", toNullableNumber(e.target.value.replace(/\D/g, "")))}
                         />
+                        <FieldError>{errors.zip_code}</FieldError>
                       </TextField>
                     </div>
                   </section>
 
                   {/* Coordinates */}
                   <section>
-                    <SectionTitle>Coordinates</SectionTitle>
+                    <SectionTitle>Location</SectionTitle>
                     <div className="flex flex-col gap-3">
-                      <TextField>
+                      <TextField isInvalid={!!errors.latitude}>
                         <Label>Latitude</Label>
                         <Input 
                           type="number" 
@@ -420,10 +632,14 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                       <GoogleMapPicker
                         latitude={form.latitude ?? null}
                         longitude={form.longitude ?? null}
-                        onPick={(lat, lng) =>
-                          setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
-                        }
+                        onPick={(lat, lng) => {
+                          setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+                          clearError("latitude");
+                        }}
                       />
+                      {errors.latitude && (
+                        <p role="alert" className="text-danger text-xs">{errors.latitude}</p>
+                      )}
                     </div>
                   </section>
 
@@ -436,6 +652,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                       onChange={(val: string[]) => updateForm("amenities", val)}
                     />
                   </section>
+                  {saveError && <ErrorBanner message={saveError} />}
                 </Modal.Body>
 
                 <Modal.Footer>
@@ -443,7 +660,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                     variant="danger-soft" 
                     onPress={() => { 
                       close(); 
-                      setForm({ ...property }); 
+                      resetForm();
                     }}
                   >
                     Cancel

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react";
+import SharedStatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 
 export const dateTime = new Intl.DateTimeFormat("en-PH", {
   dateStyle: "medium",
@@ -26,30 +28,11 @@ export function StatusChip({
   status: string;
   icon?: ReactNode;
 }) {
-  const color =
-    status === "verified" ||
-    status === "approved" ||
-    status === "resolved" ||
-    status === "paid" ||
-    status === "occupied" ||
-    status === "visible"
-      ? "success"
-      : status === "rejected" ||
-          status === "hidden" ||
-          status === "cancelled" ||
-          status === "high"
-        ? "danger"
-        : status === "pending" ||
-            status === "in_progress" ||
-            status === "rescheduled" ||
-            status === "under_maintenance"
-          ? "warning"
-          : "default";
   return (
-    <Chip size="md" variant="soft" color={color} className="capitalize">
+    <SharedStatusChip size="md" tone={statusToneFor(status)} className="capitalize">
       {icon}
       {status.replaceAll("_", " ")}
-    </Chip>
+    </SharedStatusChip>
   );
 }
 

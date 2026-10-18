@@ -12,7 +12,7 @@ interface PaymentFooterProps {
 
 export default function PaymentFooter({ totalPayment, onPayPress, isProcessing = false, isDisabled = false }: PaymentFooterProps) {
   return (
-    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm">
+    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
       <Card.Content className="p-4 flex flex-row items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs text-zinc-500">Total Rent Due</p>

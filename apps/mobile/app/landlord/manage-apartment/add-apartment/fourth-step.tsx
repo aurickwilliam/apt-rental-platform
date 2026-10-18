@@ -4,6 +4,12 @@ import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import ApplicationHeader from "@/components/layout/ApplicationHeader";
+import { useAddApartmentProgress } from "hooks/apartments/useAddApartmentProgress";
+import {
+  ADD_APARTMENT_STEP_HREFS,
+  ADD_APARTMENT_STEP_LABELS,
+  ADD_APARTMENT_TOTAL_STEPS,
+} from "constants/addApartmentSteps";
 
 import {
   TextField,
@@ -12,9 +18,11 @@ import {
   FieldError,
   Button,
   Chip,
+  Description,
 } from "heroui-native";
 
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
+import { MAX_DESCRIPTION_LENGTH, getDescriptionError } from "@repo/constants";
 
 import { useColors } from "hooks/useTheme";
 
@@ -32,13 +40,13 @@ export default function FourthStep() {
     description?: string;
     amenities?: string;
   }>({});
+  const furthestStep = useAddApartmentProgress(4);
 
   const validate = () => {
     const newErrors: typeof errors = {};
 
-    if (!description.trim()) {
-      newErrors.description = "Apartment description is required.";
-    }
+    const descriptionError = getDescriptionError(description);
+    if (descriptionError) newErrors.description = descriptionError;
 
     if (amenities.length === 0) {
       newErrors.amenities = "Please add at least one amenity.";
@@ -54,13 +62,20 @@ export default function FourthStep() {
   };
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper
+      header={
       <ApplicationHeader
         currentTitle={"Description & Amenities"}
-        nextTitle={"Preview & Publish"}
         step={4}
-        totalSteps={5}
+        totalSteps={ADD_APARTMENT_TOTAL_STEPS}
+        stepLabels={ADD_APARTMENT_STEP_LABELS}
+        stepHrefs={ADD_APARTMENT_STEP_HREFS}
+        furthestStep={furthestStep}
+        onBeforeLeave={validate}
       />
+      }
+      scrollable
+    >
 
       <View className="p-5 flex-1">
         <TextField isRequired isInvalid={!!errors.description}>
@@ -68,6 +83,7 @@ export default function FourthStep() {
           <TextArea
             placeholder="Write a detailed description of the apartment, including its features, amenities, and any other relevant information that would attract potential renters."
             value={description}
+            maxLength={MAX_DESCRIPTION_LENGTH}
             onChangeText={(text) => {
               setDescription(text);
               if (errors.description)
@@ -75,6 +91,9 @@ export default function FourthStep() {
             }}
             className="h-50"
           />
+          <Description className="text-right">
+            {description.length.toLocaleString("en-PH")} / {MAX_DESCRIPTION_LENGTH.toLocaleString("en-PH")}
+          </Description>
           {errors.description && <FieldError>{errors.description}</FieldError>}
         </TextField>
 
@@ -138,7 +157,7 @@ export default function FourthStep() {
           <Button
             variant="outline"
             onPress={() => router.back()}
-            className="flex-1"
+            className="flex-1 bg-surface"
           >
             <Button.Label>Back</Button.Label>
           </Button>

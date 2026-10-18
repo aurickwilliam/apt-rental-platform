@@ -22,6 +22,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Population command tests
+        run: pnpm db:populate:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
 

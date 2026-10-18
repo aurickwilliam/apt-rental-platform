@@ -11,7 +11,8 @@ import {
   IconShieldCheck,
   IconUser,
 } from "@tabler/icons-react";
-import { Button, Chip, Modal, TextArea } from "@heroui/react";
+import { Button, Modal, TextArea } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 
 import { setUserAccess } from "../../../actions/operations";
 import {
@@ -224,14 +225,13 @@ export default function UserSettingsModal({
                                   : "No verification submission"}
                               </p>
                             </div>
-                            <Chip
+                            <StatusChip
                               size="sm"
-                              variant="soft"
-                              color={verificationChipColor(latestVerification?.status ?? user.account_status)}
+                              tone={verificationChipColor(latestVerification?.status ?? user.account_status)}
                               className="capitalize"
                             >
                               {latestVerification?.status ?? user.account_status}
-                            </Chip>
+                            </StatusChip>
                           </div>
                           {latestVerification ? (
                             <Link

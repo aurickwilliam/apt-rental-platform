@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button, Chip } from "@heroui/react";
+import { Button } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import { submitApartmentVerification } from "../actions/submit-verification";
 
 interface SubmitApartmentVerificationButtonProps {
@@ -21,11 +22,11 @@ export function SubmitApartmentVerificationButton({
   const currentStatus = submitted ? "pending" : status;
 
   if (currentStatus === "approved") {
-    return <Chip variant="soft" color="success">Verified</Chip>;
+    return <StatusChip tone="success">Verified</StatusChip>;
   }
 
   if (currentStatus === "pending") {
-    return <Chip variant="soft" color="warning">Verification pending</Chip>;
+    return <StatusChip tone="warning">Verification pending</StatusChip>;
   }
 
   return (

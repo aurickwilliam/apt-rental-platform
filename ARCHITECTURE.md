@@ -300,7 +300,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 
 ## 5. Database Architecture
 
-**Schema location.** The schema exists only in the linked Supabase project (ref `ezxirkpgfpripjydcqnt`). **There are no migrations, seed files, or DDL in this repository** (`supabase/` contains only CLI `.temp/` artifacts). The repository's de-facto schema reference is the generated type file `packages/supabase/src/types.ts` (960 lines), which defines every table, column, and foreign key. Schema changes are made directly in the Supabase dashboard/CLI against the live project, then the types are regenerated. **Exception:** the notification schema (2026-08-14 onward) is tracked in `supabase/migrations/`; the 2026-08-13 chat/image DDL (attachment URL, RPC v2, thumbs) was applied to the live DB and its migration files later removed from the repo — see debt D17.
+**Schema location.** The hosted Supabase schema is canonical; the repository tracks changes in `supabase/migrations/` and client-facing generated types in `packages/supabase/src/types.ts`. Older base-schema DDL is not fully represented by the migration history (see debt D17). Before a remote operation, verify the target against the apps' public Supabase URLs, not the CLI link, which may point elsewhere. Schema changes use reviewed migrations; data population is a separate operator operation.
 
 **Tables** (from `types.ts`): `apartments`, `apartment_images`, `users`, `tenancies`, `rental_application`, `payment`, `maintenance_request`, `visit_request`, `favorites`, `reviews`, `chat` — plus the conversation RPCs (`get_portal_conversations(p_portal)` for the mobile lists; `get_conversations_v2` kept unchanged for older app builds, recorded in migration `20261014083034_record_get_conversations_v2`; v1 superseded and stripped of direct anon grants).
 
@@ -316,6 +316,14 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 
 ---
 
+### 5.2 Operator-only demo activity
+
+`pnpm db:populate` is a local Node/psql operator tool, not an app API. It builds connected rental, payment, maintenance, application, visit, favorite, review and text-chat journeys using existing identities/listings. Pure Passport selection and rent-period rules are reused from shared packages. The unexposed, RLS-enabled `demo_population` registry stores one fixed plan, baseline row IDs and before/after records; only direct `postgres` sessions without an Auth JWT can use its invoker functions. No client grants or generated public API types are added.
+
+Preview and verification are read-only. Apply/reset/cleanup require a matching reviewed preview token, explicit app-project confirmation, audited triggers, current-state revalidation and short database write locks; all changes commit atomically. Reset replays the saved IDs/dates, while cleanup restores only tracked changes and refuses edits/dependencies. Integrity triggers stay enabled. Push delivery is suppressed only within the operator transaction; application-deletion webhooks are suppressed only for tracked demo rows being cleaned, preserving reused Passport documents. There are no identity/listing inserts, provider calls or file writes. See `docs/demo-population.md` for commands, deployment and test boundaries.
+
+---
+
 ## 6. Storage Architecture
 
 **Buckets** — verified bucket names and their treatment in code:
@@ -327,6 +335,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 | `background_photos` | Public | Profile background | `getPublicUrl` |
 | `review-images` | Public | Review photos | `getPublicUrl` |
 | `lease-agreements` | Private | Lease PDFs | `createSignedUrl(s)` |
+| `signed-leases` | Private | Executed (signed) lease per tenancy | `createSignedUrl` |
 | `application-documents` | Private | Gov ID, proof of income/billing, NBI | `createSignedUrls` |
 | `chat-images` | Private | Chat images/videos/GIFs (+ thumbnails) | `createSignedUrls` (batch) |
 | `maintenance-images` | Private | Maintenance photos | `createSignedUrls` |
@@ -337,6 +346,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 |---|---|---|
 | `apartment-images` | `{apartmentId}/{ts}-{rand}.{ext}` (web) · `thumbnails/…`, `additional/…` (mobile publish) · `apartments/{apartmentId}/cover_{ts}.{ext}`, `photo_{ts}.{ext}` (mobile manage) | web + mobile; `upsert: true` in manage |
 | `lease-agreements` | `{apartmentId}/lease-agreement.{ext}` · `{apartmentId}/{ts}-{rand}.{ext}` (web) | web + mobile |
+| `signed-leases` | `{tenancyId}/{ts}.{ext}` | web only (landlord uploads, tenant reads) |
 | `application-documents` | `{tenantId}/{applicationId}/{docKey}-{ts}.{ext}` | mobile only |
 | `chat-images` | `{senderId}/{id}.{ext}` · `{senderId}/thumb-{id}.jpg` | mobile only |
 | `avatars` / `background_photos` | `{userId}/{userId}.{ext}` (upsert) | mobile only |
@@ -350,6 +360,7 @@ Supabase Auth sends all auth email through custom SMTP (Brevo). The `confirmatio
 3. Client uploads directly to the bucket with the anon key (storage is RLS-protected; uploads are scoped by bucket policies).
 4. Client stores **either** the storage path (private buckets) **or** a public URL from `getPublicUrl` (public buckets) in the relevant DB column; signed URLs are never persisted.
 5. On failure, some flows roll back (application documents delete all uploaded files; review photos clean up; web property-create deletes the apartment row) — others do not (chat attachments, apartment publish, maintenance) — see §21 debt D9.
+6. The executed (signed) lease is the one flow where a client does **not** write the row directly: the landlord's upload is recorded by the `set_tenancy_signed_lease` RPC and the tenant's confirmation by `acknowledge_signed_lease` (both `SECURITY DEFINER`, caller-bound), while a trigger rejects direct client writes to the lease columns. Its storage policies compare the tenancy folder as text, so upload/delete require that tenancy's landlord and an active tenancy, and reads allow its landlord or tenant (web only).
 
 ### 6.3 Download flow (private buckets)
 
@@ -371,6 +382,7 @@ flowchart LR
 
 - Apartment photos: explicit remove on edit (web modal, mobile manage) with cover promotion.
 - Lease agreements: replace = upload new → update DB → remove old; delete = null DB → remove file.
+- Signed leases: replace = upload new → `set_tenancy_signed_lease` RPC → remove the replaced file (best effort); the tenant's acknowledgement resets, because it always refers to the current file.
 - **Property delete is a soft delete** (`deleted_at`) and **does not clean up storage** (debt D9).
 - Chat attachments and maintenance images are never deleted.
 
@@ -577,7 +589,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Apartment detail** | `apartment/[apartmentId]` — sections + `useApartmentDetails` (apartment + landlord + top-3 reviews); two-tier images (compressed thumb + full) | `browse/[apartmentId]/` server page → 16 client children | `apartments`, `apartment_images`, `reviews`, `users` |
 | **Rental application** | 5-step wizard (`apply/*`) with `useApplicationFormStore`, document uploads with rollback, `useSubmitApplication` | Not implemented (landlord `applications/` is a placeholder) | `rental_application`, `application-documents` |
 | **Visit requests** | Tenant `request-visit` + `useSubmitVisitRequest`; landlord `visit-requests/` list/detail with actions, reschedule sheet | Not implemented | `visit_request` |
-| **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (React Query tenancy + payment reads keyed by internal id, filtered realtime scoped to the loaded tenancy, explicit refresh) | `tenant/my-rental/` client page + `use-tenancy` | `tenancies`, `payment` |
+| **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (React Query tenancy + payment reads keyed by internal id, filtered realtime scoped to the loaded tenancy, explicit refresh) | `tenant/my-rental/` client page + `use-tenancy`; the landlord uploads/replaces the signed lease from the unit's Tenant Information card, the tenant views and confirms it in the Signed lease card | `tenancies`, `payment`, `signed-leases` |
 | **Payments** | Simulation (GCash/Maya/QRPh/Card = paid, Cash = pending) — §7 | Placeholder + view-only history | `payment` (tenant inserts paid/pending, landlord confirms cash) |
 | **Maintenance** | Tenant request/history + `useSubmitMaintenanceRequest` (uploads photos); landlord `maintenance-requests/` workflow (pending → resolved) | Stub ("Coming Soon") | `maintenance_request`, `maintenance-images` |
 | **Chat** | §8 (full: bounded 30-page history, attachments, direct-URL GIFs, typing, presence, optimistic; identity-keyed stable channels; reactions + replies + context menus; `get_conversations_v2` RPC) | §8.3 (text-only; reactions, replies, context menus, emoji search) | `chat`, `chat_reactions`, `chat-images`, `get_conversations_v2` RPC |
@@ -806,7 +818,8 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 | **Tenancy** | Active relationship between a tenant, a landlord, and an apartment (`tenancies`); drives my-rental/current-apartment and payment display. |
 | **Rental application** | Tenant's application to a unit (`rental_application`), with documents stored in `application-documents`. |
 | **Visit request** | Request to view a property (`visit_request`), optionally tied to an application. |
-| **Lease agreement** | PDF stored in the private `lease-agreements` bucket; DB stores its storage path (`lease_agreement_url`). |
+| **Lease agreement** | PDF stored in the private `lease-agreements` bucket; DB stores its storage path (`lease_agreement_url`). The unsigned template, owned by the apartment. |
+| **Signed lease** | The executed contract for a tenancy, uploaded by the landlord (web, My Properties) and confirmed by the tenant (web, My Rental); one per tenancy. Stored in the private `signed-leases` bucket, referenced by `tenancies.signed_lease_path`, and written only through the `set_tenancy_signed_lease` / `acknowledge_signed_lease` RPCs. |
 | **Receipt** | Payment confirmation UI (GCash-style); generated from the persisted `payment` row by `reference_id` (§7). |
 | **Maintenance request** | Tenant-reported issue (`maintenance_request`) with photos in `maintenance-images`; landlord resolves it. |
 | **Storage path** | Object key inside a bucket (e.g. `{tenantId}/{applicationId}/{docKey}-…`); stored in DB instead of URLs for private assets. |

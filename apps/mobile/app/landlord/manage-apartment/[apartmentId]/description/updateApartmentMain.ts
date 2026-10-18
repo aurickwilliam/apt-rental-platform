@@ -8,9 +8,12 @@ export type ApartmentMainFields = {
   barangay: string              
   city: string                  
   province: string              
-  monthly_rent: number           
-  security_deposit: number | null
-  advance_rent: number | null
+  /** Null when pricing is unchanged, so amounts priced before the shared rule are kept. */
+  pricing: {
+    monthly_rent: number
+    security_deposit: number
+    advance_rent: number
+  } | null
 }
 
 export type ExistingImage = {
@@ -91,9 +94,7 @@ export async function updateApartmentMain({
       barangay: fields.barangay,
       city: fields.city,
       province: fields.province,
-      monthly_rent: fields.monthly_rent,
-      security_deposit: fields.security_deposit,
-      advance_rent: fields.advance_rent,
+      ...fields.pricing,
       updated_at: new Date().toISOString(),
     })
     .eq('id', apartmentId)

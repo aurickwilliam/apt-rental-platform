@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/lib/status-tone";
 import {
   IconBuildingSkyscraper,
   IconHome,
@@ -114,7 +115,7 @@ export function formatRoles(roles: string[]) {
 
 export function verificationChipColor(
   status: string,
-): "success" | "warning" | "danger" | "default" {
+): StatusTone {
   switch (status) {
     case "verified":
       return "success";
@@ -123,7 +124,7 @@ export function verificationChipColor(
     case "rejected":
       return "danger";
     default:
-      return "default";
+      return "neutral";
   }
 }
 

@@ -22,7 +22,8 @@ import {
   formatStayPeriod,
   type RateApartmentHeader,
 } from "@/service/reviewsService";
-import { statusChipStyle } from "@/app/admin/apartments/lib/apartment-display";
+import StatusChip from "@/app/components/display/StatusChip";
+import { statusToneFor } from "@/lib/status-tone";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   "Most Recent",
@@ -116,7 +117,6 @@ export default function ApartmentRatingsView() {
 
   const stayLabel = stay && stay.id === viewerTenancyId ? stay.label : null;
 
-  const aptStatusStyle = statusChipStyle(aptHeader?.status ?? "");
 
   const showReviewButton = !checkingEligibility && canReview;
   const showEditButton = !checkingEligibility && canEdit;
@@ -170,22 +170,15 @@ export default function ApartmentRatingsView() {
 
             <div className="flex min-w-0 flex-1 flex-col">
               {aptHeader.status && (
-                <Chip
-                  size="sm"
-                  variant="soft"
-                  color={aptStatusStyle.color}
-                  className={[
-                    "self-start capitalize",
-                    aptStatusStyle.className,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                <StatusChip
+                  tone={statusToneFor(aptHeader.status)}
+                  className="self-start capitalize"
                 >
                   <Chip.Label className="flex items-center gap-1.5">
                     <span className="size-1.5 rounded-full bg-current" />
                     {formatApartmentStatus(aptHeader.status)}
                   </Chip.Label>
-                </Chip>
+                </StatusChip>
               )}
 
               <h2 className="mt-2 font-nunito text-2xl font-semibold text-card-foreground">

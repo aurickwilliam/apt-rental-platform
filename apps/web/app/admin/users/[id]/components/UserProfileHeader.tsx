@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { IconChevronLeft } from "@tabler/icons-react";
 import { Card, Chip } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 import OperationForm from "../../../OperationForm";
 import { setUserAccess } from "../../../actions/operations";
 import {
@@ -90,14 +91,13 @@ export default function UserProfileHeader({
               );
             })}
             {user.is_suspended ? (
-              <Chip
+              <StatusChip
                 size="sm"
-                variant="soft"
-                color="danger"
+                tone="danger"
                 className="shrink-0"
               >
                 Suspended
-              </Chip>
+              </StatusChip>
             ) : null}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
