@@ -10,8 +10,8 @@ import { canViewPassport } from "@/lib/passport-access";
 const PASSPORT_HREF = "/landlord/passport";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building" },
+  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
   { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
   { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
