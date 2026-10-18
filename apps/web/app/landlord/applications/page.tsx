@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button, Chip, Dropdown, InputGroup, Separator, Spinner, Table } from "@heroui/react";
+import { Button, Chip, Dropdown, InputGroup, Separator, Table } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { IconSearch as Search, IconFilter as ListFilter, IconCalendar as Calendar, IconHome as Home } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
@@ -11,6 +11,8 @@ import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 import { useLandlordApplications, type DisplayStatus } from "@/hooks/use-landlord-applications";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { statusChipColor } from "./lib/application-status";
+import ApplicationsHeader from "./components/ApplicationsHeader";
+import { ApplicationsCountSkeleton, ApplicationsResultsSkeleton } from "./components/ApplicationsSkeleton";
 
 export type { DisplayStatus };
 
@@ -44,11 +46,8 @@ export default function ApplicationsPage() {
   const openDetail = (id: string) => router.push(`/landlord/applications/${id}`);
 
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
-      <div>
-        <h1 className="text-2xl font-bold font-nunito text-card-foreground">Applications</h1>
-        <p className="mt-1 text-sm text-muted-foreground">View and manage tenant applications for your properties.</p>
-      </div>
+    <div className="p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy={loading}>
+      <ApplicationsHeader />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 max-w-md">
@@ -130,12 +129,12 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
+      {loading ? <ApplicationsCountSkeleton /> : (
+        <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
+      )}
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Spinner color="accent" />
-        </div>
+        <ApplicationsResultsSkeleton />
       ) : error ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12">
           <p className="text-sm font-medium text-red-600">{error}</p>

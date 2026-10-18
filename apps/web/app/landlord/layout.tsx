@@ -12,7 +12,7 @@ const PASSPORT_HREF = "/landlord/passport";
 const LANDLORD_NAV = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
   { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", prefetchOnIntent: true },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
   { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
   { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck" },
