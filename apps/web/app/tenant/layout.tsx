@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
+import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
+import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import ReviewUnlockGate from "./components/ReviewUnlockGate";
 import { createClient } from "@repo/supabase/server";
 
@@ -71,6 +73,7 @@ export default async function TenantLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <DraggableNotificationBell activePortal="tenant" />
         <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
       </div>
       <MobileSidebarNavigation
@@ -85,6 +88,9 @@ export default async function TenantLayout({
       />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="tenant" />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotificationsOverlay activePortal="tenant" />
       </Suspense>
       <ReviewUnlockGate />
     </div>

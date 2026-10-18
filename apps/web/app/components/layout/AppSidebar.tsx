@@ -8,7 +8,9 @@ import { useTheme } from "next-themes";
 import type { Icon as LucideIcon } from "@tabler/icons-react";
 import {
   IconArrowsExchange,
+  IconBell,
   IconBuilding,
+  IconBuildingEstate,
   IconCashBanknote,
   IconChartBar,
   IconFileCheck,
@@ -37,10 +39,12 @@ import {
 } from "@tabler/icons-react";
 
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar, IconMenu2 as Menu } from "@tabler/icons-react";
+import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar, IconMenu2 as Menu, IconBell as Bell } from "@tabler/icons-react";
 
 import { signOut } from "@/app/(auth)/actions/sign-out";
+import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import { useNotifications } from "@/hooks/use-notifications";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
@@ -510,7 +514,94 @@ export function AppSidebar({
                     Profile
                   </Label>
                 </Dropdown.Item>
-                {switchTargets.map((target) => (
+                {/* Every portal with at least one other authorized
+                  destination gets the same "Switch Portal" hover submenu
+                  (keyboard/touch supported via RAC). The targets already
+                  exclude the current portal and only include held roles
+                  (see getSwitchTargets), so dual-role accounts never see
+                  an Admin entry and single-portal accounts see nothing. */}
+                {switchTargets.length > 0 ? (
+                  <Dropdown.SubmenuTrigger>
+                    <Dropdown.Item id="switch-portal" textValue="Switch Portal" className="group">
+                      <Label className="flex w-full items-center gap-2">
+                        {iconSet === "tabler" ? (
+                          <IconArrowsExchange size={18} className="shrink-0 text-primary" aria-hidden="true" />
+                        ) : (
+                          <ArrowLeftRight size={18} className="shrink-0 text-primary" aria-hidden="true" />
+                        )}
+                        Switch Portal
+                        <span className="ml-auto flex shrink-0 items-center">
+                          <Dropdown.SubmenuIndicator className="text-grey-500! group-hover:text-primary! group-data-[focused=true]:text-primary! group-data-[open=true]:text-primary!" />
+                        </span>
+                      </Label>
+                    </Dropdown.Item>
+                    {/* `end` docks the submenu beside the dropdown; RAC flips
+                      it automatically when there is no room on the right.
+                      Submenu item actions belong to this nested menu, so it
+                      carries its own onAction with the same guard logic. */}
+                    <Dropdown.Popover placement="end">
+                      <Dropdown.Menu
+                        aria-label="Switch portal"
+                        onAction={(key) => {
+                          const target = switchTargets.find((item) => `switch:${item.href}` === key);
+                          if (target) router.push(target.href);
+                        }}
+                      >
+                        {switchTargets.map((target) => {
+                          const portalActive = isActive(pathname, target.href);
+                          // Portal-specific identity for the submenu only:
+                          // landlord gets the estate glyph, tenant the user
+                          // glyph. Anything else falls back to the shared
+                          // switch glyph and the guard-provided label, so an
+                          // unexpected target still navigates correctly.
+                          const isLandlordTarget = target.href.startsWith("/landlord");
+                          const isTenantTarget = target.href.startsWith("/tenant");
+                          const isAdminTarget = target.href.startsWith("/admin");
+                          const submenuLabel = isLandlordTarget
+                            ? "Switch to Landlord"
+                            : isTenantTarget
+                              ? "Switch to Tenant"
+                              : isAdminTarget
+                                ? "Switch to Admin"
+                                : target.label;
+                          return (
+                            <Dropdown.Item
+                              key={target.href}
+                              id={`switch:${target.href}`}
+                              textValue={submenuLabel}
+                              aria-current={portalActive ? "page" : undefined}
+                              className={portalActive ? "bg-primary/10 text-primary" : undefined}
+                            >
+                              <Label className={`flex items-center gap-2 ${portalActive ? "font-semibold text-primary" : ""}`}>
+                                {iconSet === "tabler" ? (
+                                  isLandlordTarget ? (
+                                    <IconBuildingEstate size={18} aria-hidden="true" />
+                                  ) : isTenantTarget ? (
+                                    <IconUser size={18} aria-hidden="true" />
+                                  ) : isAdminTarget ? (
+                                    <IconShieldCheck size={18} aria-hidden="true" />
+                                  ) : (
+                                    <IconArrowsExchange size={18} aria-hidden="true" />
+                                  )
+                                ) : isLandlordTarget ? (
+                                  <Building2 size={18} aria-hidden="true" />
+                                ) : isTenantTarget ? (
+                                  <UserRound size={18} aria-hidden="true" />
+                                ) : isAdminTarget ? (
+                                  <ShieldCheck size={18} aria-hidden="true" />
+                                ) : (
+                                  <ArrowLeftRight size={18} aria-hidden="true" />
+                                )}
+                                {submenuLabel}
+                              </Label>
+                            </Dropdown.Item>
+                          );
+                        })}
+                      </Dropdown.Menu>
+                    </Dropdown.Popover>
+                  </Dropdown.SubmenuTrigger>
+                ) : (
+                  switchTargets.map((target) => (
                   <Dropdown.Item
                     key={target.href}
                     id={`switch:${target.href}`}
@@ -525,7 +616,8 @@ export function AppSidebar({
                       {target.label}
                     </Label>
                   </Dropdown.Item>
-                ))}
+                  ))
+                )}
                 <Dropdown.Item id="theme" textValue="Dark Mode">
                   <Label className="flex w-full items-center gap-2">
                     {iconSet === "tabler" ? (
@@ -600,6 +692,34 @@ type MobileSidebarNavigationProps = {
 // portal page fails with "useSearchParams() should be wrapped in a suspense
 // boundary". Callers render this wrapper; the work happens in the inner
 // component.
+function MobileNotificationsItem({
+  activePortal,
+  iconSet,
+}: {
+  activePortal: "tenant" | "landlord" | "admin";
+  iconSet?: "lucide" | "tabler";
+}) {
+  // Own hook instance for the badge count; the realtime channel is shared
+  // with the drawer through the module registry.
+  const { unreadCount } = useNotifications(activePortal);
+  return (
+    <Dropdown.Item id="notifications" textValue="Notifications">
+      <Label className="flex w-full items-center gap-2">
+        {iconSet === "tabler" ? (
+          <IconBell size={18} aria-hidden="true" />
+        ) : (
+          <Bell size={18} aria-hidden="true" />
+        )}
+        Notifications
+        {unreadCount > 0 && (
+          <span className="ml-auto flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </Label>
+    </Dropdown.Item>
+  );
+}
 function MobileSidebarMenu({
   navItems,
   iconSet,
@@ -651,6 +771,15 @@ function MobileSidebarMenu({
     window.history.pushState(null, "", `${pathname}${query ? `?${query}` : ""}`);
   };
 
+  // Opens the notifications drawer through the shared query param (same
+  // pattern as Settings); the overlay mounted by the portal layout renders it.
+  const openNotifications = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("notifications", NOTIFICATIONS_QUERY_VALUE);
+    const query = params.toString();
+    window.history.pushState(null, "", `${pathname}${query ? `?${query}` : ""}`);
+  };
+
   // Same helper the sidebar dropdown uses, so both menus stay in step.
   const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
@@ -687,6 +816,7 @@ function MobileSidebarMenu({
             aria-label={menuLabel}
             onAction={(key) => {
               if (key === "settings") openSettings();
+              if (key === "notifications") openNotifications();
               // The switch is pointer-events-none, so the row tap is what
               // actually toggles the theme (mirrors the sidebar footer).
               if (key === "theme") toggleTheme();
@@ -774,6 +904,12 @@ function MobileSidebarMenu({
                   Settings
                 </Label>
               </Dropdown.Item>
+
+              {(activePortal === "tenant" ||
+                activePortal === "landlord" ||
+                activePortal === "admin") && (
+                <MobileNotificationsItem activePortal={activePortal} iconSet={iconSet} />
+              )}
 
               <Dropdown.Item id="theme" textValue="Dark Mode">
                 <Label className="flex w-full items-center gap-2">

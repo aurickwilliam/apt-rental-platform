@@ -278,8 +278,10 @@ export default function MessageInput({
   return (
     // `relative` anchors the floating emoji panel above the composer. Without
     // it the panel can only be laid out in flow, which inflates the composer
-    // and crushes the message thread.
-    <div className="relative border-t border-border bg-card">
+    // and crushes the message thread. `data-fab-clearance` keeps the floating
+    // notifications bell from resting on the input, send, or attachment
+    // controls — it settles on the nearest clear edge slot instead.
+    <div data-fab-clearance="messages-composer" className="relative border-t border-border bg-card">
       {replyTarget && (
         <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-3 py-2">
           <div className="min-w-0 flex-1">
