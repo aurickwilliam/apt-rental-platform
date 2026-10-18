@@ -1,17 +1,17 @@
 # Graph Report - apt-rental-platform  (2026-10-18)
 
 ## Corpus Check
-- 1630 files · ~1,183,591 words
+- 1630 files · ~1,183,536 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 32 file(s) not represented in the graph (top: (none) 14, .ttf 7, .kiro 3)
 
 ## Summary
-- 7802 nodes · 23206 edges · 292 communities (264 shown, 28 thin omitted)
+- 7802 nodes · 23204 edges · 292 communities (264 shown, 28 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 700 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4fe2e50b`
+- Built from commit: `908fbee5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -297,7 +297,7 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `useColors()` - 412 edges
-2. `@heroui/react` - 275 edges
+2. `@heroui/react` - 274 edges
 3. `@tabler/icons-react` - 249 edges
 4. `heroui-native` - 242 edges
 5. `ScreenWrapper` - 218 edges
