@@ -6540,9 +6540,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/tenant/maintenance/page.tsx": {
-    "mtime": 1792069645.891911,
-    "seen": 1792256917.9953535,
-    "ast_hash": "a52d2f226b6b2f3f05346fc28772eb9b",
+    "mtime": 1792290533.7994468,
+    "seen": 1792290612.3424854,
+    "ast_hash": "d6cc738ac2c2cf5784fdfd5a7263fdab",
     "semantic_hash": ""
   },
   "apps/web/app/tenant/messages/components/ContactSidebar.tsx": {
@@ -8220,9 +8220,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792290103.0410404,
-    "seen": 1792290156.4909854,
-    "ast_hash": "16f4a51d774c0ae910de85dc73433bae",
+    "mtime": 1792290533.800463,
+    "seen": 1792290612.3897185,
+    "ast_hash": "ebb3899521ee31f47fcbb7a0181e186a",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9811,6 +9811,12 @@
     "mtime": 1792290092.257734,
     "seen": 1792290156.461374,
     "ast_hash": "f2dc5eef91ff1f78a736d020552c7abd",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/maintenance-header.test.mjs": {
+    "mtime": 1792290558.2611518,
+    "seen": 1792290612.36303,
+    "ast_hash": "3f6ebd5155c852d8c755e5465a59cde6",
     "semantic_hash": ""
   }
 }
