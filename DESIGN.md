@@ -123,7 +123,7 @@ Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile class
 
 The web tenant Maintenance and Favorites headers follow the APT Passport header: Nunito bold `text-3xl text-primary`, a 28px icon in a `size-11 rounded-lg bg-primary/10` tile, and a `mt-1 text-sm text-muted-foreground` description below the full title row (aligned with the icon's left edge).
 
-Landlord My Properties, Applications, Maintenance Requests and Payments use the same APT Passport heading treatment in loaded and skeleton states: building, document-check, tools and banknote icons respectively. Existing descriptions and Payments Back/filter controls remain; the landlord Dashboard heading is unchanged.
+Landlord My Properties, Applications, Maintenance Requests and Payments use the same APT Passport heading treatment in loaded and skeleton states: building, document-check, tools and banknote icons respectively. Existing descriptions and Payments filter controls remain; the Payments list heading has no Back button (including loading/empty/error states). Payment detail navigation and the landlord Dashboard heading are unchanged.
 
 ### Scale & roles (Tailwind sizes, both platforms)
 

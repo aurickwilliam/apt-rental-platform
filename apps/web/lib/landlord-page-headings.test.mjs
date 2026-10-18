@@ -6,12 +6,10 @@ import ts from "typescript";
 
 function load(file) {
   const jsx = (type, props) => ({ type, props });
-  let backs = 0;
   const dependencies = {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => name }),
     "@heroui/react": { Button: "Button" },
-    "next/navigation": { useRouter: () => ({ back: () => backs++ }) },
     "next/link": { default: "Link" },
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");
@@ -23,7 +21,7 @@ function load(file) {
     return dependencies[name];
   } };
   vm.runInNewContext(compiled, context);
-  return { ...context.exports, backs: () => backs };
+  return context.exports;
 }
 
 function nodes(element) {
@@ -58,11 +56,11 @@ for (const [route, file, title, icon] of [
   });
 }
 
-test("Payments heading keeps its working Back button and filter action slot", () => {
+test("Payments heading has no Back button and keeps its filter action slot", () => {
   const header = load("landlord/payments/components/PaymentsHeader.tsx");
   const filter = { type: "Button", props: { children: "Filters" } };
   const elements = nodes(header.default({ children: filter }));
-  elements.find(node => node.type === "Button" && node.props.onPress).props.onPress();
-  assert.equal(header.backs(), 1);
+  assert.ok(!elements.some(node => node.type === "IconArrowLeft"));
+  assert.equal(elements.filter(node => node.type === "Button").length, 1);
   assert.ok(elements.includes(filter));
 });

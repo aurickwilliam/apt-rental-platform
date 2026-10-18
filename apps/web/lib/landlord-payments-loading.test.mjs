@@ -21,7 +21,6 @@ function load(file, options = {}) {
       Suspense: "Suspense", useMemo: callback => callback(),
       useState: initial => [options.states ? options.states[stateIndex++] : initial, () => {}],
     },
-    "next/navigation": { useRouter: () => ({ back: options.back ?? (() => {}) }) },
     "next/link": { default: "Link" },
     "@heroui/react": { Skeleton: "Skeleton", Card, Select, ListBox, Button: "Button", Chip: "Chip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
@@ -71,21 +70,20 @@ test("Payments route and Suspense fallbacks share a header, selector/year placeh
   const blocks = route.filter(node => node.type === "Skeleton");
   assert.ok(blocks.some(node => node.props.className.includes("h-10 w-full")));
   assert.ok(blocks.every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(!route.some(node => node.type === "IconArrowLeft"));
   const suspense = load("page.tsx").default();
   assert.equal(nodes(suspense.props.fallback).filter(node => node.type === Card).length, 3);
 });
 
-test("unit loading shows the full skeleton; payment loading keeps real selection/filter/back controls", () => {
+test("unit loading shows the full skeleton; payment loading keeps selection/filters without a Back button", () => {
   const unitsLoading = load("page.tsx", { units: { apartments: [], loading: true } }).default();
   assert.ok(nodes(unitsLoading).some(node => node.type === "Skeleton"));
-  let backs = 0;
-  const tree = load("page.tsx", { payments: { payments: [], loading: true }, back: () => backs++ }).default();
+  const tree = load("page.tsx", { payments: { payments: [], loading: true } }).default();
   const elements = nodes(tree);
   assert.ok(elements.some(node => node.type === Select && node.props.value === "unit-a"));
   assert.ok(elements.some(node => node.type === "Button" && text(node).includes("Filters")));
   assert.ok(!text(tree).includes("No payments found"));
-  elements.find(node => node.type === "Button" && text(node).includes("Back")).props.onPress();
-  assert.equal(backs, 1);
+  assert.ok(!elements.some(node => node.type === "Button" && text(node).includes("Back")));
 });
 
 test("settled empty/no-unit/error states and Retry remain intact", () => {
