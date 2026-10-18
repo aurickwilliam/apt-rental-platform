@@ -12,7 +12,7 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).
 
-**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons (mobile light mode: neutral tertiary look), yellow `#FBBF24` for star ratings only (mobile and web ✅); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
+**Visual identity:** blue and sky: primary blue `#376BF5` + sky `#0369A1` (dark `#7DD3FC`) as the second blue, soft blue (`primaryLight` fill + brand-blue label) for secondary buttons (mobile light mode: neutral tertiary look), yellow `#FBBF24` for ratings only (mobile and web ✅; uses and the web overall-score exception are listed in §3); clean, spacious, card-based; rounded geometry (10–24px); flat surfaces with hairline borders, minimal shadows.
 
 **Mobile-first:** the Expo app is the primary product; web mirrors its palette and semantics. Design mobile-first, adapt to web.
 
@@ -49,7 +49,7 @@ All values exact. Shared light/dark pairs from `packages/constants/src/colors.ts
 | `sky` (mobile `--color-secondary`, web `--sky`) ✅ | `#0369A1` | `#7DD3FC` | Second blue: landlord role (chip, role tab), accordion underline, highlights. Never a fill behind white text in dark mode |
 | `skyLight` (mobile `--color-secondary-light`, web `--sky-light`) | `#E0F2FE` | `#0C2A3D` | Sky tints (landlord chip; sky label 5.2:1 / 8.9:1) |
 | `chartSky` ✅ | `#0891B2` | `#0891B2` | Chart series beside `primary` (sky `#0369A1` is too close to brand blue to tell apart; cyan passes the CVD and normal-vision checks in both themes) |
-| `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars only; rating numbers stay text colors (yellow text fails contrast) |
+| `rating` ✅ | `#FBBF24` | `#FBBF24` | Star icons and rating bars. By explicit visual direction, the shared web apartment rating breakdown's large overall score also matches this yellow; this is a low-contrast exception on light surfaces. Other rating numbers stay text colors |
 | `secondaryForeground` | `#FFFFFF` | `#FFFFFF` | White foreground (icons/text on filled buttons) |
 | `actionMore` / `actionPin` / `actionArchive` ✅ (mobile) | `#6B7280` / `#D97706` / `#7C3AED` | same | Conversation swipe actions only: filled circles with white icons (≥3:1), label below in text color |
 
