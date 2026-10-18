@@ -5718,9 +5718,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/components/layout/AppSidebar.tsx": {
-    "mtime": 1792311663.2085063,
-    "seen": 1792311844.2335684,
-    "ast_hash": "69e705da661d5c01f3765b54a9345863",
+    "mtime": 1792312725.2480478,
+    "seen": 1792312890.8106358,
+    "ast_hash": "a5da8edbea5e427d9e63c144b7e6a343",
     "semantic_hash": ""
   },
   "apps/web/app/components/layout/AppTopBar.tsx": {
@@ -6204,9 +6204,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/layout.tsx": {
-    "mtime": 1792311663.213876,
-    "seen": 1792311844.2337441,
-    "ast_hash": "820d77ba086e8e542e7d43ebbf70bd3f",
+    "mtime": 1792312725.2480478,
+    "seen": 1792312890.8231835,
+    "ast_hash": "402d528d006d0f0d1d9dc6b3e237dced",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/maintenance-requests/[requestId]/page.tsx": {
@@ -6570,9 +6570,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/page.tsx": {
-    "mtime": 1791973641.3783665,
-    "seen": 1792311844.233889,
-    "ast_hash": "7761d2d6a0313b645f37961f15042e15",
+    "mtime": 1792312725.2465584,
+    "seen": 1792312890.8321831,
+    "ast_hash": "60e9a37130b77283fc69e699cebea964",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/visit-requests/[requestId]/page.tsx": {
@@ -8886,9 +8886,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792311663.205009,
-    "seen": 1792311844.2349405,
-    "ast_hash": "744f5286657923b8d2ac6ca80ad97e56",
+    "mtime": 1792312725.249233,
+    "seen": 1792312890.892684,
+    "ast_hash": "9ac572c73bcae49f99632aae764dd0d3",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9417,6 +9417,30 @@
     "mtime": 1787043559.9120195,
     "seen": 1792311844.235127,
     "ast_hash": "91fdf50bb0fe45ce3d910e611e61e556",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/components/PropertiesHeader.tsx": {
+    "mtime": 1792312725.245747,
+    "seen": 1792312890.8288634,
+    "ast_hash": "e51a0bb7e89840479b9cf0c4169bcca0",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/components/PropertiesSkeleton.tsx": {
+    "mtime": 1792312725.2465584,
+    "seen": 1792312890.8288662,
+    "ast_hash": "87c2b80efee22aa59a15371f61118718",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/loading.tsx": {
+    "mtime": 1792312725.2465584,
+    "seen": 1792312890.83218,
+    "ast_hash": "933f00da3f0e70a89896d5152cf1fd54",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/landlord-properties-loading.test.mjs": {
+    "mtime": 1792312795.0465684,
+    "seen": 1792312890.8609152,
+    "ast_hash": "a677d4142ecb8bb8e8d0a8e818a96f57",
     "semantic_hash": ""
   }
 }
