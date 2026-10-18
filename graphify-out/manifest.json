@@ -6132,9 +6132,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/applications/page.tsx": {
-    "mtime": 1792165291.8980055,
-    "seen": 1792311844.2337158,
-    "ast_hash": "377d49f6a7cb504e6699098d48c0c655",
+    "mtime": 1792313602.8529792,
+    "seen": 1792313754.6315677,
+    "ast_hash": "fd797c9751fb2daf892ee320d1a83780",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/dashboard/components/ChartEmptyState.tsx": {
@@ -6204,9 +6204,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/layout.tsx": {
-    "mtime": 1792312725.2480478,
-    "seen": 1792312890.8231835,
-    "ast_hash": "402d528d006d0f0d1d9dc6b3e237dced",
+    "mtime": 1792313602.8529792,
+    "seen": 1792313754.6334264,
+    "ast_hash": "143241b70cb08081d247efe387ae1a36",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/maintenance-requests/[requestId]/page.tsx": {
@@ -8886,9 +8886,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792312725.249233,
-    "seen": 1792312890.892684,
-    "ast_hash": "9ac572c73bcae49f99632aae764dd0d3",
+    "mtime": 1792313602.8529792,
+    "seen": 1792313754.7159653,
+    "ast_hash": "6854ffcaacfeab588a74f49c24264411",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9438,9 +9438,33 @@
     "semantic_hash": ""
   },
   "apps/web/lib/landlord-properties-loading.test.mjs": {
-    "mtime": 1792312795.0465684,
-    "seen": 1792312890.8609152,
-    "ast_hash": "a677d4142ecb8bb8e8d0a8e818a96f57",
+    "mtime": 1792313659.283432,
+    "seen": 1792313754.6820064,
+    "ast_hash": "efebfa960703dd6e303f254f5345db09",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/applications/components/ApplicationsHeader.tsx": {
+    "mtime": 1792313602.8504205,
+    "seen": 1792313754.6313958,
+    "ast_hash": "cf176975d6c8008823feeb9f1bc1f958",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/applications/components/ApplicationsSkeleton.tsx": {
+    "mtime": 1792313602.8514607,
+    "seen": 1792313754.6314,
+    "ast_hash": "b1f28fc3197858eafbabd4779777bba0",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/applications/loading.tsx": {
+    "mtime": 1792313602.8524747,
+    "seen": 1792313754.6315644,
+    "ast_hash": "70bf0eb0d71c8fcade95153a2b7603e9",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/landlord-applications-loading.test.mjs": {
+    "mtime": 1792313705.9702537,
+    "seen": 1792313754.6817589,
+    "ast_hash": "fbd0519657fc9a68f7a67a42011c26d2",
     "semantic_hash": ""
   }
 }
