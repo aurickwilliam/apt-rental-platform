@@ -5304,9 +5304,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingBreakdown.tsx": {
-    "mtime": 1791973424.2096753,
-    "seen": 1792256917.9950457,
-    "ast_hash": "fadc63713db05a07e624fd80679f9dac",
+    "mtime": 1792290092.2552118,
+    "seen": 1792290156.3957973,
+    "ast_hash": "655b5be3869f4e885f9e140d71d1f934",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingsSection.tsx": {
@@ -8220,9 +8220,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792289138.2936819,
-    "seen": 1792289682.7224772,
-    "ast_hash": "f9742570d23f6eeadbc71aef12339f54",
+    "mtime": 1792290103.0410404,
+    "seen": 1792290156.4909854,
+    "ast_hash": "16f4a51d774c0ae910de85dc73433bae",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9805,6 +9805,12 @@
     "mtime": 1792289441.6127398,
     "seen": 1792289682.693578,
     "ast_hash": "3d1bac1c6bc711741160932a8d217aa0",
+    "semantic_hash": ""
+  },
+  "apps/web/lib/rating-breakdown.test.mjs": {
+    "mtime": 1792290092.257734,
+    "seen": 1792290156.461374,
+    "ast_hash": "f2dc5eef91ff1f78a736d020552c7abd",
     "semantic_hash": ""
   }
 }
