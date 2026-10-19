@@ -44,6 +44,17 @@ const utilities = {
   target_amount: null,
   months_remaining: null,
 };
+const maintenanceStudio = {
+  id: "budget-4",
+  apartment_id: "studio",
+  month: "2026-09-01",
+  category: "maintenance",
+  kind: "expense",
+  amount: 1000,
+  spent: 200,
+  target_amount: null,
+  months_remaining: null,
+};
 const insurance = {
   id: "budget-3",
   apartment_id: "villa",
@@ -67,7 +78,7 @@ const mockFinance = {
         { id: "villa", name: "Villa" },
         { id: "studio", name: "Studio" },
       ],
-      budgets: [maintenance, utilities, insurance],
+      budgets: [maintenance, maintenanceStudio, utilities, insurance],
     },
     isLoading: false,
     isRefetching: false,
@@ -192,13 +203,19 @@ describe("Budget category route", () => {
     expect(screen.getByText("All properties")).toBeTruthy();
     expect(screen.getByText("Spending limits · September 2026")).toBeTruthy();
     expect(
-      screen.getByText("₱ 4,200 spent of ₱ 3,000 across 1 property"),
+      screen.getByText("₱ 4,400 spent of ₱ 4,000 across 2 properties"),
     ).toBeTruthy();
+    // Each property is its own surface card.
+    expect(screen.getAllByTestId("budget-property-card")).toHaveLength(2);
+    expect(screen.getByText("Villa")).toBeTruthy();
+    expect(screen.getByText("Studio")).toBeTruthy();
     expect(screen.getByText(/₱ 4,200 \/ ₱ 3,000/)).toBeTruthy();
     expect(screen.getByText(/₱ 1,200 over budget · 140% used/)).toBeTruthy();
+    expect(screen.getByText(/₱ 200 \/ ₱ 1,000/)).toBeTruthy();
+    expect(screen.getByText(/₱ 800 remaining/)).toBeTruthy();
     // Other categories and reserve plans never leak into this page.
-    expect(screen.queryByText("Studio")).toBeNull();
-    expect(screen.queryByText(/Insurance: 1000/)).toBeNull();
+    expect(screen.queryByText(/₱ 500 \/ ₱ 2,000/)).toBeNull();
+    expect(screen.queryByText(/Villa: 1000/)).toBeNull();
   });
 
   test("a reserve category lists planned amounts instead of spending", () => {
@@ -210,6 +227,7 @@ describe("Budget category route", () => {
     );
     expect(screen.getByText("Planned reserves · September 2026")).toBeTruthy();
     expect(screen.getByText("₱ 1,000 planned across 1 property")).toBeTruthy();
+    expect(screen.getAllByTestId("budget-property-card")).toHaveLength(1);
     expect(screen.getByText(/Villa: 1000/)).toBeTruthy();
     expect(screen.getByText("planned this month")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/Villa, planned ₱ 1,000 this month/));

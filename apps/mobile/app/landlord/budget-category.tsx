@@ -161,35 +161,41 @@ function BudgetCategory() {
               )}
             </View>
           }
-          renderItem={({ item }) =>
-            item.kind === "reserve" ? (
-              <Button
-                variant="ghost"
-                className="h-auto min-h-12 py-2"
-                onPress={() => setBudgetEditor(item)}
-                accessibilityLabel={`${propertyName(item.apartment_id)}, planned ${formatPesoDisplay(item.amount)} this month. Edit budget`}
-              >
-                <View className="w-full gap-1">
-                  <MoneyRow
-                    label={propertyName(item.apartment_id)}
-                    amount={item.amount}
-                  />
-                  <Text className="font-inter text-xs text-muted">
-                    planned this month
-                  </Text>
-                </View>
-              </Button>
-            ) : (
-              <BudgetProgressRow
-                title={propertyName(item.apartment_id)}
-                caption="spent this month"
-                amount={item.amount}
-                spent={item.spent}
-                action="Edit budget"
-                onPress={() => setBudgetEditor(item)}
-              />
-            )
-          }
+          renderItem={({ item }) => (
+            // One surface card per property, matching the report's cards.
+            <View
+              testID="budget-property-card"
+              className="bg-surface border border-border rounded-3xl overflow-hidden"
+            >
+              {item.kind === "reserve" ? (
+                <Button
+                  variant="ghost"
+                  className="h-auto min-h-12 py-2"
+                  onPress={() => setBudgetEditor(item)}
+                  accessibilityLabel={`${propertyName(item.apartment_id)}, planned ${formatPesoDisplay(item.amount)} this month. Edit budget`}
+                >
+                  <View className="w-full gap-1">
+                    <MoneyRow
+                      label={propertyName(item.apartment_id)}
+                      amount={item.amount}
+                    />
+                    <Text className="font-inter text-xs text-muted">
+                      planned this month
+                    </Text>
+                  </View>
+                </Button>
+              ) : (
+                <BudgetProgressRow
+                  title={propertyName(item.apartment_id)}
+                  caption="spent this month"
+                  amount={item.amount}
+                  spent={item.spent}
+                  action="Edit budget"
+                  onPress={() => setBudgetEditor(item)}
+                />
+              )}
+            </View>
+          )}
           ListEmptyComponent={
             <EmptyState
               icon={<IconTargetArrow size={32} color={colors.gray500} />}
