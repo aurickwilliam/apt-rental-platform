@@ -1,6 +1,11 @@
 import { Text, View } from "react-native";
 import { Button } from "heroui-native";
 import {
+  IconPlus,
+  IconShieldCheck,
+  IconTargetArrow,
+} from "@tabler/icons-react-native";
+import {
   financeCategoryLabel,
   formatPesoDisplay,
   suggestFinanceBudget,
@@ -9,6 +14,8 @@ import {
   type FinanceCategory,
 } from "@repo/utils";
 import { FinanceCard, FinanceHeading, MoneyRow } from "./FinanceControls";
+import EmptyState from "@/components/display/EmptyState";
+import { useColors } from "@/hooks/useTheme";
 import type { FinanceProperty } from "@/service/finance/financeService";
 
 export type SpendingBudget = FinanceBudget & { spent: number };
@@ -24,6 +31,7 @@ export default function BudgetProgressChart({
   onEdit: (budget: FinanceBudget) => void;
   onCreate: (category?: FinanceCategory, kind?: BudgetKind) => void;
 }) {
+  const { colors } = useColors();
   const expenses = budgets.filter((budget) => budget.kind === "expense");
   const reserves = budgets.filter((budget) => budget.kind === "reserve");
   return (
@@ -34,14 +42,17 @@ export default function BudgetProgressChart({
           description="Tap a budget to edit its limit or goal. Actual spending includes improvements in that category."
           action={
             <Button size="sm" variant="tertiary" onPress={() => onCreate()}>
+              <IconPlus size={18} color={colors.textPrimary} />
               <Button.Label>Add</Button.Label>
             </Button>
           }
         />
         {expenses.length === 0 && (
-          <Text className="font-inter text-sm text-muted">
-            Set spending limits for repairs, utilities and other property costs.
-          </Text>
+          <EmptyState
+            icon={<IconTargetArrow size={32} color={colors.gray500} />}
+            title="No spending limits yet"
+            description="Set spending limits for repairs, utilities and other property costs."
+          />
         )}
         {expenses.map((budget) => {
           const over = budget.spent > budget.amount;
@@ -99,15 +110,17 @@ export default function BudgetProgressChart({
               variant="tertiary"
               onPress={() => onCreate("emergency", "reserve")}
             >
+              <IconPlus size={18} color={colors.textPrimary} />
               <Button.Label>Add</Button.Label>
             </Button>
           }
         />
         {reserves.length === 0 && (
-          <Text className="font-inter text-sm text-muted">
-            Plan a buffer for unexpected repairs, late payments, vacancies or
-            replacements.
-          </Text>
+          <EmptyState
+            icon={<IconShieldCheck size={32} color={colors.gray500} />}
+            title="No reserve goals yet"
+            description="Plan a buffer for unexpected repairs, late payments, vacancies or replacements."
+          />
         )}
         {reserves.map((budget) => (
           <Button

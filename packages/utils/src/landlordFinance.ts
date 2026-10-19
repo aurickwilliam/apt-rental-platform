@@ -47,6 +47,33 @@ export function financeMonthFromParam(value: unknown, currentMonth: string): str
     : currentMonth;
 }
 
+/** Resolves a route param to a budget category the finance forms accept. */
+export function financeCategoryFromParam(value: unknown): FinanceCategory | undefined {
+  return typeof value === "string" &&
+    FINANCE_CATEGORIES.some((item) => item.id === value)
+    ? (value as FinanceCategory)
+    : undefined;
+}
+
+/** Resolves a route param to a budget kind ("expense" | "reserve"). */
+export function budgetKindFromParam(value: unknown): BudgetKind | undefined {
+  return value === "expense" || value === "reserve" ? value : undefined;
+}
+
+/** The categories a budget form offers for a plan kind; reserves may use every category. */
+export function budgetCategoryOptions(
+  kind: BudgetKind,
+): (typeof FINANCE_CATEGORIES)[number][] {
+  return FINANCE_CATEGORIES.filter(
+    (item) => kind === "reserve" || !["emergency", "vacancy"].includes(item.id),
+  );
+}
+
+/** Spending budgets cannot hold reserve-only categories (emergency, vacancy). */
+export function isBudgetCategoryAllowed(kind: BudgetKind, category: FinanceCategory): boolean {
+  return kind === "reserve" || !["emergency", "vacancy"].includes(category);
+}
+
 /** Empty, scientific notation, negative, non-finite and >2 decimal values are rejected. */
 export function parseFinanceAmount(value: string, allowZero = false): number | null {
   if (!/^\d+(\.\d{1,2})?$/.test(value.trim())) return null;

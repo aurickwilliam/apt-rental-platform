@@ -140,10 +140,26 @@ export function FinanceSelect({
         </Select.Trigger>
         <Select.Portal>
           <Select.Overlay />
-          <Select.Content presentation="bottom-sheet" snapPoints={[sheetHeight ?? (searchable ? "90%" : "65%") ]}
-            {...(sheetHeight ? { enableDynamicSizing: false } : {})}
-            {...(searchable ? { enableDynamicSizing: false, enableOverDrag: false, contentContainerClassName: "h-full", topInset: insets.top,
-              keyboardBehavior: "fillParent" as const, keyboardBlurBehavior: "restore" as const, enableBlurKeyboardOnGesture: true } : {})}>
+          <Select.Content
+            presentation="bottom-sheet"
+            // Category and Plan type sheets size to their options so the whole
+            // list is visible on open; property search and fixed-height sheets
+            // keep their own snap points.
+            snapPoints={
+              sheetHeight ? [sheetHeight] : searchable ? ["90%"] : undefined
+            }
+            enableDynamicSizing={!sheetHeight && !searchable}
+            {...(searchable
+              ? {
+                  enableOverDrag: false,
+                  contentContainerClassName: "h-full",
+                  topInset: insets.top,
+                  keyboardBehavior: "fillParent" as const,
+                  keyboardBlurBehavior: "restore" as const,
+                  enableBlurKeyboardOnGesture: true,
+                }
+              : {})}
+          >
             <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-5 pb-3">
               {label}
             </Select.ListLabel>

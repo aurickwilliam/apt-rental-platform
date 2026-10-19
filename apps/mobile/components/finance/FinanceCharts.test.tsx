@@ -384,6 +384,28 @@ describe("interactive finance charts", () => {
     expect(screen.queryByText(/Late rent is outstanding income/)).toBeNull();
     expect(onSelect).not.toHaveBeenCalled();
   });
+  test("empty spending limits and reserves show their empty states", () => {
+    const screen = render(
+      <BudgetProgressChart
+        properties={[]}
+        budgets={[]}
+        onEdit={jest.fn()}
+        onCreate={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("No spending limits yet")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Set spending limits for repairs, utilities and other property costs.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("No reserve goals yet")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Plan a buffer for unexpected repairs, late payments, vacancies or replacements.",
+      ),
+    ).toBeTruthy();
+  });
   test("over-budget amounts are explicit and reserve targets remain plans", () => {
     const onEdit = jest.fn();
     const screen = render(

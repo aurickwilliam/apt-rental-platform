@@ -6,11 +6,17 @@ interface FinanceSkeletonProps {
   tab: "overview" | "expenses" | "budget";
 }
 
-export function ExpenseEntrySkeleton() {
+export function EntryFormSkeleton({
+  label,
+  testID,
+}: {
+  label: string;
+  testID: string;
+}) {
   return (
     <View
       accessible
-      accessibilityLabel="Loading expense form"
+      accessibilityLabel={label}
       accessibilityRole="progressbar"
       accessibilityState={{ busy: true }}
     >
@@ -18,11 +24,7 @@ export function ExpenseEntrySkeleton() {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <SkeletonGroup
-          isLoading
-          className="gap-4"
-          testID="expense-entry-skeleton"
-        >
+        <SkeletonGroup isLoading className="gap-4" testID={testID}>
           <SkeletonGroup.Item className="h-4 w-full rounded-md" />
           <SkeletonGroup.Item className="h-4 w-4/5 rounded-md" />
           {[0, 1, 2].map((field) => (
@@ -47,7 +49,7 @@ export function ExpenseEntrySkeleton() {
   );
 }
 
-export function ExpenseEntryFooterSkeleton() {
+export function EntryFormFooterSkeleton() {
   return (
     <View
       accessibilityElementsHidden

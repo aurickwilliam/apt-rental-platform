@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextProps, TextInputProps } from "react-native";
-import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { Keyboard, ScrollView, View } from "react-native";
 import AnalyticsScreen from "@/app/landlord/analytics";
 import type { FinanceData, FinanceScope } from "@/service/finance/financeService";
@@ -63,6 +63,12 @@ const mockRouteParams: { month?: string; apartmentId?: string } = {};
 const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
 const mockPropertyChart = jest.fn((_props: { onViewAll: () => void }) => null);
+const mockBudgetChart = jest.fn(
+  (_props: {
+    onCreate: (category?: FinanceCategory, kind?: string) => void;
+    onEdit: (budget: FinanceData["budgets"][number]) => void;
+  }) => null,
+);
 const mockCategoryChart = jest.fn(
   (_props: { onSelect: (category: FinanceCategory) => void }) => null,
 );
@@ -339,7 +345,11 @@ jest.mock(
 jest.mock(
   "@/components/finance/BudgetProgressChart",
   () =>
-    function Chart() {
+    function Chart(props: {
+      onCreate: (category?: FinanceCategory, kind?: string) => void;
+      onEdit: (budget: FinanceData["budgets"][number]) => void;
+    }) {
+      mockBudgetChart(props);
       return null;
     },
 );
@@ -838,6 +848,49 @@ describe("analytics header filters", () => {
     expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
+  });
+
+  // Creating a plan opens its own page (like Add expense); tapping a budget edits in the sheet.
+  test("creating a budget opens the plan page while tapping one edits in the sheet", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Budget tab"));
+    const chart = mockBudgetChart.mock.calls.at(-1)![0];
+    act(() => chart.onCreate("insurance", "reserve"));
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/add-budget",
+      params: { month: "2026-10", category: "insurance", kind: "reserve" },
+    });
+    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
+      expect.objectContaining({ isOpen: false }),
+    );
+    act(() =>
+      chart.onEdit({
+        id: "budget",
+        apartment_id: "villa",
+        month: "2026-10-01",
+        category: "maintenance",
+        kind: "expense",
+        amount: 3000,
+        spent: 0,
+        target_amount: null,
+        months_remaining: null,
+      }),
+    );
+    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        isOpen: true,
+        initial: expect.objectContaining({ id: "budget" }),
+      }),
+    );
+  });
+
+  test("the empty reserve shortcut opens the plan page preset to an emergency reserve", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByText("Plan an emergency reserve"));
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/add-budget",
+      params: { month: "2026-10", category: "emergency", kind: "reserve" },
+    });
   });
 
   test("the review card sits above the category chart", () => {

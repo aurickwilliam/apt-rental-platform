@@ -1,8 +1,9 @@
 import fc from "fast-check";
 import {
-  financeAfterReserve, financeIncome, financeMonthFromParam, manilaToday,
-  parseFinanceAmount, rentAgeBucket, shiftFinanceMonth, suggestFinanceBudget,
-  validateExpenseDate,
+  budgetCategoryOptions, budgetKindFromParam, financeAfterReserve,
+  financeCategoryFromParam, financeIncome, financeMonthFromParam,
+  isBudgetCategoryAllowed, manilaToday, parseFinanceAmount, rentAgeBucket,
+  shiftFinanceMonth, suggestFinanceBudget, validateExpenseDate,
 } from "./landlordFinance";
 
 describe("landlord finance rules", () => {
@@ -18,6 +19,26 @@ describe("landlord finance rules", () => {
     expect(financeMonthFromParam("2027-01", "2026-10")).toBe("2026-10");
     expect(financeMonthFromParam("2026-13", "2026-10")).toBe("2026-10");
     expect(financeMonthFromParam(undefined, "2026-10")).toBe("2026-10");
+  });
+  test("budget route params only accept known categories and kinds", () => {
+    expect(financeCategoryFromParam("insurance")).toBe("insurance");
+    expect(financeCategoryFromParam("emergency")).toBe("emergency");
+    expect(financeCategoryFromParam("unknown")).toBeUndefined();
+    expect(financeCategoryFromParam(["insurance"])).toBeUndefined();
+    expect(financeCategoryFromParam(undefined)).toBeUndefined();
+    expect(budgetKindFromParam("reserve")).toBe("reserve");
+    expect(budgetKindFromParam("expense")).toBe("expense");
+    expect(budgetKindFromParam("savings")).toBeUndefined();
+    expect(budgetKindFromParam(undefined)).toBeUndefined();
+  });
+  test("spending budgets exclude reserve-only categories while reserves keep every category", () => {
+    expect(isBudgetCategoryAllowed("expense", "maintenance")).toBe(true);
+    expect(isBudgetCategoryAllowed("expense", "emergency")).toBe(false);
+    expect(isBudgetCategoryAllowed("expense", "vacancy")).toBe(false);
+    expect(isBudgetCategoryAllowed("reserve", "emergency")).toBe(true);
+    expect(isBudgetCategoryAllowed("reserve", "vacancy")).toBe(true);
+    expect(budgetCategoryOptions("expense").map((item) => item.id)).not.toContain("emergency");
+    expect(budgetCategoryOptions("reserve").map((item) => item.id)).toContain("emergency");
   });
   test.each(["", "NaN", "Infinity", "1e3", "-2", "1.234", "1,000", "9999999999", "0"])("rejects invalid expense amount %s", (value) => {
     expect(parseFinanceAmount(value)).toBeNull();

@@ -13,9 +13,11 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { randomUUID } from "expo-crypto";
 import {
   FINANCE_CATEGORIES,
+  budgetCategoryOptions,
   financeMonthLabel,
   formatPesoDisplay,
   handlePesoChange,
+  isBudgetCategoryAllowed,
   manilaToday,
   parseFinanceAmount,
   suggestFinanceBudget,
@@ -450,7 +452,40 @@ function ExpenseEditor({
   );
 }
 
-export function BudgetEntrySheet({
+interface BudgetEditorProps {
+  isOpen: boolean;
+  properties: FinanceProperty[];
+  apartmentId: string | null;
+  month: string;
+  initial?: FinanceBudget;
+  presetCategory?: FinanceCategory;
+  presetKind?: BudgetKind;
+  onClose: () => void;
+  onSave: (budget: Omit<FinanceBudget, "id">) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
+  presentation?: "sheet" | "page";
+}
+
+/** Editing and removal stay in the sheet, matching the expense editor. */
+export function BudgetEntrySheet(
+  props: Omit<
+    BudgetEditorProps,
+    "presentation" | "presetCategory" | "presetKind"
+  >,
+) {
+  return <BudgetEditor {...props} presentation="sheet" />;
+}
+
+export function BudgetEntryPage(
+  props: Omit<
+    BudgetEditorProps,
+    "presentation" | "isOpen" | "initial" | "onDelete"
+  >,
+) {
+  return <BudgetEditor {...props} isOpen presentation="page" />;
+}
+
+function BudgetEditor({
   isOpen,
   properties,
   apartmentId,
@@ -461,17 +496,16 @@ export function BudgetEntrySheet({
   onClose,
   onSave,
   onDelete,
-}: CommonProps & {
-  initial?: FinanceBudget;
-  presetCategory?: FinanceCategory;
-  presetKind?: BudgetKind;
-  onSave: (budget: Omit<FinanceBudget, "id">) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-}) {
+  presentation,
+}: BudgetEditorProps) {
   const seedProperty =
     initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
-  const seedCategory = initial?.category ?? presetCategory ?? "maintenance";
   const seedKind = initial?.kind ?? presetKind ?? "expense";
+  const seedCategory =
+    initial?.category ??
+    (presetCategory && isBudgetCategoryAllowed(seedKind, presetCategory)
+      ? presetCategory
+      : "maintenance");
   const seedMonths =
     initial?.months_remaining ??
     (seedCategory === "insurance" || seedCategory === "taxes" ? 12 : 6);
@@ -510,6 +544,18 @@ export function BudgetEntrySheet({
   const validGoal =
     !target.trim() ||
     (targetValue !== null && monthsValue >= 1 && monthsValue <= 600);
+  const propertyError = properties.some((item) => item.id === property)
+    ? undefined
+    : "Choose one of your properties.";
+  const kindError =
+    kind === "expense" || kind === "reserve"
+      ? undefined
+      : "Choose a plan type.";
+  const categoryError = budgetCategoryOptions(kind).some(
+    (item) => item.id === category,
+  )
+    ? undefined
+    : "Choose a budget category.";
   const suggestion = suggestFinanceBudget({
     category,
     kind,
@@ -519,7 +565,14 @@ export function BudgetEntrySheet({
   const handleSave = async () => {
     if (busy) return;
     setSubmitted(true);
-    if (amountValue === null || !validGoal || !property) return;
+    if (
+      amountValue === null ||
+      !validGoal ||
+      propertyError ||
+      kindError ||
+      categoryError
+    )
+      return;
     Keyboard.dismiss();
     setBusy(true);
     setError(null);
@@ -542,7 +595,7 @@ export function BudgetEntrySheet({
     }
   };
   const handleDelete = async () => {
-    if (busy || !initial) return;
+    if (busy || !initial || !onDelete) return;
     setBusy(true);
     try {
       await onDelete(initial.id);
@@ -554,6 +607,198 @@ export function BudgetEntrySheet({
       setBusy(false);
     }
   };
+  const close = () => {
+    if (!busy) {
+      Keyboard.dismiss();
+      onClose();
+    }
+  };
+  const form = (
+    <View className="gap-4">
+      {presentation === "sheet" && (
+        <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
+          {initial ? "Edit budget" : "Plan a budget"}
+        </BottomSheet.Title>
+      )}
+      <Text className="font-inter text-sm text-muted">
+        {financeMonthLabel(month)} · Plans only. No money is moved or saved
+        automatically.
+      </Text>
+      <FinanceSelect
+        label="Property"
+        required
+        error={submitted ? propertyError : undefined}
+        searchable={presentation === "page"}
+        value={property}
+        options={properties.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }))}
+        onChange={setProperty}
+        disabled={busy || !!initial}
+      />
+      <FinanceSelect
+        label="Plan type"
+        required
+        error={submitted ? kindError : undefined}
+        value={kind}
+        options={[
+          { value: "expense", label: "Spending budget" },
+          { value: "reserve", label: "Planned reserve" },
+        ]}
+        disabled={busy || !!initial}
+        onChange={(value) => {
+          setKind(value as BudgetKind);
+          if (
+            value === "expense" &&
+            !isBudgetCategoryAllowed("expense", category)
+          )
+            setCategory("maintenance");
+        }}
+      />
+      <FinanceSelect
+        label="Category"
+        required
+        error={submitted ? categoryError : undefined}
+        highlightSelection
+        value={category}
+        options={budgetCategoryOptions(kind).map((item) => ({
+          value: item.id,
+          label: item.label,
+        }))}
+        onChange={(value) => setCategory(value as FinanceCategory)}
+        disabled={busy || !!initial}
+      />
+      <SheetInput
+        label={
+          kind === "expense"
+            ? "Monthly spending limit (₱)"
+            : "Planned allocation this month (₱)"
+        }
+        required
+        value={amount === "." ? "." : formatPesoDisplay(amount)}
+        onChange={(text) => setAmount(handlePesoChange(text).raw)}
+        numeric
+        disabled={busy}
+        placeholder="0.00"
+        maxLength={MAX_FORMATTED_AMOUNT_LENGTH}
+        error={
+          submitted && amountValue === null
+            ? "Enter zero or a positive amount with at most two decimals."
+            : undefined
+        }
+      />
+      <View className="border-t border-border pt-4 gap-3">
+        <Text className="font-nunitoSemiBold text-base text-foreground">
+          Optional goal or known bill
+        </Text>
+        <SheetInput
+          label="Amount still needed / annual bill (₱)"
+          value={target === "." ? "." : formatPesoDisplay(target)}
+          onChange={(text) => setTarget(handlePesoChange(text).raw)}
+          numeric
+          disabled={busy}
+          maxLength={MAX_FORMATTED_AMOUNT_LENGTH}
+          placeholder="e.g. 12000"
+          error={
+            submitted && target.trim() && targetValue === null
+              ? "Enter a positive target amount."
+              : undefined
+          }
+        />
+        <SheetInput
+          label="Months to spread this amount over"
+          value={months}
+          onChange={setMonths}
+          numeric
+          disabled={busy}
+          maxLength={3}
+          error={
+            submitted &&
+            !!target.trim() &&
+            !(monthsValue >= 1 && monthsValue <= 600)
+              ? "Enter a whole number from 1 to 600."
+              : undefined
+          }
+        />
+        {suggestion && (
+          <View className="bg-surface-secondary rounded-2xl p-3 gap-2">
+            <Text className="font-nunitoBold text-sm text-accent">
+              Suggested: {formatPesoDisplay(suggestion.amount)} / month
+            </Text>
+            <Text className="font-inter text-xs text-muted">
+              {suggestion.basis}
+            </Text>
+            <Button
+              size="sm"
+              variant="secondary"
+              isDisabled={busy}
+              onPress={() => setAmount(String(suggestion.amount))}
+            >
+              <Button.Label>Use suggestion</Button.Label>
+            </Button>
+          </View>
+        )}
+      </View>
+      {error && (
+        <Text
+          accessibilityRole="alert"
+          selectable
+          className="text-danger text-sm font-inter"
+        >
+          {error}
+        </Text>
+      )}
+      {presentation === "sheet" && (
+        <>
+          <Button isDisabled={busy} onPress={handleSave}>
+            <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
+          </Button>
+          <Button variant="secondary" isDisabled={busy} onPress={onClose}>
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+        </>
+      )}
+      {initial && onDelete && (
+        <Button
+          variant="danger-soft"
+          isDisabled={busy}
+          onPress={() =>
+            confirmDelete ? void handleDelete() : setConfirmDelete(true)
+          }
+        >
+          <Button.Label>
+            {confirmDelete ? "Confirm remove budget" : "Remove budget"}
+          </Button.Label>
+        </Button>
+      )}
+    </View>
+  );
+  if (presentation === "page")
+    return (
+      <ScreenWrapper
+        header={<StandardHeader title="Plan a budget" onBackPress={close} />}
+        scrollable
+        className="p-5"
+        footer={
+          <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
+            <Button
+              className="flex-1"
+              variant="tertiary"
+              onPress={close}
+              isDisabled={busy}
+            >
+              <Button.Label>Cancel</Button.Label>
+            </Button>
+            <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
+              <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
+            </Button>
+          </View>
+        }
+      >
+        {form}
+      </ScreenWrapper>
+    );
   return (
     <BottomSheet
       isOpen={isOpen}
@@ -572,148 +817,7 @@ export function BudgetEntrySheet({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 16 }}
           >
-            <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
-              {initial ? "Edit budget" : "Plan a budget"}
-            </BottomSheet.Title>
-            <BottomSheet.Description className="font-inter text-sm text-muted">
-              {financeMonthLabel(month)} · Plans only. No money is moved or
-              saved automatically.
-            </BottomSheet.Description>
-            <FinanceSelect
-              label="Property"
-              value={property}
-              options={properties.map((item) => ({
-                value: item.id,
-                label: item.name,
-              }))}
-              onChange={setProperty}
-              disabled={busy || !!initial}
-            />
-            <FinanceSelect
-              label="Plan type"
-              value={kind}
-              options={[
-                { value: "expense", label: "Spending budget" },
-                { value: "reserve", label: "Planned reserve" },
-              ]}
-              disabled={busy || !!initial}
-              onChange={(value) => {
-                setKind(value as BudgetKind);
-                if (
-                  value === "expense" &&
-                  ["emergency", "vacancy"].includes(category)
-                )
-                  setCategory("maintenance");
-              }}
-            />
-            <FinanceSelect
-              label="Category"
-              highlightSelection
-              value={category}
-              options={FINANCE_CATEGORIES.filter(
-                (item) =>
-                  kind === "reserve" ||
-                  !["emergency", "vacancy"].includes(item.id),
-              ).map((item) => ({ value: item.id, label: item.label }))}
-              onChange={(value) => setCategory(value as FinanceCategory)}
-              disabled={busy || !!initial}
-            />
-            <SheetInput
-              label={
-                kind === "expense"
-                  ? "Monthly spending limit (₱)"
-                  : "Planned allocation this month (₱)"
-              }
-              value={amount}
-              onChange={setAmount}
-              numeric
-              disabled={busy}
-              placeholder="0.00"
-              maxLength={12}
-              error={
-                submitted && amountValue === null
-                  ? "Enter zero or a positive amount with at most two decimals."
-                  : undefined
-              }
-            />
-            <View className="border-t border-border pt-4 gap-3">
-              <Text className="font-nunitoSemiBold text-base text-foreground">
-                Optional goal or known bill
-              </Text>
-              <SheetInput
-                label="Amount still needed / annual bill (₱)"
-                value={target}
-                onChange={setTarget}
-                numeric
-                disabled={busy}
-                maxLength={12}
-                placeholder="e.g. 12000"
-                error={
-                  submitted && target.trim() && targetValue === null
-                    ? "Enter a positive target amount."
-                    : undefined
-                }
-              />
-              <SheetInput
-                label="Months to spread this amount over"
-                value={months}
-                onChange={setMonths}
-                numeric
-                disabled={busy}
-                maxLength={3}
-                error={
-                  submitted && !validGoal
-                    ? "Enter a whole number from 1 to 600."
-                    : undefined
-                }
-              />
-              {suggestion && (
-                <View className="bg-surface-secondary rounded-2xl p-3 gap-2">
-                  <Text className="font-nunitoBold text-sm text-accent">
-                    Suggested: {formatPesoDisplay(suggestion.amount)} / month
-                  </Text>
-                  <Text className="font-inter text-xs text-muted">
-                    {suggestion.basis}
-                  </Text>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    isDisabled={busy}
-                    onPress={() => setAmount(String(suggestion.amount))}
-                  >
-                    <Button.Label>Use suggestion</Button.Label>
-                  </Button>
-                </View>
-              )}
-            </View>
-            {error && (
-              <Text
-                accessibilityRole="alert"
-                selectable
-                className="text-danger text-sm font-inter"
-              >
-                {error}
-              </Text>
-            )}
-            <Button isDisabled={busy} onPress={handleSave}>
-              <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
-            </Button>
-            <Button variant="secondary" isDisabled={busy} onPress={onClose}>
-              <Button.Label>Cancel</Button.Label>
-            </Button>
-            {initial && (
-              <Button
-                variant="danger-soft"
-                isDisabled={busy}
-                onPress={() =>
-                  confirmDelete ? void handleDelete() : setConfirmDelete(true)
-                }
-              >
-                <Button.Label>
-                  {confirmDelete ? "Confirm remove budget" : "Remove budget"}
-                </Button.Label>
-              </Button>
-            )}
+            {form}
           </BottomSheetScrollView>
         </BottomSheet.Content>
       </BottomSheet.Portal>

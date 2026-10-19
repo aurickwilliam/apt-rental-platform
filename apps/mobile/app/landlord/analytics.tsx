@@ -57,11 +57,6 @@ import FinanceGuidelinesDialog from "@/components/finance/FinanceGuidelinesDialo
 import { BudgetEntrySheet } from "@/components/finance/FinanceEntrySheet";
 
 type FinanceTab = "overview" | "expenses" | "budget";
-type BudgetEditor = {
-  initial?: FinanceBudget;
-  category?: FinanceCategory;
-  kind?: BudgetKind;
-};
 
 function LandlordAnalytics() {
   const insets = useSafeAreaInsets();
@@ -83,7 +78,7 @@ function LandlordAnalytics() {
     useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<FinanceScope | null>(null);
   const [tab, setTab] = useState<FinanceTab>("overview");
-  const [budgetEditor, setBudgetEditor] = useState<BudgetEditor | null>(null);
+  const [budgetEditor, setBudgetEditor] = useState<FinanceBudget | null>(null);
   const [collectionStatus, setCollectionStatus] =
     useState<CollectionStatus | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -136,6 +131,18 @@ function LandlordAnalytics() {
     setApartmentId(value);
     setReviewDialogOpen(false);
     setReviewError(null);
+  };
+  // Creating a plan has its own page (like Add expense); editing stays in the sheet.
+  const openBudgetPage = (category?: FinanceCategory, kind?: BudgetKind) => {
+    router.push({
+      pathname: "/landlord/add-budget",
+      params: {
+        month,
+        ...(apartmentId ? { apartmentId } : {}),
+        ...(category ? { category } : {}),
+        ...(kind ? { kind } : {}),
+      },
+    });
   };
   const reviewExpenses = async () => {
     if (finance.review.isPending) return;
@@ -410,10 +417,7 @@ function LandlordAnalytics() {
                     className="bg-white border-white"
                     onPress={() => {
                       changeTab("budget");
-                      setBudgetEditor({
-                        category: "emergency",
-                        kind: "reserve",
-                      });
+                      openBudgetPage("emergency", "reserve");
                     }}
                   >
                     <Button.Label className="text-primary">
@@ -531,10 +535,8 @@ function LandlordAnalytics() {
             <BudgetProgressChart
               budgets={data.budgets}
               properties={data.properties}
-              onEdit={(initial) => setBudgetEditor({ initial })}
-              onCreate={(value, kind) =>
-                setBudgetEditor({ category: value, kind })
-              }
+              onEdit={(initial) => setBudgetEditor(initial)}
+              onCreate={openBudgetPage}
             />
           )}
           <LinkButton
@@ -606,9 +608,7 @@ function LandlordAnalytics() {
           properties={data.properties}
           apartmentId={apartmentId}
           month={month}
-          initial={budgetEditor?.initial}
-          presetCategory={budgetEditor?.category}
-          presetKind={budgetEditor?.kind}
+          initial={budgetEditor ?? undefined}
           onClose={() => setBudgetEditor(null)}
           onSave={async (budget) => {
             await finance.budget.mutateAsync(budget);

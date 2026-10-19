@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from "react";
 import { render } from "@testing-library/react-native";
 import FinanceSkeleton, {
-  ExpenseEntryFooterSkeleton,
-  ExpenseEntrySkeleton,
+  EntryFormFooterSkeleton,
+  EntryFormSkeleton,
 } from "./FinanceSkeleton";
 
 jest.mock("heroui-native", () => {
@@ -18,11 +18,14 @@ jest.mock("./FinanceControls", () => {
 });
 
 describe("finance skeleton", () => {
-  test("renders the expense form and footer placeholders accessibly", () => {
+  test("renders the entry form and footer placeholders accessibly", () => {
     const screen = render(
       <>
-        <ExpenseEntrySkeleton />
-        <ExpenseEntryFooterSkeleton />
+        <EntryFormSkeleton
+          label="Loading expense form"
+          testID="expense-entry-skeleton"
+        />
+        <EntryFormFooterSkeleton />
       </>,
     );
     expect(screen.getByLabelText("Loading expense form")).toBeTruthy();
@@ -35,6 +38,20 @@ describe("finance skeleton", () => {
       }),
     ).toBeTruthy();
     expect(screen.queryByTestId("expense-entry-skeleton")).toBeNull();
+  });
+  test("the entry form skeleton carries the caller's label", () => {
+    const screen = render(
+      <EntryFormSkeleton
+        label="Loading budget form"
+        testID="budget-entry-skeleton"
+      />,
+    );
+    expect(screen.getByLabelText("Loading budget form")).toBeTruthy();
+    expect(
+      screen.getByTestId("budget-entry-skeleton", {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
   });
 
   test.each(["overview", "expenses", "budget"] as const)("renders the %s layout with an accessible loading state", (tab) => {

@@ -27,8 +27,8 @@ jest.mock("@/service/finance/financeService", () => ({ financeErrorMessage: () =
 jest.mock("@/components/finance/FinanceControls", () => ({ FinanceError: () => null }));
 jest.mock("@/components/finance/FinanceEntrySheet", () => ({ ExpenseEntryPage: (props: ComponentProps<typeof ExpenseEntryPage>) => mockPage(props) }));
 jest.mock("@/components/finance/FinanceSkeleton", () => ({
-  ExpenseEntrySkeleton: () => mockExpenseEntrySkeleton(),
-  ExpenseEntryFooterSkeleton: () => mockExpenseEntryFooterSkeleton(),
+  EntryFormSkeleton: () => mockExpenseEntrySkeleton(),
+  EntryFormFooterSkeleton: () => mockExpenseEntryFooterSkeleton(),
 }));
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");

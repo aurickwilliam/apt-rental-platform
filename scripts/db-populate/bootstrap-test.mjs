@@ -70,10 +70,15 @@ statements.push(`insert into public.maintenance_request(id,tenant_id,landlord_id
 statements.push(`insert into public.favorites(id,tenant_id,apartment_id) values('${stableId("fixture", "baseline-favorite")}','${ids[5]}','${apt(4)}'); update public.apartments set no_favorites=1 where id='${apt(4)}';`);
 statements.push(`insert into public.chat(id,sender_id,receiver_id,apartment_id,message,message_type) values('${stableId("fixture", "baseline-chat")}','${ids[5]}','${ids[6]}','${apt(4)}','Existing archived conversation','text'); insert into public.conversation_preferences(user_id,other_user_id,apartment_id,is_archived) values('${ids[5]}','${ids[6]}','${apt(4)}',true);`);
 statements.push(`update public.apartments set no_favorites=null where id='${apt(8)}';`);
+// Finance baselines exercise both kinds of collision and review preservation.
+statements.push(`insert into public.landlord_expenses(id,landlord_id,apartment_id,category,treatment,amount,spent_on,description) values('${stableId("fixture", "baseline-expense")}','${ids[6]}','${apt(1)}','maintenance','operating',1234.56,'2026-09-08','Existing manual expense');`);
+statements.push(`insert into public.landlord_budgets(landlord_id,apartment_id,month,category,kind,amount) values('${ids[7]}','${apt(2)}','2026-10-01','maintenance','expense',0);`);
+statements.push(`insert into public.landlord_finance_reviews(landlord_id,apartment_id,month) values('${ids[0]}','${apt(3)}','2026-10-01');`);
 // These are the actual exported production trigger bodies, not replacements.
 for (const f of schema.functions) statements.push(`${f.definition};`);
 for (const t of schema.triggers) statements.push(`${t.definition};`);
 statements.push(readFileSync(new URL("../../supabase/migrations/20261017075357_safe_demo_population.sql", import.meta.url), "utf8"));
+statements.push(readFileSync(new URL("../../supabase/migrations/20261019041228_demo_population_finance_extension.sql", import.meta.url), "utf8"));
 statements.push("select demo_population.audit(); commit;");
 const result = spawnSync("psql", ["-Xq", "--no-password", "--set", "ON_ERROR_STOP=1"], { input: statements.join("\n"), encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
 if (result.status !== 0) { console.error(result.stderr); process.exitCode = 1; }

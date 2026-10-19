@@ -7,8 +7,8 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import { ExpenseEntryPage } from "@/components/finance/FinanceEntrySheet";
 import { FinanceError } from "@/components/finance/FinanceControls";
 import {
-  ExpenseEntryFooterSkeleton,
-  ExpenseEntrySkeleton,
+  EntryFormFooterSkeleton,
+  EntryFormSkeleton,
 } from "@/components/finance/FinanceSkeleton";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
@@ -37,11 +37,14 @@ function AddExpense() {
         className="p-5"
         footer={
           <View className="px-5 py-3 border-t border-border bg-background">
-            <ExpenseEntryFooterSkeleton />
+            <EntryFormFooterSkeleton />
           </View>
         }
       >
-        <ExpenseEntrySkeleton />
+        <EntryFormSkeleton
+          label="Loading expense form"
+          testID="expense-entry-skeleton"
+        />
       </ScreenWrapper>
     );
   if (
