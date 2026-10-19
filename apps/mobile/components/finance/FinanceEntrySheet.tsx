@@ -615,6 +615,7 @@ export function BudgetEntryPage({
         required
         error={submitted ? kindError : undefined}
         sheetHeight="50%"
+        highlightSelection
         value={kind}
         options={[
           { value: "expense", label: "Spending budget" },

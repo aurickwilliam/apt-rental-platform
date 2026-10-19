@@ -92,6 +92,8 @@ jest.mock("heroui-native", () => {
 // Fixed sheet heights per selector label, so a regression back to a
 // content-measured sheet is caught here instead of on a device.
 const mockSelectSheetHeights = new Map<string, string | undefined>();
+// Which selectors highlight their selected row with the soft-blue pill.
+const mockSelectHighlight = new Map<string, boolean | undefined>();
 
 jest.mock("./FinanceControls", () => {
   const { Pressable, Text, View } = jest.requireActual("react-native");
@@ -106,6 +108,7 @@ jest.mock("./FinanceControls", () => {
       required,
       error,
       sheetHeight,
+      highlightSelection,
     }: {
       label: string;
       value: string;
@@ -116,8 +119,10 @@ jest.mock("./FinanceControls", () => {
       required?: boolean;
       error?: string;
       sheetHeight?: string;
+      highlightSelection?: boolean;
     }) => {
       mockSelectSheetHeights.set(label, sheetHeight);
+      mockSelectHighlight.set(label, highlightSelection);
       return (
         <View testID={searchable ? "searchable-property-picker" : undefined}>
           <Text>
@@ -153,6 +158,7 @@ describe("finance entry forms", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSheetHeights.clear();
+    mockSelectHighlight.clear();
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
   });
   afterEach(() => {
@@ -167,6 +173,10 @@ describe("finance entry forms", () => {
     expect(within(screen.getByTestId("entry-page-footer")).getByText("Cancel")).toBeTruthy();
     expect(screen.getByText("Property *: apt")).toBeTruthy();
     expect(screen.getAllByTestId("searchable-property-picker")).toHaveLength(1);
+    // The expense option sheets highlight their selected row with the same
+    // soft-blue pill as the budget form's Plan type sheet.
+    expect(mockSelectHighlight.get("Category")).toBe(true);
+    expect(mockSelectHighlight.get("Expense treatment")).toBe(true);
     fireEvent.press(screen.getByText("Save expense"));
     expect(onSave).not.toHaveBeenCalled();
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "2500");
@@ -351,6 +361,10 @@ describe("finance entry forms", () => {
     // FinanceSelect default instead of a content-measured sheet.
     expect(mockSelectSheetHeights.get("Plan type")).toBe("50%");
     expect(mockSelectSheetHeights.get("Category")).toBeUndefined();
+    // Every option sheet highlights its selected row with the same soft-blue
+    // pill, so Plan type matches Category.
+    expect(mockSelectHighlight.get("Plan type")).toBe(true);
+    expect(mockSelectHighlight.get("Category")).toBe(true);
     expect(
       screen.getByText("Planned allocation this month (₱) *"),
     ).toBeTruthy();

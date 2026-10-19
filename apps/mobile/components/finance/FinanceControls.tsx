@@ -7,6 +7,13 @@ import { formatPesoDisplay } from "@repo/utils";
 import PropertySearch from "./PropertySearch";
 import { useColors } from "@/hooks/useTheme";
 
+/**
+ * Extra horizontal inset for the finance option sheets, on top of HeroUI's
+ * shared 20px sheet gutter. The sheet label, the search field and the option
+ * list share it so they stay aligned — keep it in sync with their `px-3`.
+ */
+const OPTION_LIST_HORIZONTAL_PADDING = 12;
+
 export function FinanceCard({
   children,
   className,
@@ -179,11 +186,11 @@ export function FinanceSelect({
                 }
               : {})}
           >
-            <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-2 pb-3">
+            <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-3 pb-3">
               {label}
             </Select.ListLabel>
             {searchable && (
-              <View className="px-2 pb-3">
+              <View className="px-3 pb-3">
                 <PropertySearch value={search} onChange={setSearch} />
               </View>
             )}
@@ -192,9 +199,10 @@ export function FinanceSelect({
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={searchable ? "on-drag" : undefined}
               contentContainerStyle={{
-                // The sheet container already pads 20px; the extra 8px keeps the
-                // option pills off the sheet edges.
-                paddingHorizontal: 8,
+                // The sheet container already pads 20px; the extra inset keeps the
+                // option pills off the sheet edges and lines the option text up
+                // with the label and the search field above it.
+                paddingHorizontal: OPTION_LIST_HORIZONTAL_PADDING,
                 paddingBottom: insets.bottom + 24,
               }}
             >
@@ -205,7 +213,7 @@ export function FinanceSelect({
                   label={option.label}
                   className={
                     highlightSelected && option.value === value
-                      ? "bg-primary-light rounded-full"
+                      ? "bg-primary-light rounded-full px-3 py-2"
                       : undefined
                   }
                 >

@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import type { TextInputProps } from "react-native";
 import { fireEvent, render, within } from "@testing-library/react-native";
-import { ScrollView } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { FinanceSelect } from "./FinanceControls";
 
 const mockContentProps = jest.fn();
@@ -270,22 +270,38 @@ describe("searchable finance property picker", () => {
     expect(screen.getByText("Category *").props.className).toContain("text-danger");
     expect(screen.getByRole("alert").props.children).toBe("Choose an expense category.");
   });
-  // The sheet container already pads 20px; the option list adds 8px more so the
-  // row pills clear the sheet edges and option text lines up with the trigger's
-  // value text (20 + 8 + 8 = the 16px a select trigger uses for its own text).
-  test("option rows keep an extra 8px inside the shared sheet gutter", () => {
+  // The sheet container already pads 20px; the option list adds 12px more so the
+  // row pills clear the sheet edges, and the label, the search field and the
+  // list share that one inset so they stay aligned.
+  test("the label, search field and option list share one horizontal inset", () => {
     const screen = render(
       <FinanceSelect
         label="Category"
         value="villa"
         options={options}
         onChange={jest.fn()}
+        searchable
         highlightSelection
       />,
     );
     fireEvent.press(screen.getByLabelText("Property"));
     expect(
       screen.UNSAFE_getByType(ScrollView).props.contentContainerStyle,
-    ).toEqual(expect.objectContaining({ paddingHorizontal: 8 }));
+    ).toEqual(expect.objectContaining({ paddingHorizontal: 12 }));
+    // The sheet's own label (not the field label above the trigger) shares the
+    // list's inset.
+    const sheetLabel = screen
+      .UNSAFE_getAllByType(Text)
+      .find((node) => node.props.className?.includes("px-3"));
+    expect(sheetLabel?.props.className).toContain("font-nunitoBold");
+    const searchWrapper = screen
+      .UNSAFE_getAllByType(View)
+      .find((node) => node.props.className?.includes("px-3"));
+    expect(searchWrapper?.props.className).toContain("px-3");
+    expect(
+      searchWrapper?.findAllByProps({
+        accessibilityLabel: "Search properties",
+      }),
+    ).not.toHaveLength(0);
   });
 });
