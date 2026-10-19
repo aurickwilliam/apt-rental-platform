@@ -4,6 +4,22 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Keep the long property form roomy without changing other HeroUI dialogs. */
+.edit-property-modal {
+  max-width: 56rem;
+}
+
+.edit-property-modal .edit-property-modal-footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.edit-property-modal-footer > .button {
+  width: 100%;
+  min-width: 0;
+}
+
 /* Photo controls retain HeroUI interaction/focus behavior, with image-sized
    dimensions instead of the primitive's unlayered pill-button defaults. */
 .property-detail-gallery .property-photo-trigger,

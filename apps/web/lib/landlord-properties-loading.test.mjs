@@ -168,6 +168,16 @@ test("Property gallery handles deleted selections, a single photo, and an empty 
   assert.ok(empty.some(node => node.type === "p" && node.props.children.includes("No property photos yet")));
 });
 
+test("Edit Property uses a wider scoped dialog and equal-width footer actions", () => {
+  const source = readFileSync(new URL("../app/landlord/properties/components/modals/EditPropertyModal.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(source, /<Modal\.Dialog className="edit-property-modal">/);
+  assert.match(source, /<Modal\.Container size="lg" scroll="inside">/);
+  assert.match(source, /<Modal\.Footer className="edit-property-modal-footer">/);
+  assert.match(styles, /\.edit-property-modal\s*\{\s*max-width: 56rem;/);
+  assert.match(styles, /\.edit-property-modal \.edit-property-modal-footer\s*\{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+});
+
 const navItems = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
   { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
