@@ -177,6 +177,8 @@ Match neighboring components; keep 4px multiples; never introduce a new scale.
 
 Conventions: mobile cards `rounded-3xl` (nested `rounded-xl`/`2xl`); web cards `rounded-xl` (tenant `rounded-2xl`); buttons/chips/avatars/badges/search pills `rounded-full`; images `rounded-xl`–`rounded-2xl`, thumbnails `rounded-lg`.
 
+The landlord web apartment detail gallery uses rounded images, a horizontally scrollable thumbnail strip with a selected-state ring, and the shared `PhotoGalleryModal` for full-size viewing. Edit Property is the primary header action; image and lease management stay in the Manage menu. Vacating a unit and removing a listing are separated with explanatory text, and both retain confirmation dialogs.
+
 ---
 
 ## 7. Shadows

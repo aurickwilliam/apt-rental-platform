@@ -11,6 +11,7 @@ import type { Property } from "./propertyTypes";
 type Props = {
   properties: Property[];
   onRowClick: (property: Property) => void;
+  onRowIntent: (property: Property) => void;
   onEditClick: (property: Property) => void;
   onDeleteClick: (property: Property) => void;
 };
@@ -18,6 +19,7 @@ type Props = {
 export default function PropertiesTable({
   properties,
   onRowClick,
+  onRowIntent,
   onEditClick,
   onDeleteClick,
 }: Props) {
@@ -31,6 +33,13 @@ export default function PropertiesTable({
   }
 
   return (
+    <div
+      onFocusCapture={(event) => {
+        const row = (event.target as HTMLElement).closest<HTMLElement>("[data-property-id]");
+        const property = properties.find((item) => item.id === row?.dataset.propertyId);
+        if (property) onRowIntent(property);
+      }}
+    >
     <Table className="bg-darker-white dark:bg-zinc-900">
       <Table.ScrollContainer>
         <Table.Content
@@ -74,7 +83,9 @@ export default function PropertiesTable({
               <Table.Row
                 key={property.id}
                 id={property.id}
-                className="cursor-pointer hover:bg-default-50"
+                    className="cursor-pointer hover:bg-default-50"
+                    onMouseEnter={() => onRowIntent(property)}
+                    data-property-id={property.id}
               >
                 <Table.Cell>
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
@@ -164,5 +175,6 @@ export default function PropertiesTable({
         </Table.Content>
       </Table.ScrollContainer>
     </Table>
+    </div>
   );
 }

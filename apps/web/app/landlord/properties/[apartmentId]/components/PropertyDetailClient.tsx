@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -38,6 +37,7 @@ import {
 import { toProperty } from "./to-property";
 import { useLeaseViewer } from "./use-lease-viewer";
 import SignedLeaseModal from "./SignedLeaseModal";
+import PropertyPhotoGallery from "./PropertyPhotoGallery";
 import { STATUS_COLOR } from "../../components/propertyConstants";
 import { PERKS } from "@/app/components/inputs/perks";
 import ApartmentImagesModal from "../../components/modals/ApartmentImagesModal";
@@ -128,7 +128,6 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const isOccupied = apartment.status === "occupied";
   const tenant = detail.tenant;
   const tenantLeaseStatus = signedLeaseStatus(tenant?.signedLeasePath, tenant?.tenantAcknowledgedAt);
-  const extraImages = apartment.apartment_images.filter((img) => !img.is_cover);
   const amenities = apartment.amenities
     .map((id) => ({ id, perk: PERKS[id] }))
     .filter((item) => item.perk);
@@ -221,33 +220,30 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               {buildAddress(apartment)} · {formatPesoDisplay(apartment.monthly_rent)}/month
             </p>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button isIconOnly variant="ghost" size="sm" onPress={() => setEditModalOpen(true)} aria-label="Edit property">
-              <Pencil size={14} />
-            </Button>
-            <Button isIconOnly variant="ghost" size="sm" onPress={() => void handleViewLease()} isDisabled={!apartment.lease_agreement_url || viewingLease} aria-label="View lease">
-              <FileText size={14} />
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <Button size="sm" onPress={() => setEditModalOpen(true)}>
+              <Pencil size={14} aria-hidden="true" /> Edit Property
             </Button>
             <Dropdown>
-              <Button isIconOnly variant="tertiary" size="sm" aria-label="More actions">
-                <MoreHorizontal size={16} />
+              <Button variant="tertiary" size="sm" aria-label="Manage property">
+                <MoreHorizontal size={16} aria-hidden="true" /> Manage
               </Button>
               <Dropdown.Popover>
                 <Dropdown.Menu
                   onAction={(key) => {
                     if (key === "edit-image") setImagesModalOpen(true);
+                    if (key === "view-lease") void handleViewLease();
                     if (key === "edit-lease" || key === "upload-lease") setLeaseModalOpen(true);
-                    if (key === "delete") setDeleteConfirmOpen(true);
                   }}
                 >
                   <Dropdown.Item id="edit-image" textValue="Edit images">
                     <Label>Edit Images</Label>
                   </Dropdown.Item>
+                  <Dropdown.Item id="view-lease" textValue="View lease agreement" isDisabled={!apartment.lease_agreement_url || viewingLease}>
+                    <Label>{viewingLease ? "Opening Lease…" : "View Lease Agreement"}</Label>
+                  </Dropdown.Item>
                   <Dropdown.Item id={apartment.lease_agreement_url ? "edit-lease" : "upload-lease"} textValue="Lease">
                     <Label>{apartment.lease_agreement_url ? "Edit Lease" : "Upload Lease"}</Label>
-                  </Dropdown.Item>
-                  <Dropdown.Item id="delete" textValue="Delete" variant="danger">
-                    <Label>Delete</Label>
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown.Popover>
@@ -288,28 +284,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
       <div className="grid gap-4 lg:grid-cols-3 items-start">
         <div className="lg:col-span-2 flex flex-col gap-4 min-w-0">
           {/* Photos */}
-          <Card className="shadow-none bg-card rounded-3xl border border-border overflow-hidden">
-            <div className="relative h-64 sm:h-80 w-full">
-              <Image
-                src={property.thumbnail}
-                alt={apartment.name}
-                fill
-                unoptimized
-                className="object-cover"
-              />
-            </div>
-            {extraImages.length > 0 && (
-              <Card.Content className="p-4">
-                <div className="grid grid-cols-4 gap-2">
-                  {extraImages.slice(0, 4).map((img) => (
-                    <div key={img.id} className="relative h-20 rounded-xl overflow-hidden">
-                      <Image src={img.url_thumb || img.url} alt={apartment.name} fill unoptimized className="object-cover" />
-                    </div>
-                  ))}
-                </div>
-              </Card.Content>
-            )}
-          </Card>
+          <PropertyPhotoGallery key={apartment.id} name={apartment.name} images={apartment.apartment_images} />
 
           {/* Unit details */}
           <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-4">
@@ -525,13 +500,19 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               Property Actions
             </p>
             {isOccupied && (
-              <Button variant="secondary" size="sm" className="w-full" onPress={() => setVacateOpen(true)}>
-                Vacate Unit
-              </Button>
+              <div className="flex flex-col gap-2 pb-4">
+                <p className="text-sm text-muted-foreground">End the current tenancy and make this unit available.</p>
+                <Button variant="secondary" size="sm" className="w-full" onPress={() => setVacateOpen(true)}>
+                  Vacate Unit
+                </Button>
+              </div>
             )}
-            <Button variant="danger-soft" size="sm" className="w-full" onPress={() => setDeleteConfirmOpen(true)}>
-              <Trash2 size={14} /> Remove Property
-            </Button>
+            <div className="flex flex-col gap-2 border-t border-border pt-4">
+              <p className="text-sm text-muted-foreground">Remove this property from your listings. You will be asked to confirm.</p>
+              <Button variant="danger-soft" size="sm" className="w-full" onPress={() => setDeleteConfirmOpen(true)}>
+                <Trash2 size={14} aria-hidden="true" /> Remove Property
+              </Button>
+            </div>
           </Card>
         </div>
       </div>

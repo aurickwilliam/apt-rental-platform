@@ -16,7 +16,7 @@ function load(file, extra = {}) {
       Suspense: "Suspense", useState: value => [value, () => {}],
       useCallback: callback => callback, useEffect: () => {}, useSyncExternalStore: () => false,
     },
-    "@heroui/react": { Skeleton: "Skeleton", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
+    "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
@@ -29,6 +29,7 @@ function load(file, extra = {}) {
     "@/hooks/use-notifications": { useNotifications: () => ({ unreadCount: 0 }) },
     "./PropertiesHeader": loadPropertiesHeader(),
     "./components/PropertiesSkeleton": { default: () => load("landlord/properties/components/PropertiesSkeleton.tsx").default() },
+    "./components/PropertyDetailSkeleton": { default: () => load("landlord/properties/[apartmentId]/components/PropertyDetailSkeleton.tsx").default() },
     ...extra,
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");
@@ -51,7 +52,7 @@ function loadPropertiesHeader() {
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
-  const expand = typeof element.type === "function" && ["Sk", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
+  const expand = typeof element.type === "function" && ["Sk", "FieldSkeleton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 }
@@ -77,6 +78,94 @@ test("My Properties route boundary renders its skeleton without fetching data", 
   const tree = load("landlord/properties/loading.tsx").default();
   const skeleton = tree.type();
   assert.equal(skeleton.props["aria-label"], "Loading properties");
+});
+
+test("Apartment detail boundary uses an accessible, responsive skeleton with rounded gallery and four stats", () => {
+  const boundary = load("landlord/properties/[apartmentId]/loading.tsx").default();
+  const tree = boundary.type();
+  assert.equal(tree.props["aria-busy"], "true");
+  assert.equal(tree.props["aria-label"], "Loading apartment details");
+  const elements = nodes(tree);
+  assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
+  assert.equal(elements.find(node => node.props.className?.includes("lg:grid-cols-4")).props.children.length, 4);
+  assert.ok(elements.some(node => node.type === "Skeleton" && node.props.className.includes("h-64 sm:h-80 w-full rounded-xl")));
+  assert.equal(elements.find(node => node.props.className === "flex gap-2 overflow-x-auto p-1").props.children.length, 3);
+  assert.equal(elements.find(node => node.props.className === "grid grid-cols-2 sm:grid-cols-4 gap-3").props.children.length, 8);
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+});
+
+test("Property rows prefetch on hover and keyboard focus without changing row activation", () => {
+  const property = { id: "unit-1", name: "Test apartment" };
+  const intended = [];
+  const opened = [];
+  const tree = load("landlord/properties/components/PropertiesTable.tsx", {
+    "./propertyConstants": { STATUS_COLOR: {} },
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
+  }).default({ properties: [property], onRowIntent: item => intended.push(item.id), onRowClick: item => opened.push(item.id) });
+  const elements = nodes(tree);
+  const row = elements.find(node => node.type === "Table.Row");
+  row.props.onMouseEnter();
+  tree.props.onFocusCapture({ target: { closest: () => ({ dataset: { propertyId: "unit-1" } }) } });
+  assert.deepEqual(intended, ["unit-1", "unit-1"]);
+  assert.deepEqual(opened, []);
+  elements.find(node => node.type === "Table.Content").props.onRowAction("unit-1");
+  assert.deepEqual(opened, ["unit-1"]);
+});
+
+function galleryHarness(initialImages) {
+  const state = [];
+  let cursor = 0;
+  const { default: Gallery } = load("landlord/properties/[apartmentId]/components/PropertyPhotoGallery.tsx", {
+    react: {
+      useState: initial => {
+        const index = cursor++;
+        if (!(index in state)) state[index] = initial;
+        return [state[index], value => { state[index] = value; }];
+      },
+    },
+    "@/app/components/display/PhotoGalleryModal": { default: "PhotoGalleryModal" },
+  });
+  return (images = initialImages) => {
+    cursor = 0;
+    return nodes(Gallery({ name: "Cozy Cove", images }));
+  };
+}
+
+test("Property gallery starts with the cover, selects thumbnails, and opens the shared full-size viewer", () => {
+  const photos = [
+    { id: "room", url: "/room.jpg", url_thumb: "/room-thumb.jpg", is_cover: false },
+    { id: "cover", url: "/cover.jpg", is_cover: true },
+  ];
+  const render = galleryHarness(photos);
+  let elements = render();
+  assert.equal(elements.find(node => node.type === "Image").props.src, "/cover.jpg");
+  const thumbs = elements.filter(node => node.type === "Button" && node.props["aria-pressed"] !== undefined);
+  assert.equal(thumbs.length, 2);
+  assert.equal(thumbs[0].props["aria-pressed"], true);
+  thumbs[1].props.onPress();
+  elements = render();
+  assert.equal(elements.find(node => node.type === "Image").props.src, "/room.jpg");
+  elements.find(node => node.type === "Button" && node.props["aria-label"].startsWith("Open photo")).props.onPress();
+  const viewer = render().find(node => node.type === "PhotoGalleryModal");
+  assert.equal(viewer.props.isOpen, true);
+  assert.equal(viewer.props.activeIndex, 1);
+  viewer.props.onActiveIndexChange(0);
+  assert.equal(render().find(node => node.type === "Image").props.src, "/cover.jpg");
+});
+
+test("Property gallery handles deleted selections, a single photo, and an empty gallery", () => {
+  const photos = [
+    { id: "cover", url: "/cover.jpg", is_cover: true },
+    { id: "room", url: "/room.jpg", is_cover: false },
+  ];
+  const render = galleryHarness(photos);
+  render().filter(node => node.type === "Button" && node.props["aria-pressed"] !== undefined)[1].props.onPress();
+  const single = render([photos[0]]);
+  assert.equal(single.find(node => node.type === "Image").props.src, "/cover.jpg");
+  assert.equal(single.some(node => node.props["aria-label"] === "Choose property photo"), false);
+  const empty = render([]);
+  assert.equal(empty.some(node => node.type === "PhotoGalleryModal"), false);
+  assert.ok(empty.some(node => node.type === "p" && node.props.children.includes("No property photos yet")));
 });
 
 const navItems = [
