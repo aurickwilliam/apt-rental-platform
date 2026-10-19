@@ -374,8 +374,8 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             </Select.Popover>
           </Select>
 
-          <TextField 
-            isRequired 
+          <TextField
+            isRequired
             isInvalid={!!errors.street_address}
           >
             <Label>Street Address</Label>

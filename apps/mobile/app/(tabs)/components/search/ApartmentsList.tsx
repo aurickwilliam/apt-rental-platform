@@ -2,7 +2,6 @@ import {
   View,
   Text,
   FlatList,
-  RefreshControl,
 } from 'react-native';
 
 import { Button, Spinner } from 'heroui-native';
@@ -10,6 +9,10 @@ import { SearchGridSkeleton } from './SearchSection';
 
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 import EmptyState from 'components/display/EmptyState';
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from 'components/display/PullToRefresh';
 
 import { IconSearchOff, IconAlertCircle } from '@tabler/icons-react-native';
 
@@ -165,24 +168,12 @@ export default function ApartmentsList({
       ListEmptyComponent={renderEmptyState}
       ListFooterComponent={renderFooter}
       ListHeaderComponent={
-        refreshing ? (
-          <View className="items-center py-4 justify-center">
-            <Spinner size='lg' color={colors.primary} />
-          </View>
-        ) : null
+        <PullToRefreshIndicator refreshing={refreshing} />
       }
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
-        <RefreshControl
-          // Keep the native indicator permanently hidden so only the
-          // HeroUI Spinner (rendered in ListHeaderComponent) is shown.
-          refreshing={false}
-          onRefresh={onRefresh}
-          colors={['transparent']}
-          tintColor="transparent"
-          progressBackgroundColor="transparent"
-        />
+        <PullToRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     />
   );

@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'heroui-native'
+import { IconMessage } from '@tabler/icons-react-native';
 
 import {
   getNotificationTypeIcon,
@@ -17,6 +18,8 @@ interface NotificationCardProps {
   title: string;
   type: NotificationCardType;
   message?: string;
+  /** Short quoted-message preview (reaction notifications); omitted otherwise. */
+  preview?: string;
   date?: string;
   unread?: boolean;
   onPress?: () => void;
@@ -26,6 +29,7 @@ export default function NotificationCard({
   title,
   type = "system",
   message = "New Message",
+  preview,
   date = "0/0/0000",
   unread = false,
   onPress,
@@ -67,6 +71,15 @@ export default function NotificationCard({
           <Card.Description className="text-foreground text-sm font-inter">
             {message}
           </Card.Description>
+
+          {preview ? (
+            <View className="mt-1 flex-row items-center gap-1">
+              {createElement(IconMessage, { size: 12, color: colors.gray500 })}
+              <Text className="text-muted text-xs font-inter flex-1" numberOfLines={1}>
+                {preview}
+              </Text>
+            </View>
+          ) : null}
         </Card.Body>
 
         <Card.Footer className="pt-2">

@@ -4,6 +4,189 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+.landlord-application-detail-card {
+  min-width: 0;
+  padding: 1.25rem;
+  gap: 1rem;
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.landlord-applications-page .application-search {
+  --field-placeholder: var(--muted-foreground);
+  --field-foreground: var(--foreground);
+}
+
+.landlord-applications-page .application-search .input-group__input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.application-summary-card,
+.maintenance-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--application-accent) 18%, var(--border));
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--application-accent) 4%, var(--card));
+}
+
+.application-summary-total, .maintenance-summary-total { --application-accent: var(--primary); }
+.application-summary-approved, .maintenance-summary-approved { --application-accent: var(--success); }
+.application-summary-rejected, .maintenance-summary-rejected { --application-accent: var(--danger); }
+.application-summary-pending, .maintenance-summary-pending { --application-accent: var(--warning); }
+
+.application-summary-icon,
+.maintenance-summary-icon {
+  display: flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--application-accent) 12%, var(--card));
+  color: var(--application-accent);
+}
+
+/* Status text/icons must stay readable on the tinted statistic tiles. */
+.application-summary-approved .application-summary-icon, .maintenance-summary-approved .maintenance-summary-icon { color: #166534; }
+.application-summary-pending .application-summary-icon, .maintenance-summary-pending .maintenance-summary-icon { color: #92400e; }
+.dark .application-summary-approved .application-summary-icon, .dark .maintenance-summary-approved .maintenance-summary-icon { color: #4ade80; }
+.dark .application-summary-pending .application-summary-icon, .dark .maintenance-summary-pending .maintenance-summary-icon { color: #fde047; }
+
+.landlord-maintenance-page .maintenance-search {
+  --field-placeholder: var(--muted-foreground);
+  --field-foreground: var(--foreground);
+}
+
+.landlord-maintenance-page .maintenance-search .input-group__input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.landlord-maintenance-page .maintenance-list-table {
+  border: 0;
+  border-radius: var(--radius-xl);
+  box-shadow: none;
+  background: var(--card);
+}
+
+.maintenance-list-table .table__column {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.maintenance-list-table .table__cell { padding: 1rem; }
+
+.landlord-applications-page .application-list-table {
+  border: 0;
+  border-radius: var(--radius-xl);
+  box-shadow: none;
+  background: var(--card);
+}
+
+.application-list-table .table__column {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.application-list-table .table__cell {
+  padding: 1rem;
+}
+
+.application-list-table .table__row:hover,
+.application-list-table .table__row[data-hovered="true"] {
+  background: color-mix(in srgb, var(--primary) 5%, var(--card));
+}
+
+/* Only the landlord review route opts into these roomier shared-card styles. */
+.landlord-reviews-panel,
+.landlord-review-card {
+  min-width: 0;
+  padding: 1.25rem;
+  gap: 1rem;
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.landlord-review-card .card__header {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.landlord-review-card .card__header > div {
+  min-width: 0;
+}
+
+.landlord-review-card .card__content {
+  gap: 0.5rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+/* Route-scoped property description cards; override HeroUI's unlayered
+   card surface defaults without affecting other landlord pages. */
+.landlord-description-section {
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+  box-shadow: none;
+  padding: 1rem;
+}
+
+@media (min-width: 48rem) {
+  .landlord-description-section {
+    padding: 1.25rem;
+  }
+}
+
+/* Keep the long property form roomy without changing other HeroUI dialogs. */
+.edit-property-modal {
+  max-width: 56rem;
+}
+
+.edit-property-modal .edit-property-modal-footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.edit-property-modal-footer > .button {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Photo controls retain HeroUI interaction/focus behavior, with image-sized
+   dimensions instead of the primitive's unlayered pill-button defaults. */
+.property-detail-gallery .property-photo-trigger,
+.property-detail-gallery .property-photo-thumbnail {
+  padding: 0;
+  border-radius: var(--radius-xl);
+}
+
+.property-detail-gallery .property-photo-trigger {
+  width: 100%;
+  height: 16rem;
+}
+
+.property-detail-gallery .property-photo-thumbnail {
+  width: 7rem;
+  min-width: 7rem;
+  height: 5rem;
+}
+
+@media (min-width: 40rem) {
+  .property-detail-gallery .property-photo-trigger {
+    height: 20rem;
+  }
+}
+
 @layer components {
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
@@ -331,6 +514,88 @@ body[data-scroll-locked] [role="option"] {
 
 .button.create-listing-step:disabled {
   opacity: 1;
+}
+
+/* Favorites reuses the browse card without restyling browse itself. These
+   unlayered overrides intentionally take precedence over HeroUI defaults. */
+.favorites-grid .card,
+.favorite-list-card,
+.favorites-state-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.favorites-grid .card,
+.favorite-list-card {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.favorites-grid .card:hover,
+.favorite-list-card:hover {
+  border-color: var(--primary);
+}
+
+.favorites-grid img {
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.favorites-grid [data-slot="apartment-card-details"] {
+  padding: 1rem 1rem 0;
+}
+
+.favorites-grid h3 {
+  font-family: var(--font-nunito);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.favorites-grid [data-slot="apartment-card-location"] {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.favorites-grid .card__footer {
+  margin-top: auto;
+  padding: 1rem;
+}
+
+.favorites-grid [data-slot="apartment-card-price"] {
+  font-family: var(--font-nunito);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.favorites-grid .card__footer svg {
+  color: var(--color-rating);
+}
+
+.favorites-state-card {
+  padding: 0;
+}
+
+.favorites-state-card .card__content {
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.favorite-list-card .card__content {
+  display: block;
+  padding: 0;
+}
+
+.favorite-list-heart {
+  background-color: var(--card);
+  border: 1px solid var(--border);
 }
 
 /* Rental Preferences checkboxes (Settings → Rental Preferences only).

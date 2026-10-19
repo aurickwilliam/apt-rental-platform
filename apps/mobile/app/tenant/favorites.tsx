@@ -1,6 +1,5 @@
 import {
   FlatList,
-  RefreshControl,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,6 +13,10 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard, { type ApartmentCardProps } from "components/cards/ApartmentCard";
 import EmptyState from "components/display/EmptyState";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "components/display/PullToRefresh";
 
 import { useFavoriteApartments, useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
@@ -153,15 +156,12 @@ export default function TenantFavorites() {
             flexGrow: apartments.length === 0 ? 1 : 0,
           }}
           refreshControl={
-            <RefreshControl
+            <PullToRefreshControl
               refreshing={refreshingApartments}
-              onRefresh={() => {
-                void refreshFavoriteApartments();
-              }}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
+              onRefresh={refreshFavoriteApartments}
             />
           }
+          ListHeaderComponent={<PullToRefreshIndicator refreshing={refreshingApartments} />}
           ListEmptyComponent={
             <EmptyState
               variant="tenant"

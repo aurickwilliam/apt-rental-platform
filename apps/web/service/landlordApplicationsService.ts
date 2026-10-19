@@ -52,6 +52,7 @@ export type LandlordApplication = {
   apartment_city: string;
   apartment_address: string;
   apartment_status: string;
+  apartment_thumbnail_url?: string | null;
 };
 
 export type LandlordContext = {
@@ -111,10 +112,13 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
       prev_landlord_name, prev_landlord_contact,
       move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
       gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
-      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status),
+      apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status, apartment_images(url, url_thumb, is_cover)),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`,
     )
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("is_cover", { referencedTable: "apartments.apartment_images", ascending: false, nullsFirst: false })
+    .order("id", { referencedTable: "apartments.apartment_images", ascending: true })
+    .limit(1, { referencedTable: "apartments.apartment_images" });
 
   if (error) throw error;
 
@@ -132,6 +136,8 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
 
     const tenantName =
       [tenant?.first_name, tenant?.last_name].filter(Boolean).join(" ") || "Unknown Tenant";
+    const images = apartment?.apartment_images;
+    const thumbnail = Array.isArray(images) ? images[0] as Record<string, unknown> | undefined : undefined;
 
     return {
       id: item.id as string,
@@ -173,6 +179,7 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
       monthly_rent: Number(apartment?.monthly_rent ?? 0),
       apartment_city: asNullableString(apartment?.city) ?? "",
       apartment_status: asNullableString(apartment?.status) ?? "available",
+      apartment_thumbnail_url: asNullableString(thumbnail?.url_thumb) ?? asNullableString(thumbnail?.url),
       apartment_address: formatAddress({
         street_address: asNullableString(apartment?.street_address),
         barangay: asNullableString(apartment?.barangay),

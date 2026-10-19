@@ -243,7 +243,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
     <Modal>
       <Modal.Backdrop isOpen={isOpen} onOpenChange={handleOpenChange}>
         <Modal.Container size="lg" scroll="inside">
-          <Modal.Dialog>
+          <Modal.Dialog className="edit-property-modal">
             {({ close }) => (
               <>
                 <Modal.CloseTrigger className="text-black" />
@@ -587,9 +587,9 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                         <Label>
                           Street Address
                         </Label>
-                        <Input 
-                          value={form.street_address ?? ""} 
-                          onChange={(e) => updateForm("street_address", e.target.value)} 
+                        <Input
+                          value={form.street_address ?? ""}
+                          onChange={(e) => updateForm("street_address", e.target.value)}
                         />
                         <FieldError>{errors.street_address}</FieldError>
                       </TextField>
@@ -602,7 +602,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                           inputMode="numeric"
                           maxLength={4}
                           value={form.zip_code == null ? "" : String(form.zip_code)} 
-                          onChange={(e) => updateForm("zip_code", toNullableNumber(e.target.value.replace(/\D/g, "")))} 
+                          onChange={(e) => updateForm("zip_code", toNullableNumber(e.target.value.replace(/\D/g, "")))}
                         />
                         <FieldError>{errors.zip_code}</FieldError>
                       </TextField>
@@ -655,12 +655,12 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                   {saveError && <ErrorBanner message={saveError} />}
                 </Modal.Body>
 
-                <Modal.Footer>
+                <Modal.Footer className="edit-property-modal-footer">
                   <Button 
                     variant="danger-soft" 
                     onPress={() => { 
                       close(); 
-                      resetForm(); 
+                      resetForm();
                     }}
                   >
                     Cancel

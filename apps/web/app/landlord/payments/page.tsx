@@ -1,37 +1,38 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
+import { Button, Card, Chip, ListBox, Select } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
-import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
+import { IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
 import type { PaymentRecord } from "@/service/paymentService";
 import { formatReferenceId, methodLabel, paymentStatusLabel, periodMonthLabel } from "@/app/tenant/payment/utils";
 import { useLandlordApartments, useLandlordPayments } from "@/hooks/use-landlord-payments";
 import PaymentHistoryFilters from "@/app/tenant/payment/components/PaymentHistoryFilters";
+import PaymentsHeader from "./components/PaymentsHeader";
+import PaymentsSkeleton, { PaymentCardsSkeleton } from "./components/PaymentsSkeleton";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
   return src.slice(0, 4);
 }
 
-function SectionHeader({ year, currentYear }: { year: string; currentYear: string }) {
-  if (year === currentYear) {
-    return (
-      <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
+// One sticky year row per group. The Filters control rides this row — the same
+// row as the "This Year" tag — instead of the page heading.
+function SectionHeader({ year, currentYear, action }: { year: string; currentYear: string; action?: ReactNode }) {
+  return (
+    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-zinc-50 py-2 dark:bg-zinc-950">
+      {year === currentYear ? (
         <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
           <span className="text-sm font-nunito font-semibold text-primary">This Year</span>
         </div>
-      </div>
-    );
-  }
-  return (
-    <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
-      <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
+      ) : (
+        <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
+      )}
+      {action}
     </div>
   );
 }
@@ -83,7 +84,6 @@ function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apa
 }
 
 function PaymentsContent() {
-  const router = useRouter();
   const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -119,18 +119,14 @@ function PaymentsContent() {
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
   }, [filtered, filters.sort]);
 
-  if (unitsQuery.loading || (activeApartmentId && paymentsQuery.loading)) {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center py-20">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payments…</p>
-      </div>
-    );
+  if (unitsQuery.loading) {
+    return <PaymentsSkeleton />;
   }
 
   if (unitsQuery.error || paymentsQuery.error) {
     return (
       <div className="p-4 space-y-4">
+        <PaymentsHeader />
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
           {unitsQuery.error ?? paymentsQuery.error ?? "We could not load payments."}
         </p>
@@ -152,35 +148,27 @@ function PaymentsContent() {
   if (unitsQuery.apartments.length === 0) {
     return (
       <div className="p-4 space-y-2">
-        <h1 className="text-2xl font-bold">Payments</h1>
+        <PaymentsHeader />
         <p className="text-sm text-zinc-500">No units found. Payments for your units will appear here.</p>
       </div>
     );
   }
 
+  const filterRowYear = grouped.some(([year]) => year === currentYear) ? currentYear : grouped[0]?.[0];
+  const filtersButton = (
+    <Button variant="secondary" size="sm" className="rounded-full relative w-fit shrink-0" onPress={() => setDrawerOpen(true)}>
+      <SlidersHorizontal size={14} /> Filters
+      {activeCount > 0 && (
+        <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+          {activeCount}
+        </span>
+      )}
+    </Button>
+  );
+
   return (
     <div className="p-4 space-y-4">
-      <div className="flex flex-col gap-1">
-        <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
-          <ArrowLeft size={16} /> Back
-        </Button>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Banknote size={22} className="text-primary" /> Payments
-            </h1>
-            <p className="text-sm text-zinc-500 mt-1">Payments for this unit will appear here.</p>
-          </div>
-          <Button variant="secondary" size="sm" className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
-            <SlidersHorizontal size={14} /> Filters
-            {activeCount > 0 && (
-              <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
-                {activeCount}
-              </span>
-            )}
-          </Button>
-        </div>
-      </div>
+      <PaymentsHeader />
 
       <Select
         placeholder="Select unit"
@@ -203,7 +191,7 @@ function PaymentsContent() {
         </Select.Popover>
       </Select>
 
-      {filtered.length === 0 ? (
+      {paymentsQuery.loading ? <PaymentCardsSkeleton action={filtersButton} /> : filtered.length === 0 ? (
         <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
             <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
@@ -220,7 +208,7 @@ function PaymentsContent() {
         <div className="space-y-6">
           {grouped.map(([year, payments]) => (
             <section key={year} className="space-y-3">
-              <SectionHeader year={year} currentYear={currentYear} />
+              <SectionHeader year={year} currentYear={currentYear} action={year === filterRowYear ? filtersButton : undefined} />
               <div className="grid gap-3">
                 {activeApartmentId &&
                   payments.map((p) => <LandlordRowCard key={p.id} payment={p} apartmentId={activeApartmentId} />)}
@@ -245,14 +233,7 @@ function PaymentsContent() {
 
 export default function PaymentsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-4 flex flex-col items-center justify-center py-20">
-          <Spinner size="lg" color="current" className="text-primary" />
-          <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payments…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<PaymentsSkeleton />}>
       <PaymentsContent />
     </Suspense>
   );

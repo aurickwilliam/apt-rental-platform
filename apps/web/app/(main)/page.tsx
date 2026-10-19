@@ -7,6 +7,7 @@ import { Separator, Surface } from "@heroui/react";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
+import { rankTenantLovedApartments } from "@/lib/tenant-loved-apartments";
 
 import { IconKey as KeyRound, IconBuilding as Building2, IconClipboardCheck as ClipboardCheck, IconMap as Map, IconSearch as SearchCheck, IconFileCheck as FileCheckCorner, IconCashBanknote as BanknoteArrowUp } from "@tabler/icons-react";
 
@@ -42,17 +43,20 @@ export default async function Home() {
       city,
       monthly_rent,
       average_rating,
+      no_ratings,
+      created_at,
       apartment_images(url, is_cover)
     `)
     .eq('is_hidden_by_admin', false)
     .is('deleted_at', null)
-    .in("status", ["available", "unverified"])
-    .limit(10)
+    .eq("status", "available")
+    .eq("is_verified", true)
+    .limit(100)
     .order('created_at', { ascending: false });
 
   if (error) console.error(error);
 
-  const mapped = (apartments ?? []).map((apt) => ({
+  const mapped = rankTenantLovedApartments(apartments ?? []).map((apt) => ({
     id: apt.id,
     name: apt.name,
     location: apt.city,

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Dropdown, Label } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconMessage as MessageSquareText } from "@tabler/icons-react";
+import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconMessage as MessageSquareText, IconStar } from "@tabler/icons-react";
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 import RatingBreakdown from "@/app/browse/[apartmentId]/components/RatingBreakdown";
 import type { LandlordUnitReview } from "@/service/landlordUnitDetailService";
@@ -53,80 +53,119 @@ export default function ReviewsClient({ apartmentId, apartmentName, reviews }: P
   }, [reviews, sortBy]);
 
   return (
-    <div className="mx-auto max-w-5xl p-4">
-      <Button variant="outline" size="sm" onPress={() => router.push(`/landlord/properties/${apartmentId}`)} className="w-fit">
-        <ArrowLeft size={16} /> Back to Property
-      </Button>
-
-      <h1 className="mt-4 text-2xl font-medium md:text-3xl">Reviews · {apartmentName}</h1>
-
-      {stats.total > 0 && (
-        <Card className="mt-6 p-6 md:p-8 shadow-none border border-default-200">
-          <RatingBreakdown
-            overallRate={stats.average}
-            totalReviews={stats.total}
-            no5Star={stats.counts[5]}
-            no4Star={stats.counts[4]}
-            no3Star={stats.counts[3]}
-            no2Star={stats.counts[2]}
-            no1Star={stats.counts[1]}
-          />
-        </Card>
-      )}
-
-      <div className="mt-10 flex items-center justify-between gap-4">
-        <h2 className="text-lg font-medium">Tenant Reviews</h2>
-        {stats.total > 0 && (
-          <Dropdown>
-            <Button variant="outline" size="sm" className="h-9 rounded-full">
-              {sortBy}
-              <ChevronDown size={16} />
-            </Button>
-            <Dropdown.Popover>
-              <Dropdown.Menu
-                selectionMode="single"
-                selectedKeys={new Set([sortBy])}
-                onAction={(key) => setSortBy(key as ReviewSortOption)}
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <Dropdown.Item key={option} id={option} textValue={option}>
-                    <Dropdown.ItemIndicator />
-                    <Label>{option}</Label>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
-        )}
+    <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card min-h-0">
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onPress={() => router.push(`/landlord/properties/${apartmentId}`)}
+          onHoverStart={() => router.prefetch(`/landlord/properties/${apartmentId}`)}
+          onFocus={() => router.prefetch(`/landlord/properties/${apartmentId}`)}
+          className="gap-1.5 font-nunito w-fit"
+        >
+          <ArrowLeft size={16} aria-hidden="true" /> Back to Property
+        </Button>
+        <h1 className="mt-2 text-2xl font-bold font-nunito text-card-foreground">Property Reviews</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Tenant feedback for {apartmentName}.</p>
       </div>
 
-      {stats.total === 0 ? (
-        <Card className="mt-5 flex flex-col items-center gap-3 p-10 text-center shadow-none border border-default-200">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <MessageSquareText size={26} className="text-primary" />
-          </div>
-          <p className="text-base font-medium">No reviews yet</p>
-          <p className="text-sm text-muted-foreground">
-            Reviews from tenants will show up here once they&apos;re submitted.
-          </p>
-        </Card>
-      ) : (
-        <div className="mt-5 columns-1 gap-3 md:columns-2">
-          {sorted.map((review) => (
-            <div key={review.id} className="mb-3 break-inside-avoid">
-              <ReviewCard
-                reviewerName={review.name}
-                reviewerAvatar={review.profilePictureUrl}
-                reviewDate={formatReviewDate(review.date)}
-                reviewText={review.review}
-                stayPeriod={review.stayPeriod}
-                rating={review.rating}
-                images={review.images}
-              />
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+        <Card className="landlord-reviews-panel border border-border" aria-label="Rating summary">
+          <div className="flex items-center gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <IconStar size={24} aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-base font-nunito font-bold text-card-foreground">Rating Summary</h2>
+              <p className="text-xs text-muted-foreground">An overview of tenant ratings.</p>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+          {stats.total > 0 ? (
+            <RatingBreakdown
+              layout="stacked"
+              overallRate={stats.average}
+              totalReviews={stats.total}
+              no5Star={stats.counts[5]}
+              no4Star={stats.counts[4]}
+              no3Star={stats.counts[3]}
+              no2Star={stats.counts[2]}
+              no1Star={stats.counts[1]}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <IconStar size={40} className="text-muted-foreground" aria-hidden="true" />
+              <p className="text-base font-nunito font-semibold text-card-foreground">No ratings yet</p>
+              <p className="max-w-64 text-sm leading-6 text-muted-foreground">Your rating summary will appear after a tenant submits a review.</p>
+            </div>
+          )}
+        </Card>
+
+        <section className="flex min-w-0 flex-col gap-4" aria-labelledby="tenant-reviews-heading">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <MessageSquareText size={24} aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="tenant-reviews-heading" className="text-base font-nunito font-bold text-card-foreground">Tenant Reviews</h2>
+                <p className="text-xs text-muted-foreground">{stats.total} {stats.total === 1 ? "review" : "reviews"}</p>
+              </div>
+            </div>
+            {stats.total > 0 && (
+              <Dropdown>
+                <Button variant="outline" size="sm" aria-label={`Sort reviews: ${sortBy}`}>
+                  {sortBy}
+                  <ChevronDown size={16} aria-hidden="true" />
+                </Button>
+                <Dropdown.Popover>
+                  <Dropdown.Menu
+                    aria-label="Sort reviews"
+                    selectionMode="single"
+                    selectedKeys={new Set([sortBy])}
+                    onAction={(key) => setSortBy(key as ReviewSortOption)}
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <Dropdown.Item key={option} id={option} textValue={option}>
+                        <Dropdown.ItemIndicator />
+                        <Label>{option}</Label>
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
+            )}
+          </div>
+
+          {stats.total === 0 ? (
+            <Card className="landlord-reviews-panel border border-border">
+              <div className="flex min-h-80 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
+                <span className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <MessageSquareText size={30} aria-hidden="true" />
+                </span>
+                <h3 className="text-lg font-nunito font-bold text-card-foreground">No reviews yet</h3>
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">Reviews from tenants will show up here once they&apos;re submitted.</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-2">
+              {sorted.map((review) => (
+                <div key={review.id} className="min-w-0">
+                  <ReviewCard
+                    className="landlord-review-card"
+                    reviewerName={review.name}
+                    reviewerAvatar={review.profilePictureUrl}
+                    reviewDate={formatReviewDate(review.date)}
+                    reviewText={review.review}
+                    stayPeriod={review.stayPeriod}
+                    rating={review.rating}
+                    images={review.images}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

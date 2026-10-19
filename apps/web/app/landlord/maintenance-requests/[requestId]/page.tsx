@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Card, Separator, Spinner, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Separator, toast, useOverlayState } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { IconArrowLeft as ArrowLeft, IconTools as Hammer, IconMapPin as MapPin, IconPhone as Phone } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
@@ -18,6 +18,7 @@ import {
 } from "../lib/maintenance-status";
 import PhotoGrid from "../components/PhotoGrid";
 import ResolveMaintenanceModal from "../components/ResolveMaintenanceModal";
+import MaintenanceDetailSkeleton from "./components/MaintenanceDetailSkeleton";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -48,11 +49,7 @@ export default function LandlordMaintenanceDetailPage() {
   const request = useMemo(() => requests.find((r) => r.id === id) ?? null, [requests, id]);
 
   if (loading) {
-    return (
-      <div className="w-full px-3 py-12 flex justify-center">
-        <Spinner color="accent" />
-      </div>
-    );
+    return <MaintenanceDetailSkeleton />;
   }
 
   if (error || !request) {
@@ -62,6 +59,8 @@ export default function LandlordMaintenanceDetailPage() {
           variant="ghost"
           size="sm"
           onPress={() => router.push("/landlord/maintenance-requests")}
+          onHoverStart={() => router.prefetch("/landlord/maintenance-requests")}
+          onFocus={() => router.prefetch("/landlord/maintenance-requests")}
           className="mb-4 font-nunito"
         >
           <ArrowLeft size={16} />
@@ -115,7 +114,14 @@ export default function LandlordMaintenanceDetailPage() {
   return (
     <div className="w-full px-3 py-3 flex flex-col gap-3 bg-card">
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="sm" onPress={() => router.back()} className="gap-1.5 font-nunito">
+        <Button
+          variant="ghost"
+          size="sm"
+          onPress={() => router.push("/landlord/maintenance-requests")}
+          onHoverStart={() => router.prefetch("/landlord/maintenance-requests")}
+          onFocus={() => router.prefetch("/landlord/maintenance-requests")}
+          className="gap-1.5 font-nunito"
+        >
           <ArrowLeft size={16} />
           Back
         </Button>

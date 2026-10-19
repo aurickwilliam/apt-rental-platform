@@ -20,8 +20,12 @@ export type LandlordMaintenanceRequest = {
   apartment_name: string;
   apartment_city: string;
   apartment_address: string;
+  apartment_id?: string;
+  apartment_monthly_rent?: number | null;
+  apartment_thumbnail_url?: string | null;
   tenant_name: string;
   tenant_avatar_url: string | null;
+  tenant_email?: string | null;
   contact_number: string;
   reported_at: string;
   status: LandlordMaintenanceStatus;
@@ -60,6 +64,7 @@ export function getNextStatus(current: LandlordMaintenanceStatus): LandlordMaint
 type LandlordMaintenanceRow = {
   id: string;
   title: string;
+  apartment_id: string;
   message: string;
   status: string;
   created_at: string;
@@ -70,6 +75,8 @@ type LandlordMaintenanceRow = {
   fee_status: string | null;
   apartment: {
     name: string | null;
+    monthly_rent: number | null;
+    apartment_images: { url: string; url_thumb: string | null; is_cover: boolean | null }[];
     street_address: string | null;
     barangay: string | null;
     city: string | null;
@@ -80,6 +87,7 @@ type LandlordMaintenanceRow = {
     last_name: string | null;
     mobile_number: string | null;
     avatar_url: string | null;
+    email: string | null;
   } | null;
 };
 
@@ -95,12 +103,15 @@ export async function fetchLandlordMaintenanceRequests(
   const { data, error } = await supabase
     .from("maintenance_request")
     .select(
-      `id, title, message, status, created_at, urgency, image_urls, resolution_notes, fee_amount, fee_status,
-      apartment:apartments!maintenance_request_apartment_id_fkey(name, street_address, barangay, city, province),
-      tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name, mobile_number, avatar_url)`,
+      `id, apartment_id, title, message, status, created_at, urgency, image_urls, resolution_notes, fee_amount, fee_status,
+      apartment:apartments!maintenance_request_apartment_id_fkey(name, monthly_rent, street_address, barangay, city, province, apartment_images(url, url_thumb, is_cover)),
+      tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name, mobile_number, avatar_url, email)`,
     )
     .eq("landlord_id", landlordId)
     .order("created_at", { ascending: false })
+    .order("is_cover", { referencedTable: "apartment.apartment_images", ascending: false, nullsFirst: false })
+    .order("id", { referencedTable: "apartment.apartment_images", ascending: true })
+    .limit(1, { referencedTable: "apartment.apartment_images" })
     .limit(200);
 
   if (error) throw error;
@@ -121,6 +132,9 @@ export async function fetchLandlordMaintenanceRequests(
       issue_title: row.title,
       description: row.message,
       apartment_name: apartment?.name ?? "Unknown apartment",
+      apartment_id: row.apartment_id,
+      apartment_monthly_rent: apartment?.monthly_rent ?? null,
+      apartment_thumbnail_url: apartment?.apartment_images?.[0]?.url_thumb || apartment?.apartment_images?.[0]?.url || null,
       apartment_city: apartment?.city ?? "",
       apartment_address: formatAddress({
         street_address: asNullableString(apartment?.street_address),
@@ -132,6 +146,7 @@ export async function fetchLandlordMaintenanceRequests(
       tenant_name:
         [tenant?.first_name, tenant?.last_name].filter(Boolean).join(" ") || "Unknown tenant",
       tenant_avatar_url: tenant?.avatar_url ?? null,
+      tenant_email: tenant?.email ?? null,
       contact_number: tenant?.mobile_number ?? "—",
       reported_at: row.created_at,
       status: DB_TO_DISPLAY_STATUS[row.status] ?? "Pending",

@@ -12,6 +12,7 @@ interface RatingBreakdownProps {
   no3Star: number;
   no2Star: number;
   no1Star: number;
+  layout?: "responsive" | "stacked";
 }
 
 export default function RatingBreakdown({
@@ -22,11 +23,12 @@ export default function RatingBreakdown({
   no3Star,
   no2Star,
   no1Star,
+  layout = "responsive",
 }: RatingBreakdownProps) {
   return (
-    <div className="w-full flex flex-col gap-6 sm:flex-row sm:gap-3 min-w-0">
-      <div className="w-full flex flex-col items-center justify-center sm:w-1/3 min-w-0">
-        <h3 className="font-nunito text-5xl font-bold text-brand sm:text-6xl">
+    <div className={`w-full flex flex-col gap-6 min-w-0 ${layout === "responsive" ? "sm:flex-row sm:gap-3" : ""}`}>
+      <div className={`w-full flex flex-col items-center justify-center min-w-0 ${layout === "responsive" ? "sm:w-1/3" : ""}`}>
+        <h3 className="font-nunito text-5xl font-bold text-rating sm:text-6xl">
           {overallRate}
         </h3>
 
@@ -63,7 +65,7 @@ export default function RatingBreakdown({
         </div>
       </div>
 
-      <div className="flex w-full flex-col justify-center gap-2 sm:w-2/3 min-w-0">
+      <div className={`flex w-full flex-col justify-center gap-2 min-w-0 ${layout === "responsive" ? "sm:w-2/3" : ""}`}>
         {[
           { label: 5, count: no5Star },
           { label: 4, count: no4Star },

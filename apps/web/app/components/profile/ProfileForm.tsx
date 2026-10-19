@@ -71,13 +71,23 @@ function formatMissingList(items: string[]) {
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value }: { label: string; value: string }) {
+  const display = value?.trim() ? value : "—";
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="min-w-0 text-sm break-words">{value?.trim() ? value : "—"}</p>
+    <div className="min-w-0 py-3">
+      <p className="text-sm font-medium text-foreground">{label}</p>
+      <p className="mt-0.5 min-w-0 break-words text-sm text-muted-foreground">{display}</p>
     </div>
   );
+}
+
+/** Combines address parts into one readable line, skipping anything missing
+ *  so no stray commas or placeholders appear. Edit form keeps each field. */
+function formatFullAddress(parts: Array<string | number | null | undefined>): string {
+  const values = parts
+    .map((part) => (part ?? "").toString().trim())
+    .filter((part) => part.length > 0);
+  return values.join(", ");
 }
 
 function formatBirthDate(value: string | null) {
@@ -553,7 +563,7 @@ export default function ProfileForm({
 
   if (mode === "view") {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
             <IconUser
@@ -592,60 +602,25 @@ export default function ProfileForm({
           </div>
         ) : null}
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <section className="flex min-w-0 flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <IconId
-                size={20}
-                className="shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              Personal Information
-            </h3>
-            <div className="flex flex-col gap-4">
-              <SummaryRow label="Full Name" value={fullName} />
-              <SummaryRow
-                label="Birth Date"
-                value={formatBirthDate(initial.birth_date)}
-              />
-              <SummaryRow label="Gender" value={gender} />
-            </div>
-          </section>
-
-          <section className="flex min-w-0 flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <IconPhone
-                size={20}
-                className="shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              Contact
-            </h3>
-            <div className="flex flex-col gap-4">
-              <SummaryRow label="Email Address" value={initial.email ?? ""} />
-              <SummaryRow label="Mobile Number" value={mobileNumber} />
-            </div>
-          </section>
-
-          <section className="flex min-w-0 flex-col gap-4 border-t border-border pt-6 md:col-span-2">
-            <h3 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <IconMapPin
-                size={20}
-                className="shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              Address
-            </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="min-w-0 md:col-span-2">
-                <SummaryRow label="Street Address" value={streetAddress} />
-              </div>
-              <SummaryRow label="Barangay" value={barangay} />
-              <SummaryRow label="City" value={city} />
-              <SummaryRow label="Province" value={province} />
-              <SummaryRow label="Postal Code" value={postalCode} />
-            </div>
-          </section>
+        {/* Hybrid information grid: short fields share balanced
+          two-column rows, long fields (email, address) span the full
+          width. Hairline dividers separate groups, not fields. */}
+        <div className="grid grid-cols-1 gap-x-8 gap-y-1 md:grid-cols-2">
+          <DetailRow label="Full name" value={fullName} />
+          <DetailRow
+            label="Date of birth"
+            value={formatBirthDate(initial.birth_date)}
+          />
+          <DetailRow label="Gender" value={gender} />
+          <DetailRow label="Mobile number" value={mobileNumber} />
+          <div aria-hidden="true" className="border-t border-border md:col-span-2" />
+          <div className="min-w-0 md:col-span-2">
+            <DetailRow label="Email address" value={initial.email ?? ""} />
+          </div>
+          <div aria-hidden="true" className="border-t border-border md:col-span-2" />
+          <div className="min-w-0 md:col-span-2">
+            <DetailRow label="Home address" value={formatFullAddress([streetAddress, barangay, city, province, postalCode])} />
+          </div>
         </div>
       </div>
     );
