@@ -270,4 +270,22 @@ describe("searchable finance property picker", () => {
     expect(screen.getByText("Category *").props.className).toContain("text-danger");
     expect(screen.getByRole("alert").props.children).toBe("Choose an expense category.");
   });
+  // The sheet container already pads 20px; the option list adds 8px more so the
+  // row pills clear the sheet edges and option text lines up with the trigger's
+  // value text (20 + 8 + 8 = the 16px a select trigger uses for its own text).
+  test("option rows keep an extra 8px inside the shared sheet gutter", () => {
+    const screen = render(
+      <FinanceSelect
+        label="Category"
+        value="villa"
+        options={options}
+        onChange={jest.fn()}
+        highlightSelection
+      />,
+    );
+    fireEvent.press(screen.getByLabelText("Property"));
+    expect(
+      screen.UNSAFE_getByType(ScrollView).props.contentContainerStyle,
+    ).toEqual(expect.objectContaining({ paddingHorizontal: 8 }));
+  });
 });

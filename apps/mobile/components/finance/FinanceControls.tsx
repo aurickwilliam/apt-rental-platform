@@ -176,11 +176,11 @@ export function FinanceSelect({
                 }
               : {})}
           >
-            <Select.ListLabel className="font-nunitoBold text-lg text-foreground pb-3">
+            <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-2 pb-3">
               {label}
             </Select.ListLabel>
             {searchable && (
-              <View className="pb-3">
+              <View className="px-2 pb-3">
                 <PropertySearch value={search} onChange={setSearch} />
               </View>
             )}
@@ -189,6 +189,9 @@ export function FinanceSelect({
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={searchable ? "on-drag" : undefined}
               contentContainerStyle={{
+                // The sheet container already pads 20px; the extra 8px keeps the
+                // option pills off the sheet edges.
+                paddingHorizontal: 8,
                 paddingBottom: insets.bottom + 24,
               }}
             >
@@ -214,7 +217,7 @@ export function FinanceSelect({
                 </Select.Item>
               ))}
               {searchable && visibleOptions.length === 0 && (
-                <Text className="py-4 font-inter text-sm text-muted">
+                <Text className="px-2 py-4 font-inter text-sm text-muted">
                   No matching properties.
                 </Text>
               )}
