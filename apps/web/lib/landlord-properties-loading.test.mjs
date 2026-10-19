@@ -14,7 +14,7 @@ function load(file, extra = {}) {
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "react": {
       Suspense: "Suspense", useState: value => [value, () => {}],
-      useCallback: callback => callback, useEffect: () => {}, useSyncExternalStore: () => false,
+      useCallback: callback => callback, useMemo: compute => compute(), useEffect: () => {}, useSyncExternalStore: () => false,
     },
     "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Chip: "Chip", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
@@ -31,6 +31,7 @@ function load(file, extra = {}) {
     "./components/PropertiesSkeleton": { default: () => load("landlord/properties/components/PropertiesSkeleton.tsx").default() },
     "./components/PropertyDetailSkeleton": { default: () => load("landlord/properties/[apartmentId]/components/PropertyDetailSkeleton.tsx").default() },
     "./components/DescriptionSkeleton": { default: () => load("landlord/properties/[apartmentId]/description/components/DescriptionSkeleton.tsx").default() },
+    "./components/ReviewsSkeleton": { default: () => load("landlord/properties/[apartmentId]/reviews/components/ReviewsSkeleton.tsx").default() },
     "./DescriptionSection": { default: function DescriptionSection(props) { return load("landlord/properties/[apartmentId]/description/components/DescriptionSection.tsx").default(props); } },
     ...extra,
   };
@@ -178,6 +179,94 @@ test("Description navigation warms both routes on pointer and keyboard intent", 
     assert.ok(description.includes(`${event}={() => router.prefetch(\`/landlord/properties/\${apartment.id}\`)}`));
   }
   assert.ok(description.includes('onPress={() => router.push(`/landlord/properties/${apartment.id}`)}'));
+});
+
+function reviewsHarness(reviews) {
+  let sort = "Most Recent";
+  const prefetched = [];
+  const pushed = [];
+  const { default: Client } = load("landlord/properties/[apartmentId]/reviews/components/ReviewsClient.tsx", {
+    react: { useMemo: compute => compute(), useState: () => [sort, value => { sort = value; }] },
+    "next/navigation": { useRouter: () => ({ prefetch: href => prefetched.push(href), push: href => pushed.push(href) }) },
+    "@/app/browse/[apartmentId]/components/ReviewCard": { default: "ReviewCard" },
+    "@/app/browse/[apartmentId]/components/RatingBreakdown": { default: "RatingBreakdown" },
+  });
+  return { render: () => nodes(Client({ apartmentId: "unit-1", apartmentName: "Cozy Cove", reviews })), prefetched, pushed };
+}
+
+test("Reviews empty state fills the page and never presents a zero rating as tenant feedback", () => {
+  const { render, prefetched, pushed } = reviewsHarness([]);
+  const elements = render();
+  assert.ok(elements[0].props.className.includes("w-full min-w-0"));
+  assert.equal(elements[0].props.className.includes("max-w-5xl"), false);
+  assert.ok(elements.some(node => node.type === "p" && node.props.children === "No ratings yet"));
+  assert.ok(elements.some(node => node.type === "h3" && node.props.children === "No reviews yet"));
+  assert.equal(elements.some(node => node.type === "RatingBreakdown"), false);
+  assert.equal(elements.some(node => node.type === "Dropdown.Menu"), false);
+  const back = elements.find(node => node.type === "Button");
+  back.props.onHoverStart();
+  back.props.onFocus();
+  back.props.onPress();
+  assert.deepEqual(prefetched, ["/landlord/properties/unit-1", "/landlord/properties/unit-1"]);
+  assert.deepEqual(pushed, ["/landlord/properties/unit-1"]);
+});
+
+test("Reviews retain accurate ratings, all sort options and shared card photo/comment data", () => {
+  const reviews = [
+    { id: "old", name: "Older tenant", rating: 5, date: "2026-01-01", review: "Great", images: ["photo.jpg"], stayPeriod: "1 year" },
+    { id: "new", name: "Newer tenant", rating: 2, date: "2026-10-01", review: "Needs work", images: [], stayPeriod: "6 months" },
+  ];
+  const { render } = reviewsHarness(reviews);
+  let elements = render();
+  const summary = elements.find(node => node.type === "RatingBreakdown");
+  assert.equal(summary.props.layout, "stacked");
+  assert.equal(summary.props.overallRate, 3.5);
+  assert.equal(summary.props.totalReviews, 2);
+  assert.equal(summary.props.no5Star, 1);
+  assert.equal(summary.props.no2Star, 1);
+  const names = () => render().filter(node => node.type === "ReviewCard").map(node => node.props.reviewerName);
+  assert.deepEqual(names(), ["Newer tenant", "Older tenant"]);
+  elements.find(node => node.type === "Dropdown.Menu").props.onAction("Highest Rating");
+  assert.deepEqual(names(), ["Older tenant", "Newer tenant"]);
+  elements = render();
+  const card = elements.find(node => node.type === "ReviewCard");
+  assert.deepEqual(card.props.images, ["photo.jpg"]);
+  assert.equal(card.props.reviewText, "Great");
+  assert.equal(card.props.stayPeriod, "1 year");
+  elements.find(node => node.type === "Dropdown.Menu").props.onAction("Lowest Rating");
+  assert.deepEqual(names(), ["Newer tenant", "Older tenant"]);
+  assert.deepEqual(reviews.map(review => review.id), ["old", "new"]);
+});
+
+test("Reviews skeleton mirrors the full-width summary and list without showing a false empty count", () => {
+  const boundary = load("landlord/properties/[apartmentId]/reviews/loading.tsx").default();
+  const tree = boundary.type();
+  assert.equal(tree.props["aria-busy"], "true");
+  assert.equal(tree.props["aria-label"], "Loading property reviews");
+  const elements = nodes(tree);
+  assert.ok(elements[0].props.className.includes("w-full min-w-0"));
+  assert.equal(elements.find(node => node.type === "h1").props.children, "Property Reviews");
+  assert.equal(elements.find(node => node.props.className === "grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-2").props.children.length, 4);
+  assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+});
+
+test("Property reviews link prefetches on pointer and keyboard intent", () => {
+  const detail = readFileSync(new URL("../app/landlord/properties/[apartmentId]/components/PropertyDetailClient.tsx", import.meta.url), "utf8");
+  for (const event of ["onMouseEnter", "onFocus"]) {
+    assert.ok(detail.includes(`${event}={() => router.prefetch(\`/landlord/properties/\${apartment.id}/reviews\`)}`));
+  }
+});
+
+test("Shared rating breakdown keeps its default layout while supporting a stacked landlord summary", () => {
+  const { default: Breakdown } = load("browse/[apartmentId]/components/RatingBreakdown.tsx", {
+    "@heroui/react": { Meter: compound("Meter", ["Track", "Fill"]) },
+  });
+  const props = { overallRate: 4, totalReviews: 1, no5Star: 0, no4Star: 1, no3Star: 0, no2Star: 0, no1Star: 0 };
+  assert.ok(Breakdown(props).props.className.includes("sm:flex-row"));
+  const stacked = Breakdown({ ...props, layout: "stacked" });
+  assert.equal(stacked.props.className.includes("sm:flex-row"), false);
+  assert.ok(stacked.props.children.every(child => !child.props.className.includes("sm:w-")));
 });
 
 test("Property rows prefetch on hover and keyboard focus without changing row activation", () => {

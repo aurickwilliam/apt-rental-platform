@@ -4,6 +4,34 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Only the landlord review route opts into these roomier shared-card styles. */
+.landlord-reviews-panel,
+.landlord-review-card {
+  min-width: 0;
+  padding: 1.25rem;
+  gap: 1rem;
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.landlord-review-card .card__header {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.landlord-review-card .card__header > div {
+  min-width: 0;
+}
+
+.landlord-review-card .card__content {
+  gap: 0.5rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
 /* Route-scoped property description cards; override HeroUI's unlayered
    card surface defaults without affecting other landlord pages. */
 .landlord-description-section {

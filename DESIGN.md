@@ -181,6 +181,8 @@ The landlord web apartment detail gallery uses rounded images, a horizontally sc
 
 The landlord web Apartment Description page uses route-scoped `DescriptionSection` cards with blue icon tiles, sentence-case section headings, explanatory subtitles and labeled Edit actions. Main information pairs a rounded cover photo with lease-date/pricing tiles; unit specifications retain every field in responsive icon tiles, and perk chips use their existing amenity icons. Full description and perks render inline without redundant View all dialogs. The lease agreement heading and its two actions sit alongside each other on wide screens and stack on smaller screens. Its loading skeleton reuses the same section component and responsive layout; navigation prefetching is retained.
 
+Landlord web Property Reviews fills the available content width with the same detail-page heading and back navigation. A stacked shared rating breakdown sits beside the tenant review list on desktop; smaller screens stack both sections. No-review states say "No ratings yet" rather than displaying a zero score. Review cards reuse the browse component with route-scoped spacing, retaining sorting, expandable comments and photo viewing. The route has its own matching skeleton and pointer/keyboard-intent prefetching in both directions; public browse styling is unchanged.
+
 ---
 
 ## 7. Shadows
