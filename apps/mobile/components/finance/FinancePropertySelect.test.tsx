@@ -265,6 +265,9 @@ describe("searchable finance property picker", () => {
   test("required selectors show the marker and inline validation error", () => {
     const screen = render(<FinanceSelect label="Category" value="" options={options} onChange={jest.fn()} required error="Choose an expense category." />);
     expect(screen.getByText("Category *")).toBeTruthy();
+    expect(screen.getByText("Category *").props.className).toContain("font-nunitoSemiBold");
+    expect(screen.getByText("Category *").props.className).toContain("text-base");
+    expect(screen.getByText("Category *").props.className).toContain("text-danger");
     expect(screen.getByRole("alert").props.children).toBe("Choose an expense category.");
   });
 });

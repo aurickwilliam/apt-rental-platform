@@ -109,13 +109,27 @@ export function FinanceSelect({
   const { colors } = useColors();
   const highlightSelected = searchable || highlightSelection;
   const term = search.trim().toLocaleLowerCase();
-  const visibleOptions = searchable ? options.filter((option) => option.label.toLocaleLowerCase().includes(term)) : options;
+  const visibleOptions = searchable
+    ? options.filter((option) =>
+        option.label.toLocaleLowerCase().includes(term),
+      )
+    : options;
   return (
     <View className="gap-2 min-w-0">
-      <Text className={`font-nunitoSemiBold text-sm ${error ? "text-danger" : "text-muted"}`}>{label}{required && <Text className="text-danger"> *</Text>}</Text>
+      <Text
+        className={`font-nunitoSemiBold text-base ${error ? "text-danger" : "text-foreground"}`}
+      >
+        {label}
+        {required && <Text className="text-danger"> *</Text>}
+      </Text>
       <Select
         presentation="bottom-sheet"
-        onOpenChange={(open) => { if (searchable) { Keyboard.dismiss(); if (open) setSearch(""); } }}
+        onOpenChange={(open) => {
+          if (searchable) {
+            Keyboard.dismiss();
+            if (open) setSearch("");
+          }
+        }}
         value={options.find((option) => option.value === value)}
         onValueChange={(option) => {
           if (option && !Array.isArray(option)) {
@@ -128,7 +142,9 @@ export function FinanceSelect({
           isDisabled={disabled}
           accessibilityLabel={label}
           accessibilityHint={error ?? (required ? "Required field" : undefined)}
-          style={error ? { borderColor: colors.danger, borderWidth: 2 } : undefined}
+          style={
+            error ? { borderColor: colors.danger, borderWidth: 2 } : undefined
+          }
           className={`bg-surface border rounded-2xl shadow-none focus:border-focus data-[open=true]:border-focus ${error ? "finance-field-invalid border-danger" : "border-field-border"}`}
         >
           <Select.Value
@@ -163,7 +179,11 @@ export function FinanceSelect({
             <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-5 pb-3">
               {label}
             </Select.ListLabel>
-            {searchable && <View className="px-3 pb-3"><PropertySearch value={search} onChange={setSearch} /></View>}
+            {searchable && (
+              <View className="px-3 pb-3">
+                <PropertySearch value={search} onChange={setSearch} />
+              </View>
+            )}
             <BottomSheetScrollView
               style={searchable ? { flex: 1 } : undefined}
               keyboardShouldPersistTaps="handled"
@@ -175,18 +195,39 @@ export function FinanceSelect({
                   key={option.value}
                   value={option.value}
                   label={option.label}
-                  className={highlightSelected && option.value === value ? "bg-primary-light rounded-full" : undefined}
+                  className={
+                    highlightSelected && option.value === value
+                      ? "bg-primary-light rounded-full"
+                      : undefined
+                  }
                 >
-                  <Select.ItemLabel className={highlightSelected && option.value === value ? "text-primary-light-foreground" : undefined} />
+                  <Select.ItemLabel
+                    className={
+                      highlightSelected && option.value === value
+                        ? "text-primary-light-foreground"
+                        : undefined
+                    }
+                  />
                   <Select.ItemIndicator />
                 </Select.Item>
               ))}
-              {searchable && visibleOptions.length === 0 && <Text className="py-4 font-inter text-sm text-muted">No matching properties.</Text>}
+              {searchable && visibleOptions.length === 0 && (
+                <Text className="py-4 font-inter text-sm text-muted">
+                  No matching properties.
+                </Text>
+              )}
             </BottomSheetScrollView>
           </Select.Content>
         </Select.Portal>
       </Select>
-      {error && <Text accessibilityRole="alert" className="font-inter text-sm text-danger">{error}</Text>}
+      {error && (
+        <Text
+          accessibilityRole="alert"
+          className="font-inter text-sm text-danger"
+        >
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

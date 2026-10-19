@@ -242,6 +242,7 @@
       "mobileScreenTitle": "text-accent text-3xl font-nunitoBold",
       "mobileSectionHeader": "text-foreground text-lg font-nunitoSemiBold",
       "mobileCardTitle": "text-base font-nunitoSemiBold",
+      "mobileFieldLabel": "text-base font-nunitoSemiBold text-foreground",
       "webPageHeader": "text-5xl text-brand font-bold",
       "webSectionTitle": "text-base font-medium",
       "chatBody": "text-sm font-inter leading-6"

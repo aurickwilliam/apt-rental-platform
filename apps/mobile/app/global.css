@@ -272,6 +272,19 @@
   color: var(--color-button-secondary-foreground);
 }
 
+/* Form labels: target the actual text, not Label's Pressable container.
+   Keep this scoped so values, placeholders and descriptions are unchanged. */
+.label__text {
+  font-family: var(--font-nunitoSemiBold);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--foreground);
+}
+
+.label__text--is-invalid {
+  color: var(--danger);
+}
+
 /* Tabs — every HeroUI Tabs label uses Nunito SemiBold; the selected label is
    the theme's primary blue, unselected stays muted. */
 .tabs__label {

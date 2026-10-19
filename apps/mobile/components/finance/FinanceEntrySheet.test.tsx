@@ -43,14 +43,17 @@ jest.mock("heroui-native", () => {
       </RequiredContext.Provider>
     );
   }
-  function Label({ children }: TextProps) {
+  function Label({ children, className }: TextProps) {
+    return <View className={className}>{children}</View>;
+  }
+  Label.Text = function LabelText({ children, className }: TextProps) {
     return (
-      <Text>
+      <Text className={className}>
         {children}
         {useContext(RequiredContext) ? " *" : ""}
       </Text>
     );
-  }
+  };
   function Button({
     children,
     onPress,
@@ -194,8 +197,12 @@ describe("finance entry forms", () => {
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
     fireEvent.press(screen.getByText("Save expense"));
     expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
-    expect(screen.getByLabelText("Amount (₱)").props.className).toBe("finance-field-invalid");
-    expect(screen.getByLabelText("Description").props.className).toBe("finance-field-invalid");
+    expect(screen.getByLabelText("Amount (₱)").props.className).toBe(
+      "font-inter text-sm text-foreground finance-field-invalid",
+    );
+    expect(screen.getByLabelText("Description").props.className).toBe(
+      "font-inter text-sm text-foreground finance-field-invalid",
+    );
     expect(screen.getByLabelText("Description").props.style).toEqual({ borderColor: "#E50914", borderWidth: 2 });
     expect(screen.getByLabelText("Amount (₱)").props.style).toEqual({ borderColor: "#E50914", borderWidth: 2 });
     expect(screen.getByText("Choose an expense category.")).toBeTruthy();
@@ -206,8 +213,12 @@ describe("finance entry forms", () => {
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
     fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
-    expect(screen.getByLabelText("Amount (₱)").props.className).toBeUndefined();
-    expect(screen.getByLabelText("Description").props.className).toBeUndefined();
+    expect(screen.getByLabelText("Amount (₱)").props.className).toBe(
+      "font-inter text-sm text-foreground",
+    );
+    expect(screen.getByLabelText("Description").props.className).toBe(
+      "font-inter text-sm text-foreground",
+    );
     expect(screen.getByLabelText("Description").props.style).toBeUndefined();
     expect(screen.queryByText("Choose an expense category.")).toBeNull();
     fireEvent.press(screen.getByText("Save expense"));
@@ -318,11 +329,22 @@ describe("finance entry forms", () => {
     expect(
       screen.getByText("Planned allocation this month (₱) *"),
     ).toBeTruthy();
+    expect(
+      screen.getByText("Planned allocation this month (₱) *").props.className,
+    ).toBe("font-nunitoSemiBold text-base text-foreground");
     // The optional goal fields stay unstarred.
     expect(
       screen.getByText("Amount still needed / annual bill (₱)"),
     ).toBeTruthy();
     expect(screen.getByText("Months to spread this amount over")).toBeTruthy();
+    for (const label of [
+      "Amount still needed / annual bill (₱)",
+      "Months to spread this amount over",
+    ]) {
+      expect(screen.getByText(label).props.className).toBe(
+        "font-nunitoSemiBold text-base text-foreground",
+      );
+    }
   });
 
   test("budget field errors appear after Save, redden their inputs and clear when corrected", async () => {
@@ -345,8 +367,13 @@ describe("finance entry forms", () => {
       ),
     ).toBeTruthy();
     const limit = screen.getByLabelText("Monthly spending limit (₱)");
-    expect(limit.props.className).toBe("finance-field-invalid");
+    expect(limit.props.className).toBe(
+      "font-inter text-sm text-foreground finance-field-invalid",
+    );
     expect(limit.props.style).toEqual({ borderColor: "#E50914", borderWidth: 2 });
+    expect(
+      screen.getByText("Monthly spending limit (₱) *").props.className,
+    ).toBe("font-nunitoSemiBold text-base text-danger");
     expect(onSave).not.toHaveBeenCalled();
     fireEvent.press(screen.getByLabelText("Property: Villa"));
     fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "5000");
@@ -356,7 +383,7 @@ describe("finance entry forms", () => {
     );
     expect(
       screen.getByLabelText("Monthly spending limit (₱)").props.className,
-    ).toBeUndefined();
+    ).toBe("font-inter text-sm text-foreground");
     expect(
       screen.getByLabelText("Monthly spending limit (₱)").props.style,
     ).toBeUndefined();

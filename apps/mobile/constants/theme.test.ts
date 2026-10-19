@@ -7,6 +7,19 @@ import { MOBILE_COLORS } from "./theme";
 const css = readFileSync(resolve(__dirname, "../app/global.css"), "utf8");
 const tokens = JSON.parse(readFileSync(resolve(__dirname, "../../../design-tokens.json"), "utf8"));
 
+it("styles actual HeroUI label text consistently without changing input typography", () => {
+  const label = css.match(/\.label__text\s*\{([^}]+)\}/)![1];
+  expect(label).toContain("font-family: var(--font-nunitoSemiBold)");
+  expect(label).toContain("font-size: var(--text-base)");
+  expect(label).toContain("line-height: var(--text-base--line-height)");
+  expect(label).toContain("color: var(--foreground)");
+  const invalid = css.match(/\.label__text--is-invalid\s*\{([^}]+)\}/)![1];
+  expect(invalid).toContain("color: var(--danger)");
+  expect(css.indexOf(".label__text--is-invalid {")).toBeGreaterThan(
+    css.indexOf(".label__text {"),
+  );
+});
+
 function declarations(block: string): Record<string, string> {
   return Object.fromEntries(
     [...block.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((match) => [match[1], match[2].trim()]),

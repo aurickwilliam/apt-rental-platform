@@ -70,10 +70,16 @@ function SheetInput({
   const { colors } = useColors();
   return (
     <TextField isInvalid={!!error} isDisabled={disabled} isRequired={required}>
-      <Label>{label}</Label>
+      <Label>
+        <Label.Text
+          className={`font-nunitoSemiBold text-base ${error ? "text-danger" : "text-foreground"}`}
+        >
+          {label}
+        </Label.Text>
+      </Label>
       <Input
         isInvalid={!!error}
-        className={error ? "finance-field-invalid" : undefined}
+        className={`font-inter text-sm text-foreground${error ? " finance-field-invalid" : ""}`}
         style={
           error ? { borderColor: colors.danger, borderWidth: 2 } : undefined
         }
