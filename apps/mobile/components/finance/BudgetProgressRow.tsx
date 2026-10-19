@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { Button } from "heroui-native";
 import { budgetProgress, formatPesoDisplay } from "@repo/utils";
+import { useColors } from "@/hooks/useTheme";
 
 /**
  * One budget-versus-actual row. The Budget tab shows a category's totals and the
@@ -22,6 +23,7 @@ export default function BudgetProgressRow({
   action: string;
   onPress: () => void;
 }) {
+  const { colors } = useColors();
   const { over, percent, difference, barWidth } = budgetProgress(amount, spent);
   return (
     <Button
@@ -40,12 +42,16 @@ export default function BudgetProgressRow({
         </Text>
         <View className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
           <View
-            className={`h-full rounded-full ${over ? "bg-danger" : "bg-accent"}`}
-            style={{ width: `${barWidth}%` }}
+            className={`h-full rounded-full${over ? "" : " bg-accent"}`}
+            style={{
+              width: `${barWidth}%`,
+              ...(over ? { backgroundColor: colors.danger } : {}),
+            }}
           />
         </View>
         <Text
-          className={`font-inter text-xs ${over ? "text-danger" : "text-muted"}`}
+          className={`font-inter text-xs${over ? "" : " text-muted"}`}
+          style={over ? { color: colors.danger } : undefined}
         >
           {formatPesoDisplay(difference)}{" "}
           {over
