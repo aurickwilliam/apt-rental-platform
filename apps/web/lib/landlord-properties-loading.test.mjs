@@ -16,7 +16,7 @@ function load(file, extra = {}) {
       Suspense: "Suspense", useState: value => [value, () => {}],
       useCallback: callback => callback, useEffect: () => {}, useSyncExternalStore: () => false,
     },
-    "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
+    "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Chip: "Chip", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
@@ -30,6 +30,8 @@ function load(file, extra = {}) {
     "./PropertiesHeader": loadPropertiesHeader(),
     "./components/PropertiesSkeleton": { default: () => load("landlord/properties/components/PropertiesSkeleton.tsx").default() },
     "./components/PropertyDetailSkeleton": { default: () => load("landlord/properties/[apartmentId]/components/PropertyDetailSkeleton.tsx").default() },
+    "./components/DescriptionSkeleton": { default: () => load("landlord/properties/[apartmentId]/description/components/DescriptionSkeleton.tsx").default() },
+    "./DescriptionSection": { default: function DescriptionSection(props) { return load("landlord/properties/[apartmentId]/description/components/DescriptionSection.tsx").default(props); } },
     ...extra,
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");
@@ -52,7 +54,7 @@ function loadPropertiesHeader() {
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
-  const expand = typeof element.type === "function" && ["Sk", "FieldSkeleton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
+  const expand = typeof element.type === "function" && ["Sk", "FieldSkeleton", "DescriptionFieldSkeleton", "DescriptionSection", "ReadOnlyField", "EditSectionButton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 }
@@ -92,6 +94,90 @@ test("Apartment detail boundary uses an accessible, responsive skeleton with rou
   assert.equal(elements.find(node => node.props.className === "flex gap-2 overflow-x-auto p-1").props.children.length, 3);
   assert.equal(elements.find(node => node.props.className === "grid grid-cols-2 sm:grid-cols-4 gap-3").props.children.length, 8);
   assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+});
+
+test("Description route loading mirrors all five sections and announces loading without fetching data", () => {
+  const boundary = load("landlord/properties/[apartmentId]/description/loading.tsx").default();
+  const tree = boundary.type();
+  assert.equal(tree.props["aria-busy"], "true");
+  assert.equal(tree.props["aria-label"], "Loading apartment description");
+  const elements = nodes(tree);
+  assert.equal(elements.find(node => node.type === "h1").props.children, "Apartment Description");
+  const titles = elements.filter(node => node.type === "h2").map(node => node.props.children);
+  assert.deepEqual(titles, ["Main Information", "Full Description", "Room / Unit Details", "Included Perks", "Lease Agreement"]);
+  assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
+  assert.equal(elements.find(node => node.props.className === "grid grid-cols-1 gap-2 sm:grid-cols-2 2xl:grid-cols-5").props.children.length, 5);
+  assert.equal(elements.find(node => node.props.className === "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2").props.children.length, 8);
+  assert.equal(elements.find(node => node.props.className === "grid flex-1 grid-cols-1 sm:grid-cols-2 gap-2").props.children.length, 2);
+  assert.ok(elements.some(node => node.type === "Skeleton" && node.props.className.includes("min-h-40 w-full rounded-xl")));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+});
+
+function descriptionHarness({ tenant = { leaseStart: "2026-10-20", leaseEnd: "2027-10-20" }, amenities = ["wifi"], lease = "lease.pdf", description = "A welcoming apartment." } = {}) {
+  const updates = [];
+  const viewed = [];
+  let stateIndex = 0;
+  const { default: Client } = load("landlord/properties/[apartmentId]/description/components/DescriptionClient.tsx", {
+    react: { useState: initial => { const index = stateIndex++; return [initial, value => updates.push({ index, value })]; } },
+    "next/navigation": { useRouter: () => ({ push: () => {}, prefetch: () => {} }) },
+    "@repo/utils": { formatPesoDisplay: value => `PHP ${value}` },
+    "@/app/tenant/payment/utils": { formatLeaseDate: value => value ?? "—" },
+    "../../components/to-property": { toProperty: apartment => ({ ...apartment, thumbnail: "/cover.jpg" }) },
+    "../../components/use-lease-viewer": { useLeaseViewer: () => ({ viewing: false, viewLease: async path => { viewed.push(path); return null; } }) },
+    "@/app/components/inputs/perks": { PERKS: { wifi: { name: "Wi-Fi", icon: "IconWifi" } } },
+    "../../../components/modals/LeaseAgreementModal": { default: "LeaseAgreementModal" },
+    "../../../components/modals/EditPropertyModal": { default: "EditPropertyModal" },
+  });
+  const elements = nodes(Client({ detail: {
+    tenant,
+    apartment: { id: "unit-1", name: "Cozy Cove", street_address: "123 Test St", city: "Caloocan", amenities, description,
+      monthly_rent: 15000, security_deposit: 15000, advance_rent: 15000, type: "Studio", lease_duration: "1 Year",
+      no_bedrooms: 1, no_bathrooms: 1, furnished_type: "Fully Furnished", floor_level: "6th-10th Floor", max_occupants: 2,
+      area_sqm: 21, lease_agreement_url: lease },
+  } }));
+  return { elements, updates, viewed };
+}
+
+test("Description redesign keeps the photo, five summary tiles, eight specs, perk icons and four edit actions", async () => {
+  const { elements, updates, viewed } = descriptionHarness();
+  assert.equal(elements.find(node => node.type === "Image").props.src, "/cover.jpg");
+  const fields = elements.filter(node => node.type?.name === "ReadOnlyField");
+  assert.equal(fields.length, 13);
+  assert.equal(fields.find(node => node.props.label === "Furnishing").props.value, "Fully Furnished");
+  assert.ok(elements.some(node => node.type === "IconWifi" && node.props["aria-hidden"] === "true"));
+  const edits = elements.filter(node => node.type === "Button" && node.props["aria-label"]?.startsWith("Edit"));
+  assert.equal(edits.length, 4);
+  edits.forEach(node => node.props.onPress());
+  assert.ok(updates.every(update => update.index === 2 && update.value === true));
+  const view = elements.find(node => node.type === "Button" && [node.props.children].flat().includes("View Lease Agreement"));
+  assert.equal(view.props.isDisabled, false);
+  view.props.onPress();
+  await Promise.resolve();
+  assert.deepEqual(viewed, ["lease.pdf"]);
+  elements.find(node => node.type === "Button" && [node.props.children].flat().some(child => typeof child === "string" && child.includes("Upload Lease Agreement"))).props.onPress();
+  assert.equal(updates.at(-1).index, 3);
+  assert.equal(updates.at(-1).value, true);
+});
+
+test("Description redesign handles vacant units, missing lease, empty description and no perks", () => {
+  const { elements } = descriptionHarness({ tenant: null, amenities: [], lease: null, description: "" });
+  assert.equal(elements.filter(node => node.type?.name === "ReadOnlyField").length, 11);
+  assert.ok(elements.some(node => node.type === "p" && node.props.children === "No perks added yet."));
+  assert.ok(elements.some(node => node.type === "p" && node.props.children === "No description added yet."));
+  const view = elements.find(node => node.type === "Button" && [node.props.children].flat().includes("View Lease Agreement"));
+  assert.equal(view.props.isDisabled, true);
+});
+
+test("Description navigation warms both routes on pointer and keyboard intent", () => {
+  const detail = readFileSync(new URL("../app/landlord/properties/[apartmentId]/components/PropertyDetailClient.tsx", import.meta.url), "utf8");
+  const description = readFileSync(new URL("../app/landlord/properties/[apartmentId]/description/components/DescriptionClient.tsx", import.meta.url), "utf8");
+  for (const event of ["onMouseEnter", "onFocus"]) {
+    assert.ok(detail.includes(`${event}={() => router.prefetch(\`/landlord/properties/\${apartment.id}/description\`)}`));
+  }
+  for (const event of ["onHoverStart", "onFocus"]) {
+    assert.ok(description.includes(`${event}={() => router.prefetch(\`/landlord/properties/\${apartment.id}\`)}`));
+  }
+  assert.ok(description.includes('onPress={() => router.push(`/landlord/properties/${apartment.id}`)}'));
 });
 
 test("Property rows prefetch on hover and keyboard focus without changing row activation", () => {

@@ -179,6 +179,8 @@ Conventions: mobile cards `rounded-3xl` (nested `rounded-xl`/`2xl`); web cards `
 
 The landlord web apartment detail gallery uses rounded images, a horizontally scrollable thumbnail strip with a selected-state ring, and the shared `PhotoGalleryModal` for full-size viewing. Edit Property is the primary header action; image and lease management stay in the Manage menu. Vacating a unit and removing a listing are separated with explanatory text, and both retain confirmation dialogs.
 
+The landlord web Apartment Description page uses route-scoped `DescriptionSection` cards with blue icon tiles, sentence-case section headings, explanatory subtitles and labeled Edit actions. Main information pairs a rounded cover photo with lease-date/pricing tiles; unit specifications retain every field in responsive icon tiles, and perk chips use their existing amenity icons. Full description and perks render inline without redundant View all dialogs. The lease agreement heading and its two actions sit alongside each other on wide screens and stack on smaller screens. Its loading skeleton reuses the same section component and responsive layout; navigation prefetching is retained.
+
 ---
 
 ## 7. Shadows

@@ -340,7 +340,12 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Link href={`/landlord/properties/${apartment.id}/description`} className="no-underline">
+              <Link
+                href={`/landlord/properties/${apartment.id}/description`}
+                onMouseEnter={() => router.prefetch(`/landlord/properties/${apartment.id}/description`)}
+                onFocus={() => router.prefetch(`/landlord/properties/${apartment.id}/description`)}
+                className="no-underline"
+              >
                 <Button className="w-full">View Full Description</Button>
               </Link>
               <Link href={`/landlord/properties/${apartment.id}/reviews`} className="no-underline">

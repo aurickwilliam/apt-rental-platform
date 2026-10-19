@@ -4,6 +4,21 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Route-scoped property description cards; override HeroUI's unlayered
+   card surface defaults without affecting other landlord pages. */
+.landlord-description-section {
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+  box-shadow: none;
+  padding: 1rem;
+}
+
+@media (min-width: 48rem) {
+  .landlord-description-section {
+    padding: 1.25rem;
+  }
+}
+
 /* Keep the long property form roomy without changing other HeroUI dialogs. */
 .edit-property-modal {
   max-width: 56rem;
