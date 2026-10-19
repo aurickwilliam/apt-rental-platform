@@ -10,12 +10,15 @@ import { useColors } from "@/hooks/useTheme";
 export function FinanceCard({
   children,
   className,
+  testID,
 }: {
   children: ReactNode;
   className?: string;
+  testID?: string;
 }) {
   return (
     <View
+      testID={testID}
       className={`bg-surface border border-border rounded-3xl p-4 gap-4${className ? ` ${className}` : ""}`}
     >
       {children}

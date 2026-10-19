@@ -15,7 +15,7 @@ import {
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
+import { BudgetCategorySkeleton } from "@/components/finance/FinanceSkeleton";
 import BudgetProgressRow from "@/components/finance/BudgetProgressRow";
 import { FinanceError, MoneyRow } from "@/components/finance/FinanceControls";
 import { useCurrentUser } from "@/hooks/auth";
@@ -80,7 +80,7 @@ function BudgetCategory() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="budget" />
+        <BudgetCategorySkeleton />
       </ScreenWrapper>
     );
   if (finance.userError || !finance.enabled || finance.report.error || !data)

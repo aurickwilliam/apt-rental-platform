@@ -90,7 +90,9 @@ jest.mock("@/components/finance/FinanceControls", () => {
       mockFinanceError(props),
   };
 });
-jest.mock("@/components/finance/FinanceSkeleton", () => () => null);
+jest.mock("@/components/finance/FinanceSkeleton", () => ({
+  PropertyPerformanceSkeleton: () => null,
+}));
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
   return function Wrapper({

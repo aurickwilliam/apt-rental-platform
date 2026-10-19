@@ -12,7 +12,7 @@ import {
   FinanceCard,
   FinanceError,
 } from "@/components/finance/FinanceControls";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
+import { PropertyPerformanceSkeleton } from "@/components/finance/FinanceSkeleton";
 import PropertyPerformanceList, {
   PropertyPerformanceTabs,
   type PropertyPerformanceMetric,
@@ -41,7 +41,7 @@ function PropertyPerformance() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="overview" />
+        <PropertyPerformanceSkeleton />
       </ScreenWrapper>
     );
   if (

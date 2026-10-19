@@ -137,8 +137,8 @@ jest.mock("@/components/layout/StandardHeader", () => {
 });
 jest.mock("@/components/finance/FinanceSkeleton", () => {
   const { View: NativeView } = jest.requireActual("react-native");
-  return function Skeleton() {
-    return <NativeView testID="finance-skeleton" />;
+  return {
+    ExpenseTransactionsSkeleton: () => <NativeView testID="finance-skeleton" />,
   };
 });
 jest.mock("@/components/finance/FinanceControls", () => {

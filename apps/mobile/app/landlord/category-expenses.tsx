@@ -13,7 +13,7 @@ import {
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
+import { ExpenseTransactionsSkeleton } from "@/components/finance/FinanceSkeleton";
 import ExpenseTransactionRow from "@/components/finance/ExpenseTransactionRow";
 import { ExpenseEntrySheet } from "@/components/finance/FinanceEntrySheet";
 import { FinanceError } from "@/components/finance/FinanceControls";
@@ -67,7 +67,7 @@ function CategoryExpenses() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="expenses" />
+        <ExpenseTransactionsSkeleton />
       </ScreenWrapper>
     );
   if (finance.userError || !finance.enabled || finance.report.error || !data)
