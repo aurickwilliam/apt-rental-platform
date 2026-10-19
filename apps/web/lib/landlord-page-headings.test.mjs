@@ -56,11 +56,8 @@ for (const [route, file, title, icon] of [
   });
 }
 
-test("Payments heading has no Back button and keeps its filter action slot", () => {
-  const header = load("landlord/payments/components/PaymentsHeader.tsx");
-  const filter = { type: "Button", props: { children: "Filters" } };
-  const elements = nodes(header.default({ children: filter }));
+test("Payments heading has no Back button and no trailing action of its own", () => {
+  const elements = nodes(load("landlord/payments/components/PaymentsHeader.tsx").default({}));
   assert.ok(!elements.some(node => node.type === "IconArrowLeft"));
-  assert.equal(elements.filter(node => node.type === "Button").length, 1);
-  assert.ok(elements.includes(filter));
+  assert.equal(elements.filter(node => node.type === "Button").length, 0);
 });

@@ -36,7 +36,7 @@ function load(file, options = {}) {
     "./components/PaymentsHeader": header,
     "./components/PaymentsSkeleton": {
       default: function PaymentsSkeleton() { return load("components/PaymentsSkeleton.tsx", options).default(); },
-      PaymentCardsSkeleton: function PaymentCardsSkeleton() { return load("components/PaymentsSkeleton.tsx", options).PaymentCardsSkeleton(); },
+      PaymentCardsSkeleton: function PaymentCardsSkeleton(props) { return load("components/PaymentsSkeleton.tsx", options).PaymentCardsSkeleton(props); },
     },
   };
   const source = readFileSync(new URL(`../app/landlord/payments/${file}`, import.meta.url), "utf8");
@@ -118,4 +118,38 @@ test("payment filters/sorting and receipt links stay tied to the selected unit",
     payments: { payments: records, loading: false },
   }).default();
   assert.equal(nodes(filtered).filter(node => node.type === "Link").length, 1);
+});
+
+test("the Filters control rides the year row with the This Year tag instead of the page heading", () => {
+  const year = new Date().getFullYear();
+  const current = { id: "current", date: `${year}-02-01`, period_start: `${year}-02-01`, status: "paid", amount: 6000 };
+  const previous = { id: "previous", date: `${year - 1}-02-01`, period_start: `${year - 1}-02-01`, status: "paid", amount: 5000 };
+
+  const elements = nodes(load("page.tsx", { payments: { payments: [current, previous], loading: false } }).default());
+  const heading = elements.find(node => node.type.name === "PaymentsHeader");
+  assert.ok(!nodes(heading).some(node => node.type === "Button"));
+  assert.equal(elements.filter(node => node.type === "Button" && text(node).includes("Filters")).length, 1);
+
+  const rows = elements.filter(node => node.type.name === "SectionHeader");
+  assert.deepEqual(rows.map(node => node.props.year), [String(year), String(year - 1)]);
+  const rowsWithFilters = rows.filter(node => node.props.action);
+  assert.equal(rowsWithFilters.length, 1);
+  assert.equal(rowsWithFilters[0].props.year, String(year));
+  assert.ok(text(rowsWithFilters[0]).includes("This Year"));
+  assert.equal(nodes(rowsWithFilters[0]).filter(node => node.type === "Button").length, 1);
+
+  const olderOnly = nodes(load("page.tsx", { payments: { payments: [previous], loading: false } }).default());
+  assert.deepEqual(
+    olderOnly.filter(node => node.type.name === "SectionHeader" && node.props.action).map(node => node.props.year),
+    [String(year - 1)],
+  );
+
+  const loading = nodes(load("page.tsx", { payments: { payments: [current], loading: true } }).default());
+  const loadingRow = loading.find(node => node.type === "div" && node.props["aria-label"] === "Loading payments");
+  assert.ok(nodes(loadingRow).some(node => node.type === "Button" && text(node).includes("Filters")));
+
+  const routeRow = nodes(load("loading.tsx").default()).find(node => node.type === "div" && node.props.className?.includes("sticky top-0 z-10 flex items-center justify-between"));
+  assert.ok(routeRow);
+  assert.equal(nodes(routeRow).filter(node => node.type === "Skeleton").length, 2);
+  assert.ok(!nodes(routeRow).some(node => node.type === "Button"));
 });

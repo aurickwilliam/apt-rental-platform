@@ -6,7 +6,7 @@ import ApplicationsHeader from "./ApplicationsHeader";
 
 const ROW_COUNT = 5;
 const CARD_COUNT = 3;
-const COLUMNS = ["Tenant", "Property", "Location", "Date", "Status"];
+const COLUMNS = ["Tenant", "Property", "Location", "Date", "Status", "Actions"];
 
 function Sk({ className }: { className: string }) {
   return <Skeleton className={`bg-grey-300! ${className}`} />;
@@ -20,12 +20,28 @@ export function ApplicationsCountSkeleton() {
   );
 }
 
+export function ApplicationsSummarySkeleton() {
+  return (
+    <div aria-hidden="true" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {["total", "approved", "rejected", "pending"].map((tone) => (
+        <div key={tone} className={`application-summary-card application-summary-${tone}`}>
+          <Sk className="size-14 shrink-0 rounded-2xl" />
+          <div className="min-w-0 space-y-2">
+            <Sk className="h-5 w-32 max-w-full rounded-lg" />
+            <Sk className="h-9 w-12 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function ApplicationsResultsSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading applications">
       <div aria-hidden="true">
         <div className="hidden md:block">
-          <Table className="bg-card">
+          <Table className="application-list-table">
             <Table.ScrollContainer className="max-w-full overflow-x-auto">
               <Table.Content aria-label="Applications loading placeholders" className="bg-card">
                 <Table.Header className="bg-card">
@@ -44,7 +60,7 @@ export function ApplicationsResultsSkeleton() {
                     <Table.Row key={index} id={`loading-application-${index}`}>
                       <Table.Cell>
                         <div className="flex items-center gap-2">
-                          <Sk className="size-8 shrink-0 rounded-full" />
+                          <Sk className="size-10 shrink-0 rounded-full" />
                           <div>
                             <Sk className="h-5 w-28 rounded-lg" />
                             <Sk className="h-4 w-32 rounded-lg" />
@@ -52,8 +68,10 @@ export function ApplicationsResultsSkeleton() {
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        <Sk className="h-5 w-36 rounded-lg" />
-                        <Sk className="h-4 w-24 rounded-lg" />
+                        <div className="flex items-center gap-3">
+                          <Sk className="size-12 shrink-0 rounded-lg" />
+                          <div><Sk className="h-5 w-36 rounded-lg" /><Sk className="h-4 w-24 rounded-lg" /></div>
+                        </div>
                       </Table.Cell>
                       <Table.Cell>
                         <Sk className="h-5 w-24 rounded-lg" />
@@ -64,6 +82,7 @@ export function ApplicationsResultsSkeleton() {
                         <Sk className="h-4 w-28 rounded-lg" />
                       </Table.Cell>
                       <Table.Cell><Sk className="h-6 w-20 rounded-full" /></Table.Cell>
+                      <Table.Cell><Sk className="size-8 rounded-full" /></Table.Cell>
                     </Table.Row>
                   ))}
                 </Table.Body>
@@ -85,7 +104,9 @@ export function ApplicationsResultsSkeleton() {
                 </div>
                 <Sk className="h-6 w-20 shrink-0 rounded-full" />
               </div>
+              <div className="flex items-center gap-3"><Sk className="size-12 shrink-0 rounded-lg" /><Sk className="h-10 w-40 max-w-full rounded-lg" /></div>
               <Sk className="h-4 w-44 max-w-full rounded-lg" />
+              <Sk className="h-4 w-40 max-w-full rounded-lg" />
             </div>
           ))}
         </div>
@@ -96,16 +117,21 @@ export function ApplicationsResultsSkeleton() {
 
 export default function ApplicationsSkeleton() {
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading applications">
+    <div className="landlord-applications-page w-full min-w-0 p-4 flex flex-col gap-6 bg-card min-h-0" aria-busy="true" aria-label="Loading applications">
       <ApplicationsHeader />
-      <div aria-hidden="true" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1 max-w-md">
-          <Sk className="h-10 w-full rounded-xl" />
-        </div>
-        <Sk className="h-8 w-24 rounded-full" />
+      <ApplicationsSummarySkeleton />
+      <div aria-hidden="true" className="grid grid-cols-1 items-center gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(240px,2fr)_repeat(4,minmax(0,1fr))_auto]">
+        <Sk className="h-11 w-full rounded-xl sm:col-span-2 xl:col-span-1" />
+        {Array.from({ length: 4 }, (_, index) => <Sk key={index} className="h-11 w-full rounded-xl" />)}
+        <Sk className="h-11 w-28 rounded-full" />
       </div>
-      <ApplicationsCountSkeleton />
-      <ApplicationsResultsSkeleton />
+      <div className="application-results-panel min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <ApplicationsCountSkeleton />
+          <div aria-hidden="true"><Sk className="h-11 w-52 rounded-xl" /></div>
+        </div>
+        <ApplicationsResultsSkeleton />
+      </div>
     </div>
   );
 }

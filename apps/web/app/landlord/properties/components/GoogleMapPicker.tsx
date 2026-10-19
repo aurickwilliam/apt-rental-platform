@@ -274,7 +274,7 @@ export default function GoogleMapPicker({
     <div className="flex flex-col gap-1.5">
       {showHeader && (
         <>
-          <p className="font-nunito text-sm font-medium">
+          <p className="font-nunito text-sm font-medium text-foreground">
             Pin Location <span className="text-danger">*</span>
           </p>
           <p className="text-xs text-muted-foreground mb-1">
