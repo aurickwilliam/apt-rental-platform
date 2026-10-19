@@ -11,6 +11,7 @@ import {
 } from "heroui-native";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { randomUUID } from "expo-crypto";
+import { IconTrash } from "@tabler/icons-react-native";
 import {
   FINANCE_CATEGORIES,
   budgetCategoryOptions,
@@ -485,6 +486,7 @@ export function BudgetEntryPage({
   onSave,
   onDelete,
 }: BudgetEntryPageProps) {
+  const { colors } = useColors();
   const seedProperty =
     initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
   const seedKind = initial?.kind ?? presetKind ?? "expense";
@@ -726,6 +728,7 @@ export function BudgetEntryPage({
             confirmDelete ? void handleDelete() : setConfirmDelete(true)
           }
         >
+          <IconTrash size={18} color={colors.danger} />
           <Button.Label>
             {confirmDelete ? "Confirm remove budget" : "Remove budget"}
           </Button.Label>
