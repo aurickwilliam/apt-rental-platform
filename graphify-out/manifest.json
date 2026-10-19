@@ -5388,9 +5388,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingBreakdown.tsx": {
-    "mtime": 1792290092.2552118,
-    "seen": 1792311844.2334452,
-    "ast_hash": "655b5be3869f4e885f9e140d71d1f934",
+    "mtime": 1792393405.0687153,
+    "seen": 1792393574.1594262,
+    "ast_hash": "e61a89d4483cea9f93d086b39298592e",
     "semantic_hash": ""
   },
   "apps/web/app/browse/[apartmentId]/components/RatingsSection.tsx": {
@@ -6354,9 +6354,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/components/PropertyDetailClient.tsx": {
-    "mtime": 1792392418.7309809,
-    "seen": 1792392525.3919733,
-    "ast_hash": "30faffe9cc9918855f590d4e55c3ad12",
+    "mtime": 1792393405.0698175,
+    "seen": 1792393574.185251,
+    "ast_hash": "aa4a6faa10cdc93e50c143b416897dfc",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/components/SignedLeaseModal.tsx": {
@@ -6414,9 +6414,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/reviews/components/ReviewsClient.tsx": {
-    "mtime": 1791973672.9506683,
-    "seen": 1792311844.2338257,
-    "ast_hash": "c48cb77147ad5d11e29431ed8ef19b5b",
+    "mtime": 1792393468.5400865,
+    "seen": 1792393574.1876037,
+    "ast_hash": "268fb0ea6b589121c2fe747087ac0e7f",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/properties/[apartmentId]/reviews/page.tsx": {
@@ -8886,9 +8886,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792392952.0007193,
-    "seen": 1792393104.707476,
-    "ast_hash": "351ef3cf801e54c41bd4437a319d4709",
+    "mtime": 1792393521.4166193,
+    "seen": 1792393574.2551196,
+    "ast_hash": "4c01d217ce076cd342699f0e13bfd302",
     "semantic_hash": ""
   },
   "README.md": {
@@ -9438,9 +9438,9 @@
     "semantic_hash": ""
   },
   "apps/web/lib/landlord-properties-loading.test.mjs": {
-    "mtime": 1792392994.6000876,
-    "seen": 1792393104.6779153,
-    "ast_hash": "8ce159a703e18580d965b270ee4a53f0",
+    "mtime": 1792393521.4166193,
+    "seen": 1792393574.2244349,
+    "ast_hash": "9a85190e28f1878f42c4cabf881b222a",
     "semantic_hash": ""
   },
   "apps/web/app/landlord/applications/components/ApplicationsHeader.tsx": {
@@ -9567,6 +9567,18 @@
     "mtime": 1792393055.8725908,
     "seen": 1792393104.6443307,
     "ast_hash": "f6de479eb7cbd9a2e6bae764b9e6daef",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/[apartmentId]/reviews/components/ReviewsSkeleton.tsx": {
+    "mtime": 1792393405.0698175,
+    "seen": 1792393574.187607,
+    "ast_hash": "c5da4ccad09439ab6acd1db9b78c3154",
+    "semantic_hash": ""
+  },
+  "apps/web/app/landlord/properties/[apartmentId]/reviews/loading.tsx": {
+    "mtime": 1792393405.0698175,
+    "seen": 1792393574.1876132,
+    "ast_hash": "52c9e852e0631a5cd8bf807f9263676f",
     "semantic_hash": ""
   }
 }
