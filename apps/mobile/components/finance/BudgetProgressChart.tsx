@@ -8,38 +8,52 @@ import {
 import {
   financeCategoryLabel,
   formatPesoDisplay,
+  groupBudgetsByCategory,
   suggestFinanceBudget,
+  type BudgetCategoryGroup,
   type BudgetKind,
   type FinanceBudget,
+  type FinanceBudgetProgress,
   type FinanceCategory,
 } from "@repo/utils";
 import { FinanceCard, FinanceHeading, MoneyRow } from "./FinanceControls";
+import BudgetProgressRow from "./BudgetProgressRow";
 import EmptyState from "@/components/display/EmptyState";
 import { useColors } from "@/hooks/useTheme";
 import type { FinanceProperty } from "@/service/finance/financeService";
-
-export type SpendingBudget = FinanceBudget & { spent: number };
 
 export default function BudgetProgressChart({
   budgets,
   properties,
   onEdit,
+  onOpenGroup,
   onCreate,
 }: {
-  budgets: SpendingBudget[];
+  budgets: FinanceBudgetProgress[];
   properties: FinanceProperty[];
   onEdit: (budget: FinanceBudget) => void;
+  onOpenGroup: (category: FinanceCategory, kind: BudgetKind) => void;
   onCreate: (category?: FinanceCategory, kind?: BudgetKind) => void;
 }) {
   const { colors } = useColors();
-  const expenses = budgets.filter((budget) => budget.kind === "expense");
-  const reserves = budgets.filter((budget) => budget.kind === "reserve");
+  // One budget per property arrives from the report; the tab plans by category.
+  const groups = groupBudgetsByCategory(budgets);
+  const expenses = groups.filter((group) => group.kind === "expense");
+  const reserves = groups.filter((group) => group.kind === "reserve");
+  const scopeLabel = (group: BudgetCategoryGroup) => {
+    if (group.entries.length > 1) return `${group.entries.length} properties`;
+    const [entry] = group.entries;
+    return (
+      properties.find((property) => property.id === entry.apartmentId)?.name ??
+      "1 property"
+    );
+  };
   return (
     <>
       <FinanceCard>
         <FinanceHeading
           title="Budget versus actual"
-          description="Tap a budget to edit its limit or goal. Actual spending includes improvements in that category."
+          description="Tap a category to see every property's limit and spending. Actual spending includes improvements in that category."
           action={
             <Button size="sm" variant="tertiary" onPress={() => onCreate()}>
               <IconPlus size={18} color={colors.textPrimary} />
@@ -54,56 +68,22 @@ export default function BudgetProgressChart({
             description="Set spending limits for repairs, utilities and other property costs."
           />
         )}
-        {expenses.map((budget) => {
-          const over = budget.spent > budget.amount;
-          return (
-            <Button
-              key={budget.id}
-              variant="ghost"
-              className="h-auto min-h-14 py-2"
-              onPress={() => onEdit(budget)}
-              accessibilityLabel={`${financeCategoryLabel(budget.category)}, spent ${formatPesoDisplay(budget.spent)} of ${formatPesoDisplay(budget.amount)}. ${over ? "Over budget" : "Within budget"}. Edit budget.`}
-            >
-              <View className="w-full gap-2">
-                <Text className="font-nunitoSemiBold text-sm text-foreground">
-                  {financeCategoryLabel(budget.category)}
-                </Text>
-                <Text className="font-inter text-xs text-muted">
-                  {
-                    properties.find(
-                      (property) => property.id === budget.apartment_id,
-                    )?.name
-                  }
-                </Text>
-                <Text className="font-nunitoBold text-sm text-foreground">
-                  {formatPesoDisplay(budget.spent)} /{" "}
-                  {formatPesoDisplay(budget.amount)}
-                </Text>
-                <View className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
-                  <View
-                    className={`h-full rounded-full ${over ? "bg-danger" : "bg-accent"}`}
-                    style={{
-                      width: `${budget.amount > 0 ? Math.min(100, (budget.spent / budget.amount) * 100) : budget.spent > 0 ? 100 : 0}%`,
-                    }}
-                  />
-                </View>
-                <Text
-                  className={`font-inter text-xs ${over ? "text-danger" : "text-muted"}`}
-                >
-                  {formatPesoDisplay(Math.abs(budget.amount - budget.spent))}{" "}
-                  {over
-                    ? `over budget${budget.amount > 0 ? ` · ${Math.round((budget.spent / budget.amount) * 100)}% used` : ""}`
-                    : "remaining"}
-                </Text>
-              </View>
-            </Button>
-          );
-        })}
+        {expenses.map((group) => (
+          <BudgetProgressRow
+            key={`${group.kind}:${group.category}`}
+            title={financeCategoryLabel(group.category)}
+            caption={scopeLabel(group)}
+            amount={group.amount}
+            spent={group.spent}
+            action="View properties"
+            onPress={() => onOpenGroup(group.category, group.kind)}
+          />
+        ))}
       </FinanceCard>
       <FinanceCard>
         <FinanceHeading
           title="Planned reserves"
-          description="Allocations for later—not expenses, account balances, or money already saved."
+          description="Allocations for later—not expenses, account balances, or money already saved. Tap a category to see the properties it covers."
           action={
             <Button
               size="sm"
@@ -122,25 +102,21 @@ export default function BudgetProgressChart({
             description="Plan a buffer for unexpected repairs, late payments, vacancies or replacements."
           />
         )}
-        {reserves.map((budget) => (
+        {reserves.map((group) => (
           <Button
-            key={budget.id}
+            key={`${group.kind}:${group.category}`}
             variant="ghost"
             className="h-auto min-h-12 py-2"
-            onPress={() => onEdit(budget)}
+            onPress={() => onOpenGroup(group.category, group.kind)}
+            accessibilityLabel={`${financeCategoryLabel(group.category)}, ${scopeLabel(group)}. Planned ${formatPesoDisplay(group.amount)} this month. View properties`}
           >
             <View className="w-full gap-1">
               <MoneyRow
-                label={financeCategoryLabel(budget.category)}
-                amount={budget.amount}
+                label={financeCategoryLabel(group.category)}
+                amount={group.amount}
               />
               <Text className="font-inter text-xs text-muted">
-                {
-                  properties.find(
-                    (property) => property.id === budget.apartment_id,
-                  )?.name
-                }{" "}
-                · planned this month
+                {scopeLabel(group)} · planned this month
               </Text>
             </View>
           </Button>

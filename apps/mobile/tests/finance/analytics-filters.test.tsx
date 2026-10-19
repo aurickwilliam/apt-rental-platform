@@ -67,6 +67,7 @@ const mockBudgetChart = jest.fn(
   (_props: {
     onCreate: (category?: FinanceCategory, kind?: string) => void;
     onEdit: (budget: FinanceData["budgets"][number]) => void;
+    onOpenGroup: (category: FinanceCategory, kind: string) => void;
   }) => null,
 );
 const mockCategoryChart = jest.fn(
@@ -348,6 +349,7 @@ jest.mock(
     function Chart(props: {
       onCreate: (category?: FinanceCategory, kind?: string) => void;
       onEdit: (budget: FinanceData["budgets"][number]) => void;
+      onOpenGroup: (category: FinanceCategory, kind: string) => void;
     }) {
       mockBudgetChart(props);
       return null;
@@ -882,6 +884,35 @@ describe("analytics header filters", () => {
         initial: expect.objectContaining({ id: "budget" }),
       }),
     );
+  });
+
+  // The plan is grouped by category; opening a group lists the properties holding it.
+  test("opening a budget category drills into the properties holding it", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Budget tab"));
+    const chart = mockBudgetChart.mock.calls.at(-1)![0];
+    act(() => chart.onOpenGroup("maintenance", "expense"));
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/budget-category",
+      params: { category: "maintenance", kind: "expense", month: "2026-10" },
+    });
+  });
+
+  test("the budget drill-down carries the filtered property", () => {
+    Object.assign(mockRouteParams, { month: "2026-09", apartmentId: "house" });
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Budget tab"));
+    const chart = mockBudgetChart.mock.calls.at(-1)![0];
+    act(() => chart.onOpenGroup("insurance", "reserve"));
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/budget-category",
+      params: {
+        month: "2026-09",
+        apartmentId: "house",
+        category: "insurance",
+        kind: "reserve",
+      },
+    });
   });
 
   test("the empty reserve shortcut opens the plan page preset to an emergency reserve", () => {

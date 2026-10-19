@@ -390,6 +390,7 @@ describe("interactive finance charts", () => {
         properties={[]}
         budgets={[]}
         onEdit={jest.fn()}
+        onOpenGroup={jest.fn()}
         onCreate={jest.fn()}
       />,
     );
@@ -406,11 +407,14 @@ describe("interactive finance charts", () => {
       ),
     ).toBeTruthy();
   });
-  test("over-budget amounts are explicit and reserve targets remain plans", () => {
-    const onEdit = jest.fn();
+  test("one row per category totals its properties and flags overspending", () => {
+    const onOpenGroup = jest.fn();
     const screen = render(
       <BudgetProgressChart
-        properties={[{ id: "a", name: "Villa" }]}
+        properties={[
+          { id: "a", name: "Villa" },
+          { id: "b", name: "Studio" },
+        ]}
         budgets={[
           {
             id: "b",
@@ -423,13 +427,74 @@ describe("interactive finance charts", () => {
             target_amount: null,
             months_remaining: null,
           },
+          {
+            id: "c",
+            apartment_id: "b",
+            month: "2026-10-01",
+            category: "maintenance",
+            kind: "expense",
+            amount: 1000,
+            spent: 200,
+            target_amount: null,
+            months_remaining: null,
+          },
         ]}
-        onEdit={onEdit}
+        onEdit={jest.fn()}
+        onOpenGroup={onOpenGroup}
         onCreate={jest.fn()}
       />,
     );
-    expect(screen.getByText(/over budget · 140% used/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(/Over budget. Edit budget/));
-    expect(onEdit).toHaveBeenCalled();
+    expect(screen.getByText("Maintenance & repairs")).toBeTruthy();
+    expect(screen.getByText("2 properties")).toBeTruthy();
+    expect(screen.getByText(/₱ 4,400 \/ ₱ 4,000/)).toBeTruthy();
+    expect(screen.getByText(/₱ 400 over budget · 110% used/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/Over budget. View properties/));
+    expect(onOpenGroup).toHaveBeenCalledWith("maintenance", "expense");
+  });
+  test("a single-property category names it, and reserves stay plans that open their properties", () => {
+    const onOpenGroup = jest.fn();
+    const onEdit = jest.fn();
+    const screen = render(
+      <BudgetProgressChart
+        properties={[{ id: "a", name: "Villa" }]}
+        budgets={[
+          {
+            id: "b",
+            apartment_id: "a",
+            month: "2026-10-01",
+            category: "maintenance",
+            kind: "expense",
+            amount: 3000,
+            spent: 1200,
+            target_amount: null,
+            months_remaining: null,
+          },
+          {
+            id: "r",
+            apartment_id: "a",
+            month: "2026-10-01",
+            category: "insurance",
+            kind: "reserve",
+            amount: 1000,
+            spent: 0,
+            target_amount: 12000,
+            months_remaining: 12,
+          },
+        ]}
+        onEdit={onEdit}
+        onOpenGroup={onOpenGroup}
+        onCreate={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("Villa")).toBeTruthy();
+    expect(screen.getByText(/₱ 1,800 remaining/)).toBeTruthy();
+    expect(screen.getByText(/Insurance: 1000/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(/Insurance, Villa. Planned ₱ 1,000/));
+    expect(onOpenGroup).toHaveBeenCalledWith("insurance", "reserve");
+    // Goal suggestions still open the editor, not the drill-down.
+    fireEvent.press(screen.getByText("Review suggestion"));
+    expect(onEdit).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "r", amount: 1000 }),
+    );
   });
 });

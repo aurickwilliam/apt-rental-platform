@@ -110,6 +110,90 @@ export interface FinanceBudget {
   months_remaining: number | null;
 }
 
+/** A budget row with the month's recorded spending for its property and category. */
+export interface FinanceBudgetProgress extends FinanceBudget {
+  spent: number;
+}
+
+export interface BudgetProgress {
+  over: boolean;
+  /** Null when the limit is zero, so no percentage can be shown. */
+  percent: number | null;
+  difference: number;
+  /** Progress-bar width, capped at 100. */
+  barWidth: number;
+}
+
+/** Actual-versus-plan arithmetic shared by the budget list and its drill-down. */
+export function budgetProgress(amount: number, spent: number): BudgetProgress {
+  return {
+    over: spent > amount,
+    percent: amount > 0 ? Math.round((spent / amount) * 100) : null,
+    difference: Math.abs(amount - spent),
+    barWidth:
+      amount > 0 ? Math.min(100, (spent / amount) * 100) : spent > 0 ? 100 : 0,
+  };
+}
+
+export interface BudgetCategoryEntry {
+  budgetId: string;
+  apartmentId: string;
+  amount: number;
+  spent: number;
+  target_amount: number | null;
+  months_remaining: number | null;
+}
+
+/** One category's budgets across the properties in scope, with their totals. */
+export interface BudgetCategoryGroup {
+  category: FinanceCategory;
+  kind: BudgetKind;
+  amount: number;
+  spent: number;
+  entries: BudgetCategoryEntry[];
+}
+
+const FINANCE_CATEGORY_ORDER = new Map<string, number>(
+  FINANCE_CATEGORIES.map((item, index) => [item.id, index]),
+);
+
+/**
+ * Collapses one budget per property into one row per category, so the plan is
+ * readable by category and the drill-down can list the properties holding it.
+ * Categories follow `FINANCE_CATEGORIES`; entries keep the report's order.
+ */
+export function groupBudgetsByCategory(
+  budgets: readonly FinanceBudgetProgress[],
+): BudgetCategoryGroup[] {
+  const groups = new Map<string, BudgetCategoryGroup>();
+  for (const budget of budgets) {
+    const key = `${budget.kind}:${budget.category}`;
+    const group = groups.get(key) ?? {
+      category: budget.category,
+      kind: budget.kind,
+      amount: 0,
+      spent: 0,
+      entries: [],
+    };
+    group.amount += budget.amount;
+    group.spent += budget.spent;
+    group.entries.push({
+      budgetId: budget.id,
+      apartmentId: budget.apartment_id,
+      amount: budget.amount,
+      spent: budget.spent,
+      target_amount: budget.target_amount,
+      months_remaining: budget.months_remaining,
+    });
+    groups.set(key, group);
+  }
+  const rank = (category: FinanceCategory) =>
+    FINANCE_CATEGORY_ORDER.get(category) ?? FINANCE_CATEGORIES.length;
+  return [...groups.values()].sort(
+    (a, b) => rank(a.category) - rank(b.category) || a.kind.localeCompare(b.kind),
+  );
+}
+
 export interface FinanceSuggestion {
   category: FinanceCategory;
   kind: BudgetKind;

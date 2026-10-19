@@ -144,6 +144,18 @@ function LandlordAnalytics() {
       },
     });
   };
+  // The plan reads by category; the drill-down lists the properties holding it.
+  const openBudgetCategory = (category: FinanceCategory, kind: BudgetKind) => {
+    router.push({
+      pathname: "/landlord/budget-category",
+      params: {
+        category,
+        kind,
+        month,
+        ...(apartmentId ? { apartmentId } : {}),
+      },
+    });
+  };
   const reviewExpenses = async () => {
     if (finance.review.isPending) return;
     setReviewError(null);
@@ -536,6 +548,7 @@ function LandlordAnalytics() {
               budgets={data.budgets}
               properties={data.properties}
               onEdit={(initial) => setBudgetEditor(initial)}
+              onOpenGroup={openBudgetCategory}
               onCreate={openBudgetPage}
             />
           )}

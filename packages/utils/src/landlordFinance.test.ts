@@ -1,9 +1,9 @@
 import fc from "fast-check";
 import {
-  budgetCategoryOptions, budgetKindFromParam, financeAfterReserve,
+  budgetCategoryOptions, budgetKindFromParam, budgetProgress, financeAfterReserve,
   financeCategoryFromParam, financeIncome, financeMonthFromParam,
-  isBudgetCategoryAllowed, manilaToday, parseFinanceAmount, rentAgeBucket,
-  shiftFinanceMonth, suggestFinanceBudget, validateExpenseDate,
+  groupBudgetsByCategory, isBudgetCategoryAllowed, manilaToday, parseFinanceAmount,
+  rentAgeBucket, shiftFinanceMonth, suggestFinanceBudget, validateExpenseDate,
 } from "./landlordFinance";
 
 describe("landlord finance rules", () => {
@@ -79,5 +79,28 @@ describe("landlord finance rules", () => {
   });
   test("overdue age buckets have clear boundaries", () => {
     expect([0, 1, 7, 8, 30, 31].map(rentAgeBucket)).toEqual(["not_due", "1–7 days", "1–7 days", "8–30 days", "8–30 days", "31+ days"]);
+  });
+  test("budgets collapse into one row per category with their totals", () => {
+    const groups = groupBudgetsByCategory([
+      { id: "b1", apartment_id: "villa", month: "2026-10-01", category: "utilities", kind: "expense", amount: 3000, spent: 1200, target_amount: null, months_remaining: null },
+      { id: "b2", apartment_id: "studio", month: "2026-10-01", category: "maintenance", kind: "expense", amount: 5000, spent: 6000, target_amount: null, months_remaining: null },
+      { id: "b3", apartment_id: "villa", month: "2026-10-01", category: "maintenance", kind: "expense", amount: 2500, spent: 500, target_amount: null, months_remaining: null },
+      { id: "b4", apartment_id: "villa", month: "2026-10-01", category: "maintenance", kind: "reserve", amount: 1000, spent: 0, target_amount: 12000, months_remaining: 12 },
+    ]);
+    // Categories follow FINANCE_CATEGORIES, and a reserve never merges into the
+    // spending budget that shares its category.
+    expect(groups.map((group) => [group.category, group.kind, group.amount, group.spent])).toEqual([
+      ["maintenance", "expense", 7500, 6500],
+      ["maintenance", "reserve", 1000, 0],
+      ["utilities", "expense", 3000, 1200],
+    ]);
+    expect(groups[0].entries.map((entry) => entry.apartmentId)).toEqual(["studio", "villa"]);
+    expect(groups[1].entries[0]).toEqual({ budgetId: "b4", apartmentId: "villa", amount: 1000, spent: 0, target_amount: 12000, months_remaining: 12 });
+  });
+  test("budget progress flags overspending and never divides by a zero limit", () => {
+    expect(budgetProgress(3000, 4200)).toEqual({ over: true, percent: 140, difference: 1200, barWidth: 100 });
+    expect(budgetProgress(3000, 1200)).toEqual({ over: false, percent: 40, difference: 1800, barWidth: 40 });
+    expect(budgetProgress(0, 0)).toEqual({ over: false, percent: null, difference: 0, barWidth: 0 });
+    expect(budgetProgress(0, 500)).toEqual({ over: true, percent: null, difference: 500, barWidth: 100 });
   });
 });
