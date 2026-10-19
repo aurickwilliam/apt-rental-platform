@@ -176,11 +176,11 @@ export function FinanceSelect({
                 }
               : {})}
           >
-            <Select.ListLabel className="font-nunitoBold text-lg text-foreground px-5 pb-3">
+            <Select.ListLabel className="font-nunitoBold text-lg text-foreground pb-3">
               {label}
             </Select.ListLabel>
             {searchable && (
-              <View className="px-3 pb-3">
+              <View className="pb-3">
                 <PropertySearch value={search} onChange={setSearch} />
               </View>
             )}
@@ -189,7 +189,6 @@ export function FinanceSelect({
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={searchable ? "on-drag" : undefined}
               contentContainerStyle={{
-                padding: 12,
                 paddingBottom: insets.bottom + 24,
               }}
             >

@@ -50,7 +50,7 @@ export default function CollectionLedgerSheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content snapPoints={["80%"]} enableDynamicSizing={false}>
-          <View className="px-5 pb-4 gap-3">
+          <View className="pb-4 gap-3">
             <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
               Rent collections
             </BottomSheet.Title>
@@ -70,7 +70,7 @@ export default function CollectionLedgerSheet({
           <BottomSheetFlatList<RentLedgerRow>
             data={rows}
             keyExtractor={(row) => row.id}
-            contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 48 }}
+            contentContainerStyle={{ gap: 12, paddingBottom: 32 }}
             renderItem={({ item }) => (
               <View className="border border-border rounded-2xl p-3 gap-2 bg-surface">
                 <Text className="font-nunitoBold text-base text-foreground">

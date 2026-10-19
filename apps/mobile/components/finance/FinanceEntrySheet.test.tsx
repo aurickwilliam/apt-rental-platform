@@ -260,6 +260,17 @@ describe("finance entry forms", () => {
     );
   });
 
+  // HeroUI's sheet container already applies the shared 20px gutter; the scroll
+  // content must not pad horizontally a second time.
+  test("the expense sheet scroll adds vertical spacing only inside the 20px sheet gutter", () => {
+    const screen = render(
+      <ExpenseEntrySheet {...common} onSave={jest.fn()} onDelete={jest.fn()} />,
+    );
+    expect(
+      screen.getByTestId("expense-sheet-scroll").props.contentContainerStyle,
+    ).toEqual({ paddingBottom: 32 });
+  });
+
   test("a valid expense uses a stable UUID and explicit treatment", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const screen = render(

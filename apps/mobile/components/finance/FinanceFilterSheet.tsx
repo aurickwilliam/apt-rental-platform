@@ -144,7 +144,7 @@ export default function FinanceFilterSheet({
           footerComponent={renderFooter}
           contentContainerClassName="h-full"
         >
-          <View className="px-2 gap-3 pb-3">
+          <View className="gap-3 pb-3">
             <View className="flex-row items-center justify-between">
               <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
                 Filters
@@ -184,7 +184,6 @@ export default function FinanceFilterSheet({
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             contentContainerStyle={{
-              paddingHorizontal: 8,
               paddingBottom: insets.bottom + 16,
               gap: 8,
             }}

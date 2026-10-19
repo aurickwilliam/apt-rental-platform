@@ -448,8 +448,11 @@ function ExpenseEditor({
           enablePanDownToClose={!busy}
         >
           <BottomSheetScrollView
+            testID="expense-sheet-scroll"
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+            // HeroUI's sheet container already pads every edge by 20px; only
+            // add vertical breathing room so this matches the browse filters.
+            contentContainerStyle={{ paddingBottom: 32 }}
           >
             {form}
           </BottomSheetScrollView>
