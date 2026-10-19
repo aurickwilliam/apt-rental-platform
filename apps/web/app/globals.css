@@ -23,7 +23,8 @@
   opacity: 1;
 }
 
-.application-summary-card {
+.application-summary-card,
+.maintenance-summary-card {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -33,12 +34,13 @@
   background: color-mix(in srgb, var(--application-accent) 4%, var(--card));
 }
 
-.application-summary-total { --application-accent: var(--primary); }
-.application-summary-approved { --application-accent: var(--success); }
-.application-summary-rejected { --application-accent: var(--danger); }
-.application-summary-pending { --application-accent: var(--warning); }
+.application-summary-total, .maintenance-summary-total { --application-accent: var(--primary); }
+.application-summary-approved, .maintenance-summary-approved { --application-accent: var(--success); }
+.application-summary-rejected, .maintenance-summary-rejected { --application-accent: var(--danger); }
+.application-summary-pending, .maintenance-summary-pending { --application-accent: var(--warning); }
 
-.application-summary-icon {
+.application-summary-icon,
+.maintenance-summary-icon {
   display: flex;
   width: 3.5rem;
   height: 3.5rem;
@@ -51,10 +53,34 @@
 }
 
 /* Status text/icons must stay readable on the tinted statistic tiles. */
-.application-summary-approved .application-summary-icon { color: #166534; }
-.application-summary-pending .application-summary-icon { color: #92400e; }
-.dark .application-summary-approved .application-summary-icon { color: #4ade80; }
-.dark .application-summary-pending .application-summary-icon { color: #fde047; }
+.application-summary-approved .application-summary-icon, .maintenance-summary-approved .maintenance-summary-icon { color: #166534; }
+.application-summary-pending .application-summary-icon, .maintenance-summary-pending .maintenance-summary-icon { color: #92400e; }
+.dark .application-summary-approved .application-summary-icon, .dark .maintenance-summary-approved .maintenance-summary-icon { color: #4ade80; }
+.dark .application-summary-pending .application-summary-icon, .dark .maintenance-summary-pending .maintenance-summary-icon { color: #fde047; }
+
+.landlord-maintenance-page .maintenance-search {
+  --field-placeholder: var(--muted-foreground);
+  --field-foreground: var(--foreground);
+}
+
+.landlord-maintenance-page .maintenance-search .input-group__input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.landlord-maintenance-page .maintenance-list-table {
+  border: 0;
+  border-radius: var(--radius-xl);
+  box-shadow: none;
+  background: var(--card);
+}
+
+.maintenance-list-table .table__column {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.maintenance-list-table .table__cell { padding: 1rem; }
 
 .landlord-applications-page .application-list-table {
   border: 0;
