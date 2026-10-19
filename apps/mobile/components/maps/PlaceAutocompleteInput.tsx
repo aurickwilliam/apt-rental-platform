@@ -2,13 +2,12 @@ import { useState } from "react";
 import {
   View,
   Text,
-  ActivityIndicator,
   ScrollView,
   Keyboard,
   Pressable,
 } from "react-native";
 
-import { Input, FieldError, ListGroup, Separator } from "heroui-native";
+import { Input, FieldError, ListGroup, Separator, Spinner } from "heroui-native";
 import { IconClock, IconMapPin, IconX } from "@tabler/icons-react-native";
 
 import { usePlaceAutocomplete } from "@/hooks/places/usePlaceAutocomplete";
@@ -98,7 +97,7 @@ export default function PlaceAutocompleteInput({
         />
         <View className="absolute right-0 top-0 bottom-0 w-11 items-center justify-center">
           {loading || selecting ? (
-            <ActivityIndicator size="small" color={colors.primary} />
+            <Spinner size="sm" color={colors.primary} accessibilityLabel="Loading places" />
           ) : (
             input.length > 0 && (
               <Pressable

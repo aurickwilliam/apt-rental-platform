@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
+import { Button, Spinner } from 'heroui-native';
 
 import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 import { MAP_DEFAULT_COORDS, MAP_DEFAULTS } from '@/utils/mapConfig';
@@ -18,7 +19,6 @@ import { useApartmentMapSearch } from '@/hooks/apartments/useApartmentMapSearch'
 import { useUserLocation } from '@/hooks/location/useUserLocation';
 import MapPreviewSheet from './components/MapPreviewSheet';
 import { IconNavigation, IconSearch, IconMapPin, IconChevronLeft, IconCompass } from '@tabler/icons-react-native';
-import { Button } from 'heroui-native';
 import { useColors } from '@/hooks/useTheme';
 
 const INITIAL_REGION: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number } = {
@@ -260,7 +260,7 @@ export default function TenantMapSearchScreen() {
             <Text className="text-sm font-nunitoSemiBold text-foreground">
               {isLocating ? 'Locating you…' : loading ? 'Searching…' : `${apartments.length} in this area`}
             </Text>
-            {isFetching && <ActivityIndicator size="small" color={colors.primary} />}
+            {isFetching && <Spinner size="sm" color={colors.primary} accessibilityLabel="Loading apartments" />}
           </View>
         </View>
 
