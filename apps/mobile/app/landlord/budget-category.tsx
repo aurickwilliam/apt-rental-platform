@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Button, useToast } from "heroui-native";
+import { Button } from "heroui-native";
 import { IconTargetArrow } from "@tabler/icons-react-native";
 import {
   budgetKindFromParam,
@@ -12,14 +11,12 @@ import {
   formatPesoDisplay,
   manilaToday,
   type BudgetKind,
-  type FinanceBudget,
 } from "@repo/utils";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
 import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
 import BudgetProgressRow from "@/components/finance/BudgetProgressRow";
-import { BudgetEntrySheet } from "@/components/finance/FinanceEntrySheet";
 import { FinanceError, MoneyRow } from "@/components/finance/FinanceControls";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
@@ -40,19 +37,28 @@ function BudgetCategory() {
   }>();
   const router = useRouter();
   const { colors } = useColors();
-  const { toast } = useToast();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
     typeof params.apartmentId === "string" ? params.apartmentId : null;
   const category = financeCategoryFromParam(params.category);
   const kind = budgetKindFromParam(params.kind) ?? "expense";
   const finance = useLandlordFinances({ month, apartmentId });
-  const [budgetEditor, setBudgetEditor] = useState<FinanceBudget | null>(null);
   const data = finance.report.data;
   const title = category ? financeCategoryLabel(category) : "Budget plan";
   const close = () => {
     if (router.canGoBack()) router.back();
     else router.replace("/landlord/analytics");
+  };
+  // Editing has its own page, like planning; it reads the row from this report.
+  const openBudgetEditor = (id: string) => {
+    router.push({
+      pathname: "/landlord/edit-budget",
+      params: {
+        id,
+        month,
+        ...(apartmentId ? { apartmentId } : {}),
+      },
+    });
   };
   const propertyName = (id: string) =>
     data?.properties.find((property) => property.id === id)?.name ?? "Property";
@@ -171,7 +177,7 @@ function BudgetCategory() {
                 <Button
                   variant="ghost"
                   className="h-auto min-h-12 py-2"
-                  onPress={() => setBudgetEditor(item)}
+                  onPress={() => openBudgetEditor(item.id)}
                   accessibilityLabel={`${propertyName(item.apartment_id)}, planned ${formatPesoDisplay(item.amount)} this month. Edit budget`}
                 >
                   <View className="w-full gap-1">
@@ -191,7 +197,7 @@ function BudgetCategory() {
                   amount={item.amount}
                   spent={item.spent}
                   action="Edit budget"
-                  onPress={() => setBudgetEditor(item)}
+                  onPress={() => openBudgetEditor(item.id)}
                 />
               )}
             </View>
@@ -211,21 +217,6 @@ function BudgetCategory() {
           }
         />
       </ScreenWrapper>
-      <BudgetEntrySheet
-        isOpen={budgetEditor !== null}
-        properties={data.properties}
-        apartmentId={apartmentId}
-        month={month}
-        initial={budgetEditor ?? undefined}
-        onClose={() => setBudgetEditor(null)}
-        onSave={async (budget) => {
-          await finance.budget.mutateAsync(budget);
-          toast.show({ label: "Budget saved", variant: "success" });
-        }}
-        onDelete={async (id) => {
-          await finance.removeBudget.mutateAsync(id);
-        }}
-      />
     </View>
   );
 }

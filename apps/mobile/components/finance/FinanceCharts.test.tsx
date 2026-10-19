@@ -494,7 +494,8 @@ describe("interactive finance charts", () => {
     // Goal suggestions still open the editor, not the drill-down.
     fireEvent.press(screen.getByText("Review suggestion"));
     expect(onEdit).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "r", amount: 1000 }),
+      expect.objectContaining({ id: "r" }),
+      1000,
     );
   });
 });

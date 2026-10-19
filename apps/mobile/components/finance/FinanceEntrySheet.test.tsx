@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextInputProps, TextProps } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import type { FinanceBudget } from "@repo/utils";
-import { BudgetEntryPage, BudgetEntrySheet, ExpenseEntrySheet, ExpenseEntryPage } from "./FinanceEntrySheet";
+import { BudgetEntryPage, ExpenseEntrySheet, ExpenseEntryPage } from "./FinanceEntrySheet";
 
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
@@ -565,8 +565,7 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Expense treatment *: operating")).toBeTruthy();
   });
 
-  test("reopening the budget sheet reseeds the draft from the tapped budget", () => {
-    const onSave = jest.fn();
+  test("the edit page seeds the form from the tapped budget and locks its identity", () => {
     const budget: FinanceBudget = {
       id: "existing",
       apartment_id: "apt",
@@ -578,24 +577,13 @@ describe("finance entry forms", () => {
       months_remaining: 12,
     };
     const screen = render(
-      <BudgetEntrySheet
+      <BudgetEntryPage
         {...common}
-        isOpen={false}
         initial={budget}
-        onSave={onSave}
+        onSave={jest.fn()}
         onDelete={jest.fn()}
       />,
     );
-    screen.rerender(
-      <BudgetEntrySheet
-        {...common}
-        isOpen
-        initial={budget}
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    expect(screen.getByText("Edit budget")).toBeTruthy();
     expect(screen.getByText("Plan type *: reserve")).toBeTruthy();
     expect(screen.getByText("Category *: insurance")).toBeTruthy();
     expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 1,000");
@@ -605,35 +593,45 @@ describe("finance entry forms", () => {
     expect(
       screen.getByLabelText("Months to spread this amount over").props.value,
     ).toBe("12");
-    screen.rerender(
-      <BudgetEntrySheet
-        {...common}
-        isOpen={false}
-        initial={budget}
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    screen.rerender(
-      <BudgetEntrySheet
-        {...common}
-        isOpen
-        initial={{ ...budget, id: "another", category: "maintenance", kind: "expense", amount: 2500, target_amount: null, months_remaining: null }}
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    expect(screen.getByText("Plan type *: expense")).toBeTruthy();
-    expect(screen.getByText("Category *: maintenance")).toBeTruthy();
+    // The footer keeps its equal-width Cancel / Save pair, and removal sits in the form.
+    const footer = screen.getByTestId("entry-page-footer");
+    expect(within(footer).getByText("Cancel")).toBeTruthy();
+    expect(within(footer).getByText("Save budget")).toBeTruthy();
+    expect(footer.findAllByProps({ className: "flex-1" })).toHaveLength(2);
     expect(
-      screen.getByLabelText("Months to spread this amount over").props.value,
-    ).toBe("6");
-    expect(
-      screen.getByLabelText("Amount still needed / annual bill (₱)").props.value,
-    ).toBe("");
+      within(screen.getByTestId("entry-page-form")).getByText("Remove budget"),
+    ).toBeTruthy();
   });
 
-  test("removing a budget from the sheet needs explicit confirmation", async () => {
+  test("a suggested amount seeds the edit form without touching the goal fields", () => {
+    const budget: FinanceBudget = {
+      id: "existing",
+      apartment_id: "apt",
+      month: "2026-10",
+      category: "insurance",
+      kind: "reserve",
+      amount: 500,
+      target_amount: 12000,
+      months_remaining: 12,
+    };
+    const screen = render(
+      <BudgetEntryPage
+        {...common}
+        initial={budget}
+        suggestedAmount={1000}
+        onSave={jest.fn()}
+      />,
+    );
+    expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 1,000");
+    expect(
+      screen.getByLabelText("Amount still needed / annual bill (₱)").props.value,
+    ).toBe("₱ 12,000");
+    expect(
+      screen.getByLabelText("Months to spread this amount over").props.value,
+    ).toBe("12");
+  });
+
+  test("removing a budget from the edit page needs explicit confirmation", async () => {
     const onDelete = jest.fn().mockResolvedValue(undefined);
     const budget: FinanceBudget = {
       id: "existing",
@@ -646,7 +644,7 @@ describe("finance entry forms", () => {
       months_remaining: null,
     };
     const screen = render(
-      <BudgetEntrySheet
+      <BudgetEntryPage
         {...common}
         initial={budget}
         onSave={jest.fn()}

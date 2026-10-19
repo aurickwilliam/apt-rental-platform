@@ -458,52 +458,33 @@ function ExpenseEditor({
   );
 }
 
-interface BudgetEditorProps {
-  isOpen: boolean;
+interface BudgetEntryPageProps {
   properties: FinanceProperty[];
   apartmentId: string | null;
   month: string;
   initial?: FinanceBudget;
   presetCategory?: FinanceCategory;
   presetKind?: BudgetKind;
+  /** Amount to start the form with, e.g. a suggestion the landlord chose to review. */
+  suggestedAmount?: number;
   onClose: () => void;
   onSave: (budget: Omit<FinanceBudget, "id">) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
-  presentation?: "sheet" | "page";
 }
 
-/** Editing and removal stay in the sheet, matching the expense editor. */
-export function BudgetEntrySheet(
-  props: Omit<
-    BudgetEditorProps,
-    "presentation" | "presetCategory" | "presetKind"
-  >,
-) {
-  return <BudgetEditor {...props} presentation="sheet" />;
-}
-
-export function BudgetEntryPage(
-  props: Omit<
-    BudgetEditorProps,
-    "presentation" | "isOpen" | "initial" | "onDelete"
-  >,
-) {
-  return <BudgetEditor {...props} isOpen presentation="page" />;
-}
-
-function BudgetEditor({
-  isOpen,
+/** Planning and editing are both full pages, sharing this form. */
+export function BudgetEntryPage({
   properties,
   apartmentId,
   month,
   initial,
   presetCategory,
   presetKind,
+  suggestedAmount,
   onClose,
   onSave,
   onDelete,
-  presentation,
-}: BudgetEditorProps) {
+}: BudgetEntryPageProps) {
   const seedProperty =
     initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
   const seedKind = initial?.kind ?? presetKind ?? "expense";
@@ -515,10 +496,13 @@ function BudgetEditor({
   const seedMonths =
     initial?.months_remaining ??
     (seedCategory === "insurance" || seedCategory === "taxes" ? 12 : 6);
+  const seedAmount = suggestedAmount ?? initial?.amount;
   const [property, setProperty] = useState(seedProperty);
   const [category, setCategory] = useState<FinanceCategory>(seedCategory);
   const [kind, setKind] = useState<BudgetKind>(seedKind);
-  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+  const [amount, setAmount] = useState(
+    seedAmount !== undefined ? String(seedAmount) : "",
+  );
   const [target, setTarget] = useState(
     initial?.target_amount ? String(initial.target_amount) : "",
   );
@@ -527,23 +511,6 @@ function BudgetEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [wasOpen, setWasOpen] = useState(isOpen);
-  // The sheet stays mounted while closed, so every opening reseeds a fresh draft.
-  if (isOpen !== wasOpen) {
-    setWasOpen(isOpen);
-    if (isOpen) {
-      setProperty(seedProperty);
-      setCategory(seedCategory);
-      setKind(seedKind);
-      setAmount(initial ? String(initial.amount) : "");
-      setTarget(initial?.target_amount ? String(initial.target_amount) : "");
-      setMonths(String(seedMonths));
-      setSubmitted(false);
-      setBusy(false);
-      setError(null);
-      setConfirmDelete(false);
-    }
-  }
   const amountValue = parseFinanceAmount(amount, true);
   const targetValue = target.trim() ? parseFinanceAmount(target) : null;
   const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
@@ -621,11 +588,6 @@ function BudgetEditor({
   };
   const form = (
     <View className="gap-4">
-      {presentation === "sheet" && (
-        <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
-          {initial ? "Edit budget" : "Plan a budget"}
-        </BottomSheet.Title>
-      )}
       <Text className="font-inter text-sm text-muted">
         {financeMonthLabel(month)} · Plans only. No money is moved or saved
         automatically.
@@ -634,7 +596,7 @@ function BudgetEditor({
         label="Property"
         required
         error={submitted ? propertyError : undefined}
-        searchable={presentation === "page"}
+        searchable
         value={property}
         options={properties.map((item) => ({
           value: item.id,
@@ -756,16 +718,6 @@ function BudgetEditor({
           {error}
         </Text>
       )}
-      {presentation === "sheet" && (
-        <>
-          <Button isDisabled={busy} onPress={handleSave}>
-            <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
-          </Button>
-          <Button variant="secondary" isDisabled={busy} onPress={onClose}>
-            <Button.Label>Cancel</Button.Label>
-          </Button>
-        </>
-      )}
       {initial && onDelete && (
         <Button
           variant="danger-soft"
@@ -781,53 +733,33 @@ function BudgetEditor({
       )}
     </View>
   );
-  if (presentation === "page")
-    return (
-      <ScreenWrapper
-        header={<StandardHeader title="Plan a budget" onBackPress={close} />}
-        scrollable
-        className="p-5"
-        footer={
-          <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
-            <Button
-              className="flex-1"
-              variant="tertiary"
-              onPress={close}
-              isDisabled={busy}
-            >
-              <Button.Label>Cancel</Button.Label>
-            </Button>
-            <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
-              <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
-            </Button>
-          </View>
-        }
-      >
-        {form}
-      </ScreenWrapper>
-    );
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (!open && !busy) onClose();
-      }}
-    >
-      <BottomSheet.Portal>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content
-          snapPoints={["90%"]}
-          enableDynamicSizing={false}
-          enablePanDownToClose={!busy}
-        >
-          <BottomSheetScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 16 }}
+    <ScreenWrapper
+      header={
+        <StandardHeader
+          title={initial ? "Edit budget" : "Plan a budget"}
+          onBackPress={close}
+        />
+      }
+      scrollable
+      className="p-5"
+      footer={
+        <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
+          <Button
+            className="flex-1"
+            variant="tertiary"
+            onPress={close}
+            isDisabled={busy}
           >
-            {form}
-          </BottomSheetScrollView>
-        </BottomSheet.Content>
-      </BottomSheet.Portal>
-    </BottomSheet>
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
+            <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
+          </Button>
+        </View>
+      }
+    >
+      {form}
+    </ScreenWrapper>
   );
 }

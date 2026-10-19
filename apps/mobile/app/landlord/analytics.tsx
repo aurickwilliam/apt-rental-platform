@@ -54,7 +54,6 @@ import BudgetProgressChart from "@/components/finance/BudgetProgressChart";
 import CollectionLedgerSheet from "@/components/finance/CollectionLedgerSheet";
 import FinanceFilterSheet from "@/components/finance/FinanceFilterSheet";
 import FinanceGuidelinesDialog from "@/components/finance/FinanceGuidelinesDialog";
-import { BudgetEntrySheet } from "@/components/finance/FinanceEntrySheet";
 
 type FinanceTab = "overview" | "expenses" | "budget";
 
@@ -78,7 +77,6 @@ function LandlordAnalytics() {
     useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<FinanceScope | null>(null);
   const [tab, setTab] = useState<FinanceTab>("overview");
-  const [budgetEditor, setBudgetEditor] = useState<FinanceBudget | null>(null);
   const [collectionStatus, setCollectionStatus] =
     useState<CollectionStatus | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -153,6 +151,18 @@ function LandlordAnalytics() {
         kind,
         month,
         ...(apartmentId ? { apartmentId } : {}),
+      },
+    });
+  };
+  // Editing has its own page too, seeded from the plan this report already holds.
+  const openBudgetEditor = (budget: FinanceBudget, amount?: number) => {
+    router.push({
+      pathname: "/landlord/edit-budget",
+      params: {
+        id: budget.id,
+        month,
+        ...(apartmentId ? { apartmentId } : {}),
+        ...(amount !== undefined ? { amount: String(amount) } : {}),
       },
     });
   };
@@ -547,7 +557,7 @@ function LandlordAnalytics() {
             <BudgetProgressChart
               budgets={data.budgets}
               properties={data.properties}
-              onEdit={(initial) => setBudgetEditor(initial)}
+              onEdit={openBudgetEditor}
               onOpenGroup={openBudgetCategory}
               onCreate={openBudgetPage}
             />
@@ -616,21 +626,6 @@ function LandlordAnalytics() {
             onClose={() => setCollectionStatus(null)}
           />
         )}
-        <BudgetEntrySheet
-          isOpen={budgetEditor !== null}
-          properties={data.properties}
-          apartmentId={apartmentId}
-          month={month}
-          initial={budgetEditor ?? undefined}
-          onClose={() => setBudgetEditor(null)}
-          onSave={async (budget) => {
-            await finance.budget.mutateAsync(budget);
-            toast.show({ label: "Budget saved", variant: "success" });
-          }}
-          onDelete={async (id) => {
-            await finance.removeBudget.mutateAsync(id);
-          }}
-        />
       </ScreenWrapper>
       {expenseFab}
     </View>

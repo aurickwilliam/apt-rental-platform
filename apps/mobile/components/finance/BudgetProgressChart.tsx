@@ -31,7 +31,7 @@ export default function BudgetProgressChart({
 }: {
   budgets: FinanceBudgetProgress[];
   properties: FinanceProperty[];
-  onEdit: (budget: FinanceBudget) => void;
+  onEdit: (budget: FinanceBudget, suggestedAmount?: number) => void;
   onOpenGroup: (category: FinanceCategory, kind: BudgetKind) => void;
   onCreate: (category?: FinanceCategory, kind?: BudgetKind) => void;
 }) {
@@ -156,9 +156,7 @@ export default function BudgetProgressChart({
                 <Button
                   size="sm"
                   variant="secondary"
-                  onPress={() =>
-                    onEdit({ ...budget, amount: suggestion.amount })
-                  }
+                  onPress={() => onEdit(budget, suggestion.amount)}
                 >
                   <Button.Label>Review suggestion</Button.Label>
                 </Button>

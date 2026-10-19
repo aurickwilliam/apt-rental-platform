@@ -12,9 +12,9 @@ const mockParams: {
 const mockCanGoBack = jest.fn(() => true);
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockRetry = jest.fn();
 const mockRefetch = jest.fn();
-const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockFinanceError = jest.fn(
   (_props: { message?: string; onRetry: () => void }) => null,
 );
@@ -97,6 +97,7 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({
     canGoBack: mockCanGoBack,
     back: mockBack,
+    push: mockPush,
     replace: mockReplace,
   }),
 }));
@@ -171,9 +172,7 @@ jest.mock("@/components/finance/FinanceControls", () => {
     ),
   };
 });
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({
-  BudgetEntrySheet: (props: unknown) => mockBudgetSheet(props),
-}));
+jest.mock("@/components/finance/FinanceEntrySheet", () => ({}));
 
 describe("Budget category route", () => {
   beforeEach(() => {
@@ -231,9 +230,10 @@ describe("Budget category route", () => {
     expect(screen.getByText(/Villa: 1000/)).toBeTruthy();
     expect(screen.getByText("planned this month")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/Villa, planned ₱ 1,000 this month/));
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: true, initial: insurance }),
-    );
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/edit-budget",
+      params: { id: insurance.id, month: "2026-09" },
+    });
   });
 
   test("an applied property filter travels with the page", () => {
@@ -246,15 +246,13 @@ describe("Budget category route", () => {
     expect(screen.getByLabelText("Filtered property: Villa")).toBeTruthy();
   });
 
-  test("editing a property's budget opens the shared sheet", () => {
+  test("editing a property's budget opens its edit page", () => {
     const screen = render(<BudgetCategoryScreen />);
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
     fireEvent.press(screen.getByLabelText(/Villa, spent this month/));
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: true, initial: maintenance }),
-    );
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/edit-budget",
+      params: { id: maintenance.id, month: "2026-09" },
+    });
   });
 
   test("an unknown category asks the reader to pick one from the Budget tab", () => {

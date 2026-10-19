@@ -17,6 +17,7 @@ export default function LandlordLayout() {
       <Stack.Screen name="analytics" />
       <Stack.Screen name="add-expense" />
       <Stack.Screen name="add-budget" />
+      <Stack.Screen name="edit-budget" />
       <Stack.Screen name="category-expenses" />
       <Stack.Screen name="budget-category" />
       <Stack.Screen name="property-performance" />

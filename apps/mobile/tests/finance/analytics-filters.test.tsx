@@ -60,13 +60,12 @@ const mockSheetContentProps = jest.fn();
 const mockButtonProps = jest.fn();
 const mockRouterPush = jest.fn();
 const mockRouteParams: { month?: string; apartmentId?: string } = {};
-const mockBudgetSheet = jest.fn((_props: unknown) => null);
 const mockLedgerSheet = jest.fn((_props: unknown) => null);
 const mockPropertyChart = jest.fn((_props: { onViewAll: () => void }) => null);
 const mockBudgetChart = jest.fn(
   (_props: {
     onCreate: (category?: FinanceCategory, kind?: string) => void;
-    onEdit: (budget: FinanceData["budgets"][number]) => void;
+    onEdit: (budget: FinanceData["budgets"][number], suggestedAmount?: number) => void;
     onOpenGroup: (category: FinanceCategory, kind: string) => void;
   }) => null,
 );
@@ -348,7 +347,7 @@ jest.mock(
   () =>
     function Chart(props: {
       onCreate: (category?: FinanceCategory, kind?: string) => void;
-      onEdit: (budget: FinanceData["budgets"][number]) => void;
+      onEdit: (budget: FinanceData["budgets"][number], suggestedAmount?: number) => void;
       onOpenGroup: (category: FinanceCategory, kind: string) => void;
     }) {
       mockBudgetChart(props);
@@ -363,12 +362,6 @@ jest.mock(
       return null;
     },
 );
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({
-  BudgetEntrySheet: (props: { isOpen: boolean; initial?: unknown }) => {
-    mockBudgetSheet(props);
-    return null;
-  },
-}));
 jest.mock(
   "@/app/(tabs)/components/units/EmptyProperties",
   () =>
@@ -829,12 +822,9 @@ describe("analytics header filters", () => {
 
   // HeroUI only snaps a sheet open on a closed → open transition, so the page keeps
   // every sheet mounted and drives it with `isOpen`.
-  test("the Add expense FAB opens its own page while the budget sheet stays mounted closed", () => {
+  test("the Add expense FAB opens its own page while the collection ledger sheet stays mounted closed", () => {
     const screen = render(<AnalyticsScreen />);
     expect(mockLedgerSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({ isOpen: false }),
     );
     const addExpenseFab = screen.getByLabelText("Add expense");
@@ -847,13 +837,10 @@ describe("analytics header filters", () => {
     expect(floatingContainer?.props.pointerEvents).toBe("box-none");
     fireEvent.press(addExpenseFab);
     expect(mockRouterPush).toHaveBeenCalledWith({ pathname: "/landlord/add-expense", params: { month: "2026-10" } });
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
   });
 
-  // Creating a plan opens its own page (like Add expense); tapping a budget edits in the sheet.
-  test("creating a budget opens the plan page while tapping one edits in the sheet", () => {
+  // Planning and editing both have their own pages.
+  test("creating a budget opens the plan page while tapping one opens its edit page", () => {
     const screen = render(<AnalyticsScreen />);
     fireEvent.press(screen.getByLabelText("Budget tab"));
     const chart = mockBudgetChart.mock.calls.at(-1)![0];
@@ -862,9 +849,6 @@ describe("analytics header filters", () => {
       pathname: "/landlord/add-budget",
       params: { month: "2026-10", category: "insurance", kind: "reserve" },
     });
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
     act(() =>
       chart.onEdit({
         id: "budget",
@@ -878,12 +862,37 @@ describe("analytics header filters", () => {
         months_remaining: null,
       }),
     );
-    expect(mockBudgetSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        isOpen: true,
-        initial: expect.objectContaining({ id: "budget" }),
-      }),
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/edit-budget",
+      params: { id: "budget", month: "2026-10" },
+    });
+  });
+
+  // A suggestion only prefills the amount; the plan's identity still comes from its id.
+  test("a reviewed suggestion carries its amount to the edit page", () => {
+    const screen = render(<AnalyticsScreen />);
+    fireEvent.press(screen.getByLabelText("Budget tab"));
+    const chart = mockBudgetChart.mock.calls.at(-1)![0];
+    act(() =>
+      chart.onEdit(
+        {
+          id: "budget",
+          apartment_id: "villa",
+          month: "2026-10-01",
+          category: "insurance",
+          kind: "reserve",
+          amount: 500,
+          spent: 0,
+          target_amount: 12000,
+          months_remaining: 12,
+        },
+        1000,
+      ),
     );
+    expect(mockRouterPush).toHaveBeenLastCalledWith({
+      pathname: "/landlord/edit-budget",
+      params: { id: "budget", month: "2026-10", amount: "1000" },
+    });
   });
 
   // The plan is grouped by category; opening a group lists the properties holding it.
