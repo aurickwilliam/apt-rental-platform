@@ -7380,8 +7380,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792425491.1235247,
-    "ast_hash": "21a8c9c865403bda2a843b95e7bfb7f7",
+    "mtime": 1792429366.509183,
+    "ast_hash": "64b17276826202d45cfcddde7fcaa96a",
     "semantic_hash": ""
   },
   "README.md": {
@@ -8045,13 +8045,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/category-expenses.tsx": {
-    "mtime": 1792346575.0072165,
-    "ast_hash": "70152a6884547039a29aae610a047008",
+    "mtime": 1792429289.5042202,
+    "ast_hash": "e4334fb03efd240ad2962882e9249afd",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/property-performance.tsx": {
-    "mtime": 1792341265.0729332,
-    "ast_hash": "b2a6311777e27082b7af3ebaff407501",
+    "mtime": 1792429289.5041788,
+    "ast_hash": "3d788b2c78b499e184ea2db84fbbb00a",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressChart.tsx": {
@@ -8095,8 +8095,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
-    "mtime": 1792425444.2575412,
-    "ast_hash": "664ef20262a21c178df16466a65c2a84",
+    "mtime": 1792429266.9835615,
+    "ast_hash": "ece5e612e4b46589029d57175e666b4c",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.test.tsx": {
@@ -8125,13 +8125,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceSkeleton.test.tsx": {
-    "mtime": 1792368155.1937885,
-    "ast_hash": "fef1b2d62a63a05e24c90b8374f0cedb",
+    "mtime": 1792429300.3997834,
+    "ast_hash": "4a681fbb1155205a95c15ac86dfd1d45",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceSkeleton.tsx": {
-    "mtime": 1792368066.6814876,
-    "ast_hash": "e4b2689de8ff700c75f59816bb355c74",
+    "mtime": 1792429281.0978181,
+    "ast_hash": "aead881a76f38f83e982250e24e50a64",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/IncomeTrendChart.tsx": {
@@ -8190,13 +8190,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/category-expenses.test.tsx": {
-    "mtime": 1792346675.023286,
-    "ast_hash": "5bb06c52398034cb577ed8153e1d76bb",
+    "mtime": 1792429316.7885516,
+    "ast_hash": "a32acc2b6f845f3f8246b004a956ec38",
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/property-performance.test.tsx": {
-    "mtime": 1792341105.1513877,
-    "ast_hash": "cd5f086807354c2d295238acd7a55f94",
+    "mtime": 1792429316.7885585,
+    "ast_hash": "0b3d0c707e0bc07faae01f847df05eb6",
     "semantic_hash": ""
   },
   "packages/utils/src/landlordFinance.test.ts": {
@@ -8825,8 +8825,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/budget-category.tsx": {
-    "mtime": 1792410210.3717024,
-    "ast_hash": "a57794547c6332fac87e41139f3adadd",
+    "mtime": 1792429289.5042257,
+    "ast_hash": "87e8b01d7064f6f3e1b01e119803ebcc",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressRow.tsx": {
@@ -8835,8 +8835,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/budget-category.test.tsx": {
-    "mtime": 1792419959.5561888,
-    "ast_hash": "9527334200328cc091b1962b2a73c6eb",
+    "mtime": 1792429316.7885463,
+    "ast_hash": "670bfb26b27b710362a18dc905223bb9",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/edit-budget.tsx": {
