@@ -89,6 +89,10 @@ jest.mock("heroui-native", () => {
     useBottomSheetAwareHandlers: () => ({}),
   };
 });
+// Fixed sheet heights per selector label, so a regression back to a
+// content-measured sheet is caught here instead of on a device.
+const mockSelectSheetHeights = new Map<string, string | undefined>();
+
 jest.mock("./FinanceControls", () => {
   const { Pressable, Text, View } = jest.requireActual("react-native");
   return {
@@ -101,6 +105,7 @@ jest.mock("./FinanceControls", () => {
       searchable,
       required,
       error,
+      sheetHeight,
     }: {
       label: string;
       value: string;
@@ -110,25 +115,29 @@ jest.mock("./FinanceControls", () => {
       searchable?: boolean;
       required?: boolean;
       error?: string;
-    }) => (
-      <View testID={searchable ? "searchable-property-picker" : undefined}>
-        <Text>
-          {label}
-          {required ? " *" : ""}: {value}
-        </Text>
-        {error && <Text accessibilityRole="alert">{error}</Text>}
-        {options.map((option) => (
-          <Pressable
-            key={option.value}
-            disabled={disabled}
-            accessibilityLabel={`${label}: ${option.label}`}
-            onPress={() => onChange(option.value)}
-          >
-            <Text>{option.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
+      sheetHeight?: string;
+    }) => {
+      mockSelectSheetHeights.set(label, sheetHeight);
+      return (
+        <View testID={searchable ? "searchable-property-picker" : undefined}>
+          <Text>
+            {label}
+            {required ? " *" : ""}: {value}
+          </Text>
+          {error && <Text accessibilityRole="alert">{error}</Text>}
+          {options.map((option) => (
+            <Pressable
+              key={option.value}
+              disabled={disabled}
+              accessibilityLabel={`${label}: ${option.label}`}
+              onPress={() => onChange(option.value)}
+            >
+              <Text>{option.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      );
+    },
   };
 });
 
@@ -143,6 +152,7 @@ const common = {
 describe("finance entry forms", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectSheetHeights.clear();
     jest.useFakeTimers().setSystemTime(new Date("2026-10-17T04:00:00Z"));
   });
   afterEach(() => {
@@ -326,6 +336,10 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Property *: apt")).toBeTruthy();
     expect(screen.getByText("Plan type *: reserve")).toBeTruthy();
     expect(screen.getByText("Category *: insurance")).toBeTruthy();
+    // Short lists name their height; longer lists fall back to the
+    // FinanceSelect default instead of a content-measured sheet.
+    expect(mockSelectSheetHeights.get("Plan type")).toBe("50%");
+    expect(mockSelectSheetHeights.get("Category")).toBeUndefined();
     expect(
       screen.getByText("Planned allocation this month (₱) *"),
     ).toBeTruthy();

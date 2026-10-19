@@ -158,13 +158,13 @@ export function FinanceSelect({
           <Select.Overlay />
           <Select.Content
             presentation="bottom-sheet"
-            // Category and Plan type sheets size to their options so the whole
-            // list is visible on open; property search and fixed-height sheets
-            // keep their own snap points.
-            snapPoints={
-              sheetHeight ? [sheetHeight] : searchable ? ["90%"] : undefined
-            }
-            enableDynamicSizing={!sheetHeight && !searchable}
+            // Always name a height: gorhom only builds the content-sized detent
+            // after layout is measured, so a sheet that opens before that detent
+            // exists settles short and clips its last option. Short lists pass
+            // `sheetHeight` (Plan type, Expense treatment); the rest open tall
+            // enough for a full category list and scroll past it.
+            snapPoints={[sheetHeight ?? (searchable ? "90%" : "85%")]}
+            enableDynamicSizing={false}
             {...(searchable
               ? {
                   enableOverDrag: false,
@@ -188,7 +188,10 @@ export function FinanceSelect({
               style={searchable ? { flex: 1 } : undefined}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={searchable ? "on-drag" : undefined}
-              contentContainerStyle={{ padding: 12, paddingBottom: 40 }}
+              contentContainerStyle={{
+                padding: 12,
+                paddingBottom: insets.bottom + 24,
+              }}
             >
               {visibleOptions.map((option) => (
                 <Select.Item

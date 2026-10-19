@@ -647,6 +647,7 @@ function BudgetEditor({
         label="Plan type"
         required
         error={submitted ? kindError : undefined}
+        sheetHeight="50%"
         value={kind}
         options={[
           { value: "expense", label: "Spending budget" },

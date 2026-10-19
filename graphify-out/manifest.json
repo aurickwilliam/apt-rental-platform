@@ -395,8 +395,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/chat/ReportUserDialog.tsx": {
-    "mtime": 1791992883.408346,
-    "ast_hash": "909504d144dbac1845151e9c368a39d3",
+    "mtime": 1792405601.1568744,
+    "ast_hash": "3a12824591e7b379dec1cc815afbd5c0",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/components/dashboard/DashboardSkeleton.tsx": {
@@ -1445,8 +1445,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/components/AppearanceSheet.tsx": {
-    "mtime": 1791795489.8069055,
-    "ast_hash": "b33fc9b42a41f5b6e8b71eeacdc4f486",
+    "mtime": 1792405601.1539452,
+    "ast_hash": "5108771cd5d7dda22bb1ea46e5427fa8",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/components/ChangeEmailFormSkeleton.tsx": {
@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/preferences.tsx": {
-    "mtime": 1788952892.2323864,
-    "ast_hash": "73dfe29620b0b6efda27e569539d0098",
+    "mtime": 1792405601.153945,
+    "ast_hash": "6f251b5c1d97ad0968d336693ca4b3d3",
     "semantic_hash": ""
   },
   "apps/mobile/app/settings/privacy-policy.tsx": {
@@ -6840,8 +6840,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792382035.9447184,
-    "ast_hash": "b5b89a5a0ba4a443c60e5595699dffa0",
+    "mtime": 1792405574.6695278,
+    "ast_hash": "faea8f4e2e9fc3e97d916f6484c6824d",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
@@ -8170,18 +8170,18 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
-    "mtime": 1792402106.2367988,
-    "ast_hash": "fd9ce2512c2a3763000b45769465d036",
+    "mtime": 1792405446.159382,
+    "ast_hash": "91fe39c81f75889e25775854df84cd65",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.test.tsx": {
-    "mtime": 1792402843.3234293,
-    "ast_hash": "d3a8f40e0bb4c3635bb8d759d23754b4",
+    "mtime": 1792405541.4925616,
+    "ast_hash": "a66a85c5e6d1a23bad8217fc5b031f31",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.tsx": {
-    "mtime": 1792402748.4456656,
-    "ast_hash": "9a4854cb9aeea66adcb0d9d1d0391d56",
+    "mtime": 1792405466.3096128,
+    "ast_hash": "851e5d5d9fedf0040056401f24302d89",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/IncomeTrendChart.tsx": {
@@ -8270,8 +8270,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinancePropertySelect.test.tsx": {
-    "mtime": 1792401518.6406376,
-    "ast_hash": "9e8e383181cb4f83c6946a532c6bff7c",
+    "mtime": 1792405476.4155843,
+    "ast_hash": "220a08aa55f6daf1b284c75ba58c48ad",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/PropertySearch.tsx": {

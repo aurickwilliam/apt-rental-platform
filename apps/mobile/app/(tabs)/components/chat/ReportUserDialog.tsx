@@ -87,7 +87,7 @@ export default function ReportUserDialog({
                   }`}
                 >
                   <View className='flex-1 pr-3'>
-                    <Label className='font-inter'>{option.label}</Label>
+                    <Label>{option.label}</Label>
                     <Description className='font-inter'>{option.description}</Description>
                   </View>
                   <Radio>

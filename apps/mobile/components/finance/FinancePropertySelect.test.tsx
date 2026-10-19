@@ -200,7 +200,7 @@ describe("searchable finance property picker", () => {
     fireEvent.press(screen.getByLabelText("Property"));
     expect(screen.getByLabelText("Search properties").props.value).toBe("");
   });
-  test("ordinary selectors size their sheet to the option list without search", () => {
+  test("ordinary selectors open tall enough for the whole option list without search", () => {
     const screen = render(
       <FinanceSelect
         label="Category"
@@ -211,10 +211,10 @@ describe("searchable finance property picker", () => {
     );
     fireEvent.press(screen.getByLabelText("Property"));
     const props = mockContentProps.mock.calls.at(-1)![0];
-    // No fixed snap point: the sheet snaps to the measured content height so
-    // every option is visible as soon as it opens.
-    expect(props.snapPoints).toBeUndefined();
-    expect(props.enableDynamicSizing).toBe(true);
+    // Fixed snap point: an open animation must target a detent that already
+    // exists, otherwise the sheet settles short and clips its last option.
+    expect(props.snapPoints).toEqual(["85%"]);
+    expect(props.enableDynamicSizing).toBe(false);
     expect(screen.getByLabelText("Villa")).toBeTruthy();
     expect(screen.getByLabelText("Studio")).toBeTruthy();
     expect(screen.queryByLabelText("Search properties")).toBeNull();
@@ -236,8 +236,8 @@ describe("searchable finance property picker", () => {
     expect(screen.getByLabelText("Studio").props.className).toBeUndefined();
     expect(screen.queryByLabelText("Search properties")).toBeNull();
     const props = mockContentProps.mock.calls.at(-1)![0];
-    expect(props.snapPoints).toBeUndefined();
-    expect(props.enableDynamicSizing).toBe(true);
+    expect(props.snapPoints).toEqual(["85%"]);
+    expect(props.enableDynamicSizing).toBe(false);
   });
   test("expense treatment can open at a fixed 50% without content resizing", () => {
     const screen = render(
