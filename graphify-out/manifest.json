@@ -8105,8 +8105,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceEntrySheet.tsx": {
-    "mtime": 1792409828.565367,
-    "ast_hash": "bcbcf120cd50110cbdbeef0582c7eb69",
+    "mtime": 1792420566.5782459,
+    "ast_hash": "10888a7532bd932f93812c63073f6683",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceFilterSheet.tsx": {
@@ -8847,6 +8847,11 @@
   "apps/mobile/tests/finance/edit-budget.test.tsx": {
     "mtime": 1792420183.2957206,
     "ast_hash": "728634dd87cda1af8684be605cb3aa8d",
+    "semantic_hash": ""
+  },
+  "docs/plans/landlord-web-budget-analytics-parity.md": {
+    "mtime": 1792420558.8541627,
+    "ast_hash": "c00c787d7a651cf246e7ac3a1eef3eea",
     "semantic_hash": ""
   }
 }
