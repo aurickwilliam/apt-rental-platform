@@ -125,6 +125,10 @@ The web tenant Maintenance and Favorites headers follow the APT Passport header:
 
 Landlord My Properties, Applications, Maintenance Requests and Payments use the same APT Passport heading treatment in loaded and skeleton states: building, document-check, tools and banknote icons respectively. Existing descriptions and Payments filter controls remain; the Payments list heading has no Back button (including loading/empty/error states). Payment detail navigation and the landlord Dashboard heading are unchanged.
 
+Below its unchanged heading, landlord web Applications uses four tinted summary cards (total, approved, rejected, pending), a responsive search/status/property/location/submission-date filter row and a bordered results panel with sorting. The six-column desktop table includes tenant avatars, property thumbnails, location and move-in/submission date details, icon-and-label status chips, and an application-detail action menu; smaller screens use cards. Pending is the display label for the existing Applied state; cancelled records remain in the total and filters. Loading mirrors the full layout without zero counts; errors show unknown summary values and Retry. Filters and sort order are URL-backed and update the already-loaded list without extra requests.
+
+Landlord web Application Details uses one responsive card layout: property and applicant summaries, icon-led application/employment/preferences/previous-landlord sections, and separate supporting-document and message cards. Private-document rows distinguish missing attachments, loading previews and unavailable previews; verified badges still come from Passport verification. Decision actions appear only for pending applications, with approval disabled for occupied units. The detail route and client loading reuse one matching skeleton; list rows/cards and back navigation prefetch on pointer/keyboard intent. All styles are web-only and scoped to the detail cards.
+
 ### Scale & roles (Tailwind sizes, both platforms)
 
 | Purpose | Class | Size |
