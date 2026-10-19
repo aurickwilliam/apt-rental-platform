@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Card, Skeleton } from "@heroui/react";
 
 import PaymentsHeader from "./PaymentsHeader";
@@ -10,14 +11,15 @@ function Sk({ className }: { className: string }) {
   return <Skeleton className={`bg-grey-300! ${className}`} />;
 }
 
-export function PaymentCardsSkeleton() {
+export function PaymentCardsSkeleton({ action }: { action?: ReactNode } = {}) {
   return (
     <div aria-busy="true" aria-label="Loading payments">
-      <div aria-hidden="true" className="space-y-3">
-        <div className="py-2">
-          <Sk className="h-8 w-24 rounded-xl" />
+      <div className="space-y-3">
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-zinc-50 py-2 dark:bg-zinc-950">
+          <div aria-hidden="true"><Sk className="h-8 w-24 rounded-xl" /></div>
+          {action ?? <div aria-hidden="true"><Sk className="h-8 w-24 rounded-full" /></div>}
         </div>
-        <div className="grid gap-3">
+        <div aria-hidden="true" className="grid gap-3">
           {Array.from({ length: CARD_COUNT }, (_, index) => (
             <Card key={index} className="rounded-2xl border border-border bg-card shadow-sm">
               <Card.Header className="px-4 pt-4 pb-1">
@@ -48,9 +50,7 @@ export function PaymentCardsSkeleton() {
 export default function PaymentsSkeleton() {
   return (
     <div className="p-4 space-y-4" aria-busy="true" aria-label="Loading payments">
-      <PaymentsHeader>
-        <div aria-hidden="true"><Sk className="h-8 w-24 rounded-full" /></div>
-      </PaymentsHeader>
+      <PaymentsHeader />
       <div aria-hidden="true" className="max-w-md">
         <Sk className="h-10 w-full rounded-xl" />
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Button, Card, Chip, ListBox, Select } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
@@ -20,19 +20,19 @@ function toYear(payment: PaymentRecord): string {
   return src.slice(0, 4);
 }
 
-function SectionHeader({ year, currentYear }: { year: string; currentYear: string }) {
-  if (year === currentYear) {
-    return (
-      <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
+// One sticky year row per group. The Filters control rides this row — the same
+// row as the "This Year" tag — instead of the page heading.
+function SectionHeader({ year, currentYear, action }: { year: string; currentYear: string; action?: ReactNode }) {
+  return (
+    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-zinc-50 py-2 dark:bg-zinc-950">
+      {year === currentYear ? (
         <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
           <span className="text-sm font-nunito font-semibold text-primary">This Year</span>
         </div>
-      </div>
-    );
-  }
-  return (
-    <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
-      <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
+      ) : (
+        <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
+      )}
+      {action}
     </div>
   );
 }
@@ -154,18 +154,21 @@ function PaymentsContent() {
     );
   }
 
+  const filterRowYear = grouped.some(([year]) => year === currentYear) ? currentYear : grouped[0]?.[0];
+  const filtersButton = (
+    <Button variant="secondary" size="sm" className="rounded-full relative w-fit shrink-0" onPress={() => setDrawerOpen(true)}>
+      <SlidersHorizontal size={14} /> Filters
+      {activeCount > 0 && (
+        <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+          {activeCount}
+        </span>
+      )}
+    </Button>
+  );
+
   return (
     <div className="p-4 space-y-4">
-      <PaymentsHeader>
-        <Button variant="secondary" size="sm" className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
-          <SlidersHorizontal size={14} /> Filters
-          {activeCount > 0 && (
-            <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
-              {activeCount}
-            </span>
-          )}
-        </Button>
-      </PaymentsHeader>
+      <PaymentsHeader />
 
       <Select
         placeholder="Select unit"
@@ -188,7 +191,7 @@ function PaymentsContent() {
         </Select.Popover>
       </Select>
 
-      {paymentsQuery.loading ? <PaymentCardsSkeleton /> : filtered.length === 0 ? (
+      {paymentsQuery.loading ? <PaymentCardsSkeleton action={filtersButton} /> : filtered.length === 0 ? (
         <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
             <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
@@ -205,7 +208,7 @@ function PaymentsContent() {
         <div className="space-y-6">
           {grouped.map(([year, payments]) => (
             <section key={year} className="space-y-3">
-              <SectionHeader year={year} currentYear={currentYear} />
+              <SectionHeader year={year} currentYear={currentYear} action={year === filterRowYear ? filtersButton : undefined} />
               <div className="grid gap-3">
                 {activeApartmentId &&
                   payments.map((p) => <LandlordRowCard key={p.id} payment={p} apartmentId={activeApartmentId} />)}
