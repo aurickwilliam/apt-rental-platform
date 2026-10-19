@@ -1035,13 +1035,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/_layout.tsx": {
-    "mtime": 1792368416.2424982,
-    "ast_hash": "e5a5f556ad91df0eb5594ff1ff79ed0a",
+    "mtime": 1792407366.5097022,
+    "ast_hash": "f399e85123ec2e4a63b3ef318589a9a4",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/analytics.tsx": {
-    "mtime": 1792368550.712503,
-    "ast_hash": "cdd370bdcb8f30133f589e7b76fd0388",
+    "mtime": 1792407311.4472063,
+    "ast_hash": "b6d6c26859aff0992726d5c5c46d9536",
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/maintenance-requests/[requestId].tsx": {
@@ -7370,13 +7370,13 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792405847.515791,
-    "ast_hash": "ffb455c42eedbcbb161d360a1ae43c49",
+    "mtime": 1792407711.4690485,
+    "ast_hash": "bd70674a92a9d37a1b8e6c6a80a8a505",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1792405873.324022,
-    "ast_hash": "95e3e21cdb8fc780bc9f85ca00e9edef",
+    "mtime": 1792407711.4690616,
+    "ast_hash": "9e708ac092b6b1f3330d29349abbd453",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -8055,8 +8055,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressChart.tsx": {
-    "mtime": 1792348756.711377,
-    "ast_hash": "821722fbe0fc746479dbb83feb2e0540",
+    "mtime": 1792407290.707414,
+    "ast_hash": "05fcb626810c4d11ec20dd3103e405d0",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/CollectionHealthChart.tsx": {
@@ -8090,8 +8090,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceCharts.test.tsx": {
-    "mtime": 1792348258.3616312,
-    "ast_hash": "d153c47c710bf31ddcff8b4f319f5dc5",
+    "mtime": 1792407451.3609142,
+    "ast_hash": "053f2a5f72219e94240adc3692ff9d51",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/FinanceControls.tsx": {
@@ -8185,8 +8185,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/analytics-filters.test.tsx": {
-    "mtime": 1792368844.9874911,
-    "ast_hash": "7bc2245acb8f7a774a3d70462e6cb731",
+    "mtime": 1792408170.8218143,
+    "ast_hash": "0861310c56451680a7e5fd4f56b69764",
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/category-expenses.test.tsx": {
@@ -8200,13 +8200,13 @@
     "semantic_hash": ""
   },
   "packages/utils/src/landlordFinance.test.ts": {
-    "mtime": 1792368017.9899886,
-    "ast_hash": "373f0b82a0b292405f2a88ad6a179149",
+    "mtime": 1792407253.2308757,
+    "ast_hash": "0bc0de19311b3a93aeb8efdc862d998c",
     "semantic_hash": ""
   },
   "packages/utils/src/landlordFinance.ts": {
-    "mtime": 1792367988.1783607,
-    "ast_hash": "2815ab81434e2b04d79485375ddd72fb",
+    "mtime": 1792407224.2853346,
+    "ast_hash": "c0cc9d7bdc0e8e8e28c6bc09fe3367f9",
     "semantic_hash": ""
   },
   "scripts/db-populate/export-schema.sql": {
@@ -8822,6 +8822,21 @@
   "supabase/tests/signed_leases.test.sql": {
     "mtime": 1792165295.639681,
     "ast_hash": "a3399d71a7ec6fe4e673e3fc6c08968d",
+    "semantic_hash": ""
+  },
+  "apps/mobile/app/landlord/budget-category.tsx": {
+    "mtime": 1792407339.9118426,
+    "ast_hash": "cd49d86fca5b7881d8898dac34b76a5a",
+    "semantic_hash": ""
+  },
+  "apps/mobile/components/finance/BudgetProgressRow.tsx": {
+    "mtime": 1792407272.1010633,
+    "ast_hash": "08a8d33a2e2a2c78f3b8d0155616aec5",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/finance/budget-category.test.tsx": {
+    "mtime": 1792407545.7858772,
+    "ast_hash": "89acfca5eacc8dbef9be8ece4c7c5fbc",
     "semantic_hash": ""
   }
 }
