@@ -58,4 +58,30 @@ describe("mobile portal tab guard", () => {
     await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockReplace).toHaveBeenCalledWith("/sign-in");
   });
+
+  it.each([
+    { roles: ["admin", "tenant"], portal: "tenant" as const },
+    { roles: ["admin", "landlord"], portal: "landlord" as const },
+    { roles: ["admin", "tenant", "landlord"], portal: "tenant" as const },
+    { roles: ["admin", "tenant", "landlord"], portal: "landlord" as const },
+  ])("keeps $roles signed in to the $portal portal", ({ roles, portal }) => {
+    mockRoles = roles;
+    mockGroup = `(${portal})`;
+    usePortalStore.setState({ authUserId: "account-a", portal, loading: false });
+
+    render(<TabsLayout />);
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockSignOut).not.toHaveBeenCalled();
+  });
+
+  it("routes a mixed-role account to its active consumer portal", async () => {
+    mockRoles = ["admin", "tenant", "landlord"];
+    mockGroup = "(tenant)";
+
+    render(<TabsLayout />);
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard"));
+    expect(mockSignOut).not.toHaveBeenCalled();
+  });
 });

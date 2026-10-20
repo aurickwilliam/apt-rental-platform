@@ -326,7 +326,7 @@ export default function RentalPreferences() {
                   <Separator className="mx-4" />
                   <View className="p-4">
                     <TextField isRequired>
-                      <Label className="font-inter">Please specify</Label>
+                      <Label>Please specify</Label>
                       <Input placeholder="Type kind" value={nameOfPets || ""} onChangeText={setNameOfPets} />
                       <Description className="font-inter">e.g., Poodle, Siamese</Description>
                     </TextField>

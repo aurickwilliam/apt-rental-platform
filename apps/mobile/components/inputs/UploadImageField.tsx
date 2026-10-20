@@ -98,7 +98,7 @@ export default function UploadImageField({
     <View className="gap-2">
       {/* Label */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-nunitoSemiBold text-foreground">
+        <Text className={`text-base font-nunitoSemiBold ${error ? "text-danger" : "text-foreground"}`}>
           {label}
           {required && <Text className="text-danger"> *</Text>}
         </Text>

@@ -30,7 +30,7 @@ function LockedField({ label, value }: { label: string; value: string | null }) 
   return (
     <TextField>
       <Label className="flex-row items-center gap-1.5">
-        <Label.Text className="text-muted">{label}</Label.Text>
+        <Label.Text>{label}</Label.Text>
         <IconLock size={14} color={colors.textSecondary} />
       </Label>
       <Input

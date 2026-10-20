@@ -7,7 +7,7 @@ export const VERSION = 1;
 export const DEFAULT_SEED = "apt-demo-v1";
 export const INSERT_TABLES = ["tenancies", "rental_application", "visit_request", "payment", "maintenance_request", "favorites", "reviews", "chat"];
 const DAY = 86_400_000;
-const MAX_ROWS = 5000;
+export const MAX_PLAN_ROWS = 5000;
 const iso = (date) => date.toISOString().slice(0, 10);
 export const addDays = (date, days) => iso(new Date(new Date(`${date}T00:00:00Z`).getTime() + days * DAY));
 const at = (date, hour = 10) => `${date}T${String(hour).padStart(2, "0")}:00:00+08:00`;
@@ -255,7 +255,7 @@ export function buildPlan(inventory, options) {
     }
   }
   rows.sort((a, b) => INSERT_TABLES.indexOf(a.table) - INSERT_TABLES.indexOf(b.table) || a.data.id.localeCompare(b.data.id));
-  if (rows.length > MAX_ROWS) throw new Error("Generated dataset exceeds the 5,000-row safety limit.");
+  if (rows.length > MAX_PLAN_ROWS) throw new Error("Generated dataset exceeds the 5,000-row safety limit.");
   const counts = Object.fromEntries(INSERT_TABLES.map((table) => [table, rows.filter((r) => r.table === table).length]));
   const plan = { version: VERSION, seed, years, asOf, rows, summary: { counts, skipped, simulatedHistory: true, currentRentersAdded: rows.filter((r) => r.table === "tenancies" && r.data.status === "active").length } };
   validatePlan(plan, inventory);

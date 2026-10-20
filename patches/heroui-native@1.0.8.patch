@@ -1,5 +1,18 @@
+diff --git a/lib/module/components/input/input.js b/lib/module/components/input/input.js
+index 332f5caab14ce5dbde96154b7ff38e6b17dc91d9..dfcc55f9468e812bbfd1ea45df44ef53c2e6e6ff 100644
+--- a/lib/module/components/input/input.js
++++ b/lib/module/components/input/input.js
+@@ -93,7 +93,7 @@ const InputRoot = /*#__PURE__*/forwardRef((props, ref) => {
+   const textInput = /*#__PURE__*/_jsx(HeroTextInput, {
+     ref: ref,
+     className: inputClassName,
+-    style: [inputStyleSheet.borderCurve, style],
++    style: [inputStyleSheet.borderCurve, style, !restProps.multiline && inputStyleSheet.singleLine],
+     placeholderTextColorClassName: placeholderColorClassName,
+     selectionColorClassName: selectionColorClassName,
+     editable: !isDisabled,
 diff --git a/lib/module/components/input/input.styles.js b/lib/module/components/input/input.styles.js
-index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..bef3b33e430e5dd42de6e4a81b7a679b5d2e64b0 100644
+index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..766f018a1449b4373ec48c7160d464e5cfeb3398 100644
 --- a/lib/module/components/input/input.styles.js
 +++ b/lib/module/components/input/input.styles.js
 @@ -32,14 +32,14 @@ const background = tv({
@@ -20,8 +33,38 @@ index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..bef3b33e430e5dd42de6e4a81b7a679b
        false: ''
      },
      isDisabled: {
+@@ -72,6 +72,13 @@ export const inputClassNames = combineStyles({
+   placeholderTextColor
+ });
+ export const inputStyleSheet = StyleSheet.create({
++  // Single-line editors use native font metrics, not paragraph line heights.
++  // Leave multiline editors' line height, padding and alignment unchanged.
++  singleLine: {
++    lineHeight: undefined,
++    includeFontPadding: false,
++    textAlignVertical: 'center'
++  },
+   borderCurve: {
+     borderCurve: 'continuous'
+   }
+diff --git a/lib/typescript/src/components/input/input.styles.d.ts b/lib/typescript/src/components/input/input.styles.d.ts
+index 3b2f28268f64828a12b0a7002b25319c34e47d2e..b7be279c8cfeed7fa4e1de7dcee7aa07b06305ca 100644
+--- a/lib/typescript/src/components/input/input.styles.d.ts
++++ b/lib/typescript/src/components/input/input.styles.d.ts
+@@ -57,6 +57,11 @@ export declare const inputClassNames: import("../../helpers/internal/types").Com
+     placeholderTextColor: import("tailwind-variants").TVReturnType<{} | {} | {}, undefined, "accent-field-placeholder", {} | {}, undefined, import("tailwind-variants").TVReturnType<unknown, undefined, "accent-field-placeholder", unknown, unknown, undefined>>;
+ }>;
+ export declare const inputStyleSheet: {
++    singleLine: {
++        lineHeight: undefined;
++        includeFontPadding: false;
++        textAlignVertical: "center";
++    };
+     borderCurve: {
+         borderCurve: "continuous";
+     };
 diff --git a/src/components/input/input.styles.ts b/src/components/input/input.styles.ts
-index a52d796df58f20c532fd87b1788c98693a93fd44..2c9af25e8dcf879fff7036dd0c7c8afeef482dab 100644
+index a52d796df58f20c532fd87b1788c98693a93fd44..b3e75e88b65bca156a9b86eb1fbe252754e4f343 100644
 --- a/src/components/input/input.styles.ts
 +++ b/src/components/input/input.styles.ts
 @@ -30,15 +30,15 @@ const background = tv({
@@ -43,3 +86,34 @@ index a52d796df58f20c532fd87b1788c98693a93fd44..2c9af25e8dcf879fff7036dd0c7c8afe
        false: '',
      },
      isDisabled: {
+@@ -77,4 +77,13 @@ export const inputClassNames = combineStyles({
+ export const inputStyleSheet = StyleSheet.create({
++  // Paragraph line heights (including Tailwind text-sm) displace the baseline
++  // in iOS UITextField. Let the native single-line editor use its font metrics;
++  // Android also needs its extra font padding removed. Multiline editors retain
++  // their caller's line height, padding and top alignment.
++  singleLine: {
++    lineHeight: undefined,
++    includeFontPadding: false,
++    textAlignVertical: 'center',
++  },
+   borderCurve: {
+     borderCurve: 'continuous',
+   },
+diff --git a/src/components/input/input.tsx b/src/components/input/input.tsx
+index ab1304dd46cb3d8a704e4499f00ef7b12bfd73ff..b689aa1151f128d9f60164a007f41f40f458c4ba 100644
+--- a/src/components/input/input.tsx
++++ b/src/components/input/input.tsx
+@@ -123,7 +123,11 @@ const InputRoot = forwardRef<TextInputType, InputProps>((props, ref) => {
+     <HeroTextInput
+       ref={ref}
+       className={inputClassName}
+-      style={[inputStyleSheet.borderCurve, style]}
++      style={[
++        inputStyleSheet.borderCurve,
++        style,
++        !restProps.multiline && inputStyleSheet.singleLine,
++      ]}
+       placeholderTextColorClassName={placeholderColorClassName}
+       selectionColorClassName={selectionColorClassName}
+       editable={!isDisabled}

@@ -8,8 +8,12 @@ export function isPortal(value: unknown): value is Portal {
   return value === "tenant" || value === "landlord";
 }
 
+export function hasMobilePortalRole(roles: readonly string[]): boolean {
+  return roles.includes("tenant") || roles.includes("landlord");
+}
+
 export function authorizedPortal(roles: readonly string[], portal: unknown): Portal | null {
-  return !roles.includes("admin") && isPortal(portal) && roles.includes(portal) ? portal : null;
+  return isPortal(portal) && roles.includes(portal) ? portal : null;
 }
 
 export function choosePortal(
@@ -17,7 +21,6 @@ export function choosePortal(
   saved: unknown,
   requested?: Portal | null,
 ): Portal | null {
-  if (roles.includes("admin")) return null;
   if (isPortal(saved) && roles.includes(saved)) return saved;
   if (requested && roles.includes(requested)) return requested;
   if (roles.includes("tenant")) return "tenant";
@@ -45,6 +48,6 @@ export async function resolvePortal(
 }
 
 export async function selectPortal(authUserId: string, portal: Portal, roles: readonly string[]) {
-  if (roles.includes("admin") || !roles.includes(portal)) throw new Error("This account does not have access to that portal.");
+  if (!roles.includes(portal)) throw new Error("This account does not have access to that portal.");
   await AsyncStorage.setItem(`${PORTAL_KEY_PREFIX}${authUserId}`, portal);
 }

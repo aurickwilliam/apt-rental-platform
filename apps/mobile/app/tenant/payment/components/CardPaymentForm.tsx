@@ -130,7 +130,7 @@ export default function CardPaymentForm({
             <Checkbox className="size-5 border border-border shadow-none" />
           </ControlField.Indicator>
           <Label>
-            <Label.Text className="text-sm text-foreground font-inter">
+            <Label.Text>
               Save this card for future use?
             </Label.Text>
           </Label>

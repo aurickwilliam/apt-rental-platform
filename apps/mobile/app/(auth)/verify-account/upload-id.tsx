@@ -134,7 +134,7 @@ export default function UploadId() {
               </ControlField.Indicator>
 
               <Label>
-                <Label.Text className='text-sm text-foreground font-nunitoSemiBold leading-snug'>
+                <Label.Text>
                   {AUTHENTICITY_DECLARATION}
                 </Label.Text>
               </Label>
