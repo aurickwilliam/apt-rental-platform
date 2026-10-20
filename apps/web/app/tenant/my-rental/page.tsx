@@ -496,19 +496,36 @@ export default function MyRental() {
                   </p>
                   <p className="mt-2 flex items-start gap-2 font-inter text-sm font-semibold text-white/90 @min-[28rem]/rent:text-base">
                     <CalendarDays size={20} className="shrink-0" aria-hidden="true" />
-                    <span className="min-w-0">{paymentPeriodLabel} - Due {formatShortDate(rent.dueDate)}</span>
+                    <span className="min-w-0">
+                      {bill
+                        ? `Due ${formatShortDate(rent.dueDate)}`
+                        : `${paymentPeriodLabel} - Due ${formatShortDate(rent.dueDate)}`}
+                    </span>
                   </p>
                   {bill?.kind === "move_in" && (
-                    <div className="mt-4 space-y-2 rounded-xl bg-white/10 p-3">
+                    <div className="mt-4 rounded-xl bg-white/10 p-3">
                       <dl className="space-y-1.5 font-inter text-sm">
-                        <div className="flex justify-between gap-3"><dt>First month’s rent</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.rentDue)}</dd></div>
-                        <div className="flex justify-between gap-3"><dt>Security deposit</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.securityDeposit)}</dd></div>
-                        <div className="flex justify-between gap-3"><dt>Advance rent — month 2</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.advanceRent)}</dd></div>
+                        <div className="flex justify-between gap-3">
+                          <dt>{formatMonthYear(bill.periodStart)} rent</dt>
+                          <dd className="font-nunito font-semibold">{formatPesoDisplay(bill.rentDue)}</dd>
+                        </div>
+                        {bill.securityDeposit > 0 && (
+                          <div className="flex justify-between gap-3">
+                            <dt>Security deposit</dt>
+                            <dd className="font-nunito font-semibold">{formatPesoDisplay(bill.securityDeposit)}</dd>
+                          </div>
+                        )}
+                        {bill.advanceRent > 0 && (
+                          <div className="flex justify-between gap-3">
+                            <dt>
+                              {bill.advancePeriodStart
+                                ? `${formatMonthYear(bill.advancePeriodStart)} advance rent`
+                                : "Advance rent"}
+                            </dt>
+                            <dd className="font-nunito font-semibold">{formatPesoDisplay(bill.advanceRent)}</dd>
+                          </div>
+                        )}
                       </dl>
-                      <p className="font-inter text-xs text-white/85">The deposit is held separately, not used as rent. First month billed in full; no prorating.</p>
-                      {bill.advancePeriodStart && bill.advancePeriodEnd ? (
-                        <p className="font-inter text-xs text-white/85">Advance covers {formatShortDate(bill.advancePeriodStart)} – {formatShortDate(bill.advancePeriodEnd)}, once payment is confirmed.</p>
-                      ) : <p className="font-inter text-xs text-white/85">No advance rent is included; month 2 is payable normally.</p>}
                     </div>
                   )}
                   {bill?.coveredByAdvance && <p className="mt-2 font-inter text-sm text-white/90">Rent due: {formatPesoDisplay(bill.rentDue)}. Only the separate maintenance fees below remain payable.</p>}

@@ -163,7 +163,7 @@ function latestPeriodPayment(payments: TenancyPayment[]): TenancyPayment | null 
 }
 
 export function useTenancy() {
-  const { data, loading, error, refresh } = useAsyncResource(
+  const { data, loading, error, refresh, revalidate } = useAsyncResource(
     fetchCurrentTenancy,
     NO_TENANCY,
     "An unexpected error occurred.",
@@ -172,12 +172,14 @@ export function useTenancy() {
   const payments = error ? NO_TENANCY.payments : data.payments;
   const hasBill = !!tenancy?.bill;
 
+  // Coming back to the tab re-reads the bill so a landlord's confirmation
+  // shows up, but silently: no skeleton flash and no error takeover.
   useEffect(() => {
     if (!hasBill) return;
-    const onFocus = () => { void refresh(); };
+    const onFocus = () => { void revalidate(); };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [hasBill, refresh]);
+  }, [hasBill, revalidate]);
 
   return {
     tenancy,

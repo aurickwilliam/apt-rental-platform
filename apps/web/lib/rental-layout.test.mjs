@@ -51,7 +51,7 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [] }
   return nodes(context.exports.default());
 }
 
-const content = all => all.flatMap(node => [node.props?.children].flat(Infinity)).filter(value => typeof value === "string").join(" ");
+const content = all => all.flatMap(node => [node.props?.children].flat(Infinity)).filter(value => typeof value === "string").join(" ").replace(/\s+/g, " ");
 const moveInBill = {
   kind: "move_in", periodStart: "2026-10-01", periodEnd: "2026-10-31", dueDate: "2026-10-21",
   monthlyRent: 15000, rentDue: 15000, securityDeposit: 15000, advanceRent: 15000,
@@ -64,9 +64,12 @@ test("My Rental uses the checkout move-in total and includes each charge exactly
   const effects = [];
   const all = renderRental({ bill: moveInBill, effects });
   const text = content(all);
-  for (const label of ["Move-in payment", "₱ 45500", "First month’s rent", "Security deposit", "Advance rent — month 2", "Plumbing problem", "Nov 1, 2026", "Nov 30, 2026", "once payment is confirmed"]) assert.ok(text.includes(label), label);
+  for (const label of ["Move-in payment", "₱ 45500", "October 2026 rent", "Security deposit", "November 2026 advance rent", "Plumbing problem", "Due Oct 21, 2026"]) assert.ok(text.includes(label), label);
   assert.equal(all.filter(node => node.type === "p" && node.props.children === "₱ 45500").length, 1);
   assert.ok(!text.includes("₱ 15500"));
+  for (const removed of ["month 2", "held separately", "no prorating", "Advance covers", "October 2026 - Due"]) {
+    assert.ok(!text.includes(removed), `removed from the card: ${removed}`);
+  }
   assert.equal(effects[0](), undefined, "server bills do not start a separate maintenance-fee lookup");
   assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightLabel, "Move-in payment due");
 });
