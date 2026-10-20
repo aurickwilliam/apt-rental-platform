@@ -27,6 +27,7 @@ import {
   type FinanceProperty,
   type FinanceScope,
 } from "@repo/utils";
+import { IconTrash } from "@tabler/icons-react";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import type { FinanceOperation } from "@/hooks/use-landlord-finances";
 import FinanceModal from "./FinanceModal";
@@ -36,8 +37,16 @@ interface PlanBudgetModalProps {
   properties: FinanceProperty[];
   presetCategory?: FinanceCategory;
   presetKind?: BudgetKind;
+  /** A saved plan turns this into the edit form: identity fields lock. */
+  initial?: FinanceBudget;
+  /** A suggestion's monthly amount, offered for review before saving. */
+  suggestedAmount?: number;
   operation: FinanceOperation;
+  /** Removal is its own operation; absent while creating. */
+  removing?: FinanceOperation;
   onSave: (budget: Omit<FinanceBudget, "id">) => Promise<boolean>;
+  /** Absent while creating — a plan that does not exist cannot be removed. */
+  onDelete?: (id: string) => Promise<boolean>;
   onClose: () => void;
 }
 
@@ -48,21 +57,41 @@ export default function PlanBudgetModal({
   properties,
   presetCategory = "maintenance",
   presetKind = "expense",
+  initial,
+  suggestedAmount,
   operation,
+  removing,
   onSave,
+  onDelete,
   onClose,
 }: PlanBudgetModalProps) {
+  const editing = !!initial;
+  const busy = operation.pending || !!removing?.pending;
   const [property, setProperty] = useState(
-    scope.apartmentId ?? properties[0]?.id ?? "",
+    initial?.apartment_id ?? scope.apartmentId ?? properties[0]?.id ?? "",
   );
-  const [kind, setKind] = useState(presetKind);
-  const [category, setCategory] = useState(presetCategory);
-  const [amount, setAmount] = useState("");
-  const [target, setTarget] = useState("");
+  const [kind, setKind] = useState<BudgetKind>(initial?.kind ?? presetKind);
+  const [category, setCategory] = useState<FinanceCategory>(
+    initial?.category ??
+      (isBudgetCategoryAllowed(presetKind, presetCategory)
+        ? presetCategory
+        : "maintenance"),
+  );
+  const [amount, setAmount] = useState(
+    suggestedAmount !== undefined
+      ? String(suggestedAmount)
+      : initial
+        ? String(initial.amount)
+        : "",
+  );
+  const [target, setTarget] = useState(
+    initial?.target_amount ? String(initial.target_amount) : "",
+  );
   const [months, setMonths] = useState(
-    String(financeBudgetMonthsDefault(presetCategory)),
+    String(initial?.months_remaining ?? financeBudgetMonthsDefault(category)),
   );
   const [submitted, setSubmitted] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const parsedAmount = parseFinanceAmount(amount, true);
   const goal = financeGoalFromForm(target, months);
   const suggestion = suggestFinanceBudget({
@@ -78,7 +107,8 @@ export default function PlanBudgetModal({
       : null;
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (operation.pending) return;
+    if (busy) return;
+    operation.clearError();
     setSubmitted(true);
     if (
       !validProperty ||
@@ -98,7 +128,8 @@ export default function PlanBudgetModal({
     }
     const ok = await onSave({
       apartment_id: property,
-      month: scope.month,
+      // A saved plan keeps its own month, so editing never moves it.
+      month: initial?.month ?? scope.month,
       category,
       kind,
       amount: parsedAmount,
@@ -110,18 +141,24 @@ export default function PlanBudgetModal({
       onClose();
     }
   };
+  const remove = async () => {
+    if (!initial || !onDelete || busy) return;
+    const ok = await onDelete(initial.id);
+    // Removal closes quietly, like the expense editor.
+    if (ok) onClose();
+  };
   return (
     <FinanceModal
-      title="Plan a budget"
-      description={`${financeMonthLabel(scope.month)} · plans do not move or hold money.`}
-      busy={operation.pending}
+      title={editing ? "Edit budget" : "Plan a budget"}
+      description={`${financeMonthLabel(initial?.month ?? scope.month)} · plans do not move or hold money.`}
+      busy={busy}
       onClose={onClose}
       footer={
         <div className="flex gap-3">
           <Button
             variant="tertiary"
             className="flex-1"
-            isDisabled={operation.pending}
+            isDisabled={busy}
             onPress={onClose}
           >
             Cancel
@@ -130,14 +167,20 @@ export default function PlanBudgetModal({
             form="finance-budget-form"
             type="submit"
             className="flex-1"
-            isPending={operation.pending}
-            isDisabled={operation.pending}
+            isPending={busy}
+            isDisabled={busy}
           >
             Save budget
           </Button>
         </div>
       }
     >
+      {editing ? (
+        <p className="text-xs text-muted-foreground">
+          Property, plan type, category and month are locked for a saved plan.
+          Change the amount or the optional goal instead.
+        </p>
+      ) : null}
       <Form
         id="finance-budget-form"
         onSubmit={(event) => void submit(event)}
@@ -156,7 +199,7 @@ export default function PlanBudgetModal({
               value: item.id,
               label: item.name,
             }))}
-            isDisabled={operation.pending}
+            isDisabled={busy || editing}
             onChange={setProperty}
           />
           {submitted && !validProperty ? (
@@ -177,7 +220,7 @@ export default function PlanBudgetModal({
               { value: "expense", label: "Spending budget" },
               { value: "reserve", label: "Planned reserve" },
             ]}
-            isDisabled={operation.pending}
+            isDisabled={busy || editing}
             onChange={(value) => {
               const next = value as BudgetKind;
               setKind(next);
@@ -198,14 +241,14 @@ export default function PlanBudgetModal({
               value: item.id,
               label: item.label,
             }))}
-            isDisabled={operation.pending}
+            isDisabled={busy || editing}
             onChange={(value) => setCategory(value as FinanceCategory)}
           />
         </div>
         <TextField
           isRequired
           isInvalid={!!amountError}
-          isDisabled={operation.pending}
+          isDisabled={busy}
           value={amount === "." ? "." : formatPesoDisplay(amount)}
           onChange={(value) => setAmount(handlePesoChange(value).raw)}
         >
@@ -219,7 +262,7 @@ export default function PlanBudgetModal({
         </TextField>
         <TextField
           isInvalid={submitted && !!goal.targetError}
-          isDisabled={operation.pending}
+          isDisabled={busy}
           value={target === "." ? "." : formatPesoDisplay(target)}
           onChange={(value) => setTarget(handlePesoChange(value).raw)}
         >
@@ -229,7 +272,7 @@ export default function PlanBudgetModal({
         </TextField>
         <TextField
           isInvalid={submitted && !!goal.monthsError}
-          isDisabled={operation.pending}
+          isDisabled={busy}
           value={months}
           onChange={setMonths}
         >
@@ -247,19 +290,39 @@ export default function PlanBudgetModal({
             <Button
               variant="tertiary"
               size="sm"
-              isDisabled={operation.pending}
+              isDisabled={busy}
               onPress={() => setAmount(String(suggestion.amount))}
             >
               Use suggestion
             </Button>
           </div>
         ) : null}
-        {operation.error ? (
+        {operation.error || removing?.error ? (
           <p role="alert" className="text-sm text-destructive">
-            {operation.error}
+            {operation.error ?? removing?.error}
           </p>
         ) : null}
       </Form>
+      {initial && onDelete ? (
+        <div className="mt-4 space-y-2 border-t border-border pt-4">
+          {confirmRemove ? (
+            <p className="text-sm text-destructive">
+              Remove this plan? The limit and any goal stop applying to this
+              month.
+            </p>
+          ) : null}
+          <Button
+            variant="danger-soft"
+            isDisabled={busy}
+            onPress={() =>
+              confirmRemove ? void remove() : setConfirmRemove(true)
+            }
+          >
+            <IconTrash size={16} aria-hidden />
+            {confirmRemove ? "Confirm remove budget" : "Remove budget"}
+          </Button>
+        </div>
+      ) : null}
     </FinanceModal>
   );
 }

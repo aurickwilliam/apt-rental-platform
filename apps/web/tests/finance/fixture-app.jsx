@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { Toast } from "@heroui/react";
 import AnalyticsClient from "../../app/landlord/analytics/AnalyticsClient";
+import BudgetCategoryClient from "../../app/landlord/analytics/budget-category/BudgetCategoryClient";
 import CategoryExpensesClient from "../../app/landlord/analytics/category-expenses/CategoryExpensesClient";
 import PropertyPerformanceClient from "../../app/landlord/analytics/property-performance/PropertyPerformanceClient";
 import {
@@ -8,6 +9,7 @@ import {
   financeMonthFromParam,
 } from "@repo/utils";
 import {
+  parseFinanceBudgetParams,
   parseFinanceCategoryParams,
   parseLandlordFinanceParams,
 } from "../../lib/landlord-finance-params";
@@ -18,6 +20,20 @@ function FixtureApp() {
   const url = useFixtureUrl();
   const query = url.split("?")[1] ?? "";
   const searchParams = Object.fromEntries(new URLSearchParams(query));
+  if (url.startsWith("/landlord/analytics/budget-category")) {
+    // The server page revalidates through the shared rule; the fixture runs
+    // the same parse so the visible plans stay true to the route contract.
+    return (
+      <BudgetCategoryClient
+        params={parseFinanceBudgetParams(
+          searchParams,
+          currentMonth,
+          financeMonthFromParam,
+          FINANCE_CATEGORIES.map((item) => item.id),
+        )}
+      />
+    );
+  }
   if (url.startsWith("/landlord/analytics/category-expenses")) {
     // The server page revalidates through the shared rule; the fixture runs
     // the same parse so the visible list stays true to the route contract.

@@ -25,6 +25,42 @@ const state = (window.financeTest = {
   reviewedMonths: [],
   /** Page size is deliberately small so Load more exercises the keyset. */
   expensePageSize: 2,
+  /** Saved plans, one per property/month/category/kind, like the table. */
+  budgets: [
+    {
+      id: "budget-a",
+      apartment_id: properties[0].id,
+      month: "2026-10",
+      category: "maintenance",
+      kind: "expense",
+      amount: 3000,
+      spent: 4200,
+      target_amount: null,
+      months_remaining: null,
+    },
+    {
+      id: "budget-b",
+      apartment_id: properties[1].id,
+      month: "2026-10",
+      category: "maintenance",
+      kind: "expense",
+      amount: 10000,
+      spent: 0,
+      target_amount: null,
+      months_remaining: null,
+    },
+    {
+      id: "budget-c",
+      apartment_id: properties[2].id,
+      month: "2026-10",
+      category: "utilities",
+      kind: "expense",
+      amount: 0,
+      spent: 0,
+      target_amount: null,
+      months_remaining: null,
+    },
+  ],
   expenses: [
     {
       id: "expense-a",
@@ -132,30 +168,13 @@ export async function fetchFinances(scope) {
     categories: [
       { category: "maintenance", amount: 14500, previous_amount: 10000 },
     ],
-    budgets: [
-      {
-        id: "budget-a",
-        apartment_id: properties[0].id,
-        month: scope.month,
-        category: "maintenance",
-        kind: "expense",
-        amount: 3000,
-        spent: 4200,
-        target_amount: null,
-        months_remaining: null,
-      },
-      {
-        id: "budget-b",
-        apartment_id: properties[1].id,
-        month: scope.month,
-        category: "maintenance",
-        kind: "expense",
-        amount: 10000,
-        spent: 0,
-        target_amount: null,
-        months_remaining: null,
-      },
-    ],
+    budgets: state.budgets
+      .filter(
+        (row) =>
+          row.month === scope.month &&
+          (!scope.apartmentId || row.apartment_id === scope.apartmentId),
+      )
+      .map((row) => ({ ...row })),
     performance: properties.map((property, index) => ({
       ...property,
       month: scope.month,
@@ -205,6 +224,32 @@ export async function fetchRentLedger(scope, status, after) {
 export async function saveBudget(budget) {
   await wait();
   if (state.budgetFail) throw new Error("offline");
+  // The database upserts one plan per property/month/category/kind, so
+  // saving the same plan again updates it instead of adding a second row.
+  const existing = state.budgets.find(
+    (row) =>
+      row.apartment_id === budget.apartment_id &&
+      row.month === budget.month &&
+      row.category === budget.category &&
+      row.kind === budget.kind,
+  );
+  if (existing) {
+    existing.amount = budget.amount;
+    existing.target_amount = budget.target_amount ?? null;
+    existing.months_remaining = budget.months_remaining ?? null;
+  } else {
+    state.budgets.push({
+      id: `budget-${state.budgets.length + 1}`,
+      apartment_id: budget.apartment_id,
+      month: budget.month,
+      category: budget.category,
+      kind: budget.kind,
+      amount: budget.amount,
+      spent: 0,
+      target_amount: budget.target_amount ?? null,
+      months_remaining: budget.months_remaining ?? null,
+    });
+  }
   state.writes.push(budget);
 }
 export async function confirmExpenseReview(scope) {
@@ -303,6 +348,12 @@ export async function deleteExpense(ownerId, id) {
   state.writes.push({ kind: "expense", delete: id, spent_on: deleted.spent_on });
 }
 
-export async function deleteBudget() {
-  throw new Error("Not part of this fixture");
+export async function deleteBudget(ownerId, id) {
+  await wait();
+  if (state.budgetFail) throw new Error("offline");
+  if (ownerId !== state.identity.profile?.id) throw { code: "42501" };
+  const index = state.budgets.findIndex((row) => row.id === id);
+  if (index < 0) throw { code: "PGRST116" };
+  const [deleted] = state.budgets.splice(index, 1);
+  state.writes.push({ deleteBudget: deleted.id, kind: deleted.kind });
 }

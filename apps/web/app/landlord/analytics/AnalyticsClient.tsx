@@ -12,7 +12,10 @@ import {
 } from "@tabler/icons-react";
 import {
   financeMonthLabel,
+  type BudgetKind,
   type CollectionStatus,
+  type FinanceBudget,
+  type FinanceCategory,
   type FinanceScope,
 } from "@repo/utils";
 import {
@@ -20,6 +23,7 @@ import {
   useLandlordFinances,
 } from "@/hooks/use-landlord-finances";
 import {
+  financeBudgetCategoryHref,
   financeCategoryHref,
   financeReportHref,
   type FinanceTab,
@@ -44,6 +48,16 @@ type Overlay =
   | { scope: string; kind: "filters" | "guidelines" | "reserve" }
   | { scope: string; kind: "collections"; status: CollectionStatus }
   | { scope: string; kind: "expenseCreate" }
+  | {
+      scope: string;
+      kind: "budget";
+      /** A saved plan turns the modal into the edit form. */
+      initial?: FinanceBudget;
+      /** A suggestion's monthly amount, offered for review before saving. */
+      suggestedAmount?: number;
+      presetCategory?: FinanceCategory;
+      presetKind?: BudgetKind;
+    }
   | null;
 
 function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
@@ -85,6 +99,19 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
       finance.removingExpense.clearError();
     }
     setOverlay({ kind, scope: scopeKey });
+  };
+  /** One plan form for create and edit, mirroring mobile's budget entry page. */
+  const openBudget = (
+    options: {
+      initial?: FinanceBudget;
+      suggestedAmount?: number;
+      presetCategory?: FinanceCategory;
+      presetKind?: BudgetKind;
+    } = {},
+  ) => {
+    finance.savingBudget.clearError();
+    finance.removingBudget.clearError();
+    setOverlay({ kind: "budget", scope: scopeKey, ...options });
   };
   const navigate = (patch: Partial<LandlordFinanceRouteParams>) => {
     if (
@@ -302,7 +329,27 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               />
             </Tabs.Panel>
             <Tabs.Panel id="budget" className="pt-5">
-              <BudgetTab data={data} onReserve={() => open("reserve")} />
+              <BudgetTab
+                data={data}
+                properties={data.properties}
+                onSelectGroup={(category, kind) =>
+                  router.push(
+                    financeBudgetCategoryHref(
+                      applied.month,
+                      applied.apartmentId,
+                      category,
+                      kind,
+                    ),
+                    { scroll: false },
+                  )
+                }
+                onCreate={(presetCategory, presetKind) =>
+                  openBudget({ presetCategory, presetKind })
+                }
+                onEdit={(budget, suggestedAmount) =>
+                  openBudget({ initial: budget, suggestedAmount })
+                }
+              />
             </Tabs.Panel>
           </Tabs>
           <Button
@@ -352,6 +399,23 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               saving={finance.savingExpense}
               removing={finance.removingExpense}
               onSave={finance.saveExpense}
+              onClose={close}
+            />
+          ) : null}
+          {activeOverlay?.kind === "budget" ? (
+            <PlanBudgetModal
+              scope={scope}
+              properties={data.properties}
+              presetCategory={activeOverlay.presetCategory}
+              presetKind={activeOverlay.presetKind}
+              initial={activeOverlay.initial}
+              suggestedAmount={activeOverlay.suggestedAmount}
+              operation={finance.savingBudget}
+              removing={finance.removingBudget}
+              onSave={finance.saveBudget}
+              onDelete={
+                activeOverlay.initial ? finance.removeBudget : undefined
+              }
               onClose={close}
             />
           ) : null}

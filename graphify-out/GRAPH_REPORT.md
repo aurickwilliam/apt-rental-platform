@@ -1,7 +1,7 @@
 # Graph Report - apt-rental-platform  (2026-10-20)
 
 ## Corpus Check
-- 1748 files · ~1,268,184 words
+- 1748 files · ~1,268,280 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4824355a`
+- Built from commit: `420f38ca`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1774,7 +1774,7 @@ Cohesion: 0.50
 Nodes (5): Building Background Image (PNG), Building Background Image (JPG), Default Apartment Thumbnail, Default Apartment Thumbnail 2, Default Apartment Thumbnail 3
 
 ## Knowledge Gaps
-- **2666 isolated node(s):** `1. System Overview`, `2. Repository Structure`, `3. High-Level Architecture`, `4.1 Stack`, `4.2 Identity model` (+2661 more)
+- **2666 isolated node(s):** `Non-negotiable requirements`, `Current web gap`, `3.1 Report layout`, `3.2 Mobile-to-web interaction mapping`, `3.3 HeroUI usage` (+2661 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **153 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1784,12 +1784,12 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `@heroui/react` connect `@heroui/react` to `StatusChip`, `VerificationQueues.tsx`, `AuthForm.tsx`, `emailChange.ts`, `MaintenanceHistory.tsx`, `status-tone.ts`, `admin/apartments/[id]/page.tsx`, `AnalyticsClient.tsx`, `profile/UserAvatar.tsx`, `use-landlord-finances.ts`, `AnalyticsPanels.tsx`, `tenant/applications/[applicationId]/page.tsx`, `first-process.tsx`, `ProfileForm.tsx`, `PassportDocumentDetailClient.tsx`, `BrowseSectionsList.tsx`, `my-rental/page.tsx`, `PropertyDetailsSheet.tsx`, `change-password.tsx`, `AppSidebar.tsx`, `payment/types.ts`, `ReviewStep.tsx`, `RateApartmentForm.tsx`, `payment/utils.ts`, `(main)/page.tsx`, `cookies/page.tsx`, `carousel.tsx`, `PassportPageShell`, `create/page.tsx`, `service/paymentService.ts`, `admin/dashboard/page.tsx`, `tenant/browse/page.tsx`, `UsersClient.tsx`, `ReportsClient.tsx`, `landlord-finance-params.ts`, `VerifyClient.tsx`, `web/package.json`, `tos/page.tsx`, `Overview.tsx`, `payments/page.tsx`, `DashboardCharts.tsx`, `attachments.ts`, `browser.ts`, `ForgotPasswordClient.tsx`, `landlord/dashboard/lib/get-dashboard-data.ts`, `PersonalizeWizard.tsx`, `FilterContainer.tsx`, `history/page.tsx`, `PropertiesTableSection.tsx`, `framer-motion`, `ApplicationsList.tsx`, `maintenance-requests/[requestId]/page.tsx`, `EmojiInsertPanel.tsx`, `SettingsModal.tsx`, `ActivityClient.tsx`, `TeamSection.tsx`, `ApartmentMaintenanceHistory.tsx`, `PassportClient.tsx`, `NotificationDrawer.tsx`, `DesktopVerifyWizard.tsx`, `payment/page.tsx`, `tenant/messages/components/ConversationView.tsx`, `landlord/messages/components/ConversationView.tsx`, `AppNavbar.tsx`, `PaymentPageSkeleton.tsx`, `SignUpForm.tsx`, `PropertyDetailClient.tsx`, `CompleteProfileForm.tsx`, `VerifyDialog.tsx`, `giphy.ts`, `mobile/app/tenant/payment/components/PaymentMethodSelector.tsx`, `CategoryExpensesClient.tsx`, `utils/src/index.ts`, `ApartmentDetailSkeleton`, `Database`, `use-user.ts`, `PropertyDetailSkeleton.tsx`, `AuthWrapper.tsx`, `service/favoritesService.ts`, `Step4Description.tsx`, `landlord/applications/page.tsx`, `FeaturesSection.tsx`, `maintenance-requests/page.tsx`, `ref_next`, `sign-up-form/page.tsx`, `use-review-unlock.ts`, `ApplyClient.tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `AppTopBar.tsx`, `ReviewForm.tsx`, `CreateApartmentSkeleton.tsx`, `VerificationActivityPanel.tsx`?**
   _High betweenness centrality (0.048) - this node is a cross-community bridge._
 - **Why does `@tabler/icons-react` connect `@heroui/react` to `StatusChip`, `VerificationQueues.tsx`, `emailChange.ts`, `MaintenanceHistory.tsx`, `cn`, `status-tone.ts`, `admin/apartments/[id]/page.tsx`, `AnalyticsClient.tsx`, `profile/UserAvatar.tsx`, `AnalyticsPanels.tsx`, `tenant/applications/[applicationId]/page.tsx`, `ProfileForm.tsx`, `PassportDocumentDetailClient.tsx`, `BrowseSectionsList.tsx`, `my-rental/page.tsx`, `PropertyDetailsSheet.tsx`, `change-password.tsx`, `AppSidebar.tsx`, `payment/types.ts`, `ReviewStep.tsx`, `RateApartmentForm.tsx`, `payment/utils.ts`, `(main)/page.tsx`, `cookies/page.tsx`, `carousel.tsx`, `PassportPageShell`, `DraggableNotificationBell.tsx`, `create/page.tsx`, `admin/dashboard/page.tsx`, `tenant/browse/page.tsx`, `UsersClient.tsx`, `ReportsClient.tsx`, `VerifyClient.tsx`, `web/package.json`, `tos/page.tsx`, `Overview.tsx`, `chart.tsx`, `payments/page.tsx`, `attachments.ts`, `browser.ts`, `ForgotPasswordClient.tsx`, `landlord/dashboard/lib/get-dashboard-data.ts`, `PersonalizeWizard.tsx`, `FilterContainer.tsx`, `history/page.tsx`, `PropertiesTableSection.tsx`, `framer-motion`, `ApplicationsList.tsx`, `maintenance-requests/[requestId]/page.tsx`, `EmojiInsertPanel.tsx`, `SettingsModal.tsx`, `ActivityClient.tsx`, `use-landlord-action-badges.ts`, `chat/MessageBubble.tsx`, `TeamSection.tsx`, `ApartmentMaintenanceHistory.tsx`, `PassportClient.tsx`, `NotificationRow.tsx`, `NotificationDrawer.tsx`, `DesktopVerifyWizard.tsx`, `dropdown-menu.tsx`, `payment/page.tsx`, `tenant/messages/components/ConversationView.tsx`, `landlord/messages/components/ConversationView.tsx`, `AppNavbar.tsx`, `PaymentPageSkeleton.tsx`, `SignUpForm.tsx`, `PropertyDetailClient.tsx`, `VerifyDialog.tsx`, `CategoryExpensesClient.tsx`, `utils/src/index.ts`, `Database`, `use-user.ts`, `AuthWrapper.tsx`, `service/favoritesService.ts`, `Step4Description.tsx`, `landlord/applications/page.tsx`, `FeaturesSection.tsx`, `maintenance-requests/page.tsx`, `ref_next`, `sign-up-form/page.tsx`, `use-review-unlock.ts`, `ApplyClient.tsx`, `web/app/tenant/payment/components/ReceiptCard.tsx`, `AppTopBar.tsx`, `ReviewForm.tsx`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `useColors()` connect `useColors` to `app/_layout.tsx`, `search.tsx`, `EmailChangeCodeScreen.tsx`, `live-capture.tsx`, `notifications/notificationService.ts`, `ref_react_native`, `@testing-library/react-native`, `notifications/index.ts`, `QuickActionsSection.tsx`, `payment/index.tsx`, `ref_react`, `settings/index.tsx`, `apartment/[apartmentId]/index.tsx`, `heroui-native`, `HoldMenu.tsx`, `ScreenWrapper`, `(tenant)/chat.tsx`, `TabBar.tsx`, `useTheme`, `useEffect`, `ProfitTrendCard.tsx`, `conversationList.ts`, `second-step.tsx`, `StandardHeader`, `map-search.tsx`, `description/index.tsx`, `[conversationId].tsx`, `change-password.tsx`, `expo-image`, `landlordFinance.ts`, `apartments/index.ts`, `useTheme.test.tsx`, `PaymentMethodButton`, `ChatBox.tsx`, `FilterContainer.tsx`?**
   _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Are the 5 inferred relationships involving `useColors()` (e.g. with `State Management Rules` and `Current implementation and problems`) actually correct?**
   _`useColors()` has 5 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `1. System Overview`, `2. Repository Structure`, `3. High-Level Architecture` to the rest of the system?**
+- **What connects `Non-negotiable requirements`, `Current web gap`, `3.1 Report layout` to the rest of the system?**
   _2666 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `conversationService.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.0409626216077829 - nodes in this community are weakly interconnected._

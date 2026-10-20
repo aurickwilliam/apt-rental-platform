@@ -10,10 +10,13 @@ import {
 } from "./landlord-finance-access.ts";
 import {
   financeApartmentParam,
+  financeBudgetCategoryHref,
+  financeBudgetKindParam,
   financeCategoryHref,
   financeCategoryParam,
   financeMonthParam,
   financeTabParam,
+  parseFinanceBudgetParams,
   parseFinanceCategoryParams,
   parseLandlordFinanceParams,
 } from "./landlord-finance-params.ts";
@@ -139,6 +142,54 @@ test("category drill-down links carry the scope and no other URL keys", () => {
   assert.equal(
     financeCategoryHref("2026-09", PROPERTY_ID, "other"),
     `/landlord/analytics/category-expenses?month=2026-09&apartmentId=${PROPERTY_ID}&category=other`,
+  );
+});
+
+test("budget drill-down parsing keeps the kind rule: unknown reads as spending limits", () => {
+  assert.equal(financeBudgetKindParam("reserve"), "reserve");
+  assert.equal(financeBudgetKindParam("expense"), "expense");
+  assert.equal(financeBudgetKindParam("junk"), "expense");
+  assert.equal(financeBudgetKindParam(""), "expense");
+  assert.equal(financeBudgetKindParam(undefined), "expense");
+  assert.equal(financeBudgetKindParam(["reserve", "expense"]), "reserve");
+  assert.deepStrictEqual(
+    parseFinanceBudgetParams(
+      {
+        month: "2026-02",
+        apartmentId: PROPERTY_ID,
+        category: "utilities",
+        kind: "reserve",
+      },
+      CURRENT,
+      financeMonthFromParam,
+      ["utilities"],
+    ),
+    {
+      month: "2026-02",
+      apartmentId: PROPERTY_ID,
+      category: "utilities",
+      kind: "reserve",
+    },
+  );
+  assert.deepStrictEqual(
+    parseFinanceBudgetParams(
+      { category: "junk" },
+      CURRENT,
+      financeMonthFromParam,
+      ["utilities"],
+    ),
+    { month: CURRENT, apartmentId: null, category: null, kind: "expense" },
+  );
+});
+
+test("budget drill-down links carry the scope, category and kind", () => {
+  assert.equal(
+    financeBudgetCategoryHref("2026-10", null, "maintenance", "expense"),
+    "/landlord/analytics/budget-category?month=2026-10&category=maintenance&kind=expense",
+  );
+  assert.equal(
+    financeBudgetCategoryHref("2026-09", PROPERTY_ID, "emergency", "reserve"),
+    `/landlord/analytics/budget-category?month=2026-09&apartmentId=${PROPERTY_ID}&category=emergency&kind=reserve`,
   );
 });
 

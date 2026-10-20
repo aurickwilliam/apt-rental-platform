@@ -1,6 +1,6 @@
 # Landlord Web Budget Analytics — Full Mobile Parity Plan
 
-Status: Phases 1–3 implemented. Full Expenses/Budget editing and final acceptance remain in Phases 4–6.
+Status: Phases 1–5 implemented. Final acceptance (live authenticated journey, same-account web/mobile comparison, hardening) remains in Phase 6.
 
 ## 1. Goal and scope
 
@@ -169,70 +169,70 @@ Long, paginated drill-downs stay addressable pages; short forms and temporary de
 
 ### 4.4 Expenses tab, review, and transactions
 
-- [ ] Lead the tab with the review card. Its action label stays Mark expenses reviewed until review succeeds; a reviewed scope shows the completion explanation instead.
-- [ ] Confirmation states the applied month/property or all properties, explicitly including zero-expense properties.
-- [ ] Keep reviewing cancels. Confirm shows Confirming… and prevents duplicate submission; failed review stays open with an inline error; success closes with Expenses reviewed feedback.
-- [ ] Tab, month, or property changes close/reset the review dialog. Capture and validate the committed request scope so an old request cannot confirm a different displayed selection.
-- [ ] Expense additions, edits, date moves, and deletions refresh the report/review status; affected property-months become unreviewed through existing database behavior.
-- [ ] Where expenses go includes categories active this month or the previous comparable period; sort by current spending descending.
-- [ ] Each row shows category, current amount, a bar relative to the largest category, prior comparable amount, and share of current spending.
-- [ ] Category spending includes operating and capital. No category activity shows the existing-style empty state.
-- [ ] Clicking a category opens transactions for exactly its applied month/property/category. Do not add a duplicate transaction list under the Expenses chart.
-- [ ] Transactions display description, amount, paid date, category, property, and operating versus improvement/replacement treatment.
-- [ ] Clicking Edit opens the selected expense, not a blank creation form.
-- [ ] Transactions use bounded 30-row descending `(spent_on, id)` keyset pages, Load more expenses, refresh, distinct loading/error/empty states, and safe duplicate handling.
-- [ ] An unknown expense-category parameter falls back to the unfiltered scoped transactions list, matching mobile.
+- [x] Lead the tab with the review card. Its action label stays Mark expenses reviewed until review succeeds; a reviewed scope shows the completion explanation instead.
+- [x] Confirmation states the applied month/property or all properties, explicitly including zero-expense properties.
+- [x] Keep reviewing cancels. Confirm shows Confirming… and prevents duplicate submission; failed review stays open with an inline error; success closes with Expenses reviewed feedback.
+- [x] Tab, month, or property changes close/reset the review dialog. Capture and validate the committed request scope so an old request cannot confirm a different displayed selection.
+- [x] Expense additions, edits, date moves, and deletions refresh the report/review status; affected property-months become unreviewed through existing database behavior.
+- [x] Where expenses go includes categories active this month or the previous comparable period; sort by current spending descending.
+- [x] Each row shows category, current amount, a bar relative to the largest category, prior comparable amount, and share of current spending.
+- [x] Category spending includes operating and capital. No category activity shows the existing-style empty state.
+- [x] Clicking a category opens transactions for exactly its applied month/property/category. Do not add a duplicate transaction list under the Expenses chart.
+- [x] Transactions display description, amount, paid date, category, property, and operating versus improvement/replacement treatment.
+- [x] Clicking Edit opens the selected expense, not a blank creation form.
+- [x] Transactions use bounded 30-row descending `(spent_on, id)` keyset pages, Load more expenses, refresh, distinct loading/error/empty states, and safe duplicate handling.
+- [x] An unknown expense-category parameter falls back to the unfiltered scoped transactions list, matching mobile.
 
 ### 4.5 Expense create/edit/delete modal
 
-- [ ] Add expense is available from every report tab and opens a fresh form seeded from the report property/month.
-- [ ] Default property is the applied owned property or first owned property. Default category is maintenance unless preset; furniture/turnover default to capital, others to operating.
-- [ ] Date defaults to today in the current report month, otherwise that report month's first day.
-- [ ] Required fields: Property, Category, Expense treatment, Amount, Date paid, Description, with required markers and live-correcting inline errors after submit.
-- [ ] Expense categories exclude emergency and vacancy. Changing category applies mobile's default treatment; the landlord can explicitly choose operating or capital.
-- [ ] Amount uses `formatPesoDisplay` / `handlePesoChange`, editable decimal input and thousands separators, with a raw numeric draft for validation/persistence.
-- [ ] Expense amount must be positive, at most `999,999,999.99`, finite plain decimal with at most two fractional digits; reject scientific notation and negative values.
-- [ ] DatePicker prevents future Manila dates; `validateExpenseDate` also rejects impossible dates and dates before 2000-01-01.
-- [ ] Persist `YYYY-MM-DD` calendar components without converting a chosen date through UTC.
-- [ ] Description is trimmed, nonblank, and at most 200 characters. Validate owned property, category, and treatment rather than trusting selector values.
-- [ ] On edit, property is locked; category, treatment, amount, date, and description remain editable. Expense identity/owner/property are never included in update fields.
-- [ ] Generate one retry-stable UUID per new draft with the web crypto API. Retrying an uncertain successful insert cannot create a second expense; match mobile's owner/property-checked duplicate recovery.
-- [ ] Save/Cancel and dismissal are guarded while busy; invalid forms never send requests. Errors retain the draft for retry; success closes with feedback and refreshes affected views.
-- [ ] Delete requires explicit confirmation explaining that it is irreversible and reopens month review. Failure keeps the editor/error available; success removes the record and updates affected lists/totals.
-- [ ] Closing/reopening starts the correct fresh or selected-record draft, clearing old errors and deletion state; background refresh must not overwrite an open draft.
+- [x] Add expense is available from every report tab and opens a fresh form seeded from the report property/month.
+- [x] Default property is the applied owned property or first owned property. Default category is maintenance unless preset; furniture/turnover default to capital, others to operating.
+- [x] Date defaults to today in the current report month, otherwise that report month's first day.
+- [x] Required fields: Property, Category, Expense treatment, Amount, Date paid, Description, with required markers and live-correcting inline errors after submit.
+- [x] Expense categories exclude emergency and vacancy. Changing category applies mobile's default treatment; the landlord can explicitly choose operating or capital.
+- [x] Amount uses `formatPesoDisplay` / `handlePesoChange`, editable decimal input and thousands separators, with a raw numeric draft for validation/persistence.
+- [x] Expense amount must be positive, at most `999,999,999.99`, finite plain decimal with at most two fractional digits; reject scientific notation and negative values.
+- [x] DatePicker prevents future Manila dates; `validateExpenseDate` also rejects impossible dates and dates before 2000-01-01.
+- [x] Persist `YYYY-MM-DD` calendar components without converting a chosen date through UTC.
+- [x] Description is trimmed, nonblank, and at most 200 characters. Validate owned property, category, and treatment rather than trusting selector values.
+- [x] On edit, property is locked; category, treatment, amount, date, and description remain editable. Expense identity/owner/property are never included in update fields.
+- [x] Generate one retry-stable UUID per new draft with the web crypto API. Retrying an uncertain successful insert cannot create a second expense; match mobile's owner/property-checked duplicate recovery.
+- [x] Save/Cancel and dismissal are guarded while busy; invalid forms never send requests. Errors retain the draft for retry; success closes with feedback and refreshes affected views.
+- [x] Delete requires explicit confirmation explaining that it is irreversible and reopens month review. Failure keeps the editor/error available; success removes the record and updates affected lists/totals.
+- [x] Closing/reopening starts the correct fresh or selected-record draft, clearing old errors and deletion state; background refresh must not overwrite an open draft.
 
 ### 4.6 Budget tab and category drill-down
 
-- [ ] Render Budget versus actual, Planned reserves, and Budget suggestions as distinct sections.
-- [ ] Group budgets with `groupBudgetsByCategory`: one row per `(kind, category)`, preserving shared category order and never merging reserves with spending budgets.
-- [ ] Spending rows show summed limit and recorded spending, property count or single-property name, progress, remaining/over-budget amount, and real percentage when over budget.
-- [ ] Actual spending includes improvements in that property/category. Show zero-limit behavior without division by zero or fake percentages.
-- [ ] Budget versus actual has Add and its own no-spending-limits empty state.
-- [ ] Reserves show the planned monthly amount and covered properties, not funded savings or expense consumption. Add presets emergency/reserve; retain a separate empty state.
-- [ ] Category selection opens the per-property drill-down with the applied month, property scope, category, and plan kind.
-- [ ] Drill-down shows applied context, plan type, totals line and property count; sort property rows by property name.
-- [ ] Spending-plan property rows show actual/limit/progress/overage; reserve rows show planned amount alone. Each opens its exact saved plan in edit mode.
-- [ ] Drill-down supports refresh, empty/loading/error states and Back to budgets; unknown budget category produces a not-found state, unknown kind defaults to expense.
-- [ ] Budget not found or a deleted plan opens a recoverable missing-record state, never an empty form that silently creates another plan.
+- [x] Render Budget versus actual, Planned reserves, and Budget suggestions as distinct sections.
+- [x] Group budgets with `groupBudgetsByCategory`: one row per `(kind, category)`, preserving shared category order and never merging reserves with spending budgets.
+- [x] Spending rows show summed limit and recorded spending, property count or single-property name, progress, remaining/over-budget amount, and real percentage when over budget.
+- [x] Actual spending includes improvements in that property/category. Show zero-limit behavior without division by zero or fake percentages.
+- [x] Budget versus actual has Add and its own no-spending-limits empty state.
+- [x] Reserves show the planned monthly amount and covered properties, not funded savings or expense consumption. Add presets emergency/reserve; retain a separate empty state.
+- [x] Category selection opens the per-property drill-down with the applied month, property scope, category, and plan kind.
+- [x] Drill-down shows applied context, plan type, totals line and property count; sort property rows by property name.
+- [x] Spending-plan property rows show actual/limit/progress/overage; reserve rows show planned amount alone. Each opens its exact saved plan in edit mode.
+- [x] Drill-down supports refresh, empty/loading/error states and Back to budgets; unknown budget category produces a not-found state, unknown kind defaults to expense.
+- [x] Budget not found or a deleted plan opens a recoverable missing-record state, never an empty form that silently creates another plan.
 
 ### 4.7 Budget creation, editing, suggestions, and removal
 
-- [ ] Reuse one HeroUI form for spending budgets and planned reserves, both create and edit.
-- [ ] Seed month/property/category/kind from the launching action; validate presets before use. Default kind is expense and fallback category maintenance.
-- [ ] Required fields: owned Property, Plan type, Category, and monthly amount. Label the amount Monthly spending limit or Planned allocation this month according to kind.
-- [ ] Spending categories exclude emergency/vacancy; reserves can use all `FINANCE_CATEGORIES`. Switching to spending with a reserve-only category resets to maintenance.
-- [ ] Monthly plan amount permits zero; use the same maximum, decimal validation and peso editing helpers as mobile.
-- [ ] Optional fields are Amount still needed / annual bill and Months to spread this amount over. A supplied target must be positive and its months a whole number from 1 to 600.
-- [ ] Default months to saved value or 12 for insurance/taxes, otherwise 6. Without a target, save both target/months as null; do not invent a goal from the default months field.
-- [ ] Show the transparent monthly suggestion/basis from the existing shared helper; Use suggestion changes only the local monthly amount until Save.
-- [ ] Existing goal-based suggestions show category title, property, Based on your entries, amount/month, explanation, and Review suggestion.
-- [ ] Review suggestion opens the existing saved plan with only the validated suggested monthly amount overridden; preserve saved goals and locked identity fields. It must not save automatically.
-- [ ] Preserve all four goal starters: Insurance & property tax → insurance/reserve; Furniture & appliances → furniture/reserve; Vacancy & late payments → vacancy/reserve; Next tenant turnover → turnover/reserve.
-- [ ] Set a goal opens creation with its category/kind and applied scope. Retain guidance about known bills/replacement needs/essential costs without invented market figures.
-- [ ] Edit locks Property, Plan type, Category, and month. Amount and optional goal remain editable. Removal is offered only for an existing plan and requires explicit confirmation.
-- [ ] Save through the same property/month/category/kind upsert RPC. Repeated creation for that identity updates the existing plan rather than making a duplicate.
-- [ ] Save/remove has pending guards, retained errors/drafts, success feedback, and refreshes category totals, suggestions, overview plan totals and cash-after-reserves.
-- [ ] Preserve the current UI boundary: the shared helper supports reviewed-history averages, but mobile does not currently supply that history to its suggestions UI. Do not introduce history-based suggestions only on web.
+- [x] Reuse one HeroUI form for spending budgets and planned reserves, both create and edit.
+- [x] Seed month/property/category/kind from the launching action; validate presets before use. Default kind is expense and fallback category maintenance.
+- [x] Required fields: owned Property, Plan type, Category, and monthly amount. Label the amount Monthly spending limit or Planned allocation this month according to kind.
+- [x] Spending categories exclude emergency/vacancy; reserves can use all `FINANCE_CATEGORIES`. Switching to spending with a reserve-only category resets to maintenance.
+- [x] Monthly plan amount permits zero; use the same maximum, decimal validation and peso editing helpers as mobile.
+- [x] Optional fields are Amount still needed / annual bill and Months to spread this amount over. A supplied target must be positive and its months a whole number from 1 to 600.
+- [x] Default months to saved value or 12 for insurance/taxes, otherwise 6. Without a target, save both target/months as null; do not invent a goal from the default months field.
+- [x] Show the transparent monthly suggestion/basis from the existing shared helper; Use suggestion changes only the local monthly amount until Save.
+- [x] Existing goal-based suggestions show category title, property, Based on your entries, amount/month, explanation, and Review suggestion.
+- [x] Review suggestion opens the existing saved plan with only the validated suggested monthly amount overridden; preserve saved goals and locked identity fields. It must not save automatically.
+- [x] Preserve all four goal starters: Insurance & property tax → insurance/reserve; Furniture & appliances → furniture/reserve; Vacancy & late payments → vacancy/reserve; Next tenant turnover → turnover/reserve.
+- [x] Set a goal opens creation with its category/kind and applied scope. Retain guidance about known bills/replacement needs/essential costs without invented market figures.
+- [x] Edit locks Property, Plan type, Category, and month. Amount and optional goal remain editable. Removal is offered only for an existing plan and requires explicit confirmation.
+- [x] Save through the same property/month/category/kind upsert RPC. Repeated creation for that identity updates the existing plan rather than making a duplicate.
+- [x] Save/remove has pending guards, retained errors/drafts, success feedback, and refreshes category totals, suggestions, overview plan totals and cash-after-reserves.
+- [x] Preserve the current UI boundary: the shared helper supports reviewed-history averages, but mobile does not currently supply that history to its suggestions UI. Do not introduce history-based suggestions only on web.
 
 ### 4.8 Collection ledger and guidelines
 
@@ -403,8 +403,12 @@ Phase 4 verification: web lint/typecheck/build and the extended node tests (19 p
 
 ### Phase 5 — Budgets and reserves
 
-- [ ] Implement grouped budget/reserve sections, category/property drill-down, create/edit/remove modal, suggestions, and all goal shortcuts.
-- [ ] Verify locked identity fields, zero budgets, overages, suggestion review versus save, repeated upserts, and null goal persistence.
+- [x] Implement grouped budget/reserve sections, category/property drill-down, create/edit/remove modal, suggestions, and all goal shortcuts. (`BudgetTab` now mirrors mobile's `BudgetProgressChart` in three sections — "Budget versus actual" (grouped by the shared `groupBudgetsByCategory`, one row per kind/category with the summed limit, recorded spending, property count or name, progress, remaining/over amount and a real percentage when over), "Planned reserves" (planned amount and covered properties, with its own empty state and an emergency/reserve Add preset), and "Budget suggestions" (the shared goal-based suggestion with title, property · "Based on your entries", amount per month, basis and "Review suggestion", plus all four goal starters with mobile's guidance copy); the new guarded `/landlord/analytics/budget-category` route revalidates the typed category and kind through the shared `parseFinanceBudgetParams` (unknown kind reads as spending limits) and lists each property's plan with actual/limit/progress/overage, reserves showing the planned amount alone, a totals line, refresh, empty/loading/error states, a missing-category state and Back to budgets; `PlanBudgetModal` is now one create-and-edit form — identity fields (property, plan type, category, month) lock while editing, the goal fields and transparent suggestion stay editable, "Use suggestion" changes only the local amount until Save, removal is offered only for an existing plan and needs explicit confirmation, and a plan removed while its editor is open shows a missing-record state instead of silently recreating it.)
+- [x] Verify locked identity fields, zero budgets, overages, suggestion review versus save, repeated upserts, and null goal persistence. (Browser fixture coverage: the group row hides a single over-limit plan (₱4,200 of ₱3,000 → over by ₱1,200, 140% used) while the drill-down shows it, a zero limit shows "₱ 0 remaining" with no percentage, editing a saved plan locks property/plan type/category and keeps its month, saving the same plan again updates that row instead of adding a second one, a plan saved without a goal keeps its target and months null, "Review suggestion" opens the saved plan with the suggested amount without saving on its own, removal is two-step and removes the plan, and an unknown category or kind falls back to the missing-category state or spending limits.)
+
+Phase 5 verification: web lint/typecheck/build and the node tests (311 pass, adding the budget kind/parse/href rules) pass; mobile lint and 148 Jest suites / 1,176 tests pass; population-command tests pass (18 pass, 2 opt-in database tests skipped). The browser fixture passes a Phase 5 block end to end (three consecutive clean runs): the three Budget sections, group rows with the shared arithmetic (including the zero limit and the grouped-versus-single overage difference), the category drill-down with its per-property rows, totals line, missing-category and unknown-kind states, the plan form's locked identity fields, goal suggestion, "Use suggestion", two-step removal, repeated upsert, and both plan empty states. The fixture's plan transport now mirrors the database upsert (one plan per property/month/category/kind) and reports only the applied scope's plans. The expense editor's date field also gained a real label/control pairing, and the browser suite now clears that field with key events because an empty programmatic fill can be swallowed by React's value tracker. Live authenticated journey and same-account web/mobile comparison remain final acceptance work.
+
+`graphify update .` was attempted after the implementation. Extraction completed, and the shrink guard again refused the raw extraction (8,703 extracted vs 9,121 stored — the same pre-existing shortfall seen in Phases 3 and 4). No forced rebuild or label overwrite was performed, per the standing decision to leave the guard armed. The stored graph therefore still predates this phase's new drill-down route, and stays dirty as the pre-existing output does.
 
 ### Phase 6 — Hardening and finish
 

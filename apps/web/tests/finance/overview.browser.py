@@ -230,7 +230,13 @@ with sync_playwright() as playwright:
     editor.get_by_label("Amount (₱)", exact=False).fill("0")
     editor.get_by_role("button", name="Save expense", exact=True).click()
     expect(editor.get_by_text("Enter a positive amount with at most two decimals.")).to_be_visible()
-    editor.get_by_label("Description", exact=False).fill("")
+    # Clearing a controlled input with an empty fill can be swallowed by
+    # React's value tracker, so the field is emptied with real key events.
+    description = editor.get_by_label("Description", exact=False)
+    description.click()
+    description.press("ControlOrMeta+a")
+    description.press("Backspace")
+    expect(description).to_have_value("")
     editor.get_by_role("button", name="Save expense", exact=True).click()
     expect(editor.get_by_text("Describe this expense.")).to_be_visible()
     page.evaluate("financeTest.expenseFail = true")
@@ -329,6 +335,169 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("heading", name="Where expenses go")).to_be_visible()
     page.get_by_role("tab", name="Overview", exact=True).click()
 
+    # Budget tab: spending limits against actual spending, planned reserves
+    # kept apart, and transparent suggestions.
+    page.get_by_role("tab", name="Budget", exact=True).click()
+    expect(page.get_by_role("heading", name="Budget versus actual")).to_be_visible()
+    expect(page.get_by_role("heading", name="Planned reserves")).to_be_visible()
+    expect(page.get_by_role("heading", name="Budget suggestions")).to_be_visible()
+    # The group hides the single over-limit plan: 4,200 spent of 13,000.
+    spending_row = page.get_by_role(
+        "button",
+        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 13,000. Within budget. View properties",
+    )
+    expect(spending_row).to_be_visible()
+    # A zero limit shows no percentage and an empty bar.
+    zero_row = page.get_by_role(
+        "button",
+        name="Owner-paid utilities & dues, Garden Court. Spent ₱ 0 of ₱ 0. Within budget. View properties",
+    )
+    expect(zero_row).to_be_visible()
+    expect(zero_row).to_contain_text("₱ 0 remaining")
+    expect(zero_row).not_to_contain_text("used")
+    # Reserves stay their own section and never mix with spending limits.
+    reserve_row = page.get_by_role(
+        "button",
+        name="Emergency reserve, Bayview. Planned ₱ 1,500 this month. View properties",
+    )
+    expect(reserve_row).to_be_visible()
+
+    # The category drill-down lists each property's own limit and spending.
+    spending_row.click()
+    assert "/landlord/analytics/budget-category" in page.url
+    assert "category=maintenance" in page.url and "kind=expense" in page.url
+    expect(page.get_by_role("heading", name="Maintenance & repairs", exact=True)).to_be_visible()
+    expect(page.get_by_text("Spending limits · October 2026")).to_be_visible()
+    over_row = page.get_by_role(
+        "button",
+        name="Bayview, spent this month. Spent ₱ 4,200 of ₱ 3,000. Over budget. Edit budget",
+    )
+    expect(over_row).to_be_visible()
+    expect(over_row).to_contain_text("₱ 1,200 over budget · 140% used")
+    expect(
+        page.get_by_role(
+            "button",
+            name="Canal House, spent this month. Spent ₱ 0 of ₱ 10,000. Within budget. Edit budget",
+        )
+    ).to_be_visible()
+
+    # Editing locks the plan's identity fields.
+    over_row.click()
+    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+    expect(editor.get_by_role("button", name="Property")).to_be_disabled()
+    expect(editor.get_by_role("button", name="Plan type")).to_be_disabled()
+    expect(editor.get_by_role("button", name="Category")).to_be_disabled()
+    expect(editor.get_by_text("Property, plan type, category and month are locked")).to_be_visible()
+    # A goal suggests a monthly amount without changing the plan yet.
+    editor.get_by_label("Amount still needed / annual bill", exact=False).fill("12,000")
+    editor.get_by_label("Months to spread this amount over", exact=False).fill("12")
+    expect(editor.get_by_text("₱ 1,000 / month")).to_be_visible()
+    editor.get_by_role("button", name="Save budget", exact=True).click()
+    expect(editor).to_have_count(0)
+    write = page.evaluate("financeTest.writes.at(-1)")
+    assert write["target_amount"] == 12000 and write["months_remaining"] == 12
+    assert write["amount"] == 3000
+    # Saving the same plan again updates it instead of adding a second row.
+    page.get_by_role(
+        "button",
+        name="Bayview, spent this month. Spent ₱ 4,200 of ₱ 3,000. Over budget. Edit budget",
+    ).click()
+    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+    editor.get_by_label("Monthly spending limit", exact=False).fill("3,500")
+    editor.get_by_role("button", name="Save budget", exact=True).click()
+    expect(editor).to_have_count(0)
+    assert (
+        page.evaluate(
+            "financeTest.budgets.filter((row) => row.id === 'budget-a').length"
+        )
+        == 1
+    )
+    assert (
+        page.evaluate("financeTest.budgets.find((row) => row.id === 'budget-a').amount")
+        == 3500
+    )
+    assert page.evaluate("financeTest.writes.at(-1).amount") == 3500
+
+    # The saved goal becomes a suggestion in the Budget tab.
+    page.get_by_role("link", name="Back to budgets").click()
+    page.get_by_role("tab", name="Budget", exact=True).click()
+    expect(page.get_by_text("Plan for maintenance & repairs")).to_be_visible()
+    expect(page.get_by_text("₱ 1,000 / month").first).to_be_visible()
+    expect(page.get_by_text("Bayview · Based on your entries")).to_be_visible()
+    # Reviewing a suggestion opens the plan with that amount, and never saves
+    # on its own.
+    page.get_by_role("button", name="Review suggestion", exact=True).click()
+    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+    expect(editor.get_by_label("Monthly spending limit", exact=False)).to_have_value(
+        "₱ 1,000"
+    )
+    editor.get_by_role("button", name="Save budget", exact=True).click()
+    expect(editor).to_have_count(0)
+    assert page.evaluate("financeTest.writes.at(-1).amount") == 1000
+    page.get_by_role("tab", name="Budget", exact=True).click()
+    expect(
+        page.get_by_role(
+            "button",
+            name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 11,000. Within budget. View properties",
+        )
+    ).to_be_visible()
+
+    # Removing a plan takes two steps and disappears from the list.
+    page.get_by_role(
+        "button",
+        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 11,000. Within budget. View properties",
+    ).click()
+    page.get_by_role(
+        "button",
+        name="Canal House, spent this month. Spent ₱ 0 of ₱ 10,000. Within budget. Edit budget",
+    ).click()
+    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+    editor.get_by_role("button", name="Remove budget", exact=True).click()
+    expect(editor.get_by_text("Remove this plan?")).to_be_visible()
+    editor.get_by_role("button", name="Confirm remove budget", exact=True).click()
+    expect(editor).to_have_count(0)
+    expect(
+        page.get_by_role(
+            "button",
+            name="Canal House, spent this month. Spent ₱ 0 of ₱ 10,000. Within budget. Edit budget",
+        )
+    ).to_have_count(0)
+
+    # A reserve plan keeps its own drill-down and its planned amount.
+    page.get_by_role("link", name="Back to budgets").click()
+    page.get_by_role("tab", name="Budget", exact=True).click()
+    page.get_by_role(
+        "button",
+        name="Emergency reserve, Bayview. Planned ₱ 1,500 this month. View properties",
+    ).click()
+    assert "kind=reserve" in page.url
+    expect(page.get_by_text("Planned reserves · October 2026")).to_be_visible()
+    expect(
+        page.get_by_role(
+            "button",
+            name="Bayview, planned ₱ 1,500 this month. Edit budget",
+        )
+    ).to_be_visible()
+    page.get_by_role("link", name="Back to budgets").click()
+
+    # An unknown category reads as a missing category, and an unknown kind
+    # falls back to spending limits.
+    fixture_navigate(page, "/landlord/analytics/budget-category?month=2026-10&category=junk&kind=expense")
+    expect(page.get_by_role("heading", name="Budget category not found")).to_be_visible()
+    fixture_navigate(page, "/landlord/analytics/budget-category?month=2026-10&category=maintenance&kind=junk")
+    expect(page.get_by_text("Spending limits · October 2026")).to_be_visible()
+
+    # A month without plans shows both empty states.
+    page.evaluate("financeTest.noPlans = true")
+    fixture_navigate(page, "/landlord/analytics?month=2026-10")
+    page.get_by_role("tab", name="Budget", exact=True).click()
+    expect(page.get_by_role("heading", name="No spending limits yet")).to_be_visible()
+    expect(page.get_by_role("heading", name="No reserve goals yet")).to_be_visible()
+    page.evaluate("financeTest.noPlans = false")
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    expect(page.get_by_role("heading", name="Budget versus actual")).to_be_visible()
+    page.get_by_role("tab", name="Overview", exact=True).click()
+
     for width in (390, 768, 1280):
         page.set_viewport_size({"width": width, "height": 900})
         # Exercise the chart controls at each width (not only desktop). Bringing
@@ -365,4 +534,4 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
     assert not failures, failures
     browser.close()
-    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states.")
+    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states; budget sections, group rows, category drill-down, locked identity fields, goal suggestions, review-suggestion, repeated upserts, plan removal, unknown category/kind, and plan empty states.")
