@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import type { PaymentAllocation } from "@repo/utils";
 
 // Web twin of mobile service/payments/paymentService.ts (read-only study, not modified).
 // Same `payment` table contract: lowercase DB values, display mapping in
@@ -10,7 +11,7 @@ export type PaymentMethodDb = "gcash" | "maya" | "card" | "cash" | "qrph";
 
 export type PaymentStatusDb = "pending" | "paid" | "partial" | "unpaid";
 
-export interface PaymentRecord {
+export interface PaymentRecord extends PaymentAllocation {
   id: string;
   created_at: string;
   date: string;
@@ -26,7 +27,7 @@ export interface PaymentRecord {
   tenant_name: string | null;
 }
 
-type PaymentRow = {
+type PaymentRow = PaymentAllocation & {
   id: string;
   created_at: string;
   date: string;
@@ -45,6 +46,8 @@ type PaymentRow = {
 };
 
 const PAYMENT_SELECT = `
+  billing_kind, rent_amount, deposit_amount, advance_amount, maintenance_amount,
+  advance_period_start, advance_period_end,
   id,
   created_at,
   date,
@@ -66,6 +69,13 @@ function toPaymentRecord(row: PaymentRow): PaymentRecord {
   const landlord = row.apartment?.landlord;
   const tenant = row.tenant;
   return {
+    billing_kind: row.billing_kind,
+    rent_amount: row.rent_amount,
+    deposit_amount: row.deposit_amount,
+    advance_amount: row.advance_amount,
+    maintenance_amount: row.maintenance_amount,
+    advance_period_start: row.advance_period_start,
+    advance_period_end: row.advance_period_end,
     id: row.id,
     created_at: row.created_at,
     date: row.date,

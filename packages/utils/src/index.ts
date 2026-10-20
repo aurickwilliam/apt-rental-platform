@@ -93,6 +93,7 @@ export {
   paidAmountForPeriod,
   resolvePaymentPeriod,
   nextPaymentPeriod,
+  nextUnpaidRentPeriod,
   getCurrentRentStatus,
 } from './rentPeriod';
 export {
@@ -106,3 +107,4 @@ export {
   sortNotificationsNewestFirst,
   groupNotificationsByLocalDate,
 } from './notificationOrder';
+export * from './tenancyBill';
