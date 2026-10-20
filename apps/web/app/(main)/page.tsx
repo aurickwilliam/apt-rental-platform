@@ -71,8 +71,17 @@ export default async function Home() {
     image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
   }));
 
-  // The download affordances (hero button + app section) stay hidden until a
-  // hosted APK is configured. `/download` reads the same variable directly.
+  // Android APK download availability. To publish the app:
+  //   1. Apply the app-downloads bucket migration
+  //      (supabase/migrations/20261020100000_create_app_downloads_bucket.sql)
+  //      and upload the APK to that bucket (dashboard upload; the bucket is
+  //      public read, writes stay operator-only).
+  //   2. Set NEXT_PUBLIC_APT_APK_URL to the file's public URL in
+  //      apps/web/.env.local (and the host's env settings), e.g.
+  //      https://<project-ref>.supabase.co/storage/v1/object/public/app-downloads/APT-latest.apk
+  //      then restart/redeploy.
+  //   3. Until then the buttons render disabled with a "Coming soon" chip and
+  //      /download answers 404; no code change is needed to enable them.
   const apkAvailable = Boolean(process.env.NEXT_PUBLIC_APT_APK_URL?.trim());
 
   return (
@@ -93,7 +102,7 @@ export default async function Home() {
         <HowItWorksSection />
 
         {/* Get the App */}
-        {apkAvailable ? <AppSection /> : null}
+        <AppSection apkAvailable={apkAvailable} />
       </main>
     </div>
   );

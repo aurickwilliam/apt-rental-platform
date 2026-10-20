@@ -44,7 +44,7 @@ export default function HeroSection({ apkAvailable = false }: HeroSectionProps) 
 
         <div className="flex flex-wrap items-center gap-3">
           <StartBrowsingBtn />
-          {apkAvailable ? <AppDownloadButton /> : null}
+          <AppDownloadButton isAvailable={apkAvailable} />
         </div>
 
         {/* Stats row — wraps instead of overflowing. Icon tiles, Nunito

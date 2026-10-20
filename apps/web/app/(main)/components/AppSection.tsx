@@ -1,9 +1,8 @@
-import Link from "next/link";
+import AppDownloadButton from "./AppDownloadButton";
 
-import { Button, Surface } from "@heroui/react";
+import { Surface } from "@heroui/react";
 
 import {
-  IconBrandAndroid,
   IconBuildingSkyscraper,
   IconCircleCheck,
   IconCreditCard,
@@ -23,13 +22,17 @@ const INSTALL_STEPS = [
   "Sign in with the same account you use on the web.",
 ];
 
+interface AppSectionProps {
+  /** Mirrors the APK URL check; drives the button's disabled state. */
+  apkAvailable: boolean;
+}
+
 /**
- * Mobile-app section of the landing page. Rendered only when the APK download
- * is configured — see `NEXT_PUBLIC_APT_APK_URL` in the page. The download
- * button always points at `/download`, so swapping the hosted file never
- * requires a code change.
+ * Mobile-app section of the landing page. Always rendered; the download button
+ * disables itself until `NEXT_PUBLIC_APT_APK_URL` is configured, then links to
+ * `/download` so swapping the hosted file never requires a code change.
  */
-export default function AppSection() {
+export default function AppSection({ apkAvailable }: AppSectionProps) {
   return (
     <section className="mb-16 mt-16 md:mt-24">
       <Surface className="overflow-hidden rounded-3xl border border-divider bg-secondary">
@@ -59,15 +62,12 @@ export default function AppSection() {
             </ul>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/download" prefetch={false} className="inline-flex">
-                <Button variant="primary">
-                  <IconBrandAndroid size={18} />
-                  Download for Android
-                </Button>
-              </Link>
+              <AppDownloadButton isAvailable={apkAvailable} variant="primary" />
 
               <span className="text-xs text-muted-foreground">
-                Android only for now — the APK installs directly.
+                {apkAvailable
+                  ? "Android only for now — the APK installs directly."
+                  : "Android only for now — the APK is coming soon."}
               </span>
             </div>
 

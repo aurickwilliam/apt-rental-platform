@@ -8,11 +8,9 @@ function Sk({ className = "" }: { className?: string }) {
 }
 
 // Content-shaped loading state for the landing route, mirroring the
-// geometry of page.tsx (hero, Why Us, featured carousel, How It Works, and
-// the app section when the APK download is configured) so the skeleton →
-// content transition doesn't shift layout.
+// geometry of page.tsx (hero, Why Us, featured carousel, How It Works and
+// the app section) so the skeleton → content transition doesn't shift layout.
 export default function MainLoading() {
-  const apkAvailable = Boolean(process.env.NEXT_PUBLIC_APT_APK_URL?.trim());
 
   return (
     <div
@@ -33,7 +31,7 @@ export default function MainLoading() {
 
             <div className="flex flex-wrap items-center gap-3">
               <Sk className="h-12 w-40 rounded-xl" />
-              {apkAvailable ? <Sk className="h-12 w-52 rounded-xl" /> : null}
+              <Sk className="h-12 w-52 rounded-xl" />
             </div>
 
             <div className="mt-2 flex flex-wrap items-start gap-6 border-t border-divider pt-4">
@@ -110,24 +108,22 @@ export default function MainLoading() {
           </div>
         </section>
 
-        {/* App download (only when configured) */}
-        {apkAvailable ? (
-          <section className="mt-16 md:mt-24 mb-16">
-            <div className="rounded-3xl border border-divider bg-secondary p-8 md:p-12">
-              <div className="grid items-center gap-10 lg:grid-cols-2">
-                <div className="flex flex-col gap-5">
-                  <Sk className="h-3 w-24 rounded-full" />
-                  <Sk className="h-9 w-3/4 rounded-xl" />
-                  <Sk className="h-4 w-full rounded-full" />
-                  <Sk className="h-4 w-2/3 rounded-full" />
-                  <Sk className="h-4 w-5/6 rounded-full" />
-                  <Sk className="h-12 w-52 rounded-xl mt-2" />
-                </div>
-                <Sk className="mx-auto h-96 w-full max-w-[260px] rounded-[2.5rem]" />
+        {/* App download */}
+        <section className="mt-16 mb-16 md:mt-24">
+          <div className="rounded-3xl border border-divider bg-secondary p-8 md:p-12">
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <div className="flex flex-col gap-5">
+                <Sk className="h-3 w-24 rounded-full" />
+                <Sk className="h-9 w-3/4 rounded-xl" />
+                <Sk className="h-4 w-full rounded-full" />
+                <Sk className="h-4 w-2/3 rounded-full" />
+                <Sk className="h-4 w-5/6 rounded-full" />
+                <Sk className="mt-2 h-12 w-52 rounded-xl" />
               </div>
+              <Sk className="mx-auto h-96 w-full max-w-[260px] rounded-[2.5rem]" />
             </div>
-          </section>
-        ) : null}
+          </div>
+        </section>
       </main>
     </div>
   );
