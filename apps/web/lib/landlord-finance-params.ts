@@ -9,7 +9,11 @@
 
 export type FinanceTab = "overview" | "expenses" | "budget";
 
-export const FINANCE_TABS: readonly FinanceTab[] = ["overview", "expenses", "budget"];
+export const FINANCE_TABS: readonly FinanceTab[] = [
+  "overview",
+  "expenses",
+  "budget",
+];
 
 /** Values as Next.js searchParams carries them (string, or repeated keys). */
 export type SearchParamValue = string | string[] | undefined;
@@ -41,7 +45,7 @@ export function financeMonthParam(
   return parseMonth(firstValue(value).trim(), currentMonth);
 }
 
-/** A malformed or foreign property id reads as All properties. */
+/** UUID syntax only; ownership is resolved from the caller's report, never here. */
 export function financeApartmentParam(value: SearchParamValue): string | null {
   const raw = firstValue(value).trim();
   return APARTMENT_ID_PATTERN.test(raw) ? raw : null;
@@ -49,7 +53,9 @@ export function financeApartmentParam(value: SearchParamValue): string | null {
 
 export function financeTabParam(value: SearchParamValue): FinanceTab {
   const raw = firstValue(value);
-  return (FINANCE_TABS as readonly string[]).includes(raw) ? (raw as FinanceTab) : "overview";
+  return (FINANCE_TABS as readonly string[]).includes(raw)
+    ? (raw as FinanceTab)
+    : "overview";
 }
 
 /** One parse for the whole route, so server pages and clients never drift. */
@@ -63,4 +69,18 @@ export function parseLandlordFinanceParams(
     apartmentId: financeApartmentParam(searchParams.apartmentId),
     tab: financeTabParam(searchParams.tab),
   };
+}
+
+/** Change applied finance state without dropping notifications/settings or other URL state. */
+export function financeReportHref(
+  query: string,
+  patch: Partial<LandlordFinanceRouteParams>,
+  path = "/landlord/analytics",
+): string {
+  const params = new URLSearchParams(query);
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) params.delete(key);
+    else params.set(key, value);
+  }
+  return `${path}${params.size ? `?${params}` : ""}`;
 }

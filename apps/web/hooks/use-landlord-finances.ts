@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   financeIncomeMonthsFromReports,
@@ -43,8 +43,6 @@ import {
  *  (the loaders already map transport errors to the same wording). */
 const FINANCE_REPORT_FALLBACK = financeErrorMessage(null);
 
-const EMPTY_INCOME_MONTHS: FinanceIncomeMonth[] = [];
-
 const EMPTY_FINANCE_DATA: FinanceData = {
   properties: [],
   months: [],
@@ -76,20 +74,28 @@ function useFinanceOperation(): FinanceOperation & {
 } {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false);
   const clearError = useCallback(() => setError(null), []);
-  const run = useCallback(async (action: () => Promise<void>): Promise<boolean> => {
-    setPending(true);
-    setError(null);
-    try {
-      await action();
-      return true;
-    } catch (err) {
-      setError(financeErrorMessage(err));
-      return false;
-    } finally {
-      setPending(false);
-    }
-  }, []);
+  const run = useCallback(
+    async (action: () => Promise<void>): Promise<boolean> => {
+      if (inFlight.current) return false;
+      inFlight.current = true;
+      setPending(true);
+      setError(null);
+      try {
+        await action();
+        return true;
+      } catch (err) {
+        console.error("Finance operation failed");
+        setError(financeErrorMessage(err));
+        return false;
+      } finally {
+        inFlight.current = false;
+        setPending(false);
+      }
+    },
+    [],
+  );
   return { pending, error, clearError, run };
 }
 
@@ -117,20 +123,37 @@ export function useFinanceAccess() {
 export function useLandlordFinances(scope: FinanceScope) {
   const { ownerId, enabled, loading: userLoading } = useFinanceAccess();
   const { month, apartmentId } = scope;
+  const scopeKey = JSON.stringify([ownerId, month, apartmentId]);
+  const currentScope = useRef<string | null>(scopeKey);
+  useEffect(() => {
+    currentScope.current = scopeKey;
+    return () => {
+      currentScope.current = null;
+    };
+  }, [scopeKey]);
 
-  const load = useCallback(async (): Promise<FinanceData> => {
-    if (!ownerId || !enabled) return EMPTY_FINANCE_DATA;
+  const load = useCallback(async (): Promise<{
+    key: string;
+    data: FinanceData;
+  } | null> => {
+    if (!ownerId || !enabled) return null;
     try {
-      return await fetchFinances({ month, apartmentId });
+      return {
+        key: scopeKey,
+        data: await fetchFinances({ month, apartmentId }),
+      };
     } catch (error) {
       // Transport failures surface the shared wording (identical on mobile),
       // so the report shows the mapped message as-is.
       throw new Error(financeErrorMessage(error));
     }
-  }, [ownerId, enabled, month, apartmentId]);
+  }, [ownerId, enabled, month, apartmentId, scopeKey]);
 
-  const report = useAsyncResource(load, EMPTY_FINANCE_DATA, FINANCE_REPORT_FALLBACK);
+  const report = useAsyncResource(load, null, FINANCE_REPORT_FALLBACK);
+  const hasData = enabled && report.data?.key === scopeKey;
   const { refresh: refreshReport } = report;
+  const latestRefresh = useRef(refreshReport);
+  useEffect(() => { latestRefresh.current = refreshReport; }, [refreshReport]);
 
   const saveExpenseOp = useFinanceOperation();
   const { run: runSaveExpense } = saveExpenseOp;
@@ -146,66 +169,77 @@ export function useLandlordFinances(scope: FinanceScope) {
   const saveExpense = useCallback(
     async (draft: ExpenseDraft, editing: boolean) => {
       const ok = await runSaveExpense(async () => {
-        if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
+        if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await saveExpenseTransport(ownerId, draft, editing);
       });
       // A write can change two months, review flags and chart windows; the
       // report reloads, list handles refresh in their own components.
-      if (ok) void refreshReport();
+      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runSaveExpense, ownerId, refreshReport],
+    [runSaveExpense, ownerId, enabled, refreshReport, scopeKey],
   );
 
   const removeExpense = useCallback(
     async (id: string) => {
       const ok = await runRemoveExpense(async () => {
-        if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
+        if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await deleteExpenseTransport(ownerId, id);
       });
-      if (ok) void refreshReport();
+      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runRemoveExpense, ownerId, refreshReport],
+    [runRemoveExpense, ownerId, enabled, refreshReport, scopeKey],
   );
 
   const saveBudget = useCallback(
     async (value: Omit<FinanceBudget, "id">) => {
       const ok = await runSaveBudget(async () => {
-        if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
+        if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await saveBudgetTransport(value);
       });
-      if (ok) void refreshReport();
+      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runSaveBudget, ownerId, refreshReport],
+    [runSaveBudget, ownerId, enabled, refreshReport, scopeKey],
   );
 
   const removeBudget = useCallback(
     async (id: string) => {
       const ok = await runRemoveBudget(async () => {
-        if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
+        if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await deleteBudgetTransport(ownerId, id);
       });
-      if (ok) void refreshReport();
+      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runRemoveBudget, ownerId, refreshReport],
+    [runRemoveBudget, ownerId, enabled, refreshReport, scopeKey],
   );
 
   const reviewExpenses = useCallback(async () => {
     const ok = await runReview(async () => {
-      if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
+      if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
       await confirmExpenseReview({ month, apartmentId });
     });
-    if (ok) void refreshReport();
+    if (ok && currentScope.current === scopeKey) void latestRefresh.current();
     return ok;
-  }, [runReview, ownerId, refreshReport, month, apartmentId]);
+  }, [
+    runReview,
+    ownerId,
+    enabled,
+    refreshReport,
+    month,
+    apartmentId,
+    scopeKey,
+  ]);
 
   return {
     report: {
-      data: report.data,
+      data: hasData ? report.data!.data : EMPTY_FINANCE_DATA,
       loading: report.loading,
+      initialLoading: !hasData && report.loading,
+      refreshing: hasData && report.loading,
+      hasData,
       error: report.error,
       refresh: refreshReport,
     },
@@ -259,22 +293,35 @@ export function useFinanceIncomeMonths(
   const { ownerId, enabled } = useFinanceAccess();
   const gated = enabled && isOpen;
 
-  const load = useCallback(async (): Promise<FinanceIncomeMonth[]> => {
-    if (!gated || !ownerId) return EMPTY_INCOME_MONTHS;
+  const indicatorKey = JSON.stringify([ownerId, currentMonth, apartmentId]);
+  const load = useCallback(async (): Promise<{
+    key: string;
+    months: FinanceIncomeMonth[];
+  } | null> => {
+    if (!gated || !ownerId) return null;
     try {
       const latest = await fetchFinances({ month: currentMonth, apartmentId });
-      if (latest.incomeMonths) return latest.incomeMonths;
+      if (latest.incomeMonths)
+        return { key: indicatorKey, months: latest.incomeMonths };
       const earlier = await fetchFinances({
         month: shiftFinanceMonth(currentMonth, -12),
         apartmentId,
       });
-      return financeIncomeMonthsFromReports(earlier.months, latest.months);
+      return {
+        key: indicatorKey,
+        months: financeIncomeMonthsFromReports(earlier.months, latest.months),
+      };
     } catch (error) {
       throw new Error(financeErrorMessage(error));
     }
-  }, [gated, ownerId, currentMonth, apartmentId]);
+  }, [gated, ownerId, currentMonth, apartmentId, indicatorKey]);
 
-  return useAsyncResource(load, EMPTY_INCOME_MONTHS, FINANCE_REPORT_FALLBACK);
+  const resource = useAsyncResource(load, null, FINANCE_REPORT_FALLBACK);
+  return {
+    ...resource,
+    data:
+      resource.data?.key === indicatorKey ? resource.data.months : undefined,
+  };
 }
 
 export interface FinancePagesResult<Row> {
@@ -294,7 +341,11 @@ export interface FinancePagesResult<Row> {
 }
 
 /** The immutable scope identity a page belongs to. */
-function financePagesKey(ownerId: string | null, scope: FinanceScope, extra: string): string {
+function financePagesKey(
+  ownerId: string | null,
+  scope: FinanceScope,
+  extra: string,
+): string {
   return [ownerId ?? "", scope.month, scope.apartmentId ?? "", extra].join("|");
 }
 
@@ -331,6 +382,7 @@ function useFinancePages<Row, Cursor, Scope>(
       return;
     }
     void controller.open(request, fetchPage);
+    return () => controller.reset();
   }, [controller, enabled, ownerId, request, fetchPage]);
 
   const refresh = useCallback(
@@ -343,7 +395,9 @@ function useFinancePages<Row, Cursor, Scope>(
   );
 
   const snapshot =
-    trail.key === request.key ? trail.snapshot : emptyFinancePages<Row, Cursor>();
+    trail.key === request.key
+      ? trail.snapshot
+      : emptyFinancePages<Row, Cursor>();
   return {
     rows: snapshot.rows,
     hasMore: snapshot.next !== null,

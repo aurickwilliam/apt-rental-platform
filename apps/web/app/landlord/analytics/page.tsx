@@ -15,13 +15,16 @@ interface ProfitAnalyticsPageProps {
  * the URL stays the validated source of truth. Form drafts never enter the
  * route; filters update it as applied scope.
  */
-export default async function ProfitAnalyticsPage({ searchParams }: ProfitAnalyticsPageProps) {
+export default async function ProfitAnalyticsPage({
+  searchParams,
+}: ProfitAnalyticsPageProps) {
   await requireLandlordFinanceViewer();
   const params = await searchParams;
+  const currentMonth = manilaToday().slice(0, 7);
   const applied = parseLandlordFinanceParams(
     params,
-    manilaToday().slice(0, 7),
+    currentMonth,
     financeMonthFromParam,
   );
-  return <AnalyticsClient params={applied} />;
+  return <AnalyticsClient params={applied} currentMonth={currentMonth} />;
 }

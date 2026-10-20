@@ -4,6 +4,7 @@ import { IconChevronRight } from "@tabler/icons-react-native";
 import {
   financePerformanceValue,
   formatPesoDisplay,
+  formatFinanceMoney,
   rankFinanceProperties,
   type PropertyPerformanceMetric,
 } from "@repo/utils";
@@ -71,7 +72,7 @@ export default function PropertyPerformanceList({
               <Text
                 className={`font-nunitoBold text-sm ${amount !== null && amount < 0 ? "text-danger" : "text-accent"}`}
               >
-                {amount === null ? "Not reviewed" : formatPesoDisplay(amount)}
+                {amount === null ? "Not reviewed" : formatFinanceMoney(amount, formatPesoDisplay)}
               </Text>
               {onSelect && (
                 <IconChevronRight size={18} color={colors.textPrimary} />
@@ -105,7 +106,7 @@ export default function PropertyPerformanceList({
             variant="ghost"
             className="h-auto min-h-14 py-2"
             onPress={() => onSelect(property.id)}
-            accessibilityLabel={`${property.name}, ${metric}, ${amount === null ? "expenses not reviewed" : formatPesoDisplay(amount)}. Filter this property.`}
+            accessibilityLabel={`${property.name}, ${metric}, ${amount === null ? "expenses not reviewed" : formatFinanceMoney(amount, formatPesoDisplay)}. Filter this property.`}
           >
             {details}
           </Button>

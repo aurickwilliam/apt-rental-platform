@@ -21,26 +21,40 @@ export const FINANCE_PAGE_SIZE = 30;
 export const MAX_FINANCE_DESCRIPTION_LENGTH = 200;
 
 export function financeCategoryLabel(category: string): string {
-  return FINANCE_CATEGORIES.find((item) => item.id === category)?.label ?? category;
+  return (
+    FINANCE_CATEGORIES.find((item) => item.id === category)?.label ?? category
+  );
 }
 
 export function manilaToday(now: Date = new Date()): string {
-  return new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return new Date(now.getTime() + 8 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
 }
 
 export function shiftFinanceMonth(month: string, offset: number): string {
   const [year, number] = month.slice(0, 7).split("-").map(Number);
-  return new Date(Date.UTC(year, number - 1 + offset, 1)).toISOString().slice(0, 7);
+  return new Date(Date.UTC(year, number - 1 + offset, 1))
+    .toISOString()
+    .slice(0, 7);
 }
 
 export function financeMonthLabel(month: string): string {
-  return new Date(`${month.slice(0, 7)}-01T12:00:00Z`).toLocaleDateString("en-PH", {
-    month: "long", year: "numeric", timeZone: "Asia/Manila",
-  });
+  return new Date(`${month.slice(0, 7)}-01T12:00:00Z`).toLocaleDateString(
+    "en-PH",
+    {
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Manila",
+    },
+  );
 }
 
 /** Resolves a `YYYY-MM` route param to a month the finance report accepts. */
-export function financeMonthFromParam(value: unknown, currentMonth: string): string {
+export function financeMonthFromParam(
+  value: unknown,
+  currentMonth: string,
+): string {
   return typeof value === "string" &&
     /^\d{4}-(0[1-9]|1[0-2])$/.test(value) &&
     value <= currentMonth &&
@@ -50,7 +64,9 @@ export function financeMonthFromParam(value: unknown, currentMonth: string): str
 }
 
 /** Resolves a route param to a budget category the finance forms accept. */
-export function financeCategoryFromParam(value: unknown): FinanceCategory | undefined {
+export function financeCategoryFromParam(
+  value: unknown,
+): FinanceCategory | undefined {
   return typeof value === "string" &&
     FINANCE_CATEGORIES.some((item) => item.id === value)
     ? (value as FinanceCategory)
@@ -72,23 +88,37 @@ export function budgetCategoryOptions(
 }
 
 /** Spending budgets cannot hold reserve-only categories (emergency, vacancy). */
-export function isBudgetCategoryAllowed(kind: BudgetKind, category: FinanceCategory): boolean {
+export function isBudgetCategoryAllowed(
+  kind: BudgetKind,
+  category: FinanceCategory,
+): boolean {
   return kind === "reserve" || !["emergency", "vacancy"].includes(category);
 }
 
 /** Empty, scientific notation, negative, non-finite and >2 decimal values are rejected. */
-export function parseFinanceAmount(value: string, allowZero = false): number | null {
+export function parseFinanceAmount(
+  value: string,
+  allowZero = false,
+): number | null {
   if (!/^\d+(\.\d{1,2})?$/.test(value.trim())) return null;
   const amount = Number(value);
-  return Number.isFinite(amount) && amount <= MAX_FINANCE_AMOUNT && (allowZero ? amount >= 0 : amount > 0)
-    ? amount : null;
+  return Number.isFinite(amount) &&
+    amount <= MAX_FINANCE_AMOUNT &&
+    (allowZero ? amount >= 0 : amount > 0)
+    ? amount
+    : null;
 }
 
-export function validateExpenseDate(value: string, today = manilaToday()): string | null {
+export function validateExpenseDate(
+  value: string,
+  today = manilaToday(),
+): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Enter a date as YYYY-MM-DD.";
   const date = new Date(`${value}T12:00:00Z`);
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) return "Enter a valid date.";
-  if (value > today) return "Record expenses already paid, not future spending.";
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value)
+    return "Enter a valid date.";
+  if (value > today)
+    return "Record expenses already paid, not future spending.";
   if (value < "2000-01-01") return "Choose a date from 2000 onwards.";
   return null;
 }
@@ -192,7 +222,8 @@ export function groupBudgetsByCategory(
   const rank = (category: FinanceCategory) =>
     FINANCE_CATEGORY_ORDER.get(category) ?? FINANCE_CATEGORIES.length;
   return [...groups.values()].sort(
-    (a, b) => rank(a.category) - rank(b.category) || a.kind.localeCompare(b.kind),
+    (a, b) =>
+      rank(a.category) - rank(b.category) || a.kind.localeCompare(b.kind),
   );
 }
 
@@ -206,21 +237,34 @@ export interface FinanceSuggestion {
 
 /** Rules use only entered goals or reviewed spending, never invented market estimates. */
 export function suggestFinanceBudget(
-  budget: Pick<FinanceBudget, "category" | "kind" | "target_amount" | "months_remaining">,
+  budget: Pick<
+    FinanceBudget,
+    "category" | "kind" | "target_amount" | "months_remaining"
+  >,
   reviewedHistory: readonly number[] = [],
 ): FinanceSuggestion | null {
-  if (budget.target_amount && budget.months_remaining && budget.months_remaining > 0) {
+  if (
+    budget.target_amount &&
+    budget.months_remaining &&
+    budget.months_remaining > 0
+  ) {
     return {
-      category: budget.category, kind: budget.kind,
-      amount: Math.ceil((budget.target_amount / budget.months_remaining) * 100) / 100,
+      category: budget.category,
+      kind: budget.kind,
+      amount:
+        Math.ceil((budget.target_amount / budget.months_remaining) * 100) / 100,
       title: `Plan for ${financeCategoryLabel(budget.category).toLowerCase()}`,
       basis: `Your entered target divided across ${budget.months_remaining} months. This is a plan, not money transferred.`,
     };
   }
   if (budget.kind !== "expense" || reviewedHistory.length < 3) return null;
   return {
-    category: budget.category, kind: "expense",
-    amount: Math.ceil(reviewedHistory.reduce((sum, value) => sum + value, 0) / reviewedHistory.length),
+    category: budget.category,
+    kind: "expense",
+    amount: Math.ceil(
+      reviewedHistory.reduce((sum, value) => sum + value, 0) /
+        reviewedHistory.length,
+    ),
     title: `Review your ${financeCategoryLabel(budget.category).toLowerCase()} budget`,
     basis: `Average recorded spending across ${reviewedHistory.length} reviewed months. Adjust for upcoming work.`,
   };
@@ -229,15 +273,24 @@ export function suggestFinanceBudget(
 export function financeIncome(
   month: Pick<FinanceMonth, "collected" | "operating" | "reviewed">,
 ): number | null {
-  return month.reviewed ? Math.round((month.collected - month.operating) * 100) / 100 : null;
+  return month.reviewed
+    ? Math.round((month.collected - month.operating) * 100) / 100
+    : null;
 }
 
-export function financeAfterReserve(month: FinanceMonth, plannedReserve: number): number | null {
+export function financeAfterReserve(
+  month: FinanceMonth,
+  plannedReserve: number,
+): number | null {
   const income = financeIncome(month);
-  return income === null ? null : Math.round((income - month.capital - plannedReserve) * 100) / 100;
+  return income === null
+    ? null
+    : Math.round((income - month.capital - plannedReserve) * 100) / 100;
 }
 
-export function rentAgeBucket(daysLate: number): "not_due" | "1–7 days" | "8–30 days" | "31+ days" {
+export function rentAgeBucket(
+  daysLate: number,
+): "not_due" | "1–7 days" | "8–30 days" | "31+ days" {
   if (daysLate <= 0) return "not_due";
   if (daysLate <= 7) return "1–7 days";
   return daysLate <= 30 ? "8–30 days" : "31+ days";
@@ -342,7 +395,9 @@ export interface RentLedgerRow {
  *  thrown on every platform instead of presenting unknown data as zeros. */
 export function decodeFinanceReport(data: unknown): FinanceData {
   if (
-    !data || typeof data !== "object" || Array.isArray(data) ||
+    !data ||
+    typeof data !== "object" ||
+    Array.isArray(data) ||
     !Array.isArray((data as { months?: unknown }).months)
   ) {
     throw new Error("The finance report could not be read.");
@@ -355,7 +410,9 @@ export function decodeFinanceReport(data: unknown): FinanceData {
   }
   const incomeMonths = raw.income_months.map((row): FinanceIncomeMonth => {
     if (
-      !row || typeof row !== "object" || Array.isArray(row) ||
+      !row ||
+      typeof row !== "object" ||
+      Array.isArray(row) ||
       typeof (row as { month?: unknown }).month !== "string" ||
       !/^\d{4}-(0[1-9]|1[0-2])$/.test((row as { month: string }).month) ||
       typeof (row as { collected?: unknown }).collected !== "number" ||
@@ -377,7 +434,10 @@ export function financeIncomeMonthsFromReports(
   earlier: readonly FinanceMonth[],
   latest: readonly FinanceMonth[],
 ): FinanceIncomeMonth[] {
-  return [...earlier, ...latest].map(({ month, collected }) => ({ month, collected }));
+  return [...earlier, ...latest].map(({ month, collected }) => ({
+    month,
+    collected,
+  }));
 }
 
 /**
@@ -385,9 +445,10 @@ export function financeIncomeMonthsFromReports(
  * `FINANCE_PAGE_SIZE + 1` ordered rows, so an extra row probes the next page.
  * Supabase returns null when the query matched nothing.
  */
-export function financeExpensePage(
-  fetched: readonly ExpenseRecord[] | null,
-): { rows: ExpenseRecord[]; next: ExpenseCursor | null } {
+export function financeExpensePage(fetched: readonly ExpenseRecord[] | null): {
+  rows: ExpenseRecord[];
+  next: ExpenseCursor | null;
+} {
   const rows = (fetched ?? []).slice(0, FINANCE_PAGE_SIZE);
   const last = rows.at(-1);
   return {
@@ -400,9 +461,10 @@ export function financeExpensePage(
 }
 
 /** The same keyset contract for the rental-period ledger, cursored by row id. */
-export function financeLedgerPage(
-  fetched: readonly RentLedgerRow[] | null,
-): { rows: RentLedgerRow[]; next: string | null } {
+export function financeLedgerPage(fetched: readonly RentLedgerRow[] | null): {
+  rows: RentLedgerRow[];
+  next: string | null;
+} {
   const rows = (fetched ?? []).slice(0, FINANCE_PAGE_SIZE);
   return {
     rows,
@@ -417,7 +479,10 @@ export type PropertyPerformanceMetric = "collected" | "expenses" | "net";
 
 /** Expenses cover operating and capital spending; net income stays null until review. */
 export function financePerformanceValue(
-  property: Pick<FinanceMonth, "collected" | "operating" | "capital" | "reviewed">,
+  property: Pick<
+    FinanceMonth,
+    "collected" | "operating" | "capital" | "reviewed"
+  >,
   metric: PropertyPerformanceMetric,
 ): number | null {
   if (metric === "net") return financeIncome(property);
@@ -503,7 +568,10 @@ export interface FinanceGoalEntry {
 
 /** Parses the optional goal inputs: a target needs a positive amount and 1–600
  *  whole months; month errors only apply when a target is present. */
-export function financeGoalFromForm(target: string, months: string): FinanceGoalEntry {
+export function financeGoalFromForm(
+  target: string,
+  months: string,
+): FinanceGoalEntry {
   const hasTarget = !!target.trim();
   const targetValue = hasTarget ? parseFinanceAmount(target) : null;
   const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
@@ -511,12 +579,12 @@ export function financeGoalFromForm(target: string, months: string): FinanceGoal
   return {
     target_amount: targetValue,
     months_remaining: targetValue === null ? null : monthsValue,
-    targetError: hasTarget && targetValue === null
-      ? "Enter a positive target amount."
-      : null,
-    monthsError: hasTarget && !inRange
-      ? "Enter a whole number from 1 to 600."
-      : null,
+    targetError:
+      hasTarget && targetValue === null
+        ? "Enter a positive target amount."
+        : null,
+    monthsError:
+      hasTarget && !inRange ? "Enter a whole number from 1 to 600." : null,
   };
 }
 
@@ -538,4 +606,112 @@ export function financeErrorMessage(error: unknown): string {
     return "Finance tracking needs the latest database update. Please contact support.";
   }
   return "We couldn’t save or load your finances. Check your connection and try again.";
+}
+
+/** Peso input formatting deliberately strips signs. Finance displays must not. */
+export function formatFinanceMoney(
+  amount: number,
+  formatPeso: (value: number) => string,
+): string {
+  return `${amount < 0 ? "−" : ""}${formatPeso(Math.abs(amount))}`;
+}
+
+export function financePlanTotals(budgets: readonly FinanceBudgetProgress[]) {
+  return {
+    spending: budgets
+      .filter((budget) => budget.kind === "expense")
+      .reduce((sum, budget) => sum + budget.amount, 0),
+    reserve: budgets
+      .filter((budget) => budget.kind === "reserve")
+      .reduce((sum, budget) => sum + budget.amount, 0),
+    // Check individual plans, not grouped totals which can hide an overage.
+    overLimit: budgets.some(
+      (budget) => budget.kind === "expense" && budget.spent > budget.amount,
+    ),
+  };
+}
+
+export interface FinanceTrendSeries {
+  collected: boolean;
+  expenses: boolean;
+  net: boolean;
+}
+
+export function toggleFinanceTrendSeries(
+  series: FinanceTrendSeries,
+  key: keyof FinanceTrendSeries,
+): FinanceTrendSeries {
+  if (
+    key !== "net" &&
+    series[key] &&
+    !series[key === "collected" ? "expenses" : "collected"]
+  )
+    return series;
+  return { ...series, [key]: !series[key] };
+}
+
+export function financeTrendWindow(
+  months: readonly FinanceMonth[],
+  range: number,
+) {
+  const points = months.slice(-range);
+  return {
+    points,
+    allReviewed: points.length > 0 && points.every((point) => point.reviewed),
+    hasActivity: points.some(
+      (point) => point.collected > 0 || point.operating + point.capital > 0,
+    ),
+  };
+}
+
+export function financeRentIndicator(
+  month: string,
+  currentMonth: string,
+  incomeMonths: readonly FinanceIncomeMonth[] | undefined,
+  unavailable: boolean,
+) {
+  if (month < shiftFinanceMonth(currentMonth, -23) || month > currentMonth)
+    return "outside report range";
+  const collected = unavailable
+    ? undefined
+    : incomeMonths?.find((item) => item.month === month)?.collected;
+  return collected === undefined
+    ? "rent data unavailable"
+    : collected > 0
+      ? "rent collected"
+      : "no rent collected";
+}
+
+/** Shared explanatory copy; no financial state or formulas live in the dialog. */
+export function financeGuidelineSections(today: string) {
+  return [
+    {
+      title: "Collected rent",
+      body: "Only confirmed rent payments linked to a tenancy and rental period count. Untagged payments and security deposits are excluded.",
+    },
+    {
+      title: "Operating income",
+      body: "Net operating income is cash-based. It excludes improvements, loan payments, depreciation and reserve allocations, so it is not taxable profit or an account balance.",
+    },
+    {
+      title: "Improvements & planned reserves",
+      body: "Cash after spending also subtracts improvements and planned reserves. Planned reserves are amounts you intend to set aside, not transfers.",
+    },
+    {
+      title: "Expense review",
+      body: "Review all selected properties’ expenses, including zero-spending months. Adding, editing or deleting an expense reopens review, because missing expenses are never treated as zero.",
+    },
+    {
+      title: "Payment dates & comparison",
+      body: `Payment dates use the recorded payment date. Current-month results are through ${today}; the comparison uses equivalent elapsed days, clamped to the previous month’s end.`,
+    },
+    {
+      title: "Planning guidance",
+      body: "Budgets and reserve goals help you plan, but they do not move, hold or transfer money. They are not tax, accounting, legal or investment advice.",
+    },
+    {
+      title: "What the report includes",
+      body: "Collection expectations cover active leases and ended leases with a recorded end date. Removed listings are excluded. PayMongo transactions currently use test funds.",
+    },
+  ];
 }

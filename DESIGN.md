@@ -315,6 +315,12 @@ A budget category is its own page in the same shape: a standard header titled wi
 
 ---
 
+### Landlord profit & planning (web Overview) ✅
+
+`/landlord/analytics` keeps the landlord portal heading and shows the applied property above its report month. The soft-blue earnings panel precedes the report tabs; its expandable figures link to one scrollable guidelines modal. Overview pairs Needs attention with the monthly plan on desktop, uses a wide income chart, then pairs rental-period collection health with ranked property performance. Small screens stack the same cards and keep every action reachable. Collected cash and billing-period balances are explicitly distinguished; losses retain a minus sign and unreviewed income stays unavailable.
+
+Filters use a HeroUI modal with Property / Month tabs, a searchable owned-property list, the 24-month grid, draft-property rent indicators and fixed Cancel / Apply footer. Drafts never change applied headings until Apply. The collection modal uses HeroUI status tabs, a desktop table and narrow-screen cards with bounded Load more. The full property-comparison route retains the report month and returns a property selection to Overview. Charts use the existing brand/danger colors with labeled series, keyboard month controls and 3M/6M/12M ranges. Report refreshes retain settled same-scope content; scope changes hide the preceding figures. Loading mirrors the earnings panel, tabs and Overview cards. Persistent toolbar actions carry notification-bell clearance. No new design tokens are introduced.
+
 ## 12. Lists
 
 - **Mobile:** `FlatList` `gap-3`–`gap-16`, `contentContainerStyle paddingBottom: 84` when a floating bar exists; `ListGroup` for settings/profile (icon 22 + `font-nunitoSemiBold` title + `Separator mx-4`); `Separator` between items; pull-to-refresh uses the shared `PullToRefreshControl` gesture with its native indicator transparent and a `PullToRefreshIndicator` HeroUI spinner in `colors.primary`

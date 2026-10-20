@@ -1,6 +1,6 @@
 # Landlord Web Budget Analytics — Full Mobile Parity Plan
 
-Status: implementation plan only; no application changes made.
+Status: Phases 1–3 implemented. Full Expenses/Budget editing and final acceptance remain in Phases 4–6.
 
 ## 1. Goal and scope
 
@@ -116,56 +116,56 @@ Long, paginated drill-downs stay addressable pages; short forms and temporary de
 
 ### 4.1 Entry, scope, and filtering
 
-- [ ] Add a **Profit & planning** link to desktop and mobile landlord navigation with a supported Tabler icon and intent prefetching.
-- [ ] Default to All properties and the current Manila calendar month.
-- [ ] Show the applied property name under a Filtered property caption, or All properties, followed by the applied month.
-- [ ] Keep applied month/property/tab in validated URL state; form drafts and unsaved financial amounts never enter the URL.
-- [ ] Preserve unrelated query parameters, including notification/settings triggers, when updating finance filters.
-- [ ] Filters opens a draft seeded from applied values, on Property, with cleared search and the applied year's month grid.
-- [ ] Property picker supports searchable owned properties, All properties, case-insensitive matching, clear search, selected indication, and no-results feedback.
-- [ ] Month picker supports year navigation and a three-column month grid covering the current and previous 23 months; future/out-of-window choices are disabled.
-- [ ] Indicate months with collected rent using the separate 24-month income summary for the **draft property**, not the 12-month chart window or applied property.
-- [ ] Map `income_months` to `incomeMonths` explicitly and validate the summary payload. An assertion does not rename JSON keys.
-- [ ] Retain compatibility with older payloads without `income_months`: combine bounded cached reports for the current month and 12 months earlier, as mobile does.
-- [ ] Show indicator-sized skeletons while the initial summary loads. On failure show Retry rent indicators without blocking month selection.
-- [ ] Accessible month labels distinguish rent collected, no rent collected, data unavailable, and outside report range.
-- [ ] Apply commits property and month together. Reset updates the draft to All properties/current month; Cancel, Escape, or dismissal discards it.
-- [ ] Keep a visible draft-selection summary and Cancel / Apply filters footer. Draft changes never update report headings or figures.
-- [ ] Count nondefault property and month filters in the filter badge and include applied selections in the accessible filter label.
-- [ ] Refresh the report without replacing settled same-scope content with initial skeletons.
+- [x] Add a **Profit & planning** link to desktop and mobile landlord navigation with a supported Tabler icon and intent prefetching.
+- [x] Default to All properties and the current Manila calendar month.
+- [x] Show the applied property name under a Filtered property caption, or All properties, followed by the applied month.
+- [x] Keep applied month/property/tab in validated URL state; form drafts and unsaved financial amounts never enter the URL.
+- [x] Preserve unrelated query parameters, including notification/settings triggers, when updating finance filters.
+- [x] Filters opens a draft seeded from applied values, on Property, with cleared search and the applied year's month grid.
+- [x] Property picker supports searchable owned properties, All properties, case-insensitive matching, clear search, selected indication, and no-results feedback.
+- [x] Month picker supports year navigation and a three-column month grid covering the current and previous 23 months; future/out-of-window choices are disabled.
+- [x] Indicate months with collected rent using the separate 24-month income summary for the **draft property**, not the 12-month chart window or applied property.
+- [x] Map `income_months` to `incomeMonths` explicitly and validate the summary payload. An assertion does not rename JSON keys.
+- [x] Retain compatibility with older payloads without `income_months`: combine bounded cached reports for the current month and 12 months earlier, as mobile does. (Web uses fresh bounded requests rather than adding a new cache.)
+- [x] Show indicator-sized skeletons while the initial summary loads. On failure show Retry rent indicators without blocking month selection.
+- [x] Accessible month labels distinguish rent collected, no rent collected, data unavailable, and outside report range.
+- [x] Apply commits property and month together. Reset updates the draft to All properties/current month; Cancel, Escape, or dismissal discards it.
+- [x] Keep a visible draft-selection summary and Cancel / Apply filters footer. Draft changes never update report headings or figures.
+- [x] Count nondefault property and month filters in the filter badge and include applied selections in the accessible filter label.
+- [x] Refresh the report without replacing settled same-scope content with initial skeletons.
 
 ### 4.2 Earnings summary and explanation
 
-- [ ] Before review, the headline is Collected rent; after review, it is Net operating income.
-- [ ] Show month to date for the current month and completed month for past reports.
-- [ ] Compare income only when both the active and comparison scopes are reviewed; otherwise compare collected rent. Preserve increase/decrease/no-change wording and peso delta.
-- [ ] Show Recorded spending and After spending & planned reserves; unavailable calculated amounts read Not calculated.
-- [ ] Review expenses to calculate income switches to Expenses.
-- [ ] View breakdown / Hide breakdown reveals collected rent, operating expenses, operating income, improvements/replacements, and planned reserves.
-- [ ] How these figures are calculated opens the guidelines modal rather than appending explanatory paragraphs to the card.
-- [ ] Disclose the excluded unclassified payment amount when nonzero.
-- [ ] Keep negative income and negative cash-after-plan values visible and correctly signed.
+- [x] Before review, the headline is Collected rent; after review, it is Net operating income.
+- [x] Show month to date for the current month and completed month for past reports.
+- [x] Compare income only when both the active and comparison scopes are reviewed; otherwise compare collected rent. Preserve increase/decrease/no-change wording and peso delta.
+- [x] Show Recorded spending and After spending & planned reserves; unavailable calculated amounts read Not calculated.
+- [x] Review expenses to calculate income switches to Expenses.
+- [x] View breakdown / Hide breakdown reveals collected rent, operating expenses, operating income, improvements/replacements, and planned reserves.
+- [x] How these figures are calculated opens the guidelines modal rather than appending explanatory paragraphs to the card.
+- [x] Disclose the excluded unclassified payment amount when nonzero.
+- [x] Keep negative income and negative cash-after-plan values visible and correctly signed.
 
 ### 4.3 Overview tab
 
-- [ ] Needs attention shows overdue amount and tenancy count, opening the overdue collection list, or the no-overdue message.
-- [ ] Offer review-expenses navigation when the active scope is unreviewed.
-- [ ] Offer over-limit budget navigation if any individual spending budget exceeds its limit, even when grouped category totals appear within budget.
-- [ ] When total planned reserves are zero, Plan an emergency reserve opens creation preset to emergency/reserve and the current report scope.
-- [ ] Income trends defaults to 6M, supports 3M/6M/12M, and uses only available months in the report window.
-- [ ] Collected and Expenses series can be toggled but cannot both be hidden. Net income is optional and enabled only when every displayed month is reviewed.
-- [ ] Expenses in the trend are operating plus capital; net income excludes capital. Retain labeled series and non-color distinctions.
-- [ ] Selecting a month updates its details: collected rent, recorded spending including improvements, and reviewed income or Not calculated.
-- [ ] View expenses for this month applies that chart month and opens Expenses while preserving the property scope.
-- [ ] Handle no-activity charts, negative net values, responsive scaling, and keyboard-equivalent month selection.
-- [ ] Collection health shows expected rent and Collected / Not yet due / Overdue segments and labeled amounts, each opening the correct ledger status.
-- [ ] Show overdue aging totals at 1–7, 8–30, and 31+ days and explain that late rent is not an expense.
-- [ ] Handle no billable tenancies without drawing misleading zero-percent charts.
-- [ ] Your monthly plan shows separate summed spending limits and reserve allocations, a no-plan state, and View budgets & suggestions navigation.
-- [ ] Property performance defaults to collected, switches collected/expenses/net, ranks descending, and shows the top three.
-- [ ] Unreviewed property income remains unavailable and ranks after numeric results; preserve negative-value presentation and missing-review messages.
-- [ ] Selecting a property focuses the entire report. View all appears above three properties and opens the full comparison page for the applied month.
-- [ ] Full comparison includes every property, the same metric switches/ranking, refresh/error states, and selection returning to the report with that property/month.
+- [x] Needs attention shows overdue amount and tenancy count, opening the overdue collection list, or the no-overdue message.
+- [x] Offer review-expenses navigation when the active scope is unreviewed.
+- [x] Offer over-limit budget navigation if any individual spending budget exceeds its limit, even when grouped category totals appear within budget.
+- [x] When total planned reserves are zero, Plan an emergency reserve opens creation preset to emergency/reserve and the current report scope.
+- [x] Income trends defaults to 6M, supports 3M/6M/12M, and uses only available months in the report window.
+- [x] Collected and Expenses series can be toggled but cannot both be hidden. Net income is optional and enabled only when every displayed month is reviewed.
+- [x] Expenses in the trend are operating plus capital; net income excludes capital. Retain labeled series and non-color distinctions.
+- [x] Selecting a month updates its details: collected rent, recorded spending including improvements, and reviewed income or Not calculated.
+- [x] View expenses for this month applies that chart month and opens Expenses while preserving the property scope.
+- [x] Handle no-activity charts, negative net values, responsive scaling, and keyboard-equivalent month selection.
+- [x] Collection health shows expected rent and Collected / Not yet due / Overdue segments and labeled amounts, each opening the correct ledger status.
+- [x] Show overdue aging totals at 1–7, 8–30, and 31+ days and explain that late rent is not an expense.
+- [x] Handle no billable tenancies without drawing misleading zero-percent charts.
+- [x] Your monthly plan shows separate summed spending limits and reserve allocations, a no-plan state, and View budgets & suggestions navigation.
+- [x] Property performance defaults to collected, switches collected/expenses/net, ranks descending, and shows the top three.
+- [x] Unreviewed property income remains unavailable and ranks after numeric results; preserve negative-value presentation and missing-review messages.
+- [x] Selecting a property focuses the entire report. View all appears above three properties and opens the full comparison page for the applied month.
+- [x] Full comparison includes every property, the same metric switches/ranking, refresh/error states, and selection returning to the report with that property/month.
 
 ### 4.4 Expenses tab, review, and transactions
 
@@ -236,13 +236,13 @@ Long, paginated drill-downs stay addressable pages; short forms and temporary de
 
 ### 4.8 Collection ledger and guidelines
 
-- [ ] Collection modal uses Collected / Not due / Overdue tabs with the applied billing month and status-as-of-today context.
-- [ ] Display property, tenant, selected amount (collected for Collected, outstanding otherwise), due date, and overdue aging label.
-- [ ] Use existing `landlord_rent_ledger`, status filtering, ascending-ID keyset pagination, 30-row pages, Load more, loading/error/retry/empty/close states.
-- [ ] Open property & tenancy links to the corresponding existing web property detail; it must not navigate to a mobile route or mutate payments.
-- [ ] Planning guidelines and How these figures are calculated share one reusable dialog with fixed title/close/footer and a scrollable body.
-- [ ] Preserve all guideline subjects: collected rent, operating income, improvements/reserves, expense review, payment dates/comparison, planning limits, and report inclusion/exclusions.
-- [ ] Include the non-tax/advice disclaimer, no-transfer/no-savings behavior, removed-listing exclusion, lease-end limitation, and current PayMongo test-funds notice. Got it closes the dialog.
+- [x] Collection modal uses Collected / Not due / Overdue tabs with the applied billing month and status-as-of-today context.
+- [x] Display property, tenant, selected amount (collected for Collected, outstanding otherwise), due date, and overdue aging label.
+- [x] Use existing `landlord_rent_ledger`, status filtering, ascending-ID keyset pagination, 30-row pages, Load more, loading/error/retry/empty/close states.
+- [x] Open property & tenancy links to the corresponding existing web property detail; it must not navigate to a mobile route or mutate payments.
+- [x] Planning guidelines and How these figures are calculated share one reusable dialog with fixed title/close/footer and a scrollable body.
+- [x] Preserve all guideline subjects: collected rent, operating income, improvements/reserves, expense review, payment dates/comparison, planning limits, and report inclusion/exclusions.
+- [x] Include the non-tax/advice disclaimer, no-transfer/no-savings behavior, removed-listing exclusion, lease-end limitation, and current PayMongo test-funds notice. Got it closes the dialog.
 
 ## 5. Exact calculation and data contract
 
@@ -385,8 +385,12 @@ Do not stop at a tab or phase. Complete all feasible items, then run the full ac
 
 ### Phase 3 — Shared report context and Overview
 
-- [ ] Implement filter modal, earnings summary/breakdown/guidelines, all Overview cards/charts/actions, collection ledger modal, and full property-performance page.
-- [ ] Verify cash totals and rental-period totals are presented as different measures, not forced to match.
+- [x] Implement filter modal, earnings summary/breakdown/guidelines, all Overview cards/charts/actions, collection ledger modal, and full property-performance page. (`app/landlord/analytics/components/`, guarded `property-performance/`; includes reserve creation and review confirmation needed by Overview actions, with destination-tab report summaries; broader editing remains in Phases 4–5.)
+- [x] Verify cash totals and rental-period totals are presented as different measures, not forced to match. (Browser fixture intentionally uses ₱50,000 cash receipts versus ₱10,000 billing-period collections / ₱70,000 expected rent; UI retains distinct descriptions and amounts. Isolated browser coverage and runnable setup: `apps/web/tests/finance/README.md`.)
+
+Phase 3 verification: web lint/typecheck/build and 307 node tests pass; mobile lint and 148 Jest suites / 1,176 tests pass; population-command tests pass (18 pass, 2 opt-in database tests skipped). The browser fixture passes filter, indicator, chart, ledger, reserve/review, refresh/stale-scope, empty-state, account-loss and 390/768/1280px light/dark checks with external requests blocked. A live authenticated Next.js journey and same-account web/mobile comparison are not claimed by those isolated checks and remain final acceptance work. The finance-only signed formatter also corrects loss display on mobile; arithmetic is unchanged.
+
+`graphify update .` was attempted after the implementation; extraction completed, but the existing shrink guard refused to overwrite 8,996 stored nodes with 8,653 extracted nodes. No forced rebuild or label overwrite was performed; pre-existing graph output remains dirty.
 
 ### Phase 4 — Expenses and review
 
@@ -455,4 +459,4 @@ Run `pnpm db:populate:test` as well if generator/shared-rule changes touch its d
 
 The landlord can complete every mobile finance journey on web using HeroUI controls and appropriate web modals/pages. All three tabs and their supporting views are present; records are shared across platforms; calculated numbers and accepted inputs agree; expense review and owner-only access remain enforced; the existing dashboard/payment experience is unchanged; and automated plus browser checks substantiate parity.
 
-This document is the deliverable for the current planning request. Implementation begins only after switching out of Plan mode.
+Completed phase work is tracked above. Remaining phases and acceptance checks stay open until implemented and verified.

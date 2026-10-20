@@ -7,6 +7,7 @@ import {
   financeIncome,
   financeMonthLabel,
   formatPesoDisplay,
+  formatFinanceMoney,
   manilaToday,
 } from "@repo/utils";
 import { MoneyRow } from "./FinanceControls";
@@ -51,15 +52,13 @@ export default function EarningsSummaryCard({
           className="font-nunitoBold text-3xl text-accent"
           style={{ fontVariant: ["tabular-nums"] }}
         >
-          {formatPesoDisplay(income ?? active.collected)}
+          {formatFinanceMoney(income ?? active.collected, formatPesoDisplay)}
         </Text>
         <Text className="font-inter text-xs text-muted">
           {financeMonthLabel(month)}
           {currentMonth ? " · month to date" : " · completed month"}
         </Text>
-        <Text className="font-inter text-xs text-muted">
-          {comparison}
-        </Text>
+        <Text className="font-inter text-xs text-muted">{comparison}</Text>
       </View>
       <View className="p-4 gap-3">
         <MoneyRow

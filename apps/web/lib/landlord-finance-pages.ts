@@ -40,8 +40,17 @@ export interface FinancePagesSnapshot<Row, Cursor> {
 }
 
 /** A fresh, idle snapshot (typed per call site). */
-export function emptyFinancePages<Row, Cursor>(): FinancePagesSnapshot<Row, Cursor> {
-  return { rows: [], next: null, loadingMore: false, error: null, pageError: null };
+export function emptyFinancePages<Row, Cursor>(): FinancePagesSnapshot<
+  Row,
+  Cursor
+> {
+  return {
+    rows: [],
+    next: null,
+    loadingMore: false,
+    error: null,
+    pageError: null,
+  };
 }
 
 export interface FinancePagesOptions<Row, Cursor> {
@@ -54,7 +63,10 @@ export interface FinancePagesOptions<Row, Cursor> {
 export interface FinancePagesController<Row, Cursor, Scope> {
   /** Starts the first page for a scope; opening the same key again is a
    *  no-op while it is settled or in flight. Resolves once settled. */
-  open(request: FinancePagesRequest<Scope>, fetcher: FinancePagesFetcher<Row, Cursor, Scope>): Promise<void>;
+  open(
+    request: FinancePagesRequest<Scope>,
+    fetcher: FinancePagesFetcher<Row, Cursor, Scope>,
+  ): Promise<void>;
   /** Reloads the active scope's first page; rows already shown stay visible
    *  until the fresh page lands, then the trail shortens back to it. */
   refresh(fetcher: FinancePagesFetcher<Row, Cursor, Scope>): Promise<void>;
@@ -72,12 +84,14 @@ export function createFinancePages<Row, Cursor, Scope>(
 
   let active: FinancePagesRequest<Scope> | null = null;
   let sequence = 0;
+  let firstPending = false;
   let snapshot = emptyFinancePages<Row, Cursor>();
 
   // A result may land only while its request is still the newest work for
   // the same scope — this single guard covers account transitions, scope
   // changes and overlapping refreshes.
-  const isLive = (seq: number, key: string) => sequence === seq && active?.key === key;
+  const isLive = (seq: number, key: string) =>
+    sequence === seq && active?.key === key;
 
   async function loadFirstPage(
     request: FinancePagesRequest<Scope>,
@@ -85,7 +99,9 @@ export function createFinancePages<Row, Cursor, Scope>(
     keepRows: boolean,
   ): Promise<void> {
     const seq = ++sequence;
+    firstPending = true;
     active = request;
+    if (!keepRows) snapshot = emptyFinancePages<Row, Cursor>();
     const retainedRows = keepRows ? snapshot.rows : [];
     try {
       const page = await fetcher(request.scope, null);
@@ -107,6 +123,7 @@ export function createFinancePages<Row, Cursor, Scope>(
         pageError: null,
       };
     }
+    firstPending = false;
     apply(request.key, snapshot);
   }
 
@@ -124,6 +141,7 @@ export function createFinancePages<Row, Cursor, Scope>(
     loadMore(fetcher) {
       if (
         !active ||
+        firstPending ||
         snapshot.loadingMore ||
         snapshot.error ||
         snapshot.next === null
@@ -142,7 +160,7 @@ export function createFinancePages<Row, Cursor, Scope>(
           const page = await fetcher(scope, cursor);
           if (!isLive(seq, key)) return;
           snapshot = {
-            rows: [...previousRows, ...page.rows],
+            rows: mergeFinancePageRows(previousRows, page.rows),
             next: page.next,
             loadingMore: false,
             error: null,
@@ -165,7 +183,23 @@ export function createFinancePages<Row, Cursor, Scope>(
       if (!active) return;
       sequence += 1; // discards any in-flight fetch for the cleared key
       active = null;
+      firstPending = false;
       snapshot = emptyFinancePages<Row, Cursor>();
     },
   };
+}
+
+/** Concurrent updates must not duplicate an already-loaded record. Primitive
+ * rows (used by generic callers/tests) keep their ordinary append behavior. */
+export function mergeFinancePageRows<Row>(
+  previous: readonly Row[],
+  incoming: readonly Row[],
+): Row[] {
+  const seen = new Set<unknown>();
+  return [...previous, ...incoming].filter((row) => {
+    if (!row || typeof row !== "object" || !("id" in row)) return true;
+    if (seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
 }

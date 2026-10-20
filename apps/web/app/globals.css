@@ -4,6 +4,47 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Finance controls use HeroUI behavior, with APT's existing surface/spacing
+   roles. Unlayered overrides belong here, not competing Tailwind utilities. */
+.finance-report { --finance-expenses: #FF4B4B; --finance-pending: #FACC15; }
+.dark .finance-report { --finance-expenses: #FCA5A5; --finance-pending: #FDE047; }
+.finance-card {
+  min-width: 0;
+  padding: 1rem;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: none;
+}
+.finance-card.finance-attention { background: var(--primary); color: white; }
+.finance-attention .card__title { color: white; }
+.finance-attention .finance-attention-action {
+  background: white;
+  color: var(--primary);
+  min-height: 2.75rem;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}
+.finance-choice, .finance-property {
+  width: 100%;
+  height: auto;
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  justify-content: flex-start;
+  white-space: normal;
+}
+.finance-choice span, .finance-property span { overflow-wrap: anywhere; }
+.finance-modal { background: var(--card); color: var(--foreground); }
+.finance-modal .table__column { color: var(--foreground); }
+.finance-modal .table__cell { white-space: normal; }
+.finance-report [role="tab"], .finance-modal [role="tab"] { color: var(--muted-foreground); }
+.finance-report [role="tab"][data-selected], .finance-modal [role="tab"][data-selected] { color: var(--foreground); }
+.finance-report [role="tab"] > span:not([data-slot="tabs-indicator"]), .finance-modal [role="tab"] > span:not([data-slot="tabs-indicator"]) { position: relative; z-index: 1; }
+.finance-segment { min-width: 0; width: auto; padding: 0; height: 100%; border-radius: 0; }
+
 .landlord-application-detail-card {
   min-width: 0;
   padding: 1.25rem;

@@ -13,6 +13,14 @@ import type {
   RentLedgerRow,
 } from "./landlordFinance";
 
+/** Display-only loss regression: the input formatter intentionally has no sign. */
+export const financeSignedMoneyFixtures = [
+  { amount: -10000, expected: "−₱ 10,000" },
+  { amount: -0.5, expected: "−₱ 0.5" },
+  { amount: 0, expected: "₱ 0" },
+  { amount: 38500, expected: "₱ 38,500" },
+];
+
 /**
  * Cross-app parity contract for the landlord Profit & planning feature
  * (docs/plans/landlord-web-budget-analytics-parity.md §9.1). Pure data with no

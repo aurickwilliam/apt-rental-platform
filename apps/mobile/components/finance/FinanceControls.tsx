@@ -3,7 +3,7 @@ import { Keyboard, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Button, Select, Tabs } from "heroui-native";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatFinanceMoney, formatPesoDisplay } from "@repo/utils";
 import PropertySearch from "./PropertySearch";
 import { useColors } from "@/hooks/useTheme";
 
@@ -75,7 +75,7 @@ export function MoneyRow({
         className={`${emphasized ? "font-nunitoBold text-accent" : "font-nunitoSemiBold text-foreground"} text-sm`}
         style={{ fontVariant: ["tabular-nums"] }}
       >
-        {amount === null ? "Not calculated" : formatPesoDisplay(amount)}
+        {amount === null ? "Not calculated" : formatFinanceMoney(amount, formatPesoDisplay)}
       </Text>
     </View>
   );

@@ -13,6 +13,7 @@ import {
 import {
   financeMonthFromParam,
   financeMonthLabel,
+  financePlanTotals,
   formatPesoDisplay,
   manilaToday,
   type BudgetKind,
@@ -108,10 +109,7 @@ function LandlordAnalytics() {
     (property) => property.id === apartmentId,
   );
   const active = data?.months.at(-1);
-  const reserve =
-    data?.budgets
-      .filter((budget) => budget.kind === "reserve")
-      .reduce((sum, budget) => sum + budget.amount, 0) ?? 0;
+  const { reserve, spending, overLimit } = financePlanTotals(data?.budgets ?? []);
   const activeFilterCount =
     Number(apartmentId !== null) + Number(month !== today.slice(0, 7));
   const changeTab = (value: string) => {
@@ -418,11 +416,7 @@ function LandlordAnalytics() {
                     </Button.Label>
                   </Button>
                 )}
-                {data.budgets.some(
-                  (budget) =>
-                    budget.kind === "expense" &&
-                    budget.spent > budget.amount,
-                ) && (
+                {overLimit && (
                   <Button
                     variant="outline"
                     onPress={() => changeTab("budget")}
@@ -476,9 +470,7 @@ function LandlordAnalytics() {
                   <>
                     <MoneyRow
                       label="Planned spending limits"
-                      amount={data.budgets
-                        .filter((budget) => budget.kind === "expense")
-                        .reduce((sum, budget) => sum + budget.amount, 0)}
+                      amount={spending}
                     />
                     <MoneyRow
                       label="Planned reserve allocations"

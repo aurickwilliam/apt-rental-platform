@@ -10,7 +10,27 @@ import {
   suggestFinanceBudget, validateExpenseDate,
 } from "./landlordFinance";
 import { formatPesoDisplay } from "./formatCurrencyInput";
-import { financeParityFixtures } from "./landlordFinanceFixtures";
+import { financeParityFixtures, financeSignedMoneyFixtures } from "./landlordFinanceFixtures";
+import { formatFinanceMoney, financePlanTotals, financeTrendWindow, toggleFinanceTrendSeries, financeRentIndicator } from "./landlordFinance";
+
+describe("Overview display rules", () => {
+  test("loss signs match the shared display fixtures", () => {
+    for (const fixture of financeSignedMoneyFixtures) expect(formatFinanceMoney(fixture.amount, formatPesoDisplay)).toBe(fixture.expected);
+  });
+  test("individual overages are not hidden by totals", () => {
+    const base = { id: "a", apartment_id: "property", month: "2026-10", category: "maintenance" as const, kind: "expense" as const, target_amount: null, months_remaining: null };
+    expect(financePlanTotals([{ ...base, amount: 100, spent: 200 }, { ...base, id: "b", amount: 1000, spent: 0 }])).toEqual({ spending: 1100, reserve: 0, overLimit: true });
+    expect(financePlanTotals([])).toEqual({ spending: 0, reserve: 0, overLimit: false });
+  });
+  test("trend controls retain one cash series and short windows remain short", () => {
+    const series = { collected: false, expenses: true, net: false };
+    expect(toggleFinanceTrendSeries(series, "expenses")).toBe(series);
+    expect(financeTrendWindow([], 12)).toEqual({ points: [], allReviewed: false, hasActivity: false });
+  });
+  test("rent markers never infer missing months as zero", () => {
+    expect(financeRentIndicator("2026-09", "2026-10", [], false)).toBe("rent data unavailable");
+  });
+});
 
 describe("landlord finance rules", () => {
   test("Manila dates are independent of the device timezone", () => {
