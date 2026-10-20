@@ -32,11 +32,13 @@ interface ReceiptCardProps {
   onShare?: () => void;
 }
 
+// The receipt is an always-white paper surface, so its content uses fixed
+// light-surface colors instead of dark: variants.
 function Row({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-zinc-500">{label}</span>
-      <span className={`text-sm font-nunito font-semibold ${highlight ? "text-primary" : "text-zinc-900 dark:text-zinc-100"}`}>{value}</span>
+      <span className={`text-sm font-nunito font-semibold ${highlight ? "text-primary" : "text-zinc-900"}`}>{value}</span>
     </div>
   );
 }
@@ -70,7 +72,7 @@ export default function ReceiptCard({
         </Card.Header>
 
         <Card.Content className="px-6 pb-0">
-          <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 pt-5" />
+          <div className="border-t border-dashed border-zinc-300 pt-5" />
 
           <div className="space-y-3 py-1">
             {paymentLabel && <Row label="Payment for" value={paymentLabel} />}
@@ -86,8 +88,8 @@ export default function ReceiptCard({
             <Row label="Reference No." value={referenceNumber} />
           </div>
 
-          <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 mt-5 pt-4">
-            <p className="text-center text-xs text-zinc-400">{meta.footer}</p>
+          <div className="border-t border-dashed border-zinc-300 mt-5 pt-4">
+            <p className="text-center text-xs text-zinc-500">{meta.footer}</p>
           </div>
         </Card.Content>
 
