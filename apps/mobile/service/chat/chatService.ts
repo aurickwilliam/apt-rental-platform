@@ -1,5 +1,5 @@
 import { supabase } from '@repo/supabase';
-import { getRelativeTime } from '@repo/utils';
+import { getRelativeTime, MAX_CHAT_ATTACHMENT_BYTES } from '@repo/utils';
 import { File } from 'expo-file-system';
 
 import emojiRegex from 'emoji-regex-xs';
@@ -11,7 +11,7 @@ import {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type MessageType = 'text' | 'image' | 'video' | 'gif';
+export type MessageType = 'text' | 'image' | 'video' | 'gif' | 'file';
 
 export type ReplyPreview = {
   id: string;
@@ -35,6 +35,8 @@ export type Message = {
   attachmentUrl: string | null;
   attachmentPath: string | null;
   attachmentMimeType?: string | null;
+  attachmentName?: string | null;
+  attachmentSize?: number | null;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
   groupId?: string | null;
@@ -115,7 +117,7 @@ export type Conversation = {
 // Bucket name is legacy — it now also holds video and gif attachments, not just images.
 const CHAT_IMAGES_BUCKET = 'chat-images';
 const SIGNED_URL_TTL_SECONDS = PRIVATE_MEDIA_SIGNED_URL_TTL_SECONDS;
-const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // must match chat-images bucket file_size_limit
+const MAX_ATTACHMENT_BYTES = MAX_CHAT_ATTACHMENT_BYTES;
 
 const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   'image/png': 'png',
@@ -164,7 +166,7 @@ export async function fetchMessagePage(params: {
   let query = supabase
     .from('chat')
     .select(
-      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to, is_read'
+      'id, message, message_type, attachment_path, attachment_url, attachment_mime_type, attachment_name, attachment_size, attachment_thumbnail_path, group_id, created_at, sender_id, receiver_id, apartment_id, reply_to, is_read'
     )
     .or(
       `and(sender_id.eq.${params.currentUserId},receiver_id.eq.${params.otherUserId}),and(sender_id.eq.${params.otherUserId},receiver_id.eq.${params.currentUserId})`
@@ -302,7 +304,7 @@ export function resolveMessageType(mimeType?: string): Exclude<MessageType, 'tex
 
 /** Narrow an arbitrary stored value to MessageType; null for anything unknown. */
 export function toMessageType(value: string | null | undefined): MessageType | null {
-  return value === 'text' || value === 'image' || value === 'video' || value === 'gif'
+  return value === 'text' || value === 'image' || value === 'video' || value === 'gif' || value === 'file'
     ? value
     : null;
 }
@@ -680,6 +682,8 @@ export async function mapMessages(
       attachmentUrl: m.attachment_url ?? (m.attachment_path ? (signedUrls[m.attachment_path] ?? null) : null),
       attachmentPath: m.attachment_path ?? null,
       attachmentMimeType: m.attachment_mime_type ?? null,
+      attachmentName: m.attachment_name ?? null,
+      attachmentSize: m.attachment_size ?? null,
       thumbnailUrl: m.attachment_thumbnail_path
         ? (thumbnailUrls[m.attachment_thumbnail_path] ?? null)
         : null,

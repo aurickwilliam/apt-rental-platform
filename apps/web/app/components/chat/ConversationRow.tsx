@@ -19,7 +19,8 @@ export default function ConversationRow({ contact, isActive, onSelect }: Convers
   const preview = contact.lastMessage?.trim() || (
     contact.lastMessageType === "image" ? "Photo" :
     contact.lastMessageType === "video" ? "Video" :
-    contact.lastMessageType === "gif" ? "GIF" : null
+    contact.lastMessageType === "gif" ? "GIF" :
+    contact.lastMessageType === "file" ? "Document" : null
   );
 
   return (

@@ -5,6 +5,7 @@ import { Button, Popover } from "@heroui/react";
 import { IconCornerUpLeft, IconDots, IconMoodSmile, IconPaperclip, IconPhoto, IconPlayerPlay } from "@tabler/icons-react";
 
 import { attachmentDisplayUrl, hasAttachment } from "./attachments";
+import { formatChatAttachmentSize } from "@repo/utils";
 import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
@@ -27,6 +28,8 @@ interface MessageBubbleProps {
   isContextMenuOpen?: boolean;
   onToggleReaction: (messageId: string, emoji: string) => void | Promise<void>;
   onReply: (message: ChatMessage) => void;
+  onJumpToOriginal: (messageId: string) => void;
+  isReplyHighlighted?: boolean;
   onOpenContextMenu: (position: { x: number; y: number }) => void;
 }
 
@@ -45,6 +48,8 @@ export default function MessageBubble({
   isContextMenuOpen = false,
   onToggleReaction,
   onReply,
+  onJumpToOriginal,
+  isReplyHighlighted = false,
   onOpenContextMenu,
 }: MessageBubbleProps) {
   const [isReactionOpen, setIsReactionOpen] = useState(false);
@@ -128,8 +133,17 @@ export default function MessageBubble({
       ) : message.replyTo ? (
         <button
           type="button"
-          onClick={() => canInteract && onReply(message)}
-          className="mb-1 max-w-[260px] rounded-2xl bg-muted px-3 py-2 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Jump to original message"
+          onClick={(event) => {
+            event.stopPropagation();
+            const selection = window.getSelection();
+            if (event.detail > 0 && selection && !selection.isCollapsed && event.currentTarget.contains(selection.anchorNode)) return;
+            const originalId = message.reply_to ?? message.replyTo?.id;
+            if (originalId) onJumpToOriginal(originalId);
+          }}
+          onDoubleClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          className="mb-1 max-w-full cursor-pointer select-text rounded-2xl bg-muted px-3 py-2 text-left transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px]"
         >
           {message.replyTo.messageType === "text" ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">
@@ -155,6 +169,7 @@ export default function MessageBubble({
         </button>
       ) : null}
 
+      <div className="flex min-w-0 max-w-full flex-col items-end" data-message-with-reactions>
       {/* This shrink-to-content boundary owns both the bubble and its actions.
           Its CSS hit area bridges the gap without changing the visible bubble. */}
       <div
@@ -205,6 +220,8 @@ export default function MessageBubble({
         }}
         data-group={groupPosition}
         data-mine={isMine}
+        data-chat-message-id={message.id}
+        data-reply-highlight={isReplyHighlighted}
         className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           isMine
             ? "bg-primary text-white"
@@ -232,6 +249,7 @@ export default function MessageBubble({
           onToggle={onToggleReaction}
         />
       )}
+      </div>
 
       {/* Exact timestamps remain in the message actions menu. */}
       {/* Reserve the same 16px status lane before and after a receipt arrives.
@@ -263,6 +281,32 @@ function AttachmentBody({
   url: string;
 }) {
   const isVideo = message.message_type === "video";
+
+  if (message.message_type === "file") {
+    const name = message.attachment_name || "Shared document";
+    return (
+      <a
+        href={message.isPending ? undefined : url}
+        target="_blank"
+        rel="noopener noreferrer"
+        download={name}
+        aria-label={`Open ${name}`}
+        aria-disabled={message.isPending || undefined}
+        onClick={(event) => event.stopPropagation()}
+        onDoubleClick={(event) => event.stopPropagation()}
+        className="flex min-w-0 max-w-80 items-center gap-3 rounded-2xl p-3.5 text-inherit focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-current"
+      >
+        <IconPaperclip size={24} className="shrink-0" aria-hidden="true" />
+        <span className="min-w-0">
+          <span className="block truncate font-nunito text-sm font-semibold" title={name}>{name}</span>
+          <span className="block text-xs">
+            {message.attachment_mime_type === "application/pdf" ? "PDF" : "DOCX"}
+            {message.attachment_size != null ? ` · ${formatChatAttachmentSize(message.attachment_size)}` : ""}
+          </span>
+        </span>
+      </a>
+    );
+  }
 
   return (
     <span className="block">
@@ -321,7 +365,7 @@ function ReactionBadges({
 
   return (
     <div
-      className="relative z-10 -mt-1 mx-1 flex max-w-full flex-wrap items-center gap-1 pt-0.5"
+      className="relative z-10 -mt-2 mx-1 flex max-w-full flex-wrap items-center justify-end gap-0.5 self-end"
       aria-label="Reactions"
     >
       {[...byEmoji.entries()].map(([emoji, count]) => {
@@ -333,14 +377,14 @@ function ReactionBadges({
             onClick={() => onToggle(messageId, emoji)}
             aria-label={`${emoji}, ${count} ${count === 1 ? "reaction" : "reactions"}${mine ? ", including yours" : ""}`}
             aria-pressed={mine}
-            className={`flex min-h-7 items-center gap-1 rounded-full border-2 px-1.5 py-0.5 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            className={`flex h-5 items-center justify-center gap-1 rounded-full border text-sm leading-none shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-5 shrink-0 p-0" : "min-w-5 px-0.5"} ${
               mine
                 ? "border-card bg-secondary ring-1 ring-primary/30"
                 : "border-border bg-card hover:bg-muted"
             }`}
           >
             <span>{emoji}</span>
-            <span className="text-[10px] text-muted-foreground">{count}</span>
+            {count > 1 && <span className="pr-0.5 text-[10px] text-muted-foreground">{count}</span>}
           </button>
         );
       })}

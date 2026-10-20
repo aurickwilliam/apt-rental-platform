@@ -561,6 +561,8 @@ export default function ChatScreen() {
         attachmentUrl={item.attachmentUrl}
         attachmentPath={item.attachmentPath}
         attachmentMimeType={item.attachmentMimeType}
+        attachmentName={item.attachmentName}
+        attachmentSize={item.attachmentSize}
         thumbnailPath={item.thumbnailPath}
         thumbnailUrl={item.thumbnailUrl}
         timestamp={item.timestamp}
@@ -810,6 +812,8 @@ export default function ChatScreen() {
                 messageType={activeMsg.messageType}
                 attachmentUrl={activeMsg.attachmentUrl}
                 attachmentPath={activeMsg.attachmentPath}
+                attachmentName={activeMsg.attachmentName}
+                attachmentSize={activeMsg.attachmentSize}
                 thumbnailUrl={activeMsg.thumbnailUrl}
                 thumbnailPath={activeMsg.thumbnailPath}
                 isSent={activeMsg.isSent}

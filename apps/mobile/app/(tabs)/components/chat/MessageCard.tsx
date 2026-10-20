@@ -26,6 +26,8 @@ function getLastMessageDisplay(
       return isUserLastSender ? 'You sent a video' : 'Sent a video';
     case 'gif':
       return isUserLastSender ? 'You sent a GIF' : 'Sent a GIF';
+    case 'file':
+      return isUserLastSender ? 'You sent a document' : 'Sent a document';
     default:
       return '';
   }

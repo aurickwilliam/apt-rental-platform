@@ -384,7 +384,9 @@ When introducing new architecture:
 
 ## Graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+This project uses a local knowledge graph at `graphify-out/` with god nodes, community structure, and cross-file relationships. The root output directory is generated and ignored by Git; it is not an application, build, test, or CI dependency. Keep `.graphifyignore` and the OpenCode plugin tracked, but never force-add generated root snapshots.
+
+On a fresh clone, install the Graphify CLI if needed (`uv tool install graphifyy`, or `python -m pip install graphifyy` in a virtual environment), then run `graphify extract . --code-only` from the repository root. This bootstraps code navigation locally without an API key; it does not recreate semantic document/image knowledge. Existing local semantic knowledge is retained by normal updates. For full semantic extraction, use the Graphify skill. See `docs/graphify-conflict-audit.md` for rollout and branch-switch precautions.
 
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
@@ -403,8 +405,9 @@ Choosing the right command:
 These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 
 Rules:
-- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- Generated local graph files are expected after hooks or incremental updates and must stay untracked. Staged root graph deletions during the one-time untracking rollout are expected; after that commit, regeneration must not dirty Git status. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- After modifying code, run `graphify update .` from the repository root to keep the graph current (AST-only, no API cost). Do not regenerate legacy nested `apps/*/graphify-out/` snapshots; their separately tracked history is outside the local-root workflow.
+- After pulling or switching branches, refresh the local graph before relying on it. Do not install auto-commit/force-add hooks or merge drivers for ignored outputs; never hand-merge generated graphs. Older branches may need a one-time modify/delete conflict resolution by keeping the root snapshots untracked.
 
 ## What NOT to do
 

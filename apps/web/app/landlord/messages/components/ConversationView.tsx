@@ -19,6 +19,7 @@ import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
+import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import type { ChatMessage } from "@/app/components/chat/types";
 import { latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 
@@ -159,6 +160,13 @@ export default function ConversationView({
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(isLoadingEarlierMessages);
   const messageCount = messages.length;
   const latestOutgoingId = latestOutgoingMessageId(messages, currentUserId, activeContact?.id ?? null);
+  const replyNavigation = useReplyNavigation({
+    conversationKey: activeContact ? `${currentUserId}:${activeContact.conversationKey}` : null,
+    scrollRef,
+    hasEarlierMessages,
+    loadEarlierMessages,
+    pauseFollowing: () => { nearBottomRef.current = false; setIsNearBottom(false); },
+  });
 
 
   // Mark incoming messages as read when this conversation is opened
@@ -195,6 +203,12 @@ export default function ConversationView({
    */
   // Not memoized by hand — `reactCompiler` is on and preserves this shape.
   const handleThreadScroll = () => {
+    // Do not re-arm bottom-follow while pagination or smooth reply navigation
+    // is moving the viewport, even if it started within the 150px threshold.
+    if (replyNavigation.notice || replyNavigation.highlightedId) {
+      nearBottomRef.current = false;
+      return;
+    }
     const el = scrollRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -335,7 +349,7 @@ export default function ConversationView({
         ref={scrollRef}
         data-chat-scroll
         onScroll={handleThreadScroll}
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-4 py-5 sm:px-6"
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4"
         visibility="none"
       >
         {hasEarlierMessages && (
@@ -345,6 +359,7 @@ export default function ConversationView({
               size="sm"
               onPress={() => void handleLoadEarlier()}
               isPending={isLoadingEarlier}
+              isDisabled={replyNavigation.locating}
             >
               Load earlier messages
             </Button>
@@ -356,7 +371,7 @@ export default function ConversationView({
             <Spinner size="md" color="accent" />
           </div>
         ) : (
-          <div className="mx-auto flex w-full max-w-5xl flex-col">
+          <div data-message-timeline className="flex w-full min-w-0 flex-col">
             {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} role="Tenant" verified={context.verified} apartment={apartment} /> : null}
             {messages.length === 0 ? (
               <div className="flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
@@ -382,6 +397,8 @@ export default function ConversationView({
                   isLatestOutgoing={msg.id === latestOutgoingId}
                   onToggleReaction={toggleReaction}
                   onReply={handleReply}
+                  onJumpToOriginal={replyNavigation.jumpToOriginal}
+                  isReplyHighlighted={replyNavigation.highlightedId === msg.id}
                   onOpenContextMenu={(position) => openContextMenu(msg, position)}
                 />
                 </Fragment>
@@ -394,11 +411,17 @@ export default function ConversationView({
           </div>
         )}
       </ScrollShadow>
+      {replyNavigation.notice ? (
+        <div className="absolute bottom-3 left-1/2 z-20 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+          <p role="status" aria-live="polite" className="min-w-0 flex-1 text-xs text-muted-foreground">{replyNavigation.notice}</p>
+          <Button variant="ghost" size="sm" onPress={replyNavigation.dismiss}>{replyNavigation.locating ? "Cancel" : "Dismiss"}</Button>
+        </div>
+      ) : null}
 
       {/* Jump-to-latest. Only mounted when the reader has scrolled away from
           the newest message, which is exactly the state in which auto-scroll
           deliberately does not follow. */}
-      {!isNearBottom && (
+      {!isNearBottom && !replyNavigation.notice && (
         <button
           type="button"
           onClick={jumpToLatest}

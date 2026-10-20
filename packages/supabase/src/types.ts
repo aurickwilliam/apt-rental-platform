@@ -303,6 +303,8 @@ export type Database = {
       }
       chat: {
         Row: {
+          attachment_name: string | null
+          attachment_size: number | null
           apartment_id: string | null
           attachment_mime_type: string | null
           attachment_path: string | null
@@ -323,6 +325,8 @@ export type Database = {
         Insert: {
           apartment_id?: string | null
           attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
           attachment_url?: string | null
@@ -341,6 +345,8 @@ export type Database = {
         Update: {
           apartment_id?: string | null
           attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
           attachment_path?: string | null
           attachment_thumbnail_path?: string | null
           attachment_url?: string | null

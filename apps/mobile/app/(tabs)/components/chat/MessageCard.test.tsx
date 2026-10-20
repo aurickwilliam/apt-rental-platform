@@ -133,6 +133,7 @@ describe('MessageCard', () => {
     { messageType: 'image', expected: 'Sent a photo' },
     { messageType: 'video', expected: 'Sent a video' },
     { messageType: 'gif', expected: 'Sent a GIF' },
+    { messageType: 'file', expected: 'Sent a document' },
   ])('previews a received $messageType attachment', ({ messageType, expected }) => {
     render(
       <MessageCard

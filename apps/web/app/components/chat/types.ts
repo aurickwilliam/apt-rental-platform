@@ -5,7 +5,7 @@
  * the same rows.
  */
 
-export type MessageType = "text" | "image" | "video" | "gif";
+export type MessageType = "text" | "image" | "video" | "gif" | "file";
 
 /** One user's reaction on a message — at most one per (message, user). */
 export interface MessageReaction {
@@ -51,6 +51,8 @@ export interface ChatMessage {
   /** External media URL (Giphy CDN). Rendered directly; never signed. */
   attachment_url?: string | null;
   attachment_mime_type?: string | null;
+  attachment_name?: string | null;
+  attachment_size?: number | null;
   attachment_thumbnail_path?: string | null;
   /** Batches a multi-file send into one visual group. */
   group_id?: string | null;
