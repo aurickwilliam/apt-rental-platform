@@ -1,7 +1,6 @@
 import { ReactNode, forwardRef } from "react";
 import {
   View,
-  RefreshControl,
   TouchableWithoutFeedback,
   Keyboard,
   type NativeScrollEvent,
@@ -13,9 +12,10 @@ import {
   type KeyboardAwareScrollViewRef,
 } from "react-native-keyboard-controller";
 
-import { Spinner } from "heroui-native";
-
-import { useColors } from "hooks/useTheme";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "components/display/PullToRefresh";
 
 // Space kept between the focused input and the top of the keyboard.
 const KEYBOARD_BOTTOM_OFFSET = 50;
@@ -69,7 +69,6 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
     ref,
   ) {
     const insets = useSafeAreaInsets();
-    const { colors } = useColors();
 
     const containerStyle = backgroundColor
       ? { flex: 1, backgroundColor }
@@ -96,12 +95,9 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
             scrollEventThrottle={onScroll ? 16 : undefined}
             refreshControl={
               onRefresh ? (
-                <RefreshControl
+                <PullToRefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  tintColor="transparent"
-                  colors={["transparent"]}
-                  progressBackgroundColor="transparent"
                 />
               ) : undefined
             }
@@ -114,11 +110,7 @@ const ScreenWrapper = forwardRef<ScreenWrapperScrollRef, ScreenWrapperProps>(
                   : bottomPadding + insets.bottom,
             }}
           >
-            {refreshing && (
-              <View className="items-center py-3">
-                <Spinner size="lg" color={colors.primary} accessibilityLabel="Refreshing" />
-              </View>
-            )}
+            <PullToRefreshIndicator refreshing={refreshing} />
             {dismissKeyboardOnTouch ? (
               <WrapWithDismiss>
                 <View className={`flex-1 relative ${className}`}>

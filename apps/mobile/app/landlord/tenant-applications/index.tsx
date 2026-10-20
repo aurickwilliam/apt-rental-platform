@@ -13,6 +13,10 @@ import ApplicationFilterSheet, {
   type ApplicationFilters,
 } from './components/ApplicationFilterSheet';
 import EmptySearchResults from './components/EmptySearchResults';
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from '@/components/display/PullToRefresh';
 
 import { Button, SearchField } from 'heroui-native';
 
@@ -21,6 +25,7 @@ import { formatDate } from '@repo/utils';
 import { useLandlordApplications } from '@/hooks/applications';
 import { useColors } from '@/hooks/useTheme';
 import { useLandlordActionBadges } from '@/hooks/apartments';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };
 
@@ -33,6 +38,7 @@ export default function TenantApplications() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<ApplicationFilters>(EMPTY_FILTERS);
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   useFocusEffect(
     useCallback(() => {
@@ -89,10 +95,11 @@ export default function TenantApplications() {
           paddingBottom: 30,
           flexGrow: !loading && filteredApplications.length === 0 ? 1 : 0,
         }}
-        refreshing={loading}
-        onRefresh={refetch}
+        refreshControl={<PullToRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
-          <View className="gap-4">
+          <>
+            <PullToRefreshIndicator refreshing={refreshing} />
+            <View className="gap-4">
             {/* Search + Filter row */}
             <View className="flex-row items-center gap-2">
               <View className="flex-1">
@@ -143,7 +150,8 @@ export default function TenantApplications() {
                 Total: {filteredApplications.length}
               </Text>
             )}
-          </View>
+            </View>
+          </>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
         ListEmptyComponent={

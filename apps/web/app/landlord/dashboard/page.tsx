@@ -6,6 +6,7 @@ import { getDashboardData } from "./lib/get-dashboard-data";
 import RevenueChart from "./components/RevenueChart";
 import RentDonut from "./components/RentDonut";
 import OccupancyChart from "./components/OccupancyChart";
+import DashboardHeader from "./components/DashboardHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +38,7 @@ export default async function Dashboard() {
 
   return (
     <div className="p-4">
-      <h1 className="text-5xl text-brand font-bold font-noto-serif mb-1">
-        Dashboard
-      </h1>
-      <p className="text-muted-foreground text-sm mb-6">
-        Welcome back! Here&apos;s an overview of your properties.
-      </p>
+      <DashboardHeader />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

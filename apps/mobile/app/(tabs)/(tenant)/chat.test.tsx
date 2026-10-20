@@ -36,6 +36,15 @@ jest.mock('components/layout/ScreenWrapper', () => {
   return { __esModule: true, default: ScreenWrapperStub };
 });
 
+jest.mock('components/display/PullToRefresh', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    PullToRefreshControl: () => null,
+    PullToRefreshIndicator: () => React.createElement(View),
+  };
+});
+
 // Renders each row as text describing its kind, so the list order is testable.
 jest.mock('@/app/(tabs)/components/chat/ConversationListRow', () => {
   const React = jest.requireActual<typeof import('react')>('react');

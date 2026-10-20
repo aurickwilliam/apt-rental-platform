@@ -243,7 +243,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
     <Modal>
       <Modal.Backdrop isOpen={isOpen} onOpenChange={handleOpenChange}>
         <Modal.Container size="lg" scroll="inside">
-          <Modal.Dialog>
+          <Modal.Dialog className="edit-property-modal">
             {({ close }) => (
               <>
                 <Modal.CloseTrigger className="text-black" />
@@ -655,7 +655,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
                   {saveError && <ErrorBanner message={saveError} />}
                 </Modal.Body>
 
-                <Modal.Footer>
+                <Modal.Footer className="edit-property-modal-footer">
                   <Button 
                     variant="danger-soft" 
                     onPress={() => { 

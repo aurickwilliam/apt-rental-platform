@@ -1,8 +1,8 @@
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, Text } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import * as Linking from "expo-linking";
-import { Button } from "heroui-native";
+import { Button, Spinner } from "heroui-native";
 import { IconCircleCheckFilled } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
@@ -266,7 +266,7 @@ export default function PaymentCheckout() {
     return (
       <ScreenWrapper header={<StandardHeader title="Rent Payment" />}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
+          <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading payment options" />
         </View>
       </ScreenWrapper>
     );

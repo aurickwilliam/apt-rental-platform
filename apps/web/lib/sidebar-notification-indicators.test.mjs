@@ -36,6 +36,7 @@ const row = (screen, title, type, data = {}) => ({
 });
 function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = false, rows = [], hiddenPassport = false } = {}) {
   const navigation = [];
+  const prefetched = [];
   let writes = 0;
   const component = compile("../app/components/layout/AppSidebar.tsx", {
     collapsed,
@@ -48,7 +49,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
     "next/navigation": {
       usePathname: () => `/${portal}/${portal === "tenant" ? "my-rental" : "dashboard"}`,
-      useRouter: () => ({ push: href => navigation.push(href), prefetch: () => {} }),
+      useRouter: () => ({ push: href => navigation.push(href), prefetch: href => prefetched.push(href) }),
       useSearchParams: () => new URLSearchParams(),
     },
     "next-themes": { useTheme: () => ({ resolvedTheme: dark ? "dark" : "light", setTheme: () => {} }) },
@@ -65,13 +66,13 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");
   const tree = mobile
-    ? component.MobileSidebarNavigation({ navItems: nav, activePortal: portal, iconSet: "tabler" })
+    ? component.MobileSidebarNavigation({ navItems: nav, activePortal: portal, iconSet: "tabler", profileHref: `/${portal}/profile` })
     : component.AppSidebar({ navItems: nav, activePortal: portal, userName: "User", userRole: portal, collapsible: true, iconSet: "tabler" });
   const all = nodes(tree);
   const links = all.filter(n => mobile
     ? n.type === "Dropdown.Item" && n.props.id?.startsWith(`/${portal}/`)
     : n.type === "Link" && nav.some(item => item.href === n.props.href));
-  return { links, all, navigation, writes: () => writes };
+  return { links, all, navigation, prefetched, writes: () => writes };
 }
 
 test("desktop indicators are 8px, right-aligned and limited to relevant configured sections", () => {
@@ -133,4 +134,28 @@ test("landlord properties and admin review submissions illuminate only their int
     const admin = sidebar({ mobile, portal: "admin", rows: [row("passportReview", "New passport document submitted", "system", { documentId: "doc" })] });
     assert.deepEqual(admin.links.filter(n => dots(n).length).map(n => n.props.href ?? n.props.id), ["/admin/verification"]);
   }
+});
+
+test("landlord route prefetch and unread indicators coexist on expanded and collapsed links", () => {
+  for (const collapsed of [false, true]) {
+    const result = sidebar({ portal: "landlord", collapsed, rows: [row("verification", "Apartment verification approved", "system", { apartmentId: "apt" })] });
+    const properties = result.links.find(link => link.props.href === "/landlord/properties");
+    assert.equal(dots(properties).length, 1);
+    assert.equal(properties.props["aria-label"], "My Properties, Unread activity");
+    properties.props.onMouseEnter();
+    properties.props.onFocus();
+    assert.deepEqual(result.prefetched, ["/landlord/properties", "/landlord/properties"]);
+    assert.deepEqual(result.navigation, []);
+    assert.equal(result.writes(), 0);
+  }
+});
+
+test("opening landlord mobile navigation prefetches main's routes without reading notifications", () => {
+  const result = sidebar({ portal: "landlord", mobile: true, rows: [row("verification", "Apartment verification approved", "system", { apartmentId: "apt" })] });
+  const dropdown = result.all.find(node => typeof node.props.onOpenChange === "function");
+  dropdown.props.onOpenChange(true);
+  assert.deepEqual(result.prefetched, ["/landlord/profile", "/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
+  const properties = result.links.find(link => link.props.id === "/landlord/properties");
+  assert.equal(dots(properties).length, 1);
+  assert.equal(result.writes(), 0);
 });

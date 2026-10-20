@@ -69,6 +69,7 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
       <PropertiesTable
         properties={properties}
         onRowClick={(property) => router.push(`/landlord/properties/${property.id}`)}
+        onRowIntent={(property) => router.prefetch(`/landlord/properties/${property.id}`)}
         onEditClick={(property) => openSheet(property, true)}
         onDeleteClick={(property) => setDeleteTarget(property)}
       />

@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Button, Card, Chip } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft, IconFileText as FileText, IconPencil as Pencil, IconUpload as Upload } from "@tabler/icons-react";
+import { Button, Chip } from "@heroui/react";
+import {
+  IconArrowLeft as ArrowLeft, IconFileText as FileText, IconPencil as Pencil,
+  IconUpload as Upload, IconHome, IconBed, IconSparkles, IconMapPin,
+  IconCalendar, IconCurrencyPeso, IconShieldCheck, IconCreditCard,
+  IconBuilding, IconArmchair, IconStairs, IconUsers, IconDimensions, IconBath,
+  type Icon,
+} from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { formatLeaseDate } from "@/app/tenant/payment/utils";
 import type { LandlordUnitDetail } from "@/service/landlordUnitDetailService";
@@ -11,24 +18,30 @@ import { toProperty } from "../../components/to-property";
 import { useLeaseViewer } from "../../components/use-lease-viewer";
 import { PERKS } from "@/app/components/inputs/perks";
 import LeaseAgreementModal from "../../../components/modals/LeaseAgreementModal";
-import DescriptionModal from "../../../components/modals/DescriptionModal";
-import AmenitiesModal from "../../../components/modals/AmenitiesModal";
 import EditPropertyModal from "../../../components/modals/EditPropertyModal";
+import DescriptionSection from "./DescriptionSection";
 
-function ReadOnlyField({ label, value }: { label: string; value?: string | number | null }) {
+function ReadOnlyField({ label, value, icon: Icon, highlight = false }: { label: string; value?: string | number | null; icon: Icon; highlight?: boolean }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <p className="text-sm font-nunito text-muted-foreground">{label}</p>
-      <p className="text-[15px] font-nunito font-semibold text-card-foreground leading-snug">
-        {value ?? "—"}
-      </p>
+    <div className={`flex min-w-0 items-center gap-3 rounded-xl px-3 py-3 ${highlight ? "bg-primary/5" : "bg-muted/40"}`}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <Icon size={22} aria-hidden="true" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="mt-1 text-sm font-nunito font-bold text-card-foreground leading-snug wrap-break-word">
+          {value ?? "—"}
+        </p>
+      </div>
     </div>
   );
 }
 
-function SectionTitle({ children }: { children: string }) {
+function EditSectionButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <p className="text-sm font-nunito font-bold text-primary uppercase tracking-wide">{children}</p>
+    <Button variant="secondary" size="sm" onPress={onPress} aria-label={label}>
+      <Pencil size={14} aria-hidden="true" /> Edit
+    </Button>
   );
 }
 
@@ -38,8 +51,6 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
   const [actionError, setActionError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [leaseModalOpen, setLeaseModalOpen] = useState(false);
-  const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
-  const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
   const { viewLease, viewing } = useLeaseViewer();
 
   const property = toProperty(apartment);
@@ -59,8 +70,15 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
   return (
     <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
       <div>
-        <Button variant="ghost" size="sm" onPress={() => router.push(`/landlord/properties/${apartment.id}`)} className="gap-1.5 font-nunito w-fit">
-          <ArrowLeft size={16} />
+        <Button
+          variant="ghost"
+          size="sm"
+          onPress={() => router.push(`/landlord/properties/${apartment.id}`)}
+          onHoverStart={() => router.prefetch(`/landlord/properties/${apartment.id}`)}
+          onFocus={() => router.prefetch(`/landlord/properties/${apartment.id}`)}
+          className="gap-1.5 font-nunito w-fit"
+        >
+          <ArrowLeft size={16} aria-hidden="true" />
           Back to Property
         </Button>
         <h1 className="mt-2 text-2xl font-bold font-nunito text-card-foreground">Apartment Description</h1>
@@ -75,111 +93,80 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
         </div>
       )}
 
-      {/* Main information */}
-      <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <SectionTitle>Main Information</SectionTitle>
-          <Button isIconOnly variant="ghost" size="sm" onPress={() => setEditModalOpen(true)} aria-label="Edit main information">
-            <Pencil size={14} />
-          </Button>
-        </div>
-        <div>
-          <p className="text-lg font-nunito font-semibold text-card-foreground">{apartment.name}</p>
-          <p className="text-sm text-muted-foreground">{fullAddress || "—"}</p>
-        </div>
-        {detail.tenant && (
-          <div className="grid grid-cols-2 gap-3">
-            <ReadOnlyField label="Lease Start" value={formatLeaseDate(detail.tenant.leaseStart)} />
-            <ReadOnlyField label="Lease End" value={formatLeaseDate(detail.tenant.leaseEnd)} />
+      <DescriptionSection
+        title="Main Information"
+        subtitle="Basic details and pricing information for this property."
+        icon={IconHome}
+        action={<EditSectionButton label="Edit main information" onPress={() => setEditModalOpen(true)} />}
+      >
+        <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
+          <div className="relative min-h-40 overflow-hidden rounded-xl bg-muted">
+            <Image src={property.thumbnail} alt={apartment.name} fill unoptimized className="object-cover" />
           </div>
-        )}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <ReadOnlyField label="Monthly Rent" value={formatPesoDisplay(apartment.monthly_rent)} />
-          <ReadOnlyField
-            label="Security Deposit"
-            value={apartment.security_deposit != null ? formatPesoDisplay(apartment.security_deposit) : "—"}
-          />
-          <ReadOnlyField
-            label="Advance Rent"
-            value={apartment.advance_rent != null ? formatPesoDisplay(apartment.advance_rent) : "—"}
-          />
+          <div className="flex min-w-0 flex-col justify-between gap-4">
+            <div>
+              <p className="text-lg font-nunito font-bold text-card-foreground">{apartment.name}</p>
+              <p className="mt-1 flex items-start gap-2 text-sm text-muted-foreground">
+                <IconMapPin size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{fullAddress || "—"}
+              </p>
+            </div>
+            <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${detail.tenant ? "2xl:grid-cols-5" : "xl:grid-cols-3"}`}>
+              {detail.tenant && (
+                <>
+                  <ReadOnlyField icon={IconCalendar} label="Lease Start" value={formatLeaseDate(detail.tenant.leaseStart)} />
+                  <ReadOnlyField icon={IconCalendar} label="Lease End" value={formatLeaseDate(detail.tenant.leaseEnd)} />
+                </>
+              )}
+              <ReadOnlyField icon={IconCurrencyPeso} label="Monthly Rent" value={formatPesoDisplay(apartment.monthly_rent)} highlight />
+              <ReadOnlyField icon={IconShieldCheck} label="Security Deposit" value={apartment.security_deposit != null ? formatPesoDisplay(apartment.security_deposit) : "—"} />
+              <ReadOnlyField icon={IconCreditCard} label="Advance Rent" value={apartment.advance_rent != null ? formatPesoDisplay(apartment.advance_rent) : "—"} />
+            </div>
+          </div>
         </div>
-      </Card>
+      </DescriptionSection>
 
       {/* Full description */}
-      <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <SectionTitle>Full Description</SectionTitle>
-          <Button isIconOnly variant="ghost" size="sm" onPress={() => setEditModalOpen(true)} aria-label="Edit description">
-            <Pencil size={14} />
-          </Button>
-        </div>
+      <DescriptionSection title="Full Description" subtitle="Detailed information about the property and its features." icon={FileText} action={<EditSectionButton label="Edit description" onPress={() => setEditModalOpen(true)} />}>
         <div className="rounded-2xl bg-muted px-4 py-3">
           <p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">
-            {apartment.description ?? "—"}
+            {apartment.description || "No description added yet."}
           </p>
         </div>
-        {apartment.description && (
-          <button
-            type="button"
-            onClick={() => setDescriptionModalOpen(true)}
-            className="text-xs font-medium text-primary hover:underline w-fit"
-          >
-            View all
-          </button>
-        )}
-      </Card>
+      </DescriptionSection>
 
       {/* Specs */}
-      <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <SectionTitle>Room / Unit Details</SectionTitle>
-          <Button isIconOnly variant="ghost" size="sm" onPress={() => setEditModalOpen(true)} aria-label="Edit specs">
-            <Pencil size={14} />
-          </Button>
+      <DescriptionSection title="Room / Unit Details" subtitle="Key information about the unit specifications." icon={IconBed} action={<EditSectionButton label="Edit specs" onPress={() => setEditModalOpen(true)} />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+          <ReadOnlyField icon={IconBuilding} label="Type" value={apartment.type} />
+          <ReadOnlyField icon={IconCalendar} label="Lease Duration" value={apartment.lease_duration} />
+          <ReadOnlyField icon={IconBed} label="Bedrooms" value={apartment.no_bedrooms} />
+          <ReadOnlyField icon={IconBath} label="Bathrooms" value={apartment.no_bathrooms} />
+          <ReadOnlyField icon={IconArmchair} label="Furnishing" value={apartment.furnished_type} />
+          <ReadOnlyField icon={IconStairs} label="Floor Level" value={apartment.floor_level} />
+          <ReadOnlyField icon={IconUsers} label="Max Occupants" value={apartment.max_occupants} />
+          <ReadOnlyField icon={IconDimensions} label="Area (sqm)" value={apartment.area_sqm} />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <ReadOnlyField label="Type" value={apartment.type} />
-          <ReadOnlyField label="Lease Duration" value={apartment.lease_duration} />
-          <ReadOnlyField label="Bedrooms" value={apartment.no_bedrooms} />
-          <ReadOnlyField label="Bathrooms" value={apartment.no_bathrooms} />
-          <ReadOnlyField label="Furnishing" value={apartment.furnished_type} />
-          <ReadOnlyField label="Floor Level" value={apartment.floor_level} />
-          <ReadOnlyField label="Max Occupants" value={apartment.max_occupants} />
-          <ReadOnlyField label="Area (sqm)" value={apartment.area_sqm} />
-        </div>
-      </Card>
+      </DescriptionSection>
 
       {/* Perks */}
-      {amenities.length > 0 && (
-        <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <SectionTitle>Included Perks</SectionTitle>
-            <Button isIconOnly variant="ghost" size="sm" onPress={() => setEditModalOpen(true)} aria-label="Edit perks">
-              <Pencil size={14} />
-            </Button>
-          </div>
+      <DescriptionSection title="Included Perks" subtitle="Amenities and features included in this unit." icon={IconSparkles} action={<EditSectionButton label="Edit perks" onPress={() => setEditModalOpen(true)} />}>
+        {amenities.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
-            {amenities.map((item) => (
-              <Chip key={item.id} size="sm" variant="soft">
-                {item.perk?.name}
-              </Chip>
-            ))}
+            {amenities.map(({ id, perk }) => {
+              const PerkIcon = perk.icon;
+              return (
+                <Chip key={id} size="sm" variant="soft">
+                  <span className="inline-flex items-center gap-1.5"><PerkIcon size={14} aria-hidden="true" />{perk.name}</span>
+                </Chip>
+              );
+            })}
           </div>
-          <button
-            type="button"
-            onClick={() => setAmenitiesModalOpen(true)}
-            className="text-xs font-medium text-primary hover:underline w-fit"
-          >
-            View all
-          </button>
-        </Card>
-      )}
+        ) : <p className="text-sm text-muted-foreground">No perks added yet.</p>}
+      </DescriptionSection>
 
       {/* Lease */}
-      <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-2">
-        <SectionTitle>Lease Agreement</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <DescriptionSection title="Lease Agreement" subtitle="View or upload this property's lease agreement." icon={FileText} inline>
+        <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-2">
           <Button
             variant="secondary"
             size="sm"
@@ -187,13 +174,13 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
             isDisabled={!apartment.lease_agreement_url || viewing}
             onPress={() => void handleViewLease()}
           >
-            <FileText size={16} /> {viewing ? "Opening…" : "View Lease Agreement"}
+            <FileText size={16} aria-hidden="true" /> {viewing ? "Opening…" : "View Lease Agreement"}
           </Button>
           <Button size="sm" className="w-full" onPress={() => setLeaseModalOpen(true)}>
-            <Upload size={16} /> Upload Lease Agreement
+            <Upload size={16} aria-hidden="true" /> Upload Lease Agreement
           </Button>
         </div>
-      </Card>
+      </DescriptionSection>
 
       <EditPropertyModal
         isOpen={editModalOpen}
@@ -218,16 +205,6 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
         apartmentId={apartment.id}
         currentUrl={apartment.lease_agreement_url}
         onUpdated={(newUrl) => setApartment((prev) => ({ ...prev, lease_agreement_url: newUrl }))}
-      />
-      <DescriptionModal
-        isOpen={descriptionModalOpen}
-        onClose={() => setDescriptionModalOpen(false)}
-        description={apartment.description}
-      />
-      <AmenitiesModal
-        isOpen={amenitiesModalOpen}
-        onClose={() => setAmenitiesModalOpen(false)}
-        amenityIds={apartment.amenities}
       />
     </div>
   );

@@ -1,142 +1,95 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Button,
-  Card,
-  FieldError,
-  Label,
-  Modal,
-  Separator,
-  Spinner,
-  TextArea,
-  TextField,
-  useOverlayState,
-} from "@heroui/react";
-import StatusChip from "@/app/components/display/StatusChip";
-import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
+import { Button, Card, FieldError, Label, Modal, TextArea, TextField, useOverlayState } from "@heroui/react";
+import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck, IconHome, IconUser, IconBriefcase, IconAdjustments, IconAddressBook, IconMessage, IconClipboardList } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
-
+import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
-
 import { useLandlordApplications } from "@/hooks/use-landlord-applications";
 import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-actions";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportVerifiedPaths } from "@/hooks/use-passport-verified-paths";
 import { buildApplicationDocumentList } from "@/lib/application-documents";
 import { statusChipColor } from "../lib/application-status";
+import { applicationStatusLabel } from "../lib/application-list";
+import ApplicationDetailSection from "./components/ApplicationDetailSection";
+import ApplicationDetailSkeleton from "./components/ApplicationDetailSkeleton";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <p className="text-sm font-nunito text-muted-foreground">{label}</p>
-      <p className="text-[15px] font-nunito font-semibold text-card-foreground truncate leading-snug">{value ?? "—"}</p>
+    <div className="min-w-0 rounded-xl bg-muted/40 px-3 py-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-nunito font-semibold leading-6 text-card-foreground wrap-break-word">{value?.trim() || "Not provided"}</p>
     </div>
   );
 }
 
-function SectionTitle({ children }: { children: string }) {
-  return <p className="text-sm font-nunito font-bold text-primary uppercase tracking-wide">{children}</p>;
-}
-
-function DocumentRow({ label, path, signedUrl, verified = false, emptyLabel }: { label: string; path: string | null; signedUrl: string | null; verified?: boolean; emptyLabel: string }) {
+function DocumentRow({ label, path, signedUrl, verified, emptyLabel, loading }: {
+  label: string; path: string | null; signedUrl: string | null; verified: boolean; emptyLabel: string; loading: boolean;
+}) {
+  const hint = !path ? emptyLabel : loading ? "Preparing secure preview…" : signedUrl ? "Open attached document" : "Document preview unavailable";
   return (
-    <div className="flex items-center justify-between rounded-xl bg-muted px-3 py-2.5">
-      <div className="flex items-center gap-2 min-w-0">
-        <div className="shrink-0 rounded-lg bg-muted p-2">
-          <FileText size={16} className="text-muted-foreground" />
-        </div>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/30 p-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><FileText size={20} aria-hidden="true" /></span>
         <div className="min-w-0">
-          <p className="text-sm font-nunito font-medium text-card-foreground flex items-center gap-1.5">
-            {label}
-            {verified ? (
-              <StatusChip size="sm" tone="success" className="font-nunito">
-                <ShieldCheck size={12} />
-                Verified
-              </StatusChip>
-            ) : null}
-          </p>
-          <p className="text-xs font-nunito text-muted-foreground truncate">{path ? "Tap View to open" : emptyLabel}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-nunito font-semibold text-card-foreground">{label}</p>
+            {path && verified ? <StatusChip size="sm" tone="success"><span className="inline-flex items-center gap-1"><ShieldCheck size={13} aria-hidden="true" />Verified</span></StatusChip> : null}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
         </div>
       </div>
-      {signedUrl ? (
-        <Button size="sm" variant="ghost" onPress={() => window.open(signedUrl, "_blank")} className="shrink-0">
-          <Eye size={14} />
-          View
-        </Button>
-      ) : (
-        <span className="text-xs font-nunito text-muted-foreground">—</span>
-      )}
+      <Button size="sm" variant="secondary" aria-label={`View ${label}`} isDisabled={!signedUrl || loading} onPress={() => {
+        if (signedUrl) window.open(signedUrl, "_blank", "noopener,noreferrer");
+      }}><Eye size={15} aria-hidden="true" />View</Button>
     </div>
   );
 }
 
 export default function LandlordApplicationDetailPage() {
-  const router = useRouter();
-  const params = useParams<{ applicationId: string }>();
-  const id = params.applicationId;
+  const { applicationId } = useParams<{ applicationId: string }>();
+  return <ApplicationDetailContent key={applicationId} applicationId={applicationId} />;
+}
 
+function ApplicationDetailContent({ applicationId }: { applicationId: string }) {
+  const router = useRouter();
   const { applications, loading, error, refresh } = useLandlordApplications();
-  const {
-    localStatus,
-    actionLoading,
-    isRejectDialogOpen,
-    errorMessage,
-    approve,
-    reject,
-    openRejectDialog,
-    closeRejectDialog,
-    clearError,
-  } = useLandlordApplicationActions(refresh);
+  const { localStatus, actionLoading, isRejectDialogOpen, errorMessage, approve, reject, openRejectDialog, closeRejectDialog, clearError } = useLandlordApplicationActions(refresh);
   const rejectModal = useOverlayState();
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
-
-  const app = useMemo(() => applications.find((a) => a.id === id) ?? null, [applications, id]);
-
-  // Every slot in display order, with "Not provided" wording for empty ones.
-  const docEntries = useMemo(() => (app ? buildApplicationDocumentList(app, {}) : []), [app]);
-  const { resolved: resolvedDocs } = useApplicationDocumentUrls(docEntries);
-  const signedByLabel = useMemo(() => new Map(resolvedDocs.map((d) => [d.label, d.signedUrl])), [resolvedDocs]);
-  const docPaths = useMemo(
-    () => docEntries.map((d) => d.path).filter((p): p is string => !!p),
-    [docEntries],
-  );
+  const app = useMemo(() => applications.find((application) => application.id === applicationId) ?? null, [applications, applicationId]);
+  const docEntries = useMemo(() => app ? buildApplicationDocumentList(app, {}) : [], [app]);
+  const { resolved: resolvedDocs, loading: documentsLoading, error: documentsError } = useApplicationDocumentUrls(docEntries);
+  const signedByLabel = useMemo(() => new Map(resolvedDocs.map((document) => [document.label, document.signedUrl])), [resolvedDocs]);
+  const docPaths = useMemo(() => docEntries.map((document) => document.path).filter((path): path is string => !!path), [docEntries]);
   const verifiedPaths = usePassportVerifiedPaths(app?.tenant_id ?? null, docPaths);
-  const isVerifiedLabel = (label: string) => {
-    const entry = docEntries.find((d) => d.label === label);
-    return !!entry?.path && verifiedPaths.has(entry.path);
-  };
-  const documentRows = docEntries.map((entry) => (
-    <DocumentRow
-      key={entry.label}
-      label={entry.label}
-      path={entry.path}
-      signedUrl={signedByLabel.get(entry.label) ?? null}
-      verified={isVerifiedLabel(entry.label)}
-      emptyLabel={entry.emptyLabel}
-    />
-  ));
 
-  if (loading) {
-    return (
-      <div className="w-full px-3 py-12 flex justify-center">
-        <Spinner color="accent" />
-      </div>
-    );
-  }
+  const backButton = (
+    <Button variant="ghost" size="sm" className="gap-1.5 font-nunito w-fit"
+      onPress={() => router.push("/landlord/applications")}
+      onHoverStart={() => router.prefetch("/landlord/applications")}
+      onFocus={() => router.prefetch("/landlord/applications")}>
+      <ArrowLeft size={16} aria-hidden="true" />Back to Applications
+    </Button>
+  );
 
+  if (loading) return <ApplicationDetailSkeleton />;
   if (error || !app) {
     return (
-      <div className="w-full max-w-none mx-0 px-3 py-3">
-        <Button variant="ghost" size="sm" onPress={() => router.push("/landlord/applications")} className="mb-4 font-nunito">
-          <ArrowLeft size={16} />
-          Back to applications
-        </Button>
-        <Card className="shadow-none bg-card p-8 text-center rounded-none border-0">
-          <p className="font-nunito font-semibold text-card-foreground">Application not found</p>
-          <p className="text-sm font-nunito text-muted-foreground mt-1">{error ?? "This application does not exist or you don't have access to it."}</p>
+      <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card">
+        {backButton}
+        <Card className="landlord-application-detail-card border border-border">
+          <div className="flex flex-col items-center gap-3 py-10 text-center" role={error ? "alert" : undefined}>
+            <IconClipboardList size={32} className="text-primary" aria-hidden="true" />
+            <h1 className="text-xl font-nunito font-bold text-card-foreground">{error ? "Could not load application" : "Application not found"}</h1>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">{error || "This application does not exist or you don't have access to it."}</p>
+            {error ? <Button variant="secondary" onPress={() => void refresh()}>Try Again</Button> : null}
+          </div>
         </Card>
       </div>
     );
@@ -145,7 +98,6 @@ export default function LandlordApplicationDetailPage() {
   const displayStatus = localStatus ?? app.status;
   const isPending = displayStatus === "Applied";
   const isUnitOccupied = app.apartment_status === "occupied";
-
   const handleRejectConfirm = () => {
     if (!rejectReason.trim()) {
       setRejectError("Please provide a reason for rejection.");
@@ -155,241 +107,132 @@ export default function LandlordApplicationDetailPage() {
     void reject(app.id, rejectReason.trim());
   };
 
-  const actionButtons = isPending && (
-    <div className="flex items-center gap-2 shrink-0 self-start">
-      <Button
-        size="sm"
-        variant="tertiary"
-        className="font-nunito h-8 border-0"
-        style={{ backgroundColor: "#FEE2E2", color: "#E50914" }}
-        isDisabled={actionLoading}
-        onPress={() => {
-          setRejectReason("");
-          setRejectError("");
-          clearError();
-          openRejectDialog();
-          rejectModal.setOpen(true);
-        }}
-      >
-        <X size={14} />
-        Reject
-      </Button>
-      <Button
-        size="sm"
-        className="font-nunito h-8"
-        isDisabled={actionLoading || isUnitOccupied}
-        onPress={() => void approve(app.id)}
-      >
-        <Check size={14} />
-        {actionLoading ? "Working..." : "Approve"}
-      </Button>
-    </div>
-  );
-
   return (
-    <div className="w-full max-w-none mx-0 px-0 py-2 flex flex-1 flex-col gap-2 bg-card">
-      <div className="flex items-center gap-2 shrink-0 px-3">
-        <Button variant="ghost" size="sm" onPress={() => router.back()} className="gap-1.5 font-nunito">
-          <ArrowLeft size={16} />
-          Back
-        </Button>
-        <h1 className="text-xl font-nunito font-semibold text-card-foreground">Application Details</h1>
+    <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card min-h-0">
+      <div>
+        {backButton}
+        <h1 className="mt-2 text-2xl font-nunito font-bold text-card-foreground">Application Details</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Review the tenant&apos;s information and supporting documents.</p>
+      </div>
+      {errorMessage ? <div role="alert" className="rounded-xl border border-danger/20 bg-danger/5 p-4 text-sm text-danger">{errorMessage}</div> : null}
+
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
+        <ApplicationDetailSection title="Property" subtitle="Tenant application for this property." icon={IconHome}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-40">
+              <Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt={app.apartment_name} fill unoptimized className="object-cover" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-nunito font-bold text-card-foreground wrap-break-word">{app.apartment_name}</p>
+              <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-muted-foreground"><MapPin size={16} className="mt-1 shrink-0" aria-hidden="true" />{app.apartment_address || "Address not provided"}</p>
+              <p className="mt-2 text-base font-nunito font-bold text-primary">{formatPesoDisplay(app.monthly_rent)}<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
+            </div>
+          </div>
+        </ApplicationDetailSection>
+        <ApplicationDetailSection title="Applicant" subtitle="Tenant contact information and application status." icon={IconUser}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-start gap-3">
+              <UserAvatar src={app.tenant_avatar_url} initials={getInitials(app.tenant_name)} alt={app.tenant_name} size="lg" className="shrink-0" />
+              <div className="min-w-0">
+                <p className="text-lg font-nunito font-bold text-card-foreground wrap-break-word">{app.tenant_name}</p>
+                <div className="mt-2 flex flex-col gap-2 text-sm text-muted-foreground">
+                  <p className="flex items-start gap-2 wrap-anywhere"><Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{app.tenant_email || "Email not provided"}</p>
+                  <p className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{app.tenant_city || "Location not provided"}</p>
+                  <p className="flex items-start gap-2"><Phone size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{app.tenant_mobile_number || "Phone not provided"}</p>
+                </div>
+              </div>
+            </div>
+            <StatusChip size="sm" tone={statusChipColor(displayStatus)} className="shrink-0">{applicationStatusLabel(displayStatus)}</StatusChip>
+          </div>
+        </ApplicationDetailSection>
       </div>
 
-      {errorMessage && (
-        <div className="mx-3 shrink-0 rounded-xl bg-danger/5 px-3 py-2.5">
-          <p className="text-sm font-nunito text-danger">{errorMessage}</p>
+      {displayStatus === "Rejected" && app.rejected_reason ? (
+        <div className="rounded-xl border border-danger/20 bg-danger/5 p-4">
+          <h2 className="text-sm font-nunito font-bold text-danger">Rejection reason</h2>
+          <p className="mt-1 text-sm leading-6 whitespace-pre-line text-card-foreground wrap-anywhere">{app.rejected_reason}</p>
         </div>
-      )}
-      {isPending && isUnitOccupied && (
-        <div className="mx-3 shrink-0 rounded-xl bg-muted px-3 py-2.5">
-          <p className="text-sm font-nunito text-muted-foreground">This unit is already occupied and cannot accept another tenant.</p>
-        </div>
-      )}
+      ) : null}
 
-      <Card className="shadow-none bg-card rounded-none border-0 flex flex-col p-0">
-        {/* Mobile stacked — borderless tiny gap */}
-        <div className="md:hidden flex flex-col p-3 gap-2">
-          <div className="rounded-2xl bg-card p-3 flex flex-row items-start justify-between gap-3">
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
-              <p className="text-xl font-nunito font-semibold text-brand leading-tight">{app.apartment_name}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1">
-                <MapPin size={12} className="shrink-0" />
-                {app.apartment_address}
-              </p>
-            </div>
-            {actionButtons}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <ApplicationDetailSection title="Application Details" subtitle="Submitted dates, rent and household size." icon={IconClipboardList}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DetailField label="Date Submitted" value={formatDate(app.created_at, "medium")} />
+            <DetailField label="Move-in Date" value={formatDate(app.move_in_date, "medium")} />
+            <DetailField label="Monthly Rent" value={formatPesoDisplay(app.monthly_rent)} />
+            <DetailField label="No. of Occupants" value={String(app.no_occupants)} />
           </div>
-          <div className="rounded-2xl bg-card p-3 flex items-start gap-3">
-            <UserAvatar
-              src={app.tenant_avatar_url}
-              initials={getInitials(app.tenant_name)}
-              alt={app.tenant_name}
-              size="lg"
-              className="shrink-0"
-              fallbackClassName="text-sm font-nunito font-semibold"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-nunito font-semibold text-card-foreground text-base">{app.tenant_name}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" />{app.tenant_email ?? "—"}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><MapPin size={12} className="shrink-0" />{app.tenant_city || "—"}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><Phone size={12} className="shrink-0" />{app.tenant_mobile_number ?? "—"}</p>
-            </div>
-            <StatusChip size="sm" tone={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</StatusChip>
+        </ApplicationDetailSection>
+        <ApplicationDetailSection title="Employment" subtitle="Employment and income information provided by the tenant." icon={IconBriefcase}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DetailField label="Occupation" value={app.occupation} />
+            <DetailField label="Employer" value={app.employer_name} />
+            <DetailField label="Employment Type" value={app.employment_type} />
+            <DetailField label="Monthly Income" value={formatPesoDisplay(app.monthly_income)} />
           </div>
-          {displayStatus === "Rejected" && app.rejected_reason && <div className="rounded-xl bg-danger/5 px-3 py-2.5"><p className="text-sm font-nunito font-semibold text-danger">Rejection reason</p><p className="text-sm font-nunito text-card-foreground mt-0.5">{app.rejected_reason}</p></div>}
-          <Separator className="bg-border" />
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Application Details</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Date Submitted" value={formatDate(app.created_at, "medium")} /><DetailField label="Move-in Date" value={formatDate(app.move_in_date, "medium")} /><DetailField label="Monthly Rent" value={formatPesoDisplay(app.monthly_rent)} /><DetailField label="No. of Occupants" value={String(app.no_occupants)} /></div></div>
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Employment</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Occupation" value={app.occupation} /><DetailField label="Employer" value={app.employer_name} /><DetailField label="Employment Type" value={app.employment_type} /><DetailField label="Monthly Income" value={formatPesoDisplay(app.monthly_income)} /></div></div>
-          <Separator className="bg-border" />
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Preferences</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} /><DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} /><DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} /></div></div>
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Previous Landlord</SectionTitle><div className="grid grid-cols-2 gap-2"><DetailField label="Name" value={app.prev_landlord_name ?? "Not provided"} /><DetailField label="Contact" value={app.prev_landlord_contact ?? "Not provided"} /></div></div>
-          <Separator className="bg-border" />
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Documents</SectionTitle><div className="flex flex-col gap-1.5">{documentRows}</div></div>
-          <div className="rounded-2xl bg-card p-3 flex flex-col gap-2"><SectionTitle>Message</SectionTitle><p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">{app.message ?? "No message provided."}</p></div>
-        </div>
-
-        {/* Desktop — tiny gap, borderless, two separators, bigger Nunito, actions aligned with apartment name row */}
-        <div className="hidden md:flex flex-col gap-2 p-3">
-          <div className="rounded-2xl bg-card px-4 py-3 flex flex-row items-start justify-between gap-3 shrink-0">
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <p className="text-sm font-nunito font-semibold text-muted-foreground uppercase tracking-wide">Tenant Application For</p>
-              <p className="text-xl font-nunito font-semibold text-brand leading-tight">{app.apartment_name}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1">
-                <MapPin size={12} className="shrink-0" />
-                {app.apartment_address}
-              </p>
-            </div>
-            {actionButtons}
+        </ApplicationDetailSection>
+        <ApplicationDetailSection title="Preferences" subtitle="Household preferences and parking needs." icon={IconAdjustments}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} />
+            <DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} />
+            <DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} />
           </div>
-
-          <div className="rounded-2xl bg-card px-4 py-3 flex items-start gap-3 shrink-0">
-            <UserAvatar
-              src={app.tenant_avatar_url}
-              initials={getInitials(app.tenant_name)}
-              alt={app.tenant_name}
-              size="lg"
-              className="shrink-0"
-              fallbackClassName="text-sm font-nunito font-semibold"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-nunito font-semibold text-card-foreground text-base">{app.tenant_name}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" />{app.tenant_email ?? "—"}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><MapPin size={12} className="shrink-0" />{app.tenant_city || "—"}</p>
-              <p className="text-sm font-nunito text-muted-foreground flex items-center gap-1"><Phone size={12} className="shrink-0" />{app.tenant_mobile_number ?? "—"}</p>
-            </div>
-            <StatusChip size="sm" tone={statusChipColor(displayStatus)} className="capitalize shrink-0 font-nunito">{displayStatus}</StatusChip>
+        </ApplicationDetailSection>
+        <ApplicationDetailSection title="Previous Landlord" subtitle="Previous rental contact information, when provided." icon={IconAddressBook}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DetailField label="Name" value={app.prev_landlord_name} />
+            <DetailField label="Contact" value={app.prev_landlord_contact} />
           </div>
+        </ApplicationDetailSection>
+      </div>
 
-          {displayStatus === "Rejected" && app.rejected_reason && <div className="rounded-xl bg-danger/5 px-3 py-2 shrink-0"><p className="text-sm font-nunito font-semibold text-danger">Rejection reason</p><p className="text-sm font-nunito text-card-foreground mt-0.5 leading-tight">{app.rejected_reason}</p></div>}
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+        <ApplicationDetailSection title="Documents" subtitle="Private supporting documents attached to this application." icon={FileText}>
+          {documentsError ? <p role="alert" className="text-sm text-danger">{documentsError}</p> : null}
+          <div className="flex flex-col gap-3" aria-busy={documentsLoading}>
+            {docEntries.map((entry) => <DocumentRow key={entry.label} label={entry.label} path={entry.path} signedUrl={signedByLabel.get(entry.label) ?? null} verified={!!entry.path && verifiedPaths.has(entry.path)} emptyLabel={entry.emptyLabel} loading={documentsLoading} />)}
+          </div>
+        </ApplicationDetailSection>
+        <ApplicationDetailSection title="Message" subtitle="A note from the applicant." icon={IconMessage}>
+          <p className="rounded-xl bg-muted/40 p-4 text-sm leading-7 whitespace-pre-line text-card-foreground wrap-anywhere">{app.message?.trim() || "No message provided."}</p>
+        </ApplicationDetailSection>
+      </div>
 
-          <Separator className="bg-border shrink-0" />
-
-          <div className="grid grid-cols-2 gap-2 shrink-0">
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Application Details</SectionTitle>
-              <div className="grid grid-cols-2 gap-2">
-                <DetailField label="Date Submitted" value={formatDate(app.created_at, "medium")} />
-                <DetailField label="Move-in Date" value={formatDate(app.move_in_date, "medium")} />
-                <DetailField label="Monthly Rent" value={formatPesoDisplay(app.monthly_rent)} />
-                <DetailField label="No. of Occupants" value={String(app.no_occupants)} />
-              </div>
+      {isPending ? (
+        <Card className="landlord-application-detail-card border border-border">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-base font-nunito font-bold text-card-foreground">Review Application</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Review the tenant&apos;s details and documents before making a decision.</p>
+              {isUnitOccupied ? <p role="status" className="mt-2 text-sm font-medium text-card-foreground">This unit is already occupied and cannot accept another tenant.</p> : null}
             </div>
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Employment</SectionTitle>
-              <div className="grid grid-cols-2 gap-2">
-                <DetailField label="Occupation" value={app.occupation} />
-                <DetailField label="Employer" value={app.employer_name} />
-                <DetailField label="Employment Type" value={app.employment_type} />
-                <DetailField label="Monthly Income" value={formatPesoDisplay(app.monthly_income)} />
-              </div>
-            </div>
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Preferences</SectionTitle>
-              <div className="grid grid-cols-2 gap-2">
-                <DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} />
-                <DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} />
-                <div className="col-span-2"><DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} /></div>
-              </div>
-            </div>
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Previous Landlord</SectionTitle>
-              <div className="grid grid-cols-2 gap-2">
-                <DetailField label="Name" value={app.prev_landlord_name ?? "Not provided"} />
-                <DetailField label="Contact" value={app.prev_landlord_contact ?? "Not provided"} />
-              </div>
+            <div className="grid grid-cols-2 gap-3 lg:w-80 lg:shrink-0">
+              <Button variant="danger-soft" isDisabled={actionLoading} onPress={() => {
+                setRejectReason(""); setRejectError(""); clearError(); openRejectDialog(); rejectModal.setOpen(true);
+              }}><X size={16} aria-hidden="true" />Reject</Button>
+              <Button isDisabled={actionLoading || isUnitOccupied} onPress={() => void approve(app.id)}><Check size={16} aria-hidden="true" />{actionLoading ? "Working…" : "Approve"}</Button>
             </div>
           </div>
+        </Card>
+      ) : null}
 
-          <Separator className="bg-border shrink-0" />
-
-          <div className="grid grid-cols-2 gap-2 shrink-0">
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Documents</SectionTitle>
-              <div className="flex flex-col gap-1.5">
-                {documentRows}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-card p-3 flex flex-col gap-2">
-              <SectionTitle>Message</SectionTitle>
-              <p className="text-[15px] font-nunito text-card-foreground leading-relaxed whitespace-pre-line">{app.message ?? "No message provided."}</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Modal
-        isOpen={rejectModal.isOpen && isRejectDialogOpen}
-        onOpenChange={(open) => {
-          rejectModal.setOpen(open);
-          if (!open) closeRejectDialog();
-        }}
-      >
+      <Modal isOpen={rejectModal.isOpen && isRejectDialogOpen} onOpenChange={(open) => { rejectModal.setOpen(open); if (!open) closeRejectDialog(); }}>
         <Modal.Backdrop>
           <Modal.Container size="sm">
             <Modal.Dialog>
-              <Modal.Header>
-                <Modal.Heading>Reject Application</Modal.Heading>
-              </Modal.Header>
+              <Modal.Header><Modal.Heading>Reject Application</Modal.Heading></Modal.Header>
               <Modal.Body>
-                <p className="text-sm font-nunito text-muted-foreground">
-                  Please provide a reason for rejecting {app.tenant_name}&apos;s application. The tenant will see this reason.
-                </p>
-                <TextField
-                  isRequired
-                  isInvalid={!!rejectError}
-                  value={rejectReason}
-                  onChange={(v: string) => {
-                    setRejectReason(v);
-                    if (v.trim()) setRejectError("");
-                  }}
-                >
+                <p className="text-sm text-muted-foreground">Please provide a reason for rejecting {app.tenant_name}&apos;s application. The tenant will see this reason.</p>
+                <TextField isRequired isInvalid={!!rejectError} value={rejectReason} onChange={(value: string) => { setRejectReason(value); if (value.trim()) setRejectError(""); }}>
                   <Label>Rejection reason</Label>
                   <TextArea placeholder="e.g. Incomplete proof of income document." rows={4} />
                   <FieldError>{rejectError}</FieldError>
                 </TextField>
-                {errorMessage && <p className="text-sm font-nunito text-danger mt-2">{errorMessage}</p>}
+                {errorMessage ? <p role="alert" className="mt-2 text-sm text-danger">{errorMessage}</p> : null}
               </Modal.Body>
-              <Modal.Footer className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() => {
-                    rejectModal.setOpen(false);
-                    closeRejectDialog();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  isDisabled={actionLoading}
-                  onPress={handleRejectConfirm}
-                >
-                  {actionLoading ? "Rejecting..." : "Confirm Reject"}
-                </Button>
+              <Modal.Footer>
+                <Button variant="outline" size="sm" onPress={() => { rejectModal.setOpen(false); closeRejectDialog(); }}>Cancel</Button>
+                <Button size="sm" variant="danger" isDisabled={actionLoading} onPress={handleRejectConfirm}>{actionLoading ? "Rejecting…" : "Confirm Reject"}</Button>
               </Modal.Footer>
             </Modal.Dialog>
           </Modal.Container>

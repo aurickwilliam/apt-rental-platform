@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { View, Text, SectionList, ActivityIndicator } from 'react-native'
-import { Button } from 'heroui-native'
+import { View, Text, SectionList } from 'react-native'
+import { Button, Spinner } from 'heroui-native'
 import { IconFilter2, IconReceipt } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
@@ -109,7 +109,7 @@ export default function History() {
     return (
       <ScreenWrapper header={<StandardHeader title='Payment History' />}>
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size='large' />
+          <Spinner size='lg' color={colors.primary} accessibilityLabel='Loading payment history' />
         </View>
       </ScreenWrapper>
     )

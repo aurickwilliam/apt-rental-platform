@@ -1,7 +1,7 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Button } from 'heroui-native'
+import { Button, Spinner } from 'heroui-native'
 
 import { useColors } from '@/hooks/useTheme'
 import { usePaymentByReference } from '@/hooks/payments'
@@ -65,7 +65,7 @@ export default function Success() {
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
         <View className='flex-1 items-center justify-center gap-4'>
-          <ActivityIndicator size='large' color='#FFFFFF' />
+          <Spinner size='lg' color='#FFFFFF' accessibilityLabel='Loading receipt' />
           <Text className='text-white text-base font-inter text-center'>
             {payment ? 'Confirming your payment…' : 'Loading your receipt…'}
           </Text>
