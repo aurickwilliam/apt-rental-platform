@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { Button, LinkButton, Separator } from "heroui-native";
 import {
   financeAfterReserve,
+  financeComparisonSentence,
   financeIncome,
   financeMonthLabel,
   formatPesoDisplay,
@@ -32,14 +33,12 @@ export default function EarningsSummaryCard({
     .reduce((sum, budget) => sum + budget.amount, 0);
   const today = manilaToday();
   const currentMonth = month === today.slice(0, 7);
-  const canCompareIncome = income !== null && data.comparison.reviewed;
-  const delta = canCompareIncome
-    ? income - (data.comparison.collected - data.comparison.operating)
-    : active.collected - data.comparison.collected;
-  const metric = canCompareIncome ? "operating income" : "collected rent";
-  const comparison = currentMonth
-    ? "same elapsed days last month"
-    : "last month";
+  const comparison = financeComparisonSentence(
+    currentMonth,
+    active,
+    data.comparison,
+    formatPesoDisplay,
+  );
 
   return (
     <View className="bg-surface border border-border rounded-3xl overflow-hidden">
@@ -59,10 +58,7 @@ export default function EarningsSummaryCard({
           {currentMonth ? " · month to date" : " · completed month"}
         </Text>
         <Text className="font-inter text-xs text-muted">
-          {delta === 0
-            ? `No change in ${metric}`
-            : `${delta > 0 ? "↑" : "↓"} ${formatPesoDisplay(Math.abs(delta))} ${delta > 0 ? "more" : "less"} ${metric}`}{" "}
-          vs {comparison}
+          {comparison}
         </Text>
       </View>
       <View className="p-4 gap-3">

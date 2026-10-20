@@ -1,46 +1,23 @@
 import { Text, View } from "react-native";
 import { Button } from "heroui-native";
 import { IconChevronRight } from "@tabler/icons-react-native";
-import { financeIncome, formatPesoDisplay } from "@repo/utils";
+import {
+  financePerformanceValue,
+  formatPesoDisplay,
+  rankFinanceProperties,
+  type PropertyPerformanceMetric,
+} from "@repo/utils";
 import { FinanceTabs } from "./FinanceControls";
 import { useColors } from "@/hooks/useTheme";
 import type { PropertyPerformance } from "@/service/finance/financeService";
 
-export type PropertyPerformanceMetric = "collected" | "expenses" | "net";
+export type { PropertyPerformanceMetric };
 
 const METRIC_OPTIONS: { value: PropertyPerformanceMetric; label: string }[] = [
   { value: "collected", label: "Collected" },
   { value: "expenses", label: "Expenses" },
   { value: "net", label: "Net income" },
 ];
-
-/** Expenses cover operating and capital spending; net income stays null until review. */
-function performanceValue(
-  property: PropertyPerformance,
-  metric: PropertyPerformanceMetric,
-): number | null {
-  if (metric === "net") return financeIncome(property);
-  return metric === "expenses"
-    ? property.operating + property.capital
-    : property.collected;
-}
-
-function rankProperties(
-  properties: PropertyPerformance[],
-  metric: PropertyPerformanceMetric,
-): PropertyPerformance[] {
-  return [...properties].sort((a, b) => {
-    const av = performanceValue(a, metric);
-    const bv = performanceValue(b, metric);
-    return av === null
-      ? bv === null
-        ? a.name.localeCompare(b.name)
-        : 1
-      : bv === null
-        ? -1
-        : bv - av;
-  });
-}
 
 export function PropertyPerformanceTabs({
   value,
@@ -73,18 +50,18 @@ export default function PropertyPerformanceList({
   limit?: number;
 }) {
   const { colors } = useColors();
-  const ranked = rankProperties(properties, metric);
+  const ranked = rankFinanceProperties(properties, metric);
   const max = Math.max(
     1,
     ...ranked.map((property) =>
-      Math.abs(performanceValue(property, metric) ?? 0),
+      Math.abs(financePerformanceValue(property, metric) ?? 0),
     ),
   );
   const visible = limit === undefined ? ranked : ranked.slice(0, limit);
   return (
     <>
       {visible.map((property) => {
-        const amount = performanceValue(property, metric);
+        const amount = financePerformanceValue(property, metric);
         const details = (
           <View className="w-full gap-2">
             <View className="flex-row justify-between gap-3">

@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/auth";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { shiftFinanceMonth, financeIncomeMonthsFromReports, type FinanceBudget, type FinanceCategory } from "@repo/utils";
 import {
   confirmExpenseReview,
   deleteBudget,
@@ -21,7 +22,6 @@ import {
   type FinanceScope,
   type FinanceIncomeMonth,
 } from "@/service/finance/financeService";
-import { shiftFinanceMonth, type FinanceBudget, type FinanceCategory } from "@repo/utils";
 
 function useFinanceAccess() {
   const user = useCurrentUser();
@@ -146,9 +146,7 @@ export function useFinanceIncomeMonths(
       // Older deployments return a 12-month chart only. Reuse two bounded,
       // cached reports to cover the picker without requiring a DB deployment.
       const earlier = await loadReport(shiftFinanceMonth(currentMonth, -12));
-      return [...earlier.months, ...latest.months].map(({ month, collected }) => ({
-        month, collected,
-      }));
+      return financeIncomeMonthsFromReports(earlier.months, latest.months);
     },
   });
 }

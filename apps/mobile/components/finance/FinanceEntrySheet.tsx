@@ -13,13 +13,17 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { randomUUID } from "expo-crypto";
 import { IconTrash } from "@tabler/icons-react-native";
 import {
-  FINANCE_CATEGORIES,
   budgetCategoryOptions,
+  financeBudgetMonthsDefault,
+  financeCategoryTreatmentDefault,
+  financeExpenseDateDefault,
+  financeGoalFromForm,
   financeMonthLabel,
   formatPesoDisplay,
   handlePesoChange,
   isBudgetCategoryAllowed,
   manilaToday,
+  MAX_FINANCE_DESCRIPTION_LENGTH,
   parseFinanceAmount,
   suggestFinanceBudget,
   validateExpenseDate,
@@ -41,10 +45,7 @@ import {
 } from "@/service/finance/financeService";
 
 const MAX_FORMATTED_AMOUNT_LENGTH = "₱ 999,999,999.99".length;
-const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORIES.filter(
-  (item) => !["emergency", "vacancy"].includes(item.id),
-);
-const MAX_EXPENSE_DESCRIPTION_LENGTH = 200;
+const EXPENSE_CATEGORY_OPTIONS = budgetCategoryOptions("expense");
 
 function SheetInput({
   label,
@@ -143,13 +144,8 @@ function ExpenseEditor({
 }: ExpenseEditorProps) {
   const seedCategory = initial?.category ?? initialCategory ?? "maintenance";
   const seedTreatment =
-    initial?.treatment ??
-    (seedCategory === "furniture" || seedCategory === "turnover"
-      ? "capital"
-      : "operating");
-  const seedDate =
-    initial?.spent_on ??
-    (month === manilaToday().slice(0, 7) ? manilaToday() : `${month}-01`);
+    initial?.treatment ?? financeCategoryTreatmentDefault(seedCategory);
+  const seedDate = initial?.spent_on ?? financeExpenseDateDefault(month);
   const [id, setId] = useState(() => initial?.id ?? randomUUID());
   const [property, setProperty] = useState(
     initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
@@ -199,7 +195,7 @@ function ExpenseEditor({
       : "Choose an expense treatment.";
   const descriptionError = !description.trim()
     ? "Describe this expense."
-    : description.trim().length > MAX_EXPENSE_DESCRIPTION_LENGTH
+    : description.trim().length > MAX_FINANCE_DESCRIPTION_LENGTH
       ? "Use 200 characters or fewer."
       : undefined;
   const handleSave = async () => {
@@ -298,11 +294,7 @@ function ExpenseEditor({
         disabled={busy}
         onChange={(value) => {
           setCategory(value as FinanceCategory);
-          setTreatment(
-            value === "furniture" || value === "turnover"
-              ? "capital"
-              : "operating",
-          );
+          setTreatment(financeCategoryTreatmentDefault(value));
         }}
       />
       <FinanceSelect
@@ -357,7 +349,7 @@ function ExpenseEditor({
       <SheetInput
         label="Description"
         required
-        maxLength={MAX_EXPENSE_DESCRIPTION_LENGTH}
+        maxLength={MAX_FINANCE_DESCRIPTION_LENGTH}
         value={description}
         onChange={setDescription}
         disabled={busy}
@@ -499,8 +491,7 @@ export function BudgetEntryPage({
       ? presetCategory
       : "maintenance");
   const seedMonths =
-    initial?.months_remaining ??
-    (seedCategory === "insurance" || seedCategory === "taxes" ? 12 : 6);
+    initial?.months_remaining ?? financeBudgetMonthsDefault(seedCategory);
   const seedAmount = suggestedAmount ?? initial?.amount;
   const [property, setProperty] = useState(seedProperty);
   const [category, setCategory] = useState<FinanceCategory>(seedCategory);
@@ -516,12 +507,8 @@ export function BudgetEntryPage({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const goal = financeGoalFromForm(target, months);
   const amountValue = parseFinanceAmount(amount, true);
-  const targetValue = target.trim() ? parseFinanceAmount(target) : null;
-  const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
-  const validGoal =
-    !target.trim() ||
-    (targetValue !== null && monthsValue >= 1 && monthsValue <= 600);
   const propertyError = properties.some((item) => item.id === property)
     ? undefined
     : "Choose one of your properties.";
@@ -537,15 +524,16 @@ export function BudgetEntryPage({
   const suggestion = suggestFinanceBudget({
     category,
     kind,
-    target_amount: targetValue,
-    months_remaining: monthsValue,
+    target_amount: goal.target_amount,
+    months_remaining: goal.months_remaining,
   });
   const handleSave = async () => {
     if (busy) return;
     setSubmitted(true);
     if (
       amountValue === null ||
-      !validGoal ||
+      goal.targetError ||
+      goal.monthsError ||
       propertyError ||
       kindError ||
       categoryError
@@ -561,8 +549,8 @@ export function BudgetEntryPage({
         category,
         kind,
         amount: amountValue,
-        target_amount: targetValue,
-        months_remaining: targetValue === null ? null : monthsValue,
+        target_amount: goal.target_amount,
+        months_remaining: goal.months_remaining,
       });
       onClose();
     } catch (err) {
@@ -675,9 +663,7 @@ export function BudgetEntryPage({
           maxLength={MAX_FORMATTED_AMOUNT_LENGTH}
           placeholder="e.g. 12000"
           error={
-            submitted && target.trim() && targetValue === null
-              ? "Enter a positive target amount."
-              : undefined
+            submitted && goal.targetError ? goal.targetError : undefined
           }
         />
         <SheetInput
@@ -688,11 +674,7 @@ export function BudgetEntryPage({
           disabled={busy}
           maxLength={3}
           error={
-            submitted &&
-            !!target.trim() &&
-            !(monthsValue >= 1 && monthsValue <= 600)
-              ? "Enter a whole number from 1 to 600."
-              : undefined
+            submitted && goal.monthsError ? goal.monthsError : undefined
           }
         />
         {suggestion && (

@@ -17,6 +17,8 @@ export type ExpenseTreatment = "operating" | "capital";
 export type BudgetKind = "expense" | "reserve";
 export const MAX_FINANCE_AMOUNT = 999_999_999.99;
 export const FINANCE_PAGE_SIZE = 30;
+/** Matches the database `landlord_expenses.description` length check. */
+export const MAX_FINANCE_DESCRIPTION_LENGTH = 200;
 
 export function financeCategoryLabel(category: string): string {
   return FINANCE_CATEGORIES.find((item) => item.id === category)?.label ?? category;
@@ -224,7 +226,9 @@ export function suggestFinanceBudget(
   };
 }
 
-export function financeIncome(month: FinanceMonth): number | null {
+export function financeIncome(
+  month: Pick<FinanceMonth, "collected" | "operating" | "reviewed">,
+): number | null {
   return month.reviewed ? Math.round((month.collected - month.operating) * 100) / 100 : null;
 }
 
@@ -237,4 +241,281 @@ export function rentAgeBucket(daysLate: number): "not_due" | "1–7 days" | "8�
   if (daysLate <= 0) return "not_due";
   if (daysLate <= 7) return "1–7 days";
   return daysLate <= 30 ? "8–30 days" : "31+ days";
+}
+
+// ---------------------------------------------------------------------------
+// Report payload — the shape of `get_landlord_finances` as the client sees it.
+// Transport stays in each app's service; these types and the decode below are
+// the shared contract so web and mobile cannot diverge in interpretation.
+// ---------------------------------------------------------------------------
+
+/** An owned listing as the report returns it (id and label only). */
+export interface FinanceProperty {
+  id: string;
+  name: string;
+}
+
+/** One property's cash report month, plus ranking identifiers. */
+export interface PropertyPerformance extends FinanceMonth {
+  id: string;
+  name: string;
+}
+
+/** Which months of the full picker window currently hold collected rent. */
+export interface FinanceIncomeMonth {
+  month: string;
+  collected: number;
+}
+
+/** RPC JSON keys stay snake_case; only `income_months` is renamed, to the
+ *  optional `incomeMonths`. */
+export interface FinanceData {
+  properties: FinanceProperty[];
+  months: FinanceMonth[];
+  incomeMonths?: FinanceIncomeMonth[];
+  comparison: { collected: number; operating: number; reviewed: boolean };
+  categories: {
+    category: FinanceCategory;
+    amount: number | null;
+    previous_amount: number;
+  }[];
+  budgets: (FinanceBudget & { spent: number })[];
+  performance: PropertyPerformance[];
+  collections: {
+    expected: number;
+    collected: number;
+    pending: number;
+    overdue: number;
+    overdueCount: number;
+    age7: number;
+    age30: number;
+    ageOlder: number;
+  };
+  unclassified: number;
+}
+
+/** Applied filters for the report and every finance read it feeds. */
+export interface FinanceScope {
+  month: string;
+  apartmentId: string | null;
+}
+
+/** A saved, owner-recorded expense row. */
+export interface ExpenseRecord {
+  id: string;
+  apartment_id: string;
+  category: FinanceCategory;
+  treatment: ExpenseTreatment;
+  amount: number;
+  spent_on: string;
+  description: string;
+}
+
+/** A form draft: identical to a record, carrying a retry-stable id. */
+export interface ExpenseDraft extends Omit<ExpenseRecord, "id"> {
+  id: string;
+}
+
+/** Keyset cursor for the transactions list. */
+export interface ExpenseCursor {
+  spent_on: string;
+  id: string;
+}
+
+export type CollectionStatus = "collected" | "pending" | "overdue";
+
+/** One tenancy's rental-period row from `landlord_rent_ledger`. */
+export interface RentLedgerRow {
+  id: string;
+  apartment_id: string;
+  apartment_name: string;
+  tenant_name: string;
+  due_date: string;
+  expected: number;
+  collected: number;
+  outstanding: number;
+  days_late: number;
+  status: CollectionStatus;
+}
+
+/** Validates the report JSON without renaming its keys. The same messages are
+ *  thrown on every platform instead of presenting unknown data as zeros. */
+export function decodeFinanceReport(data: unknown): FinanceData {
+  if (
+    !data || typeof data !== "object" || Array.isArray(data) ||
+    !Array.isArray((data as { months?: unknown }).months)
+  ) {
+    throw new Error("The finance report could not be read.");
+  }
+  const report = data as FinanceData;
+  const raw = data as { income_months?: unknown };
+  if (raw.income_months === undefined) return report;
+  if (!Array.isArray(raw.income_months)) {
+    throw new Error("The finance month summary could not be read.");
+  }
+  const incomeMonths = raw.income_months.map((row): FinanceIncomeMonth => {
+    if (
+      !row || typeof row !== "object" || Array.isArray(row) ||
+      typeof (row as { month?: unknown }).month !== "string" ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test((row as { month: string }).month) ||
+      typeof (row as { collected?: unknown }).collected !== "number" ||
+      !Number.isFinite((row as { collected: number }).collected)
+    ) {
+      throw new Error("The finance month summary could not be read.");
+    }
+    return {
+      month: (row as FinanceIncomeMonth).month,
+      collected: (row as FinanceIncomeMonth).collected,
+    };
+  });
+  return { ...report, incomeMonths };
+}
+
+/** Older deployments return only the 12-month chart window. Combines two
+ *  bounded cached reports to cover the picker without requiring a DB change. */
+export function financeIncomeMonthsFromReports(
+  earlier: readonly FinanceMonth[],
+  latest: readonly FinanceMonth[],
+): FinanceIncomeMonth[] {
+  return [...earlier, ...latest].map(({ month, collected }) => ({ month, collected }));
+}
+
+/**
+ * Keyset page for the transactions list: the service fetches
+ * `FINANCE_PAGE_SIZE + 1` ordered rows, so an extra row probes the next page.
+ * Supabase returns null when the query matched nothing.
+ */
+export function financeExpensePage(
+  fetched: readonly ExpenseRecord[] | null,
+): { rows: ExpenseRecord[]; next: ExpenseCursor | null } {
+  const rows = (fetched ?? []).slice(0, FINANCE_PAGE_SIZE);
+  const last = rows.at(-1);
+  return {
+    rows,
+    next:
+      fetched && fetched.length > FINANCE_PAGE_SIZE && last
+        ? { spent_on: last.spent_on, id: last.id }
+        : null,
+  };
+}
+
+/** The same keyset contract for the rental-period ledger, cursored by row id. */
+export function financeLedgerPage(
+  fetched: readonly RentLedgerRow[] | null,
+): { rows: RentLedgerRow[]; next: string | null } {
+  const rows = (fetched ?? []).slice(0, FINANCE_PAGE_SIZE);
+  return {
+    rows,
+    next:
+      fetched && fetched.length > FINANCE_PAGE_SIZE
+        ? (rows.at(-1)?.id ?? null)
+        : null,
+  };
+}
+
+export type PropertyPerformanceMetric = "collected" | "expenses" | "net";
+
+/** Expenses cover operating and capital spending; net income stays null until review. */
+export function financePerformanceValue(
+  property: Pick<FinanceMonth, "collected" | "operating" | "capital" | "reviewed">,
+  metric: PropertyPerformanceMetric,
+): number | null {
+  if (metric === "net") return financeIncome(property);
+  return metric === "expenses"
+    ? property.operating + property.capital
+    : property.collected;
+}
+
+/** Descending numeric order; unreviewed income ranks after known amounts,
+ *  undecided ties fall back to the property name. */
+export function rankFinanceProperties(
+  properties: readonly PropertyPerformance[],
+  metric: PropertyPerformanceMetric,
+): PropertyPerformance[] {
+  return [...properties].sort((a, b) => {
+    const value = financePerformanceValue(a, metric);
+    const other = financePerformanceValue(b, metric);
+    return value === null
+      ? other === null
+        ? a.name.localeCompare(b.name)
+        : 1
+      : other === null
+        ? -1
+        : other - value;
+  });
+}
+
+/** The earnings summary comparison line, worded once for both apps. The peso
+ *  formatter is injected so this module stays import-free for direct browser
+ *  and node imports. */
+export function financeComparisonSentence(
+  currentMonth: boolean,
+  active: FinanceMonth,
+  comparison: FinanceData["comparison"],
+  formatPeso: (amount: number) => string,
+): string {
+  const income = financeIncome(active);
+  const canCompareIncome = income !== null && comparison.reviewed;
+  const delta = canCompareIncome
+    ? income - (comparison.collected - comparison.operating)
+    : active.collected - comparison.collected;
+  const metric = canCompareIncome ? "operating income" : "collected rent";
+  const period = currentMonth ? "same elapsed days last month" : "last month";
+  return delta === 0
+    ? `No change in ${metric} vs ${period}`
+    : `${delta > 0 ? "↑" : "↓"} ${formatPeso(Math.abs(delta))} ${delta > 0 ? "more" : "less"} ${metric} vs ${period}`;
+}
+
+// ---------------------------------------------------------------------------
+// Finance form defaults — seeded exactly the same on both platforms.
+// ---------------------------------------------------------------------------
+
+/** Only improvement categories default to capital; everything else is operating. */
+export function financeCategoryTreatmentDefault(
+  category: FinanceCategory,
+): ExpenseTreatment {
+  return category === "furniture" || category === "turnover"
+    ? "capital"
+    : "operating";
+}
+
+/** A new expense is paid today inside the report month, otherwise on the month's first day. */
+export function financeExpenseDateDefault(
+  month: string,
+  today: string = manilaToday(),
+): string {
+  return month === today.slice(0, 7) ? today : `${month}-01`;
+}
+
+/** Annual bills and taxes spread across a year by default; other goals across 6 months. */
+export function financeBudgetMonthsDefault(category: FinanceCategory): 6 | 12 {
+  return category === "insurance" || category === "taxes" ? 12 : 6;
+}
+
+/** A validated optional goal. Without a target, no goal is invented even though
+ *  the form still shows a default spread. */
+export interface FinanceGoalEntry {
+  target_amount: number | null;
+  months_remaining: number | null;
+  targetError: string | null;
+  monthsError: string | null;
+}
+
+/** Parses the optional goal inputs: a target needs a positive amount and 1–600
+ *  whole months; month errors only apply when a target is present. */
+export function financeGoalFromForm(target: string, months: string): FinanceGoalEntry {
+  const hasTarget = !!target.trim();
+  const targetValue = hasTarget ? parseFinanceAmount(target) : null;
+  const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
+  const inRange = monthsValue >= 1 && monthsValue <= 600;
+  return {
+    target_amount: targetValue,
+    months_remaining: targetValue === null ? null : monthsValue,
+    targetError: hasTarget && targetValue === null
+      ? "Enter a positive target amount."
+      : null,
+    monthsError: hasTarget && !inRange
+      ? "Enter a whole number from 1 to 600."
+      : null,
+  };
 }

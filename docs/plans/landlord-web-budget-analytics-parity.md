@@ -23,7 +23,7 @@ Implementation destination: `/landlord/analytics`, titled **Profit & planning**,
 
 ## 2. Inspected baseline and source files
 
-Baseline inspected on 2026-10-19, including current working-tree changes. Some mobile finance files and documentation are already modified, and `edit-budget.tsx` is currently untracked. Treat those as user work. Reinspect the working tree before implementation; do not reset, overwrite, or revert them.
+Baseline inspected on 2026-10-19 and re-reviewed 2026-10-20 on branch `feature/web-profit-analytics`. The mobile finance work that was still in the working tree at the baseline is since committed (`1af8cc46` input-alignment patch, `23713e59` option-sheet padding, `01b9ce95` budget-removal trash icon — all presentation-only; no calculation or flow changed) and `edit-budget.tsx` is tracked. The working tree is clean except the untracked local build artifact `apps/mobile/build-preview.apk`; no `*.apk` .gitignore rule covers it (housekeeping in Phase 1, not part of parity). Reinspect the working tree before implementation; do not reset, overwrite, or revert anything pre-existing.
 
 Graphify was used first to locate finance relationships, followed by direct source inspection. References below are repository-relative.
 
@@ -313,7 +313,7 @@ apps/web/hooks/use-landlord-finances.ts
 apps/web/service/landlordFinanceService.ts
 apps/web/lib/landlord-finance-access.ts
 apps/web/lib/landlord-finance-params.ts
-apps/web/lib/landlord-finance.test.mjs
+apps/web/lib/landlord-finance-fixtures.test.mjs  # exists (parity fixtures, Phase 1); Phase 2 may add landlord-finance.test.mjs
 packages/utils/src/landlordFinance.ts  # Only necessary shared, pure additions
 ```
 
@@ -370,11 +370,12 @@ Do not stop at a tab or phase. Complete all feasible items, then run the full ac
 
 ### Phase 1 — Freeze contracts and establish parity fixtures
 
-- [ ] Work on a feature branch; inspect and preserve all pre-existing edits.
-- [ ] Re-read current mobile finance files/tests and mark any changes since this baseline before porting.
-- [ ] Create fixtures for shared arithmetic, report decoding, valid/invalid forms, reviewed/unreviewed scopes, grouped plans, and partial rent collections.
-- [ ] Extract only necessary shared pure rules/types so web and mobile cannot diverge in calculations and validation.
-- [ ] Verify backend dependencies against the active app's project before any remote investigation; no remote mutation/deployment is authorized by this plan.
+- [x] Work on a feature branch; inspect and preserve all pre-existing edits (done: `feature/web-profit-analytics` is created and checked out, and this plan is committed on it).
+- [x] Ignore or remove `apps/mobile/build-preview.apk` (a `*.apk` .gitignore rule now covers it).
+- [x] Re-read current mobile finance files/tests and mark any changes since this baseline before porting (post-baseline commits are presentation-only — input patch, option-sheet padding, removal trash icon — and zero calculation or flow drift).
+- [x] Create fixtures for shared arithmetic, report decoding, valid/invalid forms, reviewed/unreviewed scopes, grouped plans, and partial rent collections (`packages/utils/src/landlordFinanceFixtures.ts`; asserted identically by the mobile Jest suite and `apps/web/lib/landlord-finance-fixtures.test.mjs`).
+- [x] Extract only necessary shared pure rules/types so web and mobile cannot diverge in calculations and validation (now in `@repo/utils/landlordFinance`: payload types + `decodeFinanceReport`, income-summary fallback, keyset pages, performance ranking, comparison sentence, form defaults/goal entry; `landlordFinance.ts` stays import-free because `scripts/db-populate` and web node tests import it directly).
+- [x] Verify backend dependencies against the active app's project before any remote investigation; no remote mutation/deployment is authorized by this plan (verified read-only against in-repo migrations: `get_landlord_finances`, `landlord_rent_ledger`, `save_landlord_finance_budget`, `confirm_landlord_finance_month`, both tables, grants and mixed-role RLS; no remote queries were run).
 
 ### Phase 2 — Web entry and resource layer
 
