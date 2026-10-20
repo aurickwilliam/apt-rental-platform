@@ -153,7 +153,9 @@ export function useLandlordFinances(scope: FinanceScope) {
   const hasData = enabled && report.data?.key === scopeKey;
   const { refresh: refreshReport } = report;
   const latestRefresh = useRef(refreshReport);
-  useEffect(() => { latestRefresh.current = refreshReport; }, [refreshReport]);
+  useEffect(() => {
+    latestRefresh.current = refreshReport;
+  }, [refreshReport]);
 
   const saveExpenseOp = useFinanceOperation();
   const { run: runSaveExpense } = saveExpenseOp;

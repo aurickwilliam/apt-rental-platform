@@ -10,6 +10,16 @@ from playwright.sync_api import sync_playwright, expect
 BASE = os.environ.get("FINANCE_BROWSER_URL", "http://127.0.0.1:4387")
 OUT = Path(os.environ["FINANCE_BROWSER_OUTPUT"])
 
+
+def fixture_navigate(page, url):
+    """The fixture replaces Next navigation with history changes (the Link and
+    router shims both pushState), so direct entries follow the same in-app
+    pushed-history path instead of asking the static server for the route."""
+    page.evaluate(
+        "u => { history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }",
+        url,
+    )
+
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True)
     context = browser.new_context(viewport={"width": 1280, "height": 1000})
@@ -142,13 +152,15 @@ with sync_playwright() as playwright:
     assert page.evaluate("financeTest.writes.at(-1).target_amount") is None
 
     # Refresh failures retain same-scope content and retry clears the notice.
+    # The budget toast also carries an alert role, so the banner is matched
+    # first and its retry button marks a cleared state.
     page.evaluate("financeTest.reportFail = true")
     page.get_by_role("button", name="Refresh", exact=True).click()
-    expect(page.get_by_role("alert")).to_contain_text("previous figures remain visible")
+    expect(page.get_by_role("alert").first).to_contain_text("previous figures remain visible")
     expect(summary).to_contain_text("₱ 50,000")
     page.evaluate("financeTest.reportFail = false")
     page.get_by_role("button", name="Retry report").click()
-    expect(page.get_by_role("alert")).to_have_count(0)
+    expect(page.get_by_role("button", name="Retry report")).to_have_count(0)
 
     # A failed new scope must never display old-scope amounts under new labels.
     dialog = filters()
@@ -189,6 +201,134 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="Net income", exact=True).click()
     expect(page.get_by_role("button", name="Bayview, net, −₱ 1,000. Filter this property.")).to_be_visible()
 
+    # Expenses tab: review card mirrors the shared copy; category bars open
+    # the drill-down route for the applied scope.
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    expect(page.get_by_role("heading", name="Expenses reviewed", exact=True)).to_be_visible()
+    bar = page.get_by_role("button", name="Maintenance & repairs, ₱ 14,500, 100 percent").first
+    expect(bar).to_be_visible()
+    expect(bar).to_contain_text("Previous comparable period:")
+    bar.click()
+    assert "category=maintenance" in page.url and "month=2026-10" in page.url
+    assert "/landlord/analytics/category-expenses" in page.url
+    expect(page.get_by_role("heading", name="Maintenance & repairs", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="All properties", exact=True)).to_be_visible()
+    expect(page.get_by_text("October 2026", exact=True)).to_be_visible()
+    # Keyset pages: seeded page size is 2, so Load more trails the cursor.
+    expect(page.get_by_text("Turnover repaint", exact=True)).to_be_visible()
+    expect(page.get_by_text("Repaint gate", exact=True)).to_be_visible()
+    expect(page.get_by_text("Kitchen sink repair")).to_have_count(0)
+    page.get_by_role("button", name="Load more expenses", exact=True).click()
+    expect(page.get_by_text("Kitchen sink repair", exact=True)).to_be_visible()
+    # Cross-property rows name the property; scoped lists do not repeat it.
+    expect(page.get_by_text("Bayview · Operating").first).to_be_visible()
+
+    # Editor validation keeps the draft; save refreshes the visible list.
+    page.get_by_role("button", name="Edit Kitchen sink repair, ₱ 2,500, paid 2026-10-05").click()
+    editor = page.get_by_role("dialog", name="Edit expense", exact=True)
+    expect(editor.get_by_role("button", name="Property")).to_be_disabled()
+    editor.get_by_label("Amount (₱)", exact=False).fill("0")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor.get_by_text("Enter a positive amount with at most two decimals.")).to_be_visible()
+    editor.get_by_label("Description", exact=False).fill("")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor.get_by_text("Describe this expense.")).to_be_visible()
+    page.evaluate("financeTest.expenseFail = true")
+    editor.get_by_label("Description", exact=False).fill("Kitchen sink repair")
+    editor.get_by_label("Amount (₱)", exact=False).fill("2,650")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor.get_by_role("alert")).to_be_visible()
+    page.evaluate("financeTest.expenseFail = false")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor).to_have_count(0)
+    assert page.evaluate("financeTest.writes.at(-1).editing") is True
+    assert page.evaluate("financeTest.writes.at(-1).amount") == 2650
+    expect(page.get_by_text("Expense saved")).to_be_visible()
+    # A save refreshes the list through its own handle — the fresh page one
+    # starts the keyset again, so the edited trailing row returns via Load more.
+    page.get_by_role("button", name="Load more expenses", exact=True).click()
+    expect(page.get_by_text("Kitchen sink repair", exact=True)).to_be_visible()
+    expect(page.get_by_text("₱ 2,650", exact=True).first).to_be_visible()
+
+    # Two-step delete reopens the reviewed month: income goes back to Not
+    # calculated and the review action reappears after deletion.
+    page.get_by_role("button", name="Edit Kitchen sink repair, ₱ 2,650, paid 2026-10-05").click()
+    editor = page.get_by_role("dialog", name="Edit expense", exact=True)
+    editor.get_by_role("button", name="Delete expense", exact=True).click()
+    expect(editor.get_by_text("Delete this expense?")).to_be_visible()
+    editor.get_by_role("button", name="Confirm delete", exact=True).click()
+    expect(editor).to_have_count(0)
+    expect(page.get_by_text("Kitchen sink repair")).to_have_count(0)
+    page.get_by_role("link", name="Back to report").click()
+    page.get_by_role("tab", name="Overview", exact=True).click()
+    expect(summary).to_contain_text("Not calculated")
+    page.get_by_role("button", name="Review expenses to calculate income").click()
+    page.get_by_role("button", name="Mark expenses reviewed").click()
+    page.get_by_role("dialog", name="Confirm expenses are complete").get_by_role("button", name="Confirm", exact=True).click()
+    expect(page.get_by_role("dialog", name="Confirm expenses are complete")).to_have_count(0)
+
+    # A created expense then moved to September reopens both months and the
+    # row lands only in the destination month.
+    assert page.evaluate("financeTest.reviewedMonths.includes(\'2026-10\')") is True
+    page.get_by_role("button", name="Add expense", exact=True).click()
+    editor = page.get_by_role("dialog", name="Add expense", exact=True)
+    editor.get_by_label("Amount (₱)", exact=False).fill("2,750")
+    editor.get_by_label("Date paid", exact=False).fill("2026-10-19")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor.get_by_text("Describe this expense.")).to_be_visible()
+    editor.get_by_placeholder("e.g. Kitchen sink repair").fill("Plumbing permit")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor).to_have_count(0)
+    write = page.evaluate("financeTest.writes.at(-1)")
+    assert write["spent_on"] == "2026-10-19" and write["category"] == "maintenance"
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    page.get_by_role("button", name="Maintenance & repairs, ₱ 14,500, 100 percent").first.click()
+    expect(page.get_by_text("Plumbing permit", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Edit Plumbing permit, ₱ 2,750, paid 2026-10-19").click()
+    editor = page.get_by_role("dialog", name="Edit expense", exact=True)
+    editor.get_by_label("Date paid", exact=False).fill("2026-09-28")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor).to_have_count(0)
+    assert page.evaluate("financeTest.writes.at(-1).spent_on") == "2026-09-28"
+    expect(page.get_by_text("Plumbing permit")).to_have_count(0)
+    assert page.evaluate("financeTest.reviewedMonths.includes(\'2026-10\')") is False
+    assert page.evaluate("financeTest.reviewedMonths.includes(\'2026-09\')") is False
+    page.get_by_role("link", name="Back to report").click()
+    page.get_by_role("tab", name="Overview", exact=True).click()
+    expect(summary).to_contain_text("Not calculated")
+    # The moved row is selectable in its destination month.
+    fixture_navigate(page, "/landlord/analytics/category-expenses?month=2026-09&category=maintenance")
+    expect(page.get_by_text("Plumbing permit", exact=True)).to_be_visible()
+    expect(page.get_by_text("September tiling", exact=True)).to_be_visible()
+
+    # List failure can retry while shown rows keep their place; the trail
+    # exhausts when the keyset page is complete.
+    page.evaluate("financeTest.expenseFail = true")
+    page.get_by_role("button", name="Refresh expenses", exact=True).click()
+    expect(page.get_by_role("button", name="Retry", exact=True)).to_be_visible()
+    expect(page.get_by_text("September tiling", exact=True)).to_be_visible()
+    page.evaluate("financeTest.expenseFail = false")
+    page.get_by_role("button", name="Retry", exact=True).click()
+    expect(page.get_by_text("September tiling", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Load more expenses", exact=True).click()
+    expect(page.get_by_role("button", name="Load more expenses")).to_have_count(0)
+
+    # A category with no rows shows the empty state under its category title.
+    fixture_navigate(page, "/landlord/analytics/category-expenses?month=2026-10&category=insurance")
+    expect(page.get_by_role("heading", name="Insurance", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="No expenses in this category")).to_be_visible()
+    expect(page.get_by_text("Nothing recorded in October 2026")).to_be_visible()
+
+    # Bars follow the report: an expense-less month shows the shared empty card.
+    page.evaluate("financeTest.noExpenses = true")
+    fixture_navigate(page, "/landlord/analytics?month=2026-10")
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    expect(page.get_by_role("heading", name="No expenses recorded")).to_be_visible()
+    page.evaluate("financeTest.noExpenses = false")
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    expect(page.get_by_role("heading", name="Where expenses go")).to_be_visible()
+    page.get_by_role("tab", name="Overview", exact=True).click()
+
     for width in (390, 768, 1280):
         page.set_viewport_size({"width": width, "height": 900})
         # Exercise the chart controls at each width (not only desktop). Bringing
@@ -225,4 +365,4 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
     assert not failures, failures
     browser.close()
-    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts.")
+    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states.")

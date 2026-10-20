@@ -10,8 +10,11 @@ import {
 } from "./landlord-finance-access.ts";
 import {
   financeApartmentParam,
+  financeCategoryHref,
+  financeCategoryParam,
   financeMonthParam,
   financeTabParam,
+  parseFinanceCategoryParams,
   parseLandlordFinanceParams,
 } from "./landlord-finance-params.ts";
 import { createFinancePages, emptyFinancePages } from "./landlord-finance-pages.ts";
@@ -87,6 +90,55 @@ test("the whole route parses with one shared implementation", () => {
   assert.deepStrictEqual(
     parseLandlordFinanceParams({ month: "2099-04", apartmentId: "junk", tab: "budget" }, CURRENT, financeMonthFromParam),
     { month: CURRENT, apartmentId: null, tab: "budget" },
+  );
+});
+
+test("the drill-down parser accepts only shared category ids with the same None-throw rules", () => {
+  const categories = ["maintenance", "utilities", "other"];
+  const cases = [
+    ["maintenance", "maintenance"],
+    ["other", "other"],
+    ["Maintenance", null],
+    ["vacancy", null],
+    ["", null],
+    [null, null],
+    [undefined, null],
+    [["broken", "utilities"], null],
+  ];
+  for (const [value, expected] of cases)
+    assert.equal(financeCategoryParam(value, categories), expected);
+  assert.deepStrictEqual(
+    parseFinanceCategoryParams(
+      { month: "2026-02", apartmentId: PROPERTY_ID, category: "utilities" },
+      CURRENT,
+      financeMonthFromParam,
+      categories,
+    ),
+    { month: "2026-02", apartmentId: PROPERTY_ID, category: "utilities" },
+  );
+  assert.deepStrictEqual(
+    parseFinanceCategoryParams({}, CURRENT, financeMonthFromParam, categories),
+    { month: CURRENT, apartmentId: null, category: null },
+  );
+  assert.deepStrictEqual(
+    parseFinanceCategoryParams(
+      { month: "2099-04", category: "junk" },
+      CURRENT,
+      financeMonthFromParam,
+      categories,
+    ),
+    { month: CURRENT, apartmentId: null, category: null },
+  );
+});
+
+test("category drill-down links carry the scope and no other URL keys", () => {
+  assert.equal(
+    financeCategoryHref("2026-10", null, "maintenance"),
+    "/landlord/analytics/category-expenses?month=2026-10&category=maintenance",
+  );
+  assert.equal(
+    financeCategoryHref("2026-09", PROPERTY_ID, "other"),
+    `/landlord/analytics/category-expenses?month=2026-09&apartmentId=${PROPERTY_ID}&category=other`,
   );
 });
 

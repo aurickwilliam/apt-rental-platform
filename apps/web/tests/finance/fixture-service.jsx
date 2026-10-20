@@ -19,12 +19,73 @@ const state = (window.financeTest = {
   ledgerFail: false,
   reviewFail: false,
   budgetFail: false,
+  expenseFail: false,
   delay: 30,
-  reviewed: false,
+  /** Months whose review is confirmed; a write reopens the month it touches. */
+  reviewedMonths: [],
+  /** Page size is deliberately small so Load more exercises the keyset. */
+  expensePageSize: 2,
+  expenses: [
+    {
+      id: "expense-a",
+      apartment_id: properties[0].id,
+      category: "maintenance",
+      treatment: "operating",
+      amount: 2500,
+      spent_on: "2026-10-05",
+      description: "Kitchen sink repair",
+    },
+    {
+      id: "expense-b",
+      apartment_id: properties[1].id,
+      category: "maintenance",
+      treatment: "operating",
+      amount: 1500,
+      spent_on: "2026-10-11",
+      description: "Repaint gate",
+    },
+    {
+      id: "expense-c",
+      apartment_id: properties[2].id,
+      category: "maintenance",
+      treatment: "capital",
+      amount: 4000,
+      spent_on: "2026-10-19",
+      description: "Turnover repaint",
+    },
+    {
+      id: "expense-d",
+      apartment_id: properties[3].id,
+      category: "utilities",
+      treatment: "operating",
+      amount: 800,
+      spent_on: "2026-10-02",
+      description: "Association dues",
+    },
+    {
+      id: "expense-e",
+      apartment_id: properties[0].id,
+      category: "maintenance",
+      treatment: "operating",
+      amount: 3200,
+      spent_on: "2026-09-09",
+      description: "September tiling",
+    },
+    {
+      id: "expense-f",
+      apartment_id: properties[1].id,
+      category: "turnover",
+      treatment: "capital",
+      amount: 4000,
+      spent_on: "2026-09-20",
+      description: "September turnover clean",
+    },
+  ],
   noProperties: false,
   noActivity: false,
   noBillable: false,
   noPlans: false,
+  noExpenses: false,
   pendingReads: 0,
   writes: [],
   reads: [],
@@ -47,7 +108,7 @@ const wait = () => new Promise((resolve) => setTimeout(resolve, state.delay));
 
 export async function fetchFinances(scope) {
   const fail = state.reportFail || state.indicatorFail;
-  const reviewed = state.reviewed;
+  const reviewed = state.reviewedMonths.includes(scope.month);
   state.reads.push({ ...scope });
   state.pendingReads += 1;
   await wait();
@@ -119,6 +180,7 @@ export async function fetchFinances(scope) {
   if (state.noActivity) report.months = report.months.map((month) => ({ ...month, collected: 0, operating: 0, capital: 0 }));
   if (state.noBillable) report.collections = Object.fromEntries(Object.keys(report.collections).map((key) => [key, 0]));
   if (state.noPlans) report.budgets = [];
+  if (state.noExpenses) report.categories = [];
   return report;
 }
 export async function fetchRentLedger(scope, status, after) {
@@ -149,17 +211,98 @@ export async function confirmExpenseReview(scope) {
   await wait();
   if (state.reviewFail) throw new Error("offline");
   state.writes.push({ review: scope });
-  state.reviewed = true;
+  if (!state.reviewedMonths.includes(scope.month))
+    state.reviewedMonths.push(scope.month);
 }
-export async function fetchExpensePage() {
-  return { rows: [], next: null };
+
+/** Helpers shared by the expense transports: the report window, review
+ *  invalidation and owner checks mirror the database rules visually. */
+const inExpenseWindow = (spentOn, month) =>
+  spentOn >= `${month}-01` && spentOn < `${shiftFinanceMonth(month, 1)}-01`;
+
+/** Any write reopens the review for every month the row's date touches —
+ *  a date moved to another month invalidates both (the DB trigger rule). */
+function reopenReview(month) {
+  const index = state.reviewedMonths.indexOf(month);
+  if (index >= 0) state.reviewedMonths.splice(index, 1);
 }
-export async function saveExpense() {
-  throw new Error("Not part of this fixture");
+
+export async function fetchExpensePage(ownerId, scope, category, cursor) {
+  state.pendingReads += 1;
+  await wait();
+  state.pendingReads -= 1;
+  if (ownerId !== state.identity.profile?.id) throw { code: "42501" };
+  if (state.expenseFail) throw new Error("offline");
+  const rows = state.expenses
+    .filter(
+      (row) =>
+        inExpenseWindow(row.spent_on, scope.month) &&
+        (!scope.apartmentId || row.apartment_id === scope.apartmentId) &&
+        (!category || row.category === category),
+    )
+    .filter(
+      (row) =>
+        !cursor ||
+        row.spent_on < cursor.spent_on ||
+        (row.spent_on === cursor.spent_on && row.id < cursor.id),
+    )
+    .sort(
+      (a, b) =>
+        b.spent_on.localeCompare(a.spent_on) || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0),
+    );
+  const page = rows.slice(0, state.expensePageSize);
+  const last = page.at(-1);
+  return {
+    rows: page,
+    next: last ? { spent_on: last.spent_on, id: last.id } : null,
+  };
 }
-export async function deleteExpense() {
-  throw new Error("Not part of this fixture");
+
+export async function saveExpense(ownerId, draft, editing) {
+  state.pendingReads += 1;
+  await wait();
+  state.pendingReads -= 1;
+  if (ownerId !== state.identity.profile?.id) throw { code: "42501" };
+  if (state.expenseFail) throw new Error("offline");
+  if (
+    editing &&
+    !state.expenses.some(
+      (row) => row.id === draft.id && row.apartment_id === draft.apartment_id,
+    )
+  ) {
+    throw { code: "PGRST116" };
+  }
+  const previous = editing
+    ? state.expenses.find((row) => row.id === draft.id)
+    : null;
+  if (previous) reopenReview(previous.spent_on.slice(0, 7));
+  reopenReview(draft.spent_on.slice(0, 7));
+  const row = { ...draft, apartment_id: draft.apartment_id };
+  if (previous) {
+    state.expenses.splice(
+      state.expenses.findIndex((existing) => existing.id === draft.id),
+      1,
+      row,
+    );
+  } else {
+    state.expenses.push(row);
+  }
+  state.writes.push({ kind: "expense", editing, ...draft });
 }
+
+export async function deleteExpense(ownerId, id) {
+  state.pendingReads += 1;
+  await wait();
+  state.pendingReads -= 1;
+  if (ownerId !== state.identity.profile?.id) throw { code: "42501" };
+  if (state.expenseFail) throw new Error("offline");
+  const index = state.expenses.findIndex((row) => row.id === id);
+  if (index < 0) throw { code: "PGRST116" };
+  const [deleted] = state.expenses.splice(index, 1);
+  reopenReview(deleted.spent_on.slice(0, 7));
+  state.writes.push({ kind: "expense", delete: id, spent_on: deleted.spent_on });
+}
+
 export async function deleteBudget() {
   throw new Error("Not part of this fixture");
 }

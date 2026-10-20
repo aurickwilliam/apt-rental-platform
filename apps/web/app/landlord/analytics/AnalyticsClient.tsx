@@ -4,7 +4,12 @@ import { useOptimistic, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button, Tabs } from "@heroui/react";
-import { IconChartBar, IconFilter2, IconRefresh } from "@tabler/icons-react";
+import {
+  IconChartBar,
+  IconFilter2,
+  IconPlus,
+  IconRefresh,
+} from "@tabler/icons-react";
 import {
   financeMonthLabel,
   type CollectionStatus,
@@ -15,18 +20,21 @@ import {
   useLandlordFinances,
 } from "@/hooks/use-landlord-finances";
 import {
+  financeCategoryHref,
   financeReportHref,
   type FinanceTab,
   type LandlordFinanceRouteParams,
 } from "@/lib/landlord-finance-params";
 import AnalyticsSkeleton from "./components/AnalyticsSkeleton";
+import BudgetTab from "./components/BudgetTab";
 import EarningsSummary from "./components/EarningsSummary";
+import ExpenseEditorModal from "./components/ExpenseEditorModal";
+import ExpensesTab from "./components/ExpensesTab";
 import FinanceFilterModal from "./components/FinanceFilterModal";
 import FinanceGuidelinesModal from "./components/FinanceGuidelinesModal";
 import CollectionLedgerModal from "./components/CollectionLedgerModal";
 import Overview from "./components/Overview";
 import PlanBudgetModal from "./components/PlanBudgetModal";
-import ReportTabSummary from "./components/ReportTabSummary";
 
 interface AnalyticsClientProps {
   params: LandlordFinanceRouteParams;
@@ -35,6 +43,7 @@ interface AnalyticsClientProps {
 type Overlay =
   | { scope: string; kind: "filters" | "guidelines" | "reserve" }
   | { scope: string; kind: "collections"; status: CollectionStatus }
+  | { scope: string; kind: "expenseCreate" }
   | null;
 
 function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
@@ -67,12 +76,24 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
     Number(applied.month !== currentMonth);
   const activeOverlay = overlay?.scope === scopeKey ? overlay : null;
   const close = () => setOverlay(null);
-  const open = (kind: "filters" | "guidelines" | "reserve") => {
-    finance.savingBudget.clearError();
+  const open = (
+    kind: "filters" | "guidelines" | "reserve" | "expenseCreate",
+  ) => {
+    if (kind === "reserve") finance.savingBudget.clearError();
+    if (kind === "expenseCreate") {
+      finance.savingExpense.clearError();
+      finance.removingExpense.clearError();
+    }
     setOverlay({ kind, scope: scopeKey });
   };
   const navigate = (patch: Partial<LandlordFinanceRouteParams>) => {
-    if (finance.savingBudget.pending || finance.reviewing.pending) return;
+    if (
+      finance.savingBudget.pending ||
+      finance.savingExpense.pending ||
+      finance.removingExpense.pending ||
+      finance.reviewing.pending
+    )
+      return;
     close();
     startNavigation(() => {
       setApplied({ ...applied, ...patch });
@@ -119,6 +140,14 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                 {filterCount}
               </span>
             ) : null}
+          </Button>
+          <Button
+            size="sm"
+            isDisabled={!available || !data.properties.length || navigating}
+            onPress={() => open("expenseCreate")}
+          >
+            <IconPlus size={16} aria-hidden />
+            Add expense
           </Button>
         </div>
       </header>
@@ -255,24 +284,25 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               />
             </Tabs.Panel>
             <Tabs.Panel id="expenses" className="pt-5">
-              <ReportTabSummary
-                tab="expenses"
+              <ExpensesTab
                 data={data}
                 scope={scope}
-                onReserve={() => open("reserve")}
+                onSelectCategory={(category) =>
+                  router.push(
+                    financeCategoryHref(
+                      applied.month,
+                      applied.apartmentId,
+                      category,
+                    ),
+                    { scroll: false },
+                  )
+                }
                 onReview={finance.reviewExpenses}
                 reviewing={finance.reviewing}
               />
             </Tabs.Panel>
             <Tabs.Panel id="budget" className="pt-5">
-              <ReportTabSummary
-                tab="budget"
-                data={data}
-                scope={scope}
-                onReserve={() => open("reserve")}
-                onReview={finance.reviewExpenses}
-                reviewing={finance.reviewing}
-              />
+              <BudgetTab data={data} onReserve={() => open("reserve")} />
             </Tabs.Panel>
           </Tabs>
           <Button
@@ -311,6 +341,17 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               presetKind="reserve"
               operation={finance.savingBudget}
               onSave={finance.saveBudget}
+              onClose={close}
+            />
+          ) : null}
+          {activeOverlay?.kind === "expenseCreate" ? (
+            <ExpenseEditorModal
+              month={scope.month}
+              properties={data.properties}
+              apartmentId={scope.apartmentId}
+              saving={finance.savingExpense}
+              removing={finance.removingExpense}
+              onSave={finance.saveExpense}
               onClose={close}
             />
           ) : null}
