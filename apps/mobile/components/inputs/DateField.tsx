@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Platform, Modal } from "react-native";
+import { View, Text, Pressable, Platform, Modal, Keyboard } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ interface DateFieldProps {
   error?: string;
   required?: boolean;
   readOnly?: boolean;
+  maximumDate?: Date;
 }
 
 export default function DateField({
@@ -28,6 +29,7 @@ export default function DateField({
   error,
   required = false,
   readOnly = false,
+  maximumDate,
 }: DateFieldProps) {
   const { colors } = useColors();
 
@@ -58,6 +60,7 @@ export default function DateField({
 
   const openDatePicker = () => {
     if (!disabled && !readOnly) {
+      Keyboard.dismiss();
       setTempDate(value ?? new Date());
       setShow(true);
       setIsFocused(true);
@@ -160,6 +163,7 @@ export default function DateField({
             {/* Picker */}
             <DateTimePicker
               value={tempDate}
+              maximumDate={maximumDate}
               mode="date"
               display="spinner"
               onChange={handleChange}
@@ -173,6 +177,7 @@ export default function DateField({
       {Platform.OS === "android" && show && (
         <DateTimePicker
           value={value ?? new Date()}
+          maximumDate={maximumDate}
           mode="date"
           display="default"
           onChange={handleChange}

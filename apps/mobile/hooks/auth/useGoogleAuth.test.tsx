@@ -125,8 +125,20 @@ describe("Google sign-in without a role tab", () => {
     })));
   });
 
-  it("does not allow an admin profile into the mobile app", async () => {
+  it("routes an admin profile with consumer roles to its saved mobile portal", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["admin", "tenant"], mobile_number: "09123456789" }, error: null });
+    mockRestore.mockResolvedValue("tenant");
+
+    const { result } = renderHook(() => useGoogleAuth());
+    await act(async () => { await result.current.signInWithGoogle(); });
+
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockRestore).toHaveBeenCalledWith("account-a", ["admin", "tenant"]);
+    expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
+  });
+
+  it("does not allow an admin-only profile into the mobile app", async () => {
+    mockSingle.mockResolvedValue({ data: { roles: ["admin"], mobile_number: "09123456789" }, error: null });
 
     const { result } = renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });

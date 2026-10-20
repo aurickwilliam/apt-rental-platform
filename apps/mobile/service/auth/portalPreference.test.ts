@@ -75,15 +75,16 @@ describe("account-scoped portal preference", () => {
     await expect(selectPortal("account-a", "landlord", ["tenant"])).rejects.toThrow("does not have access");
     expect(setItem).not.toHaveBeenCalled();
     expect(choosePortal(["admin"], "landlord")).toBeNull();
-    expect(choosePortal(["admin", "tenant"], "tenant")).toBeNull();
+    expect(choosePortal(["admin", "tenant"], "tenant")).toBe("tenant");
+    await expect(selectPortal("account-a", "tenant", ["admin", "tenant"])).resolves.toBeUndefined();
   });
 
-  it("authorizes only a held non-admin portal", () => {
+  it("authorizes only a held mobile portal", () => {
     expect(authorizedPortal(["tenant", "landlord"], "landlord")).toBe("landlord");
     expect(authorizedPortal(["tenant"], "landlord")).toBeNull();
     expect(authorizedPortal(["tenant"], "owner")).toBeNull();
     expect(authorizedPortal([], "tenant")).toBeNull();
-    expect(authorizedPortal(["admin", "tenant"], "tenant")).toBeNull();
+    expect(authorizedPortal(["admin", "tenant"], "tenant")).toBe("tenant");
   });
 
   it("returns null when no supported portal is held", () => {

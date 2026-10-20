@@ -34,7 +34,7 @@ export default function QuantityField({
     >
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-1">
-          <Label className={isInvalid ? "text-danger" : ""}>{label}</Label>
+          <Label isInvalid={isInvalid}>{label}</Label>
           {required && <Text className="text-danger">*</Text>}
         </View>
         <Slider.Output>
