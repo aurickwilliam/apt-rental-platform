@@ -11,12 +11,12 @@ const PASSPORT_HREF = "/landlord/passport";
 
 const LANDLORD_NAV = [
   { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote" },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck" },
-  { href: "/landlord/messages", label: "Messages", icon: "Messages" },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties" },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications" },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance" },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments" },
+  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport" },
+  { href: "/landlord/messages", label: "Messages", icon: "Messages", activityKey: "messages" },
 ] as const;
 
 export default async function DashboardLayout({

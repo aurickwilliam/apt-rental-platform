@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -45,6 +45,7 @@ import { signOut } from "@/app/(auth)/actions/sign-out";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
+import { getUnreadSidebarActivity, type SidebarActivityKey } from "@/lib/sidebar-notification-activity";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
@@ -174,7 +175,17 @@ type NavItem = {
   href: string;
   label: string;
   icon: string;
+  activityKey?: SidebarActivityKey;
 };
+
+function UnreadActivityDot({ active = false, collapsed = false }: { active?: boolean; collapsed?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute size-2 rounded-full ${collapsed ? "right-0.5 top-0.5" : "right-3 top-1/2 -translate-y-1/2"} ${active ? "bg-sidebar-primary-foreground" : "bg-primary"}`}
+    />
+  );
+}
 
 export type SwitchTarget = { href: string; label: string };
 
@@ -273,6 +284,11 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { notifications } = useNotifications(activePortal ?? null);
+  const activity = useMemo(
+    () => getUnreadSidebarActivity(notifications, activePortal ?? null),
+    [notifications, activePortal],
+  );
   const resolvedStorageKey = resolveStorageKey(storageKey, activePortal);
   const subscribe = useCallback(
     (onChange: () => void) => subscribeToSidebarState(resolvedStorageKey, onChange),
@@ -408,8 +424,9 @@ export function AppSidebar({
         aria-label="Portal pages"
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
-        {navItems.map(({ label, href, icon }) => {
+        {navItems.map(({ label, href, icon, activityKey }) => {
           const active = isActive(pathname, href);
+          const hasActivity = !!activityKey && activity.has(activityKey);
           const Icon =
             iconSet === "tabler"
               ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
@@ -419,9 +436,9 @@ export function AppSidebar({
               href={href}
               key={href}
               aria-current={active ? "page" : undefined}
-              aria-label={collapsed ? label : undefined}
-              title={collapsed ? label : undefined}
-              className={`group flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 px-3 py-2.5"} ${
+              aria-label={hasActivity ? `${label}, Unread activity` : collapsed ? label : undefined}
+              title={collapsed ? `${label}${hasActivity ? ", Unread activity" : ""}` : undefined}
+              className={`group relative flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"} ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                   : "text-sidebar-foreground/70 hover:text-primary hover:bg-primary/10"
@@ -433,6 +450,7 @@ export function AppSidebar({
                 className={`shrink-0 ${active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/60 group-hover:text-primary"}`}
               />
               {!collapsed ? <span>{label}</span> : null}
+              {hasActivity ? <UnreadActivityDot active={active} collapsed={collapsed} /> : null}
             </Link>
           );
         })}
@@ -693,15 +711,12 @@ type MobileSidebarNavigationProps = {
 // boundary". Callers render this wrapper; the work happens in the inner
 // component.
 function MobileNotificationsItem({
-  activePortal,
+  unreadCount,
   iconSet,
 }: {
-  activePortal: "tenant" | "landlord" | "admin";
+  unreadCount: number;
   iconSet?: "lucide" | "tabler";
 }) {
-  // Own hook instance for the badge count; the realtime channel is shared
-  // with the drawer through the module registry.
-  const { unreadCount } = useNotifications(activePortal);
   return (
     <Dropdown.Item id="notifications" textValue="Notifications">
       <Label className="flex w-full items-center gap-2">
@@ -732,6 +747,11 @@ function MobileSidebarMenu({
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { notifications, unreadCount } = useNotifications(activePortal ?? null);
+  const activity = useMemo(
+    () => getUnreadSidebarActivity(notifications, activePortal ?? null),
+    [notifications, activePortal],
+  );
   const searchParams = useSearchParams();
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -829,25 +849,28 @@ function MobileSidebarMenu({
             }}
           >
             <Dropdown.Section aria-label={menuLabel}>
-              {navItems.map(({ href, label, icon }) => {
+              {navItems.map(({ href, label, icon, activityKey }) => {
                 const Icon =
                   iconSet === "tabler"
                     ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
                     : (ICON_MAP[icon] ?? Search);
                 const active = isActive(pathname, href);
+                const hasActivity = !!activityKey && activity.has(activityKey);
                 return (
                   <Dropdown.Item
                     key={href}
                     id={href}
                     textValue={label}
+                    aria-label={hasActivity ? `${label}, Unread activity` : undefined}
                     aria-current={active ? "page" : undefined}
                     className={active ? "bg-primary/10 text-primary" : undefined}
                   >
                     <Label
-                      className={`flex items-center gap-2 ${active ? "font-semibold text-primary" : ""}`}
+                      className={`relative flex w-full items-center gap-2 pr-7 ${active ? "font-semibold text-primary" : ""}`}
                     >
                       <Icon size={18} aria-hidden="true" />
                       {label}
+                      {hasActivity ? <UnreadActivityDot /> : null}
                     </Label>
                   </Dropdown.Item>
                 );
@@ -908,7 +931,7 @@ function MobileSidebarMenu({
               {(activePortal === "tenant" ||
                 activePortal === "landlord" ||
                 activePortal === "admin") && (
-                <MobileNotificationsItem activePortal={activePortal} iconSet={iconSet} />
+                <MobileNotificationsItem unreadCount={unreadCount} iconSet={iconSet} />
               )}
 
               <Dropdown.Item id="theme" textValue="Dark Mode">

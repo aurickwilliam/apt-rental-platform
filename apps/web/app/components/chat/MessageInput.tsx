@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Button, Input } from "@heroui/react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { Button, TextArea } from "@heroui/react";
 import {
   IconMoodSmile,
   IconPaperclip,
@@ -61,7 +61,8 @@ export default function MessageInput({
   const [isSending, setIsSending] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const hintId = useId();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Staged previews are object URLs, so they must be revoked when the item is
@@ -113,7 +114,14 @@ export default function MessageInput({
     onTypingChange?.(typing);
   }, [onTypingChange]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const field = inputRef.current;
+    if (!field) return;
+    field.style.height = "auto";
+    field.style.height = `${Math.min(field.scrollHeight, 144)}px`;
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
 
     if (e.target.value.trim()) {
@@ -146,10 +154,10 @@ export default function MessageInput({
   /** Inserts an emoji at the caret, replacing any selection. */
   const insertEmoji = useCallback((emoji: string) => {
     const input = inputRef.current;
+    const start = input?.selectionStart;
+    const end = input?.selectionEnd;
     setValue((current) => {
-      const start = input?.selectionStart ?? current.length;
-      const end = input?.selectionEnd ?? current.length;
-      return `${current.slice(0, start)}${emoji}${current.slice(end)}`;
+      return `${current.slice(0, start ?? current.length)}${emoji}${current.slice(end ?? current.length)}`;
     });
 
     // The panel deliberately stays open so several emoji can be picked in a
@@ -159,7 +167,7 @@ export default function MessageInput({
       const field = inputRef.current;
       if (!field) return;
       const caret =
-        (input?.selectionStart ?? field.value.length) + emoji.length;
+        (start ?? 0) + emoji.length;
       field.focus();
       field.setSelectionRange(caret, caret);
     });
@@ -257,8 +265,8 @@ export default function MessageInput({
     setValue("");
   }, [isSending, onSend, onSendAttachments, staged, stopTyping, value]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault();
       handleSend();
     }
@@ -273,13 +281,13 @@ export default function MessageInput({
   );
 
   const iconButtonClass =
-    "flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+    "flex size-11 sm:size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
   return (
     // `relative` anchors the floating emoji panel above the composer. Without
     // it the panel can only be laid out in flow, which inflates the composer
     // and crushes the message thread.
-    <div className="relative border-t border-border bg-card">
+    <div data-fab-clearance="messages-composer" className="relative shrink-0 border-t border-border bg-card">
       {replyTarget && (
         <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -337,7 +345,7 @@ export default function MessageInput({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 p-4">
+      <div className="flex items-end gap-1 px-3 pb-2 pt-3 sm:gap-2 sm:px-5">
         <input
           ref={fileInputRef}
           type="file"
@@ -370,15 +378,19 @@ export default function MessageInput({
         </button>
 
         <div className="min-w-0 flex-1">
-          <Input
+          <TextArea
             ref={inputRef}
             value={value}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Write a message…"
+            rows={1}
+            name="message"
+            autoComplete="off"
             fullWidth
-            className="rounded-full"
+            className="apt-message-draft"
             aria-label="Message"
+            aria-describedby={hintId}
           />
         </div>
 
@@ -395,16 +407,17 @@ export default function MessageInput({
         </button>
 
         <Button
-          className="px-6 font-medium"
+          isIconOnly
+          className="apt-composer-send"
           onPress={handleSend}
           isDisabled={!canSend || isSending}
           isPending={isSending}
           aria-label="Send message"
         >
           <IconSend size={18} aria-hidden="true" />
-          Send
         </Button>
       </div>
+      <p id={hintId} className="hidden px-5 pb-2 text-right font-inter text-[11px] text-muted-foreground sm:block">Enter to send · Shift+Enter for a new line</p>
 
       {isEmojiOpen && (
         <EmojiInsertPanel

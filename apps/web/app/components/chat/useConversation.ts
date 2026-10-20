@@ -9,6 +9,7 @@ import {
   toggleChatReaction,
   toReplyPreview,
 } from "./chatReactions";
+import { reconcileMessages } from "./conversationEvents";
 import {
   generateAttachmentId,
   resolveAttachmentUrls,
@@ -281,7 +282,11 @@ const loadEarlierMessages = useCallback(async () => {
     }
   }, [apartmentId, currentUserId, historyCursor, onSendError, otherUserId, supabase]);
 
-  /** Re-reads the current conversation, e.g. after a failed reaction write. */
+  /**
+   * Re-reads the current conversation and merges it into the rows already
+   * held, so a resync (reconnect, refocus, failed reaction write) can't drop
+   * realtime arrivals, optimistic sends or previously paged history.
+   */
   const refreshMessages = useCallback(async () => {
     if (!otherUserId) return;
     const hydrated = await loadConversation(
@@ -290,7 +295,7 @@ const loadEarlierMessages = useCallback(async () => {
       otherUserId,
       apartmentId ?? null
     );
-    setMessages(hydrated);
+    setMessages((prev) => reconcileMessages(prev, hydrated));
   }, [apartmentId, currentUserId, otherUserId, supabase]);
 
   /** Sends a text message, optionally as a reply. Optimistic with rollback. */

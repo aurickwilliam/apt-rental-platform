@@ -4,6 +4,7 @@ import {
   buildPortalContacts,
   getContactConversationKey,
   resolveContactAvatar,
+  selectPortalConversation,
 } from "./conversation-contacts.ts";
 
 const row = (overrides) => ({
@@ -51,6 +52,18 @@ test("pinned contacts without messages yet stay listed with no unread", () => {
 
   assert.equal(pinned.length, 1);
   assert.equal(pinned[0].unreadCount, 0);
+  assert.equal(pinned[0].lastMessageTime, undefined);
+});
+
+test("latest previews and timestamps come only from the existing RPC row", () => {
+  const latest = { last_message: "Can I visit tomorrow?", last_message_time: "2026-10-20T10:00:00Z", last_message_type: "text" };
+  const { pinned, others } = buildPortalContacts(options([
+    row(latest), row({ ...latest, other_user_id: "other", last_message: null, last_message_type: "image" }),
+  ], [pinnedContact]));
+  assert.equal(pinned[0].lastMessage, latest.last_message);
+  assert.equal(pinned[0].lastMessageTime, latest.last_message_time);
+  assert.equal(others[0].lastMessage, null);
+  assert.equal(others[0].lastMessageType, "image");
 });
 
 test("other conversations keep the RPC order and include chats the user started", () => {
@@ -99,4 +112,39 @@ test("avatars fall back to empty (initials), never a third-party placeholder", (
 
   const { others } = buildPortalContacts(options([row({ other_user_avatar: null })]));
   assert.equal(others[0].avatar, "");
+});
+
+test("deep links select the requested conversation, else the portal default", () => {
+  const inquiry = {
+    ...pinnedContact,
+    id: "landlord-2",
+    conversationKey: "landlord-2:apt-2",
+    apartment: "Inquiry: Loft",
+    apartmentId: "apt-2",
+  };
+
+  // A known key wins over the default, whichever list it lives in.
+  assert.equal(
+    selectPortalConversation([pinnedContact], [inquiry], "landlord-2:apt-2")?.conversationKey,
+    "landlord-2:apt-2",
+  );
+  assert.equal(
+    selectPortalConversation([pinnedContact], [inquiry], "landlord-1:apt-1")?.conversationKey,
+    "landlord-1:apt-1",
+  );
+
+  // An unknown or absent key falls back to pinned[0], then others[0].
+  assert.equal(
+    selectPortalConversation([pinnedContact], [inquiry], "ghost:key")?.conversationKey,
+    "landlord-1:apt-1",
+  );
+  assert.equal(
+    selectPortalConversation([pinnedContact], [inquiry], null)?.conversationKey,
+    "landlord-1:apt-1",
+  );
+  assert.equal(
+    selectPortalConversation([], [inquiry], undefined)?.conversationKey,
+    "landlord-2:apt-2",
+  );
+  assert.equal(selectPortalConversation([], [], "landlord-1:apt-1"), null);
 });

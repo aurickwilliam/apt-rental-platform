@@ -72,6 +72,7 @@ export async function fetchNotifications(userId: string, limit = 50): Promise<No
     .select('id, user_id, type, title, message, data, is_read, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
     .limit(limit);
 
   if (error) throw error;

@@ -4,23 +4,21 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
 import { IconBell, IconX } from "@tabler/icons-react";
+import { groupNotificationsByLocalDate } from "@repo/utils";
 
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
 import { clearFabPlacement, isDefaultFabPlacement, loadFabPlacement } from "@/lib/notification-fab-position";
-import { resolveNotificationHref } from "@/lib/notification-links";
+import { getLocalCalendarDay, subscribeLocalCalendarDay } from "@/lib/notification-calendar";
+import { groupNotificationFeed, type MessageGroupUnit } from "@/lib/notification-groups";
+import { resolveNotificationTarget } from "@/lib/notification-links";
 import type { FeedNotification } from "@/service/notificationService";
 
 import { FAB_PLACEMENT_RESET_EVENT } from "./DraggableNotificationBell";
+import NotificationGroupRow from "./NotificationGroupRow";
 import NotificationRow from "./NotificationRow";
 
 type Filter = "all" | "unread";
-
-interface DateGroup {
-  key: string;
-  label: string;
-  items: FeedNotification[];
-}
 
 /** Browser-only flag for the reset row: re-read on every render the drawer
  *  is open, refreshed by storage/reset events (repo external-store pattern). */
@@ -37,47 +35,12 @@ function readHasCustomPlacement(): boolean {
   return !isDefaultFabPlacement(loadFabPlacement(window.localStorage));
 }
 
-function startOfDay(date: Date): Date {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-/** Today / Yesterday / calendar-date buckets, newest group first. */
-function groupByDate(notifications: FeedNotification[]): DateGroup[] {
-  const today = startOfDay(new Date());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const buckets = new Map<string, DateGroup>();
-  for (const n of notifications) {
-    const day = startOfDay(new Date(n.created_at));
-    const diffDays = Math.round(
-      (today.getTime() - day.getTime()) / (24 * 60 * 60 * 1000),
-    );
-    const key =
-      diffDays <= 0 ? "today" : diffDays === 1 ? "yesterday" : day.toISOString();
-    const label =
-      diffDays <= 0
-        ? "Today"
-        : diffDays === 1
-          ? "Yesterday"
-          : day.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-              year: day.getFullYear() === today.getFullYear() ? undefined : "numeric",
-            });
-    const group = buckets.get(key) ?? { key, label, items: [] };
-    group.items.push(n);
-    buckets.set(key, group);
-  }
-  return [...buckets.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
-}
-
 /**
  * Right-side notifications drawer. Data is portal-scoped by the hook;
  * opening a row marks it read (fire-and-forget) and follows the resolved
  * portal route, or stays put when the payload has no destination here.
+ * Consecutive chat messages from one sender render as one group summary;
+ * expanding it is presentation-only and never changes read state.
  */
 export default function NotificationDrawer({
   activePortal,
@@ -90,7 +53,20 @@ export default function NotificationDrawer({
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
-  const { notifications, unreadCount, loading, error, markOneRead, markVisibleRead } =
+  // Keyed by group identity (conversation + sender + oldest member), so a
+  // realtime arrival keeps an already-expanded group open.
+  const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  // Portal-local presentation state must not leak across a reused drawer.
+  // The account feed remains shared; only local controls are reset.
+  const [previousPortal, setPreviousPortal] = useState(activePortal);
+  if (previousPortal !== activePortal) {
+    setPreviousPortal(activePortal);
+    setExpandedGroups(new Set());
+    setFilter("all");
+  }
+  const { notifications, unreadCount, loading, error, markOneRead, markManyRead, markVisibleRead } =
     useNotifications(activePortal);
 
   // Keyboard-accessible bell-position reset (the bell itself also resets on
@@ -114,18 +90,61 @@ export default function NotificationDrawer({
     },
   });
 
+  const units = useMemo(() => groupNotificationFeed(notifications), [notifications]);
   const shown = useMemo(
-    () => (filter === "unread" ? notifications.filter((n) => !n.is_read) : notifications),
-    [filter, notifications],
+    () =>
+      filter === "unread"
+        ? units.filter((unit) =>
+            unit.kind === "single" ? !unit.notification.is_read : unit.hasUnread,
+          )
+        : units,
+    [filter, units],
   );
-  const groups = useMemo(() => groupByDate(shown), [shown]);
+  const localDay = useSyncExternalStore(
+    subscribeLocalCalendarDay,
+    getLocalCalendarDay,
+    () => 0,
+  );
+  const groups = useMemo(
+    () => groupNotificationsByLocalDate(shown, new Date(localDay)),
+    [shown, localDay],
+  );
 
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((previous) => {
+      const next = new Set(previous);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  // Single rows keep their existing behavior: acknowledge, then follow the
+  // resolved route when the payload addresses one.
   const openNotification = (notification: FeedNotification) => {
     void markOneRead(notification.id);
-    const href = resolveNotificationHref(notification.data, activePortal);
+    const { href } = resolveNotificationTarget(notification.data, activePortal);
     if (href) {
       onClose();
       router.push(href);
+    }
+  };
+
+  // A group acknowledges its unread records in one batch, but only when the
+  // payload addressed the actual conversation: the inbox fallback must never
+  // clear rows the user never got to see. The drawer cannot observe whether
+  // the message page then selected the thread, so an unknown key (which
+  // degrades to the page default) is acknowledged optimistically.
+  const openGroup = (unit: MessageGroupUnit<FeedNotification>) => {
+    const target = resolveNotificationTarget(unit.latest.data, activePortal);
+    if (target.conversationTargeted) {
+      void markManyRead(
+        unit.members.filter((member) => !member.is_read).map((member) => member.id),
+      );
+    }
+    if (target.href) {
+      onClose();
+      router.push(target.href);
     }
   };
 
@@ -135,7 +154,7 @@ export default function NotificationDrawer({
         <Drawer.Content placement="right">
           <Drawer.Dialog
             aria-label="Notifications"
-            className="flex h-full w-[calc(100vw-2rem)] max-w-sm flex-col rounded-l-3xl p-0"
+            className="apt-notifications-drawer flex h-full w-[calc(100vw-2rem)] max-w-sm flex-col rounded-l-3xl p-0"
           >
             <div className="flex items-center gap-2 border-b border-divider px-4 py-3">
               <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-foreground">
@@ -211,13 +230,24 @@ export default function NotificationDrawer({
                       {group.label}
                     </h3>
                     <div className="flex flex-col gap-1">
-                      {group.items.map((n) => (
-                        <NotificationRow
-                          key={n.id}
-                          notification={n}
-                          onOpen={() => openNotification(n)}
-                        />
-                      ))}
+                      {group.items.map((unit) =>
+                        unit.kind === "single" ? (
+                          <NotificationRow
+                            key={unit.id}
+                            notification={unit.notification}
+                            onOpen={() => openNotification(unit.notification)}
+                          />
+                        ) : (
+                          <NotificationGroupRow
+                            key={unit.key}
+                            unit={unit}
+                            expanded={expandedGroups.has(unit.key)}
+                            onToggle={() => toggleGroup(unit.key)}
+                            onOpenGroup={() => openGroup(unit)}
+                            onOpenMember={openNotification}
+                          />
+                        ),
+                      )}
                     </div>
                   </section>
                 ))
