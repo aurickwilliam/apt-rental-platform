@@ -1,4 +1,11 @@
 export { getRelativeTime } from './getRelativeTime';
+export {
+  MAX_CHAT_ATTACHMENT_BYTES,
+  CHAT_DOCUMENT_MIME_TYPES,
+  chatAttachmentMimeType,
+  isChatDocumentType,
+  formatChatAttachmentSize,
+} from './chatAttachments';
 export { formatDate } from './formatDate';
 export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';

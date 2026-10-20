@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import ChatBubble, { ChatBubbleContent } from './ChatBubble';
@@ -79,6 +79,7 @@ jest.mock('@tabler/icons-react-native', () => {
     IconClock: mockIcon,
     IconPhoto: mockIcon,
     IconGif: mockIcon,
+    IconFileText: mockIcon,
     IconPlus: mockIcon,
   };
 });
@@ -131,6 +132,26 @@ describe('ChatBubble video playback', () => {
 
     expect(onMediaLoadError).toHaveBeenCalledTimes(1);
     expect(onMediaLoadError).toHaveBeenCalledWith('attachment');
+  });
+});
+
+describe('ChatBubble received documents', () => {
+  it('shows a filename and size and opens the private attachment', async () => {
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    render(<ChatBubble message={null} messageType="file" attachmentName="Lease.pdf" attachmentSize={2048} attachmentUrl="https://signed.example.test/lease.pdf" />);
+    expect(screen.getByText('Lease.pdf')).toBeTruthy();
+    expect(screen.getByText('2 KB')).toBeTruthy();
+    await act(async () => fireEvent.press(screen.getByLabelText('Open Lease.pdf')));
+    expect(open).toHaveBeenCalledWith('https://signed.example.test/lease.pdf');
+    open.mockRestore();
+  });
+
+  it('does not open a document from the non-interactive floating preview', () => {
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    render(<ChatBubbleContent message={null} messageType="file" attachmentName="Lease.docx" attachmentUrl="https://signed.example.test/lease.docx" interactive={false} />);
+    fireEvent.press(screen.getByLabelText('Open Lease.docx'));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
   });
 });
 

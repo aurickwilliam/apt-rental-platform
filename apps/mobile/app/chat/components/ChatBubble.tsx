@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
-import { Keyboard, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Keyboard, Linking, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { formatChatAttachmentSize } from '@repo/utils';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
@@ -10,6 +11,7 @@ import {
   IconX,
   IconPhoto,
   IconGif,
+  IconFileText,
 } from '@tabler/icons-react-native';
 
 import type { MessageReaction, MessageType, ReplyPreview } from '@/service/chat/chatService';
@@ -36,6 +38,8 @@ interface ChatBubbleProps {
   attachmentUrl?: string | null;
   attachmentPath?: string | null;
   attachmentMimeType?: string | null;
+  attachmentName?: string | null;
+  attachmentSize?: number | null;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
   timestamp?: string;
@@ -77,6 +81,8 @@ export interface ChatBubbleContentProps {
   messageType?: MessageType;
   attachmentUrl?: string | null;
   attachmentPath?: string | null;
+  attachmentName?: string | null;
+  attachmentSize?: number | null;
   thumbnailUrl?: string | null;
   thumbnailPath?: string | null;
   isSent?: boolean;
@@ -252,6 +258,8 @@ function getReplySnippet(reply: ReplyPreview): string {
       return 'Video';
     case 'gif':
       return 'GIF';
+    case 'file':
+      return 'Document';
     default:
       return '';
   }
@@ -286,6 +294,8 @@ export function ChatBubbleContent({
   messageType = 'text',
   attachmentUrl,
   attachmentPath,
+  attachmentName,
+  attachmentSize,
   thumbnailUrl,
   thumbnailPath,
   isSent = false,
@@ -382,7 +392,32 @@ export function ChatBubbleContent({
         </Text>
       )}
       {quoteBlock}
-      {isVideo ? (
+      {hasAttachment && messageType === 'file' ? (
+        <View className={`relative ${replyOverlap}`}>
+          <Pressable
+            disabled={!interactive}
+            accessibilityRole="link"
+            accessibilityLabel={`Open ${attachmentName || 'document'}`}
+            onLongPress={onLongPress}
+            onPress={async () => {
+              try {
+                await Linking.openURL(attachmentUrl!);
+              } catch {
+                console.warn('Unable to open chat document');
+                Alert.alert('Unable to open document', 'Please try again or open this conversation on the web.');
+              }
+            }}
+            className={`max-w-72 flex-row items-center gap-3 rounded-3xl p-3 ${bubbleColor}`}
+          >
+            <IconFileText size={24} color={isSent ? colors.secondaryForeground : colors.textPrimary} />
+            <View className="shrink">
+              <Text className={`font-nunitoSemiBold text-sm ${textColor}`} numberOfLines={2}>{attachmentName || 'Shared document'}</Text>
+              {attachmentSize != null ? <Text className={`font-inter text-xs ${textColor}`}>{formatChatAttachmentSize(attachmentSize)}</Text> : null}
+            </View>
+          </Pressable>
+          <ReactionBadge reactions={reactions} isSent={isSent} />
+        </View>
+      ) : isVideo ? (
         <View className={`relative ${replyOverlap}`}>
           <VideoBubble
             uri={attachmentUrl!}
@@ -450,6 +485,8 @@ export default function ChatBubble({
   attachmentUrl,
   attachmentPath,
   attachmentMimeType,
+  attachmentName,
+  attachmentSize,
   thumbnailUrl,
   thumbnailPath,
   createdAt,
@@ -575,6 +612,8 @@ export default function ChatBubble({
                 messageType={messageType}
                 attachmentUrl={attachmentUrl}
                 attachmentPath={attachmentPath}
+                attachmentName={attachmentName}
+                attachmentSize={attachmentSize}
                 thumbnailUrl={thumbnailUrl}
                 thumbnailPath={thumbnailPath}
                 isSent={isSent}

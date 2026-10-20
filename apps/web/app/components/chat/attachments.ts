@@ -9,14 +9,20 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  MAX_CHAT_ATTACHMENT_BYTES,
+  CHAT_DOCUMENT_MIME_TYPES,
+  chatAttachmentMimeType,
+  isChatDocumentType,
+} from "@repo/utils";
 
 import type { MessageType } from "./types";
 
-/** Bucket name is legacy — it also holds video and gif attachments. */
+/** Bucket name is legacy — it also holds videos, GIFs and documents. */
 export const CHAT_IMAGES_BUCKET = "chat-images";
 
 /** Matches the mobile cap and the `chat-images` bucket's file size limit. */
-export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+export const MAX_ATTACHMENT_BYTES = MAX_CHAT_ATTACHMENT_BYTES;
 
 export const MAX_ATTACHMENTS_PER_MESSAGE = 10;
 
@@ -48,6 +54,14 @@ export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
  */
 export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime"];
 
+export const CHAT_ATTACHMENT_ACCEPT = [
+  ...ALLOWED_IMAGE_TYPES,
+  ...ALLOWED_VIDEO_TYPES,
+  ...Object.values(CHAT_DOCUMENT_MIME_TYPES),
+  ".pdf",
+  ".docx",
+].join(",");
+
 const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -57,6 +71,8 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/gif": "gif",
   "video/mp4": "mp4",
   "video/quicktime": "mov",
+  [CHAT_DOCUMENT_MIME_TYPES.pdf]: "pdf",
+  [CHAT_DOCUMENT_MIME_TYPES.docx]: "docx",
 };
 
 /** A picked file held in the composer until Send. */
@@ -75,6 +91,7 @@ export function resolveMessageType(mimeType?: string): Exclude<MessageType, "tex
   if (!mimeType) return "image";
   if (mimeType.startsWith("video/")) return "video";
   if (mimeType === "image/gif") return "gif";
+  if (isChatDocumentType(mimeType)) return "file";
   return "image";
 }
 
@@ -94,16 +111,20 @@ function randomFileName(mimeType?: string): string {
  * the same things.
  */
 export async function validateAttachmentFile(file: File): Promise<string | null> {
-  const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+  const mimeType = chatAttachmentMimeType(file);
+  const isImage = ALLOWED_IMAGE_TYPES.includes(mimeType);
+  const isVideo = ALLOWED_VIDEO_TYPES.includes(mimeType);
+  const isDocument = isChatDocumentType(mimeType);
 
-  if (!isImage && !isVideo) {
-    return `"${file.name}" isn't a supported file. Choose a JPG, PNG, WebP, MP4 or MOV.`;
+  if (!isImage && !isVideo && !isDocument) {
+    return `"${file.name}" isn't a supported file. Choose a JPG, PNG, WebP, MP4, MOV, PDF or DOCX.`;
   }
 
   if (file.size > MAX_ATTACHMENT_BYTES) {
     return `"${file.name}" is larger than 25 MB.`;
   }
+
+  if (file.size === 0) return `"${file.name}" is empty. Choose a non-empty file.`;
 
   if (isVideo) {
     const duration = await readVideoDuration(file);
@@ -256,10 +277,14 @@ export async function uploadChatAttachment(
     throw new Error("File is larger than the 25MB limit.");
   }
 
-  const path = `${senderId}/${randomFileName(file.type)}`;
+  const mimeType = chatAttachmentMimeType(file);
+  if (![...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, "image/gif"].includes(mimeType) && !isChatDocumentType(mimeType)) {
+    throw new Error("Unsupported attachment type.");
+  }
+  const path = `${senderId}/${randomFileName(mimeType)}`;
   const { error } = await supabase.storage
     .from(CHAT_IMAGES_BUCKET)
-    .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    .upload(path, file, { contentType: mimeType, upsert: false });
 
   if (error) throw describeUploadFailure(error, file);
   return path;
@@ -310,6 +335,8 @@ export interface UploadedAttachment {
   path: string;
   messageType: Exclude<MessageType, "text">;
   mimeType: string;
+  name: string;
+  size: number;
   /** Video poster. Null for images/GIFs and when the frame can't be captured. */
   thumbnailPath: string | null;
 }
@@ -328,7 +355,7 @@ export async function uploadChatAttachments(
   const queue = files.map((file, index) => ({
     file,
     index,
-    messageType: resolveMessageType(file.type),
+    messageType: resolveMessageType(chatAttachmentMimeType(file)),
   }));
   const uploaded: UploadedAttachment[] = [];
   const failures: { index: number; name: string }[] = [];
@@ -339,8 +366,7 @@ export async function uploadChatAttachments(
       if (!next) return;
 
       try {
-        // Images are compressed before upload; videos and GIFs pass through
-        // untouched to avoid a pointless transcode of already-compressed media.
+        // Only images are compressed. Videos, GIFs and documents keep their bytes.
         const payload = next.messageType === "image"
           ? await compressChatImage(next.file)
           : next.file;
@@ -365,7 +391,9 @@ export async function uploadChatAttachments(
           index: next.index,
           path,
           messageType: next.messageType,
-          mimeType: payload.type || next.file.type,
+          mimeType: chatAttachmentMimeType(payload),
+          name: next.file.name,
+          size: payload.size,
           thumbnailPath,
         });
       } catch (err) {

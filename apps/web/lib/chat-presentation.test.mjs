@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
 import { latestOutgoingMessageId } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
@@ -23,7 +24,16 @@ for (const portal of ["tenant", "landlord"]) {
 
 const nodes = (element) => !element || typeof element !== "object" ? [] : [element, ...[element.props?.children].flat(Infinity).flatMap(nodes)];
 
-function harness(file) {
+for (const portal of ["tenant", "landlord"]) {
+  test(`${portal}: timeline uses the full conversation width with compact edge spacing`, () => {
+    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
+    assert.match(source, /data-message-timeline className="flex w-full min-w-0 flex-col"/);
+    assert.match(source, /overflow-x-hidden overflow-y-auto bg-background\/50 px-3 py-4/);
+    assert.doesNotMatch(source, /mx-auto flex w-full max-w-5xl/);
+  });
+}
+
+function harness(file, browser = { getSelection: () => null }) {
   const state = [], refs = [];
   let stateIndex = 0, refIndex = 0;
   const jsx = (type, props) => ({ type, props });
@@ -40,13 +50,14 @@ function harness(file) {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button", TextArea: "TextArea", Popover: Object.assign(() => {}, { Content: "PopoverContent", Dialog: "PopoverDialog" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+    "@repo/utils": { formatChatAttachmentSize },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
     "./reactionEmojis": { HEART_REACTION: "❤️" },
   };
   const source = readFileSync(new URL(`../app/components/chat/${file}.tsx`, import.meta.url), "utf8");
   const exports = {};
-  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText, {
-    exports, require: (name) => dependencies[name] ?? { default: name }, setTimeout, clearTimeout, requestAnimationFrame: (fn) => fn(),
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText, {
+    exports, require: (name) => dependencies[name] ?? { default: name }, setTimeout, clearTimeout, requestAnimationFrame: (fn) => fn(), window: browser,
   });
   return { refs, render: (props) => { stateIndex = 0; refIndex = 0; return nodes(exports.default(props)); } };
 }
@@ -71,6 +82,78 @@ test("shared composer sends Enter once, preserves Shift+Enter and guards IME com
   assert.equal(prevented, 1);
   tree = h.render(props);
   assert.equal(field().value, "");
+});
+
+test("composer places emoji inside the field, with attachments before it and send after it", () => {
+  const tree = harness("MessageInput").render({});
+  const field = tree.find(n => n.props["data-composer-field"] !== undefined);
+  const contents = nodes(field);
+  assert.ok(contents.some(n => n.type === "TextArea" && n.props.placeholder === "Aa"));
+  assert.ok(contents.some(n => n.props["aria-label"] === "Insert emoji"));
+  for (const label of ["Attach photos, videos or documents", "Send a GIF", "Send message"]) {
+    assert.equal(contents.some(n => n.props["aria-label"] === label), false);
+  }
+  assert.ok(tree.findIndex(n => n.props["aria-label"] === "Attach photos, videos or documents") < tree.indexOf(field));
+  assert.ok(tree.findIndex(n => n.props["aria-label"] === "Send message") > tree.indexOf(field));
+  assert.equal(tree.find(n => n.props["aria-label"] === "Send message").props.variant, "ghost");
+  assert.ok(tree.some(n => n.type === "p" && n.props.className === "sr-only"));
+});
+
+test("empty composer hides plus; typing shows plus with expandable photo and GIF options", () => {
+  const h = harness("MessageInput");
+  const has = (tree, label) => tree.some(n => n.props["aria-label"] === label);
+  let tree = h.render({});
+  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
+  assert.ok(has(tree, "Attach photos, videos or documents"));
+  assert.ok(has(tree, "Send a GIF"));
+  tree.find(n => n.type === "TextArea").props.onChange({ target: { value: "draft" } });
+  tree = h.render({});
+  assert.ok(has(tree, "Show attachment options"));
+  assert.equal(has(tree, "Attach photos, videos or documents"), false);
+  assert.equal(has(tree, "Send a GIF"), false);
+  tree.find(n => n.props["aria-label"] === "Show attachment options").props.onClick();
+  tree = h.render({});
+  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
+  assert.ok(has(tree, "Attach photos, videos or documents"));
+  assert.ok(has(tree, "Send a GIF"));
+  tree.find(n => n.type === "TextArea").props.onChange({ target: { value: "" } });
+  tree = h.render({});
+  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
+  assert.ok(has(tree, "Attach photos, videos or documents"));
+  assert.ok(has(tree, "Send a GIF"));
+});
+
+test("composer only scrolls after its growing draft reaches the height limit", () => {
+  const source = readFileSync(new URL("../app/components/chat/MessageInput.tsx", import.meta.url), "utf8");
+  const start = source.indexOf("    const field = inputRef.current;");
+  const end = source.indexOf("  }, [value]);", start);
+  const resize = new Function("inputRef", source.slice(start, end));
+  for (const scrollHeight of [42, 90, 240]) {
+    const style = { height: "", overflowY: "" };
+    const field = { style, scrollHeight, offsetHeight: 44, get clientHeight() { return style.height === "auto" ? 42 : Math.max(44, parseFloat(style.height)) - 2; } };
+    resize({ current: field });
+    assert.equal(style.height, `${Math.min(scrollHeight + 2, 144)}px`);
+    assert.equal(style.overflowY, scrollHeight > 142 ? "auto" : "hidden");
+  }
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.apt-message-draft::-webkit-scrollbar-button\s*\{[^}]*display: none/s);
+});
+
+test("document bubbles show a named, private link rather than an image", () => {
+  const h = harness("MessageBubble");
+  const message = { id: "document", message: null, message_type: "file", attachment_path: "sender/file.pdf", attachment_name: "Lease.pdf", attachment_size: 2048, attachment_mime_type: "application/pdf", resolvedUrl: "https://example.com/signed-file", reactions: [] };
+  for (const isPending of [false, true]) {
+    const tree = h.render({ message: { ...message, isPending }, isMine: true });
+    const body = tree.find(n => typeof n.type === "function" && n.type.name === "AttachmentBody");
+    assert.ok(body);
+    const content = nodes(body.type(body.props));
+    const link = content.find(n => n.type === "a");
+    assert.equal(link.props["aria-label"], "Open Lease.pdf");
+    assert.equal(link.props.href, isPending ? undefined : message.resolvedUrl);
+    assert.equal(link.props.rel, "noopener noreferrer");
+    assert.ok(content.some(n => n.props.children === "Lease.pdf"));
+    assert.equal(content.some(n => n.type === "img"), false);
+  }
 });
 
 test("emoji insertion replaces the selection and restores the caret", () => {
@@ -182,6 +265,42 @@ test("incoming avatar belongs to the bubble, outside replies and reactions; rece
   }
 });
 
+test("reactions align to the bubble's right edge for incoming, outgoing and quoted media messages", () => {
+  const h = harness("MessageBubble");
+  for (const isMine of [false, true]) {
+    for (const message_type of ["text", "image", "video", "gif"]) {
+      const message = { id: "reacted", message: "Hi", message_type, reactions: [{ emoji: "❤️", is_mine: true }], replyTo: { message: "A much longer quoted message", messageType: "text" } };
+      const tree = h.render({ message, isMine });
+      const wrapper = tree.find(n => n.props["data-message-with-reactions"] !== undefined);
+      assert.match(wrapper.props.className, /flex-col items-end/);
+      const children = nodes(wrapper);
+      assert.ok(children.some(n => n.props.className?.includes("apt-message-bubble")));
+      assert.equal(children.some(n => n.props["aria-label"] === "Jump to original message"), false);
+      const badges = children.find(n => n.props.reactions);
+      const badgeRow = badges.type(badges.props);
+      assert.match(badgeRow.props.className, /justify-end/);
+      assert.match(badgeRow.props.className, /self-end/);
+    }
+  }
+});
+
+test("reaction badges stay compact and only display counts above one", () => {
+  const h = harness("MessageBubble");
+  for (const count of [1, 2]) {
+    const reactions = Array.from({ length: count }, (_, i) => ({ emoji: "😂", is_mine: i === 0 }));
+    const tree = h.render({ message: { id: "compact", message: "Hi", reactions }, isMine: false });
+    const badges = tree.find(n => n.props.reactions);
+    const row = badges.type(badges.props);
+    assert.match(row.props.className, /-mt-2/);
+    const chip = nodes(row).find(n => n.type === "button");
+    assert.match(chip.props.className, /h-5/);
+    assert.match(chip.props.className, count === 1 ? /w-5 shrink-0 p-0/ : /min-w-5 px-0.5/);
+    assert.match(chip.props["aria-label"], new RegExp(`${count} reaction`));
+    assert.equal(nodes(chip).some(n => n.type === "span" && n.props.children === count), count > 1);
+    assert.equal(chip.props["aria-pressed"], true);
+  }
+});
+
 test("hover boundary contains only the bubble and toolbar, not the quote or timestamp", () => {
   const h = harness("MessageBubble");
   const message = {
@@ -198,6 +317,43 @@ test("hover boundary contains only the bubble and toolbar, not the quote or time
   assert.equal(content.filter((node) => node.props["aria-label"] === "Message actions").length, 1);
   assert.equal(content.filter((node) => node.type === "time" || node.props.onClick).length, 0);
   assert.doesNotMatch(boundary.props.className, /(?:^|\s)(?:w-full|p[xy]?-\d)/);
+});
+
+test("reply previews jump to the stable original ID, never start another reply or open message actions", () => {
+  const h = harness("MessageBubble");
+  for (const messageType of ["text", "image", "video", "gif", "file"]) {
+    const jumped = [];
+    const message = { id: "reply", message: "Reply body", reactions: [], reply_to: "original-id", replyTo: { id: "preview-id", message: messageType === "text" ? "Quoted text" : null, messageType } };
+    const tree = h.render({ message, isMine: true, onReply: () => assert.fail("must not compose a reply"), onOpenContextMenu: () => assert.fail("must not open actions"), onJumpToOriginal: id => jumped.push(id), isReplyHighlighted: true });
+    const preview = tree.find(node => node.props["aria-label"] === "Jump to original message");
+    assert.equal(preview.type, "button");
+    assert.equal(preview.props.type, "button");
+    assert.match(preview.props.className, /cursor-pointer/);
+    assert.match(preview.props.className, /focus-visible:ring-2/);
+    let stopped = 0;
+    preview.props.onClick({ stopPropagation: () => stopped++ });
+    preview.props.onDoubleClick({ stopPropagation: () => stopped++ });
+    preview.props.onKeyDown({ stopPropagation: () => stopped++ });
+    assert.deepEqual(jumped, ["original-id"]);
+    assert.equal(stopped, 3);
+    const bubble = tree.find(node => node.props["data-chat-message-id"] === "reply");
+    assert.equal(bubble.props["data-reply-highlight"], true);
+  }
+  const deleted = h.render({ message: { id: "reply", message: "Reply body", reactions: [], replyDeleted: true }, isMine: false });
+  assert.equal(deleted.some(node => node.props["aria-label"] === "Jump to original message"), false);
+  assert.ok(deleted.some(node => node.props.children === "Original message unavailable"));
+});
+
+test("selecting quoted text does not jump, while keyboard activation still works", () => {
+  const selectedNode = {}, jumped = [];
+  const h = harness("MessageBubble", { getSelection: () => ({ isCollapsed: false, anchorNode: selectedNode }) });
+  const tree = h.render({ message: { id: "reply", message: "Body", reactions: [], replyTo: { id: "original", message: "Quoted text", messageType: "text" } }, isMine: true, onJumpToOriginal: id => jumped.push(id) });
+  const preview = tree.find(node => node.props["aria-label"] === "Jump to original message");
+  const event = { detail: 1, stopPropagation: () => {}, currentTarget: { contains: node => node === selectedNode } };
+  preview.props.onClick(event);
+  assert.deepEqual(jumped, []);
+  preview.props.onClick({ ...event, detail: 0 });
+  assert.deepEqual(jumped, ["original"]);
 });
 
 test("only the owning menu or reaction picker pins the interaction open", () => {

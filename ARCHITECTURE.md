@@ -337,7 +337,7 @@ Preview and verification are read-only. Apply/reset/cleanup require a matching r
 | `lease-agreements` | Private | Lease PDFs | `createSignedUrl(s)` |
 | `signed-leases` | Private | Executed (signed) lease per tenancy | `createSignedUrl` |
 | `application-documents` | Private | Gov ID, proof of income/billing, NBI | `createSignedUrls` |
-| `chat-images` | Private | Chat images/videos/GIFs (+ thumbnails) | `createSignedUrls` (batch) |
+| `chat-images` | Private | Chat images/videos/GIFs (+ thumbnails), PDF/DOCX documents | `createSignedUrls` (batch) |
 | `maintenance-images` | Private | Maintenance photos | `createSignedUrls` |
 
 ### 6.1 Path conventions
@@ -503,8 +503,11 @@ The shared notification feed is account-keyed, but its views are portal-scoped b
 - **Context menu**: right-click, double-click, or long-press opens a menu per bubble (quick reactions, timestamp, Reply, Copy); a hover strip of quick reactions sits above/below the bubble depending on scroll position. The emoji picker searches by name/keyword.
 - **Reaction propagation**: reactions are **not** realtime-subscribed. The conversation channel still listens to `chat` INSERT only, so another person's reaction appears on refresh or when a new message arrives, not immediately. Reaction failure rolls back through `refreshMessages()` rather than a stale local patch. Reactions still reach the other party as a notification: `notify_chat_reaction` (`after insert on chat_reactions`, migration `20261017090635`) sends a `message`-type row to the reacted-to message's author — INSERT-only, one per recipient + message + reacting user per 15 minutes, skipped for muted conversations and either-direction `user_blocks` — with `data.messagePreview` rendered as the quoted line in both feeds and `conversationKey` driving the deep link.
 - Both tenant and landlord variants are near-identical (one file each for the shared conversation view; `browse/[apartmentId]/LandlordChatPanel` reuses the tenant `ConversationView`).
+- **Reply-original navigation (web)**: shared `useReplyNavigation` / `replyNavigation` resolve `reply_to` (or the resolved preview's ID) only inside the current history scroller. Missing loaded originals use the same participant- and apartment-scoped `loadEarlierMessages` keyset reader, at most five 100-row pages per lookup with a 30-second deadline. Each prepend preserves the current scroll anchor; success centers/focuses the actual original and briefly highlights it. Cancellation, account/property changes and unmount retire the lookup; the history loader deduplicates in-flight pages and rejects late pages from retired generations. Its cursor advances synchronously when an authorized page is accepted, so a multi-page lookup cannot repeatedly use a stale render's cursor. No lookup RPC, new table, subscription or route change is involved. Cancellation stops waiting on media signing (which has no abort API); any outstanding result is ignored and cannot enter another thread.
 
-### 8.4 Attachments lifecycle (mobile only)
+### 8.4 Attachments lifecycle
+
+Web's shared composer also accepts PDF/DOCX documents through the existing attachment control, up to 25 MB per file and 10 files per batch. `packages/utils/src/chatAttachments.ts` owns the shared size cap, document MIME recognition and size formatting. Documents bypass image compression and video thumbnail generation, preserving their binary contents. They use `chat.message_type = 'file'`, private `attachment_path`, `attachment_mime_type`, `attachment_name` and `attachment_size`; filename/size cards render on web and mobile (mobile receives/opens documents but its picker still selects only images/videos). Database checks require bounded document metadata, a supported MIME type, no external URL and a path inside the sender's internal-user-id folder. The bucket enforces its 25 MB cap and MIME allowlist. Storage reads authorize the uploader or a participant in the exact message referencing the attachment/thumbnail, never all objects in a sender's folder merely because the users have chatted. Existing suspension restrictions remain in place. Migration: `chat_document_attachments`.
 
 Web has no attachment upload or rendering path — a message carrying an attachment renders a text placeholder (§8.3).
 
