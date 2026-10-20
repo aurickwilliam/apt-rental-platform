@@ -12,7 +12,7 @@ function row(title, screen, is_read = false) {
     type: "payment",
     title,
     message: "",
-    data: screen === undefined ? null : { screen },
+    data: screen === undefined ? null : { screen, ...(screen === "chat" ? { recipientPortal: "tenant" } : {}) },
     is_read,
     created_at: new Date().toISOString(),
   };
@@ -77,21 +77,22 @@ test("application outcomes are tenant rows, submissions are landlord rows", () =
   );
 });
 
-test("chat, own passport, and review outcomes are visible in both portals", () => {
+test("chat is portal-specific while Passport and account outcomes retain their audiences", () => {
   for (const n of [
     row("Juan Dela Cruz", "chat"),
     row("Account verification approved", "verification"),
     row("Document verified", "passport"),
   ]) {
-    assert.equal(getNotificationAudience(n), "both");
+    assert.equal(getNotificationAudience(n), n.data.screen === "chat" ? "tenant" : n.data.screen === "verification" ? "account" : "both");
     assert.equal(isNotificationVisibleInPortal(n, "tenant"), true);
-    assert.equal(isNotificationVisibleInPortal(n, "landlord"), true);
+    assert.equal(isNotificationVisibleInPortal(n, "landlord"), n.data.screen !== "chat");
   }
 });
 
 test("admin-audience rows are hidden in consumer portals, visible in admin", () => {
   for (const n of [
     row("New account verification submitted", "verification"),
+    row("New apartment verification submitted", "verification"),
     row("New passport document submitted", "passportReview"),
   ]) {
     assert.equal(getNotificationAudience(n), "admin");
@@ -101,14 +102,23 @@ test("admin-audience rows are hidden in consumer portals, visible in admin", () 
   }
 });
 
+test("apartment verification outcomes are landlord-only, not own-account updates", () => {
+  for (const title of ["Apartment verification approved", "Apartment verification rejected"]) {
+    const n = row(title, "verification");
+    assert.equal(getNotificationAudience(n), "landlord");
+    assert.equal(isNotificationVisibleInPortal(n, "tenant"), false);
+    assert.equal(isNotificationVisibleInPortal(n, "admin"), false);
+  }
+});
+
 test("tenant and landlord rows never surface in the admin portal", () => {
   const tenantRow = row("Payment Successful", "payments");
   const landlordRow = row("New Visit Request", "visitRequests");
   assert.equal(isNotificationVisibleInPortal(tenantRow, "admin"), false);
   assert.equal(isNotificationVisibleInPortal(landlordRow, "admin"), false);
-  // Account-level rows stay visible everywhere, including admin.
+  assert.equal(isNotificationVisibleInPortal(row("Juan Dela Cruz", "chat"), "admin"), false);
+  // Explicitly identified account-level rows remain visible in Admin.
   for (const n of [
-    row("Juan Dela Cruz", "chat"),
     row("Account verification approved", "verification"),
   ]) {
     assert.equal(isNotificationVisibleInPortal(n, "admin"), true);
@@ -136,7 +146,7 @@ test("dual-role switching keeps each portal's unread set independent", () => {
     { ...row("Payment Successful", "payments", true), id: "t2" },
   ];
   assert.deepEqual(getVisibleUnreadIds(feed, "tenant"), ["t1", "c1"]);
-  assert.deepEqual(getVisibleUnreadIds(feed, "landlord"), ["l1", "c1"]);
+  assert.deepEqual(getVisibleUnreadIds(feed, "landlord"), ["l1"]);
 });
 
 test("mark-all-read scope never touches the other portal or read rows", () => {
@@ -146,4 +156,60 @@ test("mark-all-read scope never touches the other portal or read rows", () => {
   ];
   const ids = getVisibleUnreadIds(feed, "landlord");
   assert.deepEqual(ids, ["l1"]);
+});
+
+test("Admin excludes messages and unresolved legacy chat is not shared across portals", () => {
+  for (const n of [
+    { ...row("Sender", "chat"), type: "message" },
+    { ...row("Sender", "chat"), data: { screen: "chat", event: "reaction" } },
+    { ...row("Sender"), type: "message" },
+    { ...row("Sender"), type: "message", data: "chat" },
+    { ...row("Sender"), type: "message", data: [] },
+    { ...row("Sender"), data: { event: "reaction" } },
+    { ...row("Sender"), type: "message", data: { screen: 42, audience: "admin" } },
+  ]) {
+    assert.equal(isNotificationVisibleInPortal(n, "admin"), false);
+    assert.equal(isNotificationVisibleInPortal(n, "tenant"), n.data?.recipientPortal === "tenant");
+    assert.equal(isNotificationVisibleInPortal(n, "landlord"), false);
+  }
+});
+
+test("unknown consumer titles and explicit portal metadata never become account-wide", () => {
+  for (const screen of ["payments", "maintenance", "application", "apartment", "visitRequests", "passport", "verification"]) {
+    assert.equal(isNotificationVisibleInPortal(row("Future subtype", screen), "admin"), false, screen);
+  }
+  for (const key of ["portal", "audience"]) {
+    for (const portal of ["tenant", "landlord", "admin"]) {
+      const n = { ...row("Future event", "unknown"), type: "system", data: { screen: "unknown", [key]: portal } };
+      for (const active of ["tenant", "landlord", "admin"]) {
+        assert.equal(isNotificationVisibleInPortal(n, active), active === portal);
+      }
+    }
+  }
+  for (const n of [
+    row("Unknown event", "unknown"),
+    { ...row("Unknown"), type: "system", data: null },
+    { ...row("Unknown"), data: { screen: 7 } },
+    { ...row("Unknown"), data: ["chat"] },
+  ]) {
+    assert.equal(isNotificationVisibleInPortal(n, "admin"), false);
+    assert.equal(isNotificationVisibleInPortal(n, "tenant"), true);
+    assert.equal(isNotificationVisibleInPortal(n, "landlord"), true);
+  }
+});
+
+test("a shared three-role account has distinct unread sets with known account-wide outcomes", () => {
+  const feed = [
+    { ...row("Sender", "chat"), id: "chat", type: "message" },
+    { ...row("Sender", "chat"), id: "reaction", type: "message", data: { screen: "chat", event: "reaction", recipientPortal: "landlord" } },
+    { ...row("Payment Successful", "payments"), id: "tenant" },
+    { ...row("Payment Received", "payments"), id: "landlord" },
+    { ...row("New account verification submitted", "verification"), id: "review" },
+    { ...row("New apartment verification submitted", "verification"), id: "apartment-review" },
+    { ...row("New passport document submitted", "passportReview"), id: "passport-review" },
+    { ...row("Account verification approved", "verification"), id: "account" },
+  ];
+  assert.deepEqual(getVisibleUnreadIds(feed, "admin"), ["review", "apartment-review", "passport-review", "account"]);
+  assert.deepEqual(getVisibleUnreadIds(feed, "tenant"), ["chat", "tenant", "account"]);
+  assert.deepEqual(getVisibleUnreadIds(feed, "landlord"), ["reaction", "landlord", "account"]);
 });

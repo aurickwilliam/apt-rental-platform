@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { IconPaperclip, IconPhoto, IconPlayerPlay } from "@tabler/icons-react";
+import { Button, Popover } from "@heroui/react";
+import { IconCornerUpLeft, IconDots, IconMoodSmile, IconPaperclip, IconPhoto, IconPlayerPlay } from "@tabler/icons-react";
 
 import { attachmentDisplayUrl, hasAttachment } from "./attachments";
 import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
+import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface MessageBubbleProps {
   message: ChatMessage;
   isMine: boolean;
   otherUserName?: string;
+  otherUserAvatar?: string | null;
   /**
    * Where this bubble sits in a run of consecutive messages from the same
    * sender. Tightens the gap between them and is what makes a multi-file
    * attachment batch read as one group instead of a stack.
    */
   groupPosition?: "single" | "first" | "middle" | "last";
-  /** True when a later message from this sender follows, so "Seen" is stale. */
-  hasLaterMessageFromSender?: boolean;
+  /** Selected once by the view, across the entire loaded conversation. */
+  isLatestOutgoing?: boolean;
+  /** The parent owns the portaled context menu; keep only its message active. */
+  isContextMenuOpen?: boolean;
   onToggleReaction: (messageId: string, emoji: string) => void | Promise<void>;
   onReply: (message: ChatMessage) => void;
   onOpenContextMenu: (position: { x: number; y: number }) => void;
@@ -34,40 +39,18 @@ export default function MessageBubble({
   message,
   isMine,
   otherUserName,
+  otherUserAvatar,
   groupPosition = "single",
-  hasLaterMessageFromSender = false,
+  isLatestOutgoing = false,
+  isContextMenuOpen = false,
   onToggleReaction,
   onReply,
   onOpenContextMenu,
 }: MessageBubbleProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [stripPlacement, setStripPlacement] = useState<"above" | "below">("above");
-  const groupRef = useRef<HTMLDivElement | null>(null);
+  const [isReactionOpen, setIsReactionOpen] = useState(false);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const canInteract = !message.isPending && !message.id.startsWith("temp-");
   const myReaction = message.reactions.find((r) => r.is_mine)?.emoji;
-
-  // Height of the strip plus the gap it keeps from the bubble. Used to decide
-  // whether there is room to float it above, or whether it must flip below.
-  const STRIP_RESERVED_SPACE = 60;
-
-  // The chat column scrolls, so the flip has to be measured against the
-  // scroll container's top edge — not the window — or the strip gets clipped
-  // by `overflow-y-auto` on the newest messages.
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-
-    // The strip anchors to the top of the whole message group, so measure
-    // that, not just the bubble.
-    const group = groupRef.current ?? bubbleRef.current;
-    if (!group) return;
-
-    const scroller = group.closest<HTMLElement>("[data-chat-scroll]");
-    const boundaryTop = scroller?.getBoundingClientRect().top ?? 0;
-    const roomAbove = group.getBoundingClientRect().top - boundaryTop;
-
-    setStripPlacement(roomAbove < STRIP_RESERVED_SPACE ? "below" : "above");
-  };
 
   // Double-tap / double-click always hearts, matching mobile.
   const handleDoubleClick = () => {
@@ -75,9 +58,10 @@ export default function MessageBubble({
     void onToggleReaction(message.id, HEART_REACTION);
   };
 
-  const handleContextMenu = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!canInteract) return;
     e.preventDefault();
+    e.currentTarget.focus({ preventScroll: true });
     onOpenContextMenu({ x: e.clientX, y: e.clientY });
   };
 
@@ -85,6 +69,7 @@ export default function MessageBubble({
   // the bubble's centre, matching mobile's long-press behaviour.
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startPress = () => {
+    if (!canInteract) return;
     pressTimer.current = setTimeout(() => {
       const el = bubbleRef.current;
       if (!el) return;
@@ -100,12 +85,16 @@ export default function MessageBubble({
   useEffect(() => () => cancelPress(), []);
 
   // A single send keeps the full gap; only the inside of a run tightens.
-  const isGrouped = groupPosition !== "single";
+  const continuesPrevious = groupPosition === "middle" || groupPosition === "last";
+  const endsRun = groupPosition === "single" || groupPosition === "last";
+  const contactInitials = (otherUserName ?? "").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
+  const seenLabel = otherUserName ? `Seen by ${otherUserName}` : "Seen by recipient";
+  const showSeen = isMine && isLatestOutgoing && canInteract && message.is_read;
   const mediaUrl = attachmentDisplayUrl(message);
   const showsAttachment = hasAttachment(message);
 
-  // Runs share a timestamp row and hug together; a lone bubble keeps both.
-  const runSpacing = isGrouped ? "-mt-3 first:mt-0" : "";
+  // Consecutive messages hug together; separate runs keep the full gap.
+  const runSpacing = continuesPrevious ? "mt-1" : "mt-4 first:mt-0";
 
   const hasReply = message.replyDeleted || !!message.replyTo;
   const replierLabel = hasReply
@@ -116,12 +105,9 @@ export default function MessageBubble({
 
   return (
     <div
-      ref={groupRef}
-      className={`relative flex flex-col max-w-[80%] ${
-        isMine ? "self-end items-end" : "self-start items-start"
+      className={`relative flex min-w-0 flex-col sm:max-w-[75%] lg:max-w-[65%] ${runSpacing} ${
+        isMine ? "max-w-[calc(100%-3.25rem)] self-end items-end" : "ml-9 max-w-[calc(100%-5.5rem)] self-start items-start"
       }`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {hasReply && (
         <p
@@ -169,62 +155,74 @@ export default function MessageBubble({
         </button>
       ) : null}
 
-      {/* Quick reactions on hover (desktop parity with mobile hold).
-
-          The wrapper above is `relative`, so this anchors to the message group
-          instead of the viewport. It flips below when the group sits too close
-          to the top of the scroll container, which is exactly where the newest
-          messages land in a bottom-anchored thread.
-
-          The `pb-1`/`pt-1` gap lives *inside* the strip's own box, so it is part
-          of the hover region — the pointer can cross it without leaving the
-          group and unmounting the strip. */}
-      {isHovered && canInteract && (
-        <div
-          className={`absolute z-20 flex ${
-            stripPlacement === "above"
-              ? "-translate-y-full pb-1"
-              : "top-full translate-y-0 pt-1"
-          } ${isMine ? "right-0 items-end" : "left-0 items-start"}`}
-        >
-          <ReactionStrip
-            myReaction={myReaction}
-            onSelect={(emoji) => void onToggleReaction(message.id, emoji)}
-          />
-        </div>
-      )}
+      {/* This shrink-to-content boundary owns both the bubble and its actions.
+          Its CSS hit area bridges the gap without changing the visible bubble. */}
+      <div
+        className="apt-message-interaction relative min-w-0 max-w-full"
+        data-group-position={groupPosition}
+        data-interactive={canInteract}
+        data-overlay-open={isReactionOpen || isContextMenuOpen}
+      >
+      {!isMine && endsRun ? (
+        <span data-message-sender-avatar aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-9">
+          <UserAvatar src={otherUserAvatar} initials={contactInitials} alt={otherUserName ?? "Sender"} size="sm" className="apt-message-sender-avatar" />
+        </span>
+      ) : null}
+      {canInteract && <div className={`apt-message-actions ${isMine ? "self-end right-full mr-1" : "self-start left-full ml-1"}`} role="group" aria-label="Message actions">
+        <Popover isOpen={isReactionOpen} onOpenChange={setIsReactionOpen}>
+          <Button variant="ghost" isIconOnly size="sm" aria-label="React to message" className="apt-chat-action"><IconMoodSmile size={17} aria-hidden="true" /></Button>
+          <Popover.Content placement={isMine ? "top end" : "top start"} offset={6} containerPadding={12} className="apt-reaction-popover">
+            <Popover.Dialog aria-label="Choose a reaction">
+              <ReactionStrip bare myReaction={myReaction} onSelect={(emoji) => { void onToggleReaction(message.id, emoji); setIsReactionOpen(false); }} />
+            </Popover.Dialog>
+          </Popover.Content>
+        </Popover>
+        <Button variant="ghost" isIconOnly size="sm" aria-label="Reply to message" className="apt-chat-action" onPress={() => onReply(message)}><IconCornerUpLeft size={17} aria-hidden="true" /></Button>
+        <Button variant="ghost" isIconOnly size="sm" aria-label="More message actions" className="apt-chat-action" onPress={() => {
+          const rect = bubbleRef.current?.getBoundingClientRect();
+          if (rect) onOpenContextMenu({ x: isMine ? rect.right : rect.left, y: rect.bottom });
+        }}><IconDots size={17} aria-hidden="true" /></Button>
+      </div>}
 
       <div
         ref={bubbleRef}
-        role="button"
-        tabIndex={0}
+        role={showsAttachment ? undefined : "button"}
+        tabIndex={canInteract ? 0 : undefined}
+        aria-haspopup={canInteract ? "dialog" : undefined}
         onContextMenu={handleContextMenu}
         onTouchStart={startPress}
         onTouchEnd={cancelPress}
         onTouchMove={cancelPress}
+        onTouchCancel={cancelPress}
         onDoubleClick={handleDoubleClick}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && canInteract) {
+          if (e.target !== e.currentTarget) return;
+          if ((e.key === "Enter" || e.key === " " || (e.shiftKey && e.key === "F10")) && canInteract) {
+            e.preventDefault();
             const rect = e.currentTarget.getBoundingClientRect();
             onOpenContextMenu({ x: rect.left + rect.width / 2, y: rect.top });
           }
         }}
-        className={`relative rounded-2xl px-3 py-2 shadow-sm transition-colors ${
+        data-group={groupPosition}
+        data-mine={isMine}
+        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           isMine
-            ? "bg-primary text-primary-foreground rounded-tr-none"
-            : "bg-card text-foreground border border-border rounded-tl-none"
-        } ${canInteract ? "cursor-pointer" : ""} ${runSpacing}`}
+            ? "bg-primary text-white"
+            : "bg-muted/60 text-foreground"
+        } ${canInteract ? "cursor-pointer" : ""}`}
       >
         {mediaUrl && showsAttachment ? (
           <AttachmentBody message={message} url={mediaUrl} />
         ) : null}
-        {message.message && <p className="text-sm break-words">{message.message}</p>}
+        {!mediaUrl && showsAttachment && <span className="flex items-center gap-2 text-sm"><IconPaperclip size={16} aria-hidden="true" />Attachment unavailable</span>}
+        {message.message && <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>}
         {!message.message && !showsAttachment && (
           <span className="flex items-center gap-2 text-sm">
             <IconPaperclip size={16} aria-hidden="true" />
             Attachment
           </span>
         )}
+      </div>
       </div>
 
       {message.reactions.length > 0 && (
@@ -235,14 +233,19 @@ export default function MessageBubble({
         />
       )}
 
-      <span className="mt-1 text-[10px] text-muted-foreground">
-        {message.isPending ? "Sending…" : formatTime(message.created_at)}
-        {/* Read receipt for the newest sent message only, and only until the
-            other person replies — once they do, the reply is the signal. */}
-        {isMine && message.is_read && !hasLaterMessageFromSender && (
-          <span className="ml-1.5">Seen</span>
-        )}
-      </span>
+      {/* Exact timestamps remain in the message actions menu. */}
+      {/* Reserve the same 16px status lane before and after a receipt arrives.
+          Run interiors retain their existing 4px spacing. Reactions stay above
+          this lane, and the incoming avatar is anchored to the bubble itself. */}
+      {isMine && (endsRun || message.isPending) ? (
+        <div data-message-read-status className="mt-1 flex h-4 min-w-4 justify-end font-inter text-[11px] leading-4 text-muted-foreground">
+          {message.isPending ? <span>Sending…</span> : showSeen ? (
+            <span role="img" aria-label={seenLabel} title={seenLabel}>
+              <span aria-hidden="true"><UserAvatar src={otherUserAvatar} initials={contactInitials} alt={otherUserName ?? "Recipient"} size="sm" className="apt-message-seen-avatar" /></span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -266,18 +269,20 @@ function AttachmentBody({
       {/* A media-only message needs no padding, so the bubble hugs the media. */}
       <span
         className={`block overflow-hidden ${
-          message.message ? "mb-1.5 rounded-xl" : "-mx-3 -my-2"
+          message.message ? "mb-1.5 rounded-xl" : "rounded-2xl"
         }`}
       >
         {isVideo ? (
           <video
             src={url}
             controls
+            playsInline
+            aria-label="Shared video"
             preload="metadata"
             // Captured first frame, so the poster matches mobile's rows
             // instead of depending on the browser painting frame zero.
             poster={message.resolvedThumbnailUrl ?? undefined}
-            className="max-h-80 w-full bg-black object-cover"
+            className="max-h-80 w-full max-w-80 bg-black object-contain"
           >
             <track kind="captions" />
           </video>
@@ -288,9 +293,9 @@ function AttachmentBody({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={url}
-            alt={message.message ?? "Shared image"}
+            alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
             loading="lazy"
-            className="max-h-80 w-full object-cover"
+            className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
           />
         )}
       </span>
@@ -316,7 +321,7 @@ function ReactionBadges({
 
   return (
     <div
-      className="-mt-1.5 flex flex-wrap items-center gap-1 self-start"
+      className="relative z-10 -mt-1 mx-1 flex max-w-full flex-wrap items-center gap-1 pt-0.5"
       aria-label="Reactions"
     >
       {[...byEmoji.entries()].map(([emoji, count]) => {
@@ -326,9 +331,11 @@ function ReactionBadges({
             key={emoji}
             type="button"
             onClick={() => onToggle(messageId, emoji)}
-            className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            aria-label={`${emoji}, ${count} ${count === 1 ? "reaction" : "reactions"}${mine ? ", including yours" : ""}`}
+            aria-pressed={mine}
+            className={`flex min-h-7 items-center gap-1 rounded-full border-2 px-1.5 py-0.5 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               mine
-                ? "border-primary bg-primary/10"
+                ? "border-card bg-secondary ring-1 ring-primary/30"
                 : "border-border bg-card hover:bg-muted"
             }`}
           >
@@ -341,6 +348,3 @@ function ReactionBadges({
   );
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}

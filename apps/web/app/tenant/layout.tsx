@@ -12,11 +12,11 @@ const PASSPORT_HREF = "/tenant/passport";
 
 const TENANT_NAV = [
   { href: "/tenant/browse", label: "Browse", icon: "Search" },
-  { href: "/tenant/my-rental", label: "My Rental", icon: "Home" },
+  { href: "/tenant/my-rental", label: "My Rental", icon: "Home", activityKey: "rental" },
   { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
-  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool" },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "FileCheck" },
-  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle" },
+  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool", activityKey: "maintenance" },
+  { href: PASSPORT_HREF, label: "APT Passport", icon: "FileCheck", activityKey: "passport" },
+  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages" },
 ] as const;
 
 export default async function TenantLayout({

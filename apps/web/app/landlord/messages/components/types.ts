@@ -14,6 +14,9 @@ export interface Contact {
   apartment: string;
   apartmentId: string | null;
   unreadCount: number;
+  lastMessage?: string | null;
+  lastMessageTime?: string | null;
+  lastMessageType?: string | null;
 }
 
 export type { MessageReaction, ReplyPreview };

@@ -6,6 +6,9 @@ export interface PortalConversationRow {
   apartment_id: string | null;
   apartment_name: string | null;
   unread_count: number | null;
+  last_message?: string | null;
+  last_message_time?: string | null;
+  last_message_type?: string | null;
 }
 
 /** Sidebar contact, structurally identical to both portals' `Contact`. */
@@ -17,6 +20,9 @@ export interface ConversationContact {
   apartment: string;
   apartmentId: string | null;
   unreadCount: number;
+  lastMessage?: string | null;
+  lastMessageTime?: string | null;
+  lastMessageType?: string | null;
 }
 
 interface BuildPortalContactsOptions {
@@ -45,6 +51,23 @@ export function getContactConversationKey(
 }
 
 /**
+ * Deep-link target for `?conversation=`: the requested conversation when the
+ * portal's lists contain it, otherwise the list default (first pinned, then
+ * first other). The function never invents a conversation, so callers know a
+ * returned contact whose key differs from `requestedKey` is the fallback.
+ */
+export function selectPortalConversation<C extends { conversationKey: string }>(
+  pinned: readonly C[],
+  others: readonly C[],
+  requestedKey: string | null | undefined,
+): C | null {
+  const match = requestedKey
+    ? [...pinned, ...others].find((contact) => contact.conversationKey === requestedKey)
+    : undefined;
+  return match ?? pinned[0] ?? others[0] ?? null;
+}
+
+/**
  * Splits one portal's conversations into the pinned group (with unread
  * counts filled in) and every other conversation, newest first.
  */
@@ -57,7 +80,13 @@ export function buildPortalContacts({
   others: ConversationContact[];
 } {
   const unreadByKey = new Map<string, number>();
+  const latestByKey = new Map<string, Pick<ConversationContact, "lastMessage" | "lastMessageTime" | "lastMessageType">>();
   for (const row of rows) {
+    latestByKey.set(getContactConversationKey(row.other_user_id, row.apartment_id), {
+      lastMessage: row.last_message,
+      lastMessageTime: row.last_message_time,
+      lastMessageType: row.last_message_type,
+    });
     unreadByKey.set(
       getContactConversationKey(row.other_user_id, row.apartment_id),
       row.unread_count ?? 0
@@ -79,12 +108,16 @@ export function buildPortalContacts({
       apartment: describeApartment(row.apartment_name),
       apartmentId: row.apartment_id,
       unreadCount: row.unread_count ?? 0,
+      lastMessage: row.last_message,
+      lastMessageTime: row.last_message_time,
+      lastMessageType: row.last_message_type,
     }));
 
   return {
     pinned: pinned.map((contact) => ({
       ...contact,
       unreadCount: unreadByKey.get(contact.conversationKey) ?? 0,
+      ...latestByKey.get(contact.conversationKey),
     })),
     others,
   };

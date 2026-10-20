@@ -99,3 +99,10 @@ export {
   NOTIFICATION_PREVIEW_MAX_LENGTH,
   getNotificationPreview,
 } from './notificationPreview';
+export {
+  type ChronologicalNotification,
+  type NotificationDateGroup,
+  compareNotificationsNewestFirst,
+  sortNotificationsNewestFirst,
+  groupNotificationsByLocalDate,
+} from './notificationOrder';

@@ -1,6 +1,36 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { resolveNotificationHref } from "./notification-links.ts";
+import vm from "node:vm";
+import ts from "typescript";
+
+import * as conversationContacts from "./conversation-contacts.ts";
+
+// notification-links.ts imports the conversation-key helper by bare relative
+// specifier, which node's type stripping cannot resolve; transpile it like the
+// other component harnesses and hand it the real helper.
+function load(file, modules) {
+  const source = readFileSync(new URL(file, import.meta.url), "utf8");
+  const code = ts.transpileModule(source, {
+    compilerOptions: { target: ts.ScriptTarget.ES2017, module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  const exports = {};
+  vm.runInNewContext(code, {
+    exports,
+    require: (name) => {
+      assert.ok(name in modules, `Missing test dependency: ${name}`);
+      return modules[name];
+    },
+  });
+  return exports;
+}
+
+const { resolveNotificationTarget } = load("./notification-links.ts", {
+  "./conversation-contacts": conversationContacts,
+});
+
+/** The href half of the target, so the route table below reads as before. */
+const resolveNotificationHref = (data, portal) => resolveNotificationTarget(data, portal).href;
 
 test("payments resolve to the portal's payment surface", () => {
   assert.equal(
@@ -63,7 +93,8 @@ test("visit requests land on the portal's visit surface", () => {
   );
 });
 
-test("chat lands on the portal inbox (thread keys are mobile-format)", () => {
+test("chat lands on the portal inbox when the payload has no peer identity", () => {
+  // The mobile-format conversationKey alone cannot address a web thread.
   assert.equal(
     resolveNotificationHref({ screen: "chat", conversationKey: "chat:1:a:b" }, "tenant"),
     "/tenant/messages",
@@ -72,6 +103,56 @@ test("chat lands on the portal inbox (thread keys are mobile-format)", () => {
     resolveNotificationHref({ screen: "chat" }, "landlord"),
     "/landlord/messages",
   );
+});
+
+test("chat with a peer identity opens the exact web conversation", () => {
+  const tenantTarget = resolveNotificationTarget(
+    { screen: "chat", senderId: "peer-1", apartmentId: "apt-1" },
+    "tenant",
+  );
+  assert.deepEqual(
+    { ...tenantTarget },
+    { href: "/tenant/messages?conversation=peer-1:apt-1", conversationTargeted: true },
+  );
+
+  // Chats without an apartment use the 'none' key segment, as the lists do.
+  const landlordTarget = resolveNotificationTarget({ screen: "chat", senderId: "peer-1" }, "landlord");
+  assert.deepEqual(
+    { ...landlordTarget },
+    { href: "/landlord/messages?conversation=peer-1:none", conversationTargeted: true },
+  );
+});
+
+test("only a targeted chat conversation reports conversationTargeted", () => {
+  assert.equal(
+    resolveNotificationTarget({ screen: "chat", senderId: "peer-1" }, "tenant").conversationTargeted,
+    true,
+  );
+  // Inbox fallbacks and every other screen must never acknowledge a group.
+  assert.equal(
+    resolveNotificationTarget({ screen: "chat", conversationKey: "chat:1:a:b" }, "tenant")
+      .conversationTargeted,
+    false,
+  );
+  assert.equal(
+    resolveNotificationTarget({ screen: "payments", paymentId: "p1" }, "landlord")
+      .conversationTargeted,
+    false,
+  );
+  assert.equal(
+    resolveNotificationTarget({ screen: "passport", documentId: "d1" }, "tenant")
+      .conversationTargeted,
+    false,
+  );
+  assert.equal(resolveNotificationTarget(null, "tenant").conversationTargeted, false);
+});
+
+test("admins never receive chat threads or inboxes", () => {
+  const adminTarget = resolveNotificationTarget(
+    { screen: "chat", senderId: "peer-1", apartmentId: "apt-1" },
+    "admin",
+  );
+  assert.deepEqual({ ...adminTarget }, { href: null, conversationTargeted: false });
 });
 
 test("verification outcomes land on the portal profile", () => {
@@ -113,6 +194,7 @@ test("consumer-only screens resolve nowhere in the admin portal", () => {
   assert.equal(resolveNotificationHref({ screen: "chat" }, "admin"), null);
   assert.equal(resolveNotificationHref({ screen: "passport" }, "admin"), null);
 });
+
 test("passport rows land on the portal wallet, admin screens resolve nowhere", () => {
   assert.equal(
     resolveNotificationHref({ screen: "passport", documentId: "d1" }, "tenant"),

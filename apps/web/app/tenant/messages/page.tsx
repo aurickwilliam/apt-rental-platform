@@ -11,7 +11,11 @@ import {
 import { Contact } from "./components/types";
 import MessagesClient from "./components/MessageClient";
 
-export default async function MessagesPage() {
+export default async function MessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ conversation?: string | string[] }>;
+}) {
   const supabase = await createClient();
 
   const {
@@ -29,6 +33,11 @@ export default async function MessagesPage() {
   if (!tenant) redirect("/login");
 
   const tenantId = tenant.id;
+
+  // Notification deep link: the web conversation key. Repeated values and
+  // unknown keys simply fall back to the portal default selection.
+  const { conversation } = await searchParams;
+  const initialConversationKey = typeof conversation === "string" ? conversation : null;
 
   const [{ data: tenancyRows, error: tenancyError }, { data: conversationRows, error: conversationError }] =
     await Promise.all([
@@ -94,6 +103,7 @@ export default async function MessagesPage() {
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}
         currentUserId={tenantId}
+        initialConversationKey={initialConversationKey}
       />
     </div>
   );
