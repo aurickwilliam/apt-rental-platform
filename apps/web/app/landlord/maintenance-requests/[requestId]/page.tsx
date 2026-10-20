@@ -96,6 +96,10 @@ export default function LandlordMaintenanceDetailPage() {
   const isTerminal = request.status === "Resolved" || request.status === "Cancelled";
   const nextStatus = getNextStatus(request.status);
   const buttonLabel = isTerminal ? request.status : `Mark as ${nextStatus}`;
+  const canWaiveFee =
+    request.fee_amount !== null &&
+    request.fee_amount > 0 &&
+    request.fee_status === "pending";
 
   const handleAdvance = async () => {
     if (request.status === "Pending") {
@@ -247,7 +251,7 @@ export default function LandlordMaintenanceDetailPage() {
           return (
             <div>
               <SectionTitle>Maintenance Fee</SectionTitle>
-              <div className="mt-2 rounded-2xl bg-muted px-4 py-3 flex flex-col gap-3">
+              <div className="mt-2 rounded-2xl bg-muted px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[15px] font-nunito font-semibold text-primary">
                     {formatPesoDisplay(request.fee_amount)}
@@ -256,30 +260,30 @@ export default function LandlordMaintenanceDetailPage() {
                     {feeChip.label}
                   </StatusChip>
                 </div>
-                {request.fee_status === "pending" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="self-start"
-                    isDisabled={actionLoading}
-                    onPress={() => waiveModal.setOpen(true)}
-                  >
-                    Waive fee
-                  </Button>
-                )}
               </div>
             </div>
           );
         })()}
 
-        <Button
-          size="md"
-          className="mt-2"
-          isDisabled={isTerminal || actionLoading}
-          onPress={handleAdvance}
-        >
-          {actionLoading ? "Working..." : buttonLabel}
-        </Button>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {canWaiveFee && (
+            <Button
+              variant="outline"
+              size="md"
+              isDisabled={actionLoading}
+              onPress={() => waiveModal.setOpen(true)}
+            >
+              Waive fee
+            </Button>
+          )}
+          <Button
+            size="md"
+            isDisabled={isTerminal || actionLoading}
+            onPress={handleAdvance}
+          >
+            {actionLoading ? "Working..." : buttonLabel}
+          </Button>
+        </div>
       </Card>
 
       <ResolveMaintenanceModal
