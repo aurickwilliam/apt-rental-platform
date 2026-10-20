@@ -13,7 +13,7 @@ import { IconBrandAndroid } from "@tabler/icons-react";
  */
 export default function AppDownloadButton() {
   return (
-    <Link href="/download" className="inline-flex">
+    <Link href="/download" prefetch={false} className="inline-flex">
       <Button variant="outline">
         <IconBrandAndroid size={18} />
         Download for Android

@@ -10,15 +10,15 @@ import {
 } from "@tabler/icons-react";
 
 const DISCOVER_POINTS = [
-  "Verified listings",
-  "Intelligent filters",
-  "Lifestyle preferences",
-  "AI assist search",
+  "Verified Listings",
+  "Intelligent Filters",
+  "Lifestyle Preferences",
+  "AI Assist Search",
 ];
 
 export default function HowItWorksSection() {
   return (
-    <section className="mt-14 md:mt-20">
+    <section className="mb-10 mt-14 md:mt-20">
       <div className="flex flex-col items-center gap-3 text-center">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-brand">
           The process
@@ -36,15 +36,9 @@ export default function HowItWorksSection() {
 
       <div className="mt-8 flex flex-col gap-5 md:mt-12 md:flex-row">
         {/* Discover */}
-        <Surface className="flex w-full flex-col gap-4 rounded-2xl border border-divider bg-secondary p-8 md:w-1/2">
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Map size={26} />
-            </span>
-
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-              Step 01
-            </span>
+        <Surface className="flex w-full flex-col gap-4 rounded-2xl border border-divider bg-surface p-8 md:w-1/2">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Map size={26} />
           </div>
 
           <h3 className="font-nunito text-2xl font-semibold text-brand">
@@ -58,7 +52,7 @@ export default function HowItWorksSection() {
             and stress-free.
           </p>
 
-          <div className="mt-2 flex flex-col gap-2.5">
+          <div className="mt-1 flex flex-col gap-2.5">
             {DISCOVER_POINTS.map((point) => (
               <div key={point} className="flex items-center gap-2">
                 <IconCircleCheck size={18} className="text-primary" />
@@ -67,7 +61,7 @@ export default function HowItWorksSection() {
             ))}
           </div>
 
-          <div className="mt-auto pt-4">
+          <div className="mt-2">
             <DiscoverNowBtn />
           </div>
         </Surface>
@@ -75,14 +69,8 @@ export default function HowItWorksSection() {
         {/* Apply & Pay */}
         <div className="flex flex-col gap-5 md:w-1/2">
           <Surface className="flex w-full flex-col gap-4 rounded-2xl border border-divider bg-surface p-8">
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <FileCheckCorner size={26} />
-              </span>
-
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                Step 02
-              </span>
+            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <FileCheckCorner size={26} />
             </div>
 
             <h3 className="font-nunito text-2xl font-semibold text-brand">
@@ -98,14 +86,8 @@ export default function HowItWorksSection() {
           </Surface>
 
           <Surface className="flex w-full flex-col gap-4 rounded-2xl border border-divider bg-surface p-8">
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <BanknoteArrowUp size={26} />
-              </span>
-
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                Step 03
-              </span>
+            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BanknoteArrowUp size={26} />
             </div>
 
             <h3 className="font-nunito text-2xl font-semibold text-brand">

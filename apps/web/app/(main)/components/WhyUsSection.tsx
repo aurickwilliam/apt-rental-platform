@@ -15,7 +15,7 @@ const REASONS = [
   {
     icon: <Building2 size={26} />,
     title: "For Owners",
-    body: "Maximize your property's value without the hassle. From tenant screening to rent collection, we help you manage your rentals efficiently while keeping your investment secure.",
+    body: "Maximize your property’s value without the hassle. From tenant screening to rent collection, we help you manage your rentals efficiently while keeping your investment secure.",
   },
   {
     icon: <ClipboardCheck size={26} />,
@@ -42,7 +42,7 @@ export default function WhyUsSection() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-5 md:mt-12 md:grid-cols-3">
+      <div className="mt-10 grid gap-5 md:mt-16 md:grid-cols-3">
         {REASONS.map((reason) => (
           <Surface
             key={reason.title}

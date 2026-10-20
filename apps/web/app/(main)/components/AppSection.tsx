@@ -59,7 +59,7 @@ export default function AppSection() {
             </ul>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/download" className="inline-flex">
+              <Link href="/download" prefetch={false} className="inline-flex">
                 <Button variant="primary">
                   <IconBrandAndroid size={18} />
                   Download for Android

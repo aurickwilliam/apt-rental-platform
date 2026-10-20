@@ -22,32 +22,35 @@ export default function MainLoading() {
     >
       <main className="mx-auto flex max-w-7xl flex-col px-4 pt-4">
         {/* Hero */}
-        <div className="relative mb-16 overflow-hidden rounded-3xl border border-divider bg-secondary">
-          <div className="grid min-h-[calc(100svh-80px)] lg:grid-cols-2">
-            <div className="flex flex-col justify-center gap-6 p-6 sm:p-10 lg:p-12">
-              <div className="flex flex-col gap-4">
-                <Sk className="h-3 w-40 rounded-full" />
-                <Sk className="h-10 w-3/4 rounded-xl" />
-                <Sk className="h-10 w-1/2 rounded-xl" />
-                <Sk className="h-4 w-full max-w-md rounded-full mt-2" />
-                <Sk className="h-4 w-2/3 max-w-md rounded-full" />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Sk className="h-12 w-44 rounded-xl" />
-                {apkAvailable ? <Sk className="h-12 w-52 rounded-xl" /> : null}
-              </div>
-
-              <div className="flex flex-row gap-6 border-t border-divider pt-5">
-                {[0, 1, 2].map((i) => (
-                  <Sk key={i} className="h-3 w-24 rounded-full" />
-                ))}
-              </div>
+        <div className="relative mb-20 flex min-h-[calc(100svh-80px)] w-full min-w-0 flex-row items-center overflow-hidden rounded-2xl">
+          <div className="flex h-full w-full min-w-0 flex-col justify-center gap-6 p-5 md:w-1/2 md:p-8">
+            <div className="flex flex-col gap-3">
+              <Sk className="h-10 w-3/4 rounded-xl" />
+              <Sk className="h-10 w-1/2 rounded-xl" />
+              <Sk className="mt-3 h-4 w-full max-w-md rounded-full" />
+              <Sk className="h-4 w-2/3 max-w-md rounded-full" />
             </div>
 
-            <div className="hidden lg:block">
-              <Sk className="h-full w-full" />
+            <div className="flex flex-wrap items-center gap-3">
+              <Sk className="h-12 w-40 rounded-xl" />
+              {apkAvailable ? <Sk className="h-12 w-52 rounded-xl" /> : null}
             </div>
+
+            <div className="mt-2 flex flex-wrap items-start gap-6 border-t border-divider pt-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <Sk className="size-9 rounded-lg" />
+                  <div className="flex flex-col gap-1">
+                    <Sk className="h-5 w-16 rounded-md" />
+                    <Sk className="h-3 w-24 rounded-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative hidden w-1/2 min-w-0 self-stretch md:block">
+            <Sk className="h-full w-full rounded-r-2xl" />
           </div>
         </div>
 
