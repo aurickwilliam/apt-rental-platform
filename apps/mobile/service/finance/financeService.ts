@@ -173,14 +173,6 @@ export async function fetchRentLedger(
   return financeLedgerPage(data as RentLedgerRow[] | null);
 }
 
-export function financeErrorMessage(error: unknown): string {
-  if (
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error.code === "PGRST202" || error.code === "42P01")
-  ) {
-    return "Finance tracking needs the latest database update. Please contact support.";
-  }
-  return "We couldn’t save or load your finances. Check your connection and try again.";
-}
+// Failure copy is the shared finance contract in @repo/utils; screens import
+// it from this transport module, so the re-export keeps the imports unchanged.
+export { financeErrorMessage } from "@repo/utils";

@@ -519,3 +519,23 @@ export function financeGoalFromForm(target: string, months: string): FinanceGoal
       : null,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Failure copy — one shared mapping, so both apps say the same thing.
+// ---------------------------------------------------------------------------
+
+/** One user-facing sentence for any finance failure. A missing RPC
+ *  (`PGRST202`) or table (`42P01`) means the deployment predates this feature;
+ *  anything else keeps the generic retry sentence. Transport lives in each
+ *  app's service; the wording is the shared contract. */
+export function financeErrorMessage(error: unknown): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error.code === "PGRST202" || error.code === "42P01")
+  ) {
+    return "Finance tracking needs the latest database update. Please contact support.";
+  }
+  return "We couldn’t save or load your finances. Check your connection and try again.";
+}

@@ -2,7 +2,8 @@ import fc from "fast-check";
 import {
   budgetCategoryOptions, budgetKindFromParam, budgetProgress, decodeFinanceReport,
   financeAfterReserve, financeBudgetMonthsDefault, financeCategoryFromParam,
-  financeCategoryTreatmentDefault, financeComparisonSentence, financeExpenseDateDefault,
+  financeCategoryTreatmentDefault, financeComparisonSentence, financeErrorMessage,
+  financeExpenseDateDefault,
   financeExpensePage, financeGoalFromForm, financeIncome, financeIncomeMonthsFromReports,
   financeLedgerPage, financeMonthFromParam, groupBudgetsByCategory, isBudgetCategoryAllowed,
   manilaToday, parseFinanceAmount, rankFinanceProperties, rentAgeBucket, shiftFinanceMonth,
@@ -239,6 +240,12 @@ describe("cross-app parity fixtures", () => {
   test("optional goals match the parity table", () => {
     for (const fixture of financeParityFixtures.goalEntry) {
       expect(financeGoalFromForm(fixture.target, fixture.months)).toStrictEqual(fixture.expected);
+    }
+  });
+
+  test("finance failures read the same on every platform", () => {
+    for (const fixture of financeParityFixtures.errorMessages) {
+      expect(financeErrorMessage(fixture.error)).toBe(fixture.expected);
     }
   });
 });

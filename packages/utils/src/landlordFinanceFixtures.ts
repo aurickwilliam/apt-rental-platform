@@ -540,4 +540,35 @@ export const financeParityFixtures = {
     months: string;
     expected: FinanceGoalEntry;
   }[],
+
+  /** Failures read the same on both platforms: a missing RPC (`PGRST202`) or
+   *  table (`42P01`) means the deployment needs an update; everything else
+   *  keeps the generic retry sentence. */
+  errorMessages: [
+    {
+      name: "a missing RPC function reads as needing a database update",
+      error: { code: "PGRST202", message: "Could not find the function get_landlord_finances" },
+      expected: "Finance tracking needs the latest database update. Please contact support.",
+    },
+    {
+      name: "a missing table reads as needing a database update",
+      error: { code: "42P01", message: 'relation "landlord_expenses" does not exist' },
+      expected: "Finance tracking needs the latest database update. Please contact support.",
+    },
+    {
+      name: "a database rejection keeps the generic retry sentence",
+      error: { code: "23505", message: "duplicate key value violates unique constraint" },
+      expected: "We couldn’t save or load your finances. Check your connection and try again.",
+    },
+    {
+      name: "a network failure keeps the generic retry sentence",
+      error: { message: "network request failed" },
+      expected: "We couldn’t save or load your finances. Check your connection and try again.",
+    },
+    {
+      name: "a primitive failure keeps the generic retry sentence",
+      error: "unreachable",
+      expected: "We couldn’t save or load your finances. Check your connection and try again.",
+    },
+  ] as readonly { name: string; error: unknown; expected: string }[],
 };

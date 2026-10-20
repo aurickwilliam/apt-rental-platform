@@ -9,6 +9,7 @@ import {
   financeBudgetMonthsDefault,
   financeCategoryTreatmentDefault,
   financeComparisonSentence,
+  financeErrorMessage,
   financeExpenseDateDefault,
   financeExpensePage,
   financeGoalFromForm,
@@ -165,5 +166,11 @@ test("form defaults match the parity table", () => {
 test("optional goals match the parity table", () => {
   for (const fixture of financeParityFixtures.goalEntry) {
     assert.deepStrictEqual(financeGoalFromForm(fixture.target, fixture.months), fixture.expected);
+  }
+});
+
+test("finance failures read the same on every platform", () => {
+  for (const fixture of financeParityFixtures.errorMessages) {
+    assert.equal(financeErrorMessage(fixture.error), fixture.expected);
   }
 });

@@ -379,9 +379,9 @@ Do not stop at a tab or phase. Complete all feasible items, then run the full ac
 
 ### Phase 2 — Web entry and resource layer
 
-- [ ] Add route/access boundary, URL parsing, navigation, loading shell, typed web service and scoped hooks.
-- [ ] Implement report, indicator fallback, paginated expense/collection reads, expense save/delete, budget save/delete, and review operations.
-- [ ] Add account-transition, request-race, stale-scope, and error handling tests before wiring forms.
+- [x] Add route/access boundary, URL parsing, navigation, loading shell, typed web service and scoped hooks. (server guard `lib/landlord-finance-server.ts` (`requireLandlordFinanceViewer`), pure access/params in `lib/landlord-finance-access.ts` + `-params.ts`, nav entry in `app/landlord/layout.tsx`, route `app/landlord/analytics/` (page + loading + AnalyticsClient + skeleton), transport `service/landlordFinanceService.ts`, hooks `hooks/use-landlord-finances.ts`)
+- [x] Implement report, indicator fallback, paginated expense/collection reads, expense save/delete, budget save/delete, and review operations. (report via `useAsyncResource` with `financeErrorMessage` mapping, gated income-month fallback loader, keyset lists on the pure pages controller `lib/landlord-finance-pages.ts`, five write operations each with pending/error state, transport mirrors the mobile service line for line)
+- [x] Add account-transition, request-race, stale-scope, and error handling tests before wiring forms. (17 node tests in `lib/landlord-finance.test.mjs` covering scope-change supersede, overlapping reload, same-key idempotent open, single-flight load-more with stale discard, first-page error + retry, page-error row retention, refresh row retention, reset; `financeErrorMessage` fixtures added to both shared runners)
 
 ### Phase 3 — Shared report context and Overview
 
