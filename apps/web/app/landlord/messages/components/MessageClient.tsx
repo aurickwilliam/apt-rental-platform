@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
+import { selectPortalConversation } from "@/lib/conversation-contacts";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact, TabKey } from "./types";
@@ -11,19 +12,39 @@ interface MessagesClientProps {
   currentTenants: Contact[];
   inquiries: Contact[];
   currentUserId: string;
+  /** `?conversation=` deep link from a notification; unknown keys fall back. */
+  initialConversationKey: string | null;
 }
 
-export default function MessagesClient({ currentTenants, inquiries, currentUserId }: MessagesClientProps) {
+export default function MessagesClient({
+  currentTenants,
+  inquiries,
+  currentUserId,
+  initialConversationKey,
+}: MessagesClientProps) {
   const supabase = useMemo(() => createClient(), []);
   const [currentTenantContacts, setCurrentTenantContacts] = useState<Contact[]>(currentTenants);
   const [inquiryContacts, setInquiryContacts] = useState<Contact[]>(inquiries);
-  const [activeTab, setActiveTab] = useState<TabKey>("current");
-  const [activeContact, setActiveContact] = useState<Contact | null>(currentTenants[0] ?? null);
+  const deepLinkContact = selectPortalConversation(currentTenants, inquiries, initialConversationKey);
+  // Only an exact deep-link match may change the portal default; otherwise the
+  // landlord keeps its Current Tenants default selection.
+  const initialContact =
+    initialConversationKey !== null && deepLinkContact?.conversationKey === initialConversationKey
+      ? deepLinkContact
+      : currentTenants[0] ?? null;
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    initialContact && inquiries.some((contact) => contact.conversationKey === initialContact.conversationKey)
+      ? "inquiries"
+      : "current"
+  );
+  const [activeContact, setActiveContact] = useState<Contact | null>(initialContact);
 
   // Mobile master-detail: the contact list and the thread each need the
   // full width, so only one is shown below md. Desktop shows both and
-  // ignores this state.
-  const [isThreadOpen, setIsThreadOpen] = useState(false);
+  // ignores this state. A resolved deep link opens the thread directly.
+  const [isThreadOpen, setIsThreadOpen] = useState(
+    initialConversationKey !== null && initialContact?.conversationKey === initialConversationKey
+  );
 
   // Reset local contact state when the server sends new lists (React's
   // "adjust state on prop change" pattern; no effect round-trip).
@@ -69,6 +90,28 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
       return changed ? next : prev;
     });
   }, []);
+
+  // Notification deep link: apply each distinct `?conversation=` value the
+  // server hands us, once, selecting the matching contact when it exists.
+  const [syncedDeepLink, setSyncedDeepLink] = useState(initialConversationKey);
+  if (syncedDeepLink !== initialConversationKey) {
+    setSyncedDeepLink(initialConversationKey);
+    const target = initialConversationKey
+      ? [...currentTenantContacts, ...inquiryContacts].find(
+          (contact) => contact.conversationKey === initialConversationKey
+        ) ?? null
+      : null;
+    if (target) {
+      setActiveContact(target);
+      setActiveTab(
+        inquiryContacts.some((contact) => contact.conversationKey === target.conversationKey)
+          ? "inquiries"
+          : "current"
+      );
+      markContactAsRead(target.conversationKey);
+      setIsThreadOpen(true);
+    }
+  }
 
   const incrementUnreadForContact = useCallback((conversationKey: string) => {
     setCurrentTenantContacts((prev) => {
@@ -145,8 +188,8 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
           markContactAsRead(contact.conversationKey);
           setIsThreadOpen(true);
         }}
-        // Below md the list yields the full width to the open thread.
-        className={isThreadOpen ? "hidden md:flex" : "flex"}
+        // Tablet widths use one pane; the portal sidebar also needs room.
+        className={isThreadOpen ? "hidden lg:flex" : "flex"}
       />
       <ConversationView
         activeContact={activeContact}
@@ -155,7 +198,7 @@ export default function MessagesClient({ currentTenants, inquiries, currentUserI
         onConversationRead={markContactAsRead}
         onBack={() => setIsThreadOpen(false)}
         // The empty state only makes sense alongside the list on mobile.
-        className={isThreadOpen ? "flex" : "hidden md:flex"}
+        className={isThreadOpen ? "flex" : "hidden lg:flex"}
       />
     </div>
   );

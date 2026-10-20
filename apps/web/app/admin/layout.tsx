@@ -9,7 +9,7 @@ const ADMIN_NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
   { href: "/admin/users", label: "Users", icon: "Users" },
   { href: "/admin/apartments", label: "Apartments", icon: "Building2" },
-  { href: "/admin/verification", label: "Verification", icon: "ShieldCheck" },
+  { href: "/admin/verification", label: "Verification", icon: "ShieldCheck", activityKey: "verification" },
   { href: "/admin/reports", label: "Reports", icon: "Flag" },
   { href: "/admin/activity", label: "Activity", icon: "History" },
   { href: "/admin/analytics", label: "Analytics", icon: "ChartBar" },

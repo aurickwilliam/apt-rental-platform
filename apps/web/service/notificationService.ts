@@ -2,13 +2,15 @@
 
 import { createClient } from "@repo/supabase/browser";
 import type { Database } from "@repo/supabase";
+import type { ChatRecipientAudience } from "@/lib/notification-audience";
+import { getLegacyChatApartmentIds, resolveChatNotificationAudiences } from "@/lib/chat-notification-audience";
 
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 
 export type FeedNotification = Pick<
   NotificationRow,
   "id" | "user_id" | "type" | "title" | "message" | "data" | "is_read" | "created_at"
->;
+> & { resolvedChatAudience?: ChatRecipientAudience };
 
 const FEED_COLUMNS =
   "id, user_id, type, title, message, data, is_read, created_at";
@@ -24,10 +26,31 @@ export async function fetchNotifications(
     .select(FEED_COLUMNS)
     .eq("user_id", internalUserId)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(limit);
 
   if (error) throw error;
-  return (data ?? []) as FeedNotification[];
+  const notifications = (data ?? []) as FeedNotification[];
+  const apartmentIds = getLegacyChatApartmentIds(notifications, internalUserId);
+  if (apartmentIds.length === 0) {
+    return resolveChatNotificationAudiences(notifications, internalUserId, []);
+  }
+
+  // One bounded ownership lookup inside the existing shared store load. Never
+  // publish raw legacy chat while this resolves, and never query per consumer.
+  try {
+    const { data: apartments, error: ownershipError } = await supabase
+      .from("apartments")
+      .select("id, landlord_id")
+      .in("id", apartmentIds);
+    if (ownershipError) throw ownershipError;
+    return resolveChatNotificationAudiences(notifications, internalUserId, apartments ?? []);
+  } catch {
+    // Preserve other notifications and explicit audiences if context is
+    // unavailable. Legacy chat fails closed, without writes or PII in logs.
+    console.error("[notifications] Couldn't resolve chat notification ownership.");
+    return resolveChatNotificationAudiences(notifications, internalUserId, []);
+  }
 }
 
 /** Marks one row read. Never inserts — inserts are trigger/service-only. */

@@ -23,18 +23,19 @@ export default function ReactionStrip({
 }: ReactionStripProps) {
   if (bare) {
     return (
-      <div className="flex items-center justify-between gap-0.5">
+      <div className="flex items-center justify-between gap-0.5" role="group" aria-label="Quick reactions">
         {QUICK_REACTIONS.map((emoji) => (
           <button
             key={emoji}
             type="button"
             onClick={() => onSelect?.(emoji)}
             aria-label={`React with ${emoji}`}
-            className={`rounded-full p-1 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-              myReaction === emoji ? "bg-accent/15" : ""
+            aria-pressed={myReaction === emoji}
+            className={`flex size-9 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              myReaction === emoji ? "bg-secondary ring-1 ring-primary/30" : ""
             }`}
           >
-            <span className="text-base leading-6">{emoji}</span>
+            <span className="text-xl leading-6">{emoji}</span>
           </button>
         ))}
       </div>
