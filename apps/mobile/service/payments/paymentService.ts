@@ -1,12 +1,13 @@
 import { supabase } from '@repo/supabase'
+import type { PaymentAllocation } from '@repo/utils'
 
 import type { PaymentStatus } from '@/hooks/payments'
 
 // Client for payment rows on the `payment` table.
-// Simulation: e-wallet/card/QRPh rows are inserted directly as `paid` via
-// paymongoService; cash rows are inserted here as `pending` awaiting landlord
-// confirmation. Tenants never flip status themselves — RLS governs cash.
-export interface PaymentRecord {
+// Online rows are reserved/confirmed by the paymongo Edge Function and webhook;
+// cash rows are inserted here as `pending` awaiting landlord confirmation.
+// Tenants never flip payment status themselves.
+export interface PaymentRecord extends PaymentAllocation {
   id: string
   created_at: string
   date: string
@@ -22,7 +23,7 @@ export interface PaymentRecord {
   tenant_name: string | null
 }
 
-type PaymentRow = {
+type PaymentRow = PaymentAllocation & {
   id: string
   created_at: string
   date: string
@@ -38,6 +39,8 @@ type PaymentRow = {
 }
 
 const PAYMENT_SELECT = `
+  billing_kind, rent_amount, deposit_amount, advance_amount, maintenance_amount,
+  advance_period_start, advance_period_end,
   id,
   created_at,
   date,
@@ -59,6 +62,13 @@ const toPaymentRecord = (row: PaymentRow): PaymentRecord => {
   const landlord = row.apartment?.landlord
   const tenant = row.tenant
   return {
+    billing_kind: row.billing_kind,
+    rent_amount: row.rent_amount,
+    deposit_amount: row.deposit_amount,
+    advance_amount: row.advance_amount,
+    maintenance_amount: row.maintenance_amount,
+    advance_period_start: row.advance_period_start,
+    advance_period_end: row.advance_period_end,
     id: row.id,
     created_at: row.created_at,
     date: row.date,

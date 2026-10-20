@@ -105,3 +105,4 @@ export {
   sortNotificationsNewestFirst,
   groupNotificationsByLocalDate,
 } from './notificationOrder';
+export * from './tenancyBill';

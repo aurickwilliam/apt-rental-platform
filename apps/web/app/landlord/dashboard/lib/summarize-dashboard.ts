@@ -86,7 +86,7 @@ export function summarizeDashboard(
       }
     } else if (isOverdue(status, p.due_date, todayStr)) {
       overdueCount += 1;
-    } else {
+    } else if (status === "pending" || status === "unpaid" || status === "partial") {
       pendingCount += 1;
     }
   }

@@ -794,6 +794,15 @@ export type Database = {
       }
       payment: {
         Row: {
+          billing_kind: string | null
+          rent_amount: number | null
+          deposit_amount: number | null
+          advance_amount: number | null
+          maintenance_amount: number | null
+          maintenance_fee_ids: string[] | null
+          advance_period_start: string | null
+          advance_period_end: string | null
+          rental_income_amount: number | null
           amount: number | null
           apartment_id: string | null
           created_at: string
@@ -1116,6 +1125,7 @@ export type Database = {
       }
       tenancies: {
         Row: {
+          billing_version: number | null
           advance_rent: number | null
           apartment_id: string
           created_at: string
@@ -1136,6 +1146,16 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          billing_kind?: string | null
+          rent_amount?: number | null
+          deposit_amount?: number | null
+          advance_amount?: number | null
+          maintenance_amount?: number | null
+          maintenance_fee_ids?: string[] | null
+          advance_period_start?: string | null
+          advance_period_end?: string | null
+          rental_income_amount?: never
+          billing_version?: number | null
           advance_rent?: number | null
           apartment_id: string
           created_at?: string
@@ -1156,6 +1176,16 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          billing_kind?: string | null
+          rent_amount?: number | null
+          deposit_amount?: number | null
+          advance_amount?: number | null
+          maintenance_amount?: number | null
+          maintenance_fee_ids?: string[] | null
+          advance_period_start?: string | null
+          advance_period_end?: string | null
+          rental_income_amount?: never
+          billing_version?: number | null
           advance_rent?: number | null
           apartment_id?: string
           created_at?: string
@@ -1758,6 +1788,7 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_tenancy_bill: { Args: { p_tenancy_id: string }; Returns: Json }
       get_my_suspension_status: { Args: never; Returns: Json }
       get_portal_conversations: {
         Args: { p_portal: string }

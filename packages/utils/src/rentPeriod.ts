@@ -1,3 +1,5 @@
+import type { TenancyBill } from "./tenancyBill";
+
 // Rent billing periods, shared by web and mobile. Same rule as the server's
 // rent reminders (`notify_rent_due_status()`): each period is a calendar
 // month, due on the tenancy's `rent_due_day` (clamped to the month's last
@@ -40,13 +42,21 @@ export interface RentPeriodPayment {
   status: string | null;
   amount: number | null;
   period_start: string | null;
+  billing_kind?: string | null;
+  rent_amount?: number | null;
+  advance_amount?: number | null;
+  advance_period_start?: string | null;
 }
 
 // Sum of confirmed payments covering the given period start.
 export function paidAmountForPeriod(payments: readonly RentPeriodPayment[], periodStart: string): number {
   return payments
-    .filter((payment) => payment.status === "paid" && payment.period_start === periodStart)
-    .reduce((sum, payment) => sum + (payment.amount ?? 0), 0);
+    .filter((payment) => payment.status === "paid")
+    .reduce((sum, payment) => sum
+      + (payment.period_start === periodStart
+        ? payment.billing_kind ? payment.rent_amount ?? 0 : payment.amount ?? 0
+        : 0)
+      + (payment.billing_kind && payment.advance_period_start === periodStart ? payment.advance_amount ?? 0 : 0), 0);
 }
 
 export interface PaymentPeriodLease {
@@ -111,6 +121,7 @@ export function nextPaymentPeriod(periodStart: string, rentDueDay?: number | nul
 // The parts of a tenancy the rent status needs (structural, so each app can
 // pass its own tenancy type).
 export interface RentStatusTenancy {
+  bill?: TenancyBill | null;
   lease_start: string | null;
   rent_due_day: number | null;
   monthly_rent: number | null;
@@ -138,6 +149,17 @@ export function getCurrentRentStatus(
   tenancy: RentStatusTenancy | null,
   payments: readonly RentPeriodPayment[]
 ): CurrentRentStatus {
+  if (tenancy?.bill) {
+    const bill = tenancy.bill;
+    return {
+      monthlyRent: bill.monthlyRent,
+      periodStart: bill.periodStart,
+      periodEnd: bill.periodEnd,
+      dueDate: bill.dueDate,
+      isFullyPaid: bill.rentPaid,
+      status: bill.rentPaid ? "Paid" : "Pending",
+    };
+  }
   const monthlyRent = tenancy?.monthly_rent ?? tenancy?.apartment.monthly_rent ?? 0;
   const currentPayment = tenancy?.currentPayment ?? null;
   const period = resolvePaymentPeriod(

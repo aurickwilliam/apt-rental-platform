@@ -25,6 +25,9 @@ jobs:
       - name: Population command tests
         run: pnpm db:populate:test
 
+      - name: Move-in billing database tests
+        run: pnpm db:billing:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
 

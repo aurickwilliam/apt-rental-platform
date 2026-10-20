@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Spinner } from "@heroui/react";
-import { getCheckoutSessionStatus, PaymongoError } from "@/service/paymongoService";
+import { getCheckoutSessionDetails, PaymongoError } from "@/service/paymongoService";
 
 // Web twin of mobile verify.tsx: hosted-checkout return landing on primary blue.
 // Trusts only getCheckoutSessionStatus(sessionId) — URL params never decide.
@@ -18,6 +18,7 @@ function VerifyContent() {
     sessionId ? null : "Missing payment session. Please start a new payment.",
   );
   const verifyingRef = useRef(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
   const verifyPayment = useCallback(
     async (sessionIdValue: string) => {
@@ -26,7 +27,9 @@ function VerifyContent() {
       setIsVerifying(true);
       setErrorMessage(null);
       try {
-        const status = await getCheckoutSessionStatus(sessionIdValue);
+        const details = await getCheckoutSessionDetails(sessionIdValue);
+        const { status } = details;
+        setCheckoutUrl(details.checkoutUrl);
         if (status === "paid") {
           const ref = referenceId || sessionIdValue.replace(/^cs_/, "");
           router.replace(`/tenant/payment/success?referenceId=${ref}`);
@@ -37,7 +40,7 @@ function VerifyContent() {
         } else if (status === "expired") {
           setErrorMessage("This payment session has expired. Please start a new payment.");
         } else {
-          setErrorMessage("We could not confirm your payment yet. Please try again.");
+          setErrorMessage("Your payment is still awaiting confirmation. Continue the existing checkout or check its status again; do not start another payment.");
         }
       } catch (error) {
         setErrorMessage(error instanceof PaymongoError ? error.reason : "We could not confirm your payment. Please try again.");
@@ -81,6 +84,7 @@ function VerifyContent() {
       ) : errorMessage ? (
         <div className="flex flex-col items-center gap-4 max-w-sm">
           <p className="text-white text-base font-inter">{errorMessage}</p>
+          {checkoutUrl && <Button onPress={() => { window.location.href = checkoutUrl; }} className="bg-white text-primary">Continue checkout</Button>}
           <div className="flex flex-row gap-3">
             <Button size="sm" onPress={handleRetry} className="rounded-full font-nunito bg-white text-primary">
               Try Again

@@ -93,6 +93,7 @@ pnpm web          # pnpm --filter web dev
 pnpm mobile       # pnpm --filter mobile start
 pnpm db:populate --help  # operator-only demo activity: preview/apply/reset/cleanup
 pnpm db:populate:test   # generator/CLI tests; PostgreSQL contract suite is opt-in
+pnpm db:billing:test    # move-in billing migration/guard tests in embedded PostgreSQL
 ```
 
 Individual app scripts:
@@ -141,7 +142,9 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 
 ## PayMongo Test-Mode Hybrid (No Disbursement)
 
-- **Hosted checkout in Test Mode** (`sk_test_...`): tenant selects GCash/Maya/QRPh/Card → `paymongo` edge function `POST /v2/checkout_sessions` (inserts `payment` `pending` + `paymongo_session_id`) → returns `checkout_url` → `e-wallet-redirect` opens PayMongo page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. No real money — test funds only. When `PAYMONGO_SECRET_KEY` is unset, the edge function returns mock `simulation://` responses (reference `-fail`/`-expired`, card `0002` etc) so local dev still works.
+- Move-in billing: new tenancies (`billing_version = 1`) use the caller-bound `get_tenancy_bill` result on both platforms; historical `NULL` versions retain legacy behavior. The database freezes the agreed terms, assigns payment allocations, and counts advance toward calendar month 2 only after confirmation. Deposits and maintenance never count as paid rent or rental income. Online checkout must reserve a pending row before contacting the provider; never release an uncertain charge simply to enable retry. See `docs/move-in-billing.md` for the calendar contract, compatibility, release order and `pnpm db:billing:test` (test-only embedded PostgreSQL).
+
+- **Hosted checkout in Test Mode** (`sk_test_...`): `paymongo` reserves a `payment` row as `pending` before calling `POST /v2/checkout_sessions`, then saves `paymongo_session_id` and returns `checkout_url`. Web redirects to checkout; mobile opens it with `Linking.openURL`. The return carries a session/reference ID, never a trusted outcome. `getCheckoutSessionStatus` (caller-owned lookup) and the HMAC-verified `paymongo-webhook` confirm provider status. No real money — test funds only. With `PAYMONGO_SECRET_KEY` unset, online mock payments are still persisted: checkout returns directly to verification, references ending `-fail`/`-expired` fail, and card `0002` is declined. Missing provider configuration never turns a real pending session into a mock success.
 - **Cash** stays `pending` awaiting landlord `landlord_update_payment_status`; e-wallet/card are webhook-owned. No payout disbursement — landlord profit is `payment` aggregates + Realtime `tenancy-live`.
 - MCP: `.opencode/opencode.json:19-25` `paymongo` via `npx -y @theyahia/paymongo-mcp` with `PAYMONGO_SECRET_KEY` (`sk_test_...`). Validate with `python3 -m json.tool .opencode/opencode.json`.
 

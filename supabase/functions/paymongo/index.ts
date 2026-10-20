@@ -74,9 +74,6 @@ const badRequest = (message: string) =>
 
 type CheckoutSessionStatus = 'paid' | 'failed' | 'expired' | 'cancelled' | 'pending'
 
-// Mock store — unused in real mode (sessions are persisted in the payment table).
-const mockSessions = new Map<string, { id: string; status: CheckoutSessionStatus }>()
-
 // Mock only — remove once PAYMONGO_SECRET_KEY is always set.
 const mockStatusForReference = (referenceId: string): CheckoutSessionStatus =>
   referenceId.endsWith('-expired')
@@ -243,9 +240,6 @@ type PaymentRecord = {
   referenceId: string
   method: 'gcash' | 'maya' | 'qrph' | 'card'
   amount: number
-  status?: 'pending' | 'paid'
-  sessionId?: string | null
-  intentId?: string | null
   periodStart?: string | null
   periodEnd?: string | null
   dueDate?: string | null
@@ -254,8 +248,8 @@ type PaymentRecord = {
 // Persist the payment row (service role — the tenant's own INSERT policy also
 // allows it, but the edge function owns this write to keep it atomic with the
 // PayMongo call).
-async function recordPayment(params: PaymentRecord): Promise<void> {
-  const { error } = await dbClient.from('payment').insert({
+async function recordPayment(params: PaymentRecord): Promise<string> {
+  const { data, error } = await dbClient.from('payment').insert({
     tenant_id: params.tenantId,
     tenancy_id: params.tenancy.id,
     apartment_id: params.tenancy.apartment_id,
@@ -264,23 +258,46 @@ async function recordPayment(params: PaymentRecord): Promise<void> {
     method: params.method,
     amount: params.amount,
     date: new Date().toISOString().slice(0, 10),
-    status: params.status ?? 'pending',
-    paymongo_session_id: params.sessionId ?? null,
-    paymongo_intent_id: params.intentId ?? null,
+    status: 'pending',
     period_start: params.periodStart ?? null,
     period_end: params.periodEnd ?? null,
     due_date: params.dueDate ?? null,
-  })
+  }).select('id').single()
 
   if (error) {
-    console.error('recordPayment:', error)
-    throw new PayMongoApiError(500, 'database_error', 'Could not record the payment.')
+    throw new PayMongoApiError(409, 'billing_error', error.message)
   }
+  return data.id
+}
+
+async function updatePayment(id: string, values: Record<string, unknown>): Promise<void> {
+  const { error } = await dbClient.from('payment').update(values).eq('id', id).eq('status', 'pending')
+  if (error) throw new PayMongoApiError(500, 'database_error', 'Could not update payment confirmation. Check its status before trying again.')
+}
+
+// Reserve in the database BEFORE contacting the provider. The billing trigger
+// validates the total/period and serializes competing requests on the tenancy.
+async function reservePayment(req: Request, payload: CheckoutSessionPayload | CardPaymentPayload, method: PaymentRecord['method']): Promise<string> {
+  if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
+    throw new PayMongoApiError(400, 'validation_error', 'Enter a valid payment amount.')
+  }
+  const { tenantId, tenancy } = await resolveTenancy(req, payload.tenancyId)
+  return recordPayment({ tenantId, tenancy, referenceId: payload.referenceId, method,
+    amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
+}
+
+async function failDefiniteProviderRejection(id: string, error: unknown): Promise<never> {
+  // Network errors / 5xx have uncertain outcomes: keep the reservation pending
+  // for webhook/status reconciliation, never allow a second charge blindly.
+  if (error instanceof PayMongoApiError && error.status >= 400 && error.status < 500) {
+    await updatePayment(id, { status: 'failed' })
+  }
+  throw error
 }
 
 // --- Actions ----------------------------------------------------------------
 
-function createCheckoutSession(req: Request, payload: CheckoutSessionPayload) {
+async function createCheckoutSession(req: Request, payload: CheckoutSessionPayload) {
   const { referenceId, amount, redirectBaseUrl } = payload
 
   if (!referenceId || !amount || !redirectBaseUrl) {
@@ -291,9 +308,8 @@ function createCheckoutSession(req: Request, payload: CheckoutSessionPayload) {
   if (!secretKey) {
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
     const sessionId = `cs_mock_${referenceId}`
-    // Keyed by sessionId (which embeds the reference id) so the status lookup
-    // in getCheckoutSessionStatus resolves the mock correctly.
-    mockSessions.set(sessionId, { id: sessionId, status: mockStatusForReference(referenceId) })
+    const id = await reservePayment(req, payload, payload.method ?? 'gcash')
+    await updatePayment(id, { paymongo_session_id: sessionId })
 
     return json({
       data: {
@@ -301,7 +317,7 @@ function createCheckoutSession(req: Request, payload: CheckoutSessionPayload) {
         type: 'checkout_session',
         attributes: {
           status: 'awaiting_payment_method',
-          checkout_url: `https://checkout.paymongo.com/mock/${sessionId}`,
+          checkout_url: `${redirectBaseUrl}?sessionId=${encodeURIComponent(referenceId)}`,
         },
       },
     })
@@ -313,8 +329,9 @@ function createCheckoutSession(req: Request, payload: CheckoutSessionPayload) {
 async function createRealCheckoutSession(req: Request, payload: CheckoutSessionPayload): Promise<Response> {
   const { referenceId, amount, description, redirectBaseUrl } = payload
 
-  const { tenantId, tenancy } = await resolveTenancy(req, payload.tenancyId)
+  const paymentId = await reservePayment(req, payload, payload.method ?? 'gcash')
 
+  try {
   const { data: session } = await paymongoFetch<{
     status: string
     checkout_url?: string
@@ -344,17 +361,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
     },
   })
 
-  await recordPayment({
-    tenantId,
-    tenancy,
-    referenceId,
-    method: payload.method ?? 'gcash',
-    amount,
-    sessionId: session.id,
-    periodStart: payload.periodStart ?? null,
-    periodEnd: payload.periodEnd ?? null,
-    dueDate: payload.dueDate ?? null,
-  })
+  await updatePayment(paymentId, { paymongo_session_id: session.id })
 
   return json({
     data: {
@@ -366,34 +373,62 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
       },
     },
   })
+  } catch (error) {
+    return failDefiniteProviderRejection(paymentId, error)
+  }
 }
 
 // The webhook matches the session to our row via reference_number; the deep
 // link carries only the reference id (see the checkout session flow above).
 
-function getCheckoutSessionStatus({ sessionId }: { sessionId: string }) {
+async function getCheckoutSessionStatus(req: Request, { sessionId }: { sessionId: string }) {
   if (!sessionId) return badRequest('sessionId is required.')
+
+  const tenantId = await resolveTenantId(req)
+  if (!tenantId) throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to check a payment.')
+  let query = dbClient.from('payment').select('id, status, method, reference_id, paymongo_session_id, paymongo_intent_id')
+    .eq('tenant_id', tenantId)
+  query = sessionId.startsWith('cs_') ? query.eq('paymongo_session_id', sessionId) : query.eq('reference_id', sessionId)
+  const { data: payment, error } = await query.maybeSingle()
+  if (error || !payment) throw new PayMongoApiError(404, 'not_found', 'Payment not found.')
+  if (payment.status !== 'pending') return json({ data: { id: sessionId, attributes: { status: payment.status === 'paid' ? 'paid' : 'failed' } } })
+  // A tenant must never be able to confirm their own cash payment through this
+  // service-role endpoint, including while using mock online payments.
+  if (payment.method === 'cash') return json({ data: { id: sessionId, attributes: { status: 'pending' } } })
 
   const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
   if (!secretKey) {
-    // Mock — active only while PAYMONGO_SECRET_KEY is unset.
-    const session = mockSessions.get(sessionId)
+    if (!payment.paymongo_session_id?.startsWith('cs_mock_')) {
+      throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
+    }
+    const status = mockStatusForReference(payment.reference_id ?? '')
+    await updatePayment(payment.id, { status: status === 'paid' ? 'paid' : 'failed' })
 
     return json({
       data: {
         id: sessionId,
         type: 'checkout_session',
         attributes: {
-          status: session?.status ?? 'paid',
+          status,
         },
       },
     })
   }
 
-  return getRealCheckoutSessionStatus(sessionId)
+  if (!payment.paymongo_session_id) {
+    if (payment.paymongo_intent_id) {
+      const { data: intent } = await paymongoFetch<{ status: string }>(`${PAYMONGO_API_V1}/payment_intents/${payment.paymongo_intent_id}`)
+      const status = intent.attributes.status === 'succeeded' ? 'paid'
+        : ['cancelled', 'awaiting_payment_method'].includes(intent.attributes.status) ? 'failed' : 'pending'
+      if (status !== 'pending') await updatePayment(payment.id, { status })
+      return json({ data: { id: sessionId, attributes: { status } } })
+    }
+    return json({ data: { id: sessionId, attributes: { status: 'pending' } } })
+  }
+  return getRealCheckoutSessionStatus(payment.paymongo_session_id, payment.id)
 }
 
-async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response> {
+async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string): Promise<Response> {
   let paymongoId = sessionId
 
   // Deep links can carry the reference id instead of the session id (older
@@ -410,6 +445,7 @@ async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response
   // Create is v2 but retrieve is v1 — both carry the same session resource.
   const { data: session } = await paymongoFetch<{
     status: string
+    checkout_url?: string
     payment_intent?: {
       attributes?: { status?: string }
     }
@@ -426,7 +462,7 @@ async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response
   // webhook misses. Never clobber a value the webhook already captured.
   const firstPaid = payments.find((payment) => payment.attributes?.status === 'paid') ?? payments[0]
   if (firstPaid?.id?.startsWith('pay_')) {
-    await dbClient
+    const { error } = await dbClient
       .from('payment')
       .update({
         paymongo_payment_id: firstPaid.id,
@@ -434,15 +470,20 @@ async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response
       })
       .eq('paymongo_session_id', paymongoId)
       .is('paymongo_payment_id', null)
+    if (error) throw new PayMongoApiError(500, 'database_error', 'Could not save payment confirmation details. Please check its status again.')
   }
 
   // The session itself only reports active/expired; the payment outcome is
   // derived from the embedded intent and payments. Normalize to the statuses
   // the client understands.
   let status: CheckoutSessionStatus = 'pending'
-  if (attrs.status === 'expired') status = 'expired'
-  else if (intentStatus === 'succeeded' || hasPaidPayment) status = 'paid'
-  else if (intentStatus === 'failed' || intentStatus === 'cancelled') status = 'failed'
+  if (intentStatus === 'succeeded' || hasPaidPayment) status = 'paid'
+  else if (attrs.status === 'expired') status = 'expired'
+  else if (intentStatus === 'cancelled') status = 'failed'
+
+  if (status === 'paid' || status === 'failed' || status === 'expired') {
+    await updatePayment(paymentId, { status: status === 'paid' ? 'paid' : 'failed' })
+  }
 
   return json({
     data: {
@@ -450,12 +491,13 @@ async function getRealCheckoutSessionStatus(sessionId: string): Promise<Response
       type: 'checkout_session',
       attributes: {
         status,
+        checkout_url: status === 'pending' ? attrs.checkout_url : undefined,
       },
     },
   })
 }
 
-function createCardPayment(req: Request, payload: CardPaymentPayload) {
+async function createCardPayment(req: Request, payload: CardPaymentPayload) {
   const { referenceId, card } = payload
 
   if (!referenceId || !card?.number || !card?.expMonth || !card?.expYear || !card?.cvc) {
@@ -464,11 +506,13 @@ function createCardPayment(req: Request, payload: CardPaymentPayload) {
 
   const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
   if (!secretKey) {
+    const paymentId = await reservePayment(req, payload, 'card')
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
     // Mirrors PayMongo test-card behavior: 4000 0000 0000 0002 is declined.
     const isDeclined = card.number.replace(/\s/g, '').endsWith('0002')
 
     if (isDeclined) {
+      await updatePayment(paymentId, { status: 'failed' })
       return json({
         data: {
           type: 'payment_intent',
@@ -480,6 +524,7 @@ function createCardPayment(req: Request, payload: CardPaymentPayload) {
       })
     }
 
+    await updatePayment(paymentId, { status: 'paid' })
     return json({
       data: {
         type: 'payment_intent',
@@ -495,9 +540,12 @@ function createCardPayment(req: Request, payload: CardPaymentPayload) {
 }
 
 async function createRealCardPayment(req: Request, payload: CardPaymentPayload): Promise<Response> {
-  const { referenceId, amount, description, card } = payload
+  const { amount, description, card } = payload
 
-  const { tenantId, tenancy } = await resolveTenancy(req, payload.tenancyId)
+  const paymentId = await reservePayment(req, payload, 'card')
+  let chargeAttempted = false
+
+  try {
 
   // 1. Create the card payment method (replaces the deprecated /v1/tokens).
   const { data: paymentMethod } = await paymongoFetch<{
@@ -541,8 +589,10 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
       },
     },
   })
+  await updatePayment(paymentId, { paymongo_intent_id: intent.id })
 
   // 3. Attach the payment method (completes the payment for non-3DS cards).
+  chargeAttempted = true
   await paymongoFetch<{ status: string }>(`${PAYMONGO_API_V1}/payment_intents/${intent.id}/attach`, {
     method: 'POST',
     body: {
@@ -561,18 +611,7 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
   }>(`${PAYMONGO_API_V1}/payment_intents/${intent.id}`)
 
   if (final.attributes.status === 'succeeded') {
-    await recordPayment({
-      tenantId,
-      tenancy,
-      referenceId,
-      method: 'card',
-      amount,
-      status: 'paid',
-      intentId: intent.id,
-      periodStart: payload.periodStart ?? null,
-      periodEnd: payload.periodEnd ?? null,
-      dueDate: payload.dueDate ?? null,
-    })
+    await updatePayment(paymentId, { status: 'paid' })
 
     return json({
       data: {
@@ -593,13 +632,16 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
         type: 'payment_intent',
         attributes: {
           status: 'failed',
-          failure_reason: 'This card requires 3-D Secure verification, which is not supported yet. Please use GCash or Maya instead.',
+          failure_reason: 'This card requires 3-D Secure verification, which is not supported yet. Your payment is awaiting verification; check its status before paying again.',
         },
       },
     })
   }
 
   const lastError = final.attributes.last_payment_error
+  if (final.attributes.status === 'cancelled' || final.attributes.status === 'awaiting_payment_method') {
+    await updatePayment(paymentId, { status: 'failed' })
+  }
   return json({
     data: {
       type: 'payment_intent',
@@ -611,6 +653,10 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
       },
     },
   })
+  } catch (error) {
+    if (chargeAttempted) throw error
+    return failDefiniteProviderRejection(paymentId, error)
+  }
 }
 
 // --- Refunds (tenant payouts) ------------------------------------------------
@@ -813,7 +859,7 @@ Deno.serve(async (req) => {
       case 'createCheckoutSession':
         return await createCheckoutSession(req, payload)
       case 'getCheckoutSessionStatus':
-        return getCheckoutSessionStatus(payload)
+        return await getCheckoutSessionStatus(req, payload)
       case 'createCardPayment':
         return await createCardPayment(req, payload)
       case 'createRefund':

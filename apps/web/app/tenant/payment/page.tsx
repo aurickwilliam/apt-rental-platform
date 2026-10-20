@@ -63,6 +63,7 @@ function PaymentContent() {
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
   const apartment = tenancy?.apartment ?? null;
+  const bill = tenancy?.bill ?? null;
   const landlord = tenancy?.landlord ?? null;
   // The period being billed now, same rule as mobile and the server's rent
   // reminders: starts with the lease, due on the tenancy's due day.
@@ -73,10 +74,10 @@ function PaymentContent() {
   const { monthlyRent } = period;
 
   // Pending maintenance fees ride on top of this period's rent.
-  const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
+  const [legacyFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
   const apartmentIdForFees = apartment?.id ?? null;
   useEffect(() => {
-    if (!apartmentIdForFees) return;
+    if (!apartmentIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
     let cancelled = false;
     queueMicrotask(() => {
@@ -97,10 +98,11 @@ function PaymentContent() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees]);
+  }, [apartmentIdForFees, bill]);
 
+  const pendingFees = bill?.fees ?? legacyFees;
   const feesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
-  const totalDue = monthlyRent + feesTotal;
+  const totalDue = bill?.totalDue ?? monthlyRent + feesTotal;
 
   const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
   const yearLabel = period.periodStart.slice(0, 4);
@@ -108,8 +110,9 @@ function PaymentContent() {
   // Full-amount policy: rent + pending fees are always billed whole. A fully
   // paid period cannot be paid again (prevents double-payment/overpay). With
   // no pending fees this is the shared `period.isFullyPaid`.
-  const isPeriodPaid =
+  const isPeriodPaid = bill ? totalDue === 0 :
     totalDue > 0 && paidAmountForPeriod(paymentsQuery.data ?? [], period.periodStart) >= totalDue;
+  const pendingPayment = bill?.pendingPayment;
   const isCashPaymentPending = (paymentsQuery.data ?? []).some(
     (payment) =>
       payment.method === "cash" &&
@@ -136,7 +139,7 @@ function PaymentContent() {
   }
 
   const handlePay = async () => {
-    if (isProcessing || isPeriodPaid) return;
+    if (isProcessing || isPeriodPaid || pendingPayment || paymentsQuery.error) return;
     if (!activeMethod) {
       setPaymentError({ message: "Please select a payment method before proceeding.", title: "No Payment Method" });
       return;
@@ -154,8 +157,9 @@ function PaymentContent() {
     }
 
     const referenceId = `pay_${Date.now().toString(36)}`;
-    const paymentDescription =
-      feesTotal > 0
+    const paymentDescription = bill?.kind === "move_in"
+      ? `Move-in payment - ${apartment.name} (first rent, deposit and month 2 advance)`
+      : feesTotal > 0
         ? `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name} (incl. maintenance fees)`
         : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
     const amount = totalDue;
@@ -189,6 +193,7 @@ function PaymentContent() {
         });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     } else if (activeMethod === "Debit/Credit-Card") {
       const errs = validateCardInfo(cardInfo);
@@ -223,6 +228,7 @@ function PaymentContent() {
         });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     } else if (activeMethod === "Cash") {
       const errs = validateCashPayment({ paymentDate: cashDate });
@@ -269,6 +275,7 @@ function PaymentContent() {
         setPaymentError({ message: `Could not record your cash payment. Please try again. (${detail})` });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     }
   };
@@ -277,16 +284,16 @@ function PaymentContent() {
     return <PaymentPageSkeleton />;
   }
 
-  if (tenancyError || !tenancy || !apartment) {
+  if (tenancyError || paymentsQuery.error || !tenancy || !apartment) {
     return (
       <PaymentPageShell>
         <PaymentPageHeader />
         <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
           <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
             <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-              {tenancyError ?? "No active rental found on this account."}
+              {tenancyError ?? paymentsQuery.error ?? "No active rental found on this account."}
             </p>
-            <Button onPress={() => void refetch()} className="rounded-full font-nunito">
+            <Button onPress={() => { void refetch(); void paymentsQuery.refetch(); }} className="rounded-full font-nunito">
               Try Again
             </Button>
           </Card.Content>
@@ -308,9 +315,9 @@ function PaymentContent() {
                 <CheckCircle2 size={18} />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-nunito font-semibold text-green-800 dark:text-green-200">Rent already paid</p>
+                <p className="text-sm font-nunito font-semibold text-green-800 dark:text-green-200">{bill?.coveredByAdvance ? "Covered by advance rent" : "Rent already paid"}</p>
                 <p className="text-xs text-green-700/80 dark:text-green-300/80">
-                  Your rent for {monthLabel} {yearLabel} has been paid in full. No further payment is needed.
+                  Your rent for {monthLabel} {yearLabel} {bill?.coveredByAdvance ? "was prepaid in your move-in payment." : "has been paid in full."} No further payment is needed.
                 </p>
               </div>
               <Button
@@ -321,6 +328,22 @@ function PaymentContent() {
               >
                 View history
               </Button>
+            </Card.Content>
+          </Card>
+        )}
+
+        {pendingPayment && (
+          <Card className="rounded-2xl border border-border bg-card shadow-none">
+            <Card.Content className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <p className="text-sm text-foreground">
+                {pendingPayment.method === "cash" ? "Your payment is awaiting landlord confirmation." : "Your checkout is awaiting confirmation. Check its status before starting another payment."}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onPress={() => void refetch()}>Refresh bill</Button>
+                {pendingPayment.referenceId && <Button size="sm" onPress={() => router.push(pendingPayment.method === "cash"
+                  ? `/tenant/payment/success?referenceId=${encodeURIComponent(pendingPayment.referenceId!)}`
+                  : `/tenant/payment/verify?sessionId=${encodeURIComponent(pendingPayment.referenceId!)}`)}>Check payment</Button>}
+              </div>
             </Card.Content>
           </Card>
         )}
@@ -391,7 +414,7 @@ function PaymentContent() {
 
           {/* Row 1, right: payment summary (display-only, mobile parity) */}
           <div className="h-full">
-            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.dueDate} monthlyRent={monthlyRent} fees={pendingFees} className="h-full" />
+            <PaymentSummaryCard month={monthLabel} year={yearLabel} dueDate={period.dueDate} monthlyRent={monthlyRent} fees={pendingFees} bill={bill} className="h-full" />
           </div>
 
           {/* Row 2: payment method (full width) */}
@@ -426,7 +449,7 @@ function PaymentContent() {
             parity). `data-fab-clearance` keeps the floating notifications
             bell off the Pay button. */}
         <div data-fab-clearance="payment-footer" className="sticky bottom-4 z-20 mt-4">
-          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || (activeMethod === "Cash" && isCashPaymentPending)} />
+          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || !!pendingPayment || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
       </PaymentPageShell>
 

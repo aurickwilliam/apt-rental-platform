@@ -29,7 +29,7 @@ function SuccessContent() {
   const { profile } = useUser();
   const settledRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!payment || payment.status !== "paid" || !referenceId) return;
+    if (!payment || payment.status !== "paid" || payment.billing_kind || !referenceId) return;
     if (settledRef.current === referenceId) return;
     const apartmentId = tenancy?.apartment.id;
     const tenantId = profile?.id;

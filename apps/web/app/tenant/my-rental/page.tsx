@@ -129,6 +129,7 @@ type QuickAction =
 
 export default function MyRental() {
   const { tenancy, payments, currentPayment, loading, error, refetch } = useTenancy();
+  const bill = tenancy?.bill ?? null;
   const {
     applications,
     loading: applicationsLoading,
@@ -147,10 +148,10 @@ export default function MyRental() {
   const headerDate = useMemo(() => formatHeaderDate(today), [today]);
 
   // Pending maintenance fees ride on top of the next rent (fee_status 'pending').
-  const [pendingFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
+  const [legacyFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
   const apartmentIdForFees = tenancy?.apartment.id ?? null;
   useEffect(() => {
-    if (!apartmentIdForFees) return;
+    if (!apartmentIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
     let cancelled = false;
     queueMicrotask(() => {
@@ -171,7 +172,8 @@ export default function MyRental() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees]);
+  }, [apartmentIdForFees, bill]);
+  const pendingFees = bill?.fees ?? legacyFees;
 
   // Web has no notification feed, so an unconfirmed contract gets one toast per
   // upload while the card below carries the actual confirmation.
@@ -246,26 +248,36 @@ export default function MyRental() {
   // reminders: starts with the lease, due on the tenancy's due day.
   const rent = getCurrentRentStatus({ ...tenancy, currentPayment }, payments);
   const { monthlyRent } = rent;
-  // Same full-amount guard as the payment page: a fully paid period can't be paid again.
-  const isPeriodPaid = rent.isFullyPaid;
+  // Use the same authoritative total as checkout. Paid rent can still have
+  // maintenance outstanding; a deposit/advance must never be omitted here.
+  const isPeriodPaid = bill ? bill.totalDue === 0 : rent.isFullyPaid;
+  const billTitle = bill?.kind === "move_in" ? "Move-in payment"
+    : bill?.coveredByAdvance ? "Covered by advance rent"
+    : bill?.kind === "fees" && !isPeriodPaid ? "Maintenance fees" : "Monthly rent";
   const nextPeriod = nextPaymentPeriod(rent.periodStart, tenancy.rent_due_day);
   // This period's own payment row, once the tenant has started paying it.
   const periodPayment = payments.find((payment) => payment.period_start === rent.periodStart);
   const paymentStatus = normalizePaymentStatus(periodPayment?.status);
 
   // The next rent due: this period's, or the following one once it is paid.
-  const dueDate = new Date(`${isPeriodPaid ? nextPeriod.dueDate : rent.dueDate}T00:00:00`);
+  const dueDate = new Date(`${!bill && isPeriodPaid ? nextPeriod.dueDate : rent.dueDate}T00:00:00`);
   const dueDays = Math.ceil((dueDate.getTime() - today.getTime()) / MS_PER_DAY);
   const dueLabel =
     dueDays < 0
-      ? `Overdue by ${Math.abs(dueDays)} days`
-      : `Due in ${dueDays} days`;
+      ? `Overdue by ${Math.abs(dueDays)} day${dueDays === -1 ? "" : "s"}`
+      : `Due in ${dueDays} day${dueDays === 1 ? "" : "s"}`;
 
   const paymentPeriodLabel = formatMonthYear(rent.periodStart);
 
   const pendingFeesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
   // Rent is always billed whole, with pending fees on top.
-  const totalDue = monthlyRent + pendingFeesTotal;
+  const totalDue = bill?.totalDue ?? monthlyRent + pendingFeesTotal;
+  const pendingPayment = bill?.pendingPayment;
+  const paymentHref = pendingPayment?.referenceId
+    ? pendingPayment.method === "cash"
+      ? `/tenant/payment/success?referenceId=${encodeURIComponent(pendingPayment.referenceId)}`
+      : `/tenant/payment/verify?sessionId=${encodeURIComponent(pendingPayment.referenceId)}`
+    : "/tenant/payment";
 
   const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
     const paymentDate =
@@ -273,9 +285,11 @@ export default function MyRental() {
       payment.period_start ??
       payment.period_end ??
       today.toISOString();
+    const paymentLabel = payment.billing_kind === "move_in" ? "Move-in payment"
+      : payment.billing_kind === "fees" ? "Maintenance fees" : "Monthly rent";
     const description = payment.period_start
-      ? `${formatMonthYear(payment.period_start)} - Monthly rent`
-      : "Monthly rent";
+      ? `${formatMonthYear(payment.period_start)} - ${paymentLabel}`
+      : paymentLabel;
 
     return {
       id: payment.id,
@@ -392,7 +406,7 @@ export default function MyRental() {
               {isPeriodPaid ? (
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-nunito text-xl font-bold">Monthly rent</p>
+                    <p className="font-nunito text-xl font-bold">{billTitle}</p>
                     <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
                   </div>
                   <div className="mt-3 grid min-w-0 gap-3 @min-[32rem]/rent:grid-cols-2">
@@ -401,7 +415,7 @@ export default function MyRental() {
                       {paymentPeriodLabel}
                     </p>
                     <p className="font-inter text-sm text-white/85">
-                      Payment received for this month.
+                      {bill?.coveredByAdvance ? "This month’s rent was prepaid in your move-in payment." : "Payment received for this month."}
                     </p>
                     <div className="mt-2 grid gap-4 border-t border-white/20 pt-4 @min-[40rem]/rent:grid-cols-2">
                       <div>
@@ -431,13 +445,13 @@ export default function MyRental() {
                       <span className="rounded-full bg-white/15 p-1 text-white">
                         <CalendarDays size={14} className="block" />
                       </span>
-                      Next Payment
+                      {bill ? "Current bill" : "Next Payment"}
                     </p>
                     <p className="font-nunito text-xl font-bold">
-                      {formatMonthYear(nextPeriod.periodStart)}
+                      {bill ? paymentPeriodLabel : formatMonthYear(nextPeriod.periodStart)}
                     </p>
                     <p className="font-inter text-sm text-white/85">
-                      Due {formatShortDate(nextPeriod.dueDate)}
+                      {bill ? "No further payment is due for this period." : `Due ${formatShortDate(nextPeriod.dueDate)}`}
                     </p>
                     <div aria-hidden="true" className="border-t border-white/20" />
                     <div className="mt-auto pt-2">
@@ -466,14 +480,14 @@ export default function MyRental() {
               ) : (
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-nunito text-xl font-bold">Monthly rent</p>
-                    {paymentStatus === "paid" ? (
+                    <p className="font-nunito text-xl font-bold">{billTitle}</p>
+                    {!bill && paymentStatus === "paid" ? (
                       <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Paid</StatusChip>
                     ) : (
                       <StatusChip className="font-nunito text-[11px] font-semibold"
                         tone={paymentStatus === "late" ? "danger" : "warning"}
                       >
-                        {dueLabel}
+                         {pendingPayment ? "Awaiting confirmation" : dueLabel}
                       </StatusChip>
                     )}
                   </div>
@@ -482,8 +496,22 @@ export default function MyRental() {
                   </p>
                   <p className="mt-2 flex items-start gap-2 font-inter text-sm font-semibold text-white/90 @min-[28rem]/rent:text-base">
                     <CalendarDays size={20} className="shrink-0" aria-hidden="true" />
-                    <span className="min-w-0">{paymentPeriodLabel} - Due {formatShortDate(isPeriodPaid ? nextPeriod.dueDate : rent.dueDate)}</span>
+                    <span className="min-w-0">{paymentPeriodLabel} - Due {formatShortDate(rent.dueDate)}</span>
                   </p>
+                  {bill?.kind === "move_in" && (
+                    <div className="mt-4 space-y-2 rounded-xl bg-white/10 p-3">
+                      <dl className="space-y-1.5 font-inter text-sm">
+                        <div className="flex justify-between gap-3"><dt>First month’s rent</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.rentDue)}</dd></div>
+                        <div className="flex justify-between gap-3"><dt>Security deposit</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.securityDeposit)}</dd></div>
+                        <div className="flex justify-between gap-3"><dt>Advance rent — month 2</dt><dd className="font-nunito font-semibold">{formatPesoDisplay(bill.advanceRent)}</dd></div>
+                      </dl>
+                      <p className="font-inter text-xs text-white/85">The deposit is held separately, not used as rent. First month billed in full; no prorating.</p>
+                      {bill.advancePeriodStart && bill.advancePeriodEnd ? (
+                        <p className="font-inter text-xs text-white/85">Advance covers {formatShortDate(bill.advancePeriodStart)} – {formatShortDate(bill.advancePeriodEnd)}, once payment is confirmed.</p>
+                      ) : <p className="font-inter text-xs text-white/85">No advance rent is included; month 2 is payable normally.</p>}
+                    </div>
+                  )}
+                  {bill?.coveredByAdvance && <p className="mt-2 font-inter text-sm text-white/90">Rent due: {formatPesoDisplay(bill.rentDue)}. Only the separate maintenance fees below remain payable.</p>}
                   {pendingFeesTotal > 0 && (
                     <div className="mt-1 space-y-0.5">
                       {pendingFees.slice(0, 3).map((fee) => (
@@ -532,10 +560,10 @@ export default function MyRental() {
                     </div>
                   </div>
                   <div className="mt-auto flex items-center gap-3 pt-5">
-                    <Link href="/tenant/payment" className="flex-1 no-underline">
+                    <Link href={paymentHref} className="flex-1 no-underline">
                       <Button className="h-12 w-full rounded-full bg-white font-nunito text-base font-bold text-primary">
                         <CreditCard size={18} />
-                        Pay now
+                        {pendingPayment ? "View payment" : "Pay now"}
                       </Button>
                     </Link>
                     <Link
@@ -553,8 +581,8 @@ export default function MyRental() {
 
           <MiniCalendar
             focusDate={dueDate}
-            highlightDate={dueDate}
-            highlightLabel="Rent due"
+            highlightDate={bill && isPeriodPaid ? null : dueDate}
+            highlightLabel={bill?.kind === "move_in" ? "Move-in payment due" : bill?.kind === "fees" && !isPeriodPaid ? "Maintenance fees due" : "Rent due"}
           />
         </div>
 

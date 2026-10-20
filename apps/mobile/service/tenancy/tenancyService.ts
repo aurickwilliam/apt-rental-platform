@@ -1,4 +1,5 @@
 import { supabase } from "@repo/supabase";
+import type { TenancyBill } from "@repo/utils";
 
 import { coverImageUrl, type ApartmentImageRow } from "@/service/apartments/coverImage";
 
@@ -45,6 +46,7 @@ export interface TenancyPayment {
 }
 
 export interface CurrentTenancy {
+  bill?: TenancyBill | null;
   id: string;
   lease_start: string;
   lease_end: string | null;
@@ -91,13 +93,16 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
   if (tenancyError) throw tenancyError;
   if (!tenancyData) return null;
 
-  const { data: paymentData, error: paymentError } = await supabase
-    .from("payment")
-    .select("id, amount, status, period_start, period_end, due_date")
-    .eq("tenancy_id", tenancyData.id)
-    .order("period_start", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const [{ data: bill, error: billError }, { data: paymentData, error: paymentError }] = await Promise.all([
+    supabase.rpc("get_tenancy_bill", { p_tenancy_id: tenancyData.id }),
+    supabase.from("payment")
+      .select("id, amount, status, period_start, period_end, due_date")
+      .eq("tenancy_id", tenancyData.id)
+      .order("period_start", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (billError) throw billError;
 
   if (paymentError) throw paymentError;
 
@@ -106,6 +111,7 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
 
   return {
     ...tenancy,
+    bill: bill as unknown as TenancyBill | null,
     apartment: { ...apartment, cover_url: coverImageUrl(apartmentImages, "full") },
     currentPayment: paymentData as TenancyPayment | null,
   };

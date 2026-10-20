@@ -1,5 +1,7 @@
 # ARCHITECTURE.md — APT (A Place to Thrive)
 
+Move-in billing is defined in `docs/move-in-billing.md`: new tenancies use a server-calculated bill with immutable rent/deposit/advance allocations; online payments reserve the bill before provider calls, and confirmed advance covers calendar month 2 only. Historical tenancies retain legacy billing. That document records the coordinated migration/function/client release order; source changes alone do not activate hosted billing.
+
 The authoritative description of how APT works as a software system: how the repository is organized, how data flows, how the platform's subsystems (auth, payments, chat, storage, realtime) work, and where new features should integrate.
 
 Document hierarchy:
