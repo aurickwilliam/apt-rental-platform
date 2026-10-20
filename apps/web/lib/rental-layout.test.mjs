@@ -35,7 +35,10 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [] }
       getCurrentRentStatus: () => bill
         ? { monthlyRent: bill.monthlyRent, isFullyPaid: bill.rentPaid, periodStart: bill.periodStart, dueDate: bill.dueDate }
         : { monthlyRent: 15500, isFullyPaid: paid, periodStart: "2026-11-01", dueDate: "2026-11-05" },
-      nextPaymentPeriod: () => ({ periodStart: "2026-12-01", dueDate: "2026-12-05" }),
+      nextPaymentPeriod: periodStart => periodStart.startsWith("2026-10")
+        ? { periodStart: "2026-11-01", dueDate: "2026-11-05" }
+        : { periodStart: "2026-12-01", dueDate: "2026-12-05" },
+      nextUnpaidRentPeriod: () => ({ periodStart: "2026-12-01", dueDate: "2026-12-05" }),
     },
     "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy, payments, loading: false, error: null, refetch: noOp }) },
     "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: false, error: null }) },
@@ -85,15 +88,39 @@ test("My Rental pending move-in payments stay uncredited and link to their exist
   }
 });
 
-test("My Rental shows prepaid month 2 without inventing another rent bill or due marker", () => {
+test("My Rental shows the following payable month after a prepaid month", () => {
   const all = renderRental({ bill: { ...moveInBill, kind: "fees", periodStart: "2026-11-01", dueDate: "2026-11-05", rentDue: 0,
     securityDeposit: 0, advanceRent: 0, rentPaid: true, coveredByAdvance: true, totalDue: 0, fees: [] } });
   const text = content(all);
   assert.ok(text.includes("Covered by advance rent"));
   assert.ok(text.includes("This month’s rent was prepaid"));
-  assert.ok(text.includes("₱ 0"));
-  assert.ok(!text.includes("Next Payment"));
+  assert.ok(text.includes("Next Payment"));
+  assert.ok(text.includes("December 2026"));
+  assert.ok(text.includes("Due Dec 5, 2026"));
+  assert.ok(text.includes("₱ 15000"));
   assert.ok(!text.includes("Pay now"));
+  assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightDate, null);
+});
+
+test("My Rental shows the next payment after a settled month and skips the advance-covered month", () => {
+  const all = renderRental({
+    bill: { ...moveInBill, kind: "fees", periodStart: "2026-10-01", periodEnd: "2026-10-31",
+      dueDate: "2026-10-21", rentDue: 0, securityDeposit: 0, advanceRent: 0,
+      rentPaid: true, coveredByAdvance: false, totalDue: 0, fees: [] },
+    payments: [{
+      id: "move-in", billing_kind: "move_in", amount: 45000, status: "paid", date: "2026-10-20",
+      period_start: "2026-10-01", rent_amount: 15000, advance_amount: 15000, advance_period_start: "2026-11-01",
+    }],
+  });
+  const text = content(all);
+  assert.ok(text.includes("Payment received for this month."));
+  assert.ok(text.includes("Next Payment"));
+  assert.ok(text.includes("December 2026"));
+  assert.ok(text.includes("Due Dec 5, 2026"));
+  assert.ok(text.includes("November 2026 is covered by your advance rent."));
+  assert.ok(text.includes("₱ 15000"));
+  assert.ok(!text.includes("Current bill"));
+  assert.ok(!text.includes("No further payment is due for this period."));
   assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightDate, null);
 });
 

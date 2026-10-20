@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Link, Modal, Spinner, Table, toast, useOverlayState } from "@heroui/react";
 import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight, IconX as X } from "@tabler/icons-react";
 
-import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod } from "@repo/utils";
+import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod, nextUnpaidRentPeriod } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useSignedLeaseViewer } from "@/hooks/use-signed-lease-viewer";
@@ -257,6 +257,21 @@ export default function MyRental() {
     : bill?.coveredByAdvance ? "Covered by advance rent"
     : bill?.kind === "fees" && !isPeriodPaid ? "Maintenance fees" : "Monthly rent";
   const nextPeriod = nextPaymentPeriod(rent.periodStart, tenancy.rent_due_day);
+  // Skip months already covered by confirmed rent (the move-in advance or a
+  // paid future month), so the card never asks for rent that was prepaid.
+  const nextPayablePeriod = nextUnpaidRentPeriod(
+    rent.periodStart,
+    tenancy.rent_due_day,
+    monthlyRent,
+    payments,
+  );
+  const skippedNextPeriod = nextPayablePeriod.periodStart !== nextPeriod.periodStart;
+  const nextPeriodCoveredByAdvance = skippedNextPeriod && payments.some(
+    (payment) => payment.status === "paid"
+      && payment.billing_kind === "move_in"
+      && payment.advance_period_start === nextPeriod.periodStart
+      && (payment.advance_amount ?? 0) > 0,
+  );
   // This period's own payment row, once the tenant has started paying it.
   const periodPayment = payments.find((payment) => payment.period_start === rent.periodStart);
   const paymentStatus = normalizePaymentStatus(periodPayment?.status);
@@ -274,6 +289,7 @@ export default function MyRental() {
   const pendingFeesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
   // Rent is always billed whole, with pending fees on top.
   const totalDue = bill?.totalDue ?? monthlyRent + pendingFeesTotal;
+  const nextPaymentTotal = monthlyRent + pendingFeesTotal;
   const pendingPayment = bill?.pendingPayment;
   const paymentHref = pendingPayment?.referenceId
     ? pendingPayment.method === "cash"
@@ -447,19 +463,26 @@ export default function MyRental() {
                       <span className="rounded-full bg-white/15 p-1 text-white">
                         <CalendarDays size={14} className="block" />
                       </span>
-                      {bill ? "Current bill" : "Next Payment"}
+                      Next Payment
                     </p>
                     <p className="font-nunito text-xl font-bold">
-                      {bill ? paymentPeriodLabel : formatMonthYear(nextPeriod.periodStart)}
+                      {formatMonthYear(nextPayablePeriod.periodStart)}
                     </p>
                     <p className="font-inter text-sm text-white/85">
-                      {bill ? "No further payment is due for this period." : `Due ${formatShortDate(nextPeriod.dueDate)}`}
+                      Due {formatShortDate(nextPayablePeriod.dueDate)}
                     </p>
+                    {skippedNextPeriod && (
+                      <p className="font-inter text-xs text-white/80">
+                        {nextPeriodCoveredByAdvance
+                          ? `${formatMonthYear(nextPeriod.periodStart)} is covered by your advance rent.`
+                          : `${formatMonthYear(nextPeriod.periodStart)} is already paid.`}
+                      </p>
+                    )}
                     <div aria-hidden="true" className="border-t border-white/20" />
                     <div className="mt-auto pt-2">
                       <p className="font-nunito text-xs font-semibold text-white/70">Total due</p>
                       <p className="font-nunito text-2xl font-bold">
-                        {formatPesoDisplay(totalDue)}
+                        {formatPesoDisplay(nextPaymentTotal)}
                       </p>
                     </div>
                     <div className="rounded-xl bg-white/10 px-3 py-2">

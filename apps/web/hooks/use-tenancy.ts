@@ -39,6 +39,9 @@ export type TenancyLandlord = {
 
 export type TenancyPayment = {
   billing_kind?: string | null;
+  rent_amount?: number | null;
+  advance_amount?: number | null;
+  advance_period_start?: string | null;
   id: string;
   amount: number | null;
   status: string | null;
@@ -137,7 +140,9 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
   const [{ data: bill, error: billError }, { data: paymentRows, error: paymentError }] = await Promise.all([
     supabase.rpc("get_tenancy_bill", { p_tenancy_id: tenancyData.id }),
     supabase.from("payment")
-      .select("id, amount, status, date, due_date, period_start, period_end, billing_kind")
+      .select(
+        "id, amount, status, date, due_date, period_start, period_end, billing_kind, rent_amount, advance_amount, advance_period_start",
+      )
       .eq("tenancy_id", tenancyData.id)
       .order("period_start", { ascending: false })
       .order("date", { ascending: false })
