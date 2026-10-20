@@ -44,7 +44,11 @@ describe("BudgetProgressRow", () => {
       />,
     );
 
-    const label = screen.getByText("₱ 1,175 over budget · 125% used");
+    expect(screen.getByText("125% used").props.style).toEqual({
+      color: MOBILE_COLORS.dark.danger,
+    });
+
+    const label = screen.getByText("₱ 1,175 over budget");
     expect(label.props.style).toEqual({ color: MOBILE_COLORS.dark.danger });
 
     const bar = screen
@@ -57,5 +61,21 @@ describe("BudgetProgressRow", () => {
 
     fireEvent.press(label);
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the percentage of the monthly limit used beside the amount", () => {
+    const screen = render(
+      <BudgetProgressRow
+        title="Concepcion Quiet 1BR"
+        amount={1500}
+        spent={1125}
+        action="Edit budget"
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText("₱ 1,125 / ₱ 1,500")).toBeTruthy();
+    expect(screen.getByText("75% used")).toBeTruthy();
+    expect(screen.getByText("₱ 375 remaining")).toBeTruthy();
   });
 });

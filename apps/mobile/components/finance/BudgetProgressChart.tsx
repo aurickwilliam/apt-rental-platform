@@ -52,8 +52,8 @@ export default function BudgetProgressChart({
     <>
       <FinanceCard>
         <FinanceHeading
-          title="Budget versus actual"
-          description="Tap a category to see every property's limit and spending. Actual spending includes improvements in that category."
+          title="Budget Versus Actual"
+          description="Tap a category to compare each property's budget and spending, including improvements."
           action={
             <Button size="sm" variant="tertiary" onPress={() => onCreate()}>
               <IconPlus size={18} color={colors.textPrimary} />
@@ -82,8 +82,8 @@ export default function BudgetProgressChart({
       </FinanceCard>
       <FinanceCard>
         <FinanceHeading
-          title="Planned reserves"
-          description="Allocations for later—not expenses, account balances, or money already saved. Tap a category to see the properties it covers."
+          title="Planned Reserves"
+          description="Plan future reserves by category and property. These aren't expenses or saved balances."
           action={
             <Button
               size="sm"
@@ -124,7 +124,7 @@ export default function BudgetProgressChart({
       </FinanceCard>
       <FinanceCard>
         <FinanceHeading
-          title="Budget suggestions"
+          title="Budget Suggestions"
           description="Transparent starting points. Use your bills and goals, not assumed market costs."
         />
         {budgets

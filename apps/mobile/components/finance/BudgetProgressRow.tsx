@@ -16,7 +16,7 @@ export default function BudgetProgressRow({
   onPress,
 }: {
   title: string;
-  caption: string;
+  caption?: string;
   amount: number;
   spent: number;
   /** What tapping the row does, e.g. "View properties" or "Edit budget". */
@@ -30,16 +30,33 @@ export default function BudgetProgressRow({
       variant="ghost"
       className="h-auto min-h-14 py-2"
       onPress={onPress}
-      accessibilityLabel={`${title}, ${caption}. Spent ${formatPesoDisplay(spent)} of ${formatPesoDisplay(amount)}. ${over ? "Over budget" : "Within budget"}. ${action}`}
+      accessibilityLabel={`${title}${caption ? `, ${caption}` : ""}. Spent ${formatPesoDisplay(spent)} of ${formatPesoDisplay(amount)}. ${percent === null ? "" : `${percent}% used. `}${over ? "Over budget" : "Within budget"}. ${action}`}
     >
       <View className="w-full gap-2">
-        <Text className="font-nunitoSemiBold text-sm text-foreground">
-          {title}
-        </Text>
-        <Text className="font-inter text-xs text-muted">{caption}</Text>
-        <Text className="font-nunitoBold text-sm text-foreground">
-          {formatPesoDisplay(spent)} / {formatPesoDisplay(amount)}
-        </Text>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text
+            className="font-nunitoSemiBold text-base text-foreground flex-1"
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {caption ? (
+            <Text className="font-inter text-xs text-muted">{caption}</Text>
+          ) : null}
+        </View>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text className="font-nunitoBold text-sm text-foreground">
+            {formatPesoDisplay(spent)} / {formatPesoDisplay(amount)}
+          </Text>
+          {percent !== null ? (
+            <Text
+              className={`font-inter text-xs${over ? "" : " text-muted"}`}
+              style={over ? { color: colors.danger } : undefined}
+            >
+              {percent}% used
+            </Text>
+          ) : null}
+        </View>
         <View className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
           <View
             className={`h-full rounded-full${over ? "" : " bg-accent"}`}
@@ -54,9 +71,7 @@ export default function BudgetProgressRow({
           style={over ? { color: colors.danger } : undefined}
         >
           {formatPesoDisplay(difference)}{" "}
-          {over
-            ? `over budget${percent !== null ? ` · ${percent}% used` : ""}`
-            : "remaining"}
+          {over ? "over budget" : "remaining"}
         </Text>
       </View>
     </Button>

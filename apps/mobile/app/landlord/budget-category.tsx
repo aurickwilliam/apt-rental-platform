@@ -193,7 +193,6 @@ function BudgetCategory() {
               ) : (
                 <BudgetProgressRow
                   title={propertyName(item.apartment_id)}
-                  caption="spent this month"
                   amount={item.amount}
                   spent={item.spent}
                   action="Edit budget"
