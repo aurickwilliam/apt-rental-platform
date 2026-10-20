@@ -14,10 +14,12 @@ import {
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import {
   MAINTENANCE_URGENCY_STYLE,
+  maintenanceFeeChip,
   maintenanceStatusChipColor,
 } from "../lib/maintenance-status";
 import PhotoGrid from "../components/PhotoGrid";
 import ResolveMaintenanceModal from "../components/ResolveMaintenanceModal";
+import WaiveMaintenanceFeeModal from "../components/WaiveMaintenanceFeeModal";
 import MaintenanceDetailSkeleton from "./components/MaintenanceDetailSkeleton";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
@@ -42,9 +44,18 @@ export default function LandlordMaintenanceDetailPage() {
   const params = useParams<{ requestId: string }>();
   const id = params.requestId;
 
-  const { requests, loading, error, refresh, advanceStatus, resolveRequest, actionLoading } =
-    useLandlordMaintenanceRequests();
+  const {
+    requests,
+    loading,
+    error,
+    refresh,
+    advanceStatus,
+    resolveRequest,
+    waiveFee,
+    actionLoading,
+  } = useLandlordMaintenanceRequests();
   const resolveModal = useOverlayState();
+  const waiveModal = useOverlayState();
 
   const request = useMemo(() => requests.find((r) => r.id === id) ?? null, [requests, id]);
 
@@ -108,6 +119,16 @@ export default function LandlordMaintenanceDetailPage() {
       toast.success(feeAmount !== undefined ? "Request resolved with maintenance fee" : "Request marked as Resolved");
     } else {
       toast.danger(result.error ?? "Could not resolve this request.");
+    }
+  };
+
+  const handleWaiveConfirm = async () => {
+    const result = await waiveFee(request.id);
+    if (result.success) {
+      waiveModal.setOpen(false);
+      toast.success("Maintenance fee waived");
+    } else {
+      toast.danger(result.error ?? "Could not waive this fee.");
     }
   };
 
@@ -220,19 +241,36 @@ export default function LandlordMaintenanceDetailPage() {
           </div>
         )}
 
-        {request.fee_amount !== null && request.fee_amount > 0 && (
-          <div>
-            <SectionTitle>Maintenance Fee</SectionTitle>
-            <div className="mt-2 rounded-2xl bg-muted px-4 py-3 flex items-center justify-between gap-3">
-              <p className="text-[15px] font-nunito font-semibold text-primary">
-                {formatPesoDisplay(request.fee_amount)}
-              </p>
-              <StatusChip size="sm" tone={request.fee_status === "paid" ? "success" : "warning"}>
-                {request.fee_status === "paid" ? "Paid" : "Added to next rent"}
-              </StatusChip>
+        {(() => {
+          if (request.fee_amount === null || request.fee_amount <= 0) return null;
+          const feeChip = maintenanceFeeChip(request.fee_status);
+          return (
+            <div>
+              <SectionTitle>Maintenance Fee</SectionTitle>
+              <div className="mt-2 rounded-2xl bg-muted px-4 py-3 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[15px] font-nunito font-semibold text-primary">
+                    {formatPesoDisplay(request.fee_amount)}
+                  </p>
+                  <StatusChip size="sm" tone={feeChip.tone}>
+                    {feeChip.label}
+                  </StatusChip>
+                </div>
+                {request.fee_status === "pending" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    isDisabled={actionLoading}
+                    onPress={() => waiveModal.setOpen(true)}
+                  >
+                    Waive fee
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <Button
           size="md"
@@ -249,6 +287,15 @@ export default function LandlordMaintenanceDetailPage() {
         onOpenChange={resolveModal.setOpen}
         tenantName={request.tenant_name}
         onConfirm={handleResolveConfirm}
+        isSubmitting={actionLoading}
+      />
+
+      <WaiveMaintenanceFeeModal
+        isOpen={waiveModal.isOpen}
+        onOpenChange={waiveModal.setOpen}
+        tenantName={request.tenant_name}
+        feeAmount={request.fee_amount ?? 0}
+        onConfirm={handleWaiveConfirm}
         isSubmitting={actionLoading}
       />
     </div>

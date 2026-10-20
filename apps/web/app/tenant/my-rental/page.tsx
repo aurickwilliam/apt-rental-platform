@@ -150,9 +150,11 @@ export default function MyRental() {
   // Pending maintenance fees ride on top of the next rent (fee_status 'pending').
   const [legacyFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
   const apartmentIdForFees = tenancy?.apartment.id ?? null;
+  const tenancyIdForFees = tenancy?.id ?? null;
   useEffect(() => {
-    if (!apartmentIdForFees || bill) return;
+    if (!apartmentIdForFees || !tenancyIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
+    const tenancyId = tenancyIdForFees;
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
@@ -162,7 +164,7 @@ export default function MyRental() {
           const context = await getTenantContext();
           if (!context.tenantId || cancelled) return;
           const { fetchPendingMaintenanceFees } = await import("@/service/maintenanceService");
-          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId);
+          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId, tenancyId);
           if (!cancelled) setPendingFees(fees);
         } catch {
           // Fees are additive info only — a failed lookup must not break the page.
@@ -172,7 +174,7 @@ export default function MyRental() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees, bill]);
+  }, [apartmentIdForFees, tenancyIdForFees, bill]);
   const pendingFees = bill?.fees ?? legacyFees;
 
   // Web has no notification feed, so an unconfirmed contract gets one toast per

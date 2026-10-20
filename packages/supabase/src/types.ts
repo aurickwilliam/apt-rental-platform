@@ -517,6 +517,7 @@ export type Database = {
           resolution_notes: string | null
           resolved_at: string | null
           status: string
+          tenancy_id: string | null
           tenant_id: string
           title: string
           updated_at: string | null
@@ -536,6 +537,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
+          tenancy_id?: string | null
           tenant_id: string
           title: string
           updated_at?: string | null
@@ -555,6 +557,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
+          tenancy_id?: string | null
           tenant_id?: string
           title?: string
           updated_at?: string | null
@@ -1874,6 +1877,10 @@ export type Database = {
       validate_camanava_location: {
         Args: { p_city: string; p_latitude: number; p_longitude: number }
         Returns: boolean
+      }
+      waive_maintenance_fee: {
+        Args: { p_request_id: string }
+        Returns: undefined
       }
     }
     Enums: {

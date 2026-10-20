@@ -76,9 +76,11 @@ function PaymentContent() {
   // Pending maintenance fees ride on top of this period's rent.
   const [legacyFees, setPendingFees] = useState<{ title: string; amount: number }[]>([]);
   const apartmentIdForFees = apartment?.id ?? null;
+  const tenancyIdForFees = tenancy?.id ?? null;
   useEffect(() => {
-    if (!apartmentIdForFees || bill) return;
+    if (!apartmentIdForFees || !tenancyIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
+    const tenancyId = tenancyIdForFees;
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
@@ -88,7 +90,7 @@ function PaymentContent() {
           const context = await getTenantContext();
           if (!context.tenantId || cancelled) return;
           const { fetchPendingMaintenanceFees } = await import("@/service/maintenanceService");
-          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId);
+          const fees = await fetchPendingMaintenanceFees(apartmentId, context.tenantId, tenancyId);
           if (!cancelled) setPendingFees(fees);
         } catch {
           // Additive info only — a failed lookup must not block payment.
@@ -98,7 +100,7 @@ function PaymentContent() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees, bill]);
+  }, [apartmentIdForFees, tenancyIdForFees, bill]);
 
   const pendingFees = bill?.fees ?? legacyFees;
   const feesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);

@@ -33,13 +33,14 @@ function SuccessContent() {
     if (settledRef.current === referenceId) return;
     const apartmentId = tenancy?.apartment.id;
     const tenantId = profile?.id;
-    if (!apartmentId || !tenantId) return;
+    const tenancyId = tenancy?.id;
+    if (!apartmentId || !tenantId || !tenancyId) return;
     settledRef.current = referenceId;
     queueMicrotask(() => {
       void (async () => {
         try {
           const { settleMaintenanceFees } = await import("@/service/maintenanceService");
-          await settleMaintenanceFees(apartmentId, tenantId, payment.created_at);
+          await settleMaintenanceFees(apartmentId, tenantId, tenancyId, payment.created_at);
         } catch {
           // Display-only concern — a failed settle must not break the receipt.
           // Fees stay pending and settle on the next paid observation.
@@ -47,7 +48,7 @@ function SuccessContent() {
         }
       })();
     });
-  }, [payment, referenceId, tenancy?.apartment.id, profile?.id]);
+  }, [payment, referenceId, tenancy?.apartment.id, tenancy?.id, profile?.id]);
 
   const handleGoHome = () => {
     router.replace("/tenant/my-rental");

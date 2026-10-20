@@ -5,6 +5,8 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 
 const migration = await readFile(new URL("../../supabase/migrations/20261020101501_move_in_billing.sql", import.meta.url), "utf8");
+const feeMigration = await readFile(new URL("../../supabase/migrations/20261020130311_maintenance_fee_tenancy.sql", import.meta.url), "utf8");
+const landlordGuardMigration = await readFile(new URL("../../supabase/migrations/20261020131416_guard_maintenance_fee_landlord.sql", import.meta.url), "utf8");
 const cashGuards = await readFile(new URL("../../supabase/migrations/20261016141949_guard_cash_payment_submissions.sql", import.meta.url), "utf8");
 const reminders = await readFile(new URL("../../supabase/migrations/20260826054353_rent_due_reminders.sql", import.meta.url), "utf8");
 const reminderFunction = reminders.slice(reminders.indexOf("create or replace function public.notify_rent_due_status()"), reminders.indexOf("revoke execute on function public.notify_rent_due_status()"));
@@ -29,7 +31,7 @@ create table apartments (id uuid primary key, landlord_id uuid, name text, month
 create table tenancies (
   id uuid primary key default gen_random_uuid(), apartment_id uuid, tenant_id uuid, landlord_id uuid,
   lease_start date, lease_end date, monthly_rent numeric, security_deposit numeric, advance_rent numeric,
-  rent_due_day smallint default 5, status text default 'active'
+  rent_due_day smallint default 5, status text default 'active', created_at timestamptz default now()
 );
 create table payment (
   id uuid primary key default gen_random_uuid(), created_at timestamptz default now(),
@@ -39,8 +41,8 @@ create table payment (
   constraint payment_status_check check (status in ('pending', 'paid', 'partial', 'unpaid'))
 );
 create table maintenance_request (
-  id uuid primary key default gen_random_uuid(), apartment_id uuid, tenant_id uuid,
-  title text, fee_amount numeric, fee_status text default 'pending'
+  id uuid primary key default gen_random_uuid(), apartment_id uuid, tenant_id uuid, landlord_id uuid,
+  title text, fee_amount numeric, fee_status text default 'pending', created_at timestamptz default now()
 );
 create table rent_reminders (id uuid default gen_random_uuid(), tenancy_id uuid, due_date date, kind text,
   unique(tenancy_id,due_date,kind));
@@ -86,7 +88,7 @@ test("move-in billing database contract", async (t) => {
   }
 
   const legacy = await rental();
-  await db.exec(`begin; ${migration} commit;`);
+  await db.exec(`begin; ${migration} ${feeMigration} ${landlordGuardMigration} commit;`);
 
   await t.test("historical tenancies are not charged a new deposit or advance", async () => {
     assert.equal(await bill(legacy), null);
@@ -107,7 +109,7 @@ test("move-in billing database contract", async (t) => {
     const normal = await rental();
     assert.equal((await bill(normal)).totalDue, 45000);
     const { rows } = await db.query("select count(*)::int as count from demo_population.audited_functions");
-    assert.equal(rows[0].count, 6);
+    assert.equal(rows[0].count, 8);
   });
 
   await t.test("first bill is 45k; pending cash covers neither month", async () => {
@@ -249,5 +251,103 @@ test("move-in billing database contract", async (t) => {
     const { rows } = await db.query("select pg_get_functiondef('public.notify_rent_due_status()'::regprocedure) as body");
     assert.match(rows[0].body, /app_private.rent_paid_for_period/);
     assert.doesNotMatch(rows[0].body, /sum\(p.amount\)/);
+  });
+
+  await t.test("an unpaid fee stays with the tenancy that raised it across a re-let", async () => {
+    const first = await rental();
+    const fee = randomUUID();
+    await db.query("insert into maintenance_request(id,apartment_id,tenant_id,title,fee_amount) values($1,$2,$3,'Repair',500)", [fee, first.apartment, tenant]);
+    assert.equal(
+      (await db.query("select tenancy_id from maintenance_request where id=$1", [fee])).rows[0].tenancy_id,
+      first.tenancy,
+    );
+    assert.equal((await bill(first)).totalDue, 45500);
+
+    // The same tenant re-rents the same unit while the older fee is unpaid.
+    const relet = randomUUID();
+    await db.query("insert into tenancies(id,apartment_id,tenant_id,landlord_id,lease_start,monthly_rent,security_deposit,advance_rent,rent_due_day) values($1,$2,$3,$4,$5,15000,15000,15000,5)", [relet, first.apartment, tenant, landlord, month]);
+    const reletBill = await bill({ tenancy: relet, apartment: first.apartment });
+    assert.equal(reletBill.totalDue, 45000);
+    assert.deepEqual(reletBill.fees, []);
+
+    // A different tenant never inherits another tenancy's fee either.
+    const otherTenant = randomUUID();
+    await db.query("insert into users(id,user_id) values($1,$1)", [otherTenant]);
+    const otherApartment = randomUUID();
+    const otherTenancy = randomUUID();
+    await db.query("insert into apartments(id,landlord_id,name,monthly_rent,security_deposit,advance_rent) values($1,$2,'Other',15000,15000,15000)", [otherApartment, landlord]);
+    await db.query("insert into tenancies(id,apartment_id,tenant_id,landlord_id,lease_start,monthly_rent,security_deposit,advance_rent,rent_due_day) values($1,$2,$3,$4,$5,15000,15000,15000,5)", [otherTenancy, otherApartment, otherTenant, landlord, month]);
+    assert.equal((await bill({ tenancy: otherTenancy, apartment: otherApartment })).totalDue, 45000);
+
+    await assert.rejects(
+      db.query("update maintenance_request set tenancy_id=$1 where id=$2", [relet, fee]),
+      /cannot move to another rental/,
+    );
+  });
+
+  await t.test("vacating needs settlement or a landlord write-off", async () => {
+    const pending = await rental();
+    const fee = randomUUID();
+    await db.query("insert into maintenance_request(id,apartment_id,tenant_id,title,fee_amount) values($1,$2,$3,'Repair',500)", [fee, pending.apartment, tenant]);
+    assert.equal((await bill(pending)).totalDue, 45500);
+
+    await db.query("select set_config('test.role','authenticated',false),set_config('test.uid',$1,false)", [landlord]);
+    await assert.rejects(
+      db.query("update tenancies set status='ended' where id=$1", [pending.tenancy]),
+      /Settle or waive the pending maintenance fee/,
+    );
+    await db.query("select set_config('test.uid',$1,false)", [authId]);
+    await assert.rejects(db.query("select waive_maintenance_fee($1)", [fee]), /Only the landlord can waive/);
+    // A direct table write cannot bypass the landlord-only RPC either.
+    await assert.rejects(
+      db.query("update maintenance_request set fee_status='waived' where id=$1", [fee]),
+      /Only the landlord can waive/,
+    );
+    await assert.rejects(
+      db.query("update maintenance_request set fee_amount=0 where id=$1", [fee]),
+      /Only the landlord can change/,
+    );
+    await db.query("select set_config('test.uid',$1,false)", [landlord]);
+    await db.query("select waive_maintenance_fee($1)", [fee]);
+    assert.equal(
+      (await db.query("select fee_status from maintenance_request where id=$1", [fee])).rows[0].fee_status,
+      "waived",
+    );
+    assert.equal((await bill(pending)).totalDue, 45000);
+    await assert.rejects(db.query("select waive_maintenance_fee($1)", [fee]), /Only a pending/);
+    await db.query("update tenancies set status='ended' where id=$1", [pending.tenancy]);
+    await db.query("select set_config('test.role','service_role',false),set_config('test.uid','',false)");
+
+    // Paying the fee also clears the vacate guard.
+    const settled = await rental();
+    const paidFee = randomUUID();
+    await db.query("insert into maintenance_request(id,apartment_id,tenant_id,title,fee_amount) values($1,$2,$3,'Repair',300)", [paidFee, settled.apartment, tenant]);
+    const payment = await pay(settled);
+    assert.equal(Number(payment.maintenance_amount), 300);
+    await confirm(payment.id);
+    assert.equal(
+      (await db.query("select fee_status from maintenance_request where id=$1", [paidFee])).rows[0].fee_status,
+      "paid",
+    );
+    await db.query("select set_config('test.role','authenticated',false),set_config('test.uid',$1,false)", [landlord]);
+    await db.query("update tenancies set status='ended' where id=$1", [settled.tenancy]);
+    await db.query("select set_config('test.role','service_role',false),set_config('test.uid','',false)");
+
+    // The landlord may waive with a direct table write; the tenant may not.
+    const direct = await rental();
+    const directFee = randomUUID();
+    await db.query("insert into maintenance_request(id,apartment_id,tenant_id,title,fee_amount) values($1,$2,$3,'Direct',400)", [directFee, direct.apartment, tenant]);
+    await db.query("select set_config('test.role','authenticated',false),set_config('test.uid',$1,false)", [authId]);
+    await assert.rejects(
+      db.query("update maintenance_request set fee_status='waived' where id=$1", [directFee]),
+      /Only the landlord can waive/,
+    );
+    await db.query("select set_config('test.uid',$1,false)", [landlord]);
+    await db.query("update maintenance_request set fee_status='waived' where id=$1", [directFee]);
+    assert.equal(
+      (await db.query("select fee_status from maintenance_request where id=$1", [directFee])).rows[0].fee_status,
+      "waived",
+    );
+    await db.query("select set_config('test.role','service_role',false),set_config('test.uid','',false)");
   });
 });

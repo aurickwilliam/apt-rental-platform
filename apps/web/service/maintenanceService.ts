@@ -198,9 +198,12 @@ export type PendingMaintenanceFee = {
   amount: number;
 };
 
+// Fees belong to the tenancy that raised them: a re-let to the same tenant
+// must never inherit the previous tenancy's unpaid balance.
 export async function fetchPendingMaintenanceFees(
   apartmentId: string,
   tenantId: string,
+  tenancyId: string,
 ): Promise<PendingMaintenanceFee[]> {
   const supabase = createClient();
 
@@ -209,6 +212,7 @@ export async function fetchPendingMaintenanceFees(
     .select("title, fee_amount")
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
+    .eq("tenancy_id", tenancyId)
     .eq("fee_status", "pending");
 
   if (error) throw error;
@@ -221,8 +225,9 @@ export async function fetchPendingMaintenanceFees(
 export async function fetchPendingMaintenanceFeesTotal(
   apartmentId: string,
   tenantId: string,
+  tenancyId: string,
 ): Promise<number> {
-  const fees = await fetchPendingMaintenanceFees(apartmentId, tenantId);
+  const fees = await fetchPendingMaintenanceFees(apartmentId, tenantId, tenancyId);
   return fees.reduce((sum, fee) => sum + fee.amount, 0);
 }
 
@@ -232,6 +237,7 @@ export async function fetchPendingMaintenanceFeesTotal(
 export async function settleMaintenanceFees(
   apartmentId: string,
   tenantId: string,
+  tenancyId: string,
   paidBeforeIso: string,
 ): Promise<number> {
   const supabase = createClient();
@@ -241,6 +247,7 @@ export async function settleMaintenanceFees(
     .update({ fee_status: "paid" })
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
+    .eq("tenancy_id", tenancyId)
     .eq("fee_status", "pending")
     .lte("created_at", paidBeforeIso)
     .select("id");
