@@ -1,11 +1,26 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { COLORS } from "@repo/constants";
+import { FINANCE_CATEGORIES } from "@repo/utils";
+import { FINANCE_CATEGORY_BACKGROUND_CLASSES } from "../components/finance/financeCategoryStyles";
 
-import { MOBILE_COLORS } from "./theme";
+import { FINANCE_CATEGORY_BACKGROUNDS, MOBILE_COLORS } from "./theme";
 
 const css = readFileSync(resolve(__dirname, "../app/global.css"), "utf8");
 const tokens = JSON.parse(readFileSync(resolve(__dirname, "../../../design-tokens.json"), "utf8"));
+
+it("styles actual HeroUI label text consistently without changing input typography", () => {
+  const label = css.match(/\.label__text\s*\{([^}]+)\}/)![1];
+  expect(label).toContain("font-family: var(--font-nunitoSemiBold)");
+  expect(label).toContain("font-size: var(--text-base)");
+  expect(label).toContain("line-height: var(--text-base--line-height)");
+  expect(label).toContain("color: var(--foreground)");
+  const invalid = css.match(/\.label__text--is-invalid\s*\{([^}]+)\}/)![1];
+  expect(invalid).toContain("color: var(--danger)");
+  expect(css.indexOf(".label__text--is-invalid {")).toBeGreaterThan(
+    css.indexOf(".label__text {"),
+  );
+});
 
 function declarations(block: string): Record<string, string> {
   return Object.fromEntries(
@@ -72,6 +87,23 @@ describe.each(["light", "dark"] as const)("%s mobile palette", (theme) => {
     }
     expect(contrast(value("--accent"), colors.surface)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(value("--accent"), colors.background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("covers every finance category with matching CSS, palette and documented tokens", () => {
+    expect(Object.keys(FINANCE_CATEGORY_BACKGROUNDS[theme]).sort()).toEqual(
+      FINANCE_CATEGORIES.map(({ id }) => id).sort(),
+    );
+    for (const { id } of FINANCE_CATEGORIES) {
+      const background = FINANCE_CATEGORY_BACKGROUNDS[theme][id];
+      expect(value(`--color-finance-${id}`)).toBe(background);
+      expect(tokens.colors.financeCategoryBackgrounds[theme][id]).toBe(background);
+      expect(FINANCE_CATEGORY_BACKGROUND_CLASSES[id]).toBe(`bg-finance-${id}`);
+      for (const foreground of [colors.textPrimary, colors.textSecondary, colors.financeOverBudgetText]) {
+        expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+    expect(value("--color-finance-over-budget-text")).toBe(colors.financeOverBudgetText);
+    expect(tokens.colors.mobileTheme[theme].financeOverBudgetText).toBe(colors.financeOverBudgetText);
   });
 
   it("separates screens, cards and muted fills without changing shared brand colors", () => {

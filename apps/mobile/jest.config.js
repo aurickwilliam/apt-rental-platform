@@ -2,6 +2,11 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // The shared-input regression tests exercise the installed HeroUI patch rather
+  // than a stub. Keep Expo's exclusions, allowing this ESM package through Babel.
+  transformIgnorePatterns: require('jest-expo/jest-preset').transformIgnorePatterns.map(
+    (pattern) => pattern.replace('/node_modules/(?!', '/node_modules/(?!heroui-native/|'),
+  ),
   // Shared pure logic is tested here because CI only runs the mobile suite.
   roots: [
     '<rootDir>',

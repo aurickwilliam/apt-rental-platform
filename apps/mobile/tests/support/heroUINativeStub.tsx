@@ -16,7 +16,12 @@ interface PressableStubProps extends ChildrenProps {
 }
 
 const Passthrough = ({ children }: ChildrenProps) => <View>{children}</View>;
-const TextStub = ({ children }: ChildrenProps) => <Text>{children}</Text>;
+const TextStub = ({
+  children,
+  className,
+}: ChildrenProps & { className?: string }) => (
+  <Text className={className}>{children}</Text>
+);
 
 function PressableStub({ children, onPress, isDisabled, accessibilityLabel, className }: PressableStubProps) {
   return (
@@ -89,15 +94,25 @@ export const useToast = () => ({ toast: { show: mockToastShow } });
 interface ListItemStubProps extends ChildrenProps {
   onPress?: () => void;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  testID?: string;
 }
 
-function ListItemStub({ children, onPress, disabled }: ListItemStubProps) {
+function ListItemStub({
+  children,
+  onPress,
+  disabled,
+  accessibilityLabel,
+  testID,
+}: ListItemStubProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: !!disabled }}
+      testID={testID}
     >
       {children}
     </Pressable>
@@ -113,3 +128,21 @@ export const ListGroup = Object.assign(Passthrough, {
 });
 export const Separator = () => null;
 export const Chip = Object.assign(Passthrough, { Label: TextStub });
+
+// Dialogs: only mounted while open, like the installed HeroUI Portal.
+interface DialogStubProps extends ChildrenProps {
+  isOpen?: boolean;
+}
+
+function DialogStub({ children, isOpen = false }: DialogStubProps) {
+  return isOpen ? <View>{children}</View> : null;
+}
+
+export const Dialog = Object.assign(DialogStub, {
+  Portal: Passthrough,
+  Overlay: Passthrough,
+  Content: Passthrough,
+  Title: TextStub,
+  Description: TextStub,
+  Close: PressableStub,
+});

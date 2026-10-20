@@ -56,6 +56,19 @@
   --color-danger-mid: #FF4B4B;
   --color-danger-light: #FDA4AF;
 
+  /* Decorative finance category surfaces (dark values in the variant below). */
+  --color-finance-maintenance: #EDF3FF;
+  --color-finance-furniture: #F3EEFF;
+  --color-finance-turnover: #FFF0E6;
+  --color-finance-insurance: #E8F5F3;
+  --color-finance-taxes: #F7F1E5;
+  --color-finance-utilities: #EAF6FC;
+  --color-finance-fees: #F6EDF5;
+  --color-finance-emergency: #EAF5EC;
+  --color-finance-vacancy: #FFF5DF;
+  --color-finance-other: #F0F2F5;
+  --color-finance-over-budget-text: #C4111E;
+
   /* Dark mode primitives */
   --color-dark-bg: #121212;
   --color-dark-surface: #1E1E1E;
@@ -146,6 +159,18 @@
   }
 
   @variant dark {
+    /* Muted category tints retain readable foreground/muted text. */
+    --color-finance-maintenance: #1B2538;
+    --color-finance-furniture: #282238;
+    --color-finance-turnover: #30251F;
+    --color-finance-insurance: #192C2A;
+    --color-finance-taxes: #2B271E;
+    --color-finance-utilities: #1B2932;
+    --color-finance-fees: #302330;
+    --color-finance-emergency: #1D2B21;
+    --color-finance-vacancy: #30291B;
+    --color-finance-other: #25282D;
+    --color-finance-over-budget-text: #F87171;
     /* Background */
     --background: #121212;
     --color-grouped-background: var(--background);
@@ -217,26 +242,35 @@
 
 @layer components {
   /* Unfocused / no value — 1px field border, same colour as DropdownField/DateField */
-  .input__input:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
+  .input__input:not(.finance-field-invalid):not(:focus):not([data-focus="true"]):not([data-open="true"]):not([aria-invalid="true"]):not([data-invalid="true"]):not([disabled]):not([data-disabled="true"]):not([readonly]):not([readOnly]),
   .search-field__input:not(:focus):not([disabled]):not([readonly]):not([readOnly]),
   .text-area__input:not(:focus):not([readonly]):not([disabled]),
-  .select__trigger:not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
+  .select__trigger:not(.finance-field-invalid):not(:focus):not([data-focus="true"]):not([data-open="true"]):not([disabled]):not([data-disabled="true"]) {
     --field-border-width: 1px !important;
     border-color: var(--field-border) !important;
     outline-color: transparent !important;
   }
   /* Focused (editable only) — 2px blue */
-  .input__input:focus:not([readonly]):not([readOnly]):not([disabled]):not([data-disabled="true"]):not([aria-readonly="true"]):not([data-readonly="true"]):not([aria-invalid="true"]):not([data-invalid="true"]),
+  .input__input:not(.finance-field-invalid):focus:not([readonly]):not([readOnly]):not([disabled]):not([data-disabled="true"]):not([aria-readonly="true"]):not([data-readonly="true"]):not([aria-invalid="true"]):not([data-invalid="true"]),
   .search-field__input:focus:not([readonly]):not([readOnly]):not([disabled]),
   .text-area__input:focus:not([readonly]):not([disabled]),
-  .select__trigger:focus:not([disabled]):not([data-disabled="true"]),
-  .select__trigger[data-focus="true"]:not([data-disabled="true"]):not([aria-invalid="true"]),
-  .select__trigger[data-open="true"]:not([data-disabled="true"]) {
+  .select__trigger:not(.finance-field-invalid):focus:not([disabled]):not([data-disabled="true"]),
+  .select__trigger:not(.finance-field-invalid)[data-focus="true"]:not([data-disabled="true"]):not([aria-invalid="true"]),
+  .select__trigger:not(.finance-field-invalid)[data-open="true"]:not([data-disabled="true"]) {
     --field-border-width: 2px !important;
     border-color: var(--focus) !important;
     outline-color: var(--focus) !important;
     outline-width: 2px !important;
   }
+  /* Expense-form errors stay red while focused or open. */
+  .input__input.finance-field-invalid,
+  .select__trigger.finance-field-invalid {
+    --field-border-width: 2px !important;
+    border-width: 2px !important;
+    border-color: var(--danger) !important;
+    outline-color: transparent !important;
+  }
+
   /* Readonly/disabled — 1px field border, never blue */
   .input__input[readonly], .input__input[readOnly], .search-field__input[readonly],
   .text-area__input[readonly], .input__input[disabled],
@@ -261,6 +295,19 @@
 
 .button__label--variant-secondary {
   color: var(--color-button-secondary-foreground);
+}
+
+/* Form labels: target the actual text, not Label's Pressable container.
+   Keep this scoped so values, placeholders and descriptions are unchanged. */
+.label__text {
+  font-family: var(--font-nunitoSemiBold);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--foreground);
+}
+
+.label__text--is-invalid {
+  color: var(--danger);
 }
 
 /* Tabs — every HeroUI Tabs label uses Nunito SemiBold; the selected label is

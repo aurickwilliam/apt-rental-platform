@@ -88,7 +88,7 @@ export default function TimeField({
   return (
     <View className="gap-2">
       <View className="flex-row items-center gap-1">
-        <Label className={isInvalid ? "text-danger" : ""}>{label}</Label>
+        <Label isInvalid={isInvalid}>{label}</Label>
         {required && <Text className="text-danger">*</Text>}
       </View>
       <View className="flex-row gap-3">

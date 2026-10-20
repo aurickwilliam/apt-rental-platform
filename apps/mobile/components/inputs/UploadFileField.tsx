@@ -71,7 +71,7 @@ export default function UploadFileField({
   return (
     <View className="gap-2">
       {/* Label */}
-      <Text className="text-base font-nunitoSemiBold text-foreground">
+      <Text className={`text-base font-nunitoSemiBold ${error ? "text-danger" : "text-foreground"}`}>
         {label}
         {required && <Text className="text-danger"> *</Text>}
       </Text>

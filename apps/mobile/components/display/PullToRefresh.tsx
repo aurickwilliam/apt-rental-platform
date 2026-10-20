@@ -1,11 +1,12 @@
-import { useCallback } from "react";
-import { RefreshControl, View } from "react-native";
+import { forwardRef, useCallback } from "react";
+import { RefreshControl, View, type RefreshControlProps } from "react-native";
 
 import { Spinner } from "heroui-native";
 
 import { useColors } from "hooks/useTheme";
 
-interface PullToRefreshControlProps {
+interface PullToRefreshControlProps
+  extends Pick<RefreshControlProps, "children" | "style"> {
   onRefresh: () => void | Promise<void>;
   /**
    * The caller's refreshing state — the same value PullToRefreshIndicator
@@ -28,10 +29,10 @@ interface PullToRefreshIndicatorProps {
  * indicator. Render PullToRefreshIndicator in the list or scroll content for
  * the visible, cross-platform HeroUI Native loading state.
  */
-export function PullToRefreshControl({
-  onRefresh,
-  refreshing,
-}: PullToRefreshControlProps) {
+export const PullToRefreshControl = forwardRef<
+  RefreshControl,
+  PullToRefreshControlProps
+>(function PullToRefreshControl({ onRefresh, refreshing, children, style }, ref) {
   const handleRefresh = useCallback(() => {
     if (refreshing) return;
     void onRefresh();
@@ -39,14 +40,20 @@ export function PullToRefreshControl({
 
   return (
     <RefreshControl
+      ref={ref}
+      style={style}
       refreshing={false}
       onRefresh={handleRefresh}
       tintColor="transparent"
       colors={["transparent"]}
       progressBackgroundColor="transparent"
-    />
+    >
+      {/* Android ScrollView injects its native scroll view here. Dropping it
+          leaves Gesture Handler without a view to attach to. */}
+      {children}
+    </RefreshControl>
   );
-}
+});
 
 export function PullToRefreshIndicator({ refreshing }: PullToRefreshIndicatorProps) {
   const { colors } = useColors();

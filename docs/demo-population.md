@@ -1,6 +1,6 @@
 # Safe demo population
 
-`pnpm db:populate` fills existing demo accounts and listings with connected rental journeys. It never creates users or apartments, changes ownership/roles/verification, uploads files, or contacts PayMongo. This is an **operator tool for demo data**, not an application endpoint or a production anonymization tool.
+`pnpm db:populate` fills existing demo accounts and listings with connected rental journeys and landlord expense/budget examples. It never creates users or apartments, changes ownership/roles/verification, uploads files, or contacts PayMongo. This is an **operator tool for demo data**, not an application endpoint or a production anonymization tool.
 
 All accounts in the approved target are demo accounts. Activity may span three simulated years even though the accounts/listings/documents were created more recently. Their original timestamps are unchanged. No real lease, payment-provider transaction, or document authenticity is implied. Synthetic payments use `DEMO-` references and empty provider IDs.
 
@@ -21,6 +21,7 @@ Reset and cleanup **preview by default**; only `--apply` writes. Every write req
 ## One-time setup
 
 1. Review `supabase/migrations/20261017075357_safe_demo_population.sql`. Deploy it to the **apps' actual demo project** only after deployment approval. Do not blindly run `supabase db push`: this repository's CLI link may target a different project, and other pending migrations may exist.
+   Finance also requires `supabase/migrations/20261019041228_demo_population_finance_extension.sql`. This migration installs private tracking/functions only; it does not populate any account.
 2. Keep `demo_population` out of Supabase's exposed schemas. Its registry, saved plan, before/after records and all helper functions are private, RLS-enabled where applicable, and unavailable to `anon`, `authenticated` and `service_role`. Only a direct `postgres` operator session without an Auth JWT can run the tool.
 3. Install Node 22.17+ and PostgreSQL client tools (`psql` 17+).
 4. Configure standard PostgreSQL environment variables. Use `.pgpass` or `PGPASSFILE` for the password; never put credentials in arguments or client `.env` files.
@@ -57,6 +58,50 @@ The generator balances previous rentals across existing owners, preserves curren
 Unverified tenants get browsing/inquiry activity only. Applications reuse actual usable, owner-matched Passport documents; missing/expired/rejected/missing-file documents are skipped, never fabricated. Historical operator-imported rentals can exist without an invented application. Deleted/hidden units, suspended users, admin-only profiles, blocked conversations and self-transactions are excluded. Existing conversation threads/preferences are left alone.
 
 Rent follows the shared calendar-month/due-day rules, including leap years and month-end clamping. Earlier months are settled, with current-month pending cash confirmations where the due day is ahead. Maintenance and visits use real supported statuses. Reviews are tied to eligible ended stays. There are no fabricated attachment paths or signed leases.
+
+## Landlord expenses and budget plans
+
+Fresh populations automatically include an independently tracked finance component in the same atomic operation. It covers **every eligible landlord**, not a named account or just owners selected for rental journeys. This includes mixed admin/landlord profiles and unverified landlords; neither admin nor account verification substitutes for landlord membership. Suspended owners, hidden/deleted listings and owners without usable properties are excluded. No tenants or Passport documents are needed for finance.
+
+The finance generator selects up to two usable properties per owner and the six calendar months ending in the frozen `asOf` month. It looks beyond fully protected properties for another safe listing. Each populated property-month has:
+
+- Two paid expense examples and matching spending limits, demonstrating both under-budget and over-budget spending.
+- Separate operating costs and periodic capital improvements; neither reserves nor unpaid rent become expenses.
+- Insurance and emergency reserve plans with targets and monthly suggestions based on shared application rules. These are allocations only, not transferred or saved money.
+
+Amounts are **illustrative synthetic demo entries**, not market estimates or actual bills. Expense descriptions start with `Demo scenario:`. All expense dates are at or before `asOf`; budgets use month-start dates. Finance uses its own versioned ID namespace without changing existing rental IDs. The combined rental and finance plan must stay within the existing 5,000-source-row limit.
+
+Existing property-months with expenses or review confirmations are skipped intact. A conflicting existing budget also skips that property-month, including a zero-peso budget. Nothing is upserted or overwritten. Finance month confirmations are **not seeded**: operating income remains uncalculated until the landlord explicitly reviews expenses in the app. Preview reports counts, landlords covered, and skip reasons without account names or private rows.
+
+### Extend an existing rental run without resetting it
+
+For an already populated demo, add finance explicitly:
+
+```bash
+pnpm db:populate --finance --run <run-id> --dry-run
+pnpm db:populate --finance --run <run-id> --apply \
+  --expect-preview <finance-preview-token> --confirm-project <apps-project-ref>
+pnpm db:populate --finance --verify --run <run-id>
+```
+
+The parent rental run must be applied. The extension uses its **original seed, years and asOf date**, not today's date, and never rebuilds or rewrites its rental plan or registry. Thus it can add finance even if rental notifications/messages have since been read or listings edited, provided the current finance scope is eligible. This does **not** accept those rental edits as a new baseline: full-run verification/reset/cleanup retain their original refusal rules. A normal `--apply` on an old rental-only run does not add finance silently.
+
+The separate, private `finance_runs` and `finance_changes` records freeze the first applied finance plan and its exact after-images. Repeating apply is a zero-write no-op. Cleanup/reapply and reset replay the saved rows, IDs, dates and amounts; they do not generate a fresh plan around later edits. A different finance plan/version cannot silently replace it. Empty extensions are saved with skip reasons rather than granting permission to add a different dataset later.
+
+Finance-only reset and cleanup follow the same preview/confirmation process:
+
+```bash
+pnpm db:populate --finance --reset --run <run-id> --dry-run
+pnpm db:populate --finance --reset --run <run-id> --apply \
+  --expect-preview <finance-reset-token> --confirm-project <apps-project-ref>
+pnpm db:populate --finance --cleanup --run <run-id> --dry-run
+pnpm db:populate --finance --cleanup --run <run-id> --apply \
+  --expect-preview <finance-cleanup-token> --confirm-project <apps-project-ref>
+```
+
+These operations touch only tracked finance inserts and preserve all other public rows. Edited/missing finance rows, new dependent rows/files, or a later expense review for a generated expense month block cleanup/reset. Deleting an expense normally invalidates its month's review, so the importer refuses rather than remove that confirmation. New manual expenses in a generated month also prevent reset/replay from inserting into that now-manual month. Unrelated newer finance work is preserved.
+
+Full-run reset/cleanup coordinate both components in one transaction, handling finance first; any failure rolls back both. Finance-only preview tokens cannot authorize rental operations. Nothing loosens the operator-only connection, locks, trigger audit or private-schema permissions. Do not manually alter registries or use a blanket reset to get around refusals.
 
 ## Verify, reset or clean up
 

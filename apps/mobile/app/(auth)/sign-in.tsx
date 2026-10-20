@@ -34,7 +34,7 @@ import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { useSuspensionStore } from "@/stores/useSuspensionStore";
-import { portalHome } from "@/service/auth/portalPreference";
+import { hasMobilePortalRole, portalHome } from "@/service/auth/portalPreference";
 import {
   buildSuspendedMessage,
   getMySuspensionStatus,
@@ -166,8 +166,12 @@ export default function SignIn() {
       }
 
       const heldRoles: string[] = userProfile.roles ?? [];
-      if (heldRoles.includes("admin")) {
-        setError("Admin accounts are available on the web portal only.");
+      if (!hasMobilePortalRole(heldRoles)) {
+        setError(
+          heldRoles.includes("admin")
+            ? "Admin accounts are available on the web portal only."
+            : "No tenant or landlord account found for this profile.",
+        );
         await supabase.auth.signOut(); // clear the session since we're blocking access
         return;
       }

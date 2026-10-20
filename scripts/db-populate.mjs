@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { buildPlan, DEFAULT_SEED, manilaToday, previewToken, stableId, validateOptions } from "./db-populate/planner.mjs";
+import { buildPlan, DEFAULT_SEED, manilaToday, MAX_PLAN_ROWS, previewToken, stableId, validateOptions } from "./db-populate/planner.mjs";
+import { buildFinancePlan } from "./db-populate/finance-planner.mjs";
 
 const HELP = `Safe APT demo population (Node 22.17+, psql 17+)
 
@@ -12,6 +13,9 @@ const HELP = `Safe APT demo population (Node 22.17+, psql 17+)
   pnpm db:populate --cleanup --run <id> --dry-run
   pnpm db:populate --cleanup --run <id> --apply --expect-preview <token> --confirm-project <ref>
   pnpm db:populate --verify --run <id>
+  pnpm db:populate --finance --run <id> --dry-run
+  pnpm db:populate --finance --run <id> --apply --expect-preview <token> --confirm-project <ref>
+  pnpm db:populate --finance --reset|--cleanup|--verify --run <id> [--dry-run]
 
 Options: --years 1..3 (default 3), --seed <name>, --as-of YYYY-MM-DD
          --local (explicit loopback PostgreSQL; confirm-project must be local)
@@ -25,7 +29,7 @@ Reset/cleanup preview by default; only --apply writes. No --force option.
 
 export function parseArgs(args) {
   const options = {};
-  const booleans = new Set(["apply", "dry-run", "reset", "cleanup", "verify", "local", "help"]);
+  const booleans = new Set(["apply", "dry-run", "reset", "cleanup", "verify", "local", "help", "finance"]);
   const values = new Set(["years", "seed", "as-of", "expect-preview", "confirm-project", "run"]);
   for (let i = 0; i < args.length; i++) {
     const key = args[i].replace(/^--/, "");
@@ -37,7 +41,7 @@ export function parseArgs(args) {
     }
   }
   if ([options.reset, options.cleanup, options.verify].filter(Boolean).length > 1 || (options.apply && options["dry-run"]) || (options.verify && options.apply)) throw new Error("Conflicting operation flags.");
-  if ((options.reset || options.cleanup || options.verify) && !/^[0-9a-f-]{36}$/.test(options.run ?? "")) throw new Error("Reset, cleanup and verify require --run <recorded-id>.");
+  if ((options.reset || options.cleanup || options.verify || options.finance) && !/^[0-9a-f-]{36}$/.test(options.run ?? "")) throw new Error("Finance, reset, cleanup and verify require --run <recorded-id>.");
   return options;
 }
 
@@ -95,6 +99,7 @@ function query(sql) {
       AP006: "New activity or stored files depend on generated data. Reset/cleanup refused to preserve that work.",
       AP007: "The recorded run or dataset options do not match. Use the original saved run.",
       AP008: "An account or listing is no longer eligible. The entire operation was rolled back.",
+      AP009: "Finance data, reviews or dependencies conflict with this operation. Existing work was preserved.",
       "23505": "A generated ID or unique relationship conflicts with existing data. Nothing was overwritten.",
       "55P03": "The database is busy. No lock could be obtained within three seconds.",
       "42883": "A required database function is missing. Install/review the population migration first.",
@@ -107,13 +112,26 @@ function query(sql) {
   catch { throw new Error("Unexpected database response; inspect connection/migration configuration without printing private records."); }
 }
 
-export function operationSql(mode, plan, stateHash, runId, preview) {
+export function operationSql(mode, plan, stateHash, runId, preview, financeOnly = false) {
   return `begin${preview || mode === "verify" ? " read only" : ""};
 set local lock_timeout = '3s';
 set local statement_timeout = '60s';
 set local timezone = 'Asia/Manila';
-select demo_population.execute(${sqlLiteral(mode)},${sqlLiteral(JSON.stringify(plan))}::jsonb,${sqlLiteral(stateHash)},${sqlLiteral(runId)}::uuid,${preview});
+select demo_population.${financeOnly ? "execute_finance" : "execute"}(${sqlLiteral(mode)},${sqlLiteral(JSON.stringify(plan))}::jsonb,${sqlLiteral(stateHash)},${sqlLiteral(runId)}::uuid,${preview});
 commit;`;
+}
+
+export function selectPlan(inventory, config, financeOnly = false) {
+  if (financeOnly) {
+    if (inventory.run?.status !== "applied") throw new Error("A finance extension requires an applied rental run.");
+    return inventory.financeRun?.plan ?? buildFinancePlan(inventory, config);
+  }
+  // Existing rental plans remain byte-for-byte unchanged. New populations save
+  // finance as an independent component and apply both in one SQL transaction.
+  if (inventory.run) return inventory.run.plan;
+  const plan = { ...buildPlan(inventory, config), finance: buildFinancePlan(inventory, config) };
+  if (plan.rows.length + plan.finance.rows.length > MAX_PLAN_ROWS) throw new Error("Combined population exceeds the 5,000-row safety limit.");
+  return plan;
 }
 
 export function main(args = process.argv.slice(2)) {
@@ -130,12 +148,12 @@ export function main(args = process.argv.slice(2)) {
   validateOptions(config);
   if (inventory.run && ["seed", "years", "asOf"].some((key) => config[key] !== inventory.run.plan[key])) throw new Error("A baseline is already recorded. Use its original seed, years and date; do not create another dataset.");
   const mode = options.reset ? "reset" : options.cleanup ? "cleanup" : options.verify ? "verify" : "apply";
-  const plan = inventory.run?.plan ?? buildPlan(inventory, config);
+  const plan = selectPlan(inventory, config, options.finance);
   const runId = inventory.run?.id ?? stableId(config.seed, "run");
   if (options.run && options.run !== runId) throw new Error("Run ID does not match the recorded baseline.");
-  const token = previewToken(inventory.stateHash, mode, plan);
+  const token = previewToken(inventory.stateHash, options.finance ? `finance:${mode}` : mode, plan);
   if (options.apply && options["expect-preview"] !== token) throw new Error("A matching reviewed preview token is required. Run the same operation with --dry-run and review its fresh token.");
-  const result = query(operationSql(mode, plan, inventory.stateHash, runId, !options.apply));
+  const result = query(operationSql(mode, plan, inventory.stateHash, runId, !options.apply, options.finance));
   console.log(JSON.stringify({ target, ...result, asOf: plan.asOf, years: plan.years, seed: plan.seed,
     ...(options.apply || mode === "verify" ? {} : { previewToken: token }),
     note: "Simulated history may predate account/listing creation. No identities, listings, provider transactions or files are created. Reset/cleanup refuse changed or dependent records."
