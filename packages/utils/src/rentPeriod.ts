@@ -118,6 +118,23 @@ export function nextPaymentPeriod(periodStart: string, rentDueDay?: number | nul
   return monthPeriod(nextYear, nextMonthIndex, rentDueDay ?? DEFAULT_RENT_DUE_DAY);
 }
 
+// The first month after the given period that confirmed payments do not
+// fully cover. A move-in advance (month 2) or an already-paid future month is
+// skipped; a partial payment leaves the month payable.
+export function nextUnpaidRentPeriod(
+  periodStart: string,
+  rentDueDay: number | null | undefined,
+  monthlyRent: number,
+  payments: readonly RentPeriodPayment[]
+): PaymentPeriod {
+  let period = nextPaymentPeriod(periodStart, rentDueDay);
+  if (monthlyRent <= 0) return period;
+  while (paidAmountForPeriod(payments, period.periodStart) >= monthlyRent) {
+    period = nextPaymentPeriod(period.periodStart, rentDueDay);
+  }
+  return period;
+}
+
 // The parts of a tenancy the rent status needs (structural, so each app can
 // pass its own tenancy type).
 export interface RentStatusTenancy {

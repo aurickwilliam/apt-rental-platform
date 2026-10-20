@@ -93,6 +93,7 @@ export {
   paidAmountForPeriod,
   resolvePaymentPeriod,
   nextPaymentPeriod,
+  nextUnpaidRentPeriod,
   getCurrentRentStatus,
 } from './rentPeriod';
 export {
