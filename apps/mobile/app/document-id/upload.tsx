@@ -186,7 +186,7 @@ export default function Upload() {
           </ControlField.Indicator>
 
           <Label>
-            <Label.Text className="text-sm text-foreground font-nunitoSemiBold leading-snug">
+            <Label.Text>
               I confirm that the information provided is true and the ID belongs
               to me.
             </Label.Text>

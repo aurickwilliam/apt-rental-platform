@@ -33,7 +33,7 @@ export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackErr
   const latestRequest = useRef(0);
 
   const run = useCallback(
-    (loader: Loader<T>) => {
+    (loader: Loader<T>, silent = false) => {
       const request = ++latestRequest.current;
       return loader().then(
         (data) => {
@@ -43,6 +43,8 @@ export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackErr
         (err: unknown) => {
           if (request !== latestRequest.current) return;
           console.error(fallbackError, err);
+          // A background refresh never replaces data the user is reading.
+          if (silent) return;
           setState((current) => ({
             ...current,
             error: errorMessage(err, fallbackError),
@@ -65,6 +67,12 @@ export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackErr
     await run(load);
   }, [load, run]);
 
+  /**
+   * Reloads in the background: no loading state and no error takeover, so a
+   * focus or retry refetch cannot unmount the screen the user is reading.
+   */
+  const revalidate = useCallback(() => run(load, true), [load, run]);
+
   /** Local (optimistic) edits to the loaded data. */
   const setData = useCallback((update: DataUpdate<T>) => {
     setState((current) => ({
@@ -79,6 +87,7 @@ export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackErr
     loading: !isCurrent || state.refreshing,
     error: isCurrent ? state.error : null,
     refresh,
+    revalidate,
     setData,
   };
 }

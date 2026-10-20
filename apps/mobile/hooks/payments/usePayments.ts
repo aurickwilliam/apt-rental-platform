@@ -27,8 +27,8 @@ export function usePaymentByReference(referenceId: string | null, options?: { po
     queryKey: ['payment-by-reference', referenceId],
     queryFn: () => fetchPaymentByReferenceId(referenceId as string),
     enabled: referenceId !== null,
-    // Simulation: e-wallet/card rows insert as `paid` instantly, so poll rarely
-    // needed. Cash rows stay `pending` until landlord flips — never poll those.
+    // Online rows can await provider confirmation. Cash stays pending until
+    // the landlord confirms it; the receipt does not poll those rows.
     refetchInterval: (query) => {
       if (!options?.pollWhilePending) return false
       const record = query.state.data as PaymentRecord | null

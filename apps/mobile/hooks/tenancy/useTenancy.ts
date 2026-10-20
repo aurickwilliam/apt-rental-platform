@@ -77,6 +77,12 @@ export function useTenancy() {
       // (older period_start) never overwrite the current payment.
       const periodStart = getRecordString(record, "period_start");
       const currentTenancy = queryClient.getQueryData<CurrentTenancy>(queryKey);
+      if (currentTenancy?.bill) {
+        // Allocations change both the initial bill and future rent coverage;
+        // merging a payment row alone would leave the authoritative bill stale.
+        void queryClient.invalidateQueries({ queryKey, exact: true });
+        return;
+      }
       const currentPeriodStart = currentTenancy?.currentPayment?.period_start ?? null;
 
       if (periodStart && currentPeriodStart && periodStart < currentPeriodStart) return;

@@ -26,7 +26,7 @@ import {
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
-import { isPortal, type Portal } from '@/service/auth/portalPreference';
+import { hasMobilePortalRole, isPortal, type Portal } from '@/service/auth/portalPreference';
 
 import { useColors } from "hooks/useTheme";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
@@ -226,7 +226,7 @@ export default function AuthCompleteProfile() {
       const { data: currentProfile, error: profileError } = await supabase
         .from('users').select('roles').eq('user_id', user.id).single();
       if (profileError || !currentProfile) throw profileError ?? new Error('Profile not found.');
-      if (currentProfile.roles.includes('admin')) throw new Error('Admin accounts are available on the web portal only.');
+      if (!hasMobilePortalRole(currentProfile.roles)) throw new Error('Admin accounts are available on the web portal only.');
       if (!currentProfile.roles.includes(selectedRole)) {
         if (currentProfile.roles.length !== 1) throw new Error('Cannot change the role of this account during onboarding.');
         const { error: roleError } = await supabase.rpc('set_onboarding_role', {

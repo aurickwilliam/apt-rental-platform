@@ -15,6 +15,8 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof CheckCircle2; color: str
 };
 
 interface ReceiptCardProps {
+  breakdown?: { label: string; amount: number }[];
+  paymentLabel?: string;
   apartmentName: string;
   landlordName?: string;
   tenantName?: string;
@@ -30,17 +32,21 @@ interface ReceiptCardProps {
   onShare?: () => void;
 }
 
+// The receipt is an always-white paper surface, so its content uses fixed
+// light-surface colors instead of dark: variants.
 function Row({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-zinc-500">{label}</span>
-      <span className={`text-sm font-nunito font-semibold ${highlight ? "text-primary" : "text-zinc-900 dark:text-zinc-100"}`}>{value}</span>
+      <span className={`text-sm font-nunito font-semibold ${highlight ? "text-primary" : "text-zinc-900"}`}>{value}</span>
     </div>
   );
 }
 
 export default function ReceiptCard({
   apartmentName,
+  breakdown = [],
+  paymentLabel,
   landlordName,
   tenantName,
   date,
@@ -66,9 +72,10 @@ export default function ReceiptCard({
         </Card.Header>
 
         <Card.Content className="px-6 pb-0">
-          <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 pt-5" />
+          <div className="border-t border-dashed border-zinc-300 pt-5" />
 
           <div className="space-y-3 py-1">
+            {paymentLabel && <Row label="Payment for" value={paymentLabel} />}
             {periodLabel && <Row label="Payment Period" value={periodLabel} />}
             <Row label="Apartment" value={apartmentName} />
             {tenantName ? <Row label="Tenant" value={tenantName} /> : null}
@@ -76,12 +83,13 @@ export default function ReceiptCard({
             <Row label="Date" value={date} />
             <Row label="Time" value={time} />
             <Row label="Payment Method" value={method} />
-            <Row label="Amount Paid" value={formatPesoDisplay(amount)} highlight />
+            {breakdown.map((item) => <Row key={item.label} label={item.label} value={formatPesoDisplay(item.amount)} />)}
+            <Row label={status === "Paid" ? "Amount Paid" : "Payment Amount"} value={formatPesoDisplay(amount)} highlight />
             <Row label="Reference No." value={referenceNumber} />
           </div>
 
-          <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 mt-5 pt-4">
-            <p className="text-center text-xs text-zinc-400">{meta.footer}</p>
+          <div className="border-t border-dashed border-zinc-300 mt-5 pt-4">
+            <p className="text-center text-xs text-zinc-500">{meta.footer}</p>
           </div>
         </Card.Content>
 

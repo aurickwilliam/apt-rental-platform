@@ -54,7 +54,7 @@ function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apa
         <Card.Header className="px-4 pt-4 pb-1">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate flex-1">
-              {periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
+              {payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
             </p>
             <div className="flex items-center gap-1.5 shrink-0">
               <Chip size="sm" variant="soft" color="default" className="text-[11px]">

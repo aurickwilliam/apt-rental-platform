@@ -103,7 +103,7 @@ export default function AppearanceSheet({
                   }
                 />
                 <View className="flex-1 px-3">
-                  <Label className="font-inter">{option.label}</Label>
+                  <Label>{option.label}</Label>
                   <Description className="font-inter">
                     {option.description}
                   </Description>

@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Dialog } from "heroui-native";
+
+/** Keeps a tall body on screen; the title, close button and footer stay fixed. */
+export const SCROLLABLE_BODY_MAX_HEIGHT = 360;
 
 type AppDialogProps = {
   isOpen: boolean;
@@ -10,6 +13,8 @@ type AppDialogProps = {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Wraps the body in a max-height scroll area for long content. */
+  scrollable?: boolean;
 };
 
 export default function AppDialog({
@@ -20,6 +25,7 @@ export default function AppDialog({
   description,
   children,
   footer,
+  scrollable = false,
 }: AppDialogProps) {
   return (
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -40,7 +46,17 @@ export default function AppDialog({
               </Dialog.Description>
             ) : null}
           </View>
-          {children}
+          {scrollable ? (
+            <ScrollView
+              showsVerticalScrollIndicator
+              style={{ maxHeight: SCROLLABLE_BODY_MAX_HEIGHT }}
+              contentContainerStyle={{ paddingBottom: 4 }}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            children
+          )}
           {footer ? <View className="mt-5">{footer}</View> : null}
         </Dialog.Content>
       </Dialog.Portal>

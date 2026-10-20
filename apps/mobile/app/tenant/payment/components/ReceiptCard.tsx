@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { Card, Button } from 'heroui-native'
-import { formatPesoDisplay } from '@repo/utils'
+import { formatPesoDisplay, paymentBreakdown, type PaymentAllocation } from '@repo/utils'
 
 import {
   IconAlertCircleFilled,
@@ -40,6 +40,7 @@ const STATUS_META: Record<PaymentStatus, { icon: typeof IconCircleCheckFilled; c
 }
 
 interface ReceiptCardProps {
+  payment?: PaymentAllocation
   apartmentName: string
   landlordName?: string
   tenantName?: string
@@ -58,6 +59,7 @@ interface ReceiptCardProps {
 
 export default function ReceiptCard({
   apartmentName,
+  payment,
   landlordName,
   tenantName,
   date,
@@ -90,6 +92,7 @@ export default function ReceiptCard({
           <View className='border-t border-dashed border-gray-300 pt-5' />
 
           <View className='gap-4'>
+            {payment?.billing_kind === 'move_in' ? <ReceiptRow label='Payment for' value='Move-in payment' /> : null}
             {periodLabel && (
               <ReceiptRow label='Payment Period' value={periodLabel} />
             )}
@@ -99,7 +102,8 @@ export default function ReceiptCard({
             <ReceiptRow label='Date' value={date} />
             <ReceiptRow label='Time' value={time} />
             <ReceiptRow label='Payment Method' value={method} />
-            <ReceiptRow label='Amount Paid' value={formatPesoDisplay(amount)} highlight />
+            {payment ? paymentBreakdown(payment).map((row) => <ReceiptRow key={row.label} label={row.label} value={formatPesoDisplay(row.amount)} />) : null}
+            <ReceiptRow label={status === 'Paid' ? 'Amount Paid' : 'Payment Amount'} value={formatPesoDisplay(amount)} highlight />
             <ReceiptRow label='Reference No.' value={referenceNumber} />
           </View>
 
@@ -144,10 +148,10 @@ function ReceiptRow({
   highlight?: boolean
 }) {
   return (
-    <View className='flex-row justify-between items-center'>
-      <Text className='text-sm text-foreground font-inter'>{label}</Text>
+    <View className='flex-row justify-between items-start gap-4'>
+      <Text className='flex-1 text-sm text-foreground font-inter'>{label}</Text>
       <Text
-        className={`text-sm font-nunitoSemiBold ${
+        className={`flex-1 text-right text-sm font-nunitoSemiBold ${
           highlight ? 'text-accent' : 'text-foreground'
         }`}
       >

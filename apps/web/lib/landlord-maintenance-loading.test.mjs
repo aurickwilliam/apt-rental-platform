@@ -38,7 +38,7 @@ function load(file, options = {}) {
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatDate: value => value, formatPesoDisplay: value => `PHP ${value}`, getInitials: () => "T" },
     "@/hooks/use-landlord-maintenance-requests": {
-      useLandlordMaintenanceRequests: () => ({ requests, loading, error, refresh, actionLoading: options.actionLoading ?? false, advanceStatus: options.advanceStatus ?? (async () => ({ success: true })), resolveRequest: options.resolveRequest ?? (async () => ({ success: true })) }),
+      useLandlordMaintenanceRequests: () => ({ requests, loading, error, refresh, actionLoading: options.actionLoading ?? false, advanceStatus: options.advanceStatus ?? (async () => ({ success: true })), resolveRequest: options.resolveRequest ?? (async () => ({ success: true })), waiveFee: options.waiveFee ?? (async () => ({ success: true })) }),
       getNextStatus: status => status === "Pending" ? "In Progress" : status === "In Progress" ? "Resolved" : status,
     },
     "@/hooks/use-landlord-action-badges": { useLandlordActionBadges: () => ({ markViewed }) },
@@ -49,6 +49,7 @@ function load(file, options = {}) {
     "../lib/maintenance-status": maintenanceStatus,
     "../components/PhotoGrid": { default: "PhotoGrid" },
     "../components/ResolveMaintenanceModal": { default: "ResolveMaintenanceModal" },
+    "../components/WaiveMaintenanceFeeModal": { default: "WaiveMaintenanceFeeModal" },
     "./components/MaintenanceDetailSkeleton": { default: function MaintenanceDetailSkeleton() { return load("[requestId]/components/MaintenanceDetailSkeleton.tsx").default(); } },
     "./lib/maintenance-list": maintenanceList,
     "./maintenance-list": maintenanceList,
@@ -166,6 +167,44 @@ test("Maintenance reference layout includes four totals, eight columns, sorting,
   const sortable = elements.filter(node => node.type === "Table.Column" && node.props.allowsSorting);
   assert.deepEqual(sortable.map(node => node.props.id), ["reported_at", "urgency", "status"]);
   assert.ok(elements.some(node => node.type === "Table.ScrollContainer" && node.props.className.includes("overflow-x-auto")));
+});
+
+test("Maintenance fee states map to readable chips and a pending fee can be waived", async () => {
+  assert.deepEqual(maintenanceStatus.maintenanceFeeChip("pending"), {
+    tone: "warning",
+    label: "Added to next rent",
+  });
+  assert.deepEqual(maintenanceStatus.maintenanceFeeChip("paid"), { tone: "success", label: "Paid" });
+  assert.deepEqual(maintenanceStatus.maintenanceFeeChip("waived"), { tone: "neutral", label: "Waived" });
+
+  const waived = [];
+  const record = {
+    ...sampleRequest,
+    status: "Resolved",
+    resolution_notes: "Fixed the leak",
+    fee_amount: 500,
+    fee_status: "pending",
+  };
+  const tree = load("[requestId]/page.tsx", {
+    requests: [record],
+    waiveFee: async (id) => {
+      waived.push(id);
+      return { success: true };
+    },
+  }).default();
+  const elements = nodes(tree);
+  assert.ok(text(tree).includes("Added to next rent"));
+
+  const waiveButton = elements.find(
+    (node) => node.type === "Button" && node.props.children === "Waive fee",
+  );
+  assert.ok(waiveButton);
+  waiveButton.props.onPress();
+
+  const modal = elements.find((node) => node.type === "WaiveMaintenanceFeeModal");
+  assert.equal(modal.props.feeAmount, 500);
+  await modal.props.onConfirm();
+  assert.deepEqual(waived, ["request-one"]);
 });
 
 test("Maintenance search and headers explicitly retain readable colors before hover", () => {

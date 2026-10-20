@@ -2,6 +2,7 @@
 
 import { createClient } from "@repo/supabase/browser";
 import type { PaymentRecord } from "@/service/paymentService";
+import type { PaymentAllocation } from "@repo/utils";
 
 export type { PaymentRecord };
 
@@ -39,7 +40,7 @@ export async function fetchLandlordApartments(): Promise<LandlordApartment[]> {
   return ((data ?? []) as LandlordApartment[]).map((apt) => ({ id: apt.id, name: apt.name }));
 }
 
-type LandlordPaymentRow = {
+type LandlordPaymentRow = PaymentAllocation & {
   id: string;
   created_at: string;
   date: string;
@@ -55,6 +56,8 @@ type LandlordPaymentRow = {
 };
 
 const LANDLORD_PAYMENT_SELECT = `
+  billing_kind, rent_amount, deposit_amount, advance_amount, maintenance_amount,
+  advance_period_start, advance_period_end,
   id,
   created_at,
   date,
@@ -72,6 +75,13 @@ const LANDLORD_PAYMENT_SELECT = `
 function toPaymentRecord(row: LandlordPaymentRow, fallbackApartmentName: string | null = null): PaymentRecord {
   const tenant = row.tenant;
   return {
+    billing_kind: row.billing_kind,
+    rent_amount: row.rent_amount,
+    deposit_amount: row.deposit_amount,
+    advance_amount: row.advance_amount,
+    maintenance_amount: row.maintenance_amount,
+    advance_period_start: row.advance_period_start,
+    advance_period_end: row.advance_period_end,
     id: row.id,
     created_at: row.created_at,
     date: row.date,

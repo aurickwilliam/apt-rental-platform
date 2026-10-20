@@ -2,8 +2,10 @@
 
 import { Card, Chip, Separator } from "@heroui/react";
 import { formatPesoDisplay } from "../utils";
+import type { TenancyBill } from "@repo/utils";
 
 interface PaymentSummaryCardProps {
+  bill?: TenancyBill | null;
   month: string;
   year: string;
   dueDate: string;
@@ -36,16 +38,16 @@ function getDueStatus(iso: string): DueStatus {
   return { label: `${daysUntilDue} days left`, color: "warning" };
 }
 
-export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, fees = [], className = "" }: PaymentSummaryCardProps) {
+export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, fees = [], bill, className = "" }: PaymentSummaryCardProps) {
   const feesTotal = fees.reduce((sum, fee) => sum + fee.amount, 0);
-  const total = monthlyRent + feesTotal;
-  const dueStatus = getDueStatus(dueDate);
+  const total = bill?.totalDue ?? monthlyRent + feesTotal;
+  const dueStatus = total > 0 ? getDueStatus(dueDate) : null;
   return (
     <Card className={`flex h-full flex-col rounded-2xl border border-border bg-card shadow-none ${className}`}>
       <Card.Header className="px-4 pt-4 pb-3">
         <div className="flex w-full flex-wrap items-center justify-between gap-2 text-left">
           <h3 className="text-lg font-nunito font-bold text-foreground">Payment Summary</h3>
-          <Chip size="sm" variant="soft" color="success" className="shrink-0">Monthly rent · Billed in full</Chip>
+          <Chip size="sm" variant="soft" color="success" className="shrink-0">{bill?.kind === "move_in" ? "Move-in payment" : bill?.coveredByAdvance ? "Covered by advance rent" : "Monthly rent · Billed in full"}</Chip>
         </div>
       </Card.Header>
       <Card.Content className="flex flex-1 flex-col space-y-3 px-4 pb-4">
@@ -67,9 +69,25 @@ export default function PaymentSummaryCard({ month, year, dueDate, monthlyRent, 
           <span className="text-right font-nunito font-semibold text-foreground">{formatDueDate(dueDate)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Monthly Rent</span>
-          <span className="font-nunito font-semibold text-foreground">{formatPesoDisplay(monthlyRent)}</span>
+          <span className="text-muted-foreground">{bill?.kind === "move_in" ? "First month’s rent" : "Rent due"}</span>
+          <span className="font-nunito font-semibold text-foreground">{formatPesoDisplay(bill?.rentDue ?? monthlyRent)}</span>
         </div>
+        {bill?.kind === "move_in" && <>
+          <p className="text-xs text-muted-foreground">{formatDueDate(bill.dueDate)} – {formatDueDate(bill.periodEnd)}. Billed in full; no prorating.</p>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-muted-foreground">Security deposit</span>
+            <span className="font-nunito font-semibold text-foreground">{formatPesoDisplay(bill.securityDeposit)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-muted-foreground">Advance rent — month 2</span>
+            <span className="font-nunito font-semibold text-foreground">{formatPesoDisplay(bill.advanceRent)}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The security deposit is held separately, not used as rent.
+            {bill.advancePeriodStart && bill.advancePeriodEnd ? ` Advance rent covers ${formatDueDate(bill.advancePeriodStart)} – ${formatDueDate(bill.advancePeriodEnd)}, once payment is confirmed.` : " No advance rent is included; month 2 is payable normally."}
+          </p>
+        </>}
+        {bill?.coveredByAdvance && <p className="text-xs text-muted-foreground">Month 2 rent was prepaid. Any maintenance fees below are separate.</p>}
         {fees.slice(0, 3).map((fee) => (
           <div key={fee.title} className="flex items-center justify-between text-sm">
             <span className="truncate text-muted-foreground">Fee — {fee.title}</span>

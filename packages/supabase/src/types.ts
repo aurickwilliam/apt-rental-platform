@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      landlord_expenses: {
+        Row: { id: string; landlord_id: string; apartment_id: string; category: string; treatment: string; amount: number; spent_on: string; description: string; created_at: string }
+        Insert: { id?: string; landlord_id: string; apartment_id: string; category: string; treatment: string; amount: number; spent_on: string; description: string; created_at?: string }
+        Update: { category?: string; treatment?: string; amount?: number; spent_on?: string; description?: string }
+        Relationships: [{ foreignKeyName: "landlord_expenses_apartment_id_fkey"; columns: ["apartment_id"]; isOneToOne: false; referencedRelation: "apartments"; referencedColumns: ["id"] }]
+      }
+      landlord_budgets: {
+        Row: { id: string; landlord_id: string; apartment_id: string; month: string; category: string; kind: string; amount: number; target_amount: number | null; months_remaining: number | null }
+        Insert: { landlord_id: string; apartment_id: string; month: string; category: string; kind: string; amount: number; target_amount?: number | null; months_remaining?: number | null }
+        Update: { amount?: number; target_amount?: number | null; months_remaining?: number | null }
+        Relationships: []
+      }
+      landlord_finance_reviews: {
+        Row: { landlord_id: string; apartment_id: string; month: string }
+        Insert: { landlord_id: string; apartment_id: string; month: string }
+        Update: never
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -523,6 +541,7 @@ export type Database = {
           resolution_notes: string | null
           resolved_at: string | null
           status: string
+          tenancy_id: string | null
           tenant_id: string
           title: string
           updated_at: string | null
@@ -542,6 +561,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
+          tenancy_id?: string | null
           tenant_id: string
           title: string
           updated_at?: string | null
@@ -561,6 +581,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
+          tenancy_id?: string | null
           tenant_id?: string
           title?: string
           updated_at?: string | null
@@ -800,6 +821,15 @@ export type Database = {
       }
       payment: {
         Row: {
+          billing_kind: string | null
+          rent_amount: number | null
+          deposit_amount: number | null
+          advance_amount: number | null
+          maintenance_amount: number | null
+          maintenance_fee_ids: string[] | null
+          advance_period_start: string | null
+          advance_period_end: string | null
+          rental_income_amount: number | null
           amount: number | null
           apartment_id: string | null
           created_at: string
@@ -1122,6 +1152,7 @@ export type Database = {
       }
       tenancies: {
         Row: {
+          billing_version: number | null
           advance_rent: number | null
           apartment_id: string
           created_at: string
@@ -1142,6 +1173,16 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          billing_kind?: string | null
+          rent_amount?: number | null
+          deposit_amount?: number | null
+          advance_amount?: number | null
+          maintenance_amount?: number | null
+          maintenance_fee_ids?: string[] | null
+          advance_period_start?: string | null
+          advance_period_end?: string | null
+          rental_income_amount?: never
+          billing_version?: number | null
           advance_rent?: number | null
           apartment_id: string
           created_at?: string
@@ -1162,6 +1203,16 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          billing_kind?: string | null
+          rent_amount?: number | null
+          deposit_amount?: number | null
+          advance_amount?: number | null
+          maintenance_amount?: number | null
+          maintenance_fee_ids?: string[] | null
+          advance_period_start?: string | null
+          advance_period_end?: string | null
+          rental_income_amount?: never
+          billing_version?: number | null
           advance_rent?: number | null
           apartment_id?: string
           created_at?: string
@@ -1764,6 +1815,17 @@ export type Database = {
         }[]
       }
       get_landlord_dashboard: { Args: { p_landlord_id: string }; Returns: Json }
+      get_landlord_finances: { Args: { p_month: string; p_apartment_id?: string }; Returns: Json }
+      landlord_rent_ledger: {
+        Args: { p_month: string; p_apartment_id?: string }
+        Returns: { id: string; apartment_id: string; apartment_name: string; tenant_name: string; due_date: string; expected: number; collected: number; outstanding: number; days_late: number; status: string }[]
+      }
+      save_landlord_finance_budget: {
+        Args: { p_apartment_id: string; p_month: string; p_category: string; p_kind: string; p_amount: number; p_target_amount?: number; p_months_remaining?: number }
+        Returns: undefined
+      }
+      confirm_landlord_finance_month: { Args: { p_month: string; p_apartment_id?: string }; Returns: undefined }
+      get_tenancy_bill: { Args: { p_tenancy_id: string }; Returns: Json }
       get_my_suspension_status: { Args: never; Returns: Json }
       get_portal_conversations: {
         Args: { p_portal: string }
@@ -1849,6 +1911,10 @@ export type Database = {
       validate_camanava_location: {
         Args: { p_city: string; p_latitude: number; p_longitude: number }
         Returns: boolean
+      }
+      waive_maintenance_fee: {
+        Args: { p_request_id: string }
+        Returns: undefined
       }
     }
     Enums: {
