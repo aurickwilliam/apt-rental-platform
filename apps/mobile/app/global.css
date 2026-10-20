@@ -112,6 +112,10 @@
     /* Secondary buttons look like tertiary in light mode (neutral fill) */
     --color-button-secondary: var(--default);
     --color-button-secondary-foreground: var(--default-foreground);
+    /* gray-500 follows muted text per theme (light #626B73, dark #9CA3AF),
+       overriding the base @theme value on purpose. Declared in both themes so
+       Uniwind sees the same variable set. */
+    --color-gray-500: var(--muted);
 
     /* Semantic */
     --success: var(--color-success);
