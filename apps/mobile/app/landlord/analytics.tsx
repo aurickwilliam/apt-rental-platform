@@ -16,7 +16,6 @@ import {
   formatPesoDisplay,
   manilaToday,
   type BudgetKind,
-  type FinanceBudget,
   type FinanceCategory,
 } from "@repo/utils";
 
@@ -151,18 +150,6 @@ function LandlordAnalytics() {
         kind,
         month,
         ...(apartmentId ? { apartmentId } : {}),
-      },
-    });
-  };
-  // Editing has its own page too, seeded from the plan this report already holds.
-  const openBudgetEditor = (budget: FinanceBudget, amount?: number) => {
-    router.push({
-      pathname: "/landlord/edit-budget",
-      params: {
-        id: budget.id,
-        month,
-        ...(apartmentId ? { apartmentId } : {}),
-        ...(amount !== undefined ? { amount: String(amount) } : {}),
       },
     });
   };
@@ -490,7 +477,7 @@ function LandlordAnalytics() {
                   variant="secondary"
                   onPress={() => changeTab("budget")}
                 >
-                  <Button.Label>View budgets & suggestions</Button.Label>
+                  <Button.Label>View budgets</Button.Label>
                 </Button>
               </FinanceCard>
               <PropertyPerformanceChart
@@ -557,7 +544,6 @@ function LandlordAnalytics() {
             <BudgetProgressChart
               budgets={data.budgets}
               properties={data.properties}
-              onEdit={openBudgetEditor}
               onOpenGroup={openBudgetCategory}
               onCreate={openBudgetPage}
             />

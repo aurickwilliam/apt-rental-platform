@@ -1,17 +1,9 @@
 import { useState } from "react";
 import { Keyboard, Text, View } from "react-native";
-import {
-  BottomSheet,
-  Button,
-  FieldError,
-  Input,
-  Label,
-  TextField,
-  useBottomSheetAwareHandlers,
-} from "heroui-native";
+import { BottomSheet, Button } from "heroui-native";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { randomUUID } from "expo-crypto";
-import { IconTrash } from "@tabler/icons-react-native";
+import { IconCalculator, IconTrash } from "@tabler/icons-react-native";
 import {
   FINANCE_CATEGORIES,
   budgetCategoryOptions,
@@ -21,7 +13,6 @@ import {
   isBudgetCategoryAllowed,
   manilaToday,
   parseFinanceAmount,
-  suggestFinanceBudget,
   validateExpenseDate,
   type BudgetKind,
   type ExpenseTreatment,
@@ -29,6 +20,8 @@ import {
   type FinanceCategory,
 } from "@repo/utils";
 import { FinanceSelect } from "./FinanceControls";
+import BudgetGoalSheet, { type BudgetGoalDraft } from "./BudgetGoalSheet";
+import SheetInput, { MAX_FORMATTED_AMOUNT_LENGTH } from "./SheetInput";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DateField from "@/components/inputs/DateField";
@@ -40,62 +33,10 @@ import {
   type FinanceProperty,
 } from "@/service/finance/financeService";
 
-const MAX_FORMATTED_AMOUNT_LENGTH = "₱ 999,999,999.99".length;
 const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORIES.filter(
   (item) => !["emergency", "vacancy"].includes(item.id),
 );
 const MAX_EXPENSE_DESCRIPTION_LENGTH = 200;
-
-function SheetInput({
-  label,
-  value,
-  onChange,
-  error,
-  numeric = false,
-  maxLength = 200,
-  placeholder,
-  disabled = false,
-  required = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-  numeric?: boolean;
-  maxLength?: number;
-  placeholder?: string;
-  disabled?: boolean;
-  required?: boolean;
-}) {
-  const handlers = useBottomSheetAwareHandlers();
-  const { colors } = useColors();
-  return (
-    <TextField isInvalid={!!error} isDisabled={disabled} isRequired={required}>
-      <Label>
-        <Label.Text
-          className={`font-nunitoSemiBold text-base ${error ? "text-danger" : "text-foreground"}`}
-        >
-          {label}
-        </Label.Text>
-      </Label>
-      <Input
-        isInvalid={!!error}
-        className={`font-inter text-sm text-foreground${error ? " finance-field-invalid" : ""}`}
-        style={
-          error ? { borderColor: colors.danger, borderWidth: 2 } : undefined
-        }
-        value={value}
-        onChangeText={onChange}
-        accessibilityLabel={label}
-        placeholder={placeholder}
-        keyboardType={numeric ? "decimal-pad" : "default"}
-        maxLength={maxLength}
-        {...handlers}
-      />
-      <FieldError>{error}</FieldError>
-    </TextField>
-  );
-}
 
 interface CommonProps {
   /** HeroUI snaps a sheet open on a closed → open transition, so callers keep the sheet mounted. */
@@ -512,6 +453,7 @@ export function BudgetEntryPage({
     initial?.target_amount ? String(initial.target_amount) : "",
   );
   const [months, setMonths] = useState(String(seedMonths));
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -519,9 +461,6 @@ export function BudgetEntryPage({
   const amountValue = parseFinanceAmount(amount, true);
   const targetValue = target.trim() ? parseFinanceAmount(target) : null;
   const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
-  const validGoal =
-    !target.trim() ||
-    (targetValue !== null && monthsValue >= 1 && monthsValue <= 600);
   const propertyError = properties.some((item) => item.id === property)
     ? undefined
     : "Choose one of your properties.";
@@ -534,18 +473,23 @@ export function BudgetEntryPage({
   )
     ? undefined
     : "Choose a budget category.";
-  const suggestion = suggestFinanceBudget({
-    category,
-    kind,
-    target_amount: targetValue,
-    months_remaining: monthsValue,
-  });
+  const goalSummary =
+    targetValue !== null && monthsValue >= 1
+      ? `${formatPesoDisplay(targetValue)} over ${monthsValue} ${monthsValue === 1 ? "month" : "months"}`
+      : null;
+  // The goal sheet validates before it reaches the form, so the draft here is
+  // always either empty or a positive target with a usable month count.
+  const applyGoal = (goal: BudgetGoalDraft, suggested?: number) => {
+    setTarget(goal.target);
+    setMonths(goal.months.trim() ? goal.months : String(seedMonths));
+    if (suggested !== undefined) setAmount(String(suggested));
+    setGoalSheetOpen(false);
+  };
   const handleSave = async () => {
     if (busy) return;
     setSubmitted(true);
     if (
       amountValue === null ||
-      !validGoal ||
       propertyError ||
       kindError ||
       categoryError
@@ -663,58 +607,16 @@ export function BudgetEntryPage({
             : undefined
         }
       />
-      <View className="border-t border-border pt-4 gap-3">
-        <Text className="font-nunitoSemiBold text-base text-foreground">
-          Optional goal or known bill
-        </Text>
-        <SheetInput
-          label="Amount still needed / annual bill (₱)"
-          value={target === "." ? "." : formatPesoDisplay(target)}
-          onChange={(text) => setTarget(handlePesoChange(text).raw)}
-          numeric
-          disabled={busy}
-          maxLength={MAX_FORMATTED_AMOUNT_LENGTH}
-          placeholder="e.g. 12000"
-          error={
-            submitted && target.trim() && targetValue === null
-              ? "Enter a positive target amount."
-              : undefined
-          }
-        />
-        <SheetInput
-          label="Months to spread this amount over"
-          value={months}
-          onChange={setMonths}
-          numeric
-          disabled={busy}
-          maxLength={3}
-          error={
-            submitted &&
-            !!target.trim() &&
-            !(monthsValue >= 1 && monthsValue <= 600)
-              ? "Enter a whole number from 1 to 600."
-              : undefined
-          }
-        />
-        {suggestion && (
-          <View className="bg-surface-secondary rounded-2xl p-3 gap-2">
-            <Text className="font-nunitoBold text-sm text-accent">
-              Suggested: {formatPesoDisplay(suggestion.amount)} / month
-            </Text>
-            <Text className="font-inter text-xs text-muted">
-              {suggestion.basis}
-            </Text>
-            <Button
-              size="sm"
-              variant="secondary"
-              isDisabled={busy}
-              onPress={() => setAmount(String(suggestion.amount))}
-            >
-              <Button.Label>Use suggestion</Button.Label>
-            </Button>
-          </View>
-        )}
-      </View>
+      <Button
+        variant="secondary"
+        isDisabled={busy}
+        onPress={() => setGoalSheetOpen(true)}
+      >
+        <IconCalculator size={18} color={colors.textPrimary} />
+        <Button.Label>
+          {goalSummary ? "Change goal" : "Calculate from a goal"}
+        </Button.Label>
+      </Button>
       {error && (
         <Text
           accessibilityRole="alert"
@@ -741,32 +643,42 @@ export function BudgetEntryPage({
     </View>
   );
   return (
-    <ScreenWrapper
-      header={
-        <StandardHeader
-          title={initial ? "Edit budget" : "Plan a budget"}
-          onBackPress={close}
-        />
-      }
-      scrollable
-      className="p-5"
-      footer={
-        <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
-          <Button
-            className="flex-1"
-            variant="tertiary"
-            onPress={close}
-            isDisabled={busy}
-          >
-            <Button.Label>Cancel</Button.Label>
-          </Button>
-          <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
-            <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
-          </Button>
-        </View>
-      }
-    >
-      {form}
-    </ScreenWrapper>
+    <>
+      <ScreenWrapper
+        header={
+          <StandardHeader
+            title={initial ? "Edit budget" : "Plan a budget"}
+            onBackPress={close}
+          />
+        }
+        scrollable
+        className="p-5"
+        footer={
+          <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
+            <Button
+              className="flex-1"
+              variant="tertiary"
+              onPress={close}
+              isDisabled={busy}
+            >
+              <Button.Label>Cancel</Button.Label>
+            </Button>
+            <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
+              <Button.Label>{busy ? "Saving…" : "Save budget"}</Button.Label>
+            </Button>
+          </View>
+        }
+      >
+        {form}
+      </ScreenWrapper>
+      <BudgetGoalSheet
+        isOpen={goalSheetOpen}
+        category={category}
+        kind={kind}
+        goal={{ target, months }}
+        onApply={applyGoal}
+        onClose={() => setGoalSheetOpen(false)}
+      />
+    </>
   );
 }

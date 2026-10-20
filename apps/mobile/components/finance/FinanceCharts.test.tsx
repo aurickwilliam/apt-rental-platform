@@ -385,13 +385,13 @@ describe("interactive finance charts", () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
   test("empty spending limits and reserves show their empty states", () => {
+    const onCreate = jest.fn();
     const screen = render(
       <BudgetProgressChart
         properties={[]}
         budgets={[]}
-        onEdit={jest.fn()}
         onOpenGroup={jest.fn()}
-        onCreate={jest.fn()}
+        onCreate={onCreate}
       />,
     );
     expect(screen.getByText("No spending limits yet")).toBeTruthy();
@@ -406,6 +406,14 @@ describe("interactive finance charts", () => {
         "Plan a buffer for unexpected repairs, late payments, vacancies or replacements.",
       ),
     ).toBeTruthy();
+    const addButtons = screen.getAllByText("Add");
+    expect(addButtons).toHaveLength(2);
+    fireEvent.press(addButtons[0]);
+    expect(onCreate).toHaveBeenLastCalledWith();
+    fireEvent.press(addButtons[1]);
+    expect(onCreate).toHaveBeenLastCalledWith("emergency", "reserve");
+    expect(screen.queryByText("Budget Suggestions")).toBeNull();
+    expect(screen.queryByText("Set a goal")).toBeNull();
   });
   test("one row per category totals its properties and flags overspending", () => {
     const onOpenGroup = jest.fn();
@@ -439,7 +447,6 @@ describe("interactive finance charts", () => {
             months_remaining: null,
           },
         ]}
-        onEdit={jest.fn()}
         onOpenGroup={onOpenGroup}
         onCreate={jest.fn()}
       />,
@@ -447,13 +454,17 @@ describe("interactive finance charts", () => {
     expect(screen.getByText("Maintenance & repairs")).toBeTruthy();
     expect(screen.getByText("2 properties")).toBeTruthy();
     expect(screen.getByText(/₱ 4,400 \/ ₱ 4,000/)).toBeTruthy();
-    expect(screen.getByText(/₱ 400 over budget · 110% used/)).toBeTruthy();
+    expect(screen.getByText("110% used")).toBeTruthy();
+    expect(screen.getByText("₱ 400 over budget")).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/Over budget. View properties/));
     expect(onOpenGroup).toHaveBeenCalledWith("maintenance", "expense");
+    const row = screen.getByLabelText(/Over budget. View properties/);
+    expect(row.props.className).toContain("bg-finance-maintenance");
+    expect(row.props.className).toContain("rounded-2xl p-4");
+    expect(screen.getByText("110% used").props.className).toContain("text-finance-over-budget-text");
   });
   test("a single-property category names it, and reserves stay plans that open their properties", () => {
     const onOpenGroup = jest.fn();
-    const onEdit = jest.fn();
     const screen = render(
       <BudgetProgressChart
         properties={[{ id: "a", name: "Villa" }]}
@@ -481,21 +492,23 @@ describe("interactive finance charts", () => {
             months_remaining: 12,
           },
         ]}
-        onEdit={onEdit}
         onOpenGroup={onOpenGroup}
         onCreate={jest.fn()}
       />,
     );
     expect(screen.getByText("Villa")).toBeTruthy();
     expect(screen.getByText(/₱ 1,800 remaining/)).toBeTruthy();
-    expect(screen.getByText(/Insurance: 1000/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(/Insurance, Villa. Planned ₱ 1,000/));
-    expect(onOpenGroup).toHaveBeenCalledWith("insurance", "reserve");
-    // Goal suggestions still open the editor, not the drill-down.
-    fireEvent.press(screen.getByText("Review suggestion"));
-    expect(onEdit).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "r" }),
-      1000,
+    expect(screen.getByText("For 1 property this month")).toBeTruthy();
+    expect(screen.getByText("₱ 1,000")).toBeTruthy();
+    fireEvent.press(
+      screen.getByLabelText(/Insurance. For 1 property this month. Planned ₱ 1,000/),
     );
+    expect(onOpenGroup).toHaveBeenCalledWith("insurance", "reserve");
+    expect(
+      screen.getByLabelText(/Insurance. For 1 property this month. Planned ₱ 1,000/).props.className,
+    ).toContain("rounded-2xl p-4 bg-finance-insurance");
+    expect(screen.queryByText("Budget Suggestions")).toBeNull();
+    expect(screen.queryByText("Review suggestion")).toBeNull();
+    expect(screen.queryByText("Set a goal")).toBeNull();
   });
 });

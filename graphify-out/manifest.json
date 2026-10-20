@@ -8055,8 +8055,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressChart.tsx": {
-    "mtime": 1792410523.0454152,
-    "ast_hash": "a8a15bf8aaf00d106fad358aa64c2da0",
+    "mtime": 1792479136.395663,
+    "ast_hash": "ae6c1f08a52d6108d53b32292b302f55",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/CollectionHealthChart.tsx": {
@@ -8825,13 +8825,13 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/landlord/budget-category.tsx": {
-    "mtime": 1792429289.5042257,
-    "ast_hash": "87e8b01d7064f6f3e1b01e119803ebcc",
+    "mtime": 1792478730.2407858,
+    "ast_hash": "b7c2d38133d314c86aeba20d67fca59d",
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressRow.tsx": {
-    "mtime": 1792431687.7400331,
-    "ast_hash": "92e15b14e51eff0d9c7fde00a1ec3a0f",
+    "mtime": 1792479395.4823015,
+    "ast_hash": "2003d4b026b62a42d6a8e8647dd469e5",
     "semantic_hash": ""
   },
   "apps/mobile/tests/finance/budget-category.test.tsx": {
@@ -8860,8 +8860,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/finance/BudgetProgressRow.test.tsx": {
-    "mtime": 1792431737.845967,
-    "ast_hash": "960e8e84d3d9759e714dce14c54a971e",
+    "mtime": 1792479441.3041067,
+    "ast_hash": "aa7c8e50eb989e3cb322a4378a08c9d3",
     "semantic_hash": ""
   }
 }

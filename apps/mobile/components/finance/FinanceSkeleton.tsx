@@ -268,18 +268,6 @@ function BudgetSkeleton() {
         ))}
       </FinanceCard>
 
-      <FinanceCard testID="finance-skeleton-suggestions">
-        <SkeletonGroup.Item className="h-5 w-40 rounded-md" />
-        <SkeletonGroup.Item className="h-3 w-full rounded-md" />
-        {[0, 1].map((row) => (
-          <View key={row} className="gap-2 border-b border-border pb-3">
-            <SkeletonGroup.Item className="h-4 w-1/2 rounded-md" />
-            <SkeletonGroup.Item className="h-3 w-2/3 rounded-md" />
-            <SkeletonGroup.Item className="h-5 w-32 rounded-md" />
-            <SkeletonGroup.Item className="h-8 w-36 rounded-full" />
-          </View>
-        ))}
-      </FinanceCard>
     </>
   );
 }

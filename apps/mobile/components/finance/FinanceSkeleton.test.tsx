@@ -39,7 +39,6 @@ const TAB_SECTIONS = {
   budget: [
     "finance-skeleton-budget-groups",
     "finance-skeleton-reserves",
-    "finance-skeleton-suggestions",
   ],
 } as const;
 const TABS = ["overview", "expenses", "budget"] as const;

@@ -1,7 +1,8 @@
 import { Text, View } from "react-native";
 import { Button } from "heroui-native";
-import { budgetProgress, formatPesoDisplay } from "@repo/utils";
+import { budgetProgress, formatPesoDisplay, type FinanceCategory } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
+import { FINANCE_CATEGORY_BACKGROUND_CLASSES } from "./financeCategoryStyles";
 
 /**
  * One budget-versus-actual row. The Budget tab shows a category's totals and the
@@ -9,6 +10,7 @@ import { useColors } from "@/hooks/useTheme";
  */
 export default function BudgetProgressRow({
   title,
+  category,
   caption,
   amount,
   spent,
@@ -16,6 +18,7 @@ export default function BudgetProgressRow({
   onPress,
 }: {
   title: string;
+  category?: FinanceCategory;
   caption?: string;
   amount: number;
   spent: number;
@@ -28,7 +31,11 @@ export default function BudgetProgressRow({
   return (
     <Button
       variant="ghost"
-      className="h-auto min-h-14 py-2"
+      className={
+        category
+          ? `h-auto min-h-14 rounded-2xl p-4 ${FINANCE_CATEGORY_BACKGROUND_CLASSES[category]}`
+          : "h-auto min-h-14 py-2"
+      }
       onPress={onPress}
       accessibilityLabel={`${title}${caption ? `, ${caption}` : ""}. Spent ${formatPesoDisplay(spent)} of ${formatPesoDisplay(amount)}. ${percent === null ? "" : `${percent}% used. `}${over ? "Over budget" : "Within budget"}. ${action}`}
     >
@@ -50,8 +57,8 @@ export default function BudgetProgressRow({
           </Text>
           {percent !== null ? (
             <Text
-              className={`font-inter text-xs${over ? "" : " text-muted"}`}
-              style={over ? { color: colors.danger } : undefined}
+              className={`font-inter text-xs${over ? (category ? " text-finance-over-budget-text" : "") : " text-muted"}`}
+              style={over && !category ? { color: colors.danger } : undefined}
             >
               {percent}% used
             </Text>
@@ -67,8 +74,8 @@ export default function BudgetProgressRow({
           />
         </View>
         <Text
-          className={`font-inter text-xs${over ? "" : " text-muted"}`}
-          style={over ? { color: colors.danger } : undefined}
+          className={`font-inter text-xs${over ? (category ? " text-finance-over-budget-text" : "") : " text-muted"}`}
+          style={over && !category ? { color: colors.danger } : undefined}
         >
           {formatPesoDisplay(difference)}{" "}
           {over ? "over budget" : "remaining"}

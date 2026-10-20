@@ -19,8 +19,15 @@ jest.mock("@/components/inputs/DateField", () => {
 });
 
 jest.mock("expo-crypto", () => ({ randomUUID: () => "stable-form-id" }));
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ bottom: 0 }),
+}));
 jest.mock("@gorhom/bottom-sheet", () => ({
   BottomSheetScrollView: jest.requireActual("react-native").ScrollView,
+  BottomSheetFooter: ({ children }: PropsWithChildren) => {
+    const { View } = jest.requireActual("react-native");
+    return <View>{children}</View>;
+  },
 }));
 jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Save failed. Try again.",
@@ -72,9 +79,15 @@ jest.mock("heroui-native", () => {
     mockPortalProps(props);
     return <View>{props.children}</View>;
   }
+  function BottomSheetContent({
+    children,
+    footerComponent: Footer,
+  }: PropsWithChildren<{ footerComponent?: (props: object) => ReactNode }>) {
+    return <View>{children}{Footer?.({})}</View>;
+  }
   const BottomSheet = Object.assign(Container, {
     Portal: BottomSheetPortal,
-    Content: Container,
+    Content: BottomSheetContent,
     Overlay: () => null,
     Title: Text,
     Description: Text,
@@ -371,19 +384,21 @@ describe("finance entry forms", () => {
     expect(
       screen.getByText("Planned allocation this month (₱) *").props.className,
     ).toBe("font-nunitoSemiBold text-base text-foreground");
-    // The optional goal fields stay unstarred.
+    // The goal calculator is one button on the form; its fields live in a sheet.
+    const form = screen.getByTestId("entry-page-form");
+    expect(within(form).getByText("Calculate from a goal")).toBeTruthy();
+    expect(within(form).queryByLabelText("Amount still needed or annual bill (₱)")).toBeNull();
+    expect(within(form).queryByLabelText("Months to spread this amount over")).toBeNull();
+    const goalSheet = screen.getByTestId("budget-goal-sheet");
+    // The optional goal inputs are never required, so they carry no asterisk.
     expect(
-      screen.getByText("Amount still needed / annual bill (₱)"),
+      within(goalSheet).getByLabelText("Amount still needed or annual bill (₱)"),
     ).toBeTruthy();
-    expect(screen.getByText("Months to spread this amount over")).toBeTruthy();
-    for (const label of [
-      "Amount still needed / annual bill (₱)",
-      "Months to spread this amount over",
-    ]) {
-      expect(screen.getByText(label).props.className).toBe(
-        "font-nunitoSemiBold text-base text-foreground",
-      );
-    }
+    expect(
+      within(goalSheet).getByLabelText("Months to spread this amount over"),
+    ).toBeTruthy();
+    expect(within(goalSheet).queryByText("Amount still needed or annual bill (₱) *")).toBeNull();
+    expect(within(goalSheet).queryByText("Months to spread this amount over *")).toBeNull();
   });
 
   test("budget field errors appear after Save, redden their inputs and clear when corrected", async () => {
@@ -434,7 +449,7 @@ describe("finance entry forms", () => {
     );
   });
 
-  test("goal validation flags the field it names without blocking valid goals", async () => {
+  test("the goal sheet calculates a suggestion the landlord must apply", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const screen = render(
       <BudgetEntryPage
@@ -445,36 +460,64 @@ describe("finance entry forms", () => {
         onSave={onSave}
       />,
     );
-    fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "2000");
+    const sheet = () => screen.getByTestId("budget-goal-sheet");
+    const goalAmount = () =>
+      within(sheet()).getByLabelText("Amount still needed or annual bill (₱)");
+    const goalMonths = () =>
+      within(sheet()).getByLabelText("Months to spread this amount over");
     fireEvent.changeText(
-      screen.getByLabelText("Amount still needed / annual bill (₱)"),
-      "12.345",
+      screen.getByLabelText("Monthly spending limit (₱)"),
+      "2000",
     );
-    fireEvent.press(screen.getByText("Save budget"));
-    expect(screen.getByText("Enter a positive target amount.")).toBeTruthy();
-    expect(screen.queryByText("Enter a whole number from 1 to 600.")).toBeNull();
-    expect(onSave).not.toHaveBeenCalled();
-    fireEvent.changeText(
-      screen.getByLabelText("Amount still needed / annual bill (₱)"),
-      "12000",
+    fireEvent.press(
+      within(screen.getByTestId("entry-page-form")).getByText(
+        "Calculate from a goal",
+      ),
     );
-    expect(screen.getByLabelText("Amount still needed / annual bill (₱)").props.value).toBe("₱ 12,000");
-    fireEvent.changeText(
-      screen.getByLabelText("Months to spread this amount over"),
-      "0",
-    );
-    fireEvent.press(screen.getByText("Save budget"));
-    expect(screen.getByText("Enter a whole number from 1 to 600.")).toBeTruthy();
-    expect(onSave).not.toHaveBeenCalled();
-    fireEvent.changeText(
-      screen.getByLabelText("Months to spread this amount over"),
-      "12",
-    );
+    // The goal fields validate while typing; nothing invalid reaches the form.
+    fireEvent.changeText(goalAmount(), "12.345");
+    expect(
+      within(sheet()).getByText(
+        "Enter a positive amount with at most two decimals.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Use suggested amount"),
+    ).toBeDisabled();
+    expect(within(sheet()).queryByText("Save goal only")).toBeNull();
+    expect(within(sheet()).queryByText("Cancel")).toBeNull();
+    fireEvent.press(screen.getByText("Use suggested amount"));
+    expect(
+      screen.getByLabelText("Monthly spending limit (₱)").props.value,
+    ).toBe("₱ 2,000");
+    fireEvent.changeText(goalAmount(), "12000");
+    expect(goalAmount().props.value).toBe("₱ 12,000");
+    fireEvent.changeText(goalMonths(), "0");
+    expect(
+      within(sheet()).getByText("Enter a whole number from 1 to 600."),
+    ).toBeTruthy();
+    fireEvent.changeText(goalMonths(), "12");
+    expect(within(sheet()).getByText("Suggested: ₱ 1,000 / month")).toBeTruthy();
+    fireEvent.press(screen.getByText("Use suggested amount"));
+    // The suggestion only fills the allocation; the landlord still saves.
+    expect(
+      screen.getByLabelText("Monthly spending limit (₱)").props.value,
+    ).toBe("₱ 1,000");
+    expect(
+      within(screen.getByTestId("entry-page-form")).queryByText(
+        "₱ 12,000 over 12 months",
+      ),
+    ).toBeNull();
+    expect(
+      within(screen.getByTestId("entry-page-form")).queryByText(
+        "Suggested ₱ 1,000 / month",
+      ),
+    ).toBeNull();
     fireEvent.press(screen.getByText("Save budget"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          amount: 2000,
+          amount: 1000,
           target_amount: 12000,
           months_remaining: 12,
         }),
@@ -495,11 +538,22 @@ describe("finance entry forms", () => {
         onSave={onSave}
       />,
     );
+    const sheet = () => screen.getByTestId("budget-goal-sheet");
+    fireEvent.press(
+      within(screen.getByTestId("entry-page-form")).getByText(
+        "Calculate from a goal",
+      ),
+    );
     fireEvent.changeText(
-      screen.getByLabelText("Amount still needed / annual bill (₱)"),
+      within(sheet()).getByLabelText("Amount still needed or annual bill (₱)"),
       "12000",
     );
-    fireEvent.press(screen.getByText("Use suggestion"));
+    // Insurance presets a 12-month horizon.
+    expect(
+      within(sheet()).getByLabelText("Months to spread this amount over").props
+        .value,
+    ).toBe("12");
+    fireEvent.press(screen.getByText("Use suggested amount"));
     fireEvent.press(screen.getByText("Save budget"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({
@@ -612,11 +666,15 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Plan type *: reserve")).toBeTruthy();
     expect(screen.getByText("Category *: insurance")).toBeTruthy();
     expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 1,000");
+    fireEvent.press(
+      within(screen.getByTestId("entry-page-form")).getByText("Change goal"),
+    );
+    const goalSheet = screen.getByTestId("budget-goal-sheet");
     expect(
-      screen.getByLabelText("Amount still needed / annual bill (₱)").props.value,
+      within(goalSheet).getByLabelText("Amount still needed or annual bill (₱)").props.value,
     ).toBe("₱ 12,000");
     expect(
-      screen.getByLabelText("Months to spread this amount over").props.value,
+      within(goalSheet).getByLabelText("Months to spread this amount over").props.value,
     ).toBe("12");
     // The footer keeps its equal-width Cancel / Save pair, and removal sits in the form.
     const footer = screen.getByTestId("entry-page-footer");
@@ -649,11 +707,8 @@ describe("finance entry forms", () => {
     );
     expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 1,000");
     expect(
-      screen.getByLabelText("Amount still needed / annual bill (₱)").props.value,
-    ).toBe("₱ 12,000");
-    expect(
-      screen.getByLabelText("Months to spread this amount over").props.value,
-    ).toBe("12");
+      within(screen.getByTestId("entry-page-form")).queryByText("₱ 12,000 over 12 months"),
+    ).toBeNull();
   });
 
   test("removing a budget from the edit page needs explicit confirmation", async () => {
