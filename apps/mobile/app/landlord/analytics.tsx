@@ -38,12 +38,10 @@ import {
   type CollectionStatus,
   type FinanceScope,
 } from "@/service/finance/financeService";
-import {
-  FinanceCard,
-  FinanceHeading,
-  FinanceTabs,
-  MoneyRow,
-} from "@/components/finance/FinanceControls";
+import FinanceCard from "@/components/finance/FinanceCard";
+import FinanceHeading from "@/components/finance/FinanceHeading";
+import FinanceTabs from "@/components/finance/FinanceTabs";
+import MoneyRow from "@/components/finance/MoneyRow";
 import IncomeTrendChart from "@/components/finance/IncomeTrendChart";
 import EarningsSummaryCard from "@/components/finance/EarningsSummaryCard";
 import ExpenseCategoryChart from "@/components/finance/ExpenseCategoryChart";

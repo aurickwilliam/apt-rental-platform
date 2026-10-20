@@ -19,9 +19,9 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from "@/components/display/PullToRefresh";
-import { BudgetCategorySkeleton } from "@/components/finance/FinanceSkeleton";
+import BudgetCategorySkeleton from "@/components/finance/BudgetCategorySkeleton";
 import BudgetProgressRow from "@/components/finance/BudgetProgressRow";
-import { FinanceError } from "@/components/finance/FinanceControls";
+import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";

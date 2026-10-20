@@ -4,7 +4,9 @@ import { IconChevronRight, IconReceipt } from "@tabler/icons-react-native";
 import { formatPesoDisplay } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import EmptyState from "@/components/display/EmptyState";
-import { FinanceCard, FinanceHeading, MoneyRow } from "./FinanceControls";
+import FinanceCard from "./FinanceCard";
+import FinanceHeading from "./FinanceHeading";
+import MoneyRow from "./MoneyRow";
 import type {
   CollectionStatus,
   FinanceData,

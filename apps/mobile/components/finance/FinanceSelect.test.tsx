@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import type { TextInputProps } from "react-native";
 import { fireEvent, render, within } from "@testing-library/react-native";
 import { ScrollView, Text, View } from "react-native";
-import { FinanceSelect } from "./FinanceControls";
+import FinanceSelect from "./FinanceSelect";
 
 const mockContentProps = jest.fn();
 jest.mock("react-native-safe-area-context", () => ({

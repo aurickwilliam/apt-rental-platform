@@ -80,19 +80,17 @@ jest.mock("@/components/finance/PropertyPerformanceList", () => ({
   default: function List(props: ComponentProps<typeof PropertyPerformanceList>) {
     return mockList(props);
   },
-  PropertyPerformanceTabs: () => null,
 }));
-jest.mock("@/components/finance/FinanceControls", () => {
+jest.mock("@/components/finance/PropertyPerformanceTabs", () => () => null);
+jest.mock("@/components/finance/FinanceCard", () => {
   const { View } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({ children }: PropsWithChildren) => <View>{children}</View>,
-    FinanceError: (props: { message?: string; onRetry: () => void }) =>
-      mockFinanceError(props),
+    __esModule: true,
+    default: ({ children }: PropsWithChildren) => <View>{children}</View>,
   };
 });
-jest.mock("@/components/finance/FinanceSkeleton", () => ({
-  PropertyPerformanceSkeleton: () => null,
-}));
+jest.mock("@/components/finance/FinanceError", () => (props: { message?: string; onRetry: () => void }) => mockFinanceError(props));
+jest.mock("@/components/finance/PropertyPerformanceSkeleton", () => () => null);
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
   return function Wrapper({

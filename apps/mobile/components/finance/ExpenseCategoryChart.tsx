@@ -6,7 +6,8 @@ import {
   formatPesoDisplay,
   type FinanceCategory,
 } from "@repo/utils";
-import { FinanceCard, FinanceHeading } from "./FinanceControls";
+import FinanceCard from "./FinanceCard";
+import FinanceHeading from "./FinanceHeading";
 import EmptyState from "@/components/display/EmptyState";
 import { useColors } from "@/hooks/useTheme";
 import type { FinanceData } from "@/service/finance/financeService";

@@ -268,16 +268,23 @@ jest.mock("heroui-native", () => {
     }),
   };
 });
-jest.mock("@/components/finance/FinanceControls", () => {
-  const { Pressable, Text, View } = jest.requireActual("react-native");
+jest.mock("@/components/finance/FinanceCard", () => {
+  const { View } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({
+    __esModule: true,
+    default: ({
       children,
       className,
     }: PropsWithChildren<{ className?: string }>) => (
       <View className={className}>{children}</View>
     ),
-    FinanceHeading: ({
+  };
+});
+jest.mock("@/components/finance/FinanceHeading", () => {
+  const { Text } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({
       title,
       titleClassName,
       description,
@@ -295,14 +302,20 @@ jest.mock("@/components/finance/FinanceControls", () => {
         )}
       </>
     ),
-    FinanceError: () => null,
-    FinanceTabs: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
-      {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
-    </View>,
-    MoneyRow: () => null,
-    FinanceSelect: () => { throw new Error("Report filters must not open nested selectors"); },
   };
 });
+jest.mock("@/components/finance/FinanceError", () => () => null);
+jest.mock("@/components/finance/FinanceTabs", () => {
+  const { Pressable, Text, View } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
+      {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
+    </View>,
+  };
+});
+jest.mock("@/components/finance/MoneyRow", () => () => null);
+jest.mock("@/components/finance/FinanceSelect", () => () => { throw new Error("Report filters must not open nested selectors"); });
 jest.mock(
   "@/components/finance/IncomeTrendChart",
   () =>

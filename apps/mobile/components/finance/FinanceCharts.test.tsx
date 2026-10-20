@@ -56,11 +56,15 @@ jest.mock("heroui-native", () => {
   };
   return { Button };
 });
-jest.mock("./FinanceControls", () => {
-  const { Pressable, Text } = jest.requireActual("react-native");
+jest.mock("./FinanceCard", () => ({
+  __esModule: true,
+  default: ({ children }: PropsWithChildren) => <>{children}</>,
+}));
+jest.mock("./FinanceHeading", () => {
+  const { Text } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({ children }: PropsWithChildren) => <>{children}</>,
-    FinanceHeading: ({
+    __esModule: true,
+    default: ({
       title,
       action,
     }: {
@@ -72,12 +76,24 @@ jest.mock("./FinanceControls", () => {
         {action}
       </>
     ),
-    MoneyRow: ({ label, amount }: { label: string; amount: number | null }) => (
+  };
+});
+jest.mock("./MoneyRow", () => {
+  const { Text } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({ label, amount }: { label: string; amount: number | null }) => (
       <Text>
         {label}: {amount === null ? "Not calculated" : amount}
       </Text>
     ),
-    FinanceTabs: ({
+  };
+});
+jest.mock("./FinanceTabs", () => {
+  const { Pressable, Text } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({
       options,
       onChange,
     }: {

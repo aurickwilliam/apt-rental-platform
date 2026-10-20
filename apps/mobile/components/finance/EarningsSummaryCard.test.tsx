@@ -5,10 +5,11 @@ import { SCROLLABLE_BODY_MAX_HEIGHT } from "@/components/display/AppDialog";
 import type { FinanceData } from "@/service/finance/financeService";
 
 jest.mock("heroui-native", () => jest.requireActual("../../tests/support/heroUINativeStub"));
-jest.mock("./FinanceControls", () => {
+jest.mock("./MoneyRow", () => {
   const { Text, View } = jest.requireActual("react-native");
   return {
-    MoneyRow: ({ label, amount }: { label: string; amount: number | null }) => (
+    __esModule: true,
+    default: ({ label, amount }: { label: string; amount: number | null }) => (
       <View>
         <Text>{label}</Text>
         <Text>{amount === null ? "Not calculated" : String(amount)}</Text>

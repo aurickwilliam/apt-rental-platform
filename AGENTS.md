@@ -252,6 +252,8 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 
 ## Component Guidelines
 
+- **Mobile finance (`apps/mobile/components/finance/`):** each production `.tsx` file declares one React component, including private helpers, default-exported with a matching PascalCase filename. `react/no-multi-comp` enforces the component count in mobile lint; filename/export conventions are checked in review. Props, local constants and small pure helpers may stay beside their component; shared non-component code belongs in focused `.ts` modules, and substantial form logic in `hooks/finance/`. Import components directly, never through barrels. Tests may declare multiple mock components; ordinary render callbacks and inline JSX do not require extraction. Split by responsibility, not an arbitrary line limit.
+
 Before creating a component, ask:
 
 - Does one already exist (app, `packages/`, HeroUI, shadcn)?

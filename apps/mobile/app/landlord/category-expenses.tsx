@@ -17,10 +17,10 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from "@/components/display/PullToRefresh";
-import { ExpenseTransactionsSkeleton } from "@/components/finance/FinanceSkeleton";
+import ExpenseTransactionsSkeleton from "@/components/finance/ExpenseTransactionsSkeleton";
 import ExpenseTransactionRow from "@/components/finance/ExpenseTransactionRow";
-import { ExpenseEntrySheet } from "@/components/finance/FinanceEntrySheet";
-import { FinanceError } from "@/components/finance/FinanceControls";
+import ExpenseEntrySheet from "@/components/finance/ExpenseEntrySheet";
+import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import {

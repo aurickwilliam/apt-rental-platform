@@ -16,16 +16,10 @@ import {
   type FinanceCategory,
 } from "@repo/utils";
 import SheetInput, { MAX_FORMATTED_AMOUNT_LENGTH } from "./SheetInput";
+import type { BudgetGoalDraft } from "@/hooks/finance/useBudgetEntryForm";
 
 /** Mirrors the database's `landlord_budgets.months_remaining` check. */
 const MAX_GOAL_MONTHS = 600;
-
-export interface BudgetGoalDraft {
-  /** Raw peso draft; an empty value means the plan has no goal. */
-  target: string;
-  /** Raw month draft. */
-  months: string;
-}
 
 interface BudgetGoalSheetProps {
   isOpen: boolean;

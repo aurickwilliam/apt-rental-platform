@@ -14,7 +14,8 @@ import {
   type FinanceBudgetProgress,
   type FinanceCategory,
 } from "@repo/utils";
-import { FinanceCard, FinanceHeading } from "./FinanceControls";
+import FinanceCard from "./FinanceCard";
+import FinanceHeading from "./FinanceHeading";
 import BudgetProgressRow from "./BudgetProgressRow";
 import { FINANCE_CATEGORY_BACKGROUND_CLASSES } from "./financeCategoryStyles";
 import EmptyState from "@/components/display/EmptyState";

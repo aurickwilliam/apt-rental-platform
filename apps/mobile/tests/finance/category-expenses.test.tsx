@@ -139,25 +139,15 @@ jest.mock("@/components/layout/StandardHeader", () => {
     return mockHeader(props);
   };
 });
-jest.mock("@/components/finance/FinanceSkeleton", () => {
+jest.mock("@/components/finance/ExpenseTransactionsSkeleton", () => {
   const { View: NativeView } = jest.requireActual("react-native");
   return {
-    ExpenseTransactionsSkeleton: () => <NativeView testID="finance-skeleton" />,
+    __esModule: true,
+    default: () => <NativeView testID="finance-skeleton" />,
   };
 });
-jest.mock("@/components/finance/FinanceControls", () => {
-  const { View: NativeView } = jest.requireActual("react-native");
-  return {
-    FinanceCard: ({ children }: PropsWithChildren) => (
-      <NativeView>{children}</NativeView>
-    ),
-    FinanceError: (props: { message?: string; onRetry: () => void }) =>
-      mockFinanceError(props),
-  };
-});
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({
-  ExpenseEntrySheet: (props: unknown) => mockExpenseSheet(props),
-}));
+jest.mock("@/components/finance/FinanceError", () => (props: { message?: string; onRetry: () => void }) => mockFinanceError(props));
+jest.mock("@/components/finance/ExpenseEntrySheet", () => (props: unknown) => mockExpenseSheet(props));
 
 describe("Category expenses route", () => {
   beforeEach(() => {

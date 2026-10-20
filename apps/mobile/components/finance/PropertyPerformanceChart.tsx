@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Button } from "heroui-native";
-import { FinanceCard, FinanceHeading } from "./FinanceControls";
-import {
-  PropertyPerformanceTabs,
+import FinanceCard from "./FinanceCard";
+import FinanceHeading from "./FinanceHeading";
+import PropertyPerformanceTabs, {
   type PropertyPerformanceMetric,
-} from "./PropertyPerformanceList";
+} from "./PropertyPerformanceTabs";
 import PropertyPerformanceList from "./PropertyPerformanceList";
 import type { PropertyPerformance } from "@/service/finance/financeService";
 

@@ -621,6 +621,8 @@ Income remains unavailable until the landlord explicitly reviews the selected mo
 
 React Query keys include account, property and month. Mutations invalidate exact cached keys for that account's affected finance families; no server data is copied into Zustand or device storage. Expense and rent drill-downs use bounded 30-row keyset pages; lists are virtualized. Expense form UUIDs make uncertain insert retries idempotent. Account changes remount the page to discard drafts. `packages/utils/src/landlordFinance.ts` holds shared money/date validation, finance arithmetic and transparent goal rules. Web can reuse those rules without changing its existing revenue dashboard.
 
+Finance components are imported directly from their namesake files (one component per file). `hooks/finance/useExpenseEntryForm` and `useBudgetEntryForm` keep local drafts, validation and save/delete handling out of the presentation code; they call the existing caller-owned mutation callbacks, not a second data layer. Expense drafts reseed only when their persistent sheet opens, and budget pages seed once on mount; background report updates never overwrite in-progress edits. The filter sheet keeps its draft state and one persistent scroll region while composing separate property-list, month-grid and footer components. Skeleton components likewise compose the same page shapes behind a single accessible busy state per page.
+
 The isolated SQL regression harness is `supabase/test-support/landlord-finances-bootstrap.sql` (run only against an empty local PostgreSQL database); it loads minimal dependency fixtures, the finance migrations and rolled-back authorization/accounting tests. It is not a hosted-project setup script.
 
 ---

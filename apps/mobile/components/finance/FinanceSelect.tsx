@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Keyboard, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { Button, Select, Tabs } from "heroui-native";
-import { formatPesoDisplay } from "@repo/utils";
+import { Select } from "heroui-native";
 import PropertySearch from "./PropertySearch";
 import { useColors } from "@/hooks/useTheme";
 
@@ -14,84 +13,7 @@ import { useColors } from "@/hooks/useTheme";
  */
 const OPTION_LIST_HORIZONTAL_PADDING = 12;
 
-export function FinanceCard({
-  children,
-  className,
-  testID,
-}: {
-  children: ReactNode;
-  className?: string;
-  testID?: string;
-}) {
-  return (
-    <View
-      testID={testID}
-      className={`bg-surface border border-border rounded-3xl p-4 gap-4${className ? ` ${className}` : ""}`}
-    >
-      {children}
-    </View>
-  );
-}
-
-export function FinanceHeading({
-  title,
-  description,
-  action,
-  titleClassName,
-  descriptionClassName,
-}: {
-  title: string;
-  description?: string;
-  action?: ReactNode;
-  titleClassName?: string;
-  descriptionClassName?: string;
-}) {
-  return (
-    <View className="flex-row items-start justify-between gap-3">
-      <View className="flex-1 gap-1">
-        <Text
-          accessibilityRole="header"
-          className={`font-nunitoBold text-lg text-foreground${titleClassName ? ` ${titleClassName}` : ""}`}
-        >
-          {title}
-        </Text>
-        {description && (
-          <Text
-            className={`font-inter text-xs text-muted leading-5${descriptionClassName ? ` ${descriptionClassName}` : ""}`}
-          >
-            {description}
-          </Text>
-        )}
-      </View>
-      {action}
-    </View>
-  );
-}
-
-export function MoneyRow({
-  label,
-  amount,
-  emphasized = false,
-}: {
-  label: string;
-  amount: number | null;
-  emphasized?: boolean;
-}) {
-  return (
-    <View className="flex-row justify-between items-start gap-3">
-      <Text className="font-inter text-sm text-muted flex-1">{label}</Text>
-      <Text
-        selectable
-        className={`${emphasized ? "font-nunitoBold text-accent" : "font-nunitoSemiBold text-foreground"} text-sm`}
-        style={{ fontVariant: ["tabular-nums"] }}
-      >
-        {amount === null ? "Not calculated" : formatPesoDisplay(amount)}
-      </Text>
-    </View>
-  );
-}
-
-export function FinanceSelect({
+export default function FinanceSelect({
   label,
   value,
   options,
@@ -244,56 +166,6 @@ export function FinanceSelect({
           {error}
         </Text>
       )}
-    </View>
-  );
-}
-
-export function FinanceTabs({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <Tabs value={value} onValueChange={onChange} variant="primary">
-      <Tabs.List>
-        <Tabs.Indicator />
-        {options.map((option) => (
-          <Tabs.Trigger
-            key={option.value}
-            value={option.value}
-            className="flex-1"
-          >
-            <Tabs.Label>{option.label}</Tabs.Label>
-          </Tabs.Trigger>
-        ))}
-      </Tabs.List>
-    </Tabs>
-  );
-}
-
-export function FinanceError({
-  onRetry,
-  message = "We couldn’t load this information.",
-}: {
-  onRetry: () => void;
-  message?: string;
-}) {
-  return (
-    <View className="gap-3 py-3">
-      <Text
-        accessibilityRole="alert"
-        selectable
-        className="font-inter text-sm text-danger"
-      >
-        {message}
-      </Text>
-      <Button variant="secondary" onPress={onRetry}>
-        <Button.Label>Try again</Button.Label>
-      </Button>
     </View>
   );
 }

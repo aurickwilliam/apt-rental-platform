@@ -2,7 +2,10 @@ import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextInputProps, TextProps } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import type { FinanceBudget } from "@repo/utils";
-import { BudgetEntryPage, ExpenseEntrySheet, ExpenseEntryPage } from "./FinanceEntrySheet";
+import BudgetEntryPage from "./BudgetEntryPage";
+import ExpenseEntrySheet from "./ExpenseEntrySheet";
+import ExpenseEntryPage from "./ExpenseEntryPage";
+import BudgetGoalSheet from "./BudgetGoalSheet";
 
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
@@ -108,10 +111,11 @@ const mockSelectSheetHeights = new Map<string, string | undefined>();
 // Which selectors highlight their selected row with the soft-blue pill.
 const mockSelectHighlight = new Map<string, boolean | undefined>();
 
-jest.mock("./FinanceControls", () => {
+jest.mock("./FinanceSelect", () => {
   const { Pressable, Text, View } = jest.requireActual("react-native");
   return {
-    FinanceSelect: ({
+    __esModule: true,
+    default: ({
       label,
       value,
       options,
@@ -523,6 +527,30 @@ describe("finance entry forms", () => {
         }),
       ),
     );
+  });
+
+  test("dismissing the goal calculator discards its edits and reopening restores the saved goal", () => {
+    const budget: FinanceBudget = {
+      id: "existing", apartment_id: "apt", month: "2026-10",
+      category: "insurance", kind: "reserve", amount: 500,
+      target_amount: 12000, months_remaining: 12,
+    };
+    const onSave = jest.fn();
+    const screen = render(<BudgetEntryPage {...common} initial={budget} onSave={onSave} />);
+    const openGoal = () => fireEvent.press(
+      within(screen.getByTestId("entry-page-form")).getByText("Change goal"),
+    );
+    const goalAmount = () => within(screen.getByTestId("budget-goal-sheet"))
+      .getByLabelText("Amount still needed or annual bill (₱)");
+    openGoal();
+    expect(goalAmount().props.value).toBe("₱ 12,000");
+    fireEvent.changeText(goalAmount(), "24000");
+    fireEvent(screen.UNSAFE_getByType(BudgetGoalSheet), "close");
+    expect(screen.UNSAFE_getByType(BudgetGoalSheet).props.isOpen).toBe(false);
+    expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 500");
+    expect(onSave).not.toHaveBeenCalled();
+    openGoal();
+    expect(goalAmount().props.value).toBe("₱ 12,000");
   });
 
   test("an annual bill creates a user-approved monthly reserve suggestion", async () => {

@@ -8,7 +8,8 @@ import {
   rentAgeBucket,
 } from "@repo/utils";
 import { useFinanceCollections } from "@/hooks/finance/useLandlordFinances";
-import { FinanceError, FinanceTabs } from "./FinanceControls";
+import FinanceError from "./FinanceError";
+import FinanceTabs from "./FinanceTabs";
 import type {
   CollectionStatus,
   FinanceScope,

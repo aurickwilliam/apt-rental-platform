@@ -1,12 +1,11 @@
 import type { PropsWithChildren } from "react";
 import { render } from "@testing-library/react-native";
-import FinanceSkeleton, {
-  BudgetCategorySkeleton,
-  EntryFormFooterSkeleton,
-  EntryFormSkeleton,
-  ExpenseTransactionsSkeleton,
-  PropertyPerformanceSkeleton,
-} from "./FinanceSkeleton";
+import FinanceSkeleton from "./FinanceSkeleton";
+import BudgetCategorySkeleton from "./BudgetCategorySkeleton";
+import EntryFormFooterSkeleton from "./EntryFormFooterSkeleton";
+import EntryFormSkeleton from "./EntryFormSkeleton";
+import ExpenseTransactionsSkeleton from "./ExpenseTransactionsSkeleton";
+import PropertyPerformanceSkeleton from "./PropertyPerformanceSkeleton";
 
 jest.mock("heroui-native", () => {
   const { View } = jest.requireActual("react-native");
@@ -15,10 +14,11 @@ jest.mock("heroui-native", () => {
   }
   return { SkeletonGroup: Object.assign(Group, { Item: View }) };
 });
-jest.mock("./FinanceControls", () => {
+jest.mock("./FinanceCard", () => {
   const { View } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({
+    __esModule: true,
+    default: ({
       children,
       testID,
     }: PropsWithChildren<{ testID?: string }>) => (
