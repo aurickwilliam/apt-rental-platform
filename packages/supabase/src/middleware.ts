@@ -172,7 +172,9 @@ export async function updateSession(request: NextRequest) {
     "/faq", 
     "/tos",
     "/pap",
-    "/cookies"
+    "/cookies",
+    // Serves the landing page's Android APK link to signed-out visitors.
+    "/download"
   ];
 
   // Pages that logged-in users should be redirected away from. An active
