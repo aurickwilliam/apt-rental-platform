@@ -155,3 +155,36 @@ it("renders no preview line when the payload has no usable preview", () => {
 
   expect(renderedTexts()).toEqual(["Emma Stone"]);
 });
+
+it("sorts initial and refreshed feed rows newest-first with stable timestamp ties", () => {
+  mockNotifications = [
+    notification({ id: "older", title: "Yesterday", created_at: "2026-10-17T12:00:00Z" }),
+    notification({ id: "b", title: "Today B", created_at: "2026-10-18T12:00:00Z" }),
+    notification({ id: "a", title: "Today A", created_at: "2026-10-18T12:00:00Z" }),
+  ];
+  const { rerender } = render(<NotificationList filter="All" />);
+  expect(renderedTexts()).toEqual(["Today A", "Today B", "Yesterday"]);
+
+  // The existing Realtime subscription refreshes the query cache with a new array.
+  mockNotifications = [...mockNotifications, notification({
+    id: "new", title: "New arrival", created_at: "2026-10-18T13:00:00Z",
+  })];
+  rerender(<NotificationList filter="All" />);
+  expect(renderedTexts()).toEqual(["New arrival", "Today A", "Today B", "Yesterday"]);
+
+  fireEvent.press(screen.getByText("Today A"));
+  expect(mockMarkAsRead).toHaveBeenCalledWith("a");
+  mockNotifications = mockNotifications.map(n => ({ ...n, is_read: true }));
+  rerender(<NotificationList filter="All" />);
+  expect(renderedTexts()).toEqual(["New arrival", "Today A", "Today B", "Yesterday"]);
+});
+
+it("keeps chronological ordering when a notification-type filter is applied", () => {
+  mockNotifications = [
+    notification({ id: "old", title: "Older message", type: "message", created_at: "2026-10-17T12:00:00Z" }),
+    notification({ id: "payment", title: "Payment", type: "payment", created_at: "2026-10-18T13:00:00Z" }),
+    notification({ id: "new", title: "Newer message", type: "message", created_at: "2026-10-18T12:00:00Z" }),
+  ];
+  render(<NotificationList filter="message" />);
+  expect(renderedTexts()).toEqual(["Newer message", "Older message"]);
+});

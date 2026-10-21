@@ -1,4 +1,4 @@
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Button } from "heroui-native";
 import { IconTargetArrow } from "@tabler/icons-react-native";
@@ -15,9 +15,13 @@ import {
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "@/components/display/PullToRefresh";
+import BudgetCategorySkeleton from "@/components/finance/BudgetCategorySkeleton";
 import BudgetProgressRow from "@/components/finance/BudgetProgressRow";
-import { FinanceError, MoneyRow } from "@/components/finance/FinanceControls";
+import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
@@ -80,7 +84,7 @@ function BudgetCategory() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="budget" />
+        <BudgetCategorySkeleton />
       </ScreenWrapper>
     );
   if (finance.userError || !finance.enabled || finance.report.error || !data)
@@ -93,9 +97,7 @@ function BudgetCategory() {
           message={
             !finance.enabled
               ? "Switch to your landlord portal to view these budgets."
-              : financeErrorMessage(
-                  finance.report.error ?? finance.userError,
-                )
+              : financeErrorMessage(finance.report.error ?? finance.userError)
           }
           onRetry={() => {
             void finance.retry();
@@ -131,8 +133,7 @@ function BudgetCategory() {
           contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }}
           contentInsetAdjustmentBehavior="automatic"
           refreshControl={
-            <RefreshControl
-              tintColor={colors.primary}
+            <PullToRefreshControl
               refreshing={finance.report.isRefetching}
               onRefresh={() => {
                 void finance.report.refetch();
@@ -141,6 +142,9 @@ function BudgetCategory() {
           }
           ListHeaderComponent={
             <View className="gap-1">
+              <PullToRefreshIndicator
+                refreshing={finance.report.isRefetching}
+              />
               <Text
                 accessibilityRole="header"
                 accessibilityLabel={
@@ -168,32 +172,80 @@ function BudgetCategory() {
             </View>
           }
           renderItem={({ item }) => (
-            // One surface card per property, matching the report's cards.
             <View
               testID="budget-property-card"
               className="bg-surface border border-border rounded-3xl overflow-hidden"
             >
-              {item.kind === "reserve" ? (
+              {kind === "reserve" ? (
                 <Button
                   variant="ghost"
-                  className="h-auto min-h-12 py-2"
+                  className="h-auto min-h-14 rounded-3xl p-4"
                   onPress={() => openBudgetEditor(item.id)}
-                  accessibilityLabel={`${propertyName(item.apartment_id)}, planned ${formatPesoDisplay(item.amount)} this month. Edit budget`}
+                  accessibilityLabel={`Reserve for ${propertyName(item.apartment_id)}. ${formatPesoDisplay(item.amount)} per month. ${item.target_amount && item.months_remaining ? `${formatPesoDisplay(item.target_amount)} spread over ${item.months_remaining} ${item.months_remaining === 1 ? "month" : "months"}. ` : ""}Edit budget`}
                 >
-                  <View className="w-full gap-1">
-                    <MoneyRow
-                      label={propertyName(item.apartment_id)}
-                      amount={item.amount}
-                    />
-                    <Text className="font-inter text-xs text-muted">
-                      planned this month
-                    </Text>
+                  <View className="w-full gap-2">
+                    <View
+                      testID="reserve-card-header"
+                      className="flex-row items-start justify-between gap-3"
+                    >
+                      <Text className="flex-1 font-nunitoSemiBold text-base text-foreground">
+                        {propertyName(item.apartment_id)}
+                      </Text>
+                      {!item.target_amount ? (
+                        <View className="max-w-[45%] items-end gap-1">
+                          <Text className="font-inter text-xs text-muted text-right">
+                            Monthly allocation
+                          </Text>
+                          <Text
+                            selectable
+                            className="font-nunitoSemiBold text-base text-foreground text-right"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                          >
+                            {formatPesoDisplay(item.amount)}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    {item.target_amount ? (
+                      <View
+                        testID="reserve-card-amounts"
+                        className="flex-row items-center justify-between gap-3"
+                      >
+                        <Text
+                          selectable
+                          className="flex-1 font-nunitoBold text-xl text-accent"
+                          style={{ fontVariant: ["tabular-nums"] }}
+                        >
+                          {formatPesoDisplay(item.amount)} / month
+                        </Text>
+                        <View className="max-w-[45%] items-end gap-1">
+                          <Text className="font-inter text-xs text-muted text-right">
+                            Goal amount
+                          </Text>
+                          <Text
+                            selectable
+                            className="font-nunitoSemiBold text-base text-foreground text-right"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                          >
+                            {formatPesoDisplay(item.target_amount)}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : null}
+                    {item.target_amount && item.months_remaining ? (
+                      <View className="bg-surface-secondary rounded-2xl p-3 mt-1">
+                        <Text className="font-inter text-sm text-muted">
+                          Goal spread across {item.months_remaining}{" "}
+                          {item.months_remaining === 1 ? "month" : "months"}.{" "}
+                          This is a plan, not money transferred.
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
                 </Button>
               ) : (
                 <BudgetProgressRow
                   title={propertyName(item.apartment_id)}
-                  caption="spent this month"
                   amount={item.amount}
                   spent={item.spent}
                   action="Edit budget"

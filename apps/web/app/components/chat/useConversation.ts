@@ -9,6 +9,7 @@ import {
   toggleChatReaction,
   toReplyPreview,
 } from "./chatReactions";
+import { reconcileMessages } from "./conversationEvents";
 import {
   generateAttachmentId,
   resolveAttachmentUrls,
@@ -35,10 +36,8 @@ export interface ContextMenuTarget {
 type SupabaseClient = ReturnType<typeof createClient>;
 
 /**
- * Upper bound on the rows loaded when a conversation opens. The query is
- * unbounded on the server, so this caps how much history — and how many
- * attachment rows needing signed URLs — a single open can pull. Enough to cover
- * any realistic recent thread without a paginated read path.
+ * Server-side bound for both the initial window and each older-history page,
+ * including the attachment rows whose private URLs need resolving.
  */
 const INITIAL_MESSAGE_LIMIT = 100;
 
@@ -46,6 +45,11 @@ const INITIAL_MESSAGE_LIMIT = 100;
 interface HistoryCursor {
   created_at: string;
   id: string;
+}
+
+export interface EarlierMessagesPage {
+  messageIds: string[];
+  hasEarlier: boolean;
 }
 
 /** The subset of `chat` an attachment insert needs back to confirm a bubble. */
@@ -71,7 +75,8 @@ async function loadConversation(
   currentUserId: string,
   otherUserId: string,
   apartmentId: string | null,
-  olderThan?: HistoryCursor | null
+  olderThan?: HistoryCursor | null,
+  signal?: AbortSignal,
 ): Promise<ChatMessage[]> {
   const base = supabase
     .from("chat")
@@ -95,12 +100,18 @@ async function loadConversation(
     );
   }
 
-  const { data, error } = await query
+  const pageQuery = query
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(INITIAL_MESSAGE_LIMIT);
+  const { data, error } = await (signal ? pageQuery.abortSignal(signal) : pageQuery);
 
-  if (error || !data) return [];
+  if (error) {
+    if (signal) throw error;
+    return [];
+  }
+  if (!data) return [];
+  signal?.throwIfAborted();
 
   const rows = data as unknown as ChatMessage[];
   const messageIds = rows.map((r) => r.id);
@@ -116,6 +127,7 @@ async function loadConversation(
     : [];
 
   // Quoted originals for reply previews (text placeholder for media).
+  signal?.throwIfAborted();
   const replyIds = [
     ...new Set(rows.map((r) => r.reply_to).filter((v): v is string => !!v)),
   ];
@@ -128,6 +140,7 @@ async function loadConversation(
       ).data ?? []
     : [];
 
+  signal?.throwIfAborted();
   const reactionsByMessage = groupReactions(
     reactionRows as { message_id: string; user_id: string; emoji: string }[],
     currentUserId
@@ -139,6 +152,7 @@ async function loadConversation(
     .flatMap((r) => [r.attachment_path, r.attachment_thumbnail_path])
     .filter((p): p is string => Boolean(p));
   const signedUrls = await resolveAttachmentUrls(supabase, attachmentPaths);
+  signal?.throwIfAborted();
 
   return attachReplyPreviews(
     rows,
@@ -175,7 +189,9 @@ export default function useConversation({
 }: UseConversationArgs) {
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [historyCursor, setHistoryCursor] = useState<HistoryCursor | null>(null);
+  const historyCursorRef = useRef<HistoryCursor | null>(null);
+  const historyGenerationRef = useRef(0);
+  const earlierRequestRef = useRef<{ promise: Promise<EarlierMessagesPage | null>; signal?: AbortSignal } | null>(null);
   // False once a backwards page comes back short — there is nothing older left.
   const [hasEarlierMessages, setHasEarlierMessages] = useState(true);
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
@@ -216,6 +232,10 @@ export default function useConversation({
   useEffect(() => {
     if (!fetchKey || !otherUserId) return;
 
+    const generationRef = historyGenerationRef;
+    const generation = ++generationRef.current;
+    historyCursorRef.current = null;
+    earlierRequestRef.current = null;
     let isCancelled = false;
 
     // Rows are applied in the promise callback, never in the effect body —
@@ -226,9 +246,8 @@ export default function useConversation({
         setMessages(hydrated);
         // Seed the backwards cursor from the oldest row currently held.
         const oldest = hydrated[0];
-        setHistoryCursor(
-          oldest ? { created_at: oldest.created_at, id: oldest.id } : null
-        );
+        historyCursorRef.current = oldest ? { created_at: oldest.created_at, id: oldest.id } : null;
+        setIsLoadingEarlier(false);
         setHasEarlierMessages(hydrated.length === INITIAL_MESSAGE_LIMIT);
         setLoadedKey(fetchKey);
       })
@@ -240,6 +259,7 @@ export default function useConversation({
 
     return () => {
       isCancelled = true;
+      if (generationRef.current === generation) generationRef.current++;
     };
   }, [apartmentId, currentUserId, fetchKey, otherUserId, supabase]);
 
@@ -248,40 +268,54 @@ export default function useConversation({
  * by id, because a realtime insert can land between pages and the keyset
  * cursor only guarantees ordering, not exclusivity.
  */
-const loadEarlierMessages = useCallback(async () => {
-    if (!otherUserId || !historyCursor) return;
-
-    setIsLoadingEarlier(true);
-    try {
-      const older = await loadConversation(
-        supabase,
-        currentUserId,
-        otherUserId,
-        apartmentId ?? null,
-        historyCursor
-      );
-
-      setMessages((prev) => {
-        const seen = new Set(prev.map((m) => m.id));
-        const fresh = older.filter((m) => !seen.has(m.id));
-        return [...fresh, ...prev];
-      });
-
-      const oldest = older[0];
-      if (oldest) {
-        setHistoryCursor({ created_at: oldest.created_at, id: oldest.id });
-      }
-      // A short page means the conversation start has been reached.
-      setHasEarlierMessages(older.length === INITIAL_MESSAGE_LIMIT);
-    } catch (err) {
-      console.error("Failed to load earlier messages:", err);
-      onSendError?.("Couldn't load earlier messages.");
-    } finally {
-      setIsLoadingEarlier(false);
+  const loadEarlierMessages = useCallback(function loadEarlier(signal?: AbortSignal): Promise<EarlierMessagesPage | null> {
+    if (signal?.aborted || !otherUserId || !historyCursorRef.current) return Promise.resolve(null);
+    const pending = earlierRequestRef.current;
+    if (pending) {
+      if (!pending.signal?.aborted) return pending.promise;
+      const generation = historyGenerationRef.current;
+      return pending.promise.then(() => generation === historyGenerationRef.current ? loadEarlier(signal) : null);
     }
-  }, [apartmentId, currentUserId, historyCursor, onSendError, otherUserId, supabase]);
+    const cursor = historyCursorRef.current;
+    const generation = historyGenerationRef.current;
+    const isCurrent = () => generation === historyGenerationRef.current && !signal?.aborted;
+    setIsLoadingEarlier(true);
+    const request = (async () => {
+      try {
+        const older = await loadConversation(supabase, currentUserId, otherUserId, apartmentId ?? null, cursor, signal);
+        if (!isCurrent()) return null;
+        setMessages((prev) => {
+          if (generation !== historyGenerationRef.current) return prev;
+          const seen = new Set(prev.map((message) => message.id));
+          return [...older.filter((message) => !seen.has(message.id)), ...prev];
+        });
+        const oldest = older[0];
+        if (oldest) historyCursorRef.current = { created_at: oldest.created_at, id: oldest.id };
+        const hasEarlier = older.length === INITIAL_MESSAGE_LIMIT;
+        setHasEarlierMessages(hasEarlier);
+        return { messageIds: older.map((message) => message.id), hasEarlier };
+      } catch (err) {
+        if (isCurrent()) {
+          console.error("Failed to load earlier messages:", err);
+          if (!signal) onSendError?.("Couldn't load earlier messages.");
+        }
+        return null;
+      } finally {
+        if (generation === historyGenerationRef.current) {
+          earlierRequestRef.current = null;
+          setIsLoadingEarlier(false);
+        }
+      }
+    })();
+    earlierRequestRef.current = { promise: request, signal };
+    return request;
+  }, [apartmentId, currentUserId, onSendError, otherUserId, supabase]);
 
-  /** Re-reads the current conversation, e.g. after a failed reaction write. */
+  /**
+   * Re-reads the current conversation and merges it into the rows already
+   * held, so a resync (reconnect, refocus, failed reaction write) can't drop
+   * realtime arrivals, optimistic sends or previously paged history.
+   */
   const refreshMessages = useCallback(async () => {
     if (!otherUserId) return;
     const hydrated = await loadConversation(
@@ -290,7 +324,7 @@ const loadEarlierMessages = useCallback(async () => {
       otherUserId,
       apartmentId ?? null
     );
-    setMessages(hydrated);
+    setMessages((prev) => reconcileMessages(prev, hydrated));
   }, [apartmentId, currentUserId, otherUserId, supabase]);
 
   /** Sends a text message, optionally as a reply. Optimistic with rollback. */
@@ -445,6 +479,8 @@ const loadEarlierMessages = useCallback(async () => {
           attachment_path: null,
           attachment_url: null,
           attachment_mime_type: item.mimeType,
+          attachment_name: item.file.name,
+          attachment_size: item.file.size,
           group_id: groupId,
           resolvedUrl: item.previewUrl,
         };
@@ -479,6 +515,8 @@ const loadEarlierMessages = useCallback(async () => {
                   attachment_path: item.path,
                   attachment_thumbnail_path: item.thumbnailPath,
                   attachment_mime_type: item.mimeType,
+                  attachment_name: item.name,
+                  attachment_size: item.size,
                   group_id: groupId,
                   // Only the first row keeps the quoted context, so a batch
                   // doesn't repeat the same quote on every bubble.
@@ -492,6 +530,7 @@ const loadEarlierMessages = useCallback(async () => {
 
       if (inserted.error) {
         console.error("Failed to send attachments:", inserted.error);
+        onSendError?.("Couldn't send the attachments. Please try again.");
         // The rows were never created, so the uploads are now orphans.
         void supabase.storage
           .from("chat-images")

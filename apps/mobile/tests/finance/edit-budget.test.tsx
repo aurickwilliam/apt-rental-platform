@@ -1,7 +1,7 @@
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 import { act, render } from "@testing-library/react-native";
 import EditBudgetScreen from "@/app/landlord/edit-budget";
-import type { BudgetEntryPage } from "@/components/finance/FinanceEntrySheet";
+import type BudgetEntryPage from "@/components/finance/BudgetEntryPage";
 
 const mockParams: {
   id?: string;
@@ -45,9 +45,10 @@ jest.mock("@/hooks/auth", () => ({ useCurrentUser: () => ({ data: { id: "owner" 
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { gray500: "#626B73" } }) }));
 jest.mock("@/hooks/finance/useLandlordFinances", () => ({ useLandlordFinances: () => mockFinance }));
 jest.mock("@/service/finance/financeService", () => ({ financeErrorMessage: () => "Failed" }));
-jest.mock("@/components/finance/FinanceControls", () => ({ FinanceError: () => null }));
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({ BudgetEntryPage: (props: ComponentProps<typeof BudgetEntryPage>) => mockPage(props) }));
-jest.mock("@/components/finance/FinanceSkeleton", () => ({ EntryFormSkeleton: () => null, EntryFormFooterSkeleton: () => null }));
+jest.mock("@/components/finance/FinanceError", () => () => null);
+jest.mock("@/components/finance/BudgetEntryPage", () => (props: ComponentProps<typeof BudgetEntryPage>) => mockPage(props));
+jest.mock("@/components/finance/EntryFormSkeleton", () => () => null);
+jest.mock("@/components/finance/EntryFormFooterSkeleton", () => () => null);
 jest.mock("@/components/display/EmptyState", () => () => null);
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");

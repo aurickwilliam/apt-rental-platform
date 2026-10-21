@@ -9,35 +9,44 @@ import {
 } from "@tabler/icons-react";
 import { getNotificationPreview, getRelativeTime } from "@repo/utils";
 
-import { composeNotificationRowLabel } from "@/lib/notification-row";
+import { composeNotificationRowLabel, getNotificationRowPresentation } from "@/lib/notification-row";
 import type { FeedNotification } from "@/service/notificationService";
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
-  payment: <IconCreditCard size={20} aria-hidden="true" />,
-  message: <IconMessageCircle size={20} aria-hidden="true" />,
-  maintenance: <IconTool size={20} aria-hidden="true" />,
-  apartment: <IconHome size={20} aria-hidden="true" />,
-  system: <IconSettings size={20} aria-hidden="true" />,
+  payment: <IconCreditCard size={18} aria-hidden="true" />,
+  message: <IconMessageCircle size={18} aria-hidden="true" />,
+  maintenance: <IconTool size={18} aria-hidden="true" />,
+  apartment: <IconHome size={18} aria-hidden="true" />,
+  system: <IconSettings size={18} aria-hidden="true" />,
 };
 
+interface NotificationRowProps {
+  notification: FeedNotification;
+  onOpen: () => void;
+  /** Expanded message members retain their own action but not sender identity. */
+  compact?: boolean;
+}
+
 /**
- * One feed row: type icon, title, description, relative time, unread dot.
+ * One feed row: inline identity/action, secondary preview, time, unread dot.
  * The whole row is the tap target; the caller marks it read and navigates.
  */
 export default function NotificationRow({
   notification,
   onOpen,
-}: {
-  notification: FeedNotification;
-  onOpen: () => void;
-}) {
-  // Reaction rows carry a short, server-truncated preview; other producers omit it.
-  const preview = getNotificationPreview(notification.data);
+  compact = false,
+}: NotificationRowProps) {
+  const { action, preview } = getNotificationRowPresentation(
+    notification, getNotificationPreview(notification.data),
+  );
+  const timestamp = getRelativeTime(new Date(notification.created_at));
+  const displayedPreview = compact ? preview ?? notification.message ?? action : preview;
   const accessibleLabel = composeNotificationRowLabel({
     title: notification.title,
-    message: notification.message,
-    preview,
+    message: action,
+    preview: preview ?? undefined,
     isRead: notification.is_read,
+    timestamp,
   });
 
   return (
@@ -45,49 +54,32 @@ export default function NotificationRow({
       type="button"
       onClick={onOpen}
       aria-label={accessibleLabel}
-      className="flex w-full cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-primary"
+      className={compact ? "notification-feed-member" : "notification-feed-row"}
     >
-      <span
-        aria-hidden="true"
-        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-      >
+      {!compact && <span aria-hidden="true" className="notification-feed-icon">
         {TYPE_ICONS[notification.type] ?? (
-          <IconSettings size={20} aria-hidden="true" />
+          <IconSettings size={18} aria-hidden="true" />
         )}
-      </span>
+      </span>}
       <span className="min-w-0 flex-1">
-        <span className="flex items-start justify-between gap-2">
-          <span className="font-nunito text-sm font-semibold text-foreground">
-            {notification.title}
-          </span>
-          {!notification.is_read && (
-            <span
-              aria-hidden="true"
-              className="mt-1.5 size-2 shrink-0 rounded-full bg-primary"
-            />
-          )}
-        </span>
-        {notification.message ? (
-          <span className="mt-0.5 block truncate font-inter text-sm text-muted-foreground">
-            {notification.message}
-          </span>
-        ) : null}
-        {preview ? (
-          <span className="mt-0.5 flex items-center gap-1">
-            <IconMessageCircle
-              size={12}
-              aria-hidden="true"
-              className="shrink-0 text-muted-foreground"
-            />
-            <span className="min-w-0 flex-1 truncate font-inter text-xs text-muted-foreground">
-              {preview}
+        {!compact && (
+          <span className="notification-feed-primary">
+            <span className={action ? "inline-block max-w-full truncate align-bottom font-semibold" : "font-semibold"}>
+              {notification.title}
             </span>
+            {action ? <> {action}</> : null}
+          </span>
+        )}
+        {displayedPreview ? (
+          <span className={`notification-feed-preview ${compact ? "leading-4" : "leading-5"} ${compact && !notification.is_read ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+            {action ? `“${displayedPreview}”` : displayedPreview}
           </span>
         ) : null}
-        <span className="mt-0.5 block font-inter text-xs text-muted-foreground">
-          {getRelativeTime(new Date(notification.created_at))}
-        </span>
+        <time dateTime={notification.created_at} className={`notification-feed-time ${compact ? "mt-0" : "mt-0.5"}`}>
+          {timestamp}
+        </time>
       </span>
+      <span aria-hidden="true" className={`mt-1.5 size-1.5 shrink-0 rounded-full ${notification.is_read ? "bg-transparent" : "bg-primary"}`} />
     </button>
   );
 }

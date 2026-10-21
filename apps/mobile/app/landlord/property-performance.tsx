@@ -8,15 +8,13 @@ import {
 } from "@repo/utils";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import {
-  FinanceCard,
-  FinanceError,
-} from "@/components/finance/FinanceControls";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
-import PropertyPerformanceList, {
-  PropertyPerformanceTabs,
+import FinanceCard from "@/components/finance/FinanceCard";
+import FinanceError from "@/components/finance/FinanceError";
+import PropertyPerformanceSkeleton from "@/components/finance/PropertyPerformanceSkeleton";
+import PropertyPerformanceList from "@/components/finance/PropertyPerformanceList";
+import PropertyPerformanceTabs, {
   type PropertyPerformanceMetric,
-} from "@/components/finance/PropertyPerformanceList";
+} from "@/components/finance/PropertyPerformanceTabs";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
 import { financeErrorMessage } from "@/service/finance/financeService";
@@ -41,7 +39,7 @@ function PropertyPerformance() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="overview" />
+        <PropertyPerformanceSkeleton />
       </ScreenWrapper>
     );
   if (

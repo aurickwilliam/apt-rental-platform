@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useToast } from 'heroui-native'
-import { getNotificationPreview, getRelativeTime } from '@repo/utils'
+import { getNotificationPreview, getRelativeTime, sortNotificationsNewestFirst } from '@repo/utils'
 
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
@@ -34,7 +34,9 @@ export default function NotificationList({ filter }: NotificationListProps) {
   const { markAsRead } = useNotificationActions(currentUserId);
 
   const visible = useMemo(
-    () => (filter === 'All' ? notifications : notifications.filter((n) => n.type === filter)),
+    () => sortNotificationsNewestFirst(
+      filter === 'All' ? notifications : notifications.filter((n) => n.type === filter),
+    ),
     [filter, notifications],
   );
 

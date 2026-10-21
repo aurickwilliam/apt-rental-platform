@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps } from "react-native";
+import { RefreshControl } from "react-native";
 import { fireEvent, render } from "@testing-library/react-native";
 import CategoryExpensesScreen from "@/app/landlord/category-expenses";
 
@@ -95,7 +96,7 @@ jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Failed",
 }));
 jest.mock("heroui-native", () => {
-  const { Pressable, Text } = jest.requireActual("react-native");
+  const { Pressable, Text, View } = jest.requireActual("react-native");
   function Button({
     children,
     isDisabled,
@@ -112,7 +113,10 @@ jest.mock("heroui-native", () => {
   };
   return {
     Button,
-    Spinner: () => null,
+    // The HeroUI spinner stands in for the pull-to-refresh indicator.
+    Spinner: ({ accessibilityLabel }: { accessibilityLabel?: string }) => (
+      <View accessibilityLabel={accessibilityLabel} />
+    ),
     useToast: () => ({ toast: { show: jest.fn() } }),
   };
 });
@@ -135,25 +139,15 @@ jest.mock("@/components/layout/StandardHeader", () => {
     return mockHeader(props);
   };
 });
-jest.mock("@/components/finance/FinanceSkeleton", () => {
-  const { View: NativeView } = jest.requireActual("react-native");
-  return function Skeleton() {
-    return <NativeView testID="finance-skeleton" />;
-  };
-});
-jest.mock("@/components/finance/FinanceControls", () => {
+jest.mock("@/components/finance/ExpenseTransactionsSkeleton", () => {
   const { View: NativeView } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({ children }: PropsWithChildren) => (
-      <NativeView>{children}</NativeView>
-    ),
-    FinanceError: (props: { message?: string; onRetry: () => void }) =>
-      mockFinanceError(props),
+    __esModule: true,
+    default: () => <NativeView testID="finance-skeleton" />,
   };
 });
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({
-  ExpenseEntrySheet: (props: unknown) => mockExpenseSheet(props),
-}));
+jest.mock("@/components/finance/FinanceError", () => (props: { message?: string; onRetry: () => void }) => mockFinanceError(props));
+jest.mock("@/components/finance/ExpenseEntrySheet", () => (props: unknown) => mockExpenseSheet(props));
 
 describe("Category expenses route", () => {
   beforeEach(() => {
@@ -194,6 +188,22 @@ describe("Category expenses route", () => {
     expect(screen.getByText("September 2026")).toBeTruthy();
     expect(screen.getByText("Repaint")).toBeTruthy();
     expect(screen.getByText("₱ 3,000")).toBeTruthy();
+  });
+
+  test("shows the HeroUI spinner while refreshing and hides the native indicator", () => {
+    mockExpenses.isRefetching = true;
+    const screen = render(<CategoryExpensesScreen />);
+
+    // Only the HeroUI spinner is visible while the transactions refetch.
+    expect(screen.getByLabelText("Refreshing")).toBeTruthy();
+
+    const nativeControl = screen.UNSAFE_getByType(RefreshControl);
+    expect(nativeControl.props).toMatchObject({
+      refreshing: false,
+      tintColor: "transparent",
+      colors: ["transparent"],
+      progressBackgroundColor: "transparent",
+    });
   });
 
   test("an unknown category falls back to the unfiltered list", () => {

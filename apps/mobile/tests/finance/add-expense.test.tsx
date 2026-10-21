@@ -1,7 +1,7 @@
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 import { act, render } from "@testing-library/react-native";
 import AddExpenseScreen from "@/app/landlord/add-expense";
-import type { ExpenseEntryPage } from "@/components/finance/FinanceEntrySheet";
+import type ExpenseEntryPage from "@/components/finance/ExpenseEntryPage";
 
 const mockParams: { month?: string; apartmentId?: string } = {};
 const mockBack = jest.fn();
@@ -24,12 +24,10 @@ jest.mock("heroui-native", () => ({ useToast: () => ({ toast: { show: mockToast 
 jest.mock("@/hooks/auth", () => ({ useCurrentUser: () => ({ data: { id: "owner" } }) }));
 jest.mock("@/hooks/finance/useLandlordFinances", () => ({ useLandlordFinances: () => mockFinance }));
 jest.mock("@/service/finance/financeService", () => ({ financeErrorMessage: () => "Failed" }));
-jest.mock("@/components/finance/FinanceControls", () => ({ FinanceError: () => null }));
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({ ExpenseEntryPage: (props: ComponentProps<typeof ExpenseEntryPage>) => mockPage(props) }));
-jest.mock("@/components/finance/FinanceSkeleton", () => ({
-  EntryFormSkeleton: () => mockExpenseEntrySkeleton(),
-  EntryFormFooterSkeleton: () => mockExpenseEntryFooterSkeleton(),
-}));
+jest.mock("@/components/finance/FinanceError", () => () => null);
+jest.mock("@/components/finance/ExpenseEntryPage", () => (props: ComponentProps<typeof ExpenseEntryPage>) => mockPage(props));
+jest.mock("@/components/finance/EntryFormSkeleton", () => () => mockExpenseEntrySkeleton());
+jest.mock("@/components/finance/EntryFormFooterSkeleton", () => () => mockExpenseEntryFooterSkeleton());
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
   return function Wrapper({

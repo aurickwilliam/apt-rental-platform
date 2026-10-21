@@ -140,6 +140,32 @@
         "ring": "oklch(0.556 0 0)"
       }
     },
+    "financeCategoryBackgrounds": {
+      "light": {
+        "maintenance": "#EDF3FF",
+        "furniture": "#F3EEFF",
+        "turnover": "#FFF0E6",
+        "insurance": "#E8F5F3",
+        "taxes": "#F7F1E5",
+        "utilities": "#EAF6FC",
+        "fees": "#F6EDF5",
+        "emergency": "#EAF5EC",
+        "vacancy": "#FFF5DF",
+        "other": "#F0F2F5"
+      },
+      "dark": {
+        "maintenance": "#1B2538",
+        "furniture": "#282238",
+        "turnover": "#30251F",
+        "insurance": "#192C2A",
+        "taxes": "#2B271E",
+        "utilities": "#1B2932",
+        "fees": "#302330",
+        "emergency": "#1D2B21",
+        "vacancy": "#30291B",
+        "other": "#25282D"
+      }
+    },
     "mobileTheme": {
       "light": {
         "background": "#F5F7FB",
@@ -166,7 +192,8 @@
         "fieldShadow": "none",
         "success": "#22C55E",
         "warning": "#FACC15",
-        "danger": "#E50914"
+        "danger": "#E50914",
+        "financeOverBudgetText": "#C4111E"
       },
       "dark": {
         "background": "#121212",
@@ -193,7 +220,8 @@
         "fieldShadow": "none",
         "success": "#4ADE80",
         "warning": "#FDE047",
-        "danger": "#F87171"
+        "danger": "#F87171",
+        "financeOverBudgetText": "#F87171"
       }
     }
   },

@@ -1,6 +1,8 @@
 "use client";
 
 import { IconCopy, IconCornerUpLeft } from "@tabler/icons-react";
+import { useLayoutEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 import ReactionStrip from "./ReactionStrip";
 
@@ -40,20 +42,30 @@ export default function MessageContextMenu({
   onCopy,
   onClose,
 }: MessageContextMenuProps) {
-  const CARD_WIDTH = 224;
-  const CARD_ESTIMATED_HEIGHT = data.canReact ? 136 : 128;
+  const cardRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    const previousFocus = document.activeElement;
+    const place = () => {
+      const gap = 12;
+      const { width, height } = card.getBoundingClientRect();
+      card.style.left = `${Math.max(gap, Math.min(position.x, window.innerWidth - width - gap))}px`;
+      card.style.top = `${Math.max(gap, Math.min(position.y, window.innerHeight - height - gap))}px`;
+    };
+    place();
+    card.querySelector<HTMLButtonElement>("button")?.focus();
+    const observer = new ResizeObserver(place);
+    observer.observe(card);
+    window.addEventListener("resize", place);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", place);
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [position.x, position.y]);
 
-  // Flip toward the viewport interior when the click lands near an edge.
-  const left = Math.max(
-    8,
-    Math.min(position.x, window.innerWidth - CARD_WIDTH - 8)
-  );
-  const flipY = position.y + CARD_ESTIMATED_HEIGHT > window.innerHeight - 8;
-  const top = flipY
-    ? Math.max(8, position.y - CARD_ESTIMATED_HEIGHT)
-    : position.y;
-
-  return (
+  return createPortal(
     <>
       {/* Dismiss layer — a separate element so clicks inside the card don't close it. */}
       <div
@@ -67,11 +79,24 @@ export default function MessageContextMenu({
       />
 
       <div
-        role="menu"
+        ref={cardRef}
+        role="dialog"
+        aria-modal="true"
         aria-label="Message actions"
-        className="fixed z-50 min-w-56 rounded-[20px] border border-border bg-card p-2 shadow-lg"
-        style={{ left, top }}
+        className="fixed z-50 w-64 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-2 shadow-lg"
+        style={{ left: 12, top: 12 }}
         onContextMenu={(e) => e.preventDefault()}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
+          const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"));
+          const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+          if (["Tab", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+            event.preventDefault();
+            const backwards = event.shiftKey || event.key === "ArrowUp" || event.key === "ArrowLeft";
+            const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (backwards ? -1 : 1) + buttons.length) % buttons.length;
+            buttons[next]?.focus();
+          }
+        }}
       >
         {data.canReact && (
           <>
@@ -86,13 +111,12 @@ export default function MessageContextMenu({
           </>
         )}
 
-        <p className="py-1.5 text-center text-[13px] text-muted-foreground">
+        <p className="border-b border-border px-2 py-2 font-inter text-[11px] text-muted-foreground">
           {data.dateLabel || "Just now"}
         </p>
 
         <button
           type="button"
-          role="menuitem"
           onClick={onReply}
           aria-label="Reply to message"
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -101,9 +125,8 @@ export default function MessageContextMenu({
           <span className="text-sm text-foreground">Reply</span>
         </button>
 
-        <button
+        {data.canCopy && <button
           type="button"
-          role="menuitem"
           onClick={data.canCopy ? onCopy : undefined}
           disabled={!data.canCopy}
           aria-label="Copy message"
@@ -111,8 +134,8 @@ export default function MessageContextMenu({
         >
           <IconCopy size={18} className="shrink-0 text-foreground" aria-hidden="true" />
           <span className="text-sm text-foreground">Copy</span>
-        </button>
+        </button>}
       </div>
-    </>
+    </>, document.body
   );
 }

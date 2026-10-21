@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Button, Spinner, useToast } from "heroui-native";
 import { IconReceipt2 } from "@tabler/icons-react-native";
@@ -13,10 +13,14 @@ import {
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
-import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
+import {
+  PullToRefreshControl,
+  PullToRefreshIndicator,
+} from "@/components/display/PullToRefresh";
+import ExpenseTransactionsSkeleton from "@/components/finance/ExpenseTransactionsSkeleton";
 import ExpenseTransactionRow from "@/components/finance/ExpenseTransactionRow";
-import { ExpenseEntrySheet } from "@/components/finance/FinanceEntrySheet";
-import { FinanceError } from "@/components/finance/FinanceControls";
+import ExpenseEntrySheet from "@/components/finance/ExpenseEntrySheet";
+import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -67,7 +71,7 @@ function CategoryExpenses() {
         scrollable
         className="p-5"
       >
-        <FinanceSkeleton tab="expenses" />
+        <ExpenseTransactionsSkeleton />
       </ScreenWrapper>
     );
   if (finance.userError || !finance.enabled || finance.report.error || !data)
@@ -80,9 +84,7 @@ function CategoryExpenses() {
           message={
             !finance.enabled
               ? "Switch to your landlord portal to view these expenses."
-              : financeErrorMessage(
-                  finance.report.error ?? finance.userError,
-                )
+              : financeErrorMessage(finance.report.error ?? finance.userError)
           }
           onRetry={() => {
             void finance.retry();
@@ -103,8 +105,7 @@ function CategoryExpenses() {
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl
-              tintColor={colors.primary}
+            <PullToRefreshControl
               refreshing={expenses.isRefetching}
               onRefresh={() => {
                 void expenses.refetch();
@@ -113,6 +114,7 @@ function CategoryExpenses() {
           }
           ListHeaderComponent={
             <View className="gap-1">
+              <PullToRefreshIndicator refreshing={expenses.isRefetching} />
               <Text
                 accessibilityRole="header"
                 accessibilityLabel={

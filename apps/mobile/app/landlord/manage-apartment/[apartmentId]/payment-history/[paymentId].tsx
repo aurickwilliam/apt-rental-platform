@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Button, Spinner } from 'heroui-native'
@@ -105,8 +105,9 @@ export default function LandlordPaymentReceipt() {
           )}
         </View>
       ) : (
-        <View className="flex-1 justify-center gap-6">
+        <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 24, paddingVertical: 16 }}>
           <ReceiptCard
+            payment={payment}
             apartmentName={payment.apartment_name ?? '—'}
             tenantName={payment.tenant_name ?? undefined}
             landlordName={undefined}
@@ -135,7 +136,7 @@ export default function LandlordPaymentReceipt() {
               Awaiting payment confirmation.
             </Text>
           ) : null}
-        </View>
+        </ScrollView>
       )}
 
       <ConfirmDialog

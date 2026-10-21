@@ -45,6 +45,189 @@
 .finance-report [role="tab"] > span:not([data-slot="tabs-indicator"]), .finance-modal [role="tab"] > span:not([data-slot="tabs-indicator"]) { position: relative; z-index: 1; }
 .finance-segment { min-width: 0; width: auto; padding: 0; height: 100%; border-radius: 0; }
 
+/* Message presentation only; scoped overrides win over HeroUI's unlayered CSS. */
+.apt-conversation-row {
+  display: flex;
+  width: 100%;
+  height: auto;
+  min-height: 5rem;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-xl);
+  white-space: normal;
+  --button-fg: var(--foreground);
+  --button-bg-hover: color-mix(in oklab, var(--muted) 45%, transparent);
+}
+.apt-conversation-row[data-active="true"] {
+  --button-bg: var(--secondary);
+  --button-bg-hover: var(--secondary);
+  --button-bg-pressed: var(--secondary);
+}
+.apt-messages-categories .tabs__tab { color: var(--muted-foreground); }
+.apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--foreground); }
+.apt-message-bubble[data-mine="true"][data-group="first"],
+.apt-message-bubble[data-mine="true"][data-group="middle"] { border-bottom-right-radius: 6px; }
+.apt-message-bubble[data-mine="true"][data-group="last"],
+.apt-message-bubble[data-mine="true"][data-group="middle"] { border-top-right-radius: 6px; }
+.apt-message-bubble[data-mine="false"][data-group="first"],
+.apt-message-bubble[data-mine="false"][data-group="middle"] { border-bottom-left-radius: 6px; }
+.apt-message-bubble[data-mine="false"][data-group="last"],
+.apt-message-bubble[data-mine="false"][data-group="middle"] { border-top-left-radius: 6px; }
+
+/* Scoped overrides: HeroUI's unlayered avatar sizes outrank utilities. */
+.avatar.apt-message-sender-avatar { width: 28px; height: 28px; border-radius: 9999px; }
+.apt-message-sender-avatar .avatar__fallback { font-size: 10px; }
+.avatar.apt-message-seen-avatar { width: 16px; height: 16px; border-radius: 9999px; }
+.apt-message-seen-avatar .avatar__fallback { font-size: 7px; }
+
+.apt-message-bubble[data-reply-highlight="true"] {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--brand) 12%, transparent);
+}
+
+.apt-message-actions {
+  position: absolute;
+  top: 0;
+  z-index: 20;
+  width: max-content;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: 2px;
+  border-radius: 9999px;
+  background: var(--card);
+}
+@media (max-width: 639px) {
+  .apt-message-actions > button:not(:last-child) { display: none; }
+  .apt-message-actions .apt-chat-action { width: 2.75rem; height: 2.75rem; }
+}
+.apt-chat-action {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  --button-fg: var(--muted-foreground);
+  --button-bg-hover: var(--muted);
+}
+.apt-reaction-popover {
+  padding: 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--card);
+}
+.apt-message-composer-field {
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding-right: 0.25rem;
+  background: color-mix(in oklab, var(--muted) 30%, var(--card));
+}
+.apt-message-composer-field:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent);
+}
+.apt-message-draft {
+  min-height: 2.75rem;
+  max-height: 9rem;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  resize: none;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  border: 0;
+  border-radius: inherit;
+  padding: 0.625rem 0.875rem;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+.apt-message-draft:focus {
+  outline: none;
+  box-shadow: none;
+}
+.apt-composer-send { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; border-radius: 9999px; background: transparent; color: var(--primary); }
+.apt-message-actions button, .apt-conversation-row, .apt-composer-send { touch-action: manipulation; }
+@media (hover: hover) and (min-width: 640px) {
+  /* Localized hover-safe area, not a full-width message lane. Consecutive
+     bubbles have a 4px gap: each gets only its own 2px half vertically. */
+  .apt-message-interaction[data-interactive="true"]::before {
+    content: "";
+    position: absolute;
+    inset: -12px -124px;
+  }
+  .apt-message-interaction:is([data-group-position="middle"], [data-group-position="last"])::before {
+    top: -2px;
+  }
+  .apt-message-interaction:is([data-group-position="first"], [data-group-position="middle"])::before {
+    bottom: -2px;
+  }
+  .apt-message-actions {
+    visibility: hidden;
+    opacity: 0;
+  }
+  .apt-message-interaction:hover > .apt-message-actions,
+  .apt-message-interaction:focus-within > .apt-message-actions,
+  .apt-message-interaction[data-overlay-open="true"] > .apt-message-actions { visibility: visible; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apt-message-bubble, .apt-message-actions { transition: none; }
+  [data-chat-scroll] .animate-bounce { animation: none; }
+}
+
+/* HeroUI's body has -3px side margins for its inset layout. This flush drawer
+   owns its padding; keep the scroll surface inside the dialog at narrow widths. */
+.apt-notifications-drawer .drawer__body {
+  margin-inline: 0;
+  min-width: 0;
+}
+
+/* The group disclosure is an icon-only HeroUI Button. Keep its 44px hit target
+   but paint hover, pressed and focus feedback on a small inner circle so the
+   control never draws a surface around the summary's unread dot. Unlayered on
+   purpose: HeroUI's button variables are unlayered too. */
+.apt-notifications-drawer .notification-group-disclosure {
+  --button-bg: transparent;
+  --button-bg-hover: transparent;
+  --button-bg-pressed: transparent;
+  --button-fg: var(--muted-foreground);
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.notification-group-disclosure-visual {
+  @apply flex size-6 items-center justify-center rounded-full transition-colors;
+}
+
+@media (hover: hover) {
+  .apt-notifications-drawer .notification-group-disclosure:hover .notification-group-disclosure-visual {
+    background-color: color-mix(in oklab, var(--muted-foreground) 10%, transparent);
+  }
+}
+
+.apt-notifications-drawer .notification-group-disclosure:active .notification-group-disclosure-visual {
+  background-color: color-mix(in oklab, var(--muted-foreground) 14%, transparent);
+}
+
+/* Replace HeroUI's 44px focus ring with one that hugs the chevron. */
+.apt-notifications-drawer .notification-group-disclosure:focus-visible:not([data-focused]),
+.apt-notifications-drawer .notification-group-disclosure[data-focus-visible="true"] {
+  box-shadow: none;
+}
+
+.apt-notifications-drawer .notification-group-disclosure:focus-visible .notification-group-disclosure-visual,
+.apt-notifications-drawer .notification-group-disclosure[data-focus-visible="true"] .notification-group-disclosure-visual {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+}
+.apt-message-draft::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .landlord-application-detail-card {
   min-width: 0;
   padding: 1.25rem;
@@ -229,6 +412,39 @@
 }
 
 @layer components {
+  .notification-feed-row {
+    @apply flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+
+  .notification-feed-icon {
+    @apply mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary;
+  }
+
+  /* One hierarchy for every portal, event and record age. Compact group
+     members only tighten the preview line-height and timestamp spacing. */
+  .notification-feed-primary {
+    @apply line-clamp-2 font-nunito text-sm leading-5 font-normal break-words text-foreground;
+    overflow-wrap: anywhere;
+  }
+
+  .notification-feed-preview {
+    @apply block truncate font-inter text-xs;
+  }
+
+  .notification-feed-time {
+    @apply block font-inter text-[11px] leading-4 text-muted-foreground;
+  }
+
+  /* Expanded group members: a quiet inset surface, no border or connector rail.
+     Left inset aligns the first text column with the summary's text column. */
+  .notification-group-members {
+    @apply mt-0.5 mb-1.5 ml-11 flex flex-col gap-0.5 rounded-xl bg-muted/40 p-1;
+  }
+
+  .notification-feed-member {
+    @apply flex min-h-11 w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
+  }
+
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
   }

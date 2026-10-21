@@ -14,6 +14,15 @@ export function maintenanceStatusChipColor(status: LandlordMaintenanceStatus): S
   return "danger";
 }
 
+// A pending fee rides on the next rent; paid and waived fees are settled.
+export function maintenanceFeeChip(
+  feeStatus: string | null | undefined,
+): { tone: StatusTone; label: string } {
+  if (feeStatus === "paid") return { tone: "success", label: "Paid" };
+  if (feeStatus === "waived") return { tone: "neutral", label: "Waived" };
+  return { tone: "warning", label: "Added to next rent" };
+}
+
 // Same tones as mobile's useMaintenanceRequestUrgencyStyles.
 export const MAINTENANCE_URGENCY_STYLE: Record<
   LandlordMaintenanceUrgency,

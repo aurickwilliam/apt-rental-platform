@@ -10,7 +10,7 @@ import {
   formatFinanceMoney,
   manilaToday,
 } from "@repo/utils";
-import { MoneyRow } from "./FinanceControls";
+import MoneyRow from "./MoneyRow";
 import FinanceGuidelinesDialog from "./FinanceGuidelinesDialog";
 import type { FinanceData } from "@/service/finance/financeService";
 

@@ -12,12 +12,10 @@ import {
 } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import EmptyState from "@/components/display/EmptyState";
-import {
-  FinanceCard,
-  FinanceHeading,
-  FinanceTabs,
-  MoneyRow,
-} from "./FinanceControls";
+import FinanceCard from "./FinanceCard";
+import FinanceHeading from "./FinanceHeading";
+import FinanceTabs from "./FinanceTabs";
+import MoneyRow from "./MoneyRow";
 
 interface IncomeTrendChartProps {
   months: FinanceMonth[];

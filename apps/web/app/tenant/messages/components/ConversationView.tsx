@@ -1,21 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Button, ScrollShadow, Spinner } from "@heroui/react";
 import {
   IconArrowDown,
-  IconChevronLeft,
   IconMessage,
 } from "@tabler/icons-react";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "./MessageInput";
 import { Contact } from "./types";
-import UserAvatar from "@/app/components/profile/UserAvatar";
+import ConversationHeader from "@/app/components/chat/ConversationHeader";
+import ConversationApartmentRow from "@/app/components/chat/ConversationApartmentRow";
+import ConversationIntroduction from "@/app/components/chat/ConversationIntroduction";
+import { useConversationContext } from "@/hooks/use-conversation-context";
+import { conversationApartmentPresentation } from "@/lib/conversation-context";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
+import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
+import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import type { ChatMessage } from "@/app/components/chat/types";
+import { latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -76,10 +82,11 @@ function getGroupPosition(
 
 function TypingIndicator() {
   return (
-    <div className="self-start flex items-center gap-1 bg-card px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-border w-fit">
+    <div role="status" aria-label="Typing" className="mt-4 self-start flex items-center gap-1 bg-muted/60 px-4 py-3 rounded-2xl w-fit">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
+          aria-hidden="true"
           className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
           style={{ animationDelay: `${i * 0.15}s` }}
         />
@@ -97,10 +104,8 @@ export default function ConversationView({
   className = "",
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
-  const [isContactTyping, setIsContactTyping] = useState(false);
-  const channelRef = useRef<ReturnType<
-    ReturnType<typeof useConversation>["supabase"]["channel"]
-  > | null>(null);
+  const { context, loading: contextLoading } = useConversationContext(activeContact?.id ?? null, activeContact?.apartmentId ?? null, "tenant", currentUserId);
+  const apartment = conversationApartmentPresentation(activeContact?.apartmentId ?? null, context.apartment, "tenant");
 
   const {
     supabase,
@@ -131,6 +136,21 @@ export default function ConversationView({
       setSendError({ key: activeContact?.conversationKey ?? "", message }),
   });
 
+  // Realtime: incoming messages, read receipts for sent ones, contact typing
+  // presence, and a resync after reconnects/refocus. Shared with the landlord
+  // view so both portals subscribe identically.
+  const { isContactTyping, trackTyping } = useConversationRealtime({
+    supabase,
+    conversationId,
+    currentUserId,
+    contactId: activeContact?.id ?? null,
+    conversationKey: activeContact?.conversationKey ?? null,
+    apartmentId,
+    setMessages,
+    refreshMessages,
+    onConversationRead,
+  });
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // True when the reader is within the threshold of the newest message. Drives
@@ -139,6 +159,14 @@ export default function ConversationView({
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(isLoadingEarlierMessages);
   const messageCount = messages.length;
+  const latestOutgoingId = latestOutgoingMessageId(messages, currentUserId, activeContact?.id ?? null);
+  const replyNavigation = useReplyNavigation({
+    conversationKey: activeContact ? `${currentUserId}:${activeContact.conversationKey}` : null,
+    scrollRef,
+    hasEarlierMessages,
+    loadEarlierMessages,
+    pauseFollowing: () => { nearBottomRef.current = false; setIsNearBottom(false); },
+  });
 
 
   // Mark incoming messages as read when this conversation is opened
@@ -168,90 +196,6 @@ export default function ConversationView({
     void markAsRead();
   }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
-  // Realtime: new messages + typing presence
-  useEffect(() => {
-    if (!activeContact || !conversationId) return;
-
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-
-    const channel = supabase
-      .channel(`conversation:${conversationId}`, {
-        config: { presence: { key: currentUserId } },
-      })
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat",
-          filter: `sender_id=eq.${activeContact.id}`,
-        },
-        (payload: { new: Record<string, unknown> }) => {
-          const incoming = payload.new as unknown as ChatMessage;
-          if (apartmentId && incoming.apartment_id !== apartmentId) return;
-          if (incoming.receiver_id !== currentUserId) return;
-
-          setMessages((prev) =>
-            prev.some((m) => m.id === incoming.id)
-              ? prev
-              : [...prev, { ...incoming, reactions: incoming.reactions ?? [] }]
-          );
-
-          void supabase
-            .from("chat")
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq("id", incoming.id)
-            .eq("receiver_id", currentUserId)
-            .eq("is_read", false);
-
-          onConversationRead?.(activeContact.conversationKey);
-        }
-      )
-      // Reactions live in their own table, so the `chat` INSERT subscription
-      // above never fires for them. Without this the other person's reaction
-      // only appeared on the next reload.
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "chat_reactions",
-        },
-        () => {
-          void refreshMessages();
-        }
-      )
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<{ isTyping: boolean }>();
-        const contactState = state[activeContact.id];
-        setIsContactTyping(contactState?.[0]?.isTyping ?? false);
-      })
-      .subscribe((status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR") => {
-        if (status === "SUBSCRIBED") {
-          void channel.track({ isTyping: false });
-        }
-      });
-
-    channelRef.current = channel;
-
-    return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
-    };
-  }, [
-    activeContact,
-    apartmentId,
-    conversationId,
-    currentUserId,
-    supabase,
-    setMessages,
-    onConversationRead,
-    refreshMessages,
-  ]);
-
   /**
    * Owns the "follow the bottom" flag. Sampled on scroll, and again
    * whenever the thread grows so the decision uses the position from
@@ -259,6 +203,12 @@ export default function ConversationView({
    */
   // Not memoized by hand — `reactCompiler` is on and preserves this shape.
   const handleThreadScroll = () => {
+    // Do not re-arm bottom-follow while pagination or smooth reply navigation
+    // is moving the viewport, even if it started within the 150px threshold.
+    if (replyNavigation.notice || replyNavigation.highlightedId) {
+      nearBottomRef.current = false;
+      return;
+    }
     const el = scrollRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -322,7 +272,6 @@ export default function ConversationView({
    */
   useEffect(() => {
     if (messageCount === 0) {
-      bottomRef.current?.scrollIntoView({ behavior: "auto" });
       return;
     }
     if (!nearBottomRef.current) return;
@@ -345,9 +294,9 @@ export default function ConversationView({
 
   const handleTypingChange = useCallback(
     async (isTyping: boolean) => {
-      if (channelRef.current) await channelRef.current.track({ isTyping });
+      await trackTyping(isTyping);
     },
-    []
+    [trackTyping]
   );
 
   const handleCopy = useCallback(async (text: string) => {
@@ -390,47 +339,17 @@ export default function ConversationView({
           empty right end of this row on the messages route — pinned and never
           draggable, so it cannot cover the thread; `data-fab-clearance` still
           keeps it off this row on routes that offer no dock. */}
-      <div data-fab-clearance="conversation-header" data-fab-dock="conversation-header" className="p-3 border-b border-border flex items-center gap-3 bg-card shadow-sm z-10 sm:gap-4">
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back to conversations"
-            className="-ml-1 shrink-0 rounded-lg p-2 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
-          >
-            <IconChevronLeft size={20} aria-hidden="true" />
-          </button>
-        )}
-        <UserAvatar
-          src={activeContact.avatar}
-          initials={activeContact.name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((part) => part[0]?.toUpperCase() ?? "")
-            .join("")}
-          alt={activeContact.name}
-          size="lg"
-        />
-
-        <div>
-          <h2 className="text-base font-bold text-foreground leading-tight">
-            {activeContact.name}
-          </h2>
-          <p className="text-xs text-muted-foreground font-medium">
-            {activeContact.apartment}
-          </p>
-        </div>
-      </div>
+      <ConversationHeader contact={activeContact} onBack={onBack} />
+      <ConversationApartmentRow apartment={apartment} hasApartmentId={Boolean(activeContact.apartmentId)} loading={contextLoading} />
 
       {/* Chat History */}
-      {/* `data-chat-scroll` is the clipping boundary the reaction strip measures
-          against when deciding whether it can float above a message. */}
+      {/* The jump control stays within the history pane, above the composer. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
       <ScrollShadow
         ref={scrollRef}
         data-chat-scroll
         onScroll={handleThreadScroll}
-        className="min-h-0 flex-1 overflow-y-auto bg-muted/20 dark:bg-background p-4"
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4"
         visibility="none"
       >
         {hasEarlierMessages && (
@@ -440,6 +359,7 @@ export default function ConversationView({
               size="sm"
               onPress={() => void handleLoadEarlier()}
               isPending={isLoadingEarlier}
+              isDisabled={replyNavigation.locating}
             >
               Load earlier messages
             </Button>
@@ -451,9 +371,10 @@ export default function ConversationView({
             <Spinner size="md" color="accent" />
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div data-message-timeline className="flex w-full min-w-0 flex-col">
+            {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} role="Landlord" verified={context.verified} apartment={apartment} /> : null}
             {messages.length === 0 ? (
-              <div className="flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-default-500">
+              <div className="flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
                 <p className="text-sm font-medium text-foreground">No messages yet</p>
                 <p className="text-xs text-default-500">
                   Say hi to start the conversation.
@@ -461,34 +382,46 @@ export default function ConversationView({
               </div>
             ) : (
               messages.map((msg, index) => (
+                <Fragment key={msg.id}>
+                {(index === 0 || new Date(messages[index - 1].created_at).toDateString() !== new Date(msg.created_at).toDateString()) && (
+                  <p className="my-5 text-center font-inter text-[11px] text-muted-foreground"><time dateTime={msg.created_at}>{new Date(msg.created_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</time></p>
+                )}
                 <MessageBubble
                   key={msg.id}
                   message={msg}
                   isMine={msg.sender_id === currentUserId}
                   otherUserName={activeContact.name}
+                  otherUserAvatar={activeContact.avatar}
                   groupPosition={getGroupPosition(messages, index)}
-                  hasLaterMessageFromSender={
-                    index < messages.length - 1 &&
-                    messages[index + 1].sender_id === msg.sender_id
-                  }
+                  isContextMenuOpen={contextMenu?.message.id === msg.id}
+                  isLatestOutgoing={msg.id === latestOutgoingId}
                   onToggleReaction={toggleReaction}
                   onReply={handleReply}
+                  onJumpToOriginal={replyNavigation.jumpToOriginal}
+                  isReplyHighlighted={replyNavigation.highlightedId === msg.id}
                   onOpenContextMenu={(position) => openContextMenu(msg, position)}
                 />
+                </Fragment>
               ))
             )}
 
             {isContactTyping && <TypingIndicator />}
 
-            <div ref={bottomRef} />
+            <div ref={bottomRef} className="h-1 shrink-0" />
           </div>
         )}
       </ScrollShadow>
+      {replyNavigation.notice ? (
+        <div className="absolute bottom-3 left-1/2 z-20 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+          <p role="status" aria-live="polite" className="min-w-0 flex-1 text-xs text-muted-foreground">{replyNavigation.notice}</p>
+          <Button variant="ghost" size="sm" onPress={replyNavigation.dismiss}>{replyNavigation.locating ? "Cancel" : "Dismiss"}</Button>
+        </div>
+      ) : null}
 
       {/* Jump-to-latest. Only mounted when the reader has scrolled away from
           the newest message, which is exactly the state in which auto-scroll
           deliberately does not follow. */}
-      {!isNearBottom && (
+      {!isNearBottom && !replyNavigation.notice && (
         <button
           type="button"
           onClick={jumpToLatest}
@@ -498,6 +431,7 @@ export default function ConversationView({
           <IconArrowDown size={20} aria-hidden="true" />
         </button>
       )}
+      </div>
 
       {sendError?.key === activeContact.conversationKey ? (
         <div className="px-4">

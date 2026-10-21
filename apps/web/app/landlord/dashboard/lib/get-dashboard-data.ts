@@ -54,7 +54,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         .is("deleted_at", null),
       supabase
         .from("payment")
-        .select("amount, date, status, due_date")
+        .select("amount:rental_income_amount, date, status, due_date")
         .eq("landlord_id", landlordId),
     ]);
 

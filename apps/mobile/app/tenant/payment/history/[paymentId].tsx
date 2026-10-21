@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Button, Spinner } from 'heroui-native'
@@ -54,8 +54,9 @@ export default function PaymentReceipt() {
           )}
         </View>
       ) : (
-        <View className="flex-1 justify-center gap-6">
+        <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 24, paddingVertical: 16 }}>
           <ReceiptCard
+            payment={payment}
             apartmentName={payment.apartment_name ?? '—'}
             landlordName={payment.landlord_name ?? '—'}
             date={new Intl.DateTimeFormat('en-PH', { dateStyle: 'full' }).format(paymentDate!)}
@@ -74,7 +75,7 @@ export default function PaymentReceipt() {
               Cash payment is pending — the landlord will confirm once received.
             </Text>
           ) : null}
-        </View>
+        </ScrollView>
       )}
     </View>
   )

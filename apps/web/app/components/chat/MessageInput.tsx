@@ -1,19 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Button, Input } from "@heroui/react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { Button, TextArea } from "@heroui/react";
 import {
   IconMoodSmile,
-  IconPaperclip,
-  IconPhotoPlus,
+  IconCirclePlusFilled,
+  IconPhotoFilled,
+  IconGif,
   IconSend,
+  IconFileText,
   IconX,
 } from "@tabler/icons-react";
 
 import EmojiInsertPanel from "./EmojiInsertPanel";
 import GiphyPickerSheet from "./GiphyPickerSheet";
+import { chatAttachmentMimeType, formatChatAttachmentSize } from "@repo/utils";
 import {
   MAX_ATTACHMENTS_PER_MESSAGE,
+  CHAT_ATTACHMENT_ACCEPT,
   generateAttachmentId,
   resolveMessageType,
   validateAttachmentFile,
@@ -38,7 +42,7 @@ interface MessageInputProps {
 
 /**
  * The conversation composer: text, emoji insertion, GIF search and staged
- * image/video attachments.
+ * image/video attachments and PDF/DOCX documents.
  *
  * Attachments are staged rather than sent on pick, so several files can be
  * combined into one batch and reviewed before anything leaves the device. GIFs
@@ -59,9 +63,11 @@ export default function MessageInput({
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isGiphyOpen, setIsGiphyOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const hintId = useId();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Staged previews are object URLs, so they must be revoked when the item is
@@ -113,8 +119,19 @@ export default function MessageInput({
     onTypingChange?.(typing);
   }, [onTypingChange]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const field = inputRef.current;
+    if (!field) return;
+    field.style.overflowY = "hidden";
+    field.style.height = "auto";
+    const borderHeight = field.offsetHeight - field.clientHeight;
+    field.style.height = `${Math.min(field.scrollHeight + borderHeight, 144)}px`;
+    field.style.overflowY = field.scrollHeight > field.clientHeight ? "auto" : "hidden";
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
+    setShowAttachmentOptions(false);
 
     if (e.target.value.trim()) {
       setTyping(true);
@@ -146,10 +163,10 @@ export default function MessageInput({
   /** Inserts an emoji at the caret, replacing any selection. */
   const insertEmoji = useCallback((emoji: string) => {
     const input = inputRef.current;
+    const start = input?.selectionStart;
+    const end = input?.selectionEnd;
     setValue((current) => {
-      const start = input?.selectionStart ?? current.length;
-      const end = input?.selectionEnd ?? current.length;
-      return `${current.slice(0, start)}${emoji}${current.slice(end)}`;
+      return `${current.slice(0, start ?? current.length)}${emoji}${current.slice(end ?? current.length)}`;
     });
 
     // The panel deliberately stays open so several emoji can be picked in a
@@ -159,7 +176,7 @@ export default function MessageInput({
       const field = inputRef.current;
       if (!field) return;
       const caret =
-        (input?.selectionStart ?? field.value.length) + emoji.length;
+        (start ?? 0) + emoji.length;
       field.focus();
       field.setSelectionRange(caret, caret);
     });
@@ -204,8 +221,8 @@ export default function MessageInput({
           id: generateAttachmentId(),
           file,
           previewUrl: URL.createObjectURL(file),
-          messageType: resolveMessageType(file.type),
-          mimeType: file.type,
+          messageType: resolveMessageType(chatAttachmentMimeType(file)),
+          mimeType: chatAttachmentMimeType(file),
         });
       }
 
@@ -231,6 +248,7 @@ export default function MessageInput({
   );
 
   const canSend = Boolean(value.trim()) || staged.length > 0;
+  const attachmentOptionsCollapsed = value.length > 0 && !showAttachmentOptions;
 
   const handleSend = useCallback((): void => {
     if (isSending) return;
@@ -257,8 +275,8 @@ export default function MessageInput({
     setValue("");
   }, [isSending, onSend, onSendAttachments, staged, stopTyping, value]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault();
       handleSend();
     }
@@ -273,13 +291,13 @@ export default function MessageInput({
   );
 
   const iconButtonClass =
-    "flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+    "flex size-11 sm:size-9 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
   return (
     // `relative` anchors the floating emoji panel above the composer. Without
     // it the panel can only be laid out in flow, which inflates the composer
     // and crushes the message thread.
-    <div className="relative border-t border-border bg-card">
+    <div data-fab-clearance="messages-composer" className="relative shrink-0 border-t border-border bg-card">
       {replyTarget && (
         <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -306,9 +324,17 @@ export default function MessageInput({
           {staged.map((item) => (
             <div
               key={item.id}
-              className="group relative size-16 overflow-hidden rounded-xl border border-border bg-muted"
+              className={`group relative overflow-hidden rounded-xl border border-border bg-muted ${item.messageType === "file" ? "flex h-16 w-52 items-center gap-2 p-2 pr-6" : "size-16"}`}
             >
-              {item.messageType === "video" ? (
+              {item.messageType === "file" ? (
+                <>
+                  <IconFileText size={24} className="shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm text-foreground" title={item.file.name}>{item.file.name}</span>
+                    <span className="block text-xs text-muted-foreground">{formatChatAttachmentSize(item.file.size)}</span>
+                  </span>
+                </>
+              ) : item.messageType === "video" ? (
                 <video
                   src={item.previewUrl}
                   preload="metadata"
@@ -337,11 +363,11 @@ export default function MessageInput({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 p-4">
+      <div className="flex items-end gap-1 px-2 py-2 sm:gap-1.5 sm:px-3">
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
+          accept={CHAT_ATTACHMENT_ACCEPT}
           multiple
           className="hidden"
           onChange={(e) => {
@@ -351,37 +377,50 @@ export default function MessageInput({
           }}
         />
 
-        <button
+        {attachmentOptionsCollapsed && <button
           type="button"
           className={iconButtonClass}
-          onClick={() => fileInputRef.current?.click()}
-          aria-label="Attach photos or videos"
+          onClick={() => setShowAttachmentOptions(true)}
+          aria-label="Show attachment options"
         >
-          <IconPaperclip size={20} aria-hidden="true" />
-        </button>
+          <IconCirclePlusFilled size={22} aria-hidden="true" />
+        </button>}
 
-        <button
-          type="button"
-          className={iconButtonClass}
-          onClick={() => setIsGiphyOpen(true)}
-          aria-label="Send a GIF"
-        >
-          <IconPhotoPlus size={20} aria-hidden="true" />
-        </button>
+        {!attachmentOptionsCollapsed && <>
+          <button
+            type="button"
+            className={iconButtonClass}
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach photos, videos or documents"
+            title="Attach images, videos, PDF or DOCX · Up to 25 MB per file"
+          >
+            <IconPhotoFilled size={22} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={iconButtonClass}
+            onClick={() => setIsGiphyOpen(true)}
+            aria-label="Send a GIF"
+          >
+            <IconGif size={22} aria-hidden="true" />
+          </button>
+        </>}
 
-        <div className="min-w-0 flex-1">
-          <Input
+        <div data-composer-field className="apt-message-composer-field flex min-w-0 flex-1 items-end">
+          <TextArea
             ref={inputRef}
             value={value}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Aa"
+            rows={1}
+            name="message"
+            autoComplete="off"
             fullWidth
-            className="rounded-full"
+            className="apt-message-draft"
             aria-label="Message"
+            aria-describedby={hintId}
           />
-        </div>
-
         <button
           ref={emojiButtonRef}
           type="button"
@@ -393,18 +432,21 @@ export default function MessageInput({
         >
           <IconMoodSmile size={20} aria-hidden="true" />
         </button>
+        </div>
 
         <Button
-          className="px-6 font-medium"
+          isIconOnly
+          variant="ghost"
+          className="apt-composer-send"
           onPress={handleSend}
           isDisabled={!canSend || isSending}
           isPending={isSending}
           aria-label="Send message"
         >
-          <IconSend size={18} aria-hidden="true" />
-          Send
+          <IconSend size={22} aria-hidden="true" />
         </Button>
       </div>
+      <p id={hintId} className="sr-only">Enter to send · Shift+Enter for a new line</p>
 
       {isEmojiOpen && (
         <EmojiInsertPanel

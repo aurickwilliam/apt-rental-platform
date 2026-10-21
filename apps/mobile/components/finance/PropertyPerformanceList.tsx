@@ -3,38 +3,13 @@ import { Button } from "heroui-native";
 import { IconChevronRight } from "@tabler/icons-react-native";
 import {
   financePerformanceValue,
-  formatPesoDisplay,
   formatFinanceMoney,
+  formatPesoDisplay,
   rankFinanceProperties,
-  type PropertyPerformanceMetric,
 } from "@repo/utils";
-import { FinanceTabs } from "./FinanceControls";
+import type { PropertyPerformanceMetric } from "./PropertyPerformanceTabs";
 import { useColors } from "@/hooks/useTheme";
 import type { PropertyPerformance } from "@/service/finance/financeService";
-
-export type { PropertyPerformanceMetric };
-
-const METRIC_OPTIONS: { value: PropertyPerformanceMetric; label: string }[] = [
-  { value: "collected", label: "Collected" },
-  { value: "expenses", label: "Expenses" },
-  { value: "net", label: "Net income" },
-];
-
-export function PropertyPerformanceTabs({
-  value,
-  onChange,
-}: {
-  value: PropertyPerformanceMetric;
-  onChange: (value: PropertyPerformanceMetric) => void;
-}) {
-  return (
-    <FinanceTabs
-      value={value}
-      onChange={(nextValue) => onChange(nextValue as PropertyPerformanceMetric)}
-      options={METRIC_OPTIONS}
-    />
-  );
-}
 
 /** Ranked property rows, shared by the overview card and its full page. */
 export default function PropertyPerformanceList({

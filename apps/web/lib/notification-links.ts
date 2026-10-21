@@ -4,9 +4,16 @@
  * Every destination below is an existing web route (verified against
  * app/tenant, app/landlord, and the admin verification review pages).
  * Rows whose payload cannot address a route in the active portal resolve to
- * null so the row renders read-only instead of navigating somewhere broken.
+ * `href: null` so the row renders read-only instead of navigating somewhere
+ * broken.
+ *
+ * Chat rows additionally report `conversationTargeted`: true only when the
+ * payload named the peer and an exact thread URL was built. The drawer uses
+ * it to acknowledge a grouped burst only once the intended conversation —
+ * never the inbox fallback — was resolved.
  */
 
+import { getContactConversationKey } from "./conversation-contacts";
 import type { ActivePortal } from "./notification-audience";
 
 export interface LinkNotificationData {
@@ -18,6 +25,20 @@ export interface LinkNotificationData {
   visitRequestId?: unknown;
   documentId?: unknown;
   verificationId?: unknown;
+  senderId?: unknown;
+}
+
+export interface NotificationTarget {
+  /** Route to open, or null when the payload addresses nothing in this portal. */
+  href: string | null;
+  /** True only when `href` opens the exact chat conversation the payload names. */
+  conversationTargeted: boolean;
+}
+
+const NO_TARGET: NotificationTarget = { href: null, conversationTargeted: false };
+
+function target(href: string | null): NotificationTarget {
+  return { href, conversationTargeted: false };
 }
 
 function text(value: unknown): string | null {
@@ -29,12 +50,31 @@ function payloadOf(data: unknown): LinkNotificationData {
   return data as LinkNotificationData;
 }
 
-export function resolveNotificationHref(
-  data: unknown,
+/**
+ * Thread URL for a chat payload, built in the web conversation key format
+ * (`{peerId}:{apartmentId|'none'}`, see ARCHITECTURE.md §8.1). The mobile
+ * `conversationKey` in the payload is intentionally ignored: it encodes
+ * sorted participant ids, which web thread routes do not accept. Without a
+ * peer id there is no thread to address and the caller falls back to the
+ * portal inbox.
+ */
+function chatConversationHref(
+  payload: LinkNotificationData,
   portal: ActivePortal,
 ): string | null {
+  if (portal === "admin") return null;
+  const peerId = text(payload.senderId);
+  if (!peerId) return null;
+  const conversationKey = getContactConversationKey(peerId, text(payload.apartmentId));
+  return `/${portal === "landlord" ? "landlord" : "tenant"}/messages?conversation=${conversationKey}`;
+}
+
+export function resolveNotificationTarget(
+  data: unknown,
+  portal: ActivePortal,
+): NotificationTarget {
   const payload = payloadOf(data);
-  if (typeof payload.screen !== "string") return null;
+  if (typeof payload.screen !== "string") return NO_TARGET;
 
   const apartmentId = text(payload.apartmentId);
   const paymentId = text(payload.paymentId);
@@ -47,74 +87,82 @@ export function resolveNotificationHref(
   switch (payload.screen) {
     case "payments":
       if (portal === "landlord") {
-        return paymentId ? `/landlord/payments/${paymentId}` : "/landlord/payments";
+        return target(paymentId ? `/landlord/payments/${paymentId}` : "/landlord/payments");
       }
       if (portal === "tenant") {
         // No tenant payment-detail route exists; the history list is the target.
-        return "/tenant/payment/history";
+        return target("/tenant/payment/history");
       }
       // No admin payment surface; admin payment rows stay hidden by audience.
-      return null;
+      return NO_TARGET;
     case "maintenance":
       if (portal === "landlord") {
-        return maintenanceId
-          ? `/landlord/maintenance-requests/${maintenanceId}`
-          : "/landlord/maintenance-requests";
+        return target(
+          maintenanceId
+            ? `/landlord/maintenance-requests/${maintenanceId}`
+            : "/landlord/maintenance-requests",
+        );
       }
-      if (portal === "tenant") return "/tenant/maintenance";
-      return null;
+      if (portal === "tenant") return target("/tenant/maintenance");
+      return NO_TARGET;
     case "apartment":
       // Tenant application outcomes land on the apartment. Landlord rows
       // never carry this screen (theirs is 'application').
-      if (portal !== "tenant" || !apartmentId) return null;
-      return `/tenant/browse/${apartmentId}`;
+      if (portal !== "tenant" || !apartmentId) return NO_TARGET;
+      return target(`/tenant/browse/${apartmentId}`);
     case "application":
-      if (portal !== "landlord") return null;
-      return applicationId
-        ? `/landlord/applications/${applicationId}`
-        : "/landlord/applications";
+      if (portal !== "landlord") return NO_TARGET;
+      return target(
+        applicationId ? `/landlord/applications/${applicationId}` : "/landlord/applications",
+      );
     case "visitRequests":
       if (portal === "landlord") {
-        return visitRequestId
-          ? `/landlord/visit-requests/${visitRequestId}`
-          : "/landlord/visit-requests";
+        return target(
+          visitRequestId
+            ? `/landlord/visit-requests/${visitRequestId}`
+            : "/landlord/visit-requests",
+        );
       }
-      if (portal === "tenant") return "/tenant/applications";
-      return null;
-    case "chat":
-      // The payload conversationKey uses the mobile key format, which web
-      // thread routes do not accept — land on the portal inbox instead.
-      // Admins have no inbox; their chat rows stay read-only.
-      if (portal === "landlord") return "/landlord/messages";
-      if (portal === "tenant") return "/tenant/messages";
-      return null;
+      if (portal === "tenant") return target("/tenant/applications");
+      return NO_TARGET;
+    case "chat": {
+      const conversationHref = chatConversationHref(payload, portal);
+      if (conversationHref) {
+        return { href: conversationHref, conversationTargeted: true };
+      }
+      // No peer identity in the payload (or an admin, who has no inbox):
+      // land on the portal inbox when one exists.
+      if (portal === "landlord") return target("/landlord/messages");
+      if (portal === "tenant") return target("/tenant/messages");
+      return NO_TARGET;
+    }
     case "verification":
       // Review outcomes land on the recipient's portal profile. Submitted
       // verifications notify admins and deep-link to the review queue by
       // verification row id.
       if (portal === "admin") {
-        return verificationId
-          ? `/admin/verification/users/${verificationId}`
-          : "/admin/verification";
+        return target(
+          verificationId ? `/admin/verification/users/${verificationId}` : "/admin/verification",
+        );
       }
-      return portal === "landlord" ? "/landlord/profile" : "/tenant/profile";
+      return target(portal === "landlord" ? "/landlord/profile" : "/tenant/profile");
     case "passport":
       // Own documents land on the portal wallet. Admins have no wallet;
       // their rows stay read-only.
       if (portal === "landlord") {
-        return documentId ? `/landlord/passport/${documentId}` : "/landlord/passport";
+        return target(documentId ? `/landlord/passport/${documentId}` : "/landlord/passport");
       }
       if (portal === "tenant") {
-        return documentId ? `/tenant/passport/${documentId}` : "/tenant/passport";
+        return target(documentId ? `/tenant/passport/${documentId}` : "/tenant/passport");
       }
-      return null;
+      return NO_TARGET;
     case "passportReview":
       // Admin-only review queue, keyed by passport-document row id.
-      if (portal !== "admin") return null;
-      return documentId
-        ? `/admin/verification/documents/${documentId}`
-        : "/admin/verification";
+      if (portal !== "admin") return NO_TARGET;
+      return target(
+        documentId ? `/admin/verification/documents/${documentId}` : "/admin/verification",
+      );
     default:
-      return null;
+      return NO_TARGET;
   }
 }

@@ -9,12 +9,10 @@ import {
 } from "@repo/utils";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import { BudgetEntryPage } from "@/components/finance/FinanceEntrySheet";
-import { FinanceError } from "@/components/finance/FinanceControls";
-import {
-  EntryFormFooterSkeleton,
-  EntryFormSkeleton,
-} from "@/components/finance/FinanceSkeleton";
+import BudgetEntryPage from "@/components/finance/BudgetEntryPage";
+import FinanceError from "@/components/finance/FinanceError";
+import EntryFormFooterSkeleton from "@/components/finance/EntryFormFooterSkeleton";
+import EntryFormSkeleton from "@/components/finance/EntryFormSkeleton";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
 import { financeErrorMessage } from "@/service/finance/financeService";

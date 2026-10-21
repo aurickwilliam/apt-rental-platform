@@ -1,109 +1,26 @@
 "use client";
 
 import { ScrollShadow } from "@heroui/react";
-import { Contact } from "./types";
-import UserAvatar from "@/app/components/profile/UserAvatar";
+import type { Contact } from "./types";
+import ConversationRow from "@/app/components/chat/ConversationRow";
 
 interface ContactSidebarProps {
   myLandlord: Contact[];
   pastInquiries: Contact[];
   activeContact: Contact | null;
   onSelectContact: (contact: Contact) => void;
-  /** Layout overrides, used for the mobile master-detail swap. */
   className?: string;
 }
 
-function SectionSeparator({ title }: { title: string }) {
+export default function ContactSidebar({ myLandlord, pastInquiries, activeContact, onSelectContact, className = "" }: ContactSidebarProps) {
+  const row = (contact: Contact) => <ConversationRow key={contact.conversationKey} contact={contact} isActive={activeContact?.conversationKey === contact.conversationKey} onSelect={() => onSelectContact(contact)} />;
   return (
-    <div className="px-4 py-3 flex flex-col gap-1">
-      <span className={`text-base font-medium ${title === "My Landlord" ? "text-primary" : "text-muted-foreground"}`}>
-        {title}
-      </span>
-      <div className="h-1 rounded-full bg-border" />
-    </div>
-  );
-}
-
-export default function ContactSidebar({
-  myLandlord,
-  pastInquiries,
-  activeContact,
-  onSelectContact,
-  className = "",
-}: ContactSidebarProps) {
-  const renderContact = (contact: Contact) => {
-    const isActive = activeContact?.conversationKey === contact.conversationKey;
-    const showUnreadBadge = contact.unreadCount > 0 && !isActive;
-    const unreadCountLabel = contact.unreadCount > 99 ? "99+" : String(contact.unreadCount);
-    return (
-      <div
-        key={contact.conversationKey}
-        onClick={() => onSelectContact(contact)}
-        className={`p-4 cursor-pointer border-b border-border/50 hover:bg-accent transition-colors flex items-center gap-3 border-l-4 ${
-          isActive
-            ? "bg-primary/10 hover:bg-primary/10 border-l-primary"
-            : "border-l-transparent"
-        }`}
-      >
-        <div className="relative">
-          {/* User Avatar */}
-          <UserAvatar
-            src={contact.avatar}
-            initials={contact.name
-              .split(" ")
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((part) => part[0]?.toUpperCase() ?? "")
-              .join("")}
-            alt={contact.name}
-            size="md"
-          />
-          
-          {showUnreadBadge && (
-            <span className="absolute -right-1.5 -top-1.5 min-w-[18px] px-1 h-[18px] rounded-full border-2 border-card bg-destructive text-destructive-foreground text-[10px] font-semibold leading-none flex items-center justify-center">
-              {unreadCountLabel}
-            </span>
-          )}
-        </div>
-
-        {/* Contact Info */}
-        <div className="flex-1 overflow-hidden">
-          <h3 className="font-semibold text-sm text-foreground truncate">{contact.name}</h3>
-          <p className="text-xs text-muted-foreground truncate">{contact.apartment}</p>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    // The 300px floor that suited a split pane starves the thread on
-    // narrow screens, so the list only takes a fixed share from md up.
-    // `data-fab-clearance` keeps the floating notifications bell off the
-    // conversation rows; it settles on the opposite edge instead.
-    <div data-fab-clearance="messages-contact-list" className={`w-full min-h-0 flex-col border-r border-border bg-card md:flex md:w-1/3 md:min-w-[300px] md:max-w-[400px] md:shrink-0 ${className}`}>
-      <div className="p-4 border-b border-border">
-        <p className="text-xs text-muted-foreground">Conversations</p>
-      </div>
-
-      <ScrollShadow
-        className="min-h-0 flex-1 overflow-y-auto mask-none"
-        visibility="none"
-      >
-        {myLandlord.length > 0 && (
-          <>
-            <SectionSeparator title="My Landlord" />
-            {myLandlord.map(renderContact)}
-          </>
-        )}
-
-        <SectionSeparator title="Past Inquiries" />
-        {pastInquiries.length === 0 ? (
-          <div className="px-8 pb-8 text-center text-muted-foreground text-sm">
-            No past inquiries yet.
-          </div>
-        ) : (
-          pastInquiries.map(renderContact)
-        )}
+    <div data-fab-clearance="messages-contact-list" className={`w-full min-h-0 flex-col border-r border-border bg-card lg:w-80 lg:shrink-0 xl:w-88 ${className}`}>
+      <div className="border-b border-border px-5 py-4"><h2 className="font-nunito text-lg font-bold">Conversations</h2><p className="mt-0.5 text-xs text-muted-foreground">Your rental conversations, in one place.</p></div>
+      <ScrollShadow className="min-h-0 flex-1 overflow-y-auto p-2" visibility="none">
+        {myLandlord.length > 0 && <><h3 className="px-3 pb-2 pt-3 font-nunito text-xs font-bold text-brand">My Landlord</h3>{myLandlord.map(row)}</>}
+        <h3 className="px-3 pb-2 pt-5 font-nunito text-xs font-bold text-muted-foreground">Past Inquiries</h3>
+        {pastInquiries.length > 0 ? pastInquiries.map(row) : <p className="px-3 py-5 text-xs text-muted-foreground">No past inquiries yet.</p>}
       </ScrollShadow>
     </div>
   );

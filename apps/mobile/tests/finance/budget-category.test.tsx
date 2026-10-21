@@ -1,6 +1,7 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps } from "react-native";
-import { fireEvent, render } from "@testing-library/react-native";
+import { RefreshControl } from "react-native";
+import { fireEvent, render, within } from "@testing-library/react-native";
 import BudgetCategoryScreen from "@/app/landlord/budget-category";
 
 const mockParams: {
@@ -115,7 +116,7 @@ jest.mock("@/service/finance/financeService", () => ({
   financeErrorMessage: () => "Failed",
 }));
 jest.mock("heroui-native", () => {
-  const { Pressable, Text } = jest.requireActual("react-native");
+  const { Pressable, Text, View } = jest.requireActual("react-native");
   function Button({
     children,
     isDisabled,
@@ -132,6 +133,10 @@ jest.mock("heroui-native", () => {
   };
   return {
     Button,
+    // The HeroUI spinner stands in for the pull-to-refresh indicator.
+    Spinner: ({ accessibilityLabel }: { accessibilityLabel?: string }) => (
+      <View accessibilityLabel={accessibilityLabel} />
+    ),
     useToast: () => ({ toast: { show: jest.fn() } }),
   };
 });
@@ -154,25 +159,14 @@ jest.mock("@/components/layout/StandardHeader", () => {
     return mockHeader(props);
   };
 });
-jest.mock("@/components/finance/FinanceSkeleton", () => {
+jest.mock("@/components/finance/BudgetCategorySkeleton", () => {
   const { View: NativeView } = jest.requireActual("react-native");
-  return function Skeleton() {
-    return <NativeView testID="finance-skeleton" />;
-  };
-});
-jest.mock("@/components/finance/FinanceControls", () => {
-  const { Text } = jest.requireActual("react-native");
   return {
-    FinanceError: (props: { message?: string; onRetry: () => void }) =>
-      mockFinanceError(props),
-    MoneyRow: ({ label, amount }: { label: string; amount: number | null }) => (
-      <Text>
-        {label}: {amount === null ? "Not calculated" : amount}
-      </Text>
-    ),
+    __esModule: true,
+    default: () => <NativeView testID="finance-skeleton" />,
   };
 });
-jest.mock("@/components/finance/FinanceEntrySheet", () => ({}));
+jest.mock("@/components/finance/FinanceError", () => (props: { message?: string; onRetry: () => void }) => mockFinanceError(props));
 
 describe("Budget category route", () => {
   beforeEach(() => {
@@ -188,6 +182,7 @@ describe("Budget category route", () => {
     mockFinance.report.isLoading = false;
     mockFinance.report.isRefetching = false;
     mockFinance.report.error = undefined;
+    mockFinance.report.data.budgets = [maintenance, maintenanceStudio, utilities, insurance];
   });
 
   test("lists every property holding the category's budget with what it spent", () => {
@@ -209,12 +204,29 @@ describe("Budget category route", () => {
     expect(screen.getByText("Villa")).toBeTruthy();
     expect(screen.getByText("Studio")).toBeTruthy();
     expect(screen.getByText(/₱ 4,200 \/ ₱ 3,000/)).toBeTruthy();
-    expect(screen.getByText(/₱ 1,200 over budget · 140% used/)).toBeTruthy();
+    expect(screen.getByText("140% used")).toBeTruthy();
+    expect(screen.getByText("₱ 1,200 over budget")).toBeTruthy();
     expect(screen.getByText(/₱ 200 \/ ₱ 1,000/)).toBeTruthy();
     expect(screen.getByText(/₱ 800 remaining/)).toBeTruthy();
     // Other categories and reserve plans never leak into this page.
     expect(screen.queryByText(/₱ 500 \/ ₱ 2,000/)).toBeNull();
     expect(screen.queryByText(/Villa: 1000/)).toBeNull();
+  });
+
+  test("shows the HeroUI spinner while refreshing and hides the native indicator", () => {
+    mockFinance.report.isRefetching = true;
+    const screen = render(<BudgetCategoryScreen />);
+
+    // Only the HeroUI spinner is visible while the report refetches.
+    expect(screen.getByLabelText("Refreshing")).toBeTruthy();
+
+    const nativeControl = screen.UNSAFE_getByType(RefreshControl);
+    expect(nativeControl.props).toMatchObject({
+      refreshing: false,
+      tintColor: "transparent",
+      colors: ["transparent"],
+      progressBackgroundColor: "transparent",
+    });
   });
 
   test("a reserve category lists planned amounts instead of spending", () => {
@@ -226,14 +238,57 @@ describe("Budget category route", () => {
     );
     expect(screen.getByText("Planned reserves · September 2026")).toBeTruthy();
     expect(screen.getByText("₱ 1,000 planned across 1 property")).toBeTruthy();
+    expect(screen.queryByText("Apartment name")).toBeNull();
+    expect(screen.queryByText("Amount")).toBeNull();
     expect(screen.getAllByTestId("budget-property-card")).toHaveLength(1);
-    expect(screen.getByText(/Villa: 1000/)).toBeTruthy();
-    expect(screen.getByText("planned this month")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(/Villa, planned ₱ 1,000 this month/));
+    expect(screen.getByText("Villa").props.className).toContain(
+      "font-nunitoSemiBold",
+    );
+    expect(screen.getByText("₱ 1,000 / month")).toBeTruthy();
+    expect(screen.getByText("₱ 12,000")).toBeTruthy();
+    expect(screen.getByText("Goal amount")).toBeTruthy();
+    const header = screen.getByTestId("reserve-card-header");
+    expect(header.props.className).toContain("flex-row");
+    expect(within(header).getByText("Villa")).toBeTruthy();
+    expect(within(header).queryByText("Goal amount")).toBeNull();
+    const amounts = screen.getByTestId("reserve-card-amounts");
+    expect(amounts.props.className).toContain("flex-row items-center");
+    expect(within(amounts).getByText("Goal amount")).toBeTruthy();
+    expect(within(amounts).getByText("₱ 12,000")).toBeTruthy();
+    expect(within(amounts).getByText("₱ 1,000 / month")).toBeTruthy();
+    expect(screen.getByText("Goal spread across 12 months. This is a plan, not money transferred.")).toBeTruthy();
+    expect(screen.queryByText("planned this month")).toBeNull();
+    fireEvent.press(screen.getByLabelText(/Reserve for Villa. ₱ 1,000 per month/));
     expect(mockPush).toHaveBeenLastCalledWith({
       pathname: "/landlord/edit-budget",
       params: { id: insurance.id, month: "2026-09" },
     });
+  });
+
+  test("reserve cards show saved allocations rather than recalculating them", () => {
+    mockParams.category = "insurance";
+    mockParams.kind = "reserve";
+    mockFinance.report.data.budgets = [
+      { ...insurance, amount: 500 },
+      { ...insurance, id: "reserve-studio", apartment_id: "studio", amount: 2000, target_amount: null, months_remaining: null },
+    ];
+    const screen = render(<BudgetCategoryScreen />);
+    expect(screen.getAllByTestId("budget-property-card")).toHaveLength(2);
+    expect(screen.getByText("₱ 500 / month")).toBeTruthy();
+    expect(screen.getByText("₱ 2,000")).toBeTruthy();
+    expect(screen.queryByText("₱ 2,000 / month")).toBeNull();
+    expect(screen.getByText("Monthly allocation")).toBeTruthy();
+    const studioCard = screen.getAllByTestId("budget-property-card").find(
+      (card) => within(card).queryByText("Studio"),
+    )!;
+    expect(within(studioCard).queryByText("Goal amount")).toBeNull();
+    expect(within(studioCard).queryByText(/Goal spread across/)).toBeNull();
+    expect(screen.getAllByText(/Goal spread across/)).toHaveLength(1);
+    expect(screen.getAllByText("Goal amount")).toHaveLength(1);
+    expect(screen.queryByText("Total needed")).toBeNull();
+    expect(screen.getByText("₱ 12,000")).toBeTruthy();
+    expect(screen.queryByText("₱ 1,000 / month")).toBeNull();
+    expect(screen.getAllByTestId("budget-property-card")[0].props.className).toContain("rounded-3xl");
   });
 
   test("an applied property filter travels with the page", () => {
@@ -248,7 +303,7 @@ describe("Budget category route", () => {
 
   test("editing a property's budget opens its edit page", () => {
     const screen = render(<BudgetCategoryScreen />);
-    fireEvent.press(screen.getByLabelText(/Villa, spent this month/));
+    fireEvent.press(screen.getByLabelText(/^Villa\. Spent/));
     expect(mockPush).toHaveBeenLastCalledWith({
       pathname: "/landlord/edit-budget",
       params: { id: maintenance.id, month: "2026-09" },

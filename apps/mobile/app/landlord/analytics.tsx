@@ -17,7 +17,6 @@ import {
   formatPesoDisplay,
   manilaToday,
   type BudgetKind,
-  type FinanceBudget,
   type FinanceCategory,
 } from "@repo/utils";
 
@@ -40,12 +39,10 @@ import {
   type CollectionStatus,
   type FinanceScope,
 } from "@/service/finance/financeService";
-import {
-  FinanceCard,
-  FinanceHeading,
-  FinanceTabs,
-  MoneyRow,
-} from "@/components/finance/FinanceControls";
+import FinanceCard from "@/components/finance/FinanceCard";
+import FinanceHeading from "@/components/finance/FinanceHeading";
+import FinanceTabs from "@/components/finance/FinanceTabs";
+import MoneyRow from "@/components/finance/MoneyRow";
 import IncomeTrendChart from "@/components/finance/IncomeTrendChart";
 import EarningsSummaryCard from "@/components/finance/EarningsSummaryCard";
 import ExpenseCategoryChart from "@/components/finance/ExpenseCategoryChart";
@@ -149,18 +146,6 @@ function LandlordAnalytics() {
         kind,
         month,
         ...(apartmentId ? { apartmentId } : {}),
-      },
-    });
-  };
-  // Editing has its own page too, seeded from the plan this report already holds.
-  const openBudgetEditor = (budget: FinanceBudget, amount?: number) => {
-    router.push({
-      pathname: "/landlord/edit-budget",
-      params: {
-        id: budget.id,
-        month,
-        ...(apartmentId ? { apartmentId } : {}),
-        ...(amount !== undefined ? { amount: String(amount) } : {}),
       },
     });
   };
@@ -482,7 +467,7 @@ function LandlordAnalytics() {
                   variant="secondary"
                   onPress={() => changeTab("budget")}
                 >
-                  <Button.Label>View budgets & suggestions</Button.Label>
+                  <Button.Label>View budgets</Button.Label>
                 </Button>
               </FinanceCard>
               <PropertyPerformanceChart
@@ -549,7 +534,6 @@ function LandlordAnalytics() {
             <BudgetProgressChart
               budgets={data.budgets}
               properties={data.properties}
-              onEdit={openBudgetEditor}
               onOpenGroup={openBudgetCategory}
               onCreate={openBudgetPage}
             />

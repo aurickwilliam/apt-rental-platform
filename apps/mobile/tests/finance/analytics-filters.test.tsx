@@ -268,16 +268,23 @@ jest.mock("heroui-native", () => {
     }),
   };
 });
-jest.mock("@/components/finance/FinanceControls", () => {
-  const { Pressable, Text, View } = jest.requireActual("react-native");
+jest.mock("@/components/finance/FinanceCard", () => {
+  const { View } = jest.requireActual("react-native");
   return {
-    FinanceCard: ({
+    __esModule: true,
+    default: ({
       children,
       className,
     }: PropsWithChildren<{ className?: string }>) => (
       <View className={className}>{children}</View>
     ),
-    FinanceHeading: ({
+  };
+});
+jest.mock("@/components/finance/FinanceHeading", () => {
+  const { Text } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({
       title,
       titleClassName,
       description,
@@ -295,14 +302,20 @@ jest.mock("@/components/finance/FinanceControls", () => {
         )}
       </>
     ),
-    FinanceError: () => null,
-    FinanceTabs: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
-      {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
-    </View>,
-    MoneyRow: () => null,
-    FinanceSelect: () => { throw new Error("Report filters must not open nested selectors"); },
   };
 });
+jest.mock("@/components/finance/FinanceError", () => () => null);
+jest.mock("@/components/finance/FinanceTabs", () => {
+  const { Pressable, Text, View } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({ options, onChange }: { options: { value: string; label: string }[]; onChange: (value: string) => void }) => <View>
+      {options.map((option) => <Pressable key={option.value} accessibilityLabel={`${option.label} tab`} onPress={() => onChange(option.value)}><Text>{option.label}</Text></Pressable>)}
+    </View>,
+  };
+});
+jest.mock("@/components/finance/MoneyRow", () => () => null);
+jest.mock("@/components/finance/FinanceSelect", () => () => { throw new Error("Report filters must not open nested selectors"); });
 jest.mock(
   "@/components/finance/IncomeTrendChart",
   () =>
@@ -397,7 +410,7 @@ describe("analytics header filters", () => {
         "Set spending limits and reserve goals for this month to see your plan here.",
       ),
     ).toBeTruthy();
-    expect(screen.getByText("View budgets & suggestions")).toBeTruthy();
+    expect(screen.getByText("View budgets")).toBeTruthy();
     const budget: FinanceData["budgets"][number] = {
       id: "budget",
       apartment_id: "villa",
@@ -421,7 +434,7 @@ describe("analytics header filters", () => {
     });
     screen.rerender(<AnalyticsScreen />);
     expect(screen.queryByText("No plan for this month yet")).toBeNull();
-    expect(screen.getByText("View budgets & suggestions")).toBeTruthy();
+    expect(screen.getByText("View budgets")).toBeTruthy();
   });
 
   test("planning guidelines open a clear explanation dialog", () => {
@@ -839,8 +852,7 @@ describe("analytics header filters", () => {
     expect(mockRouterPush).toHaveBeenCalledWith({ pathname: "/landlord/add-expense", params: { month: "2026-10" } });
   });
 
-  // Planning and editing both have their own pages.
-  test("creating a budget opens the plan page while tapping one opens its edit page", () => {
+  test("creating a budget opens the plan page with the selected category and type", () => {
     const screen = render(<AnalyticsScreen />);
     fireEvent.press(screen.getByLabelText("Budget tab"));
     const chart = mockBudgetChart.mock.calls.at(-1)![0];
@@ -848,50 +860,6 @@ describe("analytics header filters", () => {
     expect(mockRouterPush).toHaveBeenLastCalledWith({
       pathname: "/landlord/add-budget",
       params: { month: "2026-10", category: "insurance", kind: "reserve" },
-    });
-    act(() =>
-      chart.onEdit({
-        id: "budget",
-        apartment_id: "villa",
-        month: "2026-10-01",
-        category: "maintenance",
-        kind: "expense",
-        amount: 3000,
-        spent: 0,
-        target_amount: null,
-        months_remaining: null,
-      }),
-    );
-    expect(mockRouterPush).toHaveBeenLastCalledWith({
-      pathname: "/landlord/edit-budget",
-      params: { id: "budget", month: "2026-10" },
-    });
-  });
-
-  // A suggestion only prefills the amount; the plan's identity still comes from its id.
-  test("a reviewed suggestion carries its amount to the edit page", () => {
-    const screen = render(<AnalyticsScreen />);
-    fireEvent.press(screen.getByLabelText("Budget tab"));
-    const chart = mockBudgetChart.mock.calls.at(-1)![0];
-    act(() =>
-      chart.onEdit(
-        {
-          id: "budget",
-          apartment_id: "villa",
-          month: "2026-10-01",
-          category: "insurance",
-          kind: "reserve",
-          amount: 500,
-          spent: 0,
-          target_amount: 12000,
-          months_remaining: 12,
-        },
-        1000,
-      ),
-    );
-    expect(mockRouterPush).toHaveBeenLastCalledWith({
-      pathname: "/landlord/edit-budget",
-      params: { id: "budget", month: "2026-10", amount: "1000" },
     });
   });
 

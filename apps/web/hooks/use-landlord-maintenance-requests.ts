@@ -9,6 +9,7 @@ import {
   fetchLandlordMaintenanceRequests,
   getNextStatus,
   updateLandlordMaintenanceStatus,
+  waiveMaintenanceFee,
   type LandlordMaintenanceRequest,
 } from "@/service/landlordMaintenanceService";
 
@@ -112,6 +113,36 @@ export function useLandlordMaintenanceRequests() {
     [updateStatus],
   );
 
+  const waiveFee = useCallback(
+    async (id: string) => {
+      const previous = requests;
+      setActionLoading(true);
+      setRequests((current) =>
+        current.map((request) =>
+          request.id === id ? { ...request, fee_status: "waived" } : request,
+        ),
+      );
+
+      try {
+        const result = await waiveMaintenanceFee(id);
+        if (!result.success) {
+          setRequests(previous);
+          return { success: false as const, error: result.error ?? "Could not waive this fee." };
+        }
+        return { success: true as const };
+      } catch (err) {
+        setRequests(previous);
+        return {
+          success: false as const,
+          error: err instanceof Error ? err.message : "Could not waive this fee.",
+        };
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [requests, setRequests],
+  );
+
   return {
     requests,
     loading,
@@ -120,6 +151,7 @@ export function useLandlordMaintenanceRequests() {
     updateStatus,
     advanceStatus,
     resolveRequest,
+    waiveFee,
     actionLoading,
   };
 }

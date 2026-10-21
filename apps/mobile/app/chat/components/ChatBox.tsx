@@ -42,6 +42,8 @@ function getSnippet(msg: Message): string {
       return 'Video';
     case 'gif':
       return 'GIF';
+    case 'file':
+      return msg.attachmentName || 'Document';
     default:
       return '';
   }
