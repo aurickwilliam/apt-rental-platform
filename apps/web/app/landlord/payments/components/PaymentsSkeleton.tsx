@@ -49,7 +49,7 @@ export function PaymentCardsSkeleton({ action }: { action?: ReactNode } = {}) {
 
 export default function PaymentsSkeleton() {
   return (
-    <div className="p-4 space-y-4" aria-busy="true" aria-label="Loading payments">
+    <div className="p-4 md:p-6 space-y-4" aria-busy="true" aria-label="Loading payments">
       <PaymentsHeader />
       <div aria-hidden="true" className="max-w-md">
         <Sk className="h-10 w-full rounded-xl" />

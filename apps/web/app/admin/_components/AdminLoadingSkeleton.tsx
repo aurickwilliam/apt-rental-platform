@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function AdminLoadingSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6" role="status" aria-label="Loading admin page">
+    <div className="w-full space-y-6 p-4 sm:p-6" role="status" aria-label="Loading admin page">
       <span className="sr-only">Loading admin page</span>
       <div className="space-y-3">
         <Skeleton className="h-9 w-56 bg-muted" />

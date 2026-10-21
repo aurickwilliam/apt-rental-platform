@@ -25,7 +25,7 @@ function ApplicationFieldSkeleton() {
 
 export default function ApplicationDetailSkeleton() {
   return (
-    <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading application details">
+    <div className="w-full min-w-0 p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading application details">
       <div>
         <Sk className="h-8 w-44 rounded-lg" />
         <h1 className="mt-2 text-2xl font-nunito font-bold text-card-foreground">Application Details</h1>

@@ -131,7 +131,7 @@ function HistoryContent() {
   if (tenancyError || paymentsQuery.error || !tenancy) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+        <div className="px-4 py-6 sm:py-8 space-y-4">
           <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">
             <ArrowLeft size={16} /> Back
           </Button>
@@ -155,7 +155,7 @@ function HistoryContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+      <div className="px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="flex flex-col gap-1 mb-4">
           <Button variant="outline" size="sm" onPress={() => router.back()} className="w-fit">

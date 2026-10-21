@@ -1,83 +1,35 @@
 import { supabase } from "@repo/supabase";
 import {
   FINANCE_PAGE_SIZE,
+  decodeFinanceReport,
+  financeExpensePage,
+  financeLedgerPage,
   shiftFinanceMonth,
+  type CollectionStatus,
+  type ExpenseCursor,
+  type ExpenseDraft,
+  type ExpenseRecord,
   type FinanceBudget,
   type FinanceCategory,
-  type FinanceMonth,
-  type ExpenseTreatment,
+  type FinanceData,
+  type FinanceScope,
+  type RentLedgerRow,
 } from "@repo/utils";
 
-export interface FinanceProperty {
-  id: string;
-  name: string;
-}
-export interface PropertyPerformance extends FinanceMonth {
-  id: string;
-  name: string;
-}
-export interface FinanceIncomeMonth {
-  month: string;
-  collected: number;
-}
-export interface FinanceData {
-  properties: FinanceProperty[];
-  months: FinanceMonth[];
-  incomeMonths?: FinanceIncomeMonth[];
-  comparison: { collected: number; operating: number; reviewed: boolean };
-  categories: {
-    category: FinanceCategory;
-    amount: number | null;
-    previous_amount: number;
-  }[];
-  budgets: (FinanceBudget & { spent: number })[];
-  performance: PropertyPerformance[];
-  collections: {
-    expected: number;
-    collected: number;
-    pending: number;
-    overdue: number;
-    overdueCount: number;
-    age7: number;
-    age30: number;
-    ageOlder: number;
-  };
-  unclassified: number;
-}
-
-export interface FinanceScope {
-  month: string;
-  apartmentId: string | null;
-}
-export interface ExpenseRecord {
-  id: string;
-  apartment_id: string;
-  category: FinanceCategory;
-  treatment: ExpenseTreatment;
-  amount: number;
-  spent_on: string;
-  description: string;
-}
-export interface ExpenseDraft extends Omit<ExpenseRecord, "id"> {
-  id: string;
-}
-export interface ExpenseCursor {
-  spent_on: string;
-  id: string;
-}
-export type CollectionStatus = "collected" | "pending" | "overdue";
-export interface RentLedgerRow {
-  id: string;
-  apartment_id: string;
-  apartment_name: string;
-  tenant_name: string;
-  due_date: string;
-  expected: number;
-  collected: number;
-  outstanding: number;
-  days_late: number;
-  status: CollectionStatus;
-}
+// Payload types are the shared web/mobile contract in @repo/utils; the service
+// keeps the transport and re-exports the names its components already import.
+export type {
+  CollectionStatus,
+  ExpenseCursor,
+  ExpenseDraft,
+  ExpenseRecord,
+  FinanceData,
+  FinanceIncomeMonth,
+  FinanceProperty,
+  FinanceScope,
+  PropertyPerformance,
+  RentLedgerRow,
+} from "@repo/utils";
 
 export async function fetchFinances(scope: FinanceScope): Promise<FinanceData> {
   const { data, error } = await supabase.rpc("get_landlord_finances", {
@@ -85,31 +37,7 @@ export async function fetchFinances(scope: FinanceScope): Promise<FinanceData> {
     p_apartment_id: scope.apartmentId ?? undefined,
   });
   if (error) throw error;
-  if (
-    !data ||
-    typeof data !== "object" ||
-    Array.isArray(data) ||
-    !Array.isArray(data.months)
-  ) {
-    throw new Error("The finance report could not be read.");
-  }
-  // RPC JSON uses snake_case. A type assertion alone does not rename its keys.
-  const report = data as unknown as FinanceData;
-  if (data.income_months === undefined) return report;
-  if (!Array.isArray(data.income_months)) {
-    throw new Error("The finance month summary could not be read.");
-  }
-  const incomeMonths = data.income_months.map((row): FinanceIncomeMonth => {
-    if (
-      !row || typeof row !== "object" || Array.isArray(row) ||
-      typeof row.month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(row.month) ||
-      typeof row.collected !== "number" || !Number.isFinite(row.collected)
-    ) {
-      throw new Error("The finance month summary could not be read.");
-    }
-    return { month: row.month, collected: row.collected };
-  });
-  return { ...report, incomeMonths };
+  return decodeFinanceReport(data);
 }
 
 export async function fetchExpensePage(
@@ -138,15 +66,29 @@ export async function fetchExpensePage(
     );
   const { data, error } = await query;
   if (error) throw error;
-  const rows = (data ?? []).slice(0, FINANCE_PAGE_SIZE) as ExpenseRecord[];
-  const last = rows.at(-1);
-  return {
-    rows,
-    next:
-      data && data.length > FINANCE_PAGE_SIZE && last
-        ? { spent_on: last.spent_on, id: last.id }
-        : null,
+  return financeExpensePage(data as ExpenseRecord[] | null);
+}
+
+/** One expense by id, for the edit page; null when it is gone or not the caller's. */
+export async function fetchExpenseById(
+  ownerId: string,
+  id: string,
+): Promise<ExpenseRecord | null> {
+  const { data, error } = await supabase
+    .from("landlord_expenses")
+    .select(
+      "id,apartment_id,category,treatment,amount,spent_on,description,apartments!inner(deleted_at)",
+    )
+    .eq("id", id)
+    .eq("landlord_id", ownerId)
+    .is("apartments.deleted_at", null)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const { apartments: _apartments, ...expense } = data as ExpenseRecord & {
+    apartments: unknown;
   };
+  return expense;
 }
 
 export async function saveExpense(
@@ -250,24 +192,9 @@ export async function fetchRentLedger(
   if (afterId) query = query.gt("id", afterId);
   const { data, error } = await query;
   if (error) throw error;
-  const rows = (data ?? []).slice(0, FINANCE_PAGE_SIZE) as RentLedgerRow[];
-  return {
-    rows,
-    next:
-      data && data.length > FINANCE_PAGE_SIZE
-        ? (rows.at(-1)?.id ?? null)
-        : null,
-  };
+  return financeLedgerPage(data as RentLedgerRow[] | null);
 }
 
-export function financeErrorMessage(error: unknown): string {
-  if (
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error.code === "PGRST202" || error.code === "42P01")
-  ) {
-    return "Finance tracking needs the latest database update. Please contact support.";
-  }
-  return "We couldn’t save or load your finances. Check your connection and try again.";
-}
+// Failure copy is the shared finance contract in @repo/utils; screens import
+// it from this transport module, so the re-export keeps the imports unchanged.
+export { financeErrorMessage } from "@repo/utils";

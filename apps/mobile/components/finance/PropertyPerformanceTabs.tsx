@@ -1,6 +1,7 @@
+import type { PropertyPerformanceMetric } from "@repo/utils";
 import FinanceTabs from "./FinanceTabs";
 
-export type PropertyPerformanceMetric = "collected" | "expenses" | "net";
+export type { PropertyPerformanceMetric };
 
 const METRIC_OPTIONS: { value: PropertyPerformanceMetric; label: string }[] = [
   { value: "collected", label: "Collected" },

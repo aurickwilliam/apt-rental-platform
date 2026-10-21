@@ -8,6 +8,7 @@ import {
 } from "@repo/utils";
 import FinanceCard from "./FinanceCard";
 import FinanceHeading from "./FinanceHeading";
+import { FINANCE_CATEGORY_BACKGROUND_CLASSES } from "./financeCategoryStyles";
 import EmptyState from "@/components/display/EmptyState";
 import { useColors } from "@/hooks/useTheme";
 import type { FinanceData } from "@/service/finance/financeService";
@@ -45,7 +46,7 @@ export default function ExpenseCategoryChart({
           <View key={row.category} className="gap-2">
             <Button
               variant="ghost"
-              className="h-auto min-h-12 py-2"
+              className={`h-auto min-h-12 rounded-2xl p-4 ${FINANCE_CATEGORY_BACKGROUND_CLASSES[row.category]}`}
               onPress={() => onSelect(row.category)}
               accessibilityLabel={`${financeCategoryLabel(row.category)}, ${formatPesoDisplay(amount)}, ${percentage.toFixed(0)} percent, previous period ${formatPesoDisplay(row.previous_amount)}`}
               accessibilityHint="Opens this category's transactions"
@@ -59,7 +60,7 @@ export default function ExpenseCategoryChart({
                     {formatPesoDisplay(amount)}
                   </Text>
                 </View>
-                <View className="h-2 rounded-full bg-surface-tertiary overflow-hidden">
+                <View className="h-2 rounded-full bg-background/70 overflow-hidden">
                   <View
                     className="h-full bg-accent rounded-full"
                     style={{

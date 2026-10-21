@@ -21,7 +21,7 @@ function SectionRowSkeleton() {
 export default function ApplicationDetailSkeleton() {
   return (
     <div
-      className="max-w-7xl mx-auto px-4 py-8 space-y-6"
+      className="px-4 py-8 space-y-6"
       aria-busy="true"
       aria-label="Loading application details"
     >

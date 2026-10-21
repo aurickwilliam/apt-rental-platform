@@ -7,7 +7,7 @@ import { IconArrowLeft, IconFileCheck } from "@tabler/icons-react";
  * shrinks the page to its content and the width shifts as content changes.
  */
 export function PassportPageShell({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:py-8">{children}</div>;
+  return <div className="w-full space-y-6 px-4 py-6 sm:py-8 md:px-6">{children}</div>;
 }
 
 export function PassportPageHeader() {

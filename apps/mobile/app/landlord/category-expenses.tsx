@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Spinner, useToast } from "heroui-native";
+import { Button } from "heroui-native";
 import { IconReceipt2 } from "@tabler/icons-react-native";
 import {
   FINANCE_CATEGORIES,
@@ -17,9 +16,10 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from "@/components/display/PullToRefresh";
+import CategoryTotalCard from "@/components/finance/CategoryTotalCard";
+import ExpenseRowsSkeleton from "@/components/finance/ExpenseRowsSkeleton";
 import ExpenseTransactionsSkeleton from "@/components/finance/ExpenseTransactionsSkeleton";
 import ExpenseTransactionRow from "@/components/finance/ExpenseTransactionRow";
-import ExpenseEntrySheet from "@/components/finance/ExpenseEntrySheet";
 import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
 import { useColors } from "@/hooks/useTheme";
@@ -27,10 +27,7 @@ import {
   useFinanceExpenses,
   useLandlordFinances,
 } from "@/hooks/finance/useLandlordFinances";
-import {
-  financeErrorMessage,
-  type ExpenseRecord,
-} from "@/service/finance/financeService";
+import { financeErrorMessage } from "@/service/finance/financeService";
 
 function CategoryExpenses() {
   const params = useLocalSearchParams<{
@@ -40,7 +37,6 @@ function CategoryExpenses() {
   }>();
   const router = useRouter();
   const { colors } = useColors();
-  const { toast } = useToast();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
     typeof params.apartmentId === "string" ? params.apartmentId : null;
@@ -49,14 +45,17 @@ function CategoryExpenses() {
   const scope = { month, apartmentId };
   const finance = useLandlordFinances(scope);
   const expenses = useFinanceExpenses(finance.ownerId, scope, category, true);
-  const [expenseEditor, setExpenseEditor] = useState<{
-    initial?: ExpenseRecord;
-  } | null>(null);
   const data = finance.report.data;
   const selectedProperty = data?.properties.find(
     (property) => property.id === apartmentId,
   );
   const rows = expenses.data?.pages.flatMap((page) => page.rows) ?? [];
+  // Totals come from the report's category rows, never from paged transactions.
+  const categoryRow = category
+    ? data?.categories.find((row) => row.category === category)
+    : undefined;
+  const spendingTotal =
+    data?.categories.reduce((sum, row) => sum + (row.amount ?? 0), 0) ?? 0;
   const title = category
     ? financeCategoryLabel(category)
     : "Expense transactions";
@@ -132,6 +131,16 @@ function CategoryExpenses() {
               >
                 {financeMonthLabel(month)}
               </Text>
+              {category ? (
+                <View className="mt-3">
+                  <CategoryTotalCard
+                    category={category}
+                    amount={categoryRow?.amount ?? 0}
+                    total={spendingTotal}
+                    previousAmount={categoryRow?.previous_amount ?? 0}
+                  />
+                </View>
+              ) : null}
             </View>
           }
           renderItem={({ item }) => (
@@ -142,7 +151,12 @@ function CategoryExpenses() {
                   (property) => property.id === item.apartment_id,
                 )?.name
               }
-              onPress={() => setExpenseEditor({ initial: item })}
+              onPress={() =>
+                router.push({
+                  pathname: "/landlord/edit-expense",
+                  params: { id: item.id, month, ...(apartmentId ? { apartmentId } : {}) },
+                })
+              }
             />
           )}
           ListEmptyComponent={
@@ -162,9 +176,7 @@ function CategoryExpenses() {
           }
           ListFooterComponent={
             <View className="gap-4">
-              {expenses.isLoading && (
-                <Spinner accessibilityLabel="Loading expenses" />
-              )}
+              {expenses.isLoading && <ExpenseRowsSkeleton />}
               {expenses.error && (
                 <FinanceError
                   onRetry={() => {
@@ -191,21 +203,6 @@ function CategoryExpenses() {
           }
         />
       </ScreenWrapper>
-      <ExpenseEntrySheet
-        isOpen={expenseEditor !== null}
-        properties={data.properties}
-        apartmentId={apartmentId}
-        month={month}
-        initial={expenseEditor?.initial}
-        onClose={() => setExpenseEditor(null)}
-        onSave={async (draft, editing) => {
-          await finance.expense.mutateAsync({ draft, editing });
-          toast.show({ label: "Expense saved", variant: "success" });
-        }}
-        onDelete={async (id) => {
-          await finance.removeExpense.mutateAsync(id);
-        }}
-      />
     </View>
   );
 }

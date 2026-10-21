@@ -94,7 +94,7 @@ export function ReviewForm({
         <div
           className={
             sticky
-              ? "pointer-events-auto mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-lg sm:p-5"
+              ? "pointer-events-auto flex w-full flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-lg sm:p-5"
               : ""
           }
         >

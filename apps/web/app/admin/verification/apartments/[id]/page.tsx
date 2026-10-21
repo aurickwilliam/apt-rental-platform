@@ -142,7 +142,7 @@ export default async function ApartmentVerificationReviewPage({
 
   return (
     <div
-      className={`mx-auto w-full max-w-7xl space-y-4 p-4 ${verification.status === "pending" ? "pb-48 md:pb-28" : ""}`}
+      className={`w-full space-y-4 p-4 ${verification.status === "pending" ? "pb-48 md:pb-28" : ""}`}
     >
       <header>
         <Link

@@ -125,7 +125,7 @@ function PaymentsContent() {
 
   if (unitsQuery.error || paymentsQuery.error) {
     return (
-      <div className="p-4 space-y-4">
+      <div className="p-4 md:p-6 space-y-4">
         <PaymentsHeader />
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
           {unitsQuery.error ?? paymentsQuery.error ?? "We could not load payments."}
@@ -147,7 +147,7 @@ function PaymentsContent() {
 
   if (unitsQuery.apartments.length === 0) {
     return (
-      <div className="p-4 space-y-2">
+      <div className="p-4 md:p-6 space-y-2">
         <PaymentsHeader />
         <p className="text-sm text-zinc-500">No units found. Payments for your units will appear here.</p>
       </div>
@@ -167,7 +167,7 @@ function PaymentsContent() {
   );
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 md:p-6 space-y-4">
       <PaymentsHeader />
 
       <Select

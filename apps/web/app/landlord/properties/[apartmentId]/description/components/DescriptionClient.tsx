@@ -68,7 +68,7 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDeta
   };
 
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
+    <div className="p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0">
       <div>
         <Button
           variant="ghost"

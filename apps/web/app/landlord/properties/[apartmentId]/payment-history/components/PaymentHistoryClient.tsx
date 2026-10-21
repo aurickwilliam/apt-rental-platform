@@ -109,7 +109,7 @@ export default function PaymentHistoryClient({
 
   if (paymentsQuery.loading) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center py-20">
+      <div className="p-4 md:p-6 flex flex-col items-center justify-center py-20">
         <Spinner size="lg" color="current" className="text-primary" />
         <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payment history…</p>
       </div>
@@ -118,7 +118,7 @@ export default function PaymentHistoryClient({
 
   if (paymentsQuery.error) {
     return (
-      <div className="p-4 space-y-4">
+      <div className="p-4 md:p-6 space-y-4">
         <p className="text-sm text-zinc-600 dark:text-zinc-300">{paymentsQuery.error}</p>
         <Button variant="secondary" size="sm" className="rounded-full" onPress={() => void paymentsQuery.refresh()}>
           Try Again
@@ -128,7 +128,7 @@ export default function PaymentHistoryClient({
   }
 
   return (
-    <div className="p-4 space-y-4 max-w-5xl mx-auto">
+    <div className="p-4 md:p-6 space-y-4">
       <Button variant="outline" size="sm" onPress={() => router.push(`/landlord/properties/${apartmentId}`)} className="w-fit">
         <ArrowLeft size={16} /> Back to Property
       </Button>

@@ -18,7 +18,7 @@ export default async function Dashboard() {
     const message = err instanceof Error ? err.message : "Something went wrong.";
     if (message === "Not authenticated.") return <div>Not authenticated.</div>;
     return (
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         <h1 className="text-5xl text-brand font-bold font-noto-serif mb-1">
           Dashboard
         </h1>
@@ -37,7 +37,7 @@ export default async function Dashboard() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="p-4 md:p-6">
       <DashboardHeader />
 
       {/* Stat Cards */}

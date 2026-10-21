@@ -12,9 +12,9 @@ interface BrowseShellProps {
   fallback: ReactNode;
   children: ReactNode;
   /**
-   * The tenant shell is a flex item of the portal layout, where `mx-auto`
-   * alone disables stretch sizing and lets the root balloon to max-w-7xl on
-   * narrow screens. The public route can keep its block sizing.
+   * The tenant shell is a flex item of the portal layout and fills the width
+   * beside the sidebar, so it is neither capped at max-w-7xl nor centered. The
+   * public route keeps the capped, centered block sizing.
    */
   fullWidth?: boolean;
 }
@@ -37,7 +37,7 @@ export default function BrowseShell({
 }: BrowseShellProps) {
   return (
     <div
-      className={`max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip${fullWidth ? " w-full" : ""}`}
+      className={`px-4 sm:px-6 py-4 overflow-x-clip ${fullWidth ? "w-full" : "max-w-7xl mx-auto"}`}
     >
       <Suspense>
         <SearchContainer basePath={basePath} filterButton={filterButton} />

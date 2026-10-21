@@ -52,7 +52,7 @@ export default async function LandlordProfilePage() {
 
   if (error) {
     return (
-      <div className="mx-auto w-full max-w-7xl p-4">
+      <div className="w-full p-4 md:p-6">
         <Card className="rounded-3xl border border-danger-200 bg-card p-4 text-card-foreground shadow-none sm:p-5">
           <h1 className="text-xl font-bold">Profile</h1>
           <p className="text-sm text-danger mt-2">
@@ -71,7 +71,7 @@ export default async function LandlordProfilePage() {
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Landlord";
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-4">
+    <div className="w-full p-4 md:p-6">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <div className="grid min-w-0 grid-cols-1 content-start gap-3">
           <ProfileHeader

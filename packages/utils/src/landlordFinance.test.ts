@@ -1,10 +1,36 @@
 import fc from "fast-check";
 import {
-  budgetCategoryOptions, budgetKindFromParam, budgetProgress, financeAfterReserve,
-  financeCategoryFromParam, financeIncome, financeMonthFromParam,
-  groupBudgetsByCategory, isBudgetCategoryAllowed, manilaToday, parseFinanceAmount,
-  rentAgeBucket, shiftFinanceMonth, suggestFinanceBudget, validateExpenseDate,
+  budgetCategoryOptions, budgetKindFromParam, budgetProgress, decodeFinanceReport,
+  financeAfterReserve, financeBudgetMonthsDefault, financeCategoryFromParam,
+  financeCategoryTreatmentDefault, financeComparisonSentence, financeErrorMessage,
+  financeExpenseDateDefault,
+  financeExpensePage, financeGoalFromForm, financeIncome, financeIncomeMonthsFromReports,
+  financeLedgerPage, financeMonthFromParam, groupBudgetsByCategory, isBudgetCategoryAllowed,
+  manilaToday, parseFinanceAmount, rankFinanceProperties, rentAgeBucket, shiftFinanceMonth,
+  suggestFinanceBudget, validateExpenseDate,
 } from "./landlordFinance";
+import { formatPesoDisplay } from "./formatCurrencyInput";
+import { financeParityFixtures, financeSignedMoneyFixtures } from "./landlordFinanceFixtures";
+import { formatFinanceMoney, financePlanTotals, financeTrendWindow, toggleFinanceTrendSeries, financeRentIndicator } from "./landlordFinance";
+
+describe("Overview display rules", () => {
+  test("loss signs match the shared display fixtures", () => {
+    for (const fixture of financeSignedMoneyFixtures) expect(formatFinanceMoney(fixture.amount, formatPesoDisplay)).toBe(fixture.expected);
+  });
+  test("individual overages are not hidden by totals", () => {
+    const base = { id: "a", apartment_id: "property", month: "2026-10", category: "maintenance" as const, kind: "expense" as const, target_amount: null, months_remaining: null };
+    expect(financePlanTotals([{ ...base, amount: 100, spent: 200 }, { ...base, id: "b", amount: 1000, spent: 0 }])).toEqual({ spending: 1100, reserve: 0, overLimit: true });
+    expect(financePlanTotals([])).toEqual({ spending: 0, reserve: 0, overLimit: false });
+  });
+  test("trend controls retain one cash series and short windows remain short", () => {
+    const series = { collected: false, expenses: true, net: false };
+    expect(toggleFinanceTrendSeries(series, "expenses")).toBe(series);
+    expect(financeTrendWindow([], 12)).toEqual({ points: [], allReviewed: false, hasActivity: false });
+  });
+  test("rent markers never infer missing months as zero", () => {
+    expect(financeRentIndicator("2026-09", "2026-10", [], false)).toBe("rent data unavailable");
+  });
+});
 
 describe("landlord finance rules", () => {
   test("Manila dates are independent of the device timezone", () => {
@@ -102,5 +128,144 @@ describe("landlord finance rules", () => {
     expect(budgetProgress(3000, 1200)).toEqual({ over: false, percent: 40, difference: 1800, barWidth: 40 });
     expect(budgetProgress(0, 0)).toEqual({ over: false, percent: null, difference: 0, barWidth: 0 });
     expect(budgetProgress(0, 500)).toEqual({ over: true, percent: null, difference: 500, barWidth: 100 });
+  });
+});
+
+/**
+ * The parity contract in docs/plans/landlord-web-budget-analytics-parity.md
+ * §9.1. Both platform suites assert the same shared fixtures, so web and mobile
+ * cannot drift on arithmetic, decoding or form rules. The web runner is
+ * apps/web/lib/landlord-finance-fixtures.test.mjs.
+ */
+describe("cross-app parity fixtures", () => {
+  test("headline income stays cash-based and review-gated", () => {
+    for (const fixture of financeParityFixtures.income) {
+      expect(financeIncome(fixture.month)).toBe(fixture.income);
+      expect(financeAfterReserve(fixture.month, fixture.reserve)).toBe(fixture.afterReserve);
+    }
+  });
+
+  test("progress arithmetic matches the parity table", () => {
+    for (const fixture of financeParityFixtures.budgetProgress) {
+      expect(budgetProgress(fixture.amount, fixture.spent)).toStrictEqual(fixture.expected);
+    }
+  });
+
+  test("goal suggestions match the parity table", () => {
+    for (const fixture of financeParityFixtures.suggestions) {
+      expect(suggestFinanceBudget(fixture.budget)).toStrictEqual(fixture.expected);
+    }
+  });
+
+  test("older payloads derive picker months from two cached reports", () => {
+    const { earlier, latest, expected } = financeParityFixtures.incomeMonthsFallback;
+    expect(financeIncomeMonthsFromReports(earlier, latest)).toStrictEqual(expected);
+  });
+
+  test("grouped plans keep reserves separate", () => {
+    expect(groupBudgetsByCategory(financeParityFixtures.grouping.budgets))
+      .toStrictEqual(financeParityFixtures.grouping.expected);
+  });
+
+  test("property performance ranks identically for every metric", () => {
+    const { properties, expected } = financeParityFixtures.performance;
+    for (const { metric, order } of expected) {
+      expect(rankFinanceProperties(properties, metric).map((property) => property.id)).toEqual(order);
+    }
+  });
+
+  test("aging buckets match the parity table", () => {
+    for (const { daysLate, bucket } of financeParityFixtures.aging) {
+      expect(rentAgeBucket(daysLate)).toBe(bucket);
+    }
+  });
+
+  test("comparison sentences match the parity table", () => {
+    for (const fixture of financeParityFixtures.compareSentences) {
+      expect(
+        financeComparisonSentence(
+          fixture.currentMonth,
+          fixture.active,
+          fixture.comparison,
+          formatPesoDisplay,
+        ),
+      ).toBe(fixture.expected);
+    }
+  });
+
+  test("report decoding matches the parity table", () => {
+    for (const fixture of financeParityFixtures.decode) {
+      if (fixture.error) {
+        expect(() => decodeFinanceReport(fixture.payload)).toThrow(fixture.error);
+      } else {
+        expect(decodeFinanceReport(fixture.payload)).toStrictEqual(fixture.ok);
+      }
+    }
+  });
+
+  test("expense pages keep the shared keyset contract", () => {
+    for (const fixture of financeParityFixtures.expensePage.cases) {
+      expect(financeExpensePage(fixture.fetched)).toStrictEqual({
+        rows: fixture.rows,
+        next: fixture.next,
+      });
+    }
+  });
+
+  test("ledger pages keep the shared keyset contract", () => {
+    for (const fixture of financeParityFixtures.ledgerPage.cases) {
+      expect(financeLedgerPage(fixture.fetched)).toStrictEqual({
+        rows: fixture.rows,
+        next: fixture.next,
+      });
+    }
+  });
+
+  test("peso parsing matches the parity table", () => {
+    for (const { value, allowZero, parsed } of financeParityFixtures.amountParsing) {
+      expect(parseFinanceAmount(value, allowZero)).toBe(parsed);
+    }
+  });
+
+  test("expense dates match the parity table", () => {
+    for (const fixture of financeParityFixtures.dateValidation) {
+      expect(validateExpenseDate(fixture.value, fixture.today)).toBe(fixture.error);
+    }
+  });
+
+  test("route months match the parity table", () => {
+    for (const { value, currentMonth, resolved } of financeParityFixtures.monthParam) {
+      expect(financeMonthFromParam(value, currentMonth)).toBe(resolved);
+    }
+  });
+
+  test("category options match the parity table", () => {
+    for (const { kind, ids } of financeParityFixtures.categoryOptions) {
+      expect(budgetCategoryOptions(kind).map((item) => item.id)).toEqual(ids);
+    }
+  });
+
+  test("form defaults match the parity table", () => {
+    for (const { category, treatment } of financeParityFixtures.treatmentDefault) {
+      expect(financeCategoryTreatmentDefault(category)).toBe(treatment);
+    }
+    for (const { month, today, date } of financeParityFixtures.dateDefault) {
+      expect(financeExpenseDateDefault(month, today)).toBe(date);
+    }
+    for (const { category, months } of financeParityFixtures.monthsDefault) {
+      expect(financeBudgetMonthsDefault(category)).toBe(months);
+    }
+  });
+
+  test("optional goals match the parity table", () => {
+    for (const fixture of financeParityFixtures.goalEntry) {
+      expect(financeGoalFromForm(fixture.target, fixture.months)).toStrictEqual(fixture.expected);
+    }
+  });
+
+  test("finance failures read the same on every platform", () => {
+    for (const fixture of financeParityFixtures.errorMessages) {
+      expect(financeErrorMessage(fixture.error)).toBe(fixture.expected);
+    }
   });
 });

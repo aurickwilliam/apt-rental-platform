@@ -19,7 +19,7 @@ function FieldSkeleton() {
 export default function MaintenancePageSkeleton() {
   return (
     <div
-      className="mx-auto max-w-4xl space-y-4"
+      className="space-y-4"
       aria-busy="true"
       aria-label="Loading maintenance page"
     >

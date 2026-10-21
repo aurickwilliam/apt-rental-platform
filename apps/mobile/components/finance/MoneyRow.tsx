@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatFinanceMoney, formatPesoDisplay } from "@repo/utils";
 
 interface MoneyRowProps {
   label: string;
@@ -20,7 +20,7 @@ export default function MoneyRow({
         className={`${emphasized ? "font-nunitoBold text-accent" : "font-nunitoSemiBold text-foreground"} text-sm`}
         style={{ fontVariant: ["tabular-nums"] }}
       >
-        {amount === null ? "Not calculated" : formatPesoDisplay(amount)}
+        {amount === null ? "Not calculated" : formatFinanceMoney(amount, formatPesoDisplay)}
       </Text>
     </View>
   );
