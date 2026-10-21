@@ -7,9 +7,13 @@ import {
   IconSettings,
   IconTool,
 } from "@tabler/icons-react";
-import { getNotificationPreview, getRelativeTime } from "@repo/utils";
+import {
+  composeNotificationRowLabel,
+  getNotificationPreview,
+  getNotificationRowPresentation,
+  getRelativeTime,
+} from "@repo/utils";
 
-import { composeNotificationRowLabel, getNotificationRowPresentation } from "@/lib/notification-row";
 import type { FeedNotification } from "@/service/notificationService";
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {

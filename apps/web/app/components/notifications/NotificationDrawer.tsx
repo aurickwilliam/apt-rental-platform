@@ -4,14 +4,17 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
 import { IconBell, IconX } from "@tabler/icons-react";
-import { groupNotificationsByLocalDate } from "@repo/utils";
+import {
+  groupNotificationFeed,
+  groupNotificationsByLocalDate,
+  type MessageGroupUnit,
+} from "@repo/utils";
 
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
 import { clearFabPlacement, isDefaultFabPlacement, loadFabPlacement } from "@/lib/notification-fab-position";
 import { getLocalCalendarDay, subscribeLocalCalendarDay } from "@/lib/notification-calendar";
-import { groupNotificationFeed, type MessageGroupUnit } from "@/lib/notification-groups";
 import { resolveNotificationTarget } from "@/lib/notification-links";
 import type { FeedNotification } from "@/service/notificationService";
 
