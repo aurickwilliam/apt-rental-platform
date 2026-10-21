@@ -50,8 +50,9 @@ export function useExpenseEntryForm({
     initial?.treatment ?? financeCategoryTreatmentDefault(seedCategory);
   const seedDate = initial?.spent_on ?? financeExpenseDateDefault(month);
   const [id, setId] = useState(() => initial?.id ?? randomUUID());
+  // A new expense starts without a property unless the report is scoped to one.
   const [property, setProperty] = useState(
-    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
+    initial?.apartment_id ?? apartmentId ?? "",
   );
   const [category, setCategory] = useState<FinanceCategory>(seedCategory);
   const [treatment, setTreatment] = useState<ExpenseTreatment>(seedTreatment);
@@ -69,9 +70,7 @@ export function useExpenseEntryForm({
     setWasOpen(isOpen);
     if (isOpen) {
       setId(initial?.id ?? randomUUID());
-      setProperty(
-        initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
-      );
+      setProperty(initial?.apartment_id ?? apartmentId ?? "");
       setCategory(seedCategory);
       setTreatment(seedTreatment);
       setAmount(initial ? String(initial.amount) : "");

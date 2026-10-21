@@ -212,8 +212,16 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="Plan an emergency reserve").click()
     reserve = page.get_by_role("dialog", name="Plan a budget", exact=True)
     expect(reserve.get_by_role("button", name="Emergency reserve Category", exact=True)).to_be_visible()
+    # A new plan starts with no property (the report is not scoped to one).
+    expect(reserve.get_by_role("button", name=re.compile(r"Select a property"))).to_be_visible()
     reserve.get_by_role("button", name="Save budget", exact=True).click()
     expect(reserve).to_contain_text("Enter zero or a positive amount")
+    expect(reserve).to_contain_text("Choose one of your properties.")
+    # The unchosen property gets the same red border as an invalid amount.
+    expect(reserve.get_by_role("button", name=re.compile(r"Property$"))).to_have_css("border-color", "rgb(229, 9, 20)")
+    reserve.get_by_role("button", name=re.compile(r"Property$")).click()
+    page.get_by_role("option", name="Bayview", exact=True).click()
+    expect(reserve.get_by_text("Choose one of your properties.")).to_have_count(0)
     reserve.get_by_label("Planned allocation this month", exact=False).fill("1,500")
     page.evaluate("financeTest.budgetFail = true")
     reserve.get_by_role("button", name="Save budget", exact=True).click()
@@ -423,7 +431,16 @@ with sync_playwright() as playwright:
     assert page.evaluate("financeTest.reviewedMonths.includes(\'2026-10\')") is True
     page.get_by_role("button", name="Add expense", exact=True).click()
     editor = page.get_by_role("dialog", name="Add expense", exact=True)
+    # A new expense starts with no property: Save reports it with a red border,
+    # and choosing one clears the error.
+    expect(editor.get_by_role("button", name=re.compile(r"Select a property"))).to_be_visible()
     editor.get_by_label("Amount (₱)", exact=False).fill("2,750")
+    editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(editor.get_by_text("Choose one of your properties.")).to_be_visible()
+    expect(editor.get_by_role("button", name=re.compile(r"Property$"))).to_have_css("border-color", "rgb(229, 9, 20)")
+    editor.get_by_role("button", name=re.compile(r"Property$")).click()
+    page.get_by_role("option", name="Bayview", exact=True).click()
+    expect(editor.get_by_text("Choose one of your properties.")).to_have_count(0)
     # The calendar popover picks a day into the field; the field stays typeable.
     editor.get_by_role("button", name="Calendar").click()
     page.get_by_role("gridcell").filter(has_text=re.compile(r"^14$")).first.click()
@@ -733,6 +750,8 @@ with sync_playwright() as playwright:
     page.get_by_role("tab", name="Expenses", exact=True).click()
     page.get_by_role("button", name="Add expense", exact=True).click()
     cache_editor = page.get_by_role("dialog", name="Add expense", exact=True)
+    cache_editor.get_by_role("button", name=re.compile(r"Property$")).click()
+    page.get_by_role("option", name="Bayview", exact=True).click()
     cache_editor.get_by_label("Amount (₱)", exact=False).fill("100")
     cache_editor.get_by_placeholder("e.g. Kitchen sink repair").fill("Cache check")
     cache_editor.get_by_role("button", name="Save expense", exact=True).click()

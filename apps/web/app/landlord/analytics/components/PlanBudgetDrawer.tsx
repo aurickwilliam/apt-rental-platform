@@ -64,7 +64,8 @@ export default function PlanBudgetDrawer({
   const editing = !!initial;
   const busy = operation.pending || !!removing?.pending;
   const [property, setProperty] = useState(
-    initial?.apartment_id ?? scope.apartmentId ?? properties[0]?.id ?? "",
+    // A new plan starts without a property unless the report is scoped to one.
+    initial?.apartment_id ?? scope.apartmentId ?? "",
   );
   const [kind, setKind] = useState<BudgetKind>(initial?.kind ?? presetKind);
   const [category, setCategory] = useState<FinanceCategory>(
@@ -178,14 +179,18 @@ export default function PlanBudgetDrawer({
         validationBehavior="aria"
         className="space-y-4"
       >
-        <div className="space-y-2">
-          <Label>
-            Property <span className="text-destructive">*</span>
+        <div className="flex flex-col gap-1">
+          <Label
+            className={`label--required ${submitted && !validProperty ? "label--invalid" : ""}`}
+          >
+            Property
           </Label>
           <SettingsSelect
             label="Property"
             className="w-full"
+            placeholder="Select a property"
             value={property}
+            isInvalid={submitted && !validProperty}
             options={properties.map((item) => ({
               value: item.id,
               label: item.name,
@@ -194,15 +199,13 @@ export default function PlanBudgetDrawer({
             onChange={setProperty}
           />
           {submitted && !validProperty ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-1 text-xs text-destructive">
               Choose one of your properties.
             </p>
           ) : null}
         </div>
-        <div className="space-y-2">
-          <Label>
-            Plan type <span className="text-destructive">*</span>
-          </Label>
+        <div className="flex flex-col gap-1">
+          <Label className="label--required">Plan type</Label>
           <SettingsSelect
             label="Plan type"
             className="w-full"
@@ -220,10 +223,8 @@ export default function PlanBudgetDrawer({
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label>
-            Category <span className="text-destructive">*</span>
-          </Label>
+        <div className="flex flex-col gap-1">
+          <Label className="label--required">Category</Label>
           <SettingsSelect
             label="Category"
             className="w-full"

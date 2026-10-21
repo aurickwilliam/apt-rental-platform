@@ -91,8 +91,9 @@ export default function ExpenseEditorDrawer({
 }: ExpenseEditorDrawerProps) {
   const today = manilaToday();
   const busy = saving.pending || removing.pending;
+  // A new expense starts without a property unless the report is scoped to one.
   const [property, setProperty] = useState(
-    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
+    initial?.apartment_id ?? apartmentId ?? "",
   );
   const [category, setCategory] = useState(
     initial?.category ?? presetCategory ?? "maintenance",
@@ -220,13 +221,17 @@ export default function ExpenseEditorDrawer({
         validationBehavior="aria"
         className="space-y-4"
       >
-        <div className="space-y-2">
-          <Label>
-            Property <span className="text-destructive">*</span>
+        <div className="flex flex-col gap-1">
+          <Label
+            className={`label--required ${submitted && !!propertyError ? "label--invalid" : ""}`}
+          >
+            Property
           </Label>
           <SettingsSelect
             label="Property"
             className="w-full"
+            placeholder="Select a property"
+            isInvalid={submitted && !!propertyError}
             value={property}
             options={properties.map((item) => ({
               value: item.id,
@@ -236,15 +241,13 @@ export default function ExpenseEditorDrawer({
             onChange={setProperty}
           />
           {submitted && !!propertyError ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-1 text-xs text-destructive">
               {propertyError}
             </p>
           ) : null}
         </div>
-        <div className="space-y-2">
-          <Label>
-            Category <span className="text-destructive">*</span>
-          </Label>
+        <div className="flex flex-col gap-1">
+          <Label className="label--required">Category</Label>
           <SettingsSelect
             label="Category"
             className="w-full"
@@ -262,15 +265,13 @@ export default function ExpenseEditorDrawer({
             }}
           />
           {submitted && !!categoryError ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-1 text-xs text-destructive">
               {categoryError}
             </p>
           ) : null}
         </div>
-        <div className="space-y-2">
-          <Label>
-            Expense treatment <span className="text-destructive">*</span>
-          </Label>
+        <div className="flex flex-col gap-1">
+          <Label className="label--required">Expense treatment</Label>
           <SettingsSelect
             label="Expense treatment"
             className="w-full"
@@ -290,7 +291,7 @@ export default function ExpenseEditorDrawer({
             income. This is a cash-planning tool, not a tax calculation.
           </p>
           {submitted && !!treatmentError ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-1 text-xs text-destructive">
               {treatmentError}
             </p>
           ) : null}

@@ -48,8 +48,9 @@ export function useBudgetEntryForm({
   onSave,
   onDelete,
 }: BudgetEntryFormOptions) {
-  const seedProperty =
-    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
+  // A new plan starts without a property unless the report is already scoped
+  // to one; the landlord chooses it, and Save stays blocked until they do.
+  const seedProperty = initial?.apartment_id ?? apartmentId ?? "";
   const seedKind = initial?.kind ?? presetKind ?? "expense";
   const seedCategory =
     initial?.category ??

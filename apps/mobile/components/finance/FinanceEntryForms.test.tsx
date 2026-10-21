@@ -329,6 +329,37 @@ describe("finance entry forms", () => {
     await waitFor(() => expect(onDelete).toHaveBeenCalledWith("existing"));
   });
 
+  test("a new expense starts without a property and cannot be saved until one is chosen", () => {
+    const onSave = jest.fn();
+    const screen = render(
+      <ExpenseEntryPage {...common} apartmentId={null} onSave={onSave} />,
+    );
+    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    fireEvent.press(screen.getByText("Save expense"));
+    expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  test("a new plan starts without a property and cannot be saved until one is chosen", () => {
+    const onSave = jest.fn();
+    const screen = render(
+      <BudgetEntryPage
+        properties={common.properties}
+        apartmentId={null}
+        month="2026-10"
+        onClose={common.onClose}
+        onSave={onSave}
+      />,
+    );
+    // The first property is no longer chosen for the landlord.
+    expect(screen.queryByText("Property *: apt")).toBeNull();
+    fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "1000");
+    fireEvent.press(screen.getByText("Save budget"));
+    expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   test("the budget page keeps Save and Cancel in an equal-width footer row and marks required fields", () => {
     const screen = render(
       <BudgetEntryPage

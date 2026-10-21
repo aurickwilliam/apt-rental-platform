@@ -333,7 +333,7 @@ export default function LandlordVisitRequestDetailPage() {
                     <FieldError>{rescheduleError}</FieldError>
                   </TextField>
                   <div>
-                    <Label className="text-sm font-medium text-card-foreground mb-2 block">
+                    <Label className="text-sm font-medium text-card-foreground mb-1 block">
                       New Visit Time <span className="text-red-600">*</span>
                     </Label>
                     <div className="flex gap-2">
