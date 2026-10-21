@@ -179,7 +179,7 @@ export function useLandlordFinances(scope: FinanceScope) {
       if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runSaveExpense, ownerId, enabled, refreshReport, scopeKey],
+    [runSaveExpense, ownerId, enabled, scopeKey],
   );
 
   const removeExpense = useCallback(
@@ -191,7 +191,7 @@ export function useLandlordFinances(scope: FinanceScope) {
       if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runRemoveExpense, ownerId, enabled, refreshReport, scopeKey],
+    [runRemoveExpense, ownerId, enabled, scopeKey],
   );
 
   const saveBudget = useCallback(
@@ -203,7 +203,7 @@ export function useLandlordFinances(scope: FinanceScope) {
       if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runSaveBudget, ownerId, enabled, refreshReport, scopeKey],
+    [runSaveBudget, ownerId, enabled, scopeKey],
   );
 
   const removeBudget = useCallback(
@@ -215,7 +215,7 @@ export function useLandlordFinances(scope: FinanceScope) {
       if (ok && currentScope.current === scopeKey) void latestRefresh.current();
       return ok;
     },
-    [runRemoveBudget, ownerId, enabled, refreshReport, scopeKey],
+    [runRemoveBudget, ownerId, enabled, scopeKey],
   );
 
   const reviewExpenses = useCallback(async () => {
@@ -229,7 +229,6 @@ export function useLandlordFinances(scope: FinanceScope) {
     runReview,
     ownerId,
     enabled,
-    refreshReport,
     month,
     apartmentId,
     scopeKey,

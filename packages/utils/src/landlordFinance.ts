@@ -450,7 +450,7 @@ export function financeExpensePage(fetched: readonly ExpenseRecord[] | null): {
   next: ExpenseCursor | null;
 } {
   const rows = (fetched ?? []).slice(0, FINANCE_PAGE_SIZE);
-  const last = rows.at(-1);
+  const last = rows[rows.length - 1];
   return {
     rows,
     next:
@@ -470,7 +470,7 @@ export function financeLedgerPage(fetched: readonly RentLedgerRow[] | null): {
     rows,
     next:
       fetched && fetched.length > FINANCE_PAGE_SIZE
-        ? (rows.at(-1)?.id ?? null)
+        ? (rows[rows.length - 1]?.id ?? null)
         : null,
   };
 }
