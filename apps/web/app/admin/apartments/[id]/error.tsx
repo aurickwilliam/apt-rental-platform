@@ -10,7 +10,7 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="mx-auto max-w-7xl p-4">
+    <div className="p-4">
       <Card
         role="alert"
         className="rounded-3xl border border-border bg-card p-5 shadow-none"

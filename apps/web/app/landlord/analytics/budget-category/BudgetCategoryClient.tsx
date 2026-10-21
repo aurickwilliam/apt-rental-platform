@@ -90,7 +90,7 @@ function BudgetCategory({
     : "Budget plan";
 
   return (
-    <div className="finance-report mx-auto max-w-7xl space-y-5 p-4 md:p-6">
+    <div className="finance-report space-y-5 p-4 md:p-6">
       <div
         className="flex flex-wrap items-center justify-between gap-3"
         data-fab-clearance

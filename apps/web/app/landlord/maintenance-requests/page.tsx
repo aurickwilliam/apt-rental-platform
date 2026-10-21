@@ -48,7 +48,7 @@ function MaintenanceContent() {
   useEffect(() => { markViewed("maintenance"); }, [markViewed]);
 
   return (
-    <div className="landlord-maintenance-page w-full min-w-0 p-4 flex flex-col gap-6 bg-card min-h-0" aria-busy={loading}>
+    <div className="landlord-maintenance-page w-full min-w-0 p-4 md:p-6 flex flex-col gap-6 bg-card min-h-0" aria-busy={loading}>
       <MaintenanceHeader />
       <MaintenanceSummary summary={error ? null : summary} loading={loading} />
 

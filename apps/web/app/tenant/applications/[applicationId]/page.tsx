@@ -135,7 +135,7 @@ export default function ApplicationDetailPage() {
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="px-4 py-8 space-y-6">
       <Button variant="outline" size="sm" onPress={() => router.back()}>
         <ArrowLeft size={16} /> Back
       </Button>

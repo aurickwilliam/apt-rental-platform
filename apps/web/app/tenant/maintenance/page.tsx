@@ -38,8 +38,8 @@ export default function MaintenanceRequestPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="px-4 py-6 sm:py-8">
+        <div className="space-y-4">
           {/* Header */}
           <div>
             <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">

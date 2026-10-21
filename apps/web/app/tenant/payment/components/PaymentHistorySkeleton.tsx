@@ -33,7 +33,7 @@ export default function PaymentHistorySkeleton() {
       aria-busy="true"
       aria-label="Loading payment history"
     >
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+      <div className="px-4 py-6 sm:py-8">
         <div className="mb-4 flex flex-col gap-1">
           <Sk className="h-8 w-20 rounded-full" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

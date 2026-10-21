@@ -26,7 +26,7 @@ function Comparison({ params }: { params: LandlordFinanceRouteParams }) {
   });
   const { report } = finance;
   return (
-    <div className="finance-report mx-auto max-w-7xl space-y-5 p-4 md:p-6">
+    <div className="finance-report space-y-5 p-4 md:p-6">
       <Link
         className="text-sm text-brand underline"
         href={financeReportHref(search.toString(), params)}

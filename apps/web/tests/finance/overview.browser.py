@@ -194,6 +194,14 @@ with sync_playwright() as playwright:
     assert page.evaluate("financeTest.writes.at(-1).category") == "emergency"
     assert page.evaluate("financeTest.writes.at(-1).target_amount") is None
 
+    # The Refresh button swaps the report for placeholders until it settles.
+    page.evaluate("financeTest.delay = 400")
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    expect(page.get_by_role("status", name="Loading finance report")).to_be_visible()
+    expect(summary).to_contain_text("₱ 50,000")
+    expect(page.get_by_role("status", name="Loading finance report")).to_have_count(0)
+    page.evaluate("financeTest.delay = 30")
+
     # Refresh failures retain same-scope content and retry clears the notice.
     # The budget toast also carries an alert role, so the banner is matched
     # first and its retry button marks a cleared state.

@@ -75,9 +75,8 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     // control internals) from widening the page. Unlike hidden it does not
     // create a scroll container, so the sticky filter sidebar keeps working.
     // w-full is load-bearing: this root is a flex item of the tenant
-    // layout's flex-column main, where mx-auto alone disables stretch
-    // sizing and lets the root balloon to max-w-7xl on narrow screens.
-    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
+    // layout's flex-column main, so it must fill the width explicitly.
+    <div className="w-full px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
         <SearchContainer
           basePath="/tenant/browse"

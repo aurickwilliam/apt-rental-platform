@@ -162,7 +162,7 @@ export default function UsersClient({
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 p-4">
+    <div className="w-full space-y-5 p-4">
       <div>
         <h1 className="flex items-center gap-2 font-nunito text-3xl text-primary font-bold">
           <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10">

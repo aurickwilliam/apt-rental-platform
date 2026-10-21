@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Popover, Tabs } from "@heroui/react";
 import {
   IconCalendar,
+  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconRefresh,
@@ -16,6 +17,7 @@ import {
   type FinanceScope,
 } from "@repo/utils";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import { useFinanceIncomeMonths } from "@/hooks/use-landlord-finances";
 import type {
@@ -32,6 +34,8 @@ interface ReportControlsProps {
   tab: FinanceTab;
   /** Controls stay visible but disabled until the report is ready. */
   disabled: boolean;
+  /** First load of a scope: placeholders stand in for the scope controls. */
+  loading?: boolean;
   refreshing: boolean;
   onChange: (patch: Partial<LandlordFinanceRouteParams>) => void;
   onRefresh: () => void;
@@ -65,19 +69,21 @@ function MonthPicker({
     >
       <Button
         variant="outline"
-        size="sm"
+        className="finance-picker-trigger"
         isDisabled={disabled}
         aria-label={`Report month: ${financeMonthLabel(scope.month)}`}
       >
         <IconCalendar size={16} aria-hidden />
         {financeMonthLabel(scope.month)}
+        <IconChevronDown
+          size={20}
+          strokeWidth={2}
+          className="text-muted-foreground"
+          aria-hidden
+        />
       </Button>
       <Popover.Content placement="bottom start" className="w-72">
         <Popover.Dialog aria-label="Choose report month" className="space-y-3 p-3">
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="size-2 rounded-full bg-brand" aria-hidden />
-            Rent collected
-          </p>
           {indicators.error ? (
             <div role="alert" className="text-sm">
               <p>
@@ -130,6 +136,7 @@ function MonthPicker({
                 <Button
                   key={month}
                   size="sm"
+                  className="w-full justify-center"
                   variant={selected ? "primary" : "tertiary"}
                   isDisabled={!available}
                   aria-pressed={selected}
@@ -139,22 +146,29 @@ function MonthPicker({
                     if (!selected) onSelect(month);
                   }}
                 >
-                  {available && indicators.loading && !indicators.data ? (
-                    <span
-                      className={`size-2 animate-pulse rounded-full motion-reduce:animate-none ${selected ? "bg-white/50" : "bg-muted"}`}
-                      aria-hidden
-                    />
-                  ) : status === "rent collected" ? (
-                    <span
-                      className={`size-2 rounded-full ${selected ? "bg-white" : "bg-brand"}`}
-                      aria-hidden
-                    />
-                  ) : null}
+                  <span className="relative">
+                  <span
+                    className={`absolute right-full mr-1.5 top-1/2 size-2 -translate-y-1/2 rounded-full ${
+                      available && indicators.loading && !indicators.data
+                        ? `animate-pulse motion-reduce:animate-none ${selected ? "bg-white/50" : "bg-muted"}`
+                        : status === "rent collected"
+                          ? selected
+                            ? "bg-white"
+                            : "bg-brand"
+                          : "bg-transparent"
+                    }`}
+                    aria-hidden
+                  />
                   {financeMonthLabel(month).slice(0, 3)}
+                  </span>
                 </Button>
               );
             })}
           </div>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="size-2 rounded-full bg-brand" aria-hidden />
+            Rent collected
+          </p>
         </Popover.Dialog>
       </Popover.Content>
     </Popover>
@@ -172,6 +186,7 @@ export default function ReportControls({
   currentMonth,
   tab,
   disabled,
+  loading = false,
   refreshing,
   onChange,
   onRefresh,
@@ -181,6 +196,16 @@ export default function ReportControls({
       className="flex flex-wrap items-center justify-between gap-3"
       data-fab-clearance
     >
+      {loading ? (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          aria-hidden="true"
+        >
+          <Skeleton className="h-[2.375rem] w-52 rounded-[0.875rem] bg-muted" />
+          <Skeleton className="h-[2.375rem] w-40 rounded-[0.875rem] bg-muted" />
+          <Skeleton className="size-[2.375rem] rounded-[0.875rem] bg-muted" />
+        </div>
+      ) : (
       <div className="flex flex-wrap items-center gap-2">
         <SettingsSelect
           label="Property"
@@ -206,7 +231,7 @@ export default function ReportControls({
         />
         <Button
           variant="outline"
-          size="sm"
+          className="finance-picker-trigger finance-picker-trigger--icon"
           isIconOnly
           aria-label="Refresh"
           isDisabled={disabled}
@@ -216,6 +241,7 @@ export default function ReportControls({
           <IconRefresh size={16} aria-hidden />
         </Button>
       </div>
+      )}
       <Tabs
         className="w-auto"
         selectedKey={tab}

@@ -19,40 +19,40 @@ export default function AnalyticsSkeleton({
     >
       <div className="space-y-4">
         <div className="overflow-hidden rounded-xl border border-border">
-          <Skeleton className="h-32 rounded-none bg-secondary" />
+          <Skeleton className="h-32 rounded-none bg-primary/10" />
           <div className="space-y-3 p-4">
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-9 w-56 rounded-full" />
+            <Skeleton className="bg-muted h-5 w-full" />
+            <Skeleton className="bg-muted h-5 w-full" />
+            <Skeleton className="bg-muted h-9 w-56 rounded-full" />
           </div>
         </div>
         {tab === "expenses" ? (
           <>
-            <Skeleton className="h-28 rounded-xl" />
-            <Skeleton className="h-72 rounded-xl" />
+            <Skeleton className="bg-muted h-28 rounded-xl" />
+            <Skeleton className="bg-muted h-72 rounded-xl" />
           </>
         ) : tab === "budget" ? (
           <>
-            <Skeleton className="h-64 rounded-xl" />
-            <Skeleton className="h-40 rounded-xl" />
+            <Skeleton className="bg-muted h-64 rounded-xl" />
+            <Skeleton className="bg-muted h-40 rounded-xl" />
           </>
         ) : (
           <>
-            <Skeleton className="h-80 rounded-xl" />
-            <Skeleton className="h-56 rounded-xl" />
+            <Skeleton className="bg-muted h-80 rounded-xl" />
+            <Skeleton className="bg-muted h-56 rounded-xl" />
           </>
         )}
       </div>
       <div className="space-y-4">
-        <Skeleton className="h-52 rounded-xl bg-secondary" />
+        <Skeleton className="h-52 rounded-xl bg-primary/30" />
         {tab === "budget" ? (
-          <Skeleton className="h-96 rounded-xl" />
+          <Skeleton className="bg-muted h-96 rounded-xl" />
         ) : tab === "expenses" ? (
-          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="bg-muted h-64 rounded-xl" />
         ) : (
           <>
-            <Skeleton className="h-40 rounded-xl" />
-            <Skeleton className="h-56 rounded-xl" />
+            <Skeleton className="bg-muted h-40 rounded-xl" />
+            <Skeleton className="bg-muted h-56 rounded-xl" />
           </>
         )}
       </div>

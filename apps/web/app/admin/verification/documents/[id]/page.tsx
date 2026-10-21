@@ -128,7 +128,7 @@ export default async function PassportDocumentReviewPage({ params }: PageProps) 
   const isPending = document.review_status === "pending";
 
   return (
-    <div className={`mx-auto w-full max-w-7xl space-y-4 p-4 ${isPending ? "pb-48 md:pb-28" : ""}`}>
+    <div className={`w-full space-y-4 p-4 ${isPending ? "pb-48 md:pb-28" : ""}`}>
       <header>
         <Link
           href="/admin/verification?tab=documents"

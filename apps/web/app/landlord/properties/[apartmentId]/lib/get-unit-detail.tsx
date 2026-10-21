@@ -45,7 +45,7 @@ export async function getLandlordUnitDetail(apartmentId: string): Promise<UnitLo
 
 export function UnitNotice({ title, message }: { title: string; message: string }) {
   return (
-    <div className="p-4">
+    <div className="p-4 md:p-6">
       <div className="rounded-2xl border border-border bg-card p-8 text-center">
         <p className="font-nunito font-semibold text-card-foreground">{title}</p>
         <p className="mt-1 text-sm font-nunito text-muted-foreground">{message}</p>

@@ -20,7 +20,7 @@ function FieldSkeleton() {
 
 export default function PropertyDetailSkeleton() {
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading apartment details">
+    <div className="p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading apartment details">
       <div aria-hidden="true" className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
           <Sk className="h-8 w-32 rounded-lg" />

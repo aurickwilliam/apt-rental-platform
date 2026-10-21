@@ -46,6 +46,29 @@
   font-size: 0.75rem;
   font-weight: 700;
 }
+/* The month picker and refresh button share the property select's shape. */
+.finance-report .finance-picker-trigger {
+  height: 2.375rem;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--background);
+  color: var(--foreground);
+  font-weight: 400;
+}
+.finance-report .finance-picker-trigger:hover,
+.finance-report .finance-picker-trigger[data-hovered] { background: var(--muted); }
+.finance-report .finance-picker-trigger--icon { width: 2.375rem; padding: 0; justify-content: center; }
+/* Indicators are controls, not placeholders: readable contrast, as in the
+   listing steps. The Select still owns disabled opacity and rotation. */
+.finance-report .select__indicator,
+.finance-drawer .select__indicator {
+  color: var(--muted-foreground);
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
+}
 .finance-report .finance-meter { --progress-bar-fill: var(--primary); }
 .finance-report .finance-meter.finance-meter--over { --progress-bar-fill: var(--destructive); }
 .finance-choice, .finance-property {

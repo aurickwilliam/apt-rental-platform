@@ -44,10 +44,6 @@ export default function FinanceFilterMonthGrid({
   const indicatorsPending = incomeMonthsLoading && !incomeMonths;
   return (
     <>
-      <View className="flex-row items-center gap-2 px-1">
-        <View className="h-2 w-2 rounded-full bg-accent" />
-        <Text className="font-inter text-xs text-muted">Rent collected</Text>
-      </View>
       {incomeMonthsError ? (
         <View className="gap-1">
           <Text
@@ -121,12 +117,12 @@ export default function FinanceFilterMonthGrid({
                 accessibilityState={{ checked: selected }}
                 onPress={() => onChange(month)}
               >
-                <View className="flex-row items-center gap-1.5">
+                <View className="flex-row items-center">
                   {indicatorsPending && available ? (
                     <SkeletonGroup.Item
                       accessible={false}
                       testID={`rent-indicator-loading-${month}`}
-                      className="h-2 w-2 shrink-0 rounded-full"
+                      className="absolute -left-3.5 h-2 w-2 rounded-full"
                       style={
                         selected
                           ? { backgroundColor: "rgba(255,255,255,0.5)" }
@@ -137,7 +133,7 @@ export default function FinanceFilterMonthGrid({
                     <View
                       accessible={false}
                       testID={`rent-collected-${month}`}
-                      className={`h-2 w-2 shrink-0 rounded-full ${selected ? "bg-accent-foreground" : "bg-accent"}`}
+                      className={`absolute -left-3.5 h-2 w-2 rounded-full ${selected ? "bg-accent-foreground" : "bg-accent"}`}
                     />
                   ) : null}
                   <Button.Label>
@@ -149,6 +145,10 @@ export default function FinanceFilterMonthGrid({
           );
         })}
       </SkeletonGroup>
+      <View className="flex-row items-center gap-2 px-1">
+        <View className="h-2 w-2 rounded-full bg-accent" />
+        <Text className="font-inter text-xs text-muted">Rent collected</Text>
+      </View>
       <Text className="font-inter text-xs text-muted">
         Reports are available for the last {REPORT_MONTH_COUNT} months.
       </Text>

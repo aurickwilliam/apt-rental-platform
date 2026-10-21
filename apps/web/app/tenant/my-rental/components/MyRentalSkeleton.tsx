@@ -132,7 +132,7 @@ function TenancySkeleton() {
 export default function MyRentalSkeleton({ variant = "tenancy" }: MyRentalSkeletonProps) {
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Loading my rental">
-      <div className="@container/rental max-w-7xl mx-auto min-w-0 space-y-4 px-4 py-6 sm:py-8">
+      <div className="@container/rental min-w-0 space-y-4 px-4 py-6 sm:py-8">
         {variant === "applications" ? <ApplicationsSkeleton /> : <TenancySkeleton />}
       </div>
     </div>

@@ -72,6 +72,9 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [expenseCategory, setExpenseCategory] =
     useState<FinanceCategory | null>(null);
+  // Only the Refresh button swaps the report for placeholders; the reloads that
+  // follow a save stay quiet so closing a drawer never flashes the page.
+  const [manualRefresh, setManualRefresh] = useState(false);
   const scope: FinanceScope = {
     month: applied.month,
     apartmentId: applied.apartmentId,
@@ -154,10 +157,21 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
         property: propertyLabel,
       }),
     );
+  const refreshReport = async () => {
+    setManualRefresh(true);
+    try {
+      await Promise.all([
+        report.refresh(),
+        applied.tab === "expenses" ? expenses.refresh() : undefined,
+      ]);
+    } finally {
+      setManualRefresh(false);
+    }
+  };
   const onBudgetTab = applied.tab === "budget";
   const ready = available && !!data.properties.length && !navigating;
   return (
-    <div className="finance-report mx-auto max-w-7xl space-y-4 p-4 md:p-6">
+    <div className="finance-report space-y-4 p-4 md:p-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -191,9 +205,10 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
         currentMonth={currentMonth}
         tab={applied.tab}
         disabled={!available || navigating}
+        loading={finance.userLoading || report.initialLoading}
         refreshing={report.refreshing}
         onChange={navigate}
-        onRefresh={() => void report.refresh()}
+        onRefresh={() => void refreshReport()}
       />
       <p className="sr-only" aria-live="polite">
         {propertyName}, {financeMonthLabel(applied.month)}
@@ -263,99 +278,91 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               </Button>
             </div>
           ) : null}
-          {report.refreshing ? (
+          {report.refreshing && !manualRefresh ? (
             <p role="status" className="text-xs text-muted-foreground">
               Refreshing report…
             </p>
           ) : null}
-          <div
-            role="tabpanel"
-            aria-label={`${applied.tab} report`}
-            className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:items-start"
-          >
-            <div className="max-lg:contents flex min-w-0 flex-col gap-4">
-              <div className="order-2 min-w-0">
-                <EarningsSummary
-                  data={data}
-                  month={applied.month}
-                  currentMonth={currentMonth}
-                  onReview={() => goToExpenses()}
-                  onGuidelines={() => open("guidelines")}
-                />
-              </div>
-              <div className="order-3 flex min-w-0 flex-col gap-4">
-                {applied.tab === "overview" ? (
-                  <OverviewMain
-                    data={data}
-                    onExpenses={goToExpenses}
-                    onProperty={(id) => navigate({ apartmentId: id })}
-                    onViewAll={() =>
-                      router.push(
-                        financeReportHref(
-                          search.toString(),
-                          applied,
-                          "/landlord/analytics/property-performance",
-                        ),
-                      )
-                    }
-                  />
-                ) : null}
-                {applied.tab === "expenses" ? (
-                  <ExpensesMain
-                    data={data}
-                    scope={scope}
-                    expenses={expenses}
-                    category={expenseCategory}
-                    onCategoryChange={setExpenseCategory}
-                    onEdit={openExpenseEdit}
-                    onExport={exportExpenses}
-                    onReview={finance.reviewExpenses}
-                    reviewing={finance.reviewing}
-                  />
-                ) : null}
-                {applied.tab === "budget" ? (
-                  <BudgetMain
-                    data={data}
-                    properties={data.properties}
-                    onSelectGroup={(category, kind) =>
-                      router.push(
-                        financeBudgetCategoryHref(
-                          applied.month,
-                          applied.apartmentId,
-                          category,
-                          kind,
-                        ),
-                        { scroll: false },
-                      )
-                    }
-                    onCreate={(presetCategory, presetKind) =>
-                      openBudget({ presetCategory, presetKind })
-                    }
-                    onEdit={(budget, suggestedAmount) =>
-                      openBudget({ initial: budget, suggestedAmount })
-                    }
-                  />
-                ) : null}
-              </div>
+          {manualRefresh ? (
+            <div role="status" aria-label="Loading finance report">
+              <AnalyticsSkeleton tab={applied.tab} />
             </div>
-            <div className="max-lg:contents flex min-w-0 flex-col gap-4">
-              <div className="order-1 min-w-0">
-                <NeedsAttention
-                  data={data}
-                  month={applied.month}
-                  onCollection={(status) =>
-                    setOverlay({ kind: "collections", status, scope: scopeKey })
-                  }
-                  onExpenses={() => goToExpenses()}
-                  onBudgets={() => navigate({ tab: "budget" })}
-                  onReserve={() => open("reserve")}
-                />
-              </div>
-              <div className="order-4 flex min-w-0 flex-col gap-4">
-                {applied.tab === "overview" ? (
-                  <OverviewAside
+          ) : (
+            <div
+              role="tabpanel"
+              aria-label={`${applied.tab} report`}
+              className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:items-start"
+            >
+              <div className="max-lg:contents flex min-w-0 flex-col gap-4">
+                <div className="order-2 min-w-0">
+                  <EarningsSummary
                     data={data}
-                    onBudgets={() => navigate({ tab: "budget" })}
+                    month={applied.month}
+                    currentMonth={currentMonth}
+                    onReview={() => goToExpenses()}
+                    onGuidelines={() => open("guidelines")}
+                  />
+                </div>
+                <div className="order-3 flex min-w-0 flex-col gap-4">
+                  {applied.tab === "overview" ? (
+                    <OverviewMain
+                      data={data}
+                      onExpenses={goToExpenses}
+                      onProperty={(id) => navigate({ apartmentId: id })}
+                      onViewAll={() =>
+                        router.push(
+                          financeReportHref(
+                            search.toString(),
+                            applied,
+                            "/landlord/analytics/property-performance",
+                          ),
+                        )
+                      }
+                    />
+                  ) : null}
+                  {applied.tab === "expenses" ? (
+                    <ExpensesMain
+                      data={data}
+                      scope={scope}
+                      expenses={expenses}
+                      category={expenseCategory}
+                      onCategoryChange={setExpenseCategory}
+                      onEdit={openExpenseEdit}
+                      onExport={exportExpenses}
+                      onReview={finance.reviewExpenses}
+                      reviewing={finance.reviewing}
+                    />
+                  ) : null}
+                  {applied.tab === "budget" ? (
+                    <BudgetMain
+                      data={data}
+                      properties={data.properties}
+                      onSelectGroup={(category, kind) =>
+                        router.push(
+                          financeBudgetCategoryHref(
+                            applied.month,
+                            applied.apartmentId,
+                            category,
+                            kind,
+                          ),
+                          { scroll: false },
+                        )
+                      }
+                      onCreate={(presetCategory, presetKind) =>
+                        openBudget({ presetCategory, presetKind })
+                      }
+                      onEdit={(budget, suggestedAmount) =>
+                        openBudget({ initial: budget, suggestedAmount })
+                      }
+                    />
+                  ) : null}
+                </div>
+              </div>
+              <div className="max-lg:contents flex min-w-0 flex-col gap-4">
+                <div className="order-1 min-w-0">
+                  <NeedsAttention
+                    data={data}
+                    month={applied.month}
                     onCollection={(status) =>
                       setOverlay({
                         kind: "collections",
@@ -363,38 +370,56 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                         scope: scopeKey,
                       })
                     }
+                    onExpenses={() => goToExpenses()}
+                    onBudgets={() => navigate({ tab: "budget" })}
+                    onReserve={() => open("reserve")}
                   />
-                ) : null}
-                {applied.tab === "expenses" ? (
-                  <ExpensesAside
-                    data={data}
-                    onSelectCategory={(category) =>
-                      router.push(
-                        financeCategoryHref(
-                          applied.month,
-                          applied.apartmentId,
-                          category,
-                        ),
-                        { scroll: false },
-                      )
-                    }
-                  />
-                ) : null}
-                {applied.tab === "budget" ? (
-                  <BudgetAside
-                    data={data}
-                    properties={data.properties}
-                    onCreate={(presetCategory, presetKind) =>
-                      openBudget({ presetCategory, presetKind })
-                    }
-                    onEdit={(budget, suggestedAmount) =>
-                      openBudget({ initial: budget, suggestedAmount })
-                    }
-                  />
-                ) : null}
+                </div>
+                <div className="order-4 flex min-w-0 flex-col gap-4">
+                  {applied.tab === "overview" ? (
+                    <OverviewAside
+                      data={data}
+                      onBudgets={() => navigate({ tab: "budget" })}
+                      onCollection={(status) =>
+                        setOverlay({
+                          kind: "collections",
+                          status,
+                          scope: scopeKey,
+                        })
+                      }
+                    />
+                  ) : null}
+                  {applied.tab === "expenses" ? (
+                    <ExpensesAside
+                      data={data}
+                      onSelectCategory={(category) =>
+                        router.push(
+                          financeCategoryHref(
+                            applied.month,
+                            applied.apartmentId,
+                            category,
+                          ),
+                          { scroll: false },
+                        )
+                      }
+                    />
+                  ) : null}
+                  {applied.tab === "budget" ? (
+                    <BudgetAside
+                      data={data}
+                      properties={data.properties}
+                      onCreate={(presetCategory, presetKind) =>
+                        openBudget({ presetCategory, presetKind })
+                      }
+                      onEdit={(budget, suggestedAmount) =>
+                        openBudget({ initial: budget, suggestedAmount })
+                      }
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
-          </div>
+          )}
           {activeOverlay?.kind === "guidelines" ? (
             <FinanceGuidelinesModal onClose={close} />
           ) : null}

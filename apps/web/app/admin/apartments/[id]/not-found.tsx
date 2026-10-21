@@ -3,7 +3,7 @@ import { Card } from "@heroui/react";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto w-full max-w-7xl p-4">
+    <div className="w-full p-4">
       <Card className="rounded-3xl border border-border bg-card p-5 shadow-none">
         <Card.Content className="p-0">
           <h1 className="font-nunito text-xl font-bold">Apartment not found</h1>

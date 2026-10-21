@@ -40,7 +40,7 @@ export default function FinanceDrawer({
               aria-label={`Close ${title.toLowerCase()}`}
               isDisabled={busy}
             >
-              <IconX size={16} aria-hidden />
+              <IconX size={16} className="text-foreground" aria-hidden />
             </Drawer.CloseTrigger>
             <Drawer.Header className="border-b border-border px-5 py-4">
               <Drawer.Heading className="font-nunito text-xl font-bold">

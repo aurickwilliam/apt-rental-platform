@@ -200,7 +200,7 @@ export default function MyRental() {
     return (
       <div className="min-h-screen bg-background">
         <div
-          className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4 w-full flex-1 flex flex-col justify-center items-center"
+          className="px-4 py-6 sm:py-8 space-y-4 w-full flex-1 flex flex-col justify-center items-center"
           style={{ minHeight: "calc(100dvh - 4rem)" }}
         >
           <DashboardCard className="max-w-xl w-full">
@@ -223,7 +223,7 @@ export default function MyRental() {
 
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+        <div className="px-4 py-6 sm:py-8 space-y-4">
           {hasApplications || applicationsError ? (
             <ApplicationsList applications={applications} loading={false} error={applicationsError} />
           ) : (
@@ -395,7 +395,7 @@ export default function MyRental() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="@container/rental max-w-7xl mx-auto min-w-0 px-4 py-6 sm:py-8 space-y-4">
+      <div className="@container/rental min-w-0 px-4 py-6 sm:py-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="font-inter text-xs uppercase tracking-wider text-muted-foreground">
             {headerDate}

@@ -142,7 +142,7 @@ export default async function UserVerificationReviewPage({ params }: PageProps) 
     : null;
 
   return (
-    <div className={`mx-auto w-full max-w-7xl space-y-4 p-4 ${verification.status === "pending" ? "pb-48 md:pb-28" : ""}`}>
+    <div className={`w-full space-y-4 p-4 ${verification.status === "pending" ? "pb-48 md:pb-28" : ""}`}>
       <header>
         <Link
           href="/admin/verification"
