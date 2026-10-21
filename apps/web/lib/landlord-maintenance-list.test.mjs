@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { getMaintenanceFeeError, normalizeMaintenanceFeeStatus } from "../../../packages/utils/src/maintenanceFee.ts";
 import { filterMaintenanceList, maintenanceSummary, maintenanceReportedAge, sortMaintenanceList } from "../app/landlord/maintenance-requests/lib/maintenance-list.ts";
 
 const requests = [
@@ -49,7 +50,7 @@ test("Maintenance thumbnails use the existing landlord-scoped bounded query with
     eq(...args) { calls.push(["eq", ...args]); return this; },
     order(...args) { calls.push(["order", ...args]); return this; },
     limit(...args) { calls.push(["limit", ...args]); return this; },
-    then(resolve, reject) { return Promise.resolve({ data: [{ id: "a", apartment_id: "p1", title: "Leak", message: "Under sink", status: "pending", urgency: "high", image_urls: ["private-photo.jpg"],
+    then(resolve, reject) { return Promise.resolve({ data: [{ id: "a", apartment_id: "p1", title: "Leak", message: "Under sink", status: "pending", urgency: "high", image_urls: ["private-photo.jpg"], fee_amount: 500, fee_status: "waived",
       apartment: { name: "Cove", monthly_rent: 15000, apartment_images: [{ url: "/full.jpg", url_thumb: "/thumb.jpg" }] },
       tenant: { first_name: "Alice", email: "alice@example.test" },
     }], error: null }).then(resolve, reject); },
@@ -58,7 +59,7 @@ test("Maintenance thumbnails use the existing landlord-scoped bounded query with
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const dependencies = {
     "@repo/supabase/browser": { createClient: () => ({ from: table => { calls.push(["from", table]); return query; } }) },
-    "@repo/utils": { formatAddress: () => "First St" },
+    "@repo/utils": { formatAddress: () => "First St", getMaintenanceFeeError, normalizeMaintenanceFeeStatus },
     "@/service/maintenanceService": { resolveMaintenanceImageUrls: async () => ({ urls: { "private-photo.jpg": "signed-private-photo" } }) },
   };
   const context = { exports: {}, require: name => { assert.ok(name in dependencies); return dependencies[name]; } };
@@ -69,6 +70,7 @@ test("Maintenance thumbnails use the existing landlord-scoped bounded query with
   assert.equal(result[0].apartment_monthly_rent, 15000);
   assert.equal(result[0].tenant_email, "alice@example.test");
   assert.equal(result[0].photos[0], "signed-private-photo");
+  assert.equal(result[0].fee_status, "waived");
   assert.ok(calls.some(call => call[0] === "eq" && call[1] === "landlord_id" && call[2] === "landlord-one"));
   assert.ok(calls.some(call => call[0] === "limit" && call[1] === 200));
   assert.ok(calls.some(call => call[0] === "limit" && call[1] === 1 && call[2].referencedTable === "apartment.apartment_images"));

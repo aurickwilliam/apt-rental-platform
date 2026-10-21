@@ -8,6 +8,12 @@ export {
 } from './chatAttachments';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
+export {
+  type MaintenanceFeeStatus,
+  normalizeMaintenanceFeeStatus,
+  getMaintenanceFeeError,
+  canWaiveMaintenanceFee,
+} from './maintenanceFee';
 export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';
 export { formatFullName } from './formatFullName';

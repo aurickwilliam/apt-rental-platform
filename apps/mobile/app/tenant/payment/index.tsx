@@ -34,6 +34,7 @@ import {
 import { usePayments } from "@/hooks/payments";
 import { useCurrentUser } from "@/hooks/auth";
 import { useTenancy } from "@/hooks/tenancy/useTenancy";
+import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
 
 import { getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
 
@@ -88,6 +89,7 @@ export default function PaymentCheckout() {
     error: tenancyError,
     refetch,
   } = useTenancy();
+  useMaintenanceFocusRefresh(tenancy?.apartment.id, currentUser?.id);
   // Kept only for the already-paid guard — rent is always billed in full.
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 

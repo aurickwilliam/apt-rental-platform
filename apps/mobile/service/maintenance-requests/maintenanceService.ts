@@ -1,4 +1,5 @@
 import { supabase } from "@repo/supabase";
+import { normalizeMaintenanceFeeStatus, type MaintenanceFeeStatus } from "@repo/utils";
 
 import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
 
@@ -20,6 +21,9 @@ export type MaintenanceRequest = {
   apartment_id: string;
   landlord_id: string | null;
   cancelled_at: string | null;
+  tenancy_id: string | null;
+  fee_amount: number | null;
+  fee_status: MaintenanceFeeStatus | null;
 };
 
 const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
@@ -40,6 +44,9 @@ export async function mapRow(row: Record<string, unknown>): Promise<MaintenanceR
     ...(row as unknown as MaintenanceRequest),
     status: DB_TO_DISPLAY_STATUS[row.status as string] ?? "Pending",
     image_urls: resolvedUrls,
+    tenancy_id: typeof row.tenancy_id === "string" ? row.tenancy_id : null,
+    fee_amount: row.fee_amount == null ? null : Number(row.fee_amount),
+    fee_status: normalizeMaintenanceFeeStatus(row.fee_status),
   };
 }
 
@@ -66,7 +73,8 @@ export async function fetchMaintenanceRequestHistory(
     .from("maintenance_request")
     .select("*")
     .eq("apartment_id", apartmentId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) throw error;
 

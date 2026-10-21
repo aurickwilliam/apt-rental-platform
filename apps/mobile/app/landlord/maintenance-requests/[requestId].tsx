@@ -14,8 +14,10 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
 import EmptyMaintenanceRequestDetail from "./components/EmptyMaintenanceRequestDetail";
 import ResolveRequestDialog from "./components/ResolveRequestDialog";
+import ConfirmDialog from "@/components/display/ConfirmDialog";
+import MaintenanceFeeCard from "@/components/maintenance/MaintenanceFeeCard";
 
-import { formatDate } from "@repo/utils";
+import { canWaiveMaintenanceFee, formatDate, formatPesoDisplay } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -36,6 +38,10 @@ export default function MaintenanceRequestDetails() {
     loading,
     advanceStatus,
     resolveRequest,
+    waiveFee,
+    error,
+    clearError,
+    actionLoading,
     getNextStatus
   } = useLandlordMaintenanceRequests();
   const statusStyles = useMaintenanceRequestStatusStyles();
@@ -45,6 +51,7 @@ export default function MaintenanceRequestDetails() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
+  const [isWaiveDialogOpen, setIsWaiveDialogOpen] = useState(false);
 
   const resolvedId = useMemo(
     () => (Array.isArray(requestId) ? requestId[0] : requestId),
@@ -107,6 +114,7 @@ export default function MaintenanceRequestDetails() {
 
   const handleAdvanceStatus = () => {
     if (!resolvedId) return;
+    clearError();
     if (nextStatus === "Resolved") {
       setIsResolveDialogOpen(true);
       return;
@@ -114,9 +122,9 @@ export default function MaintenanceRequestDetails() {
     advanceStatus(resolvedId);
   };
 
-  const handleResolveConfirm = async (notes: string) => {
+  const handleResolveConfirm = async (notes: string, feeAmount?: number) => {
     if (!resolvedId) return false;
-    return resolveRequest(resolvedId, notes);
+    return resolveRequest(resolvedId, notes, feeAmount);
   };
 
   return (
@@ -255,12 +263,23 @@ export default function MaintenanceRequestDetails() {
         </>
       ) : null}
 
+      <MaintenanceFeeCard amount={request.fee_amount} status={request.fee_status} />
+
+      {error && !isResolveDialogOpen && !isWaiveDialogOpen && <Text accessibilityRole="alert" className="text-danger font-inter text-sm mt-3">{error}</Text>}
+
       <View className="flex-1" />
+
+      {canWaiveMaintenanceFee(request) && <Button
+        variant="secondary"
+        className="mt-5"
+        isDisabled={actionLoading}
+        onPress={() => { clearError(); setIsWaiveDialogOpen(true); }}
+      ><Button.Label>Waive fee</Button.Label></Button>}
 
       <Button
         size="md"
         onPress={handleAdvanceStatus}
-        isDisabled={isTerminal}
+        isDisabled={isTerminal || actionLoading}
         className={`${request.status === "Resolved" ? "bg-success" : ""} mt-10 `}
       >
         <Button.Label>{buttonLabel}</Button.Label>
@@ -283,9 +302,24 @@ export default function MaintenanceRequestDetails() {
       />
 
       <ResolveRequestDialog
+        key={request.id}
         isOpen={isResolveDialogOpen}
         onOpenChange={setIsResolveDialogOpen}
         onConfirm={handleResolveConfirm}
+        tenantName={request.tenant_name}
+        errorMessage={error}
+      />
+
+      <ConfirmDialog
+        isOpen={isWaiveDialogOpen}
+        onOpenChange={(open) => { if (!actionLoading) setIsWaiveDialogOpen(open); }}
+        title="Waive Maintenance Fee"
+        description={`Waive the ${formatPesoDisplay(request.fee_amount)} fee for ${request.tenant_name}? It will no longer be added to their rent. This cannot be undone.`}
+        confirmLabel={actionLoading ? "Waiving…" : "Waive fee"}
+        confirmVariant="primary"
+        isConfirmDisabled={actionLoading}
+        errorMessage={error}
+        onConfirm={() => { void waiveFee(request.id).then((success) => { if (success) setIsWaiveDialogOpen(false); }); }}
       />
     </ScreenWrapper>
   );

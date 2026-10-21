@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Checkbox, FieldError, Label, Modal, NumberField, TextArea, TextField } from "@heroui/react";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, getMaintenanceFeeError } from "@repo/utils";
 
 type ResolveMaintenanceModalProps = {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export default function ResolveMaintenanceModal({
       setNotesError("Please enter resolution notes.");
       return;
     }
-    if (chargeFee && (feeAmount === undefined || Number.isNaN(feeAmount) || feeAmount <= 0)) {
+    if (chargeFee && (feeAmount === undefined || getMaintenanceFeeError(feeAmount))) {
       setFeeError("Enter a fee amount greater than ₱0.");
       return;
     }
