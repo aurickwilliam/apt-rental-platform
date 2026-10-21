@@ -6,6 +6,7 @@ import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
 import { IconBell, IconX } from "@tabler/icons-react";
 import { groupNotificationsByLocalDate } from "@repo/utils";
 
+import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
 import { clearFabPlacement, isDefaultFabPlacement, loadFabPlacement } from "@/lib/notification-fab-position";
@@ -36,7 +37,7 @@ function readHasCustomPlacement(): boolean {
 }
 
 /**
- * Right-side notifications drawer. Data is portal-scoped by the hook;
+ * Side notifications drawer (right by default, left when Settings says so). Data is portal-scoped by the hook;
  * opening a row marks it read (fire-and-forget) and follows the resolved
  * portal route, or stays put when the payload has no destination here.
  * Consecutive chat messages from one sender render as one group summary;
@@ -52,6 +53,8 @@ export default function NotificationDrawer({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { preferences: displayPreferences } = useNotificationDisplayPreferences();
+  const side = displayPreferences.drawerSide;
   const [filter, setFilter] = useState<Filter>("all");
   // Keyed by group identity (conversation + sender + oldest member), so a
   // realtime arrival keeps an already-expanded group open.
@@ -151,10 +154,10 @@ export default function NotificationDrawer({
   return (
     <Drawer.Root state={drawerState}>
       <Drawer.Backdrop>
-        <Drawer.Content placement="right">
+        <Drawer.Content placement={side}>
           <Drawer.Dialog
             aria-label="Notifications"
-            className="apt-notifications-drawer flex h-full w-[calc(100vw-2rem)] max-w-sm flex-col rounded-l-3xl p-0"
+            className={`apt-notifications-drawer flex h-full w-[calc(100vw-2rem)] max-w-sm flex-col p-0 ${side === "left" ? "rounded-r-3xl" : "rounded-l-3xl"}`}
           >
             <div className="flex items-center gap-2 border-b border-divider px-4 py-3">
               <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-foreground">

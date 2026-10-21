@@ -35,6 +35,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   let onRealtime;
   let store;
   let linkOverride = null;
+  let drawerSide = "right";
   const calls = { loads: 0, connections: 0, writes: [], pushes: [], closes: 0, groupInputs: [] };
   const captureStore = value => { store = value; };
   const subscriptions = new Map();
@@ -122,6 +123,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     "@tabler/icons-react": { IconBell: "IconBell", IconX: "IconX" },
     "@repo/utils": { groupNotificationsByLocalDate },
     "@/hooks/use-notifications": hook,
+    "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
     "@/lib/notification-fab-position": {},
     "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
     "@/lib/notification-groups": {
@@ -206,6 +208,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     },
     setLinkOverride: resolve => { linkOverride = resolve; },
     setPortal: portal => { activePortal = portal; },
+    setDrawerSide: side => { drawerSide = side; },
     getRows: () => serverRows,
   };
 }
@@ -632,5 +635,22 @@ test("the group row renders a compact summary, expands in place, and keeps contr
     assert.doesNotMatch(expanded.find(n => n.type === "ul").props.className, /border|rail/);
     expanded.find(n => n.type === "NotificationRow").props.onOpen();
     assert.equal(openedMember, "chat-3", "compact children still open their own notification");
+  } finally { feed.stop(); }
+});
+
+test("drawer opens from the right by default and from the left when Settings says so", async () => {
+  const feed = createFeed();
+  try {
+    await feed.start();
+    const content = view => view.all.find(node => node.type === "Drawer.Content");
+    const dialog = view => view.all.find(node => node.type === "Drawer.Dialog");
+    let view = feed.render();
+    assert.equal(content(view).props.placement, "right");
+    assert.match(dialog(view).props.className, /rounded-l-3xl/);
+    feed.setDrawerSide("left");
+    view = feed.render();
+    assert.equal(content(view).props.placement, "left");
+    assert.match(dialog(view).props.className, /rounded-r-3xl/);
+    assert.doesNotMatch(dialog(view).props.className, /rounded-l-3xl/);
   } finally { feed.stop(); }
 });

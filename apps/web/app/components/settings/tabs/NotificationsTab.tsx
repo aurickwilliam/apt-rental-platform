@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { Button, Spinner } from "@heroui/react";
 
+import NotificationDisplaySettings from "../NotificationDisplaySettings";
 import SettingsRow from "../SettingsRow";
 import SectionTitle from "../SectionTitle";
 import ToggleSwitch from "../ToggleSwitch";
@@ -77,7 +78,10 @@ export default function NotificationsTab({
             </p>
           </div>
         ) : null}
+        <NotificationDisplaySettings />
+
         {/* General */}
+
         <div>
           <div className="px-4 pb-3">
             <SectionTitle title="General" />
