@@ -5,11 +5,12 @@ import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
 import MaintenancePageSkeleton from "./components/MaintenancePageSkeleton";
-import { useTenancy } from "@/hooks/use-tenancy";
+import { useMaintenanceTenancy } from "@/hooks/use-maintenance-tenancy";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 
 export default function MaintenanceRequestPage() {
-  const { tenancy, loading: tenancyLoading } = useTenancy();
+  const { tenancy, tenantId, loading: tenancyLoading, error: tenancyError } = useMaintenanceTenancy();
   const apartmentId = tenancy?.apartment.id ?? null;
   const {
     requests,
@@ -18,7 +19,7 @@ export default function MaintenanceRequestPage() {
     refresh,
     cancelRequest,
     cancellingId,
-  } = useMaintenanceRequestHistory(apartmentId);
+  } = useMaintenanceRequestHistory(apartmentId, tenantId);
 
   const apartment = tenancy?.apartment ?? null;
   const landlord = tenancy?.landlord ?? null;
@@ -38,8 +39,8 @@ export default function MaintenanceRequestPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="px-4 py-6 sm:py-8">
+        <div className="space-y-4">
           {/* Header */}
           <div>
             <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
@@ -56,6 +57,8 @@ export default function MaintenanceRequestPage() {
 
           {tenancyLoading ? (
             <MaintenancePageSkeleton />
+          ) : tenancyError ? (
+            <ErrorBanner message={tenancyError} />
           ) : !tenancy || !apartmentId ? (
             <div className="rounded-2xl border border-border bg-card p-6 text-center">
               <p className="font-nunito text-sm font-semibold text-card-foreground">

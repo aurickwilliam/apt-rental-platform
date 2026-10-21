@@ -59,7 +59,17 @@ function PaymentContent() {
 
   const { profile } = useUser();
   const paymentPreferences = usePaymentMethodPreferences(profile?.id ?? null);
-  const { tenancy, currentPayment, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy();
+  const {
+    tenancy,
+    currentPayment,
+    loading: tenancyLoading,
+    error: tenancyError,
+    financeLoading,
+    financeError,
+    retryFinance,
+    revalidate,
+    refetch,
+  } = useTenancy();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
   const apartment = tenancy?.apartment ?? null;
@@ -78,6 +88,7 @@ function PaymentContent() {
   const apartmentIdForFees = apartment?.id ?? null;
   const tenancyIdForFees = tenancy?.id ?? null;
   useEffect(() => {
+    if (financeLoading || financeError) return;
     if (!apartmentIdForFees || !tenancyIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
     const tenancyId = tenancyIdForFees;
@@ -100,7 +111,7 @@ function PaymentContent() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees, tenancyIdForFees, bill]);
+  }, [apartmentIdForFees, tenancyIdForFees, bill, financeError, financeLoading]);
 
   const pendingFees = bill?.fees ?? legacyFees;
   const feesTotal = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
@@ -195,7 +206,7 @@ function PaymentContent() {
         });
       } finally {
         setIsProcessing(false);
-        void refetch();
+        void revalidate();
       }
     } else if (activeMethod === "Debit/Credit-Card") {
       const errs = validateCardInfo(cardInfo);
@@ -230,7 +241,7 @@ function PaymentContent() {
         });
       } finally {
         setIsProcessing(false);
-        void refetch();
+        void revalidate();
       }
     } else if (activeMethod === "Cash") {
       const errs = validateCashPayment({ paymentDate: cashDate });
@@ -277,25 +288,25 @@ function PaymentContent() {
         setPaymentError({ message: `Could not record your cash payment. Please try again. (${detail})` });
       } finally {
         setIsProcessing(false);
-        void refetch();
+        void revalidate();
       }
     }
   };
 
-  if (tenancyLoading || paymentsQuery.loading) {
+  if (tenancyLoading || financeLoading || paymentsQuery.loading) {
     return <PaymentPageSkeleton />;
   }
 
-  if (tenancyError || paymentsQuery.error || !tenancy || !apartment) {
+  if (tenancyError || financeError || paymentsQuery.error || !tenancy || !apartment) {
     return (
       <PaymentPageShell>
         <PaymentPageHeader />
         <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-none">
           <Card.Content className="py-16 flex flex-col items-center gap-4 text-center px-6">
             <p className="text-lg font-nunito font-semibold text-zinc-900 dark:text-zinc-100">
-              {tenancyError ?? paymentsQuery.error ?? "No active rental found on this account."}
+              {tenancyError ?? financeError ?? paymentsQuery.error ?? "No active rental found on this account."}
             </p>
-            <Button onPress={() => { void refetch(); void paymentsQuery.refetch(); }} className="rounded-full font-nunito">
+            <Button onPress={() => { void refetch(); void retryFinance(); void paymentsQuery.refetch(); }} className="rounded-full font-nunito">
               Try Again
             </Button>
           </Card.Content>
@@ -341,7 +352,7 @@ function PaymentContent() {
                 {pendingPayment.method === "cash" ? "Your payment is awaiting landlord confirmation." : "Your checkout is awaiting confirmation. Check its status before starting another payment."}
               </p>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onPress={() => void refetch()}>Refresh bill</Button>
+                <Button variant="secondary" size="sm" onPress={() => { void refetch(); void retryFinance(); }}>Refresh bill</Button>
                 {pendingPayment.referenceId && <Button size="sm" onPress={() => router.push(pendingPayment.method === "cash"
                   ? `/tenant/payment/success?referenceId=${encodeURIComponent(pendingPayment.referenceId!)}`
                   : `/tenant/payment/verify?sessionId=${encodeURIComponent(pendingPayment.referenceId!)}`)}>Check payment</Button>}

@@ -49,13 +49,9 @@ export default function Dashboard() {
     >
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row gap-3 items-center">
-          <Image
-            source={IMAGES.logo}
-            className="size-9"
-            resizeMode="contain"
-          />
+          <Image source={IMAGES.logo} className="size-9" resizeMode="contain" />
 
-          <Text className="text-accent text-3xl font-nunitoBold mt-1">
+          <Text className="text-foreground text-3xl font-nunitoBold mt-1">
             Dashboard
           </Text>
         </View>
@@ -148,7 +144,8 @@ export default function Dashboard() {
                   No upcoming rent dues
                 </Text>
                 <Text className="text-gray-400 text-sm font-inter text-center px-8">
-                  You&apos;re all caught up — new dues will appear here as they come due.
+                  You&apos;re all caught up — new dues will appear here as they
+                  come due.
                 </Text>
               </View>
             ) : (
@@ -162,7 +159,9 @@ export default function Dashboard() {
                     amount={rent.amount}
                     isOverdue={rent.isOverdue}
                     onPress={() =>
-                      router.push(`/landlord/manage-apartment/${rent.apartmentId}`)
+                      router.push(
+                        `/landlord/manage-apartment/${rent.apartmentId}`,
+                      )
                     }
                   />
                 ))}

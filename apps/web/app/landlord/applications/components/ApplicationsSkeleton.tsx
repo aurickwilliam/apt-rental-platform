@@ -117,7 +117,7 @@ export function ApplicationsResultsSkeleton() {
 
 export default function ApplicationsSkeleton() {
   return (
-    <div className="landlord-applications-page w-full min-w-0 p-4 flex flex-col gap-6 bg-card min-h-0" aria-busy="true" aria-label="Loading applications">
+    <div className="landlord-applications-page w-full min-w-0 p-4 md:p-6 flex flex-col gap-6 bg-card min-h-0" aria-busy="true" aria-label="Loading applications">
       <ApplicationsHeader />
       <ApplicationsSummarySkeleton />
       <div aria-hidden="true" className="grid grid-cols-1 items-center gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(240px,2fr)_repeat(4,minmax(0,1fr))_auto]">

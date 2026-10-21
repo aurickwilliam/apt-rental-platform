@@ -147,9 +147,8 @@ export async function resolveMaintenanceImageUrls(
   };
 }
 
-async function mapRow(row: MaintenanceRow): Promise<MaintenanceRequest> {
+function mapRow(row: MaintenanceRow, urls: Record<string, string | null>): MaintenanceRequest {
   const paths = Array.isArray(row.image_urls) ? row.image_urls : [];
-  const { urls } = await resolveMaintenanceImageUrls(paths);
   const signedUrls = paths
     .map((path) => urls[path])
     .filter((url): url is string => Boolean(url));
@@ -190,7 +189,8 @@ export async function fetchMaintenanceRequestHistory(
   if (error) throw error;
 
   const rows = (data ?? []) as unknown as MaintenanceRow[];
-  return Promise.all(rows.map((row) => mapRow(row)));
+  const { urls } = await resolveMaintenanceImageUrls(rows.flatMap((row) => row.image_urls ?? []));
+  return rows.map((row) => mapRow(row, urls));
 }
 
 export type PendingMaintenanceFee = {
@@ -274,7 +274,9 @@ export async function fetchLatestMaintenanceRequest(
   if (error) throw error;
   if (!data) return null;
 
-  return mapRow(data as unknown as MaintenanceRow);
+  const row = data as unknown as MaintenanceRow;
+  const { urls } = await resolveMaintenanceImageUrls(row.image_urls ?? []);
+  return mapRow(row, urls);
 }
 
 export type InsertMaintenanceRequestPayload = {

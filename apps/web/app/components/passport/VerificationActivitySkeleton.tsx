@@ -1,0 +1,26 @@
+import { Skeleton } from "@heroui/react";
+
+/**
+ * Matches the verification activity block while the latest submission
+ * streams in. The profile card itself is already interactive; this only
+ * stands in for the independent timeline beneath it.
+ */
+export default function VerificationActivitySkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading verification progress">
+      <div className="border-t border-border" aria-hidden="true" />
+      <Skeleton className="mt-4 h-4 w-40 rounded-md bg-grey-300!" />
+      <div className="mt-3 flex flex-col gap-4">
+        {Array.from({ length: 2 }, (_, index) => (
+          <div key={index} className="flex gap-3">
+            <Skeleton className="size-5 shrink-0 rounded-full bg-grey-300!" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <Skeleton className="h-3.5 w-32 rounded-md bg-grey-300!" />
+              <Skeleton className="h-3 w-24 rounded-md bg-grey-300!" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

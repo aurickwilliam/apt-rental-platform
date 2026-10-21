@@ -1,6 +1,6 @@
 export default function TenantProfileLoading() {
   return (
-    <div className="mx-auto w-full max-w-7xl p-4">
+    <div className="w-full p-4">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <div className="grid min-w-0 grid-cols-1 content-start gap-3">
           <div className="overflow-hidden rounded-3xl border border-border bg-card">

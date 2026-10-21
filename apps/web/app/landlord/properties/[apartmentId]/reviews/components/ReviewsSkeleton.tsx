@@ -10,7 +10,7 @@ function Sk({ className }: { className: string }) {
 
 export default function ReviewsSkeleton() {
   return (
-    <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading property reviews">
+    <div className="w-full min-w-0 p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading property reviews">
       <div>
         <Sk className="h-8 w-36 rounded-lg" />
         <h1 className="mt-2 text-2xl font-bold font-nunito text-card-foreground">Property Reviews</h1>

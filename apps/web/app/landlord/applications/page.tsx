@@ -44,7 +44,7 @@ function ApplicationsContent() {
   const openDetail = (id: string) => router.push(`/landlord/applications/${id}`);
 
   return (
-    <div className="landlord-applications-page w-full min-w-0 p-4 flex flex-col gap-6 bg-card min-h-0" aria-busy={loading}>
+    <div className="landlord-applications-page w-full min-w-0 p-4 md:p-6 flex flex-col gap-6 bg-card min-h-0" aria-busy={loading}>
       <ApplicationsHeader />
 
       {loading ? <ApplicationsSummarySkeleton /> : <ApplicationsSummary summary={error ? null : summary} />}

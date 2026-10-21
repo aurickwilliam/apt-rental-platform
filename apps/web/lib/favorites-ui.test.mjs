@@ -49,12 +49,12 @@ function loadComponent(file, modules = {}, exportName = "default") {
   return context.exports[exportName];
 }
 
-function renderFavorites({ view = "grid", items = [apartment], loading = false, error = null } = {}) {
+function renderFavorites({ view = "grid", items = [apartment], loading = false, error = null, hasData = !error, refreshing = false, nextCursor = null, cursors = [null] } = {}) {
   const navigation = [];
   const toggles = [];
   const updates = [];
   const refreshes = [];
-  const state = [view, items, false, null, null];
+  const state = [view, null, cursors];
   let cursor = 0;
   const Component = loadComponent("tenant/favorites/components/FavoritesClient.tsx", {
     react: {
@@ -62,13 +62,13 @@ function renderFavorites({ view = "grid", items = [apartment], loading = false, 
       useMemo: fn => fn(), useCallback: fn => fn, useEffect: () => {},
     },
     "next/navigation": { useRouter: () => ({ push: href => navigation.push(href) }) },
-    "@/hooks/use-favorites": { useFavorites: () => ({
-      favoriteApartmentIds: new Set(items.map(item => item.id)), loading, error,
+    "@/hooks/use-favorite-presentation": { useFavoritePresentation: () => ({
+      apartments: items, loading, error, hasData, refreshing, nextCursor,
       isFavorite: () => true, toggleFavorite: async id => { toggles.push(id); return false; },
       refreshFavorites: () => refreshes.push(true),
     }) },
   });
-  const tree = Component();
+  const tree = Component({ authUserId: "auth-a", profileId: "tenant-a" });
   return { tree, all: nodes(tree), navigation, toggles, updates, refreshes };
 }
 
@@ -131,6 +131,32 @@ test("shared apartment card keyboard handling opens only the card, not its neste
   tree.props.onKeyDown({ key: "Enter", target: {}, currentTarget: target, preventDefault: () => prevented++ });
   assert.equal(opened, 2);
   assert.equal(prevented, 2);
+});
+
+test("warm/background refreshes retain cards; failed background refresh offers Retry without a full-page error or skeleton", () => {
+  for (const options of [{ refreshing: true }, { error: "Offline", hasData: true }]) {
+    const page = renderFavorites(options);
+    assert.ok(page.all.some(node => node.props.className?.startsWith("favorites-grid")));
+    assert.ok(!page.all.some(node => node.props["aria-label"] === "Loading saved apartments"));
+    if (options.error) {
+      assert.ok(text(page.tree).includes("Showing the last loaded shortlist"));
+      page.all.find(node => node.type === "Button" && node.props.children === "Try again").props.onPress();
+      assert.equal(page.refreshes.length, 1);
+    }
+  }
+});
+
+test("bounded Favorites pages keep later saved apartments reachable without claiming the first page is the whole shortlist", () => {
+  const cursor = { createdAt: "2026-10-01T00:00:00Z", apartmentId: "apt-50" };
+  const page = renderFavorites({ nextCursor: cursor });
+  assert.ok(text(page.tree).includes("on this page"));
+  const next = page.all.find(node => node.type === "Button" && node.props.children === "Next");
+  assert.equal(next.props.isDisabled, false);
+  next.props.onPress();
+  assert.deepEqual(JSON.parse(JSON.stringify(page.updates[0][1]([null]))), [null, cursor]);
+  const last = renderFavorites({ items: [], cursors: [null, cursor] });
+  const previous = last.all.find(node => node.type === "Button" && node.props.children === "Previous");
+  assert.equal(previous.props.isDisabled, false);
 });
 
 test("Favorites route fallback shares its header, toolbar and responsive card skeletons with client loading", () => {

@@ -19,15 +19,17 @@ export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]
   return status === "Pending" || status === "In Progress";
 }
 
-export function useMaintenanceRequestHistory(apartmentId: string | null) {
+export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
     if (!apartmentId) return NO_REQUESTS;
-    const context = await getTenantContext();
-    if (!context.tenantId) return NO_REQUESTS;
-    return fetchMaintenanceRequestHistory(apartmentId, context.tenantId);
-  }, [apartmentId]);
+    // A caller with shared profile context needn't validate/read it a second time.
+    // Omitted context preserves the existing behavior for other consumers.
+    const resolvedTenantId = tenantId === undefined ? (await getTenantContext()).tenantId : tenantId;
+    if (!resolvedTenantId) return NO_REQUESTS;
+    return fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId);
+  }, [apartmentId, tenantId]);
   const {
     data: requests,
     loading,

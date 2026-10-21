@@ -71,6 +71,31 @@ export function FilterPanelSkeleton() {
   );
 }
 
+// Streamed fallback for the filter rail: keeps the sidebar width and the
+// mobile result-count row stable until the shared result query settles.
+export function BrowseFilterRailSkeleton({
+  stickyClassName = "md:top-20 md:max-h-[calc(100dvh-6rem)]",
+}: {
+  stickyClassName?: string;
+}) {
+  return (
+    <>
+      <div className="md:hidden mb-3 flex items-center justify-between gap-2" aria-hidden="true">
+        <Skeleton className="h-5 w-28 rounded-md" />
+      </div>
+      <aside className={`hidden md:block md:w-64 lg:w-72 xl:w-80 shrink-0 self-start md:sticky md:overflow-y-auto ${stickyClassName}`}>
+        <FilterPanelSkeleton />
+      </aside>
+    </>
+  );
+}
+
+// The mobile filter entry is only usable once its count is known; this
+// placeholder keeps the search row height without claiming a result count.
+export function MobileFilterEntrySkeleton() {
+  return <Skeleton className="size-11 shrink-0 rounded-full md:hidden" aria-hidden="true" />;
+}
+
 // Loading state for a searched / filtered / paged browse: the results page
 // shows the filter sidebar and a flat grid, not curated section rows.
 export function BrowseResultsPageSkeleton() {

@@ -3,7 +3,7 @@
 import { Button } from "@heroui/react";
 import { IconLogout, IconPencil, IconSettings } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/app/(auth)/actions/sign-out";
+import { signOut } from "@/service/signOutService";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 
 export default function AccountActions() {

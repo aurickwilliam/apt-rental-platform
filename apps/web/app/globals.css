@@ -4,6 +4,152 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Finance controls use HeroUI behavior, with APT's existing surface/spacing
+   roles. Unlayered overrides belong here, not competing Tailwind utilities. */
+.finance-report { --finance-expenses: #FF4B4B; --finance-pending: #FACC15; }
+.dark .finance-report { --finance-expenses: #FCA5A5; --finance-pending: #FDE047; }
+.finance-card {
+  min-width: 0;
+  padding: 1rem;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: none;
+}
+.finance-card.finance-attention { background: var(--primary); color: white; }
+.finance-attention .card__title { color: white; }
+.finance-attention .finance-attention-item {
+  width: 100%;
+  height: auto;
+  min-height: 3.25rem;
+  padding: 0.625rem 0.75rem;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 0.16);
+  color: white;
+  white-space: normal;
+}
+.finance-attention .finance-attention-item:hover,
+.finance-attention .finance-attention-item[data-hovered] { background: rgb(255 255 255 / 0.26); }
+.finance-attention .finance-attention-item[data-focus-visible] { outline: 2px solid white; outline-offset: 2px; }
+.finance-attention-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  background: white;
+  color: var(--primary);
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+/* The month picker and refresh button share the property select's shape. */
+.finance-report .finance-picker-trigger {
+  height: 2.375rem;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--background);
+  color: var(--foreground);
+  font-weight: 400;
+}
+.finance-report .finance-picker-trigger:hover,
+.finance-report .finance-picker-trigger[data-hovered] { background: var(--muted); }
+.finance-report .finance-picker-trigger--icon { width: 2.375rem; padding: 0; justify-content: center; }
+/* Indicators are controls, not placeholders: readable contrast, as in the
+   listing steps. The Select still owns disabled opacity and rotation. */
+.finance-report .select__indicator,
+.finance-drawer .select__indicator {
+  color: var(--muted-foreground);
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
+}
+/* The selected range keeps the outline button's border; only its fill changes. */
+.finance-report .finance-range-selected,
+.finance-report .finance-range-selected[data-hovered] {
+  background: color-mix(in srgb, var(--primary) 10%, var(--background));
+  color: var(--primary);
+}
+/* Soft category fills, the same palette as mobile's budget rows (DESIGN.md §11).
+   They identify categories only, never financial status. */
+.finance-report { --finance-fill-maintenance: #EDF3FF; --finance-fill-furniture: #F3EEFF; --finance-fill-turnover: #FFF0E6; --finance-fill-insurance: #E8F5F3; --finance-fill-taxes: #F7F1E5; --finance-fill-utilities: #EAF6FC; --finance-fill-fees: #F6EDF5; --finance-fill-emergency: #EAF5EC; --finance-fill-vacancy: #FFF5DF; --finance-fill-other: #F0F2F5; }
+.dark .finance-report { --finance-fill-maintenance: #1B2538; --finance-fill-furniture: #282238; --finance-fill-turnover: #30251F; --finance-fill-insurance: #192C2A; --finance-fill-taxes: #2B271E; --finance-fill-utilities: #1B2932; --finance-fill-fees: #302330; --finance-fill-emergency: #1D2B21; --finance-fill-vacancy: #30291B; --finance-fill-other: #25282D; }
+.finance-report [data-finance-category="maintenance"] { --finance-row-fill: var(--finance-fill-maintenance); }
+.finance-report [data-finance-category="furniture"] { --finance-row-fill: var(--finance-fill-furniture); }
+.finance-report [data-finance-category="turnover"] { --finance-row-fill: var(--finance-fill-turnover); }
+.finance-report [data-finance-category="insurance"] { --finance-row-fill: var(--finance-fill-insurance); }
+.finance-report [data-finance-category="taxes"] { --finance-row-fill: var(--finance-fill-taxes); }
+.finance-report [data-finance-category="utilities"] { --finance-row-fill: var(--finance-fill-utilities); }
+.finance-report [data-finance-category="fees"] { --finance-row-fill: var(--finance-fill-fees); }
+.finance-report [data-finance-category="emergency"] { --finance-row-fill: var(--finance-fill-emergency); }
+.finance-report [data-finance-category="vacancy"] { --finance-row-fill: var(--finance-fill-vacancy); }
+.finance-report [data-finance-category="other"] { --finance-row-fill: var(--finance-fill-other); }
+.finance-report .finance-category-row {
+  width: 100%;
+  height: auto;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--finance-row-fill, var(--card));
+  white-space: normal;
+}
+.finance-report .finance-category-row:hover,
+.finance-report .finance-category-row[data-hovered] { background: var(--finance-row-fill, var(--card)); filter: brightness(0.97); }
+/* Category chips in the transactions table reuse the category fills; the dot is the saturated color. */
+.finance-report .finance-category-chip { background: var(--finance-row-fill, var(--default)); color: var(--foreground); }
+.finance-report .finance-category-chip-dot { display: inline-block; width: 0.5rem; height: 0.5rem; margin-right: 0.375rem; border-radius: 9999px; background: var(--finance-row-solid, currentColor); }
+/* Collection health rows: soft fills matching mobile (blue, amber, soft red). */
+.finance-report { --finance-collection-collected: #EFF6FF; --finance-collection-pending: #FFF8E1; --finance-collection-overdue: #FDECEC; }
+.dark .finance-report { --finance-collection-collected: #1A2340; --finance-collection-pending: #2A2410; --finance-collection-overdue: #2D1515; }
+.finance-report .finance-collection-row { border-radius: 9999px; background: var(--finance-collection-fill); }
+.finance-report .finance-collection-row:hover,
+.finance-report .finance-collection-row[data-hovered] { background: var(--finance-collection-fill); filter: brightness(0.97); }
+.finance-report [data-finance-collection="collected"] { --finance-collection-fill: var(--finance-collection-collected); }
+.finance-report [data-finance-collection="pending"] { --finance-collection-fill: var(--finance-collection-pending); }
+.finance-report [data-finance-collection="overdue"] { --finance-collection-fill: var(--finance-collection-overdue); }
+/* The saturated category colors, for solid surfaces with white text. */
+.finance-report { --finance-solid-maintenance: #376BF5; --finance-solid-furniture: #7C3AED; --finance-solid-turnover: #C2410C; --finance-solid-insurance: #0F766E; --finance-solid-taxes: #92400E; --finance-solid-utilities: #0369A1; --finance-solid-fees: #A21CAF; --finance-solid-emergency: #15803D; --finance-solid-vacancy: #B45309; --finance-solid-other: #4B5563; }
+.finance-report [data-finance-category="maintenance"] { --finance-row-solid: var(--finance-solid-maintenance); }
+.finance-report [data-finance-category="furniture"] { --finance-row-solid: var(--finance-solid-furniture); }
+.finance-report [data-finance-category="turnover"] { --finance-row-solid: var(--finance-solid-turnover); }
+.finance-report [data-finance-category="insurance"] { --finance-row-solid: var(--finance-solid-insurance); }
+.finance-report [data-finance-category="taxes"] { --finance-row-solid: var(--finance-solid-taxes); }
+.finance-report [data-finance-category="utilities"] { --finance-row-solid: var(--finance-solid-utilities); }
+.finance-report [data-finance-category="fees"] { --finance-row-solid: var(--finance-solid-fees); }
+.finance-report [data-finance-category="emergency"] { --finance-row-solid: var(--finance-solid-emergency); }
+.finance-report [data-finance-category="vacancy"] { --finance-row-solid: var(--finance-solid-vacancy); }
+.finance-report [data-finance-category="other"] { --finance-row-solid: var(--finance-solid-other); }
+.finance-report .finance-category-summary {
+  padding: 1rem;
+  border-radius: var(--radius-3xl);
+  background: var(--finance-row-solid, var(--primary));
+  color: white;
+}
+.finance-report .finance-category-summary .finance-meter { --progress-bar-fill: white; }
+.finance-report .finance-category-summary .progress-bar__track { background: rgb(255 255 255 / 0.3); }
+.finance-report .finance-meter { --progress-bar-fill: var(--primary); }
+.finance-report .finance-meter.finance-meter--over { --progress-bar-fill: var(--destructive); }
+.finance-choice, .finance-property {
+  width: 100%;
+  height: auto;
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  justify-content: flex-start;
+  white-space: normal;
+}
+.finance-choice span, .finance-property span { overflow-wrap: anywhere; }
+.finance-modal { background: var(--card); color: var(--foreground); }
+.finance-modal .table__column { color: var(--foreground); }
+.finance-modal .table__cell { white-space: normal; }
+.finance-report [role="tab"], .finance-modal [role="tab"] { color: var(--muted-foreground); }
+.finance-report [role="tab"][data-selected], .finance-modal [role="tab"][data-selected] { color: var(--foreground); }
+.finance-report [role="tab"] > span:not([data-slot="tabs-indicator"]), .finance-modal [role="tab"] > span:not([data-slot="tabs-indicator"]) { position: relative; z-index: 1; }
+.finance-segment { min-width: 0; width: auto; padding: 0; height: 100%; border-radius: 0; }
+
 /* Message presentation only; scoped overrides win over HeroUI's unlayered CSS. */
 .apt-conversation-row {
   display: flex;
@@ -1165,4 +1311,25 @@ html.apt-reduce-motion *::after {
   animation-iteration-count: 1 !important;
   scroll-behavior: auto !important;
   transition-duration: 0.01ms !important;
+}
+
+/* Profit & planning: cards rise in when the page opens or the tab changes.
+   Fill mode is backwards only, so no transform lingers once it ends (a lasting
+   transform would trap popovers and sticky children). */
+@keyframes finance-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.finance-enter {
+  animation: finance-enter 320ms cubic-bezier(0.22, 1, 0.36, 1)
+    calc(var(--finance-enter-step, 0) * 70ms) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .finance-enter { animation: none; }
 }

@@ -2,7 +2,7 @@ import { IconHeart } from "@tabler/icons-react";
 
 export function FavoritesPageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="@container/favorites mx-auto w-full min-w-0 max-w-7xl space-y-6 px-4 py-6 sm:py-8">
+    <div className="@container/favorites w-full min-w-0 space-y-6 px-4 py-6 sm:py-8">
       {children}
     </div>
   );

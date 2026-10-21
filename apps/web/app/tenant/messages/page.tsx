@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@repo/supabase/server";
 
+import MessagesRouteSkeleton from "@/app/components/chat/MessagesRouteSkeleton";
 import {
   buildPortalContacts,
   getContactConversationKey,
@@ -38,6 +40,28 @@ export default async function MessagesPage({
   // unknown keys simply fall back to the portal default selection.
   const { conversation } = await searchParams;
   const initialConversationKey = typeof conversation === "string" ? conversation : null;
+
+  // The route commits as soon as identity is authorized. Contacts and their
+  // first thread are a separate async unit, so the two-pane skeleton is the
+  // only thing waiting on the conversation queries.
+  return (
+    <Suspense fallback={<MessagesRouteSkeleton />}>
+      <TenantMessagesWorkspace
+        tenantId={tenantId}
+        initialConversationKey={initialConversationKey}
+      />
+    </Suspense>
+  );
+}
+
+async function TenantMessagesWorkspace({
+  tenantId,
+  initialConversationKey,
+}: {
+  tenantId: string;
+  initialConversationKey: string | null;
+}) {
+  const supabase = await createClient();
 
   const [{ data: tenancyRows, error: tenancyError }, { data: conversationRows, error: conversationError }] =
     await Promise.all([
@@ -108,4 +132,3 @@ export default async function MessagesPage({
     </div>
   );
 }
-  

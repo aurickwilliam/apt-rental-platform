@@ -3,7 +3,9 @@ import { Keyboard } from "react-native";
 import { randomUUID } from "expo-crypto";
 import {
   budgetCategoryOptions,
-  manilaToday,
+  financeCategoryTreatmentDefault,
+  financeExpenseDateDefault,
+  MAX_FINANCE_DESCRIPTION_LENGTH,
   parseFinanceAmount,
   validateExpenseDate,
   type ExpenseTreatment,
@@ -17,7 +19,7 @@ import {
 } from "@/service/finance/financeService";
 
 export const EXPENSE_CATEGORY_OPTIONS = budgetCategoryOptions("expense");
-export const MAX_EXPENSE_DESCRIPTION_LENGTH = 200;
+export const MAX_EXPENSE_DESCRIPTION_LENGTH = MAX_FINANCE_DESCRIPTION_LENGTH;
 
 export interface ExpenseEntryFormOptions {
   /** Keep sheets mounted and reseed their draft on each closed → open transition. */
@@ -45,16 +47,12 @@ export function useExpenseEntryForm({
 }: ExpenseEntryFormOptions) {
   const seedCategory = initial?.category ?? initialCategory ?? "maintenance";
   const seedTreatment =
-    initial?.treatment ??
-    (seedCategory === "furniture" || seedCategory === "turnover"
-      ? "capital"
-      : "operating");
-  const seedDate =
-    initial?.spent_on ??
-    (month === manilaToday().slice(0, 7) ? manilaToday() : `${month}-01`);
+    initial?.treatment ?? financeCategoryTreatmentDefault(seedCategory);
+  const seedDate = initial?.spent_on ?? financeExpenseDateDefault(month);
   const [id, setId] = useState(() => initial?.id ?? randomUUID());
+  // A new expense starts without a property unless the report is scoped to one.
   const [property, setProperty] = useState(
-    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
+    initial?.apartment_id ?? apartmentId ?? "",
   );
   const [category, setCategory] = useState<FinanceCategory>(seedCategory);
   const [treatment, setTreatment] = useState<ExpenseTreatment>(seedTreatment);
@@ -72,9 +70,7 @@ export function useExpenseEntryForm({
     setWasOpen(isOpen);
     if (isOpen) {
       setId(initial?.id ?? randomUUID());
-      setProperty(
-        initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
-      );
+      setProperty(initial?.apartment_id ?? apartmentId ?? "");
       setCategory(seedCategory);
       setTreatment(seedTreatment);
       setAmount(initial ? String(initial.amount) : "");

@@ -428,7 +428,7 @@ export default function CreateApartmentPage() {
     <div className="create-listing-flow min-h-screen bg-background">
       {/* Top progress bar */}
       <nav aria-label="Listing progress" className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
-        <div className="max-w-7xl mx-auto">
+        <div>
           <ol className="flex items-center justify-between">
             {STEPS.map((s, i) => {
 
@@ -490,7 +490,7 @@ export default function CreateApartmentPage() {
       {/* Step content */}
       <div className="px-6 py-8">
         {step === 5 && (
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="w-full">
             <Step5Preview formData={formData} landlord={profile} />
           </div>
         )}

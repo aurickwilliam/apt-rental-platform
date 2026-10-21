@@ -24,7 +24,7 @@ function DescriptionFieldSkeleton() {
 
 export default function DescriptionSkeleton() {
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading apartment description">
+    <div className="p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading apartment description">
       <div>
         <Sk className="h-8 w-36 rounded-lg" />
         <h1 className="mt-2 text-2xl font-bold font-nunito text-card-foreground">Apartment Description</h1>

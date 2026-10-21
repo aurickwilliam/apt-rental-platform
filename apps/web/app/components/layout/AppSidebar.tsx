@@ -38,10 +38,12 @@ import {
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Button, Dropdown, Label, Separator } from "@heroui/react";
+import { Button, Dropdown, Label, Separator, Spinner } from "@heroui/react";
 import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar, IconMenu2 as Menu, IconBell as Bell } from "@tabler/icons-react";
 
-import { signOut } from "@/app/(auth)/actions/sign-out";
+import { signOut } from "@/service/signOutService";
+import { usePendingNavigation } from "@/hooks/use-pending-navigation";
+import SidebarLinkPending from "./SidebarLinkPending";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -288,6 +290,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { pendingHref, navigate } = usePendingNavigation();
   const { notifications } = useNotifications(activePortal ?? null);
   const activity = useMemo(
     () => getUnreadSidebarActivity(notifications, activePortal ?? null),
@@ -457,6 +460,7 @@ export function AppSidebar({
               />
               {!collapsed ? <span>{label}</span> : null}
               {hasActivity ? <UnreadActivityDot active={active} collapsed={collapsed} /> : null}
+              <SidebarLinkPending label={label} />
             </Link>
           );
         })}
@@ -469,8 +473,9 @@ export function AppSidebar({
         <Dropdown isOpen={isAccountMenuOpen} onOpenChange={handleAccountMenuOpenChange}>
           <Button
             variant="ghost"
+            aria-busy={pendingHref !== null || undefined}
             aria-label={collapsed ? `${displayName} account menu` : undefined}
-            className={`w-full group flex items-center h-auto hover:bg-primary/10 text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
+            className={`relative w-full group flex items-center h-auto hover:bg-primary/10 text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
             <UserAvatar
               src={userAvatarUrl}
@@ -492,7 +497,11 @@ export function AppSidebar({
                 ) : null}
               </span>
             ) : null}
-            {!collapsed &&
+            {pendingHref ? (
+              <span className={collapsed ? "pointer-events-none absolute bottom-0.5 right-0.5 flex size-4 items-center justify-center rounded-full bg-sidebar" : "ml-auto shrink-0"}>
+                <Spinner size="sm" aria-label="Opening page" />
+              </span>
+            ) : !collapsed &&
               (iconSet === "tabler" ? (
                 <IconSelector
                   size={14}
@@ -519,11 +528,11 @@ export function AppSidebar({
                     url.searchParams.set("settings", settingsQueryParam);
                     window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
                   } else {
-                    router.push(settingsHref ?? "/settings");
+                    navigate(settingsHref ?? "/settings");
                   }
                 }
                 const target = switchTargets.find((item) => `switch:${item.href}` === key);
-                if (target) router.push(target.href);
+                if (target) navigate(target.href);
                 if (key === "theme") toggleTheme();
                 if (key === "logout") signOut();
               }}
@@ -582,7 +591,7 @@ export function AppSidebar({
                         aria-label="Switch portal"
                         onAction={(key) => {
                           const target = switchTargets.find((item) => `switch:${item.href}` === key);
-                          if (target) router.push(target.href);
+                          if (target) navigate(target.href);
                         }}
                       >
                         {switchTargets.map((target) => {
@@ -707,6 +716,7 @@ export function AppSidebar({
           </Dropdown.Popover>
         </Dropdown>
       </div>
+      {pendingHref ? <span role="status" className="sr-only">Opening {pendingHref.split("/").at(-1)}…</span> : null}
     </aside>
   );
 }
@@ -769,6 +779,7 @@ function MobileSidebarMenu({
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { pendingHref, navigate } = usePendingNavigation();
   const { notifications, unreadCount } = useNotifications(activePortal ?? null);
   const activity = useMemo(
     () => getUnreadSidebarActivity(notifications, activePortal ?? null),
@@ -846,14 +857,16 @@ function MobileSidebarMenu({
           variant="primary"
           className="rounded-full shadow-sm"
           aria-label={buttonLabel}
+          aria-busy={pendingHref !== null || undefined}
         >
-          {iconSet === "tabler" ? (
+          {pendingHref ? <Spinner size="sm" color="current" aria-hidden="true" /> : iconSet === "tabler" ? (
             <IconMenu2 size={18} aria-hidden="true" />
           ) : (
             <Menu size={18} aria-hidden="true" />
           )}{" "}
-          Menu
+          {pendingHref ? "Opening…" : "Menu"}
         </Button>
+        {pendingHref ? <span role="status" className="sr-only">Opening {pendingHref.split("/").at(-1)}…</span> : null}
         {/* Capped to the viewport so the longest portal list (admin) scrolls
             instead of running off short or landscape screens. */}
         <Dropdown.Popover
@@ -874,7 +887,7 @@ function MobileSidebarMenu({
               if (key === "profile" && profileHref) router.push(profileHref);
               if (key === "favorites" && favoritesHref) router.push(favoritesHref);
               const navItem = navItems.find((item) => item.href === key);
-              if (navItem) router.push(navItem.href);
+              if (navItem) navigate(navItem.href);
             }}
           >
             <Dropdown.Section aria-label={menuLabel}>

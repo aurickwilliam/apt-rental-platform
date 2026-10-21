@@ -13,6 +13,10 @@ interface SettingsSelectProps {
   value: string;
   options: readonly SettingsSelectOption[];
   onChange: (value: string) => void;
+  /** Shown while `value` is empty or matches no option. */
+  placeholder?: string;
+  /** Marks the field invalid: a red border, announced to assistive tech. */
+  isInvalid?: boolean;
   isDisabled?: boolean;
   className?: string;
 }
@@ -22,20 +26,24 @@ export default function SettingsSelect({
   value,
   options,
   onChange,
+  placeholder,
+  isInvalid,
   isDisabled,
   className = "w-40",
 }: SettingsSelectProps) {
   return (
     <Select
       aria-label={label}
-      value={value}
+      value={value || null}
+      placeholder={placeholder}
+      isInvalid={isInvalid}
       isDisabled={isDisabled}
       onChange={(key) => {
         if (key) onChange(String(key));
       }}
-      className={className}
+      className={`group ${className}`}
     >
-      <Select.Trigger className="cursor-pointer border-border bg-background! text-foreground hover:bg-muted!">
+      <Select.Trigger className="cursor-pointer border-border bg-background! text-foreground hover:bg-muted! group-data-[invalid=true]:border-destructive!">
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>

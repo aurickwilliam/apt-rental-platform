@@ -63,6 +63,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
       markOneRead: () => writes++, markVisibleRead: () => writes++,
     }) },
     "@/lib/sidebar-notification-activity": mapping,
+    "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => navigation.push(href) }) },
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");
   const favoritesHref = portal === "tenant" ? "/tenant/favorites" : undefined;
@@ -151,11 +152,11 @@ test("landlord route prefetch and unread indicators coexist on expanded and coll
   }
 });
 
-test("opening landlord mobile navigation prefetches main's routes without reading notifications", () => {
+test("opening landlord mobile navigation prefetches main's routes and Profit & planning without reading notifications", () => {
   const result = sidebar({ portal: "landlord", mobile: true, rows: [row("verification", "Apartment verification approved", "system", { apartmentId: "apt" })] });
   const dropdown = result.all.find(node => typeof node.props.onOpenChange === "function");
   dropdown.props.onOpenChange(true);
-  assert.deepEqual(result.prefetched, ["/landlord/profile", "/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
+  assert.deepEqual(result.prefetched, ["/landlord/profile", "/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments", "/landlord/analytics"]);
   const properties = result.links.find(link => link.props.id === "/landlord/properties");
   assert.equal(dots(properties).length, 1);
   assert.equal(result.writes(), 0);
