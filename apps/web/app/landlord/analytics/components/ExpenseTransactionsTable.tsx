@@ -56,6 +56,8 @@ export default function ExpenseTransactionsTable({
   showCategoryFilter = true,
 }: ExpenseTransactionsTableProps) {
   const { rows } = expenses;
+  // The table keeps its header while a filter or scope change loads rows.
+  const showSkeleton = expenses.loading && !rows.length && !expenses.error;
   const property = scope.apartmentId
     ? properties.find((item) => item.id === scope.apartmentId)
     : null;
@@ -93,11 +95,13 @@ export default function ExpenseTransactionsTable({
       }
     >
       <div aria-live="polite" className="space-y-3">
-        {rows.length ? (
+        {rows.length || showSkeleton ? (
           <Table>
             <Table.ScrollContainer>
               <Table.Content
-                aria-label="Expense transactions"
+                aria-label={
+                  showSkeleton ? "Loading expenses" : "Expense transactions"
+                }
                 onRowAction={(key) => {
                   const expense = rows.find((row) => row.id === String(key));
                   if (expense) onEdit(expense);
@@ -116,6 +120,30 @@ export default function ExpenseTransactionsTable({
                   </Table.Column>
                 </Table.Header>
                 <Table.Body>
+                  {showSkeleton
+                    ? Array.from({ length: 4 }, (_, index) => (
+                        <Table.Row
+                          key={`loading-${index}`}
+                          id={`loading-${index}`}
+                        >
+                          <Table.Cell>
+                            <Skeleton className="h-5 w-24 bg-muted" />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Skeleton className="h-5 w-3/4 bg-muted" />
+                            <Skeleton className="mt-1 h-4 w-1/2 bg-muted" />
+                          </Table.Cell>
+                          {showCategoryFilter ? (
+                            <Table.Cell>
+                              <Skeleton className="h-6 w-32 rounded-full bg-muted" />
+                            </Table.Cell>
+                          ) : null}
+                          <Table.Cell>
+                            <Skeleton className="ml-auto h-5 w-16 bg-muted" />
+                          </Table.Cell>
+                        </Table.Row>
+                      ))
+                    : null}
                   {rows.map((expense) => (
                     <Table.Row
                       key={expense.id}
@@ -155,13 +183,6 @@ export default function ExpenseTransactionsTable({
               </Table.Content>
             </Table.ScrollContainer>
           </Table>
-        ) : null}
-        {expenses.loading && !rows.length ? (
-          <div className="space-y-2" aria-label="Loading expenses">
-            {Array.from({ length: 4 }, (_, index) => (
-              <Skeleton key={index} className="h-12 w-full rounded-lg" />
-            ))}
-          </div>
         ) : null}
         {!rows.length && !expenses.loading && !expenses.error ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">

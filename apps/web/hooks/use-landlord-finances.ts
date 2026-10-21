@@ -13,8 +13,14 @@ import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useUser } from "@/hooks/use-user";
 import { FINANCE_ACCESS_ERROR } from "@/lib/landlord-finance-access";
 import {
+  financeCacheKey,
+  financeOwnerPrefix,
+  financeReadCache,
+} from "@/lib/landlord-finance-cache";
+import {
   createFinancePages,
   emptyFinancePages,
+  type FinancePageSlice,
   type FinancePagesFetcher,
   type FinancePagesRequest,
   type FinancePagesSnapshot,
@@ -132,26 +138,46 @@ export function useLandlordFinances(scope: FinanceScope) {
     };
   }, [scopeKey]);
 
+  const reportKey = ownerId
+    ? financeCacheKey(ownerId, "report", month, apartmentId)
+    : null;
   const load = useCallback(async (): Promise<{
     key: string;
     data: FinanceData;
   } | null> => {
-    if (!ownerId || !enabled) return null;
+    if (!ownerId || !enabled || !reportKey) return null;
     try {
       return {
         key: scopeKey,
-        data: await fetchFinances({ month, apartmentId }),
+        // A fresh cached report is reused; concurrent reads share one request.
+        data: await financeReadCache.read(reportKey, () =>
+          fetchFinances({ month, apartmentId }),
+        ),
       };
     } catch (error) {
       // Transport failures surface the shared wording (identical on mobile),
       // so the report shows the mapped message as-is.
       throw new Error(financeErrorMessage(error));
     }
-  }, [ownerId, enabled, month, apartmentId, scopeKey]);
+  }, [ownerId, enabled, month, apartmentId, scopeKey, reportKey]);
 
   const report = useAsyncResource(load, null, FINANCE_REPORT_FALLBACK);
-  const hasData = enabled && report.data?.key === scopeKey;
-  const { refresh: refreshReport } = report;
+  // A revisited scope paints from the last known report while it revalidates;
+  // the cache is keyed by owner, month and property, so no other scope's
+  // figures can ever show here.
+  const cachedReport =
+    enabled && reportKey
+      ? financeReadCache.peek<FinanceData>(reportKey)
+      : undefined;
+  const settled = report.data?.key === scopeKey;
+  const hasData = enabled && (settled || cachedReport !== undefined);
+  const reportData = settled ? report.data!.data : cachedReport;
+  const { refresh: reloadReport } = report;
+  // An explicit refresh must reach the network, so it forgets the cached value.
+  const refreshReport = useCallback(async () => {
+    if (reportKey) financeReadCache.invalidate(reportKey);
+    await reloadReport();
+  }, [reportKey, reloadReport]);
   const latestRefresh = useRef(refreshReport);
   useEffect(() => {
     latestRefresh.current = refreshReport;
@@ -176,7 +202,11 @@ export function useLandlordFinances(scope: FinanceScope) {
       });
       // A write can change two months, review flags and chart windows; the
       // report reloads, list handles refresh in their own components.
-      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
+      if (ok) {
+        // A write can change any cached report or list; none may outlive it.
+        if (ownerId) financeReadCache.clearPrefix(financeOwnerPrefix(ownerId));
+        if (currentScope.current === scopeKey) void latestRefresh.current();
+      }
       return ok;
     },
     [runSaveExpense, ownerId, enabled, scopeKey],
@@ -188,7 +218,11 @@ export function useLandlordFinances(scope: FinanceScope) {
         if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await deleteExpenseTransport(ownerId, id);
       });
-      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
+      if (ok) {
+        // A write can change any cached report or list; none may outlive it.
+        if (ownerId) financeReadCache.clearPrefix(financeOwnerPrefix(ownerId));
+        if (currentScope.current === scopeKey) void latestRefresh.current();
+      }
       return ok;
     },
     [runRemoveExpense, ownerId, enabled, scopeKey],
@@ -200,7 +234,11 @@ export function useLandlordFinances(scope: FinanceScope) {
         if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await saveBudgetTransport(value);
       });
-      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
+      if (ok) {
+        // A write can change any cached report or list; none may outlive it.
+        if (ownerId) financeReadCache.clearPrefix(financeOwnerPrefix(ownerId));
+        if (currentScope.current === scopeKey) void latestRefresh.current();
+      }
       return ok;
     },
     [runSaveBudget, ownerId, enabled, scopeKey],
@@ -212,7 +250,11 @@ export function useLandlordFinances(scope: FinanceScope) {
         if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
         await deleteBudgetTransport(ownerId, id);
       });
-      if (ok && currentScope.current === scopeKey) void latestRefresh.current();
+      if (ok) {
+        // A write can change any cached report or list; none may outlive it.
+        if (ownerId) financeReadCache.clearPrefix(financeOwnerPrefix(ownerId));
+        if (currentScope.current === scopeKey) void latestRefresh.current();
+      }
       return ok;
     },
     [runRemoveBudget, ownerId, enabled, scopeKey],
@@ -223,20 +265,17 @@ export function useLandlordFinances(scope: FinanceScope) {
       if (!ownerId || !enabled) throw new Error(FINANCE_ACCESS_ERROR);
       await confirmExpenseReview({ month, apartmentId });
     });
-    if (ok && currentScope.current === scopeKey) void latestRefresh.current();
+    if (ok) {
+      // A write can change any cached report or list; none may outlive it.
+      if (ownerId) financeReadCache.clearPrefix(financeOwnerPrefix(ownerId));
+      if (currentScope.current === scopeKey) void latestRefresh.current();
+    }
     return ok;
-  }, [
-    runReview,
-    ownerId,
-    enabled,
-    month,
-    apartmentId,
-    scopeKey,
-  ]);
+  }, [runReview, ownerId, enabled, month, apartmentId, scopeKey]);
 
   return {
     report: {
-      data: hasData ? report.data!.data : EMPTY_FINANCE_DATA,
+      data: hasData && reportData ? reportData : EMPTY_FINANCE_DATA,
       loading: report.loading,
       initialLoading: !hasData && report.loading,
       refreshing: hasData && report.loading,
@@ -301,13 +340,16 @@ export function useFinanceIncomeMonths(
   } | null> => {
     if (!gated || !ownerId) return null;
     try {
-      const latest = await fetchFinances({ month: currentMonth, apartmentId });
+      const readReport = (month: string) =>
+        financeReadCache.read(
+          financeCacheKey(ownerId, "report", month, apartmentId),
+          () => fetchFinances({ month, apartmentId }),
+        );
+      // The picker reuses the report the page already loaded for this month.
+      const latest = await readReport(currentMonth);
       if (latest.incomeMonths)
         return { key: indicatorKey, months: latest.incomeMonths };
-      const earlier = await fetchFinances({
-        month: shiftFinanceMonth(currentMonth, -12),
-        apartmentId,
-      });
+      const earlier = await readReport(shiftFinanceMonth(currentMonth, -12));
       return {
         key: indicatorKey,
         months: financeIncomeMonthsFromReports(earlier.months, latest.months),
@@ -362,6 +404,8 @@ function useFinancePages<Row, Cursor, Scope>(
   enabled: boolean,
   ownerId: string | null,
   fetchPage: FinancePagesFetcher<Row, Cursor, Scope>,
+  /** Cache key of the first page, so a revisited list paints at once. */
+  firstPageKey: string | null,
 ): FinancePagesResult<Row> {
   const [trail, setTrail] = useState<FinanceTrail<Row, Cursor>>(() => ({
     key: "",
@@ -386,23 +430,36 @@ function useFinancePages<Row, Cursor, Scope>(
     return () => controller.reset();
   }, [controller, enabled, ownerId, request, fetchPage]);
 
-  const refresh = useCallback(
-    () => controller.refresh(fetchPage),
-    [controller, fetchPage],
-  );
+  const refresh = useCallback(() => {
+    // An explicit refresh must reach the network, not the cached first page.
+    if (firstPageKey) financeReadCache.invalidate(firstPageKey);
+    return controller.refresh(fetchPage);
+  }, [controller, fetchPage, firstPageKey]);
   const loadMore = useCallback(
     () => controller.loadMore(fetchPage),
     [controller, fetchPage],
   );
 
+  // Until the live first page lands, a cached one (same owner, month, property
+  // and filter) stands in, so switching back to a list never shows a skeleton.
+  const cached =
+    trail.key !== request.key && enabled && firstPageKey
+      ? financeReadCache.peek<FinancePageSlice<Row, Cursor>>(firstPageKey)
+      : undefined;
   const snapshot =
     trail.key === request.key
       ? trail.snapshot
-      : emptyFinancePages<Row, Cursor>();
+      : cached
+        ? {
+            ...emptyFinancePages<Row, Cursor>(),
+            rows: cached.rows,
+            next: cached.next,
+          }
+        : emptyFinancePages<Row, Cursor>();
   return {
     rows: snapshot.rows,
     hasMore: snapshot.next !== null,
-    loading: trail.key !== request.key,
+    loading: trail.key !== request.key && !cached,
     loadingMore: snapshot.loadingMore,
     error: snapshot.error,
     pageError: snapshot.pageError,
@@ -427,15 +484,23 @@ export function useFinanceExpenses(
     [ownerId, month, apartmentId, category],
   );
 
+  const firstPageKey = ownerId
+    ? financeCacheKey(ownerId, "expenses", month, apartmentId, category)
+    : null;
   const fetchPage = useCallback(
     (pageScope: FinanceScope, cursor: ExpenseCursor | null) => {
-      if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
-      return fetchExpensePage(ownerId, pageScope, category, cursor);
+      if (!ownerId || !firstPageKey) throw new Error(FINANCE_ACCESS_ERROR);
+      // Only the first page is cached; later pages always load.
+      return cursor === null
+        ? financeReadCache.read(firstPageKey, () =>
+            fetchExpensePage(ownerId, pageScope, category, null),
+          )
+        : fetchExpensePage(ownerId, pageScope, category, cursor);
     },
-    [ownerId, category],
+    [ownerId, category, firstPageKey],
   );
 
-  return useFinancePages(request, enabled, ownerId, fetchPage);
+  return useFinancePages(request, enabled, ownerId, fetchPage, firstPageKey);
 }
 
 /** The month's rental-period dues by collection status (mobile mirror). */
@@ -454,13 +519,41 @@ export function useFinanceCollections(
     [ownerId, month, apartmentId, status],
   );
 
+  const firstPageKey = ownerId
+    ? financeCacheKey(ownerId, "collections", month, apartmentId, status)
+    : null;
   const fetchPage = useCallback(
     async (pageScope: FinanceScope, cursor: string | null) => {
-      if (!ownerId) throw new Error(FINANCE_ACCESS_ERROR);
-      return fetchRentLedger(pageScope, status, cursor);
+      if (!ownerId || !firstPageKey) throw new Error(FINANCE_ACCESS_ERROR);
+      return cursor === null
+        ? financeReadCache.read(firstPageKey, () =>
+            fetchRentLedger(pageScope, status, null),
+          )
+        : fetchRentLedger(pageScope, status, cursor);
     },
-    [ownerId, status],
+    [ownerId, status, firstPageKey],
   );
 
-  return useFinancePages(request, enabled, ownerId, fetchPage);
+  return useFinancePages(request, enabled, ownerId, fetchPage, firstPageKey);
+}
+
+/**
+ * Warms the Expenses tab: once the report is showing, the month's first page of
+ * expenses loads in the background, so opening the tab paints at once. Errors
+ * are ignored here; the tab's own load reports them.
+ */
+export function useFinanceExpensesPrefetch(
+  ownerId: string | null,
+  scope: FinanceScope,
+  enabled: boolean,
+) {
+  const { month, apartmentId } = scope;
+  useEffect(() => {
+    if (!enabled || !ownerId) return;
+    void financeReadCache
+      .read(financeCacheKey(ownerId, "expenses", month, apartmentId, ""), () =>
+        fetchExpensePage(ownerId, { month, apartmentId }, null, null),
+      )
+      .catch(() => undefined);
+  }, [enabled, ownerId, month, apartmentId]);
 }

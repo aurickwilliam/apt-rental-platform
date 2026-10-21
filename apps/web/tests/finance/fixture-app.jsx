@@ -13,8 +13,17 @@ import {
   parseFinanceCategoryParams,
   parseLandlordFinanceParams,
 } from "../../lib/landlord-finance-params";
+import { financeReadCache } from "../../lib/landlord-finance-cache";
 import { currentMonth } from "./fixture-service";
 import { useFixtureUrl } from "./fixture-navigation";
+
+// The read cache is off by default so every step sees fresh transport data;
+// the caching checks turn it on explicitly (and it always starts empty).
+financeReadCache.configure({ freshMs: 0, maxStaleMs: 0 });
+window.financeTest.cache = {
+  enable: () => financeReadCache.configure({ freshMs: 60000, maxStaleMs: 300000 }),
+  disable: () => financeReadCache.configure({ freshMs: 0, maxStaleMs: 0 }),
+};
 
 function FixtureApp() {
   const url = useFixtureUrl();

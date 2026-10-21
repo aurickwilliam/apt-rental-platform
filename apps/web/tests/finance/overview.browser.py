@@ -312,8 +312,15 @@ with sync_playwright() as playwright:
     assert csv.splitlines()[0] == "Paid,Property,Category,Treatment,Description,Amount"
     assert "Kitchen sink repair" in csv and "4000.00" in csv
     # The category filter narrows the list on the server and empties cleanly.
+    page.evaluate("financeTest.delay = 600")
     page.get_by_role("button", name=re.compile(r"Category$")).click()
     page.get_by_role("option", name="Insurance", exact=True).click()
+    # While the filter loads, the table keeps its header and shows skeleton rows.
+    loading_table = page.get_by_role("grid", name="Loading expenses")
+    expect(loading_table).to_be_visible()
+    expect(loading_table.get_by_role("columnheader", name="Description")).to_be_visible()
+    expect(loading_table).not_to_contain_text("Turnover repaint")
+    page.evaluate("financeTest.delay = 30")
     expect(page.get_by_role("heading", name="No expenses in this category")).to_be_visible()
     expect(page.get_by_role("button", name="Export CSV")).to_be_disabled()
     page.get_by_role("button", name=re.compile(r"Category$")).click()
@@ -690,6 +697,49 @@ with sync_playwright() as playwright:
             page.evaluate("dark => document.documentElement.classList.toggle('dark', dark)", dark)
             page.screenshot(path=str(OUT / f"overview-{width}-{'dark' if dark else 'light'}.png"), full_page=True, animations="disabled")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow at {width}"
+
+    # Read cache on: the Expenses list is prefetched with the report, and a
+    # revisited tab or scope paints from cache while the network is still slow.
+    page.evaluate("financeTest.cache.enable()")
+    # Enabling empties the cache, so visit another month first; October then
+    # loads for real, caches its report and prefetches its first expenses page.
+    fixture_navigate(page, "/landlord/analytics?month=2026-08")
+    expect(month_trigger()).to_have_attribute("aria-label", "Report month: August 2026")
+    page.wait_for_function("financeTest.pendingReads === 0")
+    fixture_navigate(page, "/landlord/analytics?month=2026-10")
+    expect(summary).to_contain_text("October 2026 · month to date")
+    page.wait_for_function("financeTest.pendingReads === 0")
+    page.wait_for_timeout(200)
+    page.evaluate("financeTest.delay = 900")
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    expect(page.get_by_role("grid", name="Expense transactions")).to_contain_text("Turnover repaint", timeout=500)
+    page.get_by_role("tab", name="Overview", exact=True).click()
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    expect(page.get_by_role("grid", name="Expense transactions")).to_contain_text("Turnover repaint", timeout=500)
+    page.get_by_role("tab", name="Overview", exact=True).click()
+    # A different month loads (slowly) behind its skeleton ...
+    open_months().get_by_role("button", name="Month: September 2026", exact=False).click()
+    expect(page.get_by_role("status", name="Loading finance report")).to_be_visible()
+    expect(month_trigger()).to_have_attribute("aria-label", "Report month: September 2026")
+    page.wait_for_function("financeTest.pendingReads === 0")
+    # ... and coming back to October paints at once from the cache.
+    open_months().get_by_role("button", name="Month: October 2026", exact=False).click()
+    expect(summary).to_contain_text("October 2026 · month to date", timeout=500)
+    expect(page.get_by_role("status", name="Loading finance report")).to_have_count(0)
+    page.wait_for_function("financeTest.pendingReads === 0")
+    # A write clears what was cached, so the next read is fresh: saving an
+    # expense reopens the review and the summary falls back to Not calculated.
+    page.evaluate("financeTest.delay = 30")
+    page.get_by_role("tab", name="Expenses", exact=True).click()
+    page.get_by_role("button", name="Add expense", exact=True).click()
+    cache_editor = page.get_by_role("dialog", name="Add expense", exact=True)
+    cache_editor.get_by_label("Amount (₱)", exact=False).fill("100")
+    cache_editor.get_by_placeholder("e.g. Kitchen sink repair").fill("Cache check")
+    cache_editor.get_by_role("button", name="Save expense", exact=True).click()
+    expect(cache_editor).to_have_count(0)
+    expect(summary).to_contain_text("Not calculated")
+    page.evaluate("financeTest.cache.disable()")
+    page.get_by_role("tab", name="Overview", exact=True).click()
 
     # A missing finance table or RPC shows the support message, never dummy data.
     page.evaluate("financeTest.reportMissing = true")

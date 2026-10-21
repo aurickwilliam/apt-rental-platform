@@ -18,6 +18,7 @@ import {
 import {
   useFinanceAccess,
   useFinanceExpenses,
+  useFinanceExpensesPrefetch,
   useLandlordFinances,
 } from "@/hooks/use-landlord-finances";
 import {
@@ -95,6 +96,11 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
     scope,
     expenseCategory,
     Boolean(finance.ownerId) && available && applied.tab === "expenses",
+  );
+  useFinanceExpensesPrefetch(
+    finance.ownerId,
+    scope,
+    available && applied.tab !== "expenses",
   );
   const selectedProperty = data.properties.find(
     (property) => property.id === applied.apartmentId,
