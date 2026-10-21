@@ -58,7 +58,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
         </View>
       )}
 
-      <NotificationList filter={filterType} />
+      <NotificationList filter={filterType} onShowAll={() => setFilterType('all')} />
     </ScreenWrapper>
   )
 }

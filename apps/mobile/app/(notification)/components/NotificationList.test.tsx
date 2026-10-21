@@ -18,7 +18,15 @@ let mockNotifications: {
 }[] = [];
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
-jest.mock("heroui-native", () => ({ useToast: () => ({ toast: { show: mockToastShow } }) }));
+jest.mock("heroui-native", () => {
+  const { Pressable, Text } = jest.requireActual<typeof import("react-native")>("react-native");
+  const Button = ({ children, onPress }: { children: React.ReactNode; onPress: () => void }) => (
+    <Pressable onPress={onPress}>{children}</Pressable>
+  );
+  const Label = ({ children }: { children: React.ReactNode }) => <Text>{children}</Text>;
+  Button.Label = Label;
+  return { Button, useToast: () => ({ toast: { show: mockToastShow } }) };
+});
 jest.mock("@repo/utils", () => ({
   ...jest.requireActual<typeof import("@repo/utils")>("@repo/utils"),
   getRelativeTime: () => "just now",
@@ -45,7 +53,7 @@ jest.mock("@/app/(notification)/components/NotificationIconTile", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { gray500: "#626B73" } }) }));
+jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { gray500: "#626B73", primary: "#376BF5" } }) }));
 
 const chat = (id: string, overrides: Partial<(typeof mockNotifications)[number]> & { sender?: string } = {}) => {
   const { sender = "peer-1", ...rest } = overrides;
@@ -251,7 +259,25 @@ it("shows an all-caught-up message when nothing is unread", () => {
   mockNotifications = [notification({ is_read: true })];
   render(<NotificationList filter="unread" />);
 
-  expect(screen.getByText("You're all caught up.")).toBeTruthy();
+  expect(screen.getByText("You're all caught up")).toBeTruthy();
+});
+
+it("offers a way back to all notifications from the Unread empty state", () => {
+  mockNotifications = [notification({ is_read: true })];
+  const onShowAll = jest.fn();
+  render(<NotificationList filter="unread" onShowAll={onShowAll} />);
+
+  fireEvent.press(screen.getByText("View all notifications"));
+
+  expect(onShowAll).toHaveBeenCalled();
+});
+
+it("explains an empty feed instead of leaving blank space", () => {
+  mockNotifications = [];
+  render(<NotificationList filter="all" />);
+
+  expect(screen.getByText("No notifications yet")).toBeTruthy();
+  expect(screen.queryByText("View all notifications")).toBeNull();
 });
 
 describe("message groups", () => {

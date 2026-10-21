@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useToast } from 'heroui-native'
+import { Button, useToast } from 'heroui-native'
+import { IconBellCheck, IconBellOff } from '@tabler/icons-react-native'
 import { groupNotificationFeed, groupNotificationsByLocalDate } from '@repo/utils'
 import type { MessageGroupUnit } from '@repo/utils'
 
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import type { NotificationItem } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
+import { useColors } from '@/hooks/useTheme'
+import EmptyState from '@/components/display/EmptyState'
 import { buildNotificationDeepLink, getWebOnlyNotificationNotice } from '@/utils/notificationDeepLink'
 import { authorizedPortal } from '@/service/auth/portalPreference'
 import { usePortalStore } from '@/stores/usePortalStore'
@@ -19,9 +22,12 @@ export type NotificationFilter = 'all' | 'unread';
 
 interface NotificationListProps {
   filter: NotificationFilter;
+  /** Leaves the Unread tab; offered from its empty state. */
+  onShowAll?: () => void;
 }
 
-export default function NotificationList({ filter }: NotificationListProps) {
+export default function NotificationList({ filter, onShowAll }: NotificationListProps) {
+  const { colors } = useColors();
   const router = useRouter();
   const { toast } = useToast();
   const currentUserQuery = useCurrentUser();
@@ -98,12 +104,25 @@ export default function NotificationList({ filter }: NotificationListProps) {
   }
 
   if (shown.length === 0) {
-    return (
-      <View className="mt-10">
-        <Text className="text-center text-muted font-inter">
-          {filter === 'unread' ? "You're all caught up." : 'No notifications yet.'}
-        </Text>
-      </View>
+    return filter === 'unread' ? (
+      <EmptyState
+        className="mt-6"
+        icon={<IconBellCheck size={40} color={colors.primary} />}
+        title="You're all caught up"
+        description="No unread notifications. New messages, payments and updates will show up here."
+        action={onShowAll ? (
+          <Button size="sm" variant="secondary" onPress={onShowAll}>
+            <Button.Label>View all notifications</Button.Label>
+          </Button>
+        ) : undefined}
+      />
+    ) : (
+      <EmptyState
+        className="mt-6"
+        icon={<IconBellOff size={40} color={colors.gray500} />}
+        title="No notifications yet"
+        description="When something happens with your messages, payments or listings, you'll see it here."
+      />
     );
   }
 
