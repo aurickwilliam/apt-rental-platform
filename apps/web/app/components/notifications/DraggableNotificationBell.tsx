@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { IconBell } from "@tabler/icons-react";
 
+import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { ActivePortal } from "@/lib/notification-audience";
@@ -77,7 +78,8 @@ interface DragGesture {
 
 /**
  * Draggable floating notifications bell (desktop only; the mobile menu
- * entry remains the touch entry point on phones). Pointer Events cover
+ * entry remains the touch entry point on phones). Hidden when Settings picks
+ * the sidebar tab as the entry point. Pointer Events cover
  * mouse, touch, and pen with no extra dependency.
  *
  * Press-and-release opens the drawer; moving past a small threshold turns
@@ -111,6 +113,7 @@ export default function DraggableNotificationBell({
   activePortal: ActivePortal;
 }) {
   const { unreadCount } = useNotifications(activePortal);
+  const { preferences: displayPreferences } = useNotificationDisplayPreferences();
 
   // Browser-only geometry (viewport size, sidebar width) differs from the
   // server render, so hold the button until after hydration — otherwise the
@@ -329,7 +332,8 @@ export default function DraggableNotificationBell({
     openDrawer();
   };
 
-  if (!hydrated) return null;
+  // The Settings choice of a sidebar tab replaces the floating bell.
+  if (!hydrated || displayPreferences.entry !== "bell") return null;
 
   // The pointer position wins mid-drag; at rest the resolved slot is used,
   // so a collision (e.g. dropping the bell on the Send button) settles on

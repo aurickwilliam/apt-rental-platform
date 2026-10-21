@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -44,6 +44,7 @@ import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelecto
 import { signOut } from "@/service/signOutService";
 import { usePendingNavigation } from "@/hooks/use-pending-navigation";
 import SidebarLinkPending from "./SidebarLinkPending";
+import SidebarNotificationsItem from "./SidebarNotificationsItem";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -180,7 +181,22 @@ type NavItem = {
   activityKey?: SidebarActivityKey;
   /** Warm this route on hover/focus and when the mobile menu opens. */
   prefetchOnIntent?: boolean;
+  /** Name of the group this item belongs to; consecutive items sharing it sit together under a separator. */
+  section?: string;
 };
+
+type NavGroup = { section?: string; items: NavItem[] };
+
+/** Splits the flat nav list into consecutive same-`section` groups (one unlabeled group when none is set). */
+function groupNavItems(navItems: NavItem[]): NavGroup[] {
+  const groups: NavGroup[] = [];
+  for (const item of navItems) {
+    const last = groups[groups.length - 1];
+    if (last && last.section === item.section) last.items.push(item);
+    else groups.push({ section: item.section, items: [item] });
+  }
+  return groups;
+}
 
 function UnreadActivityDot({ active = false, collapsed = false }: { active?: boolean; collapsed?: boolean }) {
   return (
@@ -296,6 +312,7 @@ export function AppSidebar({
     () => getUnreadSidebarActivity(notifications, activePortal ?? null),
     [notifications, activePortal],
   );
+  const navGroups = useMemo(() => groupNavItems(navItems), [navItems]);
   const resolvedStorageKey = resolveStorageKey(storageKey, activePortal);
   const subscribe = useCallback(
     (onChange: () => void) => subscribeToSidebarState(resolvedStorageKey, onChange),
@@ -431,7 +448,15 @@ export function AppSidebar({
         aria-label="Portal pages"
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
-        {navItems.map(({ label, href, icon, activityKey, prefetchOnIntent }) => {
+        {navGroups.map((group, groupIndex) => (
+          <div
+            key={group.section ?? "pages"}
+            role={group.section ? "group" : undefined}
+            aria-label={group.section}
+            className={`flex flex-col ${collapsed ? "gap-1" : "gap-1.5"}`}
+          >
+            {groupIndex > 0 ? <Separator className={collapsed ? "my-1" : "my-1.5"} /> : null}
+            {group.items.map(({ label, href, icon, activityKey, prefetchOnIntent }) => {
           const active = isActive(pathname, href);
           const hasActivity = !!activityKey && activity.has(activityKey);
           const Icon =
@@ -463,7 +488,10 @@ export function AppSidebar({
               <SidebarLinkPending label={label} />
             </Link>
           );
-        })}
+            })}
+          </div>
+        ))}
+        <SidebarNotificationsItem activePortal={activePortal} collapsed={collapsed} />
       </nav>
 
       {/* Footer — theme-aware */}
@@ -778,6 +806,7 @@ function MobileSidebarMenu({
   favoritesHref,
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
+  const navGroups = useMemo(() => groupNavItems(navItems), [navItems]);
   const router = useRouter();
   const { pendingHref, navigate } = usePendingNavigation();
   const { notifications, unreadCount } = useNotifications(activePortal ?? null);
@@ -890,8 +919,11 @@ function MobileSidebarMenu({
               if (navItem) navigate(navItem.href);
             }}
           >
-            <Dropdown.Section aria-label={menuLabel}>
-              {navItems.map(({ href, label, icon, activityKey }) => {
+            {navGroups.map((group, groupIndex) => (
+              <Fragment key={group.section ?? "pages"}>
+                {groupIndex > 0 ? <Separator /> : null}
+                <Dropdown.Section aria-label={group.section ?? menuLabel}>
+              {group.items.map(({ href, label, icon, activityKey }) => {
                 const Icon =
                   iconSet === "tabler"
                     ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
@@ -917,7 +949,9 @@ function MobileSidebarMenu({
                   </Dropdown.Item>
                 );
               })}
-            </Dropdown.Section>
+                </Dropdown.Section>
+              </Fragment>
+            ))}
 
             <Separator />
 
