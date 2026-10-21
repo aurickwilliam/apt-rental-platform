@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
   GiphyDialog,
   GiphyDialogEvent,
+  GiphySDK,
   type GiphyMedia,
 } from '@giphy/react-native-sdk';
 
@@ -24,6 +25,18 @@ export default function GiphyPicker({
   const onSelectRef = useRef(onSelect);
   const onCloseRef = useRef(onClose);
   const hasShownRef = useRef(false);
+
+  const apiKey = process.env.EXPO_PUBLIC_GIPHY_API_KEY;
+
+  // The GIPHY dialog only reads the SDK's global config, and production chat
+  // never configured it — the only other configure call lives in the dev test
+  // screen. Configure from the public env key before any show() can run; the
+  // effect below runs first so first-open is already configured.
+  useEffect(() => {
+    if (apiKey) {
+      GiphySDK.configure({ apiKey });
+    }
+  }, [apiKey]);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
