@@ -32,7 +32,7 @@ import {
   type LandlordFinanceRouteParams,
 } from "@/lib/landlord-finance-params";
 import AnalyticsSkeleton from "./components/AnalyticsSkeleton";
-import { BudgetAside, BudgetMain } from "./components/BudgetTab";
+import { BudgetActual, BudgetMain } from "./components/BudgetTab";
 import EarningsSummary from "./components/EarningsSummary";
 import ExpenseEditorDrawer from "./components/ExpenseEditorDrawer";
 import {
@@ -61,8 +61,6 @@ type Overlay =
       kind: "budget";
       /** A saved plan turns the modal into the edit form. */
       initial?: FinanceBudget;
-      /** A suggestion's monthly amount, offered for review before saving. */
-      suggestedAmount?: number;
       presetCategory?: FinanceCategory;
       presetKind?: BudgetKind;
     }
@@ -123,7 +121,6 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
   const openBudget = (
     options: {
       initial?: FinanceBudget;
-      suggestedAmount?: number;
       presetCategory?: FinanceCategory;
       presetKind?: BudgetKind;
     } = {},
@@ -338,6 +335,29 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                   {applied.tab === "budget" ? (
                     <BudgetMain
                       data={data}
+                      onSelectGroup={(category, kind) =>
+                        router.push(
+                          financeBudgetCategoryHref(
+                            applied.month,
+                            applied.apartmentId,
+                            category,
+                            kind,
+                          ),
+                          { scroll: false },
+                        )
+                      }
+                      onCreate={(presetCategory, presetKind) =>
+                        openBudget({ presetCategory, presetKind })
+                      }
+                    />
+                  ) : null}
+                </div>
+              </div>
+              <div className="max-lg:contents flex min-w-0 flex-col gap-4">
+                <div className="order-1 min-w-0">
+                  {applied.tab === "budget" ? (
+                    <BudgetActual
+                      data={data}
                       properties={data.properties}
                       onSelectGroup={(category, kind) =>
                         router.push(
@@ -353,16 +373,8 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                       onCreate={(presetCategory, presetKind) =>
                         openBudget({ presetCategory, presetKind })
                       }
-                      onEdit={(budget, suggestedAmount) =>
-                        openBudget({ initial: budget, suggestedAmount })
-                      }
                     />
-                  ) : null}
-                </div>
-              </div>
-              <div className="max-lg:contents flex min-w-0 flex-col gap-4">
-                <div className="order-1 min-w-0">
-                  {applied.tab === "expenses" ? (
+                  ) : applied.tab === "expenses" ? (
                     <ExpensesReview
                       data={data}
                       scope={scope}
@@ -412,18 +424,6 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                           ),
                           { scroll: false },
                         )
-                      }
-                    />
-                  ) : null}
-                  {applied.tab === "budget" ? (
-                    <BudgetAside
-                      data={data}
-                      properties={data.properties}
-                      onCreate={(presetCategory, presetKind) =>
-                        openBudget({ presetCategory, presetKind })
-                      }
-                      onEdit={(budget, suggestedAmount) =>
-                        openBudget({ initial: budget, suggestedAmount })
                       }
                     />
                   ) : null}
@@ -493,7 +493,6 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               presetCategory={activeOverlay.presetCategory}
               presetKind={activeOverlay.presetKind}
               initial={activeOverlay.initial}
-              suggestedAmount={activeOverlay.suggestedAmount}
               operation={finance.savingBudget}
               removing={finance.removingBudget}
               onSave={finance.saveBudget}

@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { budgetProgress, formatPesoDisplay } from "@repo/utils";
+import FinanceMeter from "./FinanceMeter";
+import {
+  budgetProgress,
+  formatPesoDisplay,
+  type FinanceCategory,
+} from "@repo/utils";
 
 interface BudgetProgressRowProps {
   /** Category label, or a property name in the drill-down. */
@@ -15,6 +20,8 @@ interface BudgetProgressRowProps {
   /** What pressing the row does, e.g. "View properties" or "Edit budget". */
   action: string;
   onPress: () => void;
+  /** Tints the row with the category's soft fill, like mobile's budget rows. */
+  category?: FinanceCategory;
 }
 
 /**
@@ -29,34 +36,49 @@ export default function BudgetProgressRow({
   spent,
   action,
   onPress,
+  category,
 }: BudgetProgressRowProps) {
   const { over, percent, difference, barWidth } = budgetProgress(amount, spent);
   return (
     <Button
       variant="ghost"
-      className="h-auto w-full items-stretch whitespace-normal py-2 text-left"
+      className={
+        category
+          ? "finance-category-row items-stretch text-left"
+          : "h-auto w-full items-stretch whitespace-normal py-2 text-left"
+      }
+      data-finance-category={category}
       aria-label={`${title}, ${caption}. Spent ${formatPesoDisplay(spent)} of ${formatPesoDisplay(amount)}. ${over ? "Over budget" : "Within budget"}. ${action}`}
       onPress={onPress}
     >
       <div className="w-full space-y-2 text-left">
-        <p className="font-nunito text-sm font-semibold">{title}</p>
-        <p className="text-xs text-muted-foreground">{caption}</p>
-        <p className="font-nunito text-sm font-bold tabular-nums">
-          {formatPesoDisplay(spent)} / {formatPesoDisplay(amount)}
-        </p>
-        <div className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
-          <div
-            className={`h-full rounded-full ${over ? "bg-destructive" : "bg-brand"}`}
-            style={{ width: `${barWidth}%` }}
-          />
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="min-w-0 flex-1 font-nunito text-base font-semibold">
+            {title}
+          </p>
+          <p className="shrink-0 text-sm text-muted-foreground">{caption}</p>
         </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="font-nunito text-base font-bold tabular-nums">
+            {formatPesoDisplay(spent)} / {formatPesoDisplay(amount)}
+          </p>
+          {percent !== null ? (
+            <p
+              className={`text-sm ${over ? "text-destructive" : "text-muted-foreground"}`}
+            >
+              {percent}% used
+            </p>
+          ) : null}
+        </div>
+        <FinanceMeter
+          label={`${title} spending used`}
+          value={barWidth}
+          over={over}
+        />
         <p
-          className={`text-xs ${over ? "text-destructive" : "text-muted-foreground"}`}
+          className={`text-sm ${over ? "text-destructive" : "text-muted-foreground"}`}
         >
-          {formatPesoDisplay(difference)}{" "}
-          {over
-            ? `over budget${percent !== null ? ` · ${percent}% used` : ""}`
-            : "remaining"}
+          {formatPesoDisplay(difference)} {over ? "over budget" : "remaining"}
         </p>
       </div>
     </Button>

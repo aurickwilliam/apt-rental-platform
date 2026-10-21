@@ -43,19 +43,19 @@ export default function AnalyticsSkeleton({
           </>
         )}
       </div>
-      <div className="space-y-4">
-        <Skeleton className="h-52 rounded-3xl bg-primary/30" />
-        {tab === "budget" ? (
-          <Skeleton className="bg-muted h-96 rounded-3xl" />
-        ) : tab === "expenses" ? (
-          <Skeleton className="bg-muted h-64 rounded-3xl" />
-        ) : (
-          <>
-            <Skeleton className="bg-muted h-40 rounded-3xl" />
-            <Skeleton className="bg-muted h-56 rounded-3xl" />
-          </>
-        )}
-      </div>
+      {
+        <div className="space-y-4">
+          <Skeleton className="h-52 rounded-3xl bg-primary/30" />
+          {tab === "expenses" ? (
+            <Skeleton className="bg-muted h-64 rounded-3xl" />
+          ) : (
+            <>
+              <Skeleton className="bg-muted h-40 rounded-3xl" />
+              <Skeleton className="bg-muted h-56 rounded-3xl" />
+            </>
+          )}
+        </div>
+      }
     </div>
   );
 }

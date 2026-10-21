@@ -489,30 +489,50 @@ with sync_playwright() as playwright:
     new_plan.get_by_role("button", name="Cancel", exact=True).click()
     expect(new_plan).to_have_count(0)
     expect(page.get_by_role("button", name="Add budget", exact=True)).to_be_focused()
-    expect(page.get_by_role("heading", name="Budget suggestions")).to_be_visible()
+    # The right column is Budget versus actual as one tinted card per category
+    # (no table, no Needs attention, no suggestions card); reserves stay on the left.
+    # Each Add says what it creates: a spending limit or a reserve.
+    page.get_by_role("button", name="Add spending limit").click()
+    spending_plan = page.get_by_role("dialog", name="Plan a budget", exact=True)
+    expect(spending_plan.get_by_role("button", name="Spending budget Plan type", exact=False)).to_be_visible()
+    spending_plan.get_by_role("button", name="Cancel", exact=True).click()
+    page.get_by_role("button", name="Add reserve").click()
+    reserve_plan = page.get_by_role("dialog", name="Plan a budget", exact=True)
+    expect(reserve_plan.get_by_role("button", name="Emergency reserve Category", exact=True)).to_be_visible()
+    reserve_plan.get_by_role("button", name="Cancel", exact=True).click()
+    expect(page.get_by_role("heading", name="Needs attention")).to_have_count(0)
+    expect(page.get_by_role("heading", name="Budget suggestions")).to_have_count(0)
+    expect(page.get_by_role("button", name="Set a goal")).to_have_count(0)
+    expect(page.get_by_role("grid", name="Spending limits")).to_have_count(0)
     # The group hides the single over-limit plan: 4,200 spent of 13,000.
-    spending_group = page.get_by_role("row", name="Maintenance & repairs", exact=False).first
-    expect(spending_group).to_contain_text("₱ 13,000")
-    expect(spending_group).to_contain_text("₱ 4,200")
-    expect(spending_group).to_contain_text("32% used")
-    expect(spending_group).to_contain_text("₱ 8,800 remaining")
-    # A zero limit shows no percentage and an empty bar.
-    zero_group = page.get_by_role("row", name="Owner-paid utilities & dues", exact=False)
-    expect(zero_group).to_contain_text("No limit set")
-    expect(zero_group).to_contain_text("₱ 0 remaining")
-    expect(zero_group).not_to_contain_text("% used")
-    # Reserves stay their own table and never mix with spending limits.
-    reserve_group = page.get_by_role("grid", name="Planned reserves").get_by_role("row", name="Emergency reserve", exact=False)
-    expect(reserve_group).to_contain_text("₱ 1,500")
-    # Expanding a category shows each property's own plan in place.
-    page.get_by_role("button", name="Expand Maintenance & repairs, 2 properties").click()
-    expect(page.get_by_role("button", name="Edit budget: Bayview, Maintenance & repairs")).to_be_visible()
-    expect(page.get_by_role("button", name="Edit budget: Canal House, Maintenance & repairs")).to_be_visible()
-    page.get_by_role("button", name="Collapse Maintenance & repairs, 2 properties").click()
-    expect(page.get_by_role("button", name="Edit budget: Bayview, Maintenance & repairs")).to_have_count(0)
     spending_row = page.get_by_role(
         "button",
-        name="Maintenance & repairs, 2 properties. Planned ₱ 13,000. View properties",
+        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 13,000. Within budget. View properties",
+    )
+    expect(spending_row).to_be_visible()
+    expect(spending_row).to_contain_text("32% used")
+    expect(spending_row).to_contain_text("₱ 8,800 remaining")
+    assert spending_row.get_attribute("data-finance-category") == "maintenance"
+    # A zero limit shows no percentage and an empty bar.
+    zero_row = page.get_by_role(
+        "button",
+        name="Owner-paid utilities & dues, Garden Court. Spent ₱ 0 of ₱ 0. Within budget. View properties",
+    )
+    expect(zero_row).to_contain_text("₱ 0 remaining")
+    expect(zero_row).not_to_contain_text("% used")
+    # Reserves stay their own tinted cards and never mix with spending limits.
+    reserve_row = page.get_by_role(
+        "button",
+        name="Emergency reserve. For 1 property this month. Planned ₱ 1,500. View properties",
+    )
+    expect(reserve_row).to_be_visible()
+    expect(reserve_row).to_contain_text("For 1 property this month")
+    expect(reserve_row).not_to_contain_text("planned this month")
+    assert reserve_row.get_attribute("data-finance-category") == "emergency"
+    expect(page.get_by_role("grid", name="Planned reserves")).to_have_count(0)
+    spending_row = page.get_by_role(
+        "button",
+        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 13,000. Within budget. View properties",
     )
 
     # The category drill-down lists each property's own limit and spending.
@@ -526,7 +546,8 @@ with sync_playwright() as playwright:
         name="Bayview, spent this month. Spent ₱ 4,200 of ₱ 3,000. Over budget. Edit budget",
     )
     expect(over_row).to_be_visible()
-    expect(over_row).to_contain_text("₱ 1,200 over budget · 140% used")
+    expect(over_row).to_contain_text("₱ 1,200 over budget")
+    expect(over_row).to_contain_text("140% used")
     expect(
         page.get_by_role(
             "button",
@@ -541,15 +562,36 @@ with sync_playwright() as playwright:
     expect(editor.get_by_role("button", name="Plan type")).to_be_disabled()
     expect(editor.get_by_role("button", name="Category")).to_be_disabled()
     expect(editor.get_by_text("Property, plan type, category and month are locked")).to_be_visible()
-    # A goal suggests a monthly amount without changing the plan yet.
-    editor.get_by_label("Amount still needed / annual bill", exact=False).fill("12,000")
-    editor.get_by_label("Months to spread this amount over", exact=False).fill("12")
-    expect(editor.get_by_text("₱ 1,000 / month")).to_be_visible()
+    # "Calculate from a goal" opens its own modal over the drawer; its edits are
+    # a draft that closing discards, and only "Use suggested amount" applies.
+    goal_button = editor.get_by_role("button", name="Calculate from a goal")
+    goal_button.click()
+    goal_modal = page.get_by_role("dialog", name="Calculate from a goal", exact=True)
+    expect(goal_modal.get_by_role("button", name="Use suggested amount")).to_be_disabled()
+    goal_modal.get_by_label("Amount still needed or annual bill", exact=False).fill("12,000")
+    goal_modal.get_by_label("Months to spread this amount over", exact=False).fill("0")
+    expect(goal_modal.get_by_text("Enter a whole number from 1 to 600.")).to_be_visible()
+    expect(goal_modal.get_by_role("button", name="Use suggested amount")).to_be_disabled()
+    goal_modal.get_by_label("Months to spread this amount over", exact=False).fill("12")
+    expect(goal_modal.get_by_text("Suggested: ₱ 1,000 / month")).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(goal_modal).to_have_count(0)
+    expect(editor.get_by_text("Goal:")).to_have_count(0)
+    expect(editor.get_by_label("Monthly spending limit", exact=False)).to_have_value("₱ 3,000")
+    goal_button.click()
+    goal_modal = page.get_by_role("dialog", name="Calculate from a goal", exact=True)
+    expect(goal_modal.get_by_label("Amount still needed or annual bill", exact=False)).to_have_value("")
+    goal_modal.get_by_label("Amount still needed or annual bill", exact=False).fill("12,000")
+    goal_modal.get_by_label("Months to spread this amount over", exact=False).fill("12")
+    goal_modal.get_by_role("button", name="Use suggested amount").click()
+    expect(goal_modal).to_have_count(0)
+    expect(editor.get_by_text("Goal: ₱ 12,000 over 12 months")).to_be_visible()
+    expect(editor.get_by_label("Monthly spending limit", exact=False)).to_have_value("₱ 1,000")
     editor.get_by_role("button", name="Save budget", exact=True).click()
     expect(editor).to_have_count(0)
     write = page.evaluate("financeTest.writes.at(-1)")
     assert write["target_amount"] == 12000 and write["months_remaining"] == 12
-    assert write["amount"] == 3000
+    assert write["amount"] == 1000
     # Saving the same plan again updates it instead of adding a second row.
     page.get_by_role(
         "button",
@@ -571,31 +613,16 @@ with sync_playwright() as playwright:
     )
     assert page.evaluate("financeTest.writes.at(-1).amount") == 3500
 
-    # The saved goal becomes a suggestion in the Budget tab.
     page.get_by_role("link", name="Back to budgets").click()
     page.get_by_role("tab", name="Budget", exact=True).click()
-    expect(page.get_by_text("Plan for maintenance & repairs")).to_be_visible()
-    expect(page.get_by_text("₱ 1,000 / month").first).to_be_visible()
-    expect(page.get_by_text("Bayview · Based on your entries")).to_be_visible()
-    # Reviewing a suggestion opens the plan with that amount, and never saves
-    # on its own.
-    page.get_by_role("button", name="Review suggestion", exact=True).click()
-    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
-    expect(editor.get_by_label("Monthly spending limit", exact=False)).to_have_value(
-        "₱ 1,000"
-    )
-    editor.get_by_role("button", name="Save budget", exact=True).click()
-    expect(editor).to_have_count(0)
-    assert page.evaluate("financeTest.writes.at(-1).amount") == 1000
-    page.get_by_role("tab", name="Budget", exact=True).click()
     expect(
-        page.get_by_role("row", name="Maintenance & repairs", exact=False).first
-    ).to_contain_text("₱ 11,000")
+        page.get_by_role("button", name="Maintenance & repairs, 2 properties", exact=False)
+    ).to_contain_text("₱ 13,500")
 
     # Removing a plan takes two steps and disappears from the list.
     page.get_by_role(
         "button",
-        name="Maintenance & repairs, 2 properties. Planned ₱ 11,000. View properties",
+        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 13,500. Within budget. View properties",
     ).click()
     page.get_by_role(
         "button",
@@ -618,7 +645,7 @@ with sync_playwright() as playwright:
     page.get_by_role("tab", name="Budget", exact=True).click()
     page.get_by_role(
         "button",
-        name="Emergency reserve, Bayview. Planned ₱ 1,500. View properties",
+        name="Emergency reserve. For 1 property this month. Planned ₱ 1,500. View properties",
     ).click()
     assert "kind=reserve" in page.url
     expect(page.get_by_text("Planned reserves · October 2026")).to_be_visible()

@@ -13,23 +13,22 @@ import {
 import {
   budgetCategoryOptions,
   financeBudgetMonthsDefault,
-  financeCategoryLabel,
   financeGoalFromForm,
   financeMonthLabel,
   formatPesoDisplay,
   handlePesoChange,
   isBudgetCategoryAllowed,
   parseFinanceAmount,
-  suggestFinanceBudget,
   type BudgetKind,
   type FinanceBudget,
   type FinanceCategory,
   type FinanceProperty,
   type FinanceScope,
 } from "@repo/utils";
-import { IconTrash } from "@tabler/icons-react";
+import { IconCalculator, IconTrash } from "@tabler/icons-react";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import type { FinanceOperation } from "@/hooks/use-landlord-finances";
+import BudgetGoalModal from "./BudgetGoalModal";
 import FinanceDrawer from "./FinanceDrawer";
 
 interface PlanBudgetDrawerProps {
@@ -39,8 +38,6 @@ interface PlanBudgetDrawerProps {
   presetKind?: BudgetKind;
   /** A saved plan turns this into the edit form: identity fields lock. */
   initial?: FinanceBudget;
-  /** A suggestion's monthly amount, offered for review before saving. */
-  suggestedAmount?: number;
   operation: FinanceOperation;
   /** Removal is its own operation; absent while creating. */
   removing?: FinanceOperation;
@@ -58,7 +55,6 @@ export default function PlanBudgetDrawer({
   presetCategory = "maintenance",
   presetKind = "expense",
   initial,
-  suggestedAmount,
   operation,
   removing,
   onSave,
@@ -78,11 +74,7 @@ export default function PlanBudgetDrawer({
         : "maintenance"),
   );
   const [amount, setAmount] = useState(
-    suggestedAmount !== undefined
-      ? String(suggestedAmount)
-      : initial
-        ? String(initial.amount)
-        : "",
+    initial ? String(initial.amount) : "",
   );
   const [target, setTarget] = useState(
     initial?.target_amount ? String(initial.target_amount) : "",
@@ -90,16 +82,15 @@ export default function PlanBudgetDrawer({
   const [months, setMonths] = useState(
     String(initial?.months_remaining ?? financeBudgetMonthsDefault(category)),
   );
+  const [goalOpen, setGoalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const parsedAmount = parseFinanceAmount(amount, true);
   const goal = financeGoalFromForm(target, months);
-  const suggestion = suggestFinanceBudget({
-    category,
-    kind,
-    target_amount: goal.target_amount,
-    months_remaining: goal.months_remaining,
-  });
+  const goalSummary =
+    goal.target_amount !== null && !goal.monthsError
+      ? `${formatPesoDisplay(goal.target_amount)} over ${goal.months_remaining} ${goal.months_remaining === 1 ? "month" : "months"}`
+      : null;
   const validProperty = properties.some((item) => item.id === property);
   const amountError =
     submitted && parsedAmount === null
@@ -260,43 +251,28 @@ export default function PlanBudgetDrawer({
           <Input inputMode="decimal" maxLength={20} placeholder="₱ 0" />
           <FieldError>{amountError}</FieldError>
         </TextField>
-        <TextField
-          isInvalid={submitted && !!goal.targetError}
-          isDisabled={busy}
-          value={target === "." ? "." : formatPesoDisplay(target)}
-          onChange={(value) => setTarget(handlePesoChange(value).raw)}
-        >
-          <Label>Amount still needed / annual bill (optional)</Label>
-          <Input inputMode="decimal" maxLength={20} placeholder="₱ 0" />
-          <FieldError>{goal.targetError}</FieldError>
-        </TextField>
-        <TextField
-          isInvalid={submitted && !!goal.monthsError}
-          isDisabled={busy}
-          value={months}
-          onChange={setMonths}
-        >
-          <Label>Months to spread this amount over</Label>
-          <Input inputMode="numeric" maxLength={3} />
-          <FieldError>{goal.monthsError}</FieldError>
-        </TextField>
-        {suggestion ? (
-          <div className="space-y-2 rounded-xl bg-secondary p-3 text-sm">
-            <p className="font-nunito font-bold">
-              {financeCategoryLabel(category)} ·{" "}
-              {formatPesoDisplay(suggestion.amount)} / month
+        <div className="space-y-2">
+          <Button
+            variant="secondary"
+            className="w-full"
+            isDisabled={busy}
+            aria-haspopup="dialog"
+            onPress={() => setGoalOpen(true)}
+          >
+            <IconCalculator size={16} aria-hidden />
+            Calculate from a goal
+          </Button>
+          {goalSummary ? (
+            <p className="text-sm text-muted-foreground">
+              Goal: {goalSummary}
             </p>
-            <p>{suggestion.basis}</p>
-            <Button
-              variant="tertiary"
-              size="sm"
-              isDisabled={busy}
-              onPress={() => setAmount(String(suggestion.amount))}
-            >
-              Use suggestion
-            </Button>
-          </div>
-        ) : null}
+          ) : null}
+          {submitted && (goal.targetError || goal.monthsError) ? (
+            <p role="alert" className="text-sm text-destructive">
+              {goal.targetError ?? goal.monthsError}
+            </p>
+          ) : null}
+        </div>
         {operation.error || removing?.error ? (
           <p role="alert" className="text-sm text-destructive">
             {operation.error ?? removing?.error}
@@ -323,6 +299,20 @@ export default function PlanBudgetDrawer({
             {confirmRemove ? "Confirm remove budget" : "Remove budget"}
           </Button>
         </div>
+      ) : null}
+      {goalOpen ? (
+        <BudgetGoalModal
+          category={category}
+          kind={kind}
+          goal={{ target, months }}
+          onClose={() => setGoalOpen(false)}
+          onApply={(next, suggestedAmount) => {
+            setTarget(next.target);
+            setMonths(next.months.trim() ? next.months : months);
+            setAmount(String(suggestedAmount));
+            setGoalOpen(false);
+          }}
+        />
       ) : null}
     </FinanceDrawer>
   );
