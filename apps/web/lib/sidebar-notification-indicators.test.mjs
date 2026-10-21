@@ -34,7 +34,7 @@ const dots = element => nodes(element).filter(n => n.type === "span" && n.props.
 const row = (screen, title, type, data = {}) => ({
   id: title, title, type, data: { screen, ...(screen === "chat" ? { recipientPortal: "tenant" } : {}), ...data }, is_read: false,
 });
-function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = false, rows = [], hiddenPassport = false } = {}) {
+function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = false, rows = [], hiddenPassport = false, pathname } = {}) {
   const navigation = [];
   const prefetched = [];
   let writes = 0;
@@ -48,7 +48,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
     "next/navigation": {
-      usePathname: () => `/${portal}/${portal === "tenant" ? "my-rental" : "dashboard"}`,
+      usePathname: () => pathname ?? `/${portal}/${portal === "tenant" ? "my-rental" : "dashboard"}`,
       useRouter: () => ({ push: href => navigation.push(href), prefetch: href => prefetched.push(href) }),
       useSearchParams: () => new URLSearchParams(),
     },
@@ -65,9 +65,10 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     "@/lib/sidebar-notification-activity": mapping,
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");
+  const favoritesHref = portal === "tenant" ? "/tenant/favorites" : undefined;
   const tree = mobile
-    ? component.MobileSidebarNavigation({ navItems: nav, activePortal: portal, iconSet: "tabler", profileHref: `/${portal}/profile` })
-    : component.AppSidebar({ navItems: nav, activePortal: portal, userName: "User", userRole: portal, collapsible: true, iconSet: "tabler" });
+    ? component.MobileSidebarNavigation({ navItems: nav, activePortal: portal, iconSet: "tabler", profileHref: `/${portal}/profile`, favoritesHref })
+    : component.AppSidebar({ navItems: nav, activePortal: portal, userName: "User", userRole: portal, collapsible: true, iconSet: "tabler", favoritesHref });
   const all = nodes(tree);
   const links = all.filter(n => mobile
     ? n.type === "Dropdown.Item" && n.props.id?.startsWith(`/${portal}/`)
@@ -158,4 +159,54 @@ test("opening landlord mobile navigation prefetches main's routes without readin
   const properties = result.links.find(link => link.props.id === "/landlord/properties");
   assert.equal(dots(properties).length, 1);
   assert.equal(result.writes(), 0);
+});
+
+test("tenant layout offers Favorites through both account menus instead of the page list", async () => {
+  const layout = compile("../app/tenant/layout.tsx", {
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "../components/layout/AppSidebar": { AppSidebar: "AppSidebar", MobileSidebarNavigation: "MobileSidebarNavigation" },
+    "@/lib/passport-access": { canViewPassport: () => true },
+  });
+  const tree = await layout.default({ children: null });
+  const menus = nodes(tree).filter(node => ["AppSidebar", "MobileSidebarNavigation"].includes(node.type));
+  assert.equal(menus.length, 2);
+  for (const menu of menus) {
+    assert.equal(menu.props.favoritesHref, "/tenant/favorites");
+    assert.equal(menu.props.navItems.some(item => item.href === "/tenant/favorites"), false);
+  }
+});
+
+test("Favorites follows Profile, navigates and prefetches in desktop and small-screen web account menus", () => {
+  for (const mobile of [false, true]) {
+    for (const collapsed of [false, true]) {
+      const result = sidebar({ mobile, collapsed });
+      const items = result.all.filter(node => node.type === "Dropdown.Item");
+      const profileIndex = items.findIndex(node => node.props.id === "profile");
+      const favorites = items[profileIndex + 1];
+      assert.equal(favorites.props.id, "favorites");
+      assert.equal(favorites.props.textValue, "Favorites");
+      assert.equal(favorites.props["aria-current"], undefined);
+      assert.equal(nodes(favorites).some(node => node.type === "IconHeart"), true);
+      assert.equal(result.links.some(node => (node.props.href ?? node.props.id) === "/tenant/favorites"), false);
+      result.all.find(node => node.type === "Dropdown.Menu").props.onAction("favorites");
+      assert.deepEqual(result.navigation, ["/tenant/favorites"]);
+      result.all.find(node => typeof node.props.onOpenChange === "function").props.onOpenChange(true);
+      assert.ok(result.prefetched.includes("/tenant/favorites"));
+      assert.equal(result.writes(), 0);
+    }
+  }
+});
+
+test("Favorites has an accessible active state in either theme without appearing in other portals", () => {
+  for (const mobile of [false, true]) {
+    for (const dark of [false, true]) {
+      const result = sidebar({ mobile, dark, pathname: "/tenant/favorites" });
+      const favorites = result.all.find(node => node.type === "Dropdown.Item" && node.props.id === "favorites");
+      assert.equal(favorites.props["aria-current"], "page");
+      assert.match(favorites.props.className, /bg-primary\/10 text-primary/);
+    }
+    for (const portal of ["landlord", "admin"]) {
+      assert.equal(sidebar({ mobile, portal }).all.some(node => node.props.id === "favorites"), false);
+    }
+  }
 });
