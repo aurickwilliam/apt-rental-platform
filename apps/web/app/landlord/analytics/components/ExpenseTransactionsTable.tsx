@@ -169,7 +169,15 @@ export default function ExpenseTransactionsTable({
                       </Table.Cell>
                       {showCategoryFilter ? (
                         <Table.Cell>
-                          <Chip size="sm">
+                          <Chip
+                            size="sm"
+                            className="finance-category-chip"
+                            data-finance-category={expense.category}
+                          >
+                            <span
+                              className="finance-category-chip-dot"
+                              aria-hidden
+                            />
                             {financeCategoryLabel(expense.category)}
                           </Chip>
                         </Table.Cell>

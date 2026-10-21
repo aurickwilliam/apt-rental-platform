@@ -99,6 +99,9 @@
 }
 .finance-report .finance-category-row:hover,
 .finance-report .finance-category-row[data-hovered] { background: var(--finance-row-fill, var(--card)); filter: brightness(0.97); }
+/* Category chips in the transactions table reuse the category fills; the dot is the saturated color. */
+.finance-report .finance-category-chip { background: var(--finance-row-fill, var(--default)); color: var(--foreground); }
+.finance-report .finance-category-chip-dot { display: inline-block; width: 0.5rem; height: 0.5rem; margin-right: 0.375rem; border-radius: 9999px; background: var(--finance-row-solid, currentColor); }
 /* Collection health rows: soft fills matching mobile (blue, amber, soft red). */
 .finance-report { --finance-collection-collected: #EFF6FF; --finance-collection-pending: #FFF8E1; --finance-collection-overdue: #FDECEC; }
 .dark .finance-report { --finance-collection-collected: #1A2340; --finance-collection-pending: #2A2410; --finance-collection-overdue: #2D1515; }
