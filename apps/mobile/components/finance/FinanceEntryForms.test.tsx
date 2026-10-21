@@ -3,7 +3,6 @@ import type { PressableProps, TextInputProps, TextProps } from "react-native";
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import type { FinanceBudget } from "@repo/utils";
 import BudgetEntryPage from "./BudgetEntryPage";
-import ExpenseEntrySheet from "./ExpenseEntrySheet";
 import ExpenseEntryPage from "./ExpenseEntryPage";
 import BudgetGoalSheet from "./BudgetGoalSheet";
 
@@ -265,7 +264,7 @@ describe("finance entry forms", () => {
   test("invalid amounts and future expenses cannot be saved", () => {
     const onSave = jest.fn();
     const screen = render(
-      <ExpenseEntrySheet {...common} onSave={onSave} onDelete={jest.fn()} />,
+      <ExpenseEntryPage {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "0");
     fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 18, 12));
@@ -277,31 +276,10 @@ describe("finance entry forms", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  // DateField opens the iOS picker as a React Native Modal, and the default
-  // iOS full-window overlay renders above native modals — the picker would
-  // open invisibly behind the sheet.
-  test("the expense sheet renders without the iOS full-window overlay so the date picker can appear above it", () => {
-    render(<ExpenseEntrySheet {...common} onSave={jest.fn()} onDelete={jest.fn()} />);
-    expect(mockPortalProps).toHaveBeenCalledWith(
-      expect.objectContaining({ disableFullWindowOverlay: true }),
-    );
-  });
-
-  // HeroUI's sheet container already applies the shared 20px gutter; the scroll
-  // content must not pad horizontally a second time.
-  test("the expense sheet scroll adds vertical spacing only inside the 20px sheet gutter", () => {
-    const screen = render(
-      <ExpenseEntrySheet {...common} onSave={jest.fn()} onDelete={jest.fn()} />,
-    );
-    expect(
-      screen.getByTestId("expense-sheet-scroll").props.contentContainerStyle,
-    ).toEqual({ paddingBottom: 32 });
-  });
-
   test("a valid expense uses a stable UUID and explicit treatment", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const screen = render(
-      <ExpenseEntrySheet {...common} onSave={onSave} onDelete={jest.fn()} />,
+      <ExpenseEntryPage {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
     fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1250.25");
     expect(screen.getByLabelText("Amount (₱)").props.value).toBe("₱ 1,250.25");
@@ -330,7 +308,7 @@ describe("finance entry forms", () => {
   test("deleting an expense needs explicit confirmation", async () => {
     const onDelete = jest.fn().mockResolvedValue(undefined);
     const screen = render(
-      <ExpenseEntrySheet
+      <ExpenseEntryPage
         {...common}
         initial={{
           id: "existing",
@@ -599,7 +577,7 @@ describe("finance entry forms", () => {
   test("failed saves retain the expense draft and show an error", async () => {
     jest.spyOn(console, "error").mockImplementation(() => undefined);
     const screen = render(
-      <ExpenseEntrySheet
+      <ExpenseEntryPage
         {...common}
         onSave={jest.fn().mockRejectedValue(new Error("network"))}
         onDelete={jest.fn()}
@@ -615,10 +593,7 @@ describe("finance entry forms", () => {
     expect(common.onClose).not.toHaveBeenCalled();
   });
 
-  // Sheets stay mounted while closed (HeroUI only snaps them open on a closed → open
-  // transition), so each opening has to reseed the draft from the request.
-  test("reopening an expense sheet starts a fresh draft", () => {
-    const onSave = jest.fn();
+  test("the expense edit page seeds the form from the tapped expense and locks its property", () => {
     const editRow = {
       id: "existing",
       apartment_id: "apt",
@@ -629,47 +604,18 @@ describe("finance entry forms", () => {
       description: "Chair",
     };
     const screen = render(
-      <ExpenseEntrySheet
+      <ExpenseEntryPage
         {...common}
-        isOpen={false}
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    screen.rerender(
-      <ExpenseEntrySheet
-        {...common}
-        isOpen
         initial={editRow}
-        onSave={onSave}
+        onSave={jest.fn()}
         onDelete={jest.fn()}
       />,
     );
-    expect(screen.getByText("Edit expense")).toBeTruthy();
     expect(screen.getByLabelText("Amount (₱)").props.value).toBe("₱ 1,000");
     expect(screen.getByLabelText("Description").props.value).toBe("Chair");
     expect(screen.getByText("Expense treatment *: capital")).toBeTruthy();
-    screen.rerender(
-      <ExpenseEntrySheet
-        {...common}
-        isOpen={false}
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    screen.rerender(
-      <ExpenseEntrySheet
-        {...common}
-        isOpen
-        onSave={onSave}
-        onDelete={jest.fn()}
-      />,
-    );
-    expect(screen.getByText("Add expense")).toBeTruthy();
-    expect(screen.getByLabelText("Amount (₱)").props.value).toBe("");
-    expect(screen.getByLabelText("Description").props.value).toBe("");
-    expect(screen.getByText("Category *: maintenance")).toBeTruthy();
-    expect(screen.getByText("Expense treatment *: operating")).toBeTruthy();
+    expect(screen.getByTestId("entry-page-footer")).toBeTruthy();
+    expect(screen.getByText("Delete expense")).toBeTruthy();
   });
 
   test("the edit page seeds the form from the tapped budget and locks its identity", () => {

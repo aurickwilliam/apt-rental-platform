@@ -11,6 +11,7 @@ import {
   confirmExpenseReview,
   deleteBudget,
   deleteExpense,
+  fetchExpenseById,
   fetchExpensePage,
   fetchFinances,
   fetchRentLedger,
@@ -148,6 +149,15 @@ export function useFinanceIncomeMonths(
       const earlier = await loadReport(shiftFinanceMonth(currentMonth, -12));
       return financeIncomeMonthsFromReports(earlier.months, latest.months);
     },
+  });
+}
+
+/** A single expense for the edit page; refreshed with the expense list family. */
+export function useFinanceExpense(ownerId: string | null, id: string | null) {
+  return useQuery({
+    queryKey: ["landlord-expenses", ownerId, "detail", id],
+    queryFn: () => fetchExpenseById(ownerId!, id!),
+    enabled: !!ownerId && !!id,
   });
 }
 

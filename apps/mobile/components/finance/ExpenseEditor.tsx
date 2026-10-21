@@ -1,6 +1,5 @@
 import { Text, View } from "react-native";
-import { BottomSheet, Button } from "heroui-native";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { Button } from "heroui-native";
 import {
   formatPesoDisplay,
   handlePesoChange,
@@ -20,13 +19,9 @@ import {
   type ExpenseEntryFormOptions,
 } from "@/hooks/finance/useExpenseEntryForm";
 
-interface ExpenseEditorProps extends ExpenseEntryFormOptions {
-  presentation: "sheet" | "page";
-}
-
-/** One form shared by expense creation pages and edit sheets. */
-export default function ExpenseEditor(props: ExpenseEditorProps) {
-  const { isOpen, properties, initial, onClose, presentation } = props;
+/** The expense form page, for creating a new expense or editing a saved one. */
+export default function ExpenseEditor(props: ExpenseEntryFormOptions) {
+  const { properties, initial } = props;
   const {
     property,
     setProperty,
@@ -58,11 +53,6 @@ export default function ExpenseEditor(props: ExpenseEditorProps) {
 
   const form = (
     <View className="gap-4">
-      {presentation === "sheet" && (
-        <BottomSheet.Title className="font-nunitoBold text-xl text-foreground">
-          {initial ? "Edit expense" : "Add expense"}
-        </BottomSheet.Title>
-      )}
       <Text className="font-inter text-sm text-muted">
         Record money already spent. Reserve allocations and late rent are not
         expenses.
@@ -71,7 +61,7 @@ export default function ExpenseEditor(props: ExpenseEditorProps) {
         label="Property"
         required
         error={submitted ? propertyError : undefined}
-        searchable={presentation === "page"}
+        searchable
         value={property}
         options={properties.map((item) => ({
           value: item.id,
@@ -165,16 +155,6 @@ export default function ExpenseEditor(props: ExpenseEditorProps) {
           {error}
         </Text>
       )}
-      {presentation === "sheet" && (
-        <>
-          <Button onPress={handleSave} isDisabled={busy}>
-            <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
-          </Button>
-          <Button variant="secondary" onPress={onClose} isDisabled={busy}>
-            <Button.Label>Cancel</Button.Label>
-          </Button>
-        </>
-      )}
       {initial && (
         <View className="gap-2 border-t border-border pt-4">
           {confirmDelete && (
@@ -198,56 +178,33 @@ export default function ExpenseEditor(props: ExpenseEditorProps) {
       )}
     </View>
   );
-  if (presentation === "page")
-    return (
-      <ScreenWrapper
-        header={<StandardHeader title="Add expense" onBackPress={close} />}
-        scrollable
-        className="p-5"
-        footer={
-          <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
-            <Button
-              className="flex-1"
-              variant="tertiary"
-              onPress={close}
-              isDisabled={busy}
-            >
-              <Button.Label>Cancel</Button.Label>
-            </Button>
-            <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
-              <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
-            </Button>
-          </View>
-        }
-      >
-        {form}
-      </ScreenWrapper>
-    );
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (!open) close();
-      }}
-    >
-      {/* iOS's default full-window overlay would hide DateField's native modal. */}
-      <BottomSheet.Portal disableFullWindowOverlay>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content
-          snapPoints={["90%"]}
-          enableDynamicSizing={false}
-          enablePanDownToClose={!busy}
-        >
-          <BottomSheetScrollView
-            testID="expense-sheet-scroll"
-            keyboardShouldPersistTaps="handled"
-            // HeroUI already pads every edge by 20px; only add vertical space.
-            contentContainerStyle={{ paddingBottom: 32 }}
+    <ScreenWrapper
+      header={
+        <StandardHeader
+          title={initial ? "Edit expense" : "Add expense"}
+          onBackPress={close}
+        />
+      }
+      scrollable
+      className="p-5"
+      footer={
+        <View className="px-5 py-3 border-t border-border bg-background flex-row gap-3">
+          <Button
+            className="flex-1"
+            variant="tertiary"
+            onPress={close}
+            isDisabled={busy}
           >
-            {form}
-          </BottomSheetScrollView>
-        </BottomSheet.Content>
-      </BottomSheet.Portal>
-    </BottomSheet>
+            <Button.Label>Cancel</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleSave} isDisabled={busy}>
+            <Button.Label>{busy ? "Saving…" : "Save expense"}</Button.Label>
+          </Button>
+        </View>
+      }
+    >
+      {form}
+    </ScreenWrapper>
   );
 }

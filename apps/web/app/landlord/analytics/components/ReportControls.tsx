@@ -31,7 +31,8 @@ interface ReportControlsProps {
   properties: FinanceProperty[];
   scope: FinanceScope;
   currentMonth: string;
-  tab: FinanceTab;
+  /** Omit on pages that have no report tabs (the category page). */
+  tab?: FinanceTab;
   /** Controls stay visible but disabled until the report is ready. */
   disabled: boolean;
   /** First load of a scope: placeholders stand in for the scope controls. */
@@ -242,6 +243,7 @@ export default function ReportControls({
         </Button>
       </div>
       )}
+      {tab ? (
       <Tabs
         className="w-auto"
         selectedKey={tab}
@@ -264,6 +266,7 @@ export default function ReportControls({
           </Tabs.List>
         </Tabs.ListContainer>
       </Tabs>
+      ) : null}
     </div>
   );
 }

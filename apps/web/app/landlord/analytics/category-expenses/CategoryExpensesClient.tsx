@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@heroui/react";
-import { IconRefresh, IconReceipt2 } from "@tabler/icons-react";
+import { IconChevronLeft, IconPlus } from "@tabler/icons-react";
 import {
   financeCategoryLabel,
-  financeMonthLabel,
+  type ExpenseRecord,
   type FinanceCategory,
   type FinanceScope,
 } from "@repo/utils";
@@ -18,20 +18,32 @@ import {
   useLandlordFinances,
 } from "@/hooks/use-landlord-finances";
 import {
+  downloadCsv,
+  expensesCsvFilename,
+  expensesToCsv,
+} from "@/lib/landlord-finance-export";
+import {
+  financeCategoryHref,
   financeReportHref,
   type FinanceCategoryRouteParams,
+  type LandlordFinanceRouteParams,
 } from "@/lib/landlord-finance-params";
-import type { ExpenseRecord } from "@/service/landlordFinanceService";
 
+import CategorySummaryCards from "../components/CategorySummaryCards";
+import { FINANCE_CATEGORY_ICONS } from "../components/financeCategoryIcons";
 import ExpenseEditorDrawer from "../components/ExpenseEditorDrawer";
-import ExpenseTransactionRow from "../components/ExpenseTransactionRow";
+import ExpenseTransactionsTable from "../components/ExpenseTransactionsTable";
+import ReportControls from "../components/ReportControls";
 import CategoryExpensesSkeleton from "./CategoryExpensesSkeleton";
 
 function CategoryExpenses({
   params,
+  currentMonth,
 }: {
   params: FinanceCategoryRouteParams<FinanceCategory>;
+  currentMonth: string;
 }) {
+  const router = useRouter();
   const search = useSearchParams();
   const scope: FinanceScope = {
     month: params.month,
@@ -48,10 +60,9 @@ function CategoryExpenses({
     params.category,
     Boolean(finance.ownerId),
   );
-  const [pending, startPending] = useTransition();
-  const [editor, setEditor] = useState<{
-    initial?: ExpenseRecord;
-  } | null>(null);
+  const [editor, setEditor] = useState<{ initial?: ExpenseRecord } | null>(
+    null,
+  );
   const close = () => setEditor(null);
   const backParams = new URLSearchParams(search.toString());
   // The drill-down owns category; returning to the report must not carry it.
@@ -62,57 +73,91 @@ function CategoryExpenses({
     tab: "expenses",
   });
   const selectedProperty = report.hasData
-    ? (data.properties.find(
-        (property) => property.id === params.apartmentId,
-      ) ?? null)
+    ? (data.properties.find((property) => property.id === params.apartmentId) ??
+      null)
     : null;
   const rows = expenses.rows;
   const title = params.category
     ? financeCategoryLabel(params.category)
     : "Expense transactions";
-
-  const runPending = (action: () => Promise<void>) => {
-    startPending(async () => {
-      await action();
-    });
+  const ready = report.hasData && !!data.properties.length;
+  const CategoryIcon = params.category
+    ? FINANCE_CATEGORY_ICONS[params.category]
+    : null;
+  const changeScope = (patch: Partial<LandlordFinanceRouteParams>) => {
+    if (finance.savingExpense.pending || finance.removingExpense.pending)
+      return;
+    close();
+    const month = patch.month ?? params.month;
+    const apartmentId =
+      patch.apartmentId !== undefined ? patch.apartmentId : params.apartmentId;
+    router.push(
+      params.category
+        ? financeCategoryHref(month, apartmentId, params.category)
+        : financeReportHref(
+            "",
+            { month, apartmentId, tab: "expenses" },
+            "/landlord/analytics/category-expenses",
+          ),
+      { scroll: false },
+    );
   };
+  const refresh = () => {
+    void report.refresh();
+    void expenses.refresh();
+  };
+  const exportExpenses = () =>
+    downloadCsv(
+      expensesCsvFilename(params.month, selectedProperty?.name ?? null),
+      expensesToCsv(rows, {
+        category: financeCategoryLabel,
+        property: (id) =>
+          data.properties.find((property) => property.id === id)?.name ??
+          "Property",
+      }),
+    );
 
   return (
-    <div className="finance-report space-y-5 p-4 md:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3" data-fab-clearance>
-        <Link className="text-sm text-brand underline" href={backHref}>
-          <span aria-hidden>‹ </span>Back to report
+    <div className="finance-report space-y-4 p-4 md:p-6">
+      <div data-fab-clearance>
+        <Link
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+          href={backHref}
+        >
+          <IconChevronLeft size={16} aria-hidden />
+          Back to report
         </Link>
-        <div className="flex flex-wrap gap-2">
+      </div>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
+          {CategoryIcon ? (
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <CategoryIcon size={28} aria-hidden />
+            </span>
+          ) : null}
+          {title}
+        </h1>
+        <div data-fab-clearance>
           <Button
-            variant="outline"
             size="sm"
-            isDisabled={!finance.enabled || report.refreshing}
-            isPending={report.refreshing}
-            onPress={() => void report.refresh()}
+            isDisabled={!ready}
+            onPress={() => setEditor({})}
           >
-            <IconRefresh size={16} aria-hidden />
-            Refresh report
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            isDisabled={pending}
-            onPress={() => runPending(expenses.refresh)}
-          >
-            Refresh expenses
+            <IconPlus size={16} aria-hidden />
+            Add expense
           </Button>
         </div>
-      </div>
-      <header>
-        <h1 className="font-nunito text-3xl font-bold text-primary">{title}</h1>
-        <h2 className="mt-2 font-nunito text-lg font-bold">
-          {selectedProperty?.name ?? "All properties"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {financeMonthLabel(params.month)}
-        </p>
       </header>
+      <ReportControls
+        properties={data.properties}
+        scope={scope}
+        currentMonth={currentMonth}
+        disabled={!report.hasData}
+        loading={finance.userLoading || report.initialLoading}
+        refreshing={report.refreshing || expenses.loading}
+        onChange={changeScope}
+        onRefresh={refresh}
+      />
       {finance.userLoading || report.initialLoading ? (
         <CategoryExpensesSkeleton />
       ) : !finance.enabled ? (
@@ -143,74 +188,27 @@ function CategoryExpenses({
               </Button>
             </div>
           ) : null}
-          <div className="space-y-3" aria-live="polite">
-            {rows.map((expense) => (
-              <ExpenseTransactionRow
-                key={expense.id}
-                expense={expense}
-                propertyName={
-                  params.apartmentId
-                    ? undefined
-                    : (data.properties.find(
-                        (property) => property.id === expense.apartment_id,
-                      )?.name ?? undefined)
-                }
-                onPress={() => setEditor({ initial: expense })}
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:items-start">
+            <div className="order-2 min-w-0 lg:order-1">
+              <ExpenseTransactionsTable
+                scope={scope}
+                properties={data.properties}
+                expenses={expenses}
+                category={params.category}
+                onCategoryChange={() => undefined}
+                showCategoryFilter={false}
+                onEdit={(expense) => setEditor({ initial: expense })}
+                onExport={exportExpenses}
               />
-            ))}
-            {expenses.loading && !rows.length ? (
-              <CategoryExpensesSkeleton />
-            ) : null}
-            {!rows.length && !expenses.loading && !expenses.error ? (
-              <div className="flex flex-col items-center gap-2 py-10 text-center">
-                <IconReceipt2
-                  size={32}
-                  className="text-muted-foreground"
-                  aria-hidden
-                />
-                <h3 className="font-nunito font-bold">
-                  {params.category
-                    ? "No expenses in this category"
-                    : "No expenses recorded"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Nothing recorded in {financeMonthLabel(params.month)}
-                  {selectedProperty ? ` for ${selectedProperty.name}` : ""}.
-                </p>
-              </div>
-            ) : null}
-            {expenses.error ? (
-              <div className="space-y-2 py-4 text-center" role="alert">
-                <p className="text-sm">{expenses.error}</p>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  isDisabled={pending}
-                  onPress={() => runPending(expenses.refresh)}
-                >
-                  Retry
-                </Button>
-              </div>
-            ) : null}
-            {expenses.pageError ? (
-              <p role="alert" className="text-sm">
-                {expenses.pageError} Your loaded rows are still here. Try Load
-                more again.
-              </p>
-            ) : null}
-            {expenses.hasMore ? (
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="secondary"
-                  isDisabled={pending}
-                  onPress={() => runPending(expenses.loadMore)}
-                >
-                  {expenses.loadingMore && pending
-                    ? "Loading…"
-                    : "Load more expenses"}
-                </Button>
-              </div>
-            ) : null}
+            </div>
+            <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-2">
+              <CategorySummaryCards
+                categories={data.categories}
+                category={params.category}
+                month={params.month}
+                apartmentId={params.apartmentId}
+              />
+            </div>
           </div>
         </>
       )}
@@ -220,6 +218,7 @@ function CategoryExpenses({
           properties={data.properties}
           apartmentId={params.apartmentId}
           initial={editor.initial}
+          category={params.category}
           saving={finance.savingExpense}
           removing={finance.removingExpense}
           onSave={async (draft, editing) => {
@@ -229,11 +228,15 @@ function CategoryExpenses({
             if (ok) void expenses.refresh();
             return ok;
           }}
-          onDelete={async (id) => {
-            const ok = await finance.removeExpense(id);
-            if (ok) void expenses.refresh();
-            return ok;
-          }}
+          onDelete={
+            editor.initial
+              ? async (id) => {
+                  const ok = await finance.removeExpense(id);
+                  if (ok) void expenses.refresh();
+                  return ok;
+                }
+              : undefined
+          }
           onClose={close}
         />
       ) : null}
@@ -247,14 +250,17 @@ function CategoryExpenses({
  */
 export default function CategoryExpensesClient({
   params,
+  currentMonth,
 }: {
   params: FinanceCategoryRouteParams<FinanceCategory>;
+  currentMonth: string;
 }) {
   const identity = useFinanceAccess();
   return (
     <CategoryExpenses
       key={identity.enabled ? identity.ownerId : "unavailable"}
       params={params}
+      currentMonth={currentMonth}
     />
   );
 }

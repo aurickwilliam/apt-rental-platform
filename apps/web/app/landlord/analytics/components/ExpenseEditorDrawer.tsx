@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { parseDate } from "@internationalized/date";
 import {
   Button,
+  Calendar,
+  DateField,
+  DatePicker,
   FieldError,
   Form,
   Input,
@@ -24,6 +28,7 @@ import {
   type ExpenseDraft,
   type ExpenseRecord,
   type ExpenseTreatment,
+  type FinanceCategory,
   type FinanceProperty,
 } from "@repo/utils";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
@@ -32,6 +37,17 @@ import type { FinanceOperation } from "@/hooks/use-landlord-finances";
 import FinanceDrawer from "./FinanceDrawer";
 
 const EXPENSE_CATEGORY_OPTIONS = budgetCategoryOptions("expense");
+/** Matches the shared rule: expenses can be dated from 2000 onwards. */
+const MIN_EXPENSE_DATE = "2000-01-01";
+
+/** The draft is kept as an ISO string; only a real calendar date reaches the picker. */
+function toCalendarDate(value: string) {
+  try {
+    return parseDate(value);
+  } catch {
+    return null;
+  }
+}
 
 interface ExpenseEditorDrawerProps {
   /** Report month the editor was opened from (seeds the date). */
@@ -42,6 +58,8 @@ interface ExpenseEditorDrawerProps {
   apartmentId: string | null;
   /** An existing row turns this into the edit-and-delete dialog. */
   initial?: ExpenseRecord;
+  /** Seeds a new expense's category, e.g. from a category page. */
+  category?: FinanceCategory | null;
   saving: FinanceOperation;
   /** Deletes are their own web operation (mobile shares one busy flag). */
   removing: FinanceOperation;
@@ -64,6 +82,7 @@ export default function ExpenseEditorDrawer({
   properties,
   apartmentId,
   initial,
+  category: presetCategory,
   saving,
   removing,
   onSave,
@@ -75,10 +94,14 @@ export default function ExpenseEditorDrawer({
   const [property, setProperty] = useState(
     initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "",
   );
-  const [category, setCategory] = useState(initial?.category ?? "maintenance");
+  const [category, setCategory] = useState(
+    initial?.category ?? presetCategory ?? "maintenance",
+  );
   const [treatment, setTreatment] = useState<ExpenseTreatment>(
     initial?.treatment ??
-      financeCategoryTreatmentDefault(initial?.category ?? "maintenance"),
+      financeCategoryTreatmentDefault(
+        initial?.category ?? presetCategory ?? "maintenance",
+      ),
   );
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [date, setDate] = useState(
@@ -90,6 +113,7 @@ export default function ExpenseEditorDrawer({
 
   const parsedAmount = parseFinanceAmount(amount);
   const dateError = validateExpenseDate(date, today);
+  const parsedDate = toCalendarDate(date);
   const propertyError = properties.some((item) => item.id === property)
     ? null
     : "Choose one of your properties.";
@@ -282,35 +306,75 @@ export default function ExpenseEditorDrawer({
           <Input inputMode="decimal" maxLength={20} placeholder="₱ 0" />
           <FieldError>{amountError}</FieldError>
         </TextField>
-        {/* A native date input inside HeroUI's TextField never receives the
-            generated label-for/id pair, so the label is associated directly
-            with its real control (visits share this pattern; the paired ids
-            keep the announced name and the tests' label lookup honest). */}
-        <div className="space-y-2">
-          <label
-            htmlFor="finance-expense-date"
-            className="block font-medium text-sm"
-          >
-            Date paid <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="finance-expense-date"
-            name="finance-expense-date"
-            type="date"
-            disabled={busy}
-            aria-invalid={submitted && !!dateError ? true : undefined}
-            value={date}
-            min="2000-01-01"
-            max={today}
-            onChange={(event) => setDate(event.target.value)}
-            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary disabled:opacity-60"
-          />
-          {submitted && dateError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {dateError}
-            </p>
-          ) : null}
-        </div>
+        <DatePicker
+          className="flex w-full flex-col gap-1"
+          value={parsedDate}
+          onChange={(value) => setDate(value ? value.toString() : "")}
+          minValue={parseDate(MIN_EXPENSE_DATE)}
+          maxValue={parseDate(today)}
+          isInvalid={submitted && !!dateError}
+          isDisabled={busy}
+          isRequired
+        >
+          <Label>Date paid</Label>
+          <DateField.Group fullWidth className="border border-border bg-card">
+            <DateField.Input>
+              {(segment) => (
+                <DateField.Segment
+                  segment={segment}
+                  className="text-foreground data-[placeholder=true]:text-muted-foreground"
+                />
+              )}
+            </DateField.Input>
+            <DateField.Suffix>
+              <DatePicker.Trigger className="cursor-pointer">
+                <DatePicker.TriggerIndicator className="text-muted-foreground" />
+              </DatePicker.Trigger>
+            </DateField.Suffix>
+          </DateField.Group>
+          <FieldError>{dateError}</FieldError>
+          <DatePicker.Popover>
+            <Calendar aria-label="Date paid">
+              <Calendar.Header>
+                <Calendar.YearPickerTrigger className="cursor-pointer">
+                  <Calendar.YearPickerTriggerHeading />
+                  <Calendar.YearPickerTriggerIndicator className="text-muted-foreground" />
+                </Calendar.YearPickerTrigger>
+                <Calendar.NavButton
+                  slot="previous"
+                  className="cursor-pointer text-muted-foreground"
+                />
+                <Calendar.NavButton
+                  slot="next"
+                  className="cursor-pointer text-muted-foreground"
+                />
+              </Calendar.Header>
+              <Calendar.Grid>
+                <Calendar.GridHeader>
+                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                </Calendar.GridHeader>
+                <Calendar.GridBody>
+                  {(day) => (
+                    <Calendar.Cell
+                      date={day}
+                      className="cursor-pointer data-selected:bg-primary data-selected:text-white data-disabled:cursor-not-allowed"
+                    />
+                  )}
+                </Calendar.GridBody>
+              </Calendar.Grid>
+              <Calendar.YearPickerGrid>
+                <Calendar.YearPickerGridBody>
+                  {(yearProps) => (
+                    <Calendar.YearPickerCell
+                      year={yearProps.year}
+                      className="cursor-pointer data-selected:bg-primary data-selected:text-white"
+                    />
+                  )}
+                </Calendar.YearPickerGridBody>
+              </Calendar.YearPickerGrid>
+            </Calendar>
+          </DatePicker.Popover>
+        </DatePicker>
         <TextField
           isRequired
           isInvalid={submitted && !!descriptionError}
@@ -339,6 +403,7 @@ export default function ExpenseEditorDrawer({
           ) : null}
           <Button
             variant="danger-soft"
+            className="w-full"
             isDisabled={busy}
             onPress={() =>
               confirmDelete ? void destroy() : setConfirmDelete(true)

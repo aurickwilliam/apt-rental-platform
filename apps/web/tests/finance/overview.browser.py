@@ -22,6 +22,14 @@ def fixture_navigate(page, url):
     )
 
 
+def set_date(page, scope, iso):
+    """Types an ISO date into the HeroUI date field's month, day and year
+    segments (en-US order); typing advances through the segments."""
+    year, month, day = iso.split("-")
+    scope.get_by_role("spinbutton", name=re.compile(r"^month")).click()
+    page.keyboard.type(month + day + year)
+
+
 def property_trigger_for(page):
     return page.get_by_role("button", name=re.compile(r"Property$"))
 
@@ -51,7 +59,7 @@ with sync_playwright() as playwright:
     page.goto(BASE + "/?notifications=open&settings=security")
     page.wait_for_load_state("networkidle")
     page.screenshot(path=str(OUT / "overview-desktop.png"), full_page=True)
-    expect(page.get_by_role("heading", name="Profit & planning", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="Profit & Planning", exact=True)).to_be_visible()
     expect(page.get_by_role("heading", name="Collected rent", exact=True)).to_be_visible()
     expect(page.get_by_role("button", name="Review budgets over their limits")).to_be_visible()
     summary = page.get_by_role("region", name="Earnings summary")
@@ -75,13 +83,20 @@ with sync_playwright() as playwright:
     expect(page.get_by_text("₱ 70,000", exact=True)).to_be_visible()
     # Cash receipts deliberately differ from billing-period collections.
     page.get_by_role("button", name="View breakdown & calculation").click()
-    page.get_by_role("button", name="How these figures are calculated").click()
+    breakdown = page.get_by_role("dialog", name="Breakdown & calculation")
+    expect(breakdown).to_contain_text("Recorded operating expenses")
+    expect(breakdown).to_contain_text("Planned reserves (not spent)")
+    expect(summary).not_to_contain_text("Recorded operating expenses")
+    breakdown.get_by_role("link", name="How these figures are calculated").click()
     guidelines = page.get_by_role("dialog", name="Profit & planning guidelines")
     expect(guidelines).to_contain_text("test funds")
     expect(guidelines).to_contain_text("not tax, accounting, legal or investment advice")
-    guidelines.get_by_role("button", name="Got it").click()
-    expect(page.get_by_role("button", name="How these figures are calculated")).to_be_focused()
-    page.get_by_role("button", name="Hide breakdown").click()
+    guidelines.get_by_role("button", name="Close profit & planning guidelines").click()
+    expect(page.get_by_role("dialog")).to_have_count(0)
+    # The breakdown closes from its X, returning focus to its button.
+    page.get_by_role("button", name="View breakdown & calculation").click()
+    page.get_by_role("button", name="Close breakdown & calculation").click()
+    expect(page.get_by_role("button", name="View breakdown & calculation")).to_be_focused()
 
     def property_trigger():
         # The select's accessible name is its value followed by its label.
@@ -102,7 +117,7 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="Guidelines", exact=True).click()
     header_guidelines = page.get_by_role("dialog", name="Profit & planning guidelines")
     expect(header_guidelines).to_be_visible()
-    header_guidelines.get_by_role("button", name="Got it").click()
+    header_guidelines.get_by_role("button", name="Close profit & planning guidelines").click()
     expect(page.get_by_role("button", name="Guidelines", exact=True)).to_be_focused()
 
     # Scope controls apply at once and live in the URL, beside other params.
@@ -145,10 +160,26 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("button", name="Toggle expenses")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_role("button", name="Toggle net", exact=True)).to_be_disabled()
     page.get_by_role("button", name="3M", exact=True).click()
-    month = page.get_by_role("button", name="Inspect August 2026")
-    month.focus()
-    page.keyboard.press("Enter")
-    expect(page.get_by_role("region", name="Selected month details")).to_contain_text("August 2026")
+    # The chart is the month picker: arrow keys move the selection, a click on
+    # a bar selects that month, and the month row below the chart is gone.
+    expect(page.get_by_role("button", name="Inspect August 2026")).to_have_count(0)
+    chart = page.get_by_role("group", name="Income chart", exact=False)
+    expect(chart).to_have_css("cursor", "pointer")
+    chart.focus()
+    page.keyboard.press("ArrowLeft")
+    page.keyboard.press("ArrowLeft")
+    details = page.get_by_role("region", name="Selected month details")
+    expect(details).to_contain_text("August 2026")
+    page.keyboard.press("End")
+    expect(details).to_contain_text("October 2026")
+    box_ = chart.bounding_box()
+    page.mouse.click(box_["x"] + box_["width"] * 0.55, box_["y"] + box_["height"] * 0.5)
+    expect(details).not_to_contain_text("October 2026")
+    page.keyboard.press("Home")
+    page.keyboard.press("ArrowRight")
+    expect(details).to_contain_text("September 2026")
+    page.keyboard.press("ArrowLeft")
+    expect(details).to_contain_text("August 2026")
     page.get_by_role("button", name="View expenses for this month").click()
     assert "month=2026-08" in page.url and "tab=expenses" in page.url
     page.get_by_role("tab", name="Overview", exact=True).click()
@@ -301,8 +332,26 @@ with sync_playwright() as playwright:
     assert "category=maintenance" in page.url and "month=2026-10" in page.url
     assert "/landlord/analytics/category-expenses" in page.url
     expect(page.get_by_role("heading", name="Maintenance & repairs", exact=True)).to_be_visible()
-    expect(page.get_by_role("heading", name="All properties", exact=True)).to_be_visible()
-    expect(page.get_by_text("October 2026", exact=True)).to_be_visible()
+    expect(property_trigger()).to_contain_text("All properties")
+    expect(month_trigger()).to_have_attribute("aria-label", "Report month: October 2026")
+    # The page is a table beside category summary cards, not stacked cards.
+    expect(page.get_by_role("grid", name="Expense transactions")).to_be_visible()
+    total = page.get_by_role("region", name="Category total")
+    expect(total).to_contain_text("₱ 14,500")
+    expect(total).to_contain_text("Previous comparable period")
+    expect(page.get_by_role("heading", name="Other categories")).to_have_count(0)
+    page.evaluate("financeTest.extraCategory = true")
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    others = page.get_by_role("heading", name="Other categories").locator("xpath=ancestor::*[contains(@class,'finance-card')][1]")
+    expect(others).to_contain_text("Turnover & refurbishment")
+    expect(others).to_contain_text("₱ 3,000")
+    others.get_by_role("link", name="Turnover & refurbishment", exact=False).click()
+    assert "category=turnover" in page.url
+    expect(page.get_by_role("heading", name="Turnover & refurbishment", exact=True)).to_be_visible()
+    page.evaluate("financeTest.extraCategory = false")
+    page.go_back()
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    expect(page.get_by_role("heading", name="Other categories")).to_have_count(0)
     # Keyset pages: seeded page size is 2, so Load more trails the cursor.
     expect(page.get_by_text("Turnover repaint", exact=True)).to_be_visible()
     expect(page.get_by_text("Repaint gate", exact=True)).to_be_visible()
@@ -313,7 +362,7 @@ with sync_playwright() as playwright:
     expect(page.get_by_text("Bayview · Operating").first).to_be_visible()
 
     # Editor validation keeps the draft; save refreshes the visible list.
-    page.get_by_role("button", name="Edit Kitchen sink repair, ₱ 2,500, paid 2026-10-05").click()
+    page.get_by_role("row", name="Kitchen sink repair", exact=False).click()
     editor = page.get_by_role("dialog", name="Edit expense", exact=True)
     expect(editor.get_by_role("button", name="Property")).to_be_disabled()
     editor.get_by_label("Amount (₱)", exact=False).fill("0")
@@ -347,7 +396,7 @@ with sync_playwright() as playwright:
 
     # Two-step delete reopens the reviewed month: income goes back to Not
     # calculated and the review action reappears after deletion.
-    page.get_by_role("button", name="Edit Kitchen sink repair, ₱ 2,650, paid 2026-10-05").click()
+    page.get_by_role("row", name="Kitchen sink repair", exact=False).click()
     editor = page.get_by_role("dialog", name="Edit expense", exact=True)
     editor.get_by_role("button", name="Delete expense", exact=True).click()
     expect(editor.get_by_text("Delete this expense?")).to_be_visible()
@@ -368,7 +417,11 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="Add expense", exact=True).click()
     editor = page.get_by_role("dialog", name="Add expense", exact=True)
     editor.get_by_label("Amount (₱)", exact=False).fill("2,750")
-    editor.get_by_label("Date paid", exact=False).fill("2026-10-19")
+    # The calendar popover picks a day into the field; the field stays typeable.
+    editor.get_by_role("button", name="Calendar").click()
+    page.get_by_role("gridcell").filter(has_text=re.compile(r"^14$")).first.click()
+    expect(editor.get_by_role("spinbutton", name=re.compile(r"^day"))).to_have_text("14")
+    set_date(page, editor, "2026-10-19")
     editor.get_by_role("button", name="Save expense", exact=True).click()
     expect(editor.get_by_text("Describe this expense.")).to_be_visible()
     editor.get_by_placeholder("e.g. Kitchen sink repair").fill("Plumbing permit")
@@ -379,9 +432,9 @@ with sync_playwright() as playwright:
     page.get_by_role("tab", name="Expenses", exact=True).click()
     page.get_by_role("button", name="Maintenance & repairs, ₱ 14,500, 100 percent").first.click()
     expect(page.get_by_text("Plumbing permit", exact=True)).to_be_visible()
-    page.get_by_role("button", name="Edit Plumbing permit, ₱ 2,750, paid 2026-10-19").click()
+    page.get_by_role("row", name="Plumbing permit", exact=False).click()
     editor = page.get_by_role("dialog", name="Edit expense", exact=True)
-    editor.get_by_label("Date paid", exact=False).fill("2026-09-28")
+    set_date(page, editor, "2026-09-28")
     editor.get_by_role("button", name="Save expense", exact=True).click()
     expect(editor).to_have_count(0)
     assert page.evaluate("financeTest.writes.at(-1).spent_on") == "2026-09-28"
@@ -399,7 +452,7 @@ with sync_playwright() as playwright:
     # List failure can retry while shown rows keep their place; the trail
     # exhausts when the keyset page is complete.
     page.evaluate("financeTest.expenseFail = true")
-    page.get_by_role("button", name="Refresh expenses", exact=True).click()
+    page.get_by_role("button", name="Refresh", exact=True).click()
     expect(page.get_by_role("button", name="Retry", exact=True)).to_be_visible()
     expect(page.get_by_text("September tiling", exact=True)).to_be_visible()
     page.evaluate("financeTest.expenseFail = false")
@@ -637,7 +690,7 @@ with sync_playwright() as playwright:
             ).to_be_visible()
             # Wait for the rows, so the capture shows the loaded surface.
             expect(page.get_by_text("Turnover repaint", exact=True)).to_be_visible()
-            page.get_by_role("button", name="Refresh expenses", exact=True).click()
+            page.get_by_role("button", name="Refresh", exact=True).click()
             page.screenshot(path=str(OUT / f"expense-drilldown-{width}-{theme}.png"), full_page=True, animations="disabled")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow on the expense drill-down at {width}"
             fixture_navigate(page, "/landlord/analytics/budget-category?month=2026-10&category=maintenance&kind=expense")
@@ -660,7 +713,7 @@ with sync_playwright() as playwright:
             plan_editor.get_by_role("button", name="Cancel", exact=True).click()
             # The expense editor opens from a transaction row.
             fixture_navigate(page, "/landlord/analytics/category-expenses?month=2026-10&category=maintenance")
-            page.get_by_role("button", name="Edit Turnover repaint", exact=False).first.click()
+            page.get_by_role("row", name="Turnover repaint", exact=False).first.click()
             expense_editor = page.get_by_role("dialog", name="Edit expense", exact=True)
             expect(expense_editor).to_be_visible()
             wait_for_modal(page)

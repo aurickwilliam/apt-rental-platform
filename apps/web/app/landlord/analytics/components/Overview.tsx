@@ -15,7 +15,7 @@ import PropertyPerformance from "./PropertyPerformance";
 const IncomeTrends = dynamic(() => import("./IncomeTrends"), {
   loading: () => (
     <div
-      className="h-96 animate-pulse rounded-xl bg-muted motion-reduce:animate-none"
+      className="h-96 animate-pulse rounded-3xl bg-muted motion-reduce:animate-none"
       aria-label="Loading income trends"
     />
   ),
@@ -88,7 +88,7 @@ export function OverviewAside({
             />
           </>
         )}
-        <Button variant="secondary" onPress={onBudgets}>
+        <Button variant="secondary" className="w-full" onPress={onBudgets}>
           View budgets & suggestions
         </Button>
       </FinanceCard>

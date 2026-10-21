@@ -124,6 +124,8 @@ const state = (window.financeTest = {
   noBillable: false,
   noPlans: false,
   noExpenses: false,
+  /** Adds a second spending category to the report's category rows. */
+  extraCategory: false,
   pendingReads: 0,
   writes: [],
   reads: [],
@@ -210,6 +212,11 @@ export async function fetchFinances(scope) {
   if (state.noBillable) report.collections = Object.fromEntries(Object.keys(report.collections).map((key) => [key, 0]));
   if (state.noPlans) report.budgets = [];
   if (state.noExpenses) report.categories = [];
+  if (state.extraCategory)
+    report.categories = [
+      ...report.categories,
+      { category: "turnover", amount: 3000, previous_amount: 2000 },
+    ];
   return report;
 }
 export async function fetchRentLedger(scope, status, after) {

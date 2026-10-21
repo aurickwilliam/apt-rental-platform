@@ -13,7 +13,7 @@ export default function ExpenseTransactionRow({
   onPress: () => void;
 }) {
   return (
-    <View className="bg-surface rounded-2xl border border-border p-3">
+    <View className="bg-surface rounded-3xl border border-border p-4">
       <Button
         variant="ghost"
         className="h-auto min-h-14 py-2"

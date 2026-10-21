@@ -28,15 +28,9 @@ interface ExpensesMainProps {
   onCategoryChange: (category: FinanceCategory | null) => void;
   onEdit: (expense: ExpenseRecord) => void;
   onExport: () => void;
-  onReview: () => Promise<boolean>;
-  reviewing: FinanceOperation;
 }
 
-/**
- * Left column of the Expenses tab: the review card with its confirm dialog,
- * then the month's transactions. The category bars sit in the right column
- * and still open the category drill-down.
- */
+/** Left column of the Expenses tab: the month's transactions. */
 export function ExpensesMain({
   data,
   scope,
@@ -45,9 +39,36 @@ export function ExpensesMain({
   onCategoryChange,
   onEdit,
   onExport,
+}: ExpensesMainProps) {
+  return (
+    <ExpenseTransactionsTable
+      scope={scope}
+      properties={data.properties}
+      expenses={expenses}
+      category={category}
+      onCategoryChange={onCategoryChange}
+      onEdit={onEdit}
+      onExport={onExport}
+    />
+  );
+}
+
+/**
+ * The review card with its confirm dialog. It takes Needs attention's place at
+ * the top of the right column on the Expenses tab, where reviewing is the
+ * action that matters.
+ */
+export function ExpensesReview({
+  data,
+  scope,
   onReview,
   reviewing,
-}: ExpensesMainProps) {
+}: {
+  data: FinanceData;
+  scope: FinanceScope;
+  onReview: () => Promise<boolean>;
+  reviewing: FinanceOperation;
+}) {
   const [confirming, setConfirming] = useState(false);
   const active = data.months.at(-1)!;
   return (
@@ -62,6 +83,7 @@ export function ExpensesMain({
       >
         {!active.reviewed ? (
           <Button
+            className="w-full"
             onPress={() => {
               reviewing.clearError();
               setConfirming(true);
@@ -71,15 +93,6 @@ export function ExpensesMain({
           </Button>
         ) : null}
       </FinanceCard>
-      <ExpenseTransactionsTable
-        scope={scope}
-        properties={data.properties}
-        expenses={expenses}
-        category={category}
-        onCategoryChange={onCategoryChange}
-        onEdit={onEdit}
-        onExport={onExport}
-      />
       {confirming ? (
         <FinanceModal
           title="Confirm expenses are complete"
@@ -90,12 +103,14 @@ export function ExpensesMain({
             <div className="flex gap-3">
               <Button
                 variant="tertiary"
+                className="flex-1"
                 isDisabled={reviewing.pending}
                 onPress={() => setConfirming(false)}
               >
                 Keep reviewing
               </Button>
               <Button
+                className="flex-1"
                 isPending={reviewing.pending}
                 isDisabled={reviewing.pending}
                 onPress={async () => {
@@ -128,7 +143,7 @@ export function ExpensesMain({
   );
 }
 
-/** Right column of the Expenses tab, under Needs attention. */
+/** Right column of the Expenses tab, under the review card. */
 export function ExpensesAside({
   data,
   onSelectCategory,

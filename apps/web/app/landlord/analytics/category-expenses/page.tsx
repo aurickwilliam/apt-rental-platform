@@ -27,11 +27,14 @@ export default async function CategoryExpensesPage({
 }: CategoryExpensesPageProps) {
   await requireLandlordFinanceViewer();
   const params = await searchParams;
+  const currentMonth = manilaToday().slice(0, 7);
   const parsed = parseFinanceCategoryParams<FinanceCategory>(
     params,
-    manilaToday().slice(0, 7),
+    currentMonth,
     financeMonthFromParam,
     FINANCE_CATEGORIES.map((item) => item.id),
   );
-  return <CategoryExpensesClient params={parsed} />;
+  return (
+    <CategoryExpensesClient params={parsed} currentMonth={currentMonth} />
+  );
 }

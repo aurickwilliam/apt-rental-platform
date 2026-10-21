@@ -45,6 +45,7 @@ function FixtureApp() {
           financeMonthFromParam,
           FINANCE_CATEGORIES.map((item) => item.id),
         )}
+        currentMonth={currentMonth}
       />
     );
   }

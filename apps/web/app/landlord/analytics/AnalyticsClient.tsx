@@ -35,7 +35,11 @@ import AnalyticsSkeleton from "./components/AnalyticsSkeleton";
 import { BudgetAside, BudgetMain } from "./components/BudgetTab";
 import EarningsSummary from "./components/EarningsSummary";
 import ExpenseEditorDrawer from "./components/ExpenseEditorDrawer";
-import { ExpensesAside, ExpensesMain } from "./components/ExpensesTab";
+import {
+  ExpensesAside,
+  ExpensesMain,
+  ExpensesReview,
+} from "./components/ExpensesTab";
 import FinanceGuidelinesModal from "./components/FinanceGuidelinesModal";
 import CollectionLedgerModal from "./components/CollectionLedgerModal";
 import NeedsAttention from "./components/NeedsAttention";
@@ -177,7 +181,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <IconChartBar size={28} aria-hidden />
           </span>
-          Profit &amp; planning
+          Profit &amp; Planning
         </h1>
         <div className="flex flex-wrap gap-2" data-fab-clearance>
           <Button
@@ -329,8 +333,6 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                       onCategoryChange={setExpenseCategory}
                       onEdit={openExpenseEdit}
                       onExport={exportExpenses}
-                      onReview={finance.reviewExpenses}
-                      reviewing={finance.reviewing}
                     />
                   ) : null}
                   {applied.tab === "budget" ? (
@@ -360,20 +362,29 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               </div>
               <div className="max-lg:contents flex min-w-0 flex-col gap-4">
                 <div className="order-1 min-w-0">
-                  <NeedsAttention
-                    data={data}
-                    month={applied.month}
-                    onCollection={(status) =>
-                      setOverlay({
-                        kind: "collections",
-                        status,
-                        scope: scopeKey,
-                      })
-                    }
-                    onExpenses={() => goToExpenses()}
-                    onBudgets={() => navigate({ tab: "budget" })}
-                    onReserve={() => open("reserve")}
-                  />
+                  {applied.tab === "expenses" ? (
+                    <ExpensesReview
+                      data={data}
+                      scope={scope}
+                      onReview={finance.reviewExpenses}
+                      reviewing={finance.reviewing}
+                    />
+                  ) : (
+                    <NeedsAttention
+                      data={data}
+                      month={applied.month}
+                      onCollection={(status) =>
+                        setOverlay({
+                          kind: "collections",
+                          status,
+                          scope: scopeKey,
+                        })
+                      }
+                      onExpenses={() => goToExpenses()}
+                      onBudgets={() => navigate({ tab: "budget" })}
+                      onReserve={() => open("reserve")}
+                    />
+                  )}
                 </div>
                 <div className="order-4 flex min-w-0 flex-col gap-4">
                   {applied.tab === "overview" ? (

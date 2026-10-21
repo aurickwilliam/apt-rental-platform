@@ -36,6 +36,8 @@ interface ExpenseTransactionsTableProps {
   onCategoryChange: (category: FinanceCategory | null) => void;
   onEdit: (expense: ExpenseRecord) => void;
   onExport: () => void;
+  /** The category page fixes the category, so it hides the filter and column. */
+  showCategoryFilter?: boolean;
 }
 
 /**
@@ -51,6 +53,7 @@ export default function ExpenseTransactionsTable({
   onCategoryChange,
   onEdit,
   onExport,
+  showCategoryFilter = true,
 }: ExpenseTransactionsTableProps) {
   const { rows } = expenses;
   const property = scope.apartmentId
@@ -64,17 +67,19 @@ export default function ExpenseTransactionsTable({
       description={`Expenses paid in ${financeMonthLabel(scope.month)}${property ? ` for ${property.name}` : ""}. Select a row to edit it.`}
       action={
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <SettingsSelect
-            label="Category"
-            className="w-48"
-            value={category ?? ALL_CATEGORIES}
-            options={CATEGORY_OPTIONS}
-            onChange={(value) =>
-              onCategoryChange(
-                value === ALL_CATEGORIES ? null : (value as FinanceCategory),
-              )
-            }
-          />
+          {showCategoryFilter ? (
+            <SettingsSelect
+              label="Category"
+              className="w-48"
+              value={category ?? ALL_CATEGORIES}
+              options={CATEGORY_OPTIONS}
+              onChange={(value) =>
+                onCategoryChange(
+                  value === ALL_CATEGORIES ? null : (value as FinanceCategory),
+                )
+              }
+            />
+          ) : null}
           <Button
             variant="outline"
             size="sm"
@@ -103,7 +108,9 @@ export default function ExpenseTransactionsTable({
                   <Table.Column id="description" isRowHeader>
                     Description
                   </Table.Column>
-                  <Table.Column id="category">Category</Table.Column>
+                  {showCategoryFilter ? (
+                    <Table.Column id="category">Category</Table.Column>
+                  ) : null}
                   <Table.Column id="amount" className="text-right">
                     Amount
                   </Table.Column>
@@ -132,11 +139,13 @@ export default function ExpenseTransactionsTable({
                             : "Operating"}
                         </p>
                       </Table.Cell>
-                      <Table.Cell>
-                        <Chip size="sm">
-                          {financeCategoryLabel(expense.category)}
-                        </Chip>
-                      </Table.Cell>
+                      {showCategoryFilter ? (
+                        <Table.Cell>
+                          <Chip size="sm">
+                            {financeCategoryLabel(expense.category)}
+                          </Chip>
+                        </Table.Cell>
+                      ) : null}
                       <Table.Cell className="text-right text-sm font-semibold tabular-nums">
                         {financeMoney(expense.amount)}
                       </Table.Cell>
@@ -162,7 +171,9 @@ export default function ExpenseTransactionsTable({
               aria-hidden
             />
             <h3 className="font-nunito font-bold">
-              {category ? "No expenses in this category" : "No expenses recorded"}
+              {category
+                ? "No expenses in this category"
+                : "No expenses recorded"}
             </h3>
             <p className="text-sm text-muted-foreground">
               Nothing recorded in {financeMonthLabel(scope.month)}

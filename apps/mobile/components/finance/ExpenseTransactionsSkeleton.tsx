@@ -4,7 +4,7 @@ import FinanceLoadingState from "./FinanceLoadingState";
 import FinanceHeadingSkeleton from "./FinanceHeadingSkeleton";
 import MoneyRowSkeleton from "./MoneyRowSkeleton";
 
-/** Category expenses drill-down: heading and transaction cards. */
+/** Category expenses drill-down: heading, total card and transaction cards. */
 export default function ExpenseTransactionsSkeleton() {
   return (
     <FinanceLoadingState label="Loading expenses">
@@ -14,10 +14,14 @@ export default function ExpenseTransactionsSkeleton() {
         testID="expense-transactions-skeleton"
       >
         <FinanceHeadingSkeleton testID="expense-transactions-skeleton-heading" />
+        <SkeletonGroup.Item
+          testID="expense-transactions-skeleton-total"
+          className="h-36 w-full rounded-3xl"
+        />
         {[0, 1, 2, 3, 4].map((row) => (
           <View
             key={row}
-            className="bg-surface border border-border rounded-2xl p-3 gap-2"
+            className="bg-surface border border-border rounded-3xl p-4 gap-2"
           >
             <MoneyRowSkeleton />
             <SkeletonGroup.Item className="h-3 w-2/3 rounded-md" />

@@ -27,7 +27,7 @@ export default function ExpenseCategoryBars({
   const max = Math.max(1, ...rows.map((row) => row.amount ?? 0));
   return (
     <section
-      className="space-y-4 rounded-xl border border-border bg-card p-4"
+      className="space-y-3 rounded-3xl border border-border bg-card p-4"
       aria-label="Where expenses go"
     >
       <div>
@@ -56,7 +56,8 @@ export default function ExpenseCategoryBars({
         return (
           <Button
             key={row.category}
-            className="finance-property"
+            className="finance-category-row"
+            data-finance-category={row.category}
             variant="ghost"
             aria-label={`${financeCategoryLabel(row.category)}, ${formatPesoDisplay(amount)}, ${percentage.toFixed(0)} percent, previous period ${formatPesoDisplay(row.previous_amount)}. Opens this category's transactions.`}
             onPress={() => onSelect(row.category)}
@@ -71,7 +72,7 @@ export default function ExpenseCategoryBars({
                 </span>
               </div>
               <div
-                className="h-2 overflow-hidden rounded-full bg-muted"
+                className="h-2 overflow-hidden rounded-full bg-background/70"
                 aria-hidden
               >
                 <div

@@ -1,22 +1,22 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** List-shaped placeholder for the category drill-down while its rows load. */
+/** Two-column placeholder for the category page while its report loads. */
 export default function CategoryExpensesSkeleton() {
   return (
-    <div className="space-y-3" aria-hidden="true">
-      {[0, 1, 2, 3].map((row) => (
-        <div
-          key={row}
-          className="rounded-2xl border border-border bg-card p-3"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <Skeleton className="h-5 w-2/3" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-          <Skeleton className="mt-2 h-4 w-40" />
-          <Skeleton className="mt-1 h-4 w-52" />
-        </div>
-      ))}
+    <div
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]"
+      aria-hidden="true"
+    >
+      <div className="space-y-3 rounded-3xl border border-border p-4">
+        <Skeleton className="h-6 w-40 bg-muted" />
+        {[0, 1, 2, 3].map((row) => (
+          <Skeleton key={row} className="h-12 w-full rounded-lg bg-muted" />
+        ))}
+      </div>
+      <div className="space-y-4">
+        <Skeleton className="h-40 rounded-3xl bg-muted" />
+        <Skeleton className="h-40 rounded-3xl bg-muted" />
+      </div>
     </div>
   );
 }

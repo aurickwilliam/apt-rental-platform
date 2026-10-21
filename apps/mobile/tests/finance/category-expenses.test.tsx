@@ -12,10 +12,10 @@ const mockParams: {
 const mockCanGoBack = jest.fn(() => true);
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockRetry = jest.fn();
 const mockFetchNextPage = jest.fn();
 const mockExpensesRefetch = jest.fn();
-const mockExpenseSheet = jest.fn((_props: unknown) => null);
 const mockFinanceError = jest.fn(
   (_props: { message?: string; onRetry: () => void }) => null,
 );
@@ -57,7 +57,13 @@ const mockFinance = {
   userLoading: false,
   userError: undefined as Error | undefined,
   report: {
-    data: { properties: [{ id: "villa", name: "Villa" }] },
+    data: {
+      properties: [{ id: "villa", name: "Villa" }],
+      categories: [
+        { category: "maintenance", amount: 600, previous_amount: 400 },
+        { category: "utilities", amount: 400, previous_amount: 0 },
+      ],
+    },
     isLoading: false,
     error: undefined as Error | undefined,
   },
@@ -74,6 +80,7 @@ jest.mock("expo-router", () => ({
     canGoBack: mockCanGoBack,
     back: mockBack,
     replace: mockReplace,
+    push: mockPush,
   }),
 }));
 jest.mock("@/hooks/auth", () => ({
@@ -146,8 +153,14 @@ jest.mock("@/components/finance/ExpenseTransactionsSkeleton", () => {
     default: () => <NativeView testID="finance-skeleton" />,
   };
 });
+jest.mock("@/components/finance/ExpenseRowsSkeleton", () => {
+  const { View: NativeView } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: () => <NativeView testID="expense-rows-skeleton" />,
+  };
+});
 jest.mock("@/components/finance/FinanceError", () => (props: { message?: string; onRetry: () => void }) => mockFinanceError(props));
-jest.mock("@/components/finance/ExpenseEntrySheet", () => (props: unknown) => mockExpenseSheet(props));
 
 describe("Category expenses route", () => {
   beforeEach(() => {
@@ -220,6 +233,28 @@ describe("Category expenses route", () => {
     );
   });
 
+  test("shows the category total from the report, not the loaded rows", () => {
+    const screen = render(<CategoryExpensesScreen />);
+    expect(screen.getByTestId("category-total-card")).toBeTruthy();
+    expect(screen.getByText("Total this month")).toBeTruthy();
+    expect(screen.getByText("₱ 600")).toBeTruthy();
+    expect(screen.getByText("60% of recorded spending")).toBeTruthy();
+    expect(screen.getByText("₱ 400")).toBeTruthy();
+  });
+
+  test("an unknown category has no total card", () => {
+    mockParams.category = "junk";
+    const screen = render(<CategoryExpensesScreen />);
+    expect(screen.queryByTestId("category-total-card")).toBeNull();
+  });
+
+  test("shows skeleton rows while only the list loads", () => {
+    mockExpenses.isLoading = true;
+    mockExpenses.data = { pages: [] };
+    const screen = render(<CategoryExpensesScreen />);
+    expect(screen.getByTestId("expense-rows-skeleton")).toBeTruthy();
+  });
+
   test("shows the loading skeleton while the report loads", () => {
     mockFinance.report.isLoading = true;
     const screen = render(<CategoryExpensesScreen />);
@@ -261,16 +296,14 @@ describe("Category expenses route", () => {
     expect(mockReplace).toHaveBeenCalledWith("/landlord/analytics");
   });
 
-  test("pressing a transaction opens its edit sheet", () => {
+  test("pressing a transaction opens its edit page with only ids in the route", () => {
     const screen = render(<CategoryExpensesScreen />);
-    expect(mockExpenseSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: false }),
-    );
     fireEvent.press(
       screen.getByLabelText("Edit Repaint, ₱ 3,000, paid 2026-09-10"),
     );
-    expect(mockExpenseSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({ isOpen: true, initial: expense }),
-    );
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/landlord/edit-expense",
+      params: { id: expense.id, month: "2026-09", apartmentId: "villa" },
+    });
   });
 });

@@ -313,6 +313,7 @@ export default function PlanBudgetDrawer({
           ) : null}
           <Button
             variant="danger-soft"
+            className="w-full"
             isDisabled={busy}
             onPress={() =>
               confirmRemove ? void remove() : setConfirmRemove(true)

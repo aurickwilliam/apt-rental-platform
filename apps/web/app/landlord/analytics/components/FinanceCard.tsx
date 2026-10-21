@@ -7,6 +7,8 @@ interface FinanceCardProps {
   children: ReactNode;
   action?: ReactNode;
   className?: string;
+  /** Overrides the default vertical rhythm of the card body. */
+  contentClassName?: string;
 }
 
 export default function FinanceCard({
@@ -15,6 +17,7 @@ export default function FinanceCard({
   children,
   action,
   className = "",
+  contentClassName = "space-y-4",
 }: FinanceCardProps) {
   return (
     <Card className={`finance-card ${className}`}>
@@ -31,7 +34,7 @@ export default function FinanceCard({
         </div>
         {action}
       </Card.Header>
-      <Card.Content className="space-y-4">{children}</Card.Content>
+      <Card.Content className={contentClassName}>{children}</Card.Content>
     </Card>
   );
 }

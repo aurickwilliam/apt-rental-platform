@@ -13,7 +13,7 @@
   padding: 1rem;
   gap: 1rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-3xl);
   background: var(--card);
   color: var(--foreground);
   box-shadow: none;
@@ -69,6 +69,56 @@
   height: 1.25rem;
   stroke-width: 2;
 }
+/* The selected range keeps the outline button's border; only its fill changes. */
+.finance-report .finance-range-selected,
+.finance-report .finance-range-selected[data-hovered] {
+  background: color-mix(in srgb, var(--primary) 10%, var(--background));
+  color: var(--primary);
+}
+/* Soft category fills, the same palette as mobile's budget rows (DESIGN.md §11).
+   They identify categories only, never financial status. */
+.finance-report { --finance-fill-maintenance: #EDF3FF; --finance-fill-furniture: #F3EEFF; --finance-fill-turnover: #FFF0E6; --finance-fill-insurance: #E8F5F3; --finance-fill-taxes: #F7F1E5; --finance-fill-utilities: #EAF6FC; --finance-fill-fees: #F6EDF5; --finance-fill-emergency: #EAF5EC; --finance-fill-vacancy: #FFF5DF; --finance-fill-other: #F0F2F5; }
+.dark .finance-report { --finance-fill-maintenance: #1B2538; --finance-fill-furniture: #282238; --finance-fill-turnover: #30251F; --finance-fill-insurance: #192C2A; --finance-fill-taxes: #2B271E; --finance-fill-utilities: #1B2932; --finance-fill-fees: #302330; --finance-fill-emergency: #1D2B21; --finance-fill-vacancy: #30291B; --finance-fill-other: #25282D; }
+.finance-report [data-finance-category="maintenance"] { --finance-row-fill: var(--finance-fill-maintenance); }
+.finance-report [data-finance-category="furniture"] { --finance-row-fill: var(--finance-fill-furniture); }
+.finance-report [data-finance-category="turnover"] { --finance-row-fill: var(--finance-fill-turnover); }
+.finance-report [data-finance-category="insurance"] { --finance-row-fill: var(--finance-fill-insurance); }
+.finance-report [data-finance-category="taxes"] { --finance-row-fill: var(--finance-fill-taxes); }
+.finance-report [data-finance-category="utilities"] { --finance-row-fill: var(--finance-fill-utilities); }
+.finance-report [data-finance-category="fees"] { --finance-row-fill: var(--finance-fill-fees); }
+.finance-report [data-finance-category="emergency"] { --finance-row-fill: var(--finance-fill-emergency); }
+.finance-report [data-finance-category="vacancy"] { --finance-row-fill: var(--finance-fill-vacancy); }
+.finance-report [data-finance-category="other"] { --finance-row-fill: var(--finance-fill-other); }
+.finance-report .finance-category-row {
+  width: 100%;
+  height: auto;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--finance-row-fill, var(--card));
+  white-space: normal;
+}
+.finance-report .finance-category-row:hover,
+.finance-report .finance-category-row[data-hovered] { background: var(--finance-row-fill, var(--card)); filter: brightness(0.97); }
+/* The saturated category colors, for solid surfaces with white text. */
+.finance-report { --finance-solid-maintenance: #376BF5; --finance-solid-furniture: #7C3AED; --finance-solid-turnover: #C2410C; --finance-solid-insurance: #0F766E; --finance-solid-taxes: #92400E; --finance-solid-utilities: #0369A1; --finance-solid-fees: #A21CAF; --finance-solid-emergency: #15803D; --finance-solid-vacancy: #B45309; --finance-solid-other: #4B5563; }
+.finance-report [data-finance-category="maintenance"] { --finance-row-solid: var(--finance-solid-maintenance); }
+.finance-report [data-finance-category="furniture"] { --finance-row-solid: var(--finance-solid-furniture); }
+.finance-report [data-finance-category="turnover"] { --finance-row-solid: var(--finance-solid-turnover); }
+.finance-report [data-finance-category="insurance"] { --finance-row-solid: var(--finance-solid-insurance); }
+.finance-report [data-finance-category="taxes"] { --finance-row-solid: var(--finance-solid-taxes); }
+.finance-report [data-finance-category="utilities"] { --finance-row-solid: var(--finance-solid-utilities); }
+.finance-report [data-finance-category="fees"] { --finance-row-solid: var(--finance-solid-fees); }
+.finance-report [data-finance-category="emergency"] { --finance-row-solid: var(--finance-solid-emergency); }
+.finance-report [data-finance-category="vacancy"] { --finance-row-solid: var(--finance-solid-vacancy); }
+.finance-report [data-finance-category="other"] { --finance-row-solid: var(--finance-solid-other); }
+.finance-report .finance-category-summary {
+  padding: 1rem;
+  border-radius: var(--radius-3xl);
+  background: var(--finance-row-solid, var(--primary));
+  color: white;
+}
+.finance-report .finance-category-summary .finance-meter { --progress-bar-fill: white; }
+.finance-report .finance-category-summary .progress-bar__track { background: rgb(255 255 255 / 0.3); }
 .finance-report .finance-meter { --progress-bar-fill: var(--primary); }
 .finance-report .finance-meter.finance-meter--over { --progress-bar-fill: var(--destructive); }
 .finance-choice, .finance-property {

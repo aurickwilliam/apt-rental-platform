@@ -93,6 +93,7 @@ export default function NeedsAttention({
     <FinanceCard
       title="Needs attention"
       className="finance-attention"
+      contentClassName="space-y-2"
       action={
         items.length ? (
           <span

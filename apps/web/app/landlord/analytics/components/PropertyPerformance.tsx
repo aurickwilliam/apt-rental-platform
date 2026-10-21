@@ -64,6 +64,13 @@ export default function PropertyPerformance({
     <FinanceCard
       title="Property performance"
       description="Select a property to focus the whole report."
+      action={
+        !full && properties.length > 3 ? (
+          <Button variant="tertiary" size="sm" onPress={onViewAll}>
+            View all {properties.length} properties
+          </Button>
+        ) : null
+      }
     >
       {visible.length ? (
         <Table>
@@ -150,11 +157,6 @@ export default function PropertyPerformance({
           No property performance for this month.
         </p>
       )}
-      {!full && properties.length > 3 ? (
-        <Button variant="tertiary" size="sm" onPress={onViewAll}>
-          View all {properties.length} properties
-        </Button>
-      ) : null}
     </FinanceCard>
   );
 }

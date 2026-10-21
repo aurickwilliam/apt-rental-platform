@@ -69,6 +69,28 @@ export async function fetchExpensePage(
   return financeExpensePage(data as ExpenseRecord[] | null);
 }
 
+/** One expense by id, for the edit page; null when it is gone or not the caller's. */
+export async function fetchExpenseById(
+  ownerId: string,
+  id: string,
+): Promise<ExpenseRecord | null> {
+  const { data, error } = await supabase
+    .from("landlord_expenses")
+    .select(
+      "id,apartment_id,category,treatment,amount,spent_on,description,apartments!inner(deleted_at)",
+    )
+    .eq("id", id)
+    .eq("landlord_id", ownerId)
+    .is("apartments.deleted_at", null)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const { apartments: _apartments, ...expense } = data as ExpenseRecord & {
+    apartments: unknown;
+  };
+  return expense;
+}
+
 export async function saveExpense(
   ownerId: string,
   draft: ExpenseDraft,

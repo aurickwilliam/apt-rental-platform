@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@heroui/react";
+import { Button, ButtonGroup } from "@heroui/react";
+import {
+  IconCalendarMonth,
+  IconCalendarStats,
+  IconCalendarWeek,
+} from "@tabler/icons-react";
 import {
   Bar,
   CartesianGrid,
   ComposedChart,
   Line,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -52,21 +58,31 @@ export default function IncomeTrends({
   return (
     <FinanceCard
       title="Income trends"
-      description="Cash collected and recorded spending. Select a month to inspect its figures."
+      description="Cash collected and recorded spending. Select a month on the chart to inspect its figures."
+      action={
+        <ButtonGroup aria-label="Trend range">
+          {(
+            [
+              [3, IconCalendarWeek],
+              [6, IconCalendarMonth],
+              [12, IconCalendarStats],
+            ] as const
+          ).map(([value, Icon]) => (
+            <Button
+              size="sm"
+              key={value}
+              variant="outline"
+              className={range === value ? "finance-range-selected" : ""}
+              aria-pressed={range === value}
+              onPress={() => setRange(value)}
+            >
+              <Icon size={16} aria-hidden />
+              {value}M
+            </Button>
+          ))}
+        </ButtonGroup>
+      }
     >
-      <div className="flex flex-wrap gap-2" aria-label="Trend range">
-        {[3, 6, 12].map((value) => (
-          <Button
-            size="sm"
-            key={value}
-            variant={range === value ? "secondary" : "ghost"}
-            aria-pressed={range === value}
-            onPress={() => setRange(value)}
-          >
-            {value}M
-          </Button>
-        ))}
-      </div>
       {!hasActivity ? (
         <div className="py-8 text-center">
           <h3 className="font-nunito font-bold">No income activity yet</h3>
@@ -91,13 +107,41 @@ export default function IncomeTrends({
                 aria-label={`Toggle ${key}`}
                 aria-pressed={series[key]}
                 isDisabled={key === "net" && !allReviewed}
+                style={
+                  key === "expenses"
+                    ? { color: "var(--finance-expenses)" }
+                    : undefined
+                }
                 onPress={() => setSeries(toggleFinanceTrendSeries(series, key))}
               >
                 {label}
               </Button>
             ))}
           </div>
-          <div className="h-64 min-w-0" aria-hidden="true">
+          <div
+            role="group"
+            tabIndex={0}
+            aria-label="Income chart. Use the left and right arrow keys to choose a month."
+            className="h-64 min-w-0 cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-primary [&_.recharts-wrapper]:cursor-pointer! [&_.recharts-surface]:outline-none"
+            onKeyDown={(event) => {
+              const index = points.findIndex(
+                (point) => point.month === selected?.month,
+              );
+              const target =
+                event.key === "ArrowLeft"
+                  ? points[Math.max(0, index - 1)]
+                  : event.key === "ArrowRight"
+                    ? points[Math.min(points.length - 1, index + 1)]
+                    : event.key === "Home"
+                      ? points[0]
+                      : event.key === "End"
+                        ? points.at(-1)
+                        : undefined;
+              if (!target) return;
+              event.preventDefault();
+              setSelectedMonth(target.month);
+            }}
+          >
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <ComposedChart
                 data={chart}
@@ -134,8 +178,18 @@ export default function IncomeTrends({
                     borderColor: "var(--border)",
                     borderRadius: 10,
                     color: "var(--foreground)",
+                    fontFamily: "var(--font-nunito), ui-sans-serif, sans-serif",
                   }}
+                  labelStyle={{ fontWeight: 700 }}
                 />
+                {selected ? (
+                  <ReferenceLine
+                    x={selected.month}
+                    stroke="var(--primary)"
+                    strokeDasharray="4 4"
+                    ifOverflow="extendDomain"
+                  />
+                ) : null}
                 {series.collected ? (
                   <Bar
                     dataKey="collected"
@@ -166,22 +220,6 @@ export default function IncomeTrends({
                 ) : null}
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-2" aria-label="Select chart month">
-            {points.map((point) => (
-              <Button
-                key={point.month}
-                size="sm"
-                variant={
-                  selected?.month === point.month ? "secondary" : "ghost"
-                }
-                aria-pressed={selected?.month === point.month}
-                aria-label={`Inspect ${financeMonthLabel(point.month)}`}
-                onPress={() => setSelectedMonth(point.month)}
-              >
-                {financeMonthLabel(point.month)}
-              </Button>
-            ))}
           </div>
           {!allReviewed ? (
             <p className="text-xs text-muted-foreground">
