@@ -9030,8 +9030,8 @@
     "semantic_hash": ""
   },
   "apps/web/tests/finance/overview.browser.py": {
-    "mtime": 1792514472.2428665,
-    "ast_hash": "d1ed2d3ebfbe31e21ff17ccc8af40ab2",
+    "mtime": 1792560511.1326087,
+    "ast_hash": "e243df7f56ddf5d7ac007fdde112ad31",
     "semantic_hash": ""
   },
   "apps/web/tests/finance/README.md": {
