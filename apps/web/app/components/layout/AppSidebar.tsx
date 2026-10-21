@@ -246,6 +246,7 @@ type AppSidebarProps = {
   userRoles?: string[];
   activePortal?: "tenant" | "landlord" | "admin";
   profileHref?: string;
+  favoritesHref?: string;
   settingsHref?: string;
   settingsQueryParam?: string;
   iconSet?: "lucide" | "tabler";
@@ -276,6 +277,7 @@ export function AppSidebar({
   userAvatarUrl = null,
   showAccountLinks = true,
   profileHref: accountProfileHref,
+  favoritesHref,
   settingsHref,
   settingsQueryParam,
   iconSet = "lucide",
@@ -344,14 +346,14 @@ export function AppSidebar({
 
   const switchTargets = getSwitchTargets(activePortal, userRoles);
 
-  // Prefetch the profile route while the account menu is open so tapping
-  // Profile paints immediately instead of fetching on demand.
+  // Warm account destinations when the menu opens.
   const handleAccountMenuOpenChange = useCallback(
     (value: boolean) => {
       setAccountMenuOpen(value);
       if (value) router.prefetch(profileHref);
+      if (value && favoritesHref) router.prefetch(favoritesHref);
     },
-    [router, profileHref],
+    [router, profileHref, favoritesHref],
   );
 
   return (
@@ -510,6 +512,7 @@ export function AppSidebar({
             <Dropdown.Menu
               onAction={(key) => {
                 if (key === "profile") router.push(profileHref);
+                if (key === "favorites" && favoritesHref) router.push(favoritesHref);
                 if (key === "settings") {
                   if (settingsQueryParam) {
                     const url = new URL(window.location.href);
@@ -536,6 +539,19 @@ export function AppSidebar({
                     Profile
                   </Label>
                 </Dropdown.Item>
+                {favoritesHref ? (
+                  <Dropdown.Item
+                    id="favorites"
+                    textValue="Favorites"
+                    aria-current={isActive(pathname, favoritesHref) ? "page" : undefined}
+                    className={isActive(pathname, favoritesHref) ? "bg-primary/10 text-primary" : undefined}
+                  >
+                    <Label className={`flex items-center gap-2 ${isActive(pathname, favoritesHref) ? "font-semibold text-primary" : ""}`}>
+                      <IconHeart size={18} aria-hidden="true" />
+                      Favorites
+                    </Label>
+                  </Dropdown.Item>
+                ) : null}
                 {/* Every portal with at least one other authorized
                   destination gets the same "Switch Portal" hover submenu
                   (keyboard/touch supported via RAC). The targets already
@@ -707,6 +723,7 @@ type MobileSidebarNavigationProps = {
   activePortal?: "tenant" | "landlord" | "admin";
   // Rendered in the account group (with Settings and Dark Mode), not the page list.
   profileHref?: string;
+  favoritesHref?: string;
 };
 
 // `useSearchParams` (for the Settings row) opts a subtree into client-side
@@ -748,6 +765,7 @@ function MobileSidebarMenu({
   userRoles,
   activePortal,
   profileHref,
+  favoritesHref,
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -781,13 +799,14 @@ function MobileSidebarMenu({
     (value: boolean) => {
       setMobileMenuOpen(value);
       if (value && profileHref) router.prefetch(profileHref);
+      if (value && favoritesHref) router.prefetch(favoritesHref);
       if (value) {
         navItems.forEach(({ href, prefetchOnIntent }) => {
           if (prefetchOnIntent) router.prefetch(href);
         });
       }
     },
-    [router, profileHref, navItems],
+    [router, profileHref, favoritesHref, navItems],
   );
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 
@@ -853,6 +872,7 @@ function MobileSidebarMenu({
               const target = switchTargets.find((item) => `switch:${item.href}` === key);
               if (target) router.push(target.href);
               if (key === "profile" && profileHref) router.push(profileHref);
+              if (key === "favorites" && favoritesHref) router.push(favoritesHref);
               const navItem = navItems.find((item) => item.href === key);
               if (navItem) router.push(navItem.href);
             }}
@@ -905,6 +925,19 @@ function MobileSidebarMenu({
                       <UserRound size={18} aria-hidden="true" />
                     )}
                     Profile
+                  </Label>
+                </Dropdown.Item>
+              ) : null}
+              {favoritesHref ? (
+                <Dropdown.Item
+                  id="favorites"
+                  textValue="Favorites"
+                  aria-current={isActive(pathname, favoritesHref) ? "page" : undefined}
+                  className={isActive(pathname, favoritesHref) ? "bg-primary/10 text-primary" : undefined}
+                >
+                  <Label className={`flex items-center gap-2 ${isActive(pathname, favoritesHref) ? "font-semibold text-primary" : ""}`}>
+                    <IconHeart size={18} aria-hidden="true" />
+                    Favorites
                   </Label>
                 </Dropdown.Item>
               ) : null}
