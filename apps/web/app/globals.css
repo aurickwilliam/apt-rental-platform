@@ -99,6 +99,15 @@
 }
 .finance-report .finance-category-row:hover,
 .finance-report .finance-category-row[data-hovered] { background: var(--finance-row-fill, var(--card)); filter: brightness(0.97); }
+/* Collection health rows: soft fills matching mobile (blue, amber, soft red). */
+.finance-report { --finance-collection-collected: #EFF6FF; --finance-collection-pending: #FFF8E1; --finance-collection-overdue: #FDECEC; }
+.dark .finance-report { --finance-collection-collected: #1A2340; --finance-collection-pending: #2A2410; --finance-collection-overdue: #2D1515; }
+.finance-report .finance-collection-row { border-radius: 9999px; background: var(--finance-collection-fill); }
+.finance-report .finance-collection-row:hover,
+.finance-report .finance-collection-row[data-hovered] { background: var(--finance-collection-fill); filter: brightness(0.97); }
+.finance-report [data-finance-collection="collected"] { --finance-collection-fill: var(--finance-collection-collected); }
+.finance-report [data-finance-collection="pending"] { --finance-collection-fill: var(--finance-collection-pending); }
+.finance-report [data-finance-collection="overdue"] { --finance-collection-fill: var(--finance-collection-overdue); }
 /* The saturated category colors, for solid surfaces with white text. */
 .finance-report { --finance-solid-maintenance: #376BF5; --finance-solid-furniture: #7C3AED; --finance-solid-turnover: #C2410C; --finance-solid-insurance: #0F766E; --finance-solid-taxes: #92400E; --finance-solid-utilities: #0369A1; --finance-solid-fees: #A21CAF; --finance-solid-emergency: #15803D; --finance-solid-vacancy: #B45309; --finance-solid-other: #4B5563; }
 .finance-report [data-finance-category="maintenance"] { --finance-row-solid: var(--finance-solid-maintenance); }

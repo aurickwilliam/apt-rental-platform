@@ -40,44 +40,47 @@ export default function CollectionHealth({
     >
       {data.expected > 0 ? (
         <>
-          <FinanceMoneyRow label="Expected rent" amount={data.expected} />
-          <div className="flex h-10 overflow-hidden rounded-lg">
-            {segments
-              .filter((segment) => segment.amount > 0)
-              .map((segment) => (
+          <div className="space-y-2">
+            <FinanceMoneyRow label="Expected rent" amount={data.expected} />
+            <div className="flex h-10 overflow-hidden rounded-lg">
+              {segments
+                .filter((segment) => segment.amount > 0)
+                .map((segment) => (
+                  <Button
+                    key={segment.id}
+                    className="finance-segment"
+                    aria-label={`${segment.label} segment: ${financeMoney(segment.amount)}`}
+                    onPress={() => onSelect(segment.id)}
+                    style={{
+                      flex: segment.amount / data.expected,
+                      background: segment.color,
+                    }}
+                  />
+                ))}
+            </div>
+            <div className="space-y-2 pt-1">
+              {segments.map((segment) => (
                 <Button
                   key={segment.id}
-                  className="finance-segment"
-                  aria-label={`${segment.label} segment: ${financeMoney(segment.amount)}`}
+                  variant="ghost"
+                  className="finance-choice finance-collection-row"
+                  data-finance-collection={segment.id}
                   onPress={() => onSelect(segment.id)}
-                  style={{
-                    flex: segment.amount / data.expected,
-                    background: segment.color,
-                  }}
-                />
+                  aria-label={`View ${segment.label.toLowerCase()}, ${financeMoney(segment.amount)}`}
+                >
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ background: segment.color }}
+                    aria-hidden
+                  />
+                  <span className="flex-1 text-left">{segment.label}</span>
+                  <span className="font-nunito font-bold tabular-nums">
+                    {financeMoney(segment.amount)}
+                  </span>
+                  <IconChevronRight size={18} aria-hidden />
+                </Button>
               ))}
-          </div>
-          <div className="space-y-2">
-            {segments.map((segment) => (
-              <Button
-                key={segment.id}
-                variant="ghost"
-                className="finance-choice"
-                onPress={() => onSelect(segment.id)}
-                aria-label={`View ${segment.label.toLowerCase()}, ${financeMoney(segment.amount)}`}
-              >
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: segment.color }}
-                  aria-hidden
-                />
-                <span className="flex-1 text-left">{segment.label}</span>
-                <span className="font-nunito font-bold tabular-nums">
-                  {financeMoney(segment.amount)}
-                </span>
-                <IconChevronRight size={18} aria-hidden />
-              </Button>
-            ))}
+            </div>
           </div>
           {data.overdue > 0 ? (
             <div className="space-y-2 border-t border-border pt-3">

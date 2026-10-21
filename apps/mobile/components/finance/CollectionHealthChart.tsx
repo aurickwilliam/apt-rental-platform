@@ -40,7 +40,7 @@ export default function CollectionHealthChart({
       label: "Overdue",
       amount: data.overdue,
       color: colors.danger,
-      className: "bg-danger-light",
+      className: "bg-danger-soft",
     },
   ] as const;
   return (
