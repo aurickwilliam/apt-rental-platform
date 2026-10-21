@@ -1,6 +1,7 @@
 import {
   getCurrentRentStatus,
   nextPaymentPeriod,
+  nextUnpaidRentPeriod,
   paidAmountForPeriod,
   type RentPeriodPayment,
   type RentStatusTenancy,
@@ -50,6 +51,57 @@ describe("nextPaymentPeriod", () => {
 
   it("falls back to the default due day", () => {
     expect(nextPaymentPeriod("2026-10-01", null).dueDate).toBe("2026-11-05");
+  });
+});
+
+describe("nextUnpaidRentPeriod", () => {
+  const moveInPayment: RentPeriodPayment = {
+    status: "paid",
+    amount: 45000,
+    period_start: "2026-10-01",
+    billing_kind: "move_in",
+    rent_amount: 15000,
+    advance_amount: 15000,
+    advance_period_start: "2026-11-01",
+  };
+
+  it("skips the month covered by a move-in advance", () => {
+    expect(nextUnpaidRentPeriod("2026-10-01", 5, 15000, [moveInPayment])).toEqual({
+      periodStart: "2026-12-01",
+      periodEnd: "2026-12-31",
+      dueDate: "2026-12-05",
+    });
+  });
+
+  it("bills the following month when the current month was prepaid", () => {
+    expect(nextUnpaidRentPeriod("2026-11-01", 5, 15000, [moveInPayment]).periodStart)
+      .toBe("2026-12-01");
+  });
+
+  it("does not skip a partially covered month", () => {
+    expect(nextUnpaidRentPeriod("2026-10-01", 5, 15000, [
+      { ...moveInPayment, advance_amount: 5000 },
+    ]).periodStart).toBe("2026-11-01");
+  });
+
+  it("does not skip payments that are not confirmed", () => {
+    expect(nextUnpaidRentPeriod("2026-10-01", 5, 15000, [
+      { ...moveInPayment, status: "pending" },
+    ]).periodStart).toBe("2026-11-01");
+  });
+
+  it("skips a future month already paid in full", () => {
+    expect(nextUnpaidRentPeriod("2026-10-01", 5, 15000, [{
+      status: "paid",
+      amount: 15000,
+      period_start: "2026-11-01",
+      billing_kind: "monthly",
+      rent_amount: 15000,
+    }]).periodStart).toBe("2026-12-01");
+  });
+
+  it("does not skip when the rent is zero", () => {
+    expect(nextUnpaidRentPeriod("2026-10-01", 5, 0, []).periodStart).toBe("2026-11-01");
   });
 });
 

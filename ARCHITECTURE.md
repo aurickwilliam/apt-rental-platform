@@ -1,5 +1,7 @@
 # ARCHITECTURE.md — APT (A Place to Thrive)
 
+Move-in billing is defined in `docs/move-in-billing.md`: new tenancies use a server-calculated bill with immutable rent/deposit/advance allocations; online payments reserve the bill before provider calls, and confirmed advance covers calendar month 2 only. Historical tenancies retain legacy billing. That document records the coordinated migration/function/client release order; source changes alone do not activate hosted billing.
+
 The authoritative description of how APT works as a software system: how the repository is organized, how data flows, how the platform's subsystems (auth, payments, chat, storage, realtime) work, and where new features should integrate.
 
 Document hierarchy:
@@ -65,7 +67,7 @@ apt-rental-platform/
 │   ├── supabase/   # Supabase clients + generated DB types (@repo/supabase)
 │   └── utils/      # Shared pure utilities (@repo/utils)
 ├── supabase/       # Supabase CLI artifacts ONLY (.temp/) — no migrations
-├── graphify-out/   # Knowledge graph for AI navigation (see §24)
+├── graphify-out/   # Local generated/ignored knowledge graph for AI navigation (see AGENTS.md)
 ├── AGENTS.md       # Engineering conventions
 ├── DESIGN.md       # Visual design system
 └── design-tokens.json
@@ -340,7 +342,7 @@ Landlord demo finance is an independent versioned component (`scripts/db-populat
 | `lease-agreements` | Private | Lease PDFs | `createSignedUrl(s)` |
 | `signed-leases` | Private | Executed (signed) lease per tenancy | `createSignedUrl` |
 | `application-documents` | Private | Gov ID, proof of income/billing, NBI | `createSignedUrls` |
-| `chat-images` | Private | Chat images/videos/GIFs (+ thumbnails) | `createSignedUrls` (batch) |
+| `chat-images` | Private | Chat images/videos/GIFs (+ thumbnails), PDF/DOCX documents | `createSignedUrls` (batch) |
 | `maintenance-images` | Private | Maintenance photos | `createSignedUrls` |
 
 ### 6.1 Path conventions
@@ -506,8 +508,11 @@ The shared notification feed is account-keyed, but its views are portal-scoped b
 - **Context menu**: right-click, double-click, or long-press opens a menu per bubble (quick reactions, timestamp, Reply, Copy); a hover strip of quick reactions sits above/below the bubble depending on scroll position. The emoji picker searches by name/keyword.
 - **Reaction propagation**: reactions are **not** realtime-subscribed. The conversation channel still listens to `chat` INSERT only, so another person's reaction appears on refresh or when a new message arrives, not immediately. Reaction failure rolls back through `refreshMessages()` rather than a stale local patch. Reactions still reach the other party as a notification: `notify_chat_reaction` (`after insert on chat_reactions`, migration `20261017090635`) sends a `message`-type row to the reacted-to message's author — INSERT-only, one per recipient + message + reacting user per 15 minutes, skipped for muted conversations and either-direction `user_blocks` — with `data.messagePreview` rendered as the quoted line in both feeds and `conversationKey` driving the deep link.
 - Both tenant and landlord variants are near-identical (one file each for the shared conversation view; `browse/[apartmentId]/LandlordChatPanel` reuses the tenant `ConversationView`).
+- **Reply-original navigation (web)**: shared `useReplyNavigation` / `replyNavigation` resolve `reply_to` (or the resolved preview's ID) only inside the current history scroller. Missing loaded originals use the same participant- and apartment-scoped `loadEarlierMessages` keyset reader, at most five 100-row pages per lookup with a 30-second deadline. Each prepend preserves the current scroll anchor; success centers/focuses the actual original and briefly highlights it. Cancellation, account/property changes and unmount retire the lookup; the history loader deduplicates in-flight pages and rejects late pages from retired generations. Its cursor advances synchronously when an authorized page is accepted, so a multi-page lookup cannot repeatedly use a stale render's cursor. No lookup RPC, new table, subscription or route change is involved. Cancellation stops waiting on media signing (which has no abort API); any outstanding result is ignored and cannot enter another thread.
 
-### 8.4 Attachments lifecycle (mobile only)
+### 8.4 Attachments lifecycle
+
+Web's shared composer also accepts PDF/DOCX documents through the existing attachment control, up to 25 MB per file and 10 files per batch. `packages/utils/src/chatAttachments.ts` owns the shared size cap, document MIME recognition and size formatting. Documents bypass image compression and video thumbnail generation, preserving their binary contents. They use `chat.message_type = 'file'`, private `attachment_path`, `attachment_mime_type`, `attachment_name` and `attachment_size`; filename/size cards render on web and mobile (mobile receives/opens documents but its picker still selects only images/videos). Database checks require bounded document metadata, a supported MIME type, no external URL and a path inside the sender's internal-user-id folder. The bucket enforces its 25 MB cap and MIME allowlist. Storage reads authorize the uploader or a participant in the exact message referencing the attachment/thumbnail, never all objects in a sender's folder merely because the users have chatted. Existing suspension restrictions remain in place. Migration: `chat_document_attachments`.
 
 Web has no attachment upload or rendering path — a message carrying an attachment renders a text placeholder (§8.3).
 
@@ -867,7 +872,7 @@ Mostly **Not documented** — the repository contains no architecture plans beyo
 | **AGENTS.md** | Engineering conventions: file structure, naming, hooks/stores patterns, Supabase conventions (internal-id rule, storage paths), commands, decision hierarchy. Read alongside §2, §10, §18. |
 | **DESIGN.md** | Visual design system (colors, typography, spacing, components). Status markers (✅ canonical · 🚧 transitional · ⚠ legacy) describe UI state. Read for anything visual; not referenced by this document. |
 | **design-tokens.json** | Machine-readable tokens consumed by the apps; source of truth for values, mirroring DESIGN.md §3–§8. |
-| **graphify-out/** | Knowledge graph of the codebase (god nodes, communities, relationships). Query it (`graphify query/explain/path`) before grepping; keep current with `graphify update .`. |
+| **graphify-out/** | Local generated, Git-ignored knowledge graph (god nodes, communities, relationships), not a runtime/build/test/CI dependency. Bootstrap fresh clones with `graphify extract . --code-only` from the root; query with `graphify query/explain/path` before grepping and keep current with `graphify update .`. See AGENTS.md and `docs/graphify-conflict-audit.md`. |
 | **docs/AUDIT_REPORT.md** | Itemized performance/data-flow audit of the mobile app (2026-07-26); the detailed companion to §21 D1–D10, D16. |
 | **packages/supabase/src/types.ts** | Generated `Database` types — the repository's only schema reference (no migrations exist; §5). |
 | **Linked Supabase project** | ref `ezxirkpgfpripjydcqnt` — live schema, RLS policies, Realtime publication config, storage bucket policies; not version-controlled (D17). |

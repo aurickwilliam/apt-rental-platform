@@ -1,6 +1,8 @@
 "use client";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient } from "@repo/supabase/browser";
+import type { TenancyBill } from "@repo/utils";
+import { useEffect } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
 
@@ -36,6 +38,10 @@ export type TenancyLandlord = {
 };
 
 export type TenancyPayment = {
+  billing_kind?: string | null;
+  rent_amount?: number | null;
+  advance_amount?: number | null;
+  advance_period_start?: string | null;
   id: string;
   amount: number | null;
   status: string | null;
@@ -46,6 +52,7 @@ export type TenancyPayment = {
 };
 
 export type CurrentTenancy = {
+  bill?: TenancyBill | null;
   id: string;
   lease_start: string;
   lease_end: string | null;
@@ -71,7 +78,7 @@ interface TenancyData {
 const NO_TENANCY: TenancyData = { tenancy: null, payments: [], paymentError: null };
 
 async function fetchCurrentTenancy(): Promise<TenancyData> {
-  const supabase = createBrowserClient();
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NO_TENANCY;
 
@@ -130,14 +137,21 @@ async function fetchCurrentTenancy(): Promise<TenancyData> {
   if (tenancyError) throw new Error(tenancyError.message);
   if (!tenancyData) return NO_TENANCY;
 
-  const { data: paymentRows, error: paymentError } = await supabase
-    .from("payment")
-    .select("id, amount, status, date, due_date, period_start, period_end")
-    .eq("tenancy_id", tenancyData.id)
-    .order("date", { ascending: false });
+  const [{ data: bill, error: billError }, { data: paymentRows, error: paymentError }] = await Promise.all([
+    supabase.rpc("get_tenancy_bill", { p_tenancy_id: tenancyData.id }),
+    supabase.from("payment")
+      .select(
+        "id, amount, status, date, due_date, period_start, period_end, billing_kind, rent_amount, advance_amount, advance_period_start",
+      )
+      .eq("tenancy_id", tenancyData.id)
+      .order("period_start", { ascending: false })
+      .order("date", { ascending: false })
+      .limit(200),
+  ]);
+  if (billError) throw new Error(billError.message);
 
   return {
-    tenancy: tenancyData as CurrentTenancy,
+    tenancy: { ...tenancyData, bill: bill as unknown as TenancyBill | null } as CurrentTenancy,
     payments: (paymentRows ?? []) as TenancyPayment[],
     paymentError: paymentError?.message ?? null,
   };
@@ -154,13 +168,23 @@ function latestPeriodPayment(payments: TenancyPayment[]): TenancyPayment | null 
 }
 
 export function useTenancy() {
-  const { data, loading, error, refresh } = useAsyncResource(
+  const { data, loading, error, refresh, revalidate } = useAsyncResource(
     fetchCurrentTenancy,
     NO_TENANCY,
     "An unexpected error occurred.",
   );
   const tenancy = error ? null : data.tenancy;
   const payments = error ? NO_TENANCY.payments : data.payments;
+  const hasBill = !!tenancy?.bill;
+
+  // Coming back to the tab re-reads the bill so a landlord's confirmation
+  // shows up, but silently: no skeleton flash and no error takeover.
+  useEffect(() => {
+    if (!hasBill) return;
+    const onFocus = () => { void revalidate(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [hasBill, revalidate]);
 
   return {
     tenancy,

@@ -33,7 +33,7 @@ export type LandlordMaintenanceRequest = {
   photos: string[];
   resolution_notes: string | null;
   fee_amount: number | null;
-  fee_status: "pending" | "paid" | null;
+  fee_status: "pending" | "paid" | "waived" | null;
 };
 
 const DB_TO_DISPLAY_STATUS: Record<string, LandlordMaintenanceStatus> = {
@@ -202,6 +202,23 @@ export async function updateLandlordMaintenanceStatus(
 
   if (error || !data || data.length === 0) {
     return { success: false, error: error?.message ?? "Could not update request status." };
+  }
+
+  return { success: true };
+}
+
+// Landlord write-off. The RPC re-checks ownership, pending state and whether a
+// payment already reserved the fee, so its message is safe to surface as-is.
+export async function waiveMaintenanceFee(
+  requestId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("waive_maintenance_fee", {
+    p_request_id: requestId,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
   }
 
   return { success: true };

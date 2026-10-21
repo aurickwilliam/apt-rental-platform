@@ -10,6 +10,7 @@ import {
   periodMonthLabel,
 } from "../utils";
 import type { PaymentRecord } from "@/service/paymentService";
+import { paymentBreakdown } from "@repo/utils";
 
 // Shared receipt body for the success + per-row history routes
 // (mobile parity: both render the same ReceiptCard).
@@ -35,6 +36,8 @@ export default function ReceiptView({ payment }: { payment: PaymentRecord }) {
         amount={payment.amount ?? 0}
         referenceNumber={formatReferenceId(payment.reference_id)}
         status={status}
+        breakdown={paymentBreakdown(payment)}
+        paymentLabel={payment.billing_kind === "move_in" ? "Move-in payment" : undefined}
         periodLabel={periodLabel}
         backgroundColor="#376BF5"
       />

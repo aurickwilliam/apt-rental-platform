@@ -92,6 +92,8 @@ export default function PaymentCheckout() {
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
   const apartment = tenancy?.apartment ?? null;
+  const bill = tenancy?.bill ?? null;
+  const totalDue = bill?.totalDue ?? tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0;
   const landlord = tenancy?.landlord ?? null;
   const landlordName =
     landlord?.first_name || landlord?.last_name
@@ -122,6 +124,7 @@ export default function PaymentCheckout() {
   };
 
   const handlePay = async () => {
+    if (isProcessing || bill?.pendingPayment || (bill ? bill.totalDue === 0 : isPeriodFullyPaid)) return;
     if (!activePaymentMethod) {
       setPaymentError({
         message: "Please select a payment method before proceeding.",
@@ -139,7 +142,7 @@ export default function PaymentCheckout() {
     }
 
     const referenceId = `pay_${Date.now().toString(36)}`;
-    const paymentDescription = `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
+    const paymentDescription = bill?.kind === "move_in" ? `Move-in payment - ${apartment.name}` : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
     const periodFields = {
       tenancyId: tenancy.id,
       periodStart: period.periodStart,
@@ -161,7 +164,7 @@ export default function PaymentCheckout() {
         };
         const session = await createCheckoutSession({
           referenceId,
-          amount: monthlyRent,
+          amount: totalDue,
           description: paymentDescription,
           redirectBaseUrl: Linking.createURL("/tenant/payment/verify"),
           method: methodMap[activePaymentMethod],
@@ -187,6 +190,7 @@ export default function PaymentCheckout() {
         });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     } else if (activePaymentMethod === "Debit/Credit-Card") {
       const errors = validateCardInfo(cardInformation);
@@ -201,7 +205,7 @@ export default function PaymentCheckout() {
       try {
         const result = await createCardPayment({
           referenceId,
-          amount: monthlyRent,
+          amount: totalDue,
           description: paymentDescription,
           card: {
             number: cardInformation.cardNumber.replace(/\s/g, ""),
@@ -230,6 +234,7 @@ export default function PaymentCheckout() {
         });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     } else if (activePaymentMethod === "Cash") {
       const errors = validateCashPayment({ paymentDate: cashPaymentDate });
@@ -242,7 +247,7 @@ export default function PaymentCheckout() {
       try {
         await createCashPayment({
           referenceId,
-          amount: monthlyRent,
+          amount: totalDue,
           date: toIsoDate(cashPaymentDate ?? new Date()),
           tenantId: currentUser?.id ?? tenancy.id,
           apartmentId: apartment.id,
@@ -258,6 +263,7 @@ export default function PaymentCheckout() {
         });
       } finally {
         setIsProcessing(false);
+        void refetch();
       }
     }
   };
@@ -294,7 +300,7 @@ export default function PaymentCheckout() {
     );
   }
 
-  if (isPeriodFullyPaid) {
+   if (bill ? bill.totalDue === 0 : isPeriodFullyPaid) {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Rent Payment" />}
@@ -303,8 +309,8 @@ export default function PaymentCheckout() {
         <View className="flex-1 justify-center">
           <EmptyState
             icon={<IconCircleCheckFilled size={32} color={colors.success} />}
-            title="Rent Already Paid"
-            description={`Your rent for ${monthLabel} ${yearLabel} has been paid in full. No further payment is needed.`}
+            title={bill?.coveredByAdvance ? "Covered by advance rent" : "Rent Already Paid"}
+            description={`Your rent for ${monthLabel} ${yearLabel} ${bill?.coveredByAdvance ? "was prepaid in your move-in payment" : "has been paid in full"}. No further payment is needed.`}
           />
           <Button className="mt-4" onPress={handleGoHome}>
             <Button.Label>Go to Home</Button.Label>
@@ -320,9 +326,10 @@ export default function PaymentCheckout() {
       header={<StandardHeader title="Rent Payment" />}
       footer={
         <PaymentFooter
-          totalPayment={monthlyRent}
+          totalPayment={totalDue}
           onPayPress={handlePay}
           isProcessing={isProcessing}
+          isDisabled={!!bill?.pendingPayment}
         />
       }
       className="p-5"
@@ -353,7 +360,16 @@ export default function PaymentCheckout() {
         year={yearLabel}
         dueDate={period.dueDate}
         monthlyRent={monthlyRent}
+        bill={bill}
       />
+
+      {bill?.pendingPayment ? <View className="gap-3 mb-4">
+        <Text className="text-foreground font-inter">A payment is awaiting confirmation. Check it before starting another payment.</Text>
+        <Button variant="secondary" onPress={() => { void refetch(); }}><Button.Label>Refresh bill</Button.Label></Button>
+        {bill.pendingPayment.referenceId ? <Button onPress={() => router.push(bill.pendingPayment!.method === "cash"
+          ? `/tenant/payment/success?referenceId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`
+          : `/tenant/payment/verify?sessionId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`)}><Button.Label>Check payment</Button.Label></Button> : null}
+      </View> : null}
 
       <PaymentMethodSelector
         onPaymentMethodChange={setActivePaymentMethod}

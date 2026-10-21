@@ -102,22 +102,29 @@ export async function createCheckoutSession(params: {
 // The backend is the source of truth for payment status. URL params never
 // determine the outcome — only this endpoint's verdict is trusted.
 export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
-  const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string } }>>(
+  return (await getCheckoutSessionDetails(sessionId)).status;
+}
+
+export async function getCheckoutSessionDetails(sessionId: string): Promise<{ status: PaymongoSessionStatus; checkoutUrl: string | null }> {
+  const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
     "getCheckoutSessionStatus",
     { sessionId },
   );
 
-  switch (response.data.attributes.status) {
+  const attributes = response.data.attributes;
+  let status: PaymongoSessionStatus;
+  switch (attributes.status) {
     case "paid":
-      return "paid";
+      status = "paid"; break;
     case "failed":
     case "cancelled":
-      return "failed";
+      status = "failed"; break;
     case "expired":
-      return "expired";
+      status = "expired"; break;
     default:
-      return "pending";
+      status = "pending";
   }
+  return { status, checkoutUrl: attributes.checkout_url ?? null };
 }
 
 export async function createCardPayment(params: {

@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "db:billing:test": "node --experimental-strip-types --test scripts/billing/*.test.mjs",
     "web": "pnpm --filter web dev",
     "mobile": "pnpm --filter mobile start",
     "db:populate": "node --experimental-strip-types --import ./scripts/db-populate/register.mjs scripts/db-populate.mjs",
@@ -25,6 +26,7 @@
   },
   "homepage": "https://github.com/aurickwilliam/apt-rental-platform#readme",
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "metro-minify-terser": "^0.83.3"

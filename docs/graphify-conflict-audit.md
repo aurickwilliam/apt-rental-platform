@@ -1,8 +1,9 @@
 # Graphify merge-conflict audit
 
-Audit of PR #217 against `origin/main` at `784d0a02` (2026-10-20).
-Recommendations below require separate approval. This audit does not change
-Git tracking, ignore rules, hooks, merge drivers, or CI.
+Audit refreshed against `origin/main` at `536bec64` (2026-10-20).
+The approved resolution makes the four root Graphify snapshots local-only.
+CI and application behavior do not depend on committing them. No GitHub merge,
+commit, push, deployment, database operation or hook installation is part of this change.
 
 ## Why conflicts recur
 
@@ -16,13 +17,13 @@ Git tracking, ignore rules, hooks, merge drivers, or CI.
 - Recent main history contains many separate `CHORE: Update graphify` commits.
   Concurrent snapshot regeneration is an existing team practice, not a runtime
   application dependency.
-- `.gitattributes` assigns `merge=graphify` only to the root `graph.json`.
-  This clone has no `merge.graphify.driver` configuration. `graphify hook status`
-  reports a partial merge-driver registration and no installed Git hooks.
+- Before this resolution, `.gitattributes` assigned `merge=graphify` only to the
+  root `graph.json`. This clone had no `merge.graphify.driver` configuration.
+  `graphify hook status` reported partial registration and no installed Git hooks.
   Git configuration and hooks are local, so a committed attribute alone does not
   install the driver for collaborators or GitHub. A JSON union driver also cannot
   regenerate the report, HTML, and manifest as one snapshot.
-- Root `.gitignore` rules ignore only selected root caches/sidecars, not the
+- Previously, root `.gitignore` rules ignored only selected root caches/sidecars, not the
   four outputs. Nested `apps/mobile/graphify-out/` snapshots, caches, and labels,
   and `apps/web/graphify-out/manifest.json` are also tracked. Some old nested
   manifests contain machine-specific absolute paths. Adding ignore rules alone
@@ -32,26 +33,32 @@ Git tracking, ignore rules, hooks, merge drivers, or CI.
 
 | Consumer | Finding |
 | --- | --- |
-| `.github/workflows/ci.yml` | Runs installation, population-command unit tests, mobile lint/Jest, and web lint/typecheck/tests. No Graphify generation, validation, or output read. |
+| `.github/workflows/ci.yml` | Runs installation, population-command tests, embedded billing tests, mobile lint/Jest, and web lint/typecheck/tests. No Graphify generation, validation, or output read. |
 | `.github/workflows/codeql.yml` | JavaScript/TypeScript analysis; no Graphify-specific step. |
 | `.github/workflows/opencode.yml` | Runs OpenCode on an explicit comment; no graph generation or graph-required gate. Agents can still follow the repository's Graphify guidance. |
 | Root/app package scripts | No app build, runtime, test, or package script requires a Graphify output. |
 | `.opencode/plugins/graphify.js` | Checks whether a local `graphify-out/graph.json` exists and conditionally adds a reminder. Missing output does not fail the plugin. It does not require Git tracking. |
 | `.graphifyignore` | Excludes skill/agent directories from indexing; keep this source configuration. |
-| `AGENTS.md`, `ARCHITECTURE.md`, implementation plans | Require graph-first navigation and `graphify update .` after source edits. These workflows need a usable local graph, not necessarily committed snapshots. Fresh-clone bootstrapping must be documented before untracking. |
+| `AGENTS.md`, `ARCHITECTURE.md`, implementation plans | Require graph-first navigation and updates after source edits. These need a usable local graph, not committed snapshots. AGENTS.md now documents no-key fresh-clone bootstrapping and branch-switch refreshes. |
 | Git hooks / merge-driver config | No hooks installed in this clone; driver configuration missing. Other developers' local hooks cannot be audited from this clone. |
 
 ## Current merge procedure
 
-1. Review and resolve application source conflicts first.
-2. Restore all four generated files from one committed baseline (the feature
-   branch's `HEAD`), not a mixture of branch snapshots. Never hand-merge their data.
-3. Run `graphify update .` from the repository root against the merged working
-   tree. This is the supported AST-only/no-API-cost command and retains existing
-   semantic knowledge from the baseline.
-4. Check that graph node/edge/community counts match the report and embedded HTML,
-   and that the manifest's source hashes match the working tree. Stage all four
-   outputs together only after validation.
+1. Fetch `origin/main` and start a local `git merge --no-commit --no-ff origin/main`
+   from a clean feature working tree. Stop before committing or pushing.
+2. Resolve `packages/utils/src/index.ts` by keeping the feature's five chat
+   attachment exports and main's finance exports, `nextUnpaidRentPeriod` and
+   tenancy-bill exports. Preserve all other exports and automatic source merges.
+3. Restore the four generated working-tree files from one coherent baseline
+   (feature `HEAD`), never by hand-merging JSON/HTML/report data.
+4. Ignore `/graphify-out/`, then run `git rm -r --cached -- graphify-out/` from
+   the root. This resolves their index conflicts without deleting local files.
+5. Remove the obsolete `.gitattributes` entry (it was the file's only entry).
+   Keep `.graphifyignore` and the OpenCode plugin unchanged and tracked.
+6. Refresh with `graphify update .`, query the ignored local graph, and verify
+   that no root generated file remains tracked. The four staged deletions are
+   intentional until the user commits; regeneration must not add modifications
+   or untracked root graph files to Git status.
 
 The report's built-from commit remains the current feature `HEAD` until the
 merge-resolution commit is created. That is expected for an uncommitted merge;
@@ -59,12 +66,11 @@ source hashes and cross-artifact checks verify the actual merged snapshot.
 The installed extractor warns about partial parsing of
 `packages/supabase/src/types.ts`; this is pre-existing, not a TypeScript build error.
 
-## Recommended permanent strategy (approval required)
+## Local-only output and team rollout
 
-Keep generated graphs locally available, but stop versioning the four root
-snapshots. No application/CI consumer requires them in Git. Before rollout,
-agree on the bootstrap workflow and update the agent documentation so a fresh
-clone does not assume an already present graph.
+Keep generated root graphs locally available, but do not version the snapshots.
+No application/CI consumer requires them in Git. Agent documentation now includes
+the bootstrap workflow so a fresh clone does not assume an existing graph.
 
 Exact minimal root-only change:
 
@@ -73,23 +79,33 @@ Exact minimal root-only change:
 /graphify-out/
 ```
 
-Then, after approval, run from the repository root:
+The approved one-time untracking command, from the root, is:
 
 ```sh
-git rm --cached -- graphify-out/GRAPH_REPORT.md graphify-out/graph.html graphify-out/graph.json graphify-out/manifest.json
+git rm -r --cached -- graphify-out/
 ```
 
 `--cached` preserves the local files. Keep `.graphifyignore`, the OpenCode plugin,
-and the agent documentation tracked. Remove the now-unused root graph merge
-attribute only as part of the separately approved tracking change.
+and the agent documentation tracked. The unused root graph merge attribute is
+removed with this tracking change; no local driver or hooks need installing.
 
 For fresh clones, the supported no-key bootstrap is
 `graphify extract . --code-only`, followed by `graphify update .` during normal
 development. A code-only bootstrap does **not** recreate the semantic document
-knowledge in the current snapshot. If that knowledge is required, distribute a
-versioned main-branch snapshot as a downloadable artifact or document a full
-Graphify extraction workflow before untracking. Pin the Graphify version used
-for shared artifacts and record their source revision.
+knowledge in the current snapshot. Existing local semantic knowledge is preserved
+when updating it; a fresh clone can use the Graphify skill for full semantic
+extraction if needed. If the team later wants shared semantic snapshots, publish
+downloadable artifacts outside source PRs and record the source revision and
+Graphify version. No such artifact pipeline is currently required or installed.
+
+After this change reaches main, contributors should sync their branches, stop
+committing generated root outputs, and refresh locally after source/branch changes.
+Back up the local folder outside the repo before switching to older branches
+that still track it: checkout/pull can remove a formerly tracked working-tree
+file even though the new ignore rule exists. Regenerate if needed. Long-lived
+branches may see a final modify/delete conflict; keep the root files untracked
+and preserve/regenerate the local copies rather than resurrecting snapshots.
+Do not use `git add -f` or auto-commit hooks for the ignored outputs.
 
 Nested outputs need their own approved cleanup. To ignore all generated graph
 directories, use `**/graphify-out/` instead of the root-only rule, and explicitly
@@ -98,16 +114,14 @@ apps/mobile/graphify-out apps/web/graphify-out`. Preserve any curated labels or
 other manually maintained knowledge in a tracked non-output location first.
 Do not run a broad delete or silently remove nested team assets.
 
-If the team requires committed snapshots, designate one serialized main-branch
-refresh process: feature PRs change source only, and a single follow-up snapshot
-PR regenerates all four files after source merges. Do not rely on `merge=ours`,
-manual JSON merging, or a driver configured only on one developer's machine.
-Any automation or CI change remains a separate approval item.
+Do not rely on `merge=ours`, manual JSON merging, or a driver configured only on
+one developer's machine. Any future artifact automation or CI changes need their
+own review; the current required CI never consumes root graph outputs.
 
 ## Required CI status
 
-The PR currently has merge conflicts on GitHub; its head has no `ci` run. GitHub
-does not run `pull_request` workflows for merge-conflicting PRs. The workflow
+Local conflict resolution cannot change the remote PR until the user commits
+and pushes. GitHub does not run `pull_request` workflows for merge-conflicting PRs. The workflow
 subscribes to `pull_request` without path filters, so pushing an approved
 conflict-free merge-resolution commit should trigger it through the synchronize
 event. Local resolution alone cannot publish the check or change GitHub's merge

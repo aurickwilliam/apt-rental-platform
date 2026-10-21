@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Button, Spinner } from 'heroui-native'
@@ -116,8 +116,9 @@ export default function Success() {
         paddingBottom: insets.bottom
       }}
     >
-      <View className='flex-1 justify-center'>
+      <ScrollView className='flex-1' contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 16 }}>
         <ReceiptCard
+          payment={payment}
           apartmentName={payment.apartment_name ?? '—'}
           landlordName={payment.landlord_name ?? '—'}
           date={dateLabel}
@@ -129,7 +130,7 @@ export default function Success() {
           periodLabel={periodLabel}
           backgroundColor={colors.primary}
         />
-      </View>
+      </ScrollView>
 
       <View className='pb-4'>
         <Button

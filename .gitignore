@@ -113,9 +113,5 @@ web_modules/
 .junie/
 skills-lock.json
 
-# Graphify
-graphify-out/cache/
-graphify-out/.graphify_*
-graphify-out/*.txt
-graphify-out/cost.json
-graphify-out/2*/
+# Local generated knowledge graph (configuration and tooling stay tracked)
+/graphify-out/

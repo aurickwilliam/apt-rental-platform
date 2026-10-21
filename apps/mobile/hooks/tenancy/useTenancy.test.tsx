@@ -92,6 +92,26 @@ afterEach(async () => {
 });
 
 describe("useTenancy", () => {
+  it("reloads a versioned bill after confirmation instead of retaining stale rent coverage", async () => {
+    mockFetchTenancy.mockResolvedValueOnce({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: false, totalDue: 45000 } });
+    mockFetchTenancy.mockResolvedValue({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: true, totalDue: 0 } });
+    const { client, QueryWrapper } = createWrapper();
+    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    await waitFor(() => expect(result.current.tenancy?.bill?.totalDue).toBe(45000));
+    await waitFor(() => expect(paymentChangeCallback).toBeDefined());
+    const before = mockFetchTenancy.mock.calls.length;
+    await act(async () => {
+      paymentChangeCallback?.({ eventType: "UPDATE", new: {
+        id: "move-in", tenancy_id: TENANCY_ID, status: "paid", amount: 45000, period_start: "2026-10-01",
+      } });
+    });
+    await waitFor(() => expect(result.current.tenancy?.bill?.rentPaid).toBe(true));
+    expect(result.current.tenancy?.bill?.totalDue).toBe(0);
+    expect(mockFetchTenancy).toHaveBeenCalledTimes(before + 1);
+    unmount();
+    client.clear();
+  });
+
   /** Validates: Requirements 2.8, 2.17 */
   it("refetches a null tenancy query when a matching active tenancy is created", async () => {
     mockFetchTenancy.mockResolvedValueOnce(null);

@@ -1,4 +1,11 @@
 export { getRelativeTime } from './getRelativeTime';
+export {
+  MAX_CHAT_ATTACHMENT_BYTES,
+  CHAT_DOCUMENT_MIME_TYPES,
+  chatAttachmentMimeType,
+  isChatDocumentType,
+  formatChatAttachmentSize,
+} from './chatAttachments';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
 export { isValidEmail } from './validateEmail';
@@ -93,6 +100,7 @@ export {
   paidAmountForPeriod,
   resolvePaymentPeriod,
   nextPaymentPeriod,
+  nextUnpaidRentPeriod,
   getCurrentRentStatus,
 } from './rentPeriod';
 export {
@@ -106,3 +114,4 @@ export {
   sortNotificationsNewestFirst,
   groupNotificationsByLocalDate,
 } from './notificationOrder';
+export * from './tenancyBill';
