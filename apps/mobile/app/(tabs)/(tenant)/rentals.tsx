@@ -307,6 +307,7 @@ export default function Rentals() {
         {/* Payment Summary Card */}
         <View className="mt-3">
           <PaymentSummaryCard
+            bill={tenancy.bill}
             periodMonth={formatDate(rent.periodStart, "month")}
             periodYear={formatDate(rent.periodStart, "year")}
             status={rent.status}

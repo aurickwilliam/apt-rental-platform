@@ -4,7 +4,7 @@ import {
   useStatusChipStyles,
   statusChipSurface,
 } from "@/hooks/useStatusChipStyles";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, type TenancyBill } from "@repo/utils";
 import { COLORS } from "@repo/constants";
 
 import { Button, Chip } from "heroui-native";
@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react-native";
 
 interface PaymentSummaryCardProps {
+  bill?: TenancyBill | null;
   periodMonth?: string;
   periodYear?: string;
   status?: "Pending" | "Paid";
@@ -26,6 +27,7 @@ interface PaymentSummaryCardProps {
 }
 
 export default function PaymentSummaryCard({
+  bill,
   periodMonth = "Month",
   periodYear = "Year",
   status = "Pending",
@@ -35,6 +37,7 @@ export default function PaymentSummaryCard({
   onViewHistoryPress,
 }: PaymentSummaryCardProps) {
   const palette = useStatusChipStyles();
+  const isMoveIn = bill?.kind === "move_in";
 
   const isPending = status === "Pending";
   const statusStyle = isPending ? palette.warning : palette.success;
@@ -45,7 +48,9 @@ export default function PaymentSummaryCard({
     <View className="bg-accent rounded-3xl p-4 border border-white/10">
       {/* Header — no icon beside title per request */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-white text-lg font-nunitoBold">Monthly rent</Text>
+        <Text className="text-white text-lg font-nunitoBold">
+          {isMoveIn ? "Move-in payment" : "Monthly rent"}
+        </Text>
 
         <Chip size="sm" variant="soft" style={statusChipSurface(statusStyle)}>
           <StatusIcon size={14} color={statusStyle.textColor} />
@@ -60,7 +65,7 @@ export default function PaymentSummaryCard({
 
       <View className="mt-2 gap-1">
         <Text className="text-white text-2xl font-nunitoBold">
-          {formatPesoDisplay(totalRent)}
+          {formatPesoDisplay(isMoveIn ? bill.totalDue : totalRent)}
         </Text>
         <Text className="text-white text-sm font-nunitoSemiBold">
           {periodMonth} {periodYear}

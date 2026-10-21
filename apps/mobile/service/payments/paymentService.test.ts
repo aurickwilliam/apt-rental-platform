@@ -1,5 +1,6 @@
 import {
   createCashPayment,
+  fetchPaymentById,
   fetchPaymentByReferenceId,
   fetchPayments,
   formatReferenceId,
@@ -135,6 +136,23 @@ describe('fetchPayments', () => {
   })
 })
 
+describe('payment landlord relationship', () => {
+  it.each([
+    { name: 'history', load: fetchPayments, data: [ROW] },
+    { name: 'receipt by ID', load: fetchPaymentById, data: ROW },
+    { name: 'receipt by reference', load: fetchPaymentByReferenceId, data: ROW },
+  ])('selects the landlord explicitly for $name', async ({ load, data }) => {
+    const chain = chainWith({ data })
+    mockFrom.mockReturnValue(chain)
+
+    await load('record-1')
+
+    expect(chain.select).toHaveBeenCalledWith(
+      expect.stringContaining('landlord:users!apartments_landlord_id_fkey1 (first_name, last_name)')
+    )
+  })
+})
+
 describe('fetchPaymentByReferenceId', () => {
   it('returns the mapped record for a matching reference', async () => {
     mockFrom.mockReturnValue(chainWith({ data: ROW }))
@@ -184,5 +202,8 @@ describe('createCashPayment', () => {
     })
     expect(result.status).toBe('pending')
     expect(result.method).toBe('cash')
+    expect(chain.select).toHaveBeenCalledWith(
+      expect.stringContaining('landlord:users!apartments_landlord_id_fkey1 (first_name, last_name)')
+    )
   })
 })
