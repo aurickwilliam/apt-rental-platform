@@ -40,7 +40,7 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [] }
         : { periodStart: "2026-12-01", dueDate: "2026-12-05" },
       nextUnpaidRentPeriod: () => ({ periodStart: "2026-12-01", dueDate: "2026-12-05" }),
     },
-    "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy, payments, loading: false, error: null, refetch: noOp }) },
+    "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy, payments, loading: false, error: null, financeLoading: false, financeError: null, paymentError: null, refetch: noOp, revalidate: noOp, retryFinance: noOp }) },
     "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: false, error: null }) },
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => ({ requests: [], loading: false, error: null }) },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },

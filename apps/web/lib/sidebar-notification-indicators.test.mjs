@@ -63,6 +63,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
       markOneRead: () => writes++, markVisibleRead: () => writes++,
     }) },
     "@/lib/sidebar-notification-activity": mapping,
+    "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => navigation.push(href) }) },
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");
   const tree = mobile

@@ -438,7 +438,7 @@ export async function resolveAttachmentUrls(
   }
 
   for (const entry of data ?? []) {
-    if (entry.path && entry.signedUrl) resolved.set(entry.path, entry.signedUrl);
+    if (entry.path && entry.signedUrl && !entry.error) resolved.set(entry.path, entry.signedUrl);
   }
 
   return resolved;
