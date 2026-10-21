@@ -116,47 +116,36 @@ async function loadConversation(
   const rows = data as unknown as ChatMessage[];
   const messageIds = rows.map((r) => r.id);
 
-  // Reactions for the page (one row per reacting user per message).
-  const reactionRows = messageIds.length
-    ? (
-        await supabase
-          .from("chat_reactions")
-          .select("message_id, user_id, emoji")
-          .in("message_id", messageIds)
-      ).data ?? []
-    : [];
-
   // Quoted originals for reply previews (text placeholder for media).
-  signal?.throwIfAborted();
   const replyIds = [
     ...new Set(rows.map((r) => r.reply_to).filter((v): v is string => !!v)),
   ];
-  const replyRows = replyIds.length
-    ? (
-        await supabase
-          .from("chat")
-          .select("id, message, message_type, sender_id")
-          .in("id", replyIds)
-      ).data ?? []
-    : [];
-
-  signal?.throwIfAborted();
-  const reactionsByMessage = groupReactions(
-    reactionRows as { message_id: string; user_id: string; emoji: string }[],
-    currentUserId
-  );
 
   // Signed URLs are produced at read time and never persisted. External URLs
   // (GIFs) are already renderable and skip signing entirely.
   const attachmentPaths = rows
     .flatMap((r) => [r.attachment_path, r.attachment_thumbnail_path])
     .filter((p): p is string => Boolean(p));
-  const signedUrls = await resolveAttachmentUrls(supabase, attachmentPaths);
+  // These reads depend on the page, not on each other. Publish only after all
+  // enrichment settles, so no partially resolved attachment URLs reach a bubble.
+  const [reactionResult, replyResult, signedUrls] = await Promise.all([
+    messageIds.length
+      ? supabase.from("chat_reactions").select("message_id, user_id, emoji").in("message_id", messageIds)
+      : Promise.resolve({ data: [] }),
+    replyIds.length
+      ? supabase.from("chat").select("id, message, message_type, sender_id").in("id", replyIds)
+      : Promise.resolve({ data: [] }),
+    resolveAttachmentUrls(supabase, attachmentPaths),
+  ]);
   signal?.throwIfAborted();
+  const reactionsByMessage = groupReactions(
+    (reactionResult.data ?? []) as { message_id: string; user_id: string; emoji: string }[],
+    currentUserId
+  );
 
   return attachReplyPreviews(
     rows,
-    replyRows as Pick<ChatMessage, "id" | "message" | "message_type" | "sender_id">[],
+    (replyResult.data ?? []) as Pick<ChatMessage, "id" | "message" | "message_type" | "sender_id">[],
     currentUserId
   )
     .map((m) => ({

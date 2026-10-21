@@ -13,7 +13,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import ThemeToggle from "./ThemeToggle";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
-import { signOut } from "@/app/(auth)/actions/sign-out";
+import { signOut } from "@/service/signOutService";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
@@ -152,8 +152,8 @@ export default function AppNavbar() {
                 <Dropdown.Popover>
                   <Dropdown.Menu
                     onAction={(key) => {
-                      if (key === "profile")   window.location.href = getProfileHref();
-                      if (key === "dashboard") window.location.href = getDashboardHref();
+                      if (key === "profile")   router.push(getProfileHref());
+                      if (key === "dashboard") router.push(getDashboardHref());
                       if (key === "settings")  openSettings();
                       if (key === "logout")    signOut();
                     }}

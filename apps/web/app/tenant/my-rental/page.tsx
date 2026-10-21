@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Link, Modal, Spinner, Table, toast, useOverlayState } from "@heroui/react";
+import { Button, Link, Modal, Skeleton, Spinner, Table, toast, useOverlayState } from "@heroui/react";
 import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight, IconX as X } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod, nextUnpaidRentPeriod } from "@repo/utils";
@@ -123,12 +123,89 @@ function getInitials(name: string) {
     .join("");
 }
 
+/**
+ * Localized fallback for the rent card + calendar only. The apartment,
+ * landlord, lease, maintenance and applications around it can already render
+ * from the rental context, so a financial read must not blank the whole page.
+ */
+function RentFinanceSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      aria-label="Loading rent details"
+      className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]"
+    >
+      <div className="relative min-w-0 rounded-2xl bg-primary p-4 text-white sm:p-6">
+        <div className="flex h-full flex-col gap-4">
+          <Skeleton className="h-6 w-44 rounded-lg bg-white/25!" />
+          <Skeleton className="h-10 w-56 rounded-lg bg-white/25!" />
+          <Skeleton className="h-4 w-64 max-w-full rounded-md bg-white/20!" />
+          <div className="mt-6 grid gap-4 border-t border-white/20 pt-5 @min-[36rem]/rent:grid-cols-3">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <Skeleton className="h-3 w-20 rounded-md bg-white/20!" />
+                <Skeleton className="h-4 w-24 rounded-md bg-white/25!" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <Skeleton className="h-4 w-32 rounded-md bg-grey-300!" />
+        <Skeleton className="mt-4 h-60 w-full rounded-xl bg-grey-300!" />
+      </div>
+    </div>
+  );
+}
+
+function RentFinanceError({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <DashboardCard className="border-danger-200">
+      <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+        <p className="font-inter text-sm text-muted-foreground">{message}</p>
+        <Button size="sm" onPress={onRetry}>
+          Try again
+        </Button>
+      </div>
+    </DashboardCard>
+  );
+}
+
+function PaymentHistorySkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading payment history" className="flex flex-col gap-3">
+      <Skeleton className="h-8 w-full rounded-md bg-grey-300!" />
+      {Array.from({ length: 3 }, (_, index) => (
+        <Skeleton key={index} className="h-10 w-full rounded-md bg-grey-300!" />
+      ))}
+    </div>
+  );
+}
+
 type QuickAction =
   | { label: string; icon: typeof House; tint: string; href: string }
   | { label: string; icon: typeof House; tint: string; onPress: () => void };
 
 export default function MyRental() {
-  const { tenancy, payments, currentPayment, loading, error, refetch } = useTenancy();
+  const {
+    tenancy,
+    payments,
+    currentPayment,
+    loading,
+    error,
+    financeLoading,
+    financeError,
+    paymentError,
+    refetch,
+    revalidate,
+    retryFinance,
+  } = useTenancy();
   const bill = tenancy?.bill ?? null;
   const {
     applications,
@@ -152,6 +229,7 @@ export default function MyRental() {
   const apartmentIdForFees = tenancy?.apartment.id ?? null;
   const tenancyIdForFees = tenancy?.id ?? null;
   useEffect(() => {
+    if (financeLoading || financeError) return;
     if (!apartmentIdForFees || !tenancyIdForFees || bill) return;
     const apartmentId = apartmentIdForFees;
     const tenancyId = tenancyIdForFees;
@@ -174,7 +252,7 @@ export default function MyRental() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentIdForFees, tenancyIdForFees, bill]);
+  }, [apartmentIdForFees, tenancyIdForFees, bill, financeError, financeLoading]);
   const pendingFees = bill?.fees ?? legacyFees;
 
   // Web has no notification feed, so an unconfirmed contract gets one toast per
@@ -418,6 +496,16 @@ export default function MyRental() {
           descriptionHref={`/tenant/browse/${apartment.id}`}
         />
 
+        {financeLoading ? (
+          <RentFinanceSkeleton />
+        ) : financeError ? (
+          <RentFinanceError message={financeError} onRetry={() => void retryFinance()} />
+        ) : paymentError ? (
+          <RentFinanceError
+            message="Payment history couldn't load, so your balance can't be confirmed."
+            onRetry={() => void retryFinance()}
+          />
+        ) : (
         <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
           <div className="@container/rent relative min-w-0 rounded-2xl bg-primary p-4 text-white sm:p-6">
             <div className="relative flex h-full flex-col">
@@ -627,6 +715,7 @@ export default function MyRental() {
             highlightLabel={bill?.kind === "move_in" ? "Move-in payment due" : bill?.kind === "fees" && !isPeriodPaid ? "Maintenance fees due" : "Rent due"}
           />
         </div>
+        )}
 
         <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] items-stretch">
           <DashboardCard>
@@ -798,6 +887,18 @@ export default function MyRental() {
               </Link>
             </div>
           </div>
+          {financeLoading ? (
+            <PaymentHistorySkeleton />
+          ) : paymentError ? (
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <p className="font-inter text-sm text-muted-foreground">
+                Payment history could not load. Try again to see your receipts.
+              </p>
+              <Button size="sm" variant="outline" onPress={() => void retryFinance()}>
+                Try again
+              </Button>
+            </div>
+          ) : (
           <Table className="min-w-0 max-w-full">
             <Table.ScrollContainer className="max-w-full overflow-x-auto">
               <Table.Content
@@ -854,6 +955,7 @@ export default function MyRental() {
               </Table.Content>
             </Table.ScrollContainer>
           </Table>
+          )}
         </DashboardCard>
 
         <Modal isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen}>
