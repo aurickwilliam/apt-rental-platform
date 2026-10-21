@@ -605,7 +605,7 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Visit requests** | Tenant `request-visit` + `useSubmitVisitRequest`; landlord `visit-requests/` list/detail with actions, reschedule sheet | Not implemented | `visit_request` |
 | **Tenancy / My rental** | `tenant/current-apartment.tsx` + `useTenancy` (React Query tenancy + payment reads keyed by internal id, filtered realtime scoped to the loaded tenancy, explicit refresh) | `tenant/my-rental/` client page + `use-tenancy`; the landlord uploads/replaces the signed lease from the unit's Tenant Information card, the tenant views and confirms it in the Signed lease card | `tenancies`, `payment`, `signed-leases` |
 | **Payments** | Simulation (GCash/Maya/QRPh/Card = paid, Cash = pending) — §7 | Placeholder + view-only history | `payment` (tenant inserts paid/pending, landlord confirms cash) |
-| **Maintenance** | Tenant request/history + `useSubmitMaintenanceRequest` (uploads photos); landlord `maintenance-requests/` workflow (pending → resolved) | Stub ("Coming Soon") | `maintenance_request`, `maintenance-images` |
+| **Maintenance** | Tenant request/history/details; landlord pending → in-progress → resolved workflow, optional fee written with resolution, fee status display and caller-bound fee waiver | Matching fee/resolve/waiver behavior with Web-specific UI | `maintenance_request`, `maintenance-images` |
 | **Chat** | §8 (full: bounded 30-page history, attachments, direct-URL GIFs, typing, presence, optimistic; identity-keyed stable channels; reactions + replies + context menus; `get_conversations_v2` RPC) | §8.3 (text-only; reactions, replies, context menus, emoji search) | `chat`, `chat_reactions`, `chat-images`, `get_conversations_v2` RPC |
 | **Reviews & ratings** | Detail ratings, `rate-apartment`, `useSubmitReview` (photo uploads with rollback) | Read-only display (`RatingsSection`, `RenderReviews`) | `reviews`, `review-images` |
 | **Favorites** | `useFavorites` (React Query set state + DB writes, virtualized `FlatList`, caller-owned toasts) | `useFavorites` + `favoritesService` | `favorites` |
@@ -617,6 +617,8 @@ Each feature below is mobile-first; the web mirrors it where noted. "Architectur
 | **Profile / settings** | `profile/tenant|landlord/[id]`, `edit-profile` (avatar/background upload), `settings/*` | Not implemented (navbar links are dead — debt D12) | `users`, `avatars`, `background_photos` |
 
 ---
+
+Maintenance fee writes are landlord-owned and tenancy-bound. Both platforms share fee validation/status normalization in `@repo/utils` (`maintenanceFee.ts`). Mobile uses React Query mutations with row-level optimistic rollback, explicit owner filters and a resolve-from-in-progress precondition; waiving calls `waive_maintenance_fee`, never a direct client fee-status write. Pending-payment reservations and settled fees remain database-enforced. The mutation refreshes exact request/history/latest, tenant-bill and landlord-tenancy keys; a retired account cannot republish its optimistic snapshot. Maintenance is not currently in the Realtime publication, so Mobile reconciles external changes on relevant screen focus rather than binding an unpublished table. New-format bills include pending fees and drop waived ones through `get_tenancy_bill`; the compact Rentals card remains payable for a maintenance-only bill even when rent is paid.
 
 ### 12.1 Landlord finance tracking
 

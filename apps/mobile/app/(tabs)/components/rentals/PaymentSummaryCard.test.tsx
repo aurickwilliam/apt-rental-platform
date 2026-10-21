@@ -86,3 +86,13 @@ it("preserves the monthly amount after the move-in bill is settled", () => {
   expect(screen.queryByText("Move-in payment")).toBeNull();
   expect(screen.queryByText("Pay Now")).toBeNull();
 });
+
+it("keeps a maintenance-only bill payable after rent is covered", () => {
+  const pay = jest.fn();
+  render(<PaymentSummaryCard bill={{ ...MOVE_IN_BILL, kind: "fees", rentPaid: true, rentDue: 0, securityDeposit: 0, advanceRent: 0, totalDue: 500 }} status="Paid" totalRent={15000} onPayNowPress={pay} />);
+  expect(screen.getByText("Maintenance fees")).toBeTruthy();
+  expect(screen.getByText(formatPesoDisplay(500))).toBeTruthy();
+  expect(screen.getByText("Pending")).toBeTruthy();
+  fireEvent.press(screen.getByText("Pay Now"));
+  expect(pay).toHaveBeenCalledTimes(1);
+});

@@ -2,6 +2,9 @@ import {
   fetchLandlordApplications,
   fetchLandlordPayments,
   fetchLandlordTenancy,
+  fetchLandlordMaintenanceRequests,
+  updateLandlordMaintenanceStatus,
+  waiveMaintenanceFee,
   updateLandlordPaymentStatus,
   type LandlordPaymentRecord,
 } from './landlordService'
@@ -11,10 +14,16 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 )
 
 const mockFrom = jest.fn()
+const mockRpc = jest.fn()
+
+jest.mock('@/service/media/privateMediaResolver', () => ({
+  resolvePrivateMediaUrls: jest.fn(async () => ({ urls: {}, error: null })),
+}))
 
 jest.mock('@repo/supabase', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }))
 
@@ -242,5 +251,67 @@ describe('fetchLandlordApplications', () => {
     const result = await fetchLandlordApplications('landlord-1')
 
     expect(result[0].monthly_rent).toBe(9000)
+  })
+})
+
+describe('maintenance fees', () => {
+  beforeEach(() => { jest.clearAllMocks() })
+
+  it.each(['pending', 'paid', 'waived'])('loads fee amount and preserves %s status', async (feeStatus) => {
+    const chain = chainWith({ data: [{
+      id: 'request-1', title: 'Leak', status: 'resolved', urgency: 'low', image_urls: [],
+      apartment_id: 'apartment-1', tenant_id: 'tenant-1', tenancy_id: 'tenancy-1',
+      fee_amount: 1250, fee_status: feeStatus,
+    }] })
+    mockFrom.mockReturnValue(chain)
+    const rows = await fetchLandlordMaintenanceRequests('landlord-1')
+    expect(rows[0]).toMatchObject({ fee_amount: 1250, fee_status: feeStatus, tenant_id: 'tenant-1', tenancy_id: 'tenancy-1' })
+    expect(chain.select).toHaveBeenCalledWith(expect.stringContaining('fee_amount, fee_status'))
+    expect(chain.limit).toHaveBeenCalledWith(200)
+  })
+
+  it('resolves and adds a fee in one owner-scoped write', async () => {
+    const chain = chainWith({ data: [{ id: 'request-1' }] })
+    mockFrom.mockReturnValue(chain)
+    expect(await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'Resolved', ' Repaired pipe ', 1250)).toEqual({ success: true })
+    expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'resolved', resolution_notes: 'Repaired pipe', fee_amount: 1250, fee_status: 'pending' }))
+    expect(chain.eq).toHaveBeenCalledWith('landlord_id', 'landlord-1')
+    expect(chain.eq).toHaveBeenCalledWith('status', 'in_progress')
+  })
+
+  it('does not invent or clear a fee when resolving without one', async () => {
+    const chain = chainWith({ data: [{ id: 'request-1' }] })
+    mockFrom.mockReturnValue(chain)
+    await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'Resolved', 'Repaired pipe')
+    expect(chain.update.mock.calls[0][0]).not.toHaveProperty('fee_amount')
+    expect(chain.update.mock.calls[0][0]).not.toHaveProperty('fee_status')
+  })
+
+  it.each([0, -1, NaN, Infinity])('rejects invalid fee %s before writing', async (amount) => {
+    expect((await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'Resolved', 'Fixed', amount)).success).toBe(false)
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('requires notes and only adds fees when resolving', async () => {
+    expect((await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'Resolved', ' ')).success).toBe(false)
+    expect((await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'In Progress', undefined, 500)).success).toBe(false)
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('treats zero affected rows as failure', async () => {
+    mockFrom.mockReturnValue(chainWith({ data: [] }))
+    expect((await updateLandlordMaintenanceStatus('request-1', 'landlord-1', 'Resolved', 'Fixed', 500)).success).toBe(false)
+  })
+
+  it('waives only through the caller-bound RPC', async () => {
+    mockRpc.mockResolvedValue({ error: null })
+    expect(await waiveMaintenanceFee('request-1')).toEqual({ success: true })
+    expect(mockRpc).toHaveBeenCalledWith('waive_maintenance_fee', { p_request_id: 'request-1' })
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('preserves the reservation refusal from the database', async () => {
+    mockRpc.mockResolvedValue({ error: { message: 'This fee is reserved by a pending payment.' } })
+    expect(await waiveMaintenanceFee('request-1')).toEqual({ success: false, error: 'This fee is reserved by a pending payment.' })
   })
 })

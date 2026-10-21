@@ -32,6 +32,7 @@ import { useLightStatusBar } from '@/hooks/useLightStatusBar';
 import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
 import { usePayments } from '@/hooks/payments';
+import { useMaintenanceFocusRefresh } from '@/hooks/maintenance-requests/useMaintenanceFocusRefresh';
 import { buildConversationKey } from '@/service/chat/chatService';
 
 import { Button } from 'heroui-native';
@@ -101,6 +102,7 @@ export default function Rentals() {
     refetch: refetchTenancy,
   } = useTenancy();
   const { profile } = useProfile();
+  useMaintenanceFocusRefresh(tenancy?.apartment.id, profile?.id);
   const {
     requests: maintenanceRequests,
     loading: maintenanceLoading,

@@ -39,7 +39,10 @@ export default function PaymentSummaryCard({
   const palette = useStatusChipStyles();
   const isMoveIn = bill?.kind === "move_in";
 
-  const isPending = status === "Pending";
+  const isPending = bill ? bill.totalDue > 0 : status === "Pending";
+  const displayStatus = isPending ? "Pending" : "Paid";
+  const isFeesOnly = bill?.kind === "fees" && isPending;
+  const totalPayment = bill && isPending ? bill.totalDue : totalRent;
   const statusStyle = isPending ? palette.warning : palette.success;
   // Same icons as the application status chips.
   const StatusIcon = isPending ? IconClock : IconCircleCheck;
@@ -49,7 +52,7 @@ export default function PaymentSummaryCard({
       {/* Header — no icon beside title per request */}
       <View className="flex-row items-center justify-between">
         <Text className="text-white text-lg font-nunitoBold">
-          {isMoveIn ? "Move-in payment" : "Monthly rent"}
+          {isMoveIn ? "Move-in payment" : isFeesOnly ? "Maintenance fees" : "Monthly rent"}
         </Text>
 
         <Chip size="sm" variant="soft" style={statusChipSurface(statusStyle)}>
@@ -58,14 +61,14 @@ export default function PaymentSummaryCard({
             className="font-nunitoSemiBold text-sm"
             style={{ color: statusStyle.textColor }}
           >
-            {status}
+            {displayStatus}
           </Chip.Label>
         </Chip>
       </View>
 
       <View className="mt-2 gap-1">
         <Text className="text-white text-2xl font-nunitoBold">
-          {formatPesoDisplay(isMoveIn ? bill.totalDue : totalRent)}
+          {formatPesoDisplay(totalPayment)}
         </Text>
         <Text className="text-white text-sm font-nunitoSemiBold">
           {periodMonth} {periodYear}
