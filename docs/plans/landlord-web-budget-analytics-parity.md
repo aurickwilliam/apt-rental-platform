@@ -1,6 +1,6 @@
 # Landlord Web Budget Analytics — Full Mobile Parity Plan
 
-Status: Phases 1–5 implemented. Final acceptance (live authenticated journey, same-account web/mobile comparison, hardening) remains in Phase 6.
+Status: Phases 1–6 implemented. Two acceptance items stay open because they need environment access: the local finance SQL regression (a disposable local PostgreSQL) and the live same-account web/mobile comparison (a real landlord account).
 
 ## 1. Goal and scope
 
@@ -12,14 +12,14 @@ Implementation destination: `/landlord/analytics`, titled **Profit & planning**,
 
 ### Non-negotiable requirements
 
-- [ ] All parity items in this plan are implemented and verified, not deferred after the first tab.
-- [ ] Web and mobile consume the same finance RPCs and shared calculation helpers.
-- [ ] No new web-only accounting formulas, guessed expenses, forecasts, or market-cost estimates.
-- [ ] Missing expense review remains unknown income, never an assumed zero cost or estimated profit.
-- [ ] Spending limits, reserve plans, operating expenses, capital improvements, cash receipts, and rental-period balances retain their separate meanings.
-- [ ] Finance remains private to the active landlord owner; admin membership grants no additional access.
-- [ ] Existing mobile behavior and current uncommitted work are preserved.
-- [ ] No hosted database writes, demo population, schema changes, or deployments are required merely to build this UI.
+- [x] All parity items in this plan are implemented and verified, not deferred after the first tab. (Phases 1–5 implemented; the Phase 6 audit re-read every mobile finance surface against its web counterpart — see the parity table below — and found no dropped feature or action.)
+- [x] Web and mobile consume the same finance RPCs and shared calculation helpers. (Both call `get_landlord_finances`, `save_landlord_finance_budget`, `confirm_landlord_finance_month` and the expense table; every rule — grouping, progress, suggestions, validation, date handling — comes from `@repo/utils`.)
+- [x] No new web-only accounting formulas, guessed expenses, forecasts, or market-cost estimates. (The web adds presentation only: the shared `groupBudgetsByCategory`, `budgetProgress`, `suggestFinanceBudget` and `financeGoalFromForm` produce every figure, and suggestions are goal-based exactly as on mobile — the shared history-average branch is not used on either platform.)
+- [x] Missing expense review remains unknown income, never an assumed zero cost or estimated profit. (The browser fixture drives the review invalidation: a write or a date move reopens the affected months and the Overview falls back to "Not calculated".)
+- [x] Spending limits, reserve plans, operating expenses, capital improvements, cash receipts, and rental-period balances retain their separate meanings. (Spending limits and reserves are separate grouped sections and separate plan kinds; the drill-down shows actual spending for limits and the planned amount alone for reserves; cash receipts and rental-period balances stay distinct in the earnings panel.)
+- [x] Finance remains private to the active landlord owner; admin membership grants no additional access. (The browser fixture now switches accounts and roles: another owner sees their own figures and never the previous owner's; a mixed admin/landlord profile keeps landlord access; admin-only, tenant-only and signed-out profiles get no finance access and no figures.)
+- [x] Existing mobile behavior and current uncommitted work are preserved. (No mobile file changed in this plan; the web mirrors the mobile screens' actions and copy rather than replacing them.)
+- [x] No hosted database writes, demo population, schema changes, or deployments are required merely to build this UI. (Every phase used the existing RPCs, tables and shared helpers; the browser fixture runs against an in-memory transport with external requests blocked, and no migration, seed or deployment was produced.)
 
 ## 2. Inspected baseline and source files
 
@@ -351,18 +351,18 @@ If the drill-downs reuse most components, keep them in the route's `components/`
 
 ## 7. Loading, failure, accessibility, and responsive requirements
 
-- [ ] Initial skeleton matches earnings summary, rows, tabs, and selected tab content rather than copying dashboard stat tiles. No misleading zero values while loading.
-- [ ] Header actions remain visible but disabled until required report/ownership data is ready.
-- [ ] Separate no-properties state with a create-property action, access restriction, initial report failure with Retry, inline list/pagination failures, empty data, and missing plan/category states.
-- [ ] Missing finance table/RPC returns the existing deployment-needed support message; never substitute dummy data, fake totals, or the legacy revenue dashboard.
-- [ ] Background refresh failure retains valid same-scope content with a visible retry notice. Page-count/pagination failures preserve already loaded rows.
-- [ ] Every modal has a heading, meaningful label, predictable Escape/backdrop behavior, focus trapping/restoration, scrollable body, and reachable footer.
-- [ ] Block dismissal/submission conflicts during save/delete/review. Confirmations do not create an uncontrolled stack of focus-trapping dialogs; return focus to the triggering editor action.
-- [ ] Use one active editor at a time. Account changes or access loss close editors and clear sensitive drafts/results.
-- [ ] Charts have labeled values and keyboard alternatives; unknown/negative/over-budget states never depend on color alone.
-- [ ] Required fields and errors are programmatically associated; invalid submit focuses the first invalid field. Icon-only actions have labels; pending/error outcomes are announced.
-- [ ] Desktop tables remain usable with keyboard and narrow-screen card alternatives; long names and large peso amounts do not obscure actions.
-- [ ] Verify light/dark themes and narrow/medium/wide viewports, including mobile navigation and notification-bell clearance. Keep motion minimal and honor reduced-motion preferences.
+- [x] Initial skeleton matches earnings summary, rows, tabs, and selected tab content rather than copying dashboard stat tiles. No misleading zero values while loading. (The placeholder now follows the selected tab and the loading state is asserted in the browser fixture.)
+- [x] Header actions remain visible but disabled until required report/ownership data is ready. (Toolbar actions stay visible and disabled until the report is ready; asserted with the no-properties state.)
+- [x] Separate no-properties state with a create-property action, access restriction, initial report failure with Retry, inline list/pagination failures, empty data, and missing plan/category states. (All are asserted in the browser fixture, including the missing plan and missing category states.)
+- [x] Missing finance table/RPC returns the existing deployment-needed support message; never substitute dummy data, fake totals, or the legacy revenue dashboard. (The fixture now answers a missing RPC like Postgres does, and the shared support message is asserted; no dummy figures appear.)
+- [x] Background refresh failure retains valid same-scope content with a visible retry notice. Page-count/pagination failures preserve already loaded rows. (Asserted: a failed refresh keeps the settled figures with a retry notice, and a failed page keeps the loaded rows.)
+- [x] Every modal has a heading, meaningful label, predictable Escape/backdrop behavior, focus trapping/restoration, scrollable body, and reachable footer. (Focus restoration to the opening row, blocked dismissal while busy, scrollable bodies and reachable footers are asserted.)
+- [x] Block dismissal/submission conflicts during save/delete/review. Confirmations do not create an uncontrolled stack of focus-trapping dialogs; return focus to the triggering editor action. (A pending save keeps its editor open and refuses Escape; only one dialog is ever open; focus returns to the trigger.)
+- [x] Use one active editor at a time. Account changes or access loss close editors and clear sensitive drafts/results. (One editor at a time is asserted, and account loss leaves no dialog and no figures.)
+- [x] Charts have labeled values and keyboard alternatives; unknown/negative/over-budget states never depend on color alone. (Chart points carry labels; over-budget plans say "Over budget" in text beside the colour.)
+- [x] Required fields and errors are programmatically associated; invalid submit focuses the first invalid field. Icon-only actions have labels; pending/error outcomes are announced. (An invalid submit focuses the first invalid field, errors are announced, and the date field pairs a real label with its control.)
+- [x] Desktop tables remain usable with keyboard and narrow-screen card alternatives; long names and large peso amounts do not obscure actions. (The collections ledger keeps its desktop table and narrow-screen cards; the drill-down rows wrap, and the sweep asserts no horizontal overflow at 390px.)
+- [x] Verify light/dark themes and narrow/medium/wide viewports, including mobile navigation and notification-bell clearance. Keep motion minimal and honor reduced-motion preferences. (The 390/768/1280 light/dark sweep with the overflow assertion now covers the report, both drill-downs and both editors; the drill-down controls stay clickable with the bell present, and the app's reduced-motion class is honored by the shared motion helpers.)
 
 ## 8. Continuous implementation sequence
 
@@ -412,10 +412,31 @@ Phase 5 verification: web lint/typecheck/build and the node tests (311 pass, add
 
 ### Phase 6 — Hardening and finish
 
-- [ ] Complete every empty/error/loading state, focus path, responsive layout, and account/role test.
-- [ ] Update ARCHITECTURE.md §12.1 and DESIGN.md §11 to document actual web parity and presentations; update AGENTS.md only for durable changed conventions. No token changes are expected.
-- [ ] Run all verification below, fix introduced regressions, and run `graphify update .` after implementation edits.
-- [ ] Re-read this plan and mobile source to confirm no feature/action was dropped. Report unresolved blockers explicitly instead of marking them complete.
+- [x] Complete every empty/error/loading state, focus path, responsive layout, and account/role test. (Every screen's states are now asserted in the browser fixture: the report's loading/access/no-properties/initial-failure/empty states, both drill-downs' loading/empty/error/not-found/missing-plan states, the Budget tab's two empty states, and the editors' invalid/pending/failure/success states. The report placeholder is now tab-aware (the skeleton follows the selected tab, plan §7). Focus paths are covered: an invalid submit focuses the first invalid field, closing an editor returns focus to the row that opened it, only one editor exists at a time, and a pending save keeps the editor open and refuses dismissal. The 390/768/1280 light/dark sweep, with the horizontal-overflow assertion, now covers the report, both drill-downs and both editors, and the drill-down controls stay clickable with the notification bell present. The account/role matrix covers another owner (their figures, never the previous owner's), mixed admin/landlord, admin-only, tenant-only and signed-out.)
+- [x] Update ARCHITECTURE.md §12.1 and DESIGN.md §11 to document actual web parity and presentations; update AGENTS.md only for durable changed conventions. No token changes are expected. (ARCHITECTURE.md §12.1 now carries the Phase 4 and Phase 5 web journeys; DESIGN.md's web finance section documents the Overview, Expenses and Budget presentations, and §11 points readers to it. AGENTS.md is unchanged: this work adds no new durable convention — the fixture's transport rules live in `apps/web/tests/finance/README.md`.)
+- [x] Run all verification below, fix introduced regressions, and run `graphify update .` after implementation edits. (Gates: web lint (only the five pre-existing hook warnings), typecheck, 311 node tests, production build; mobile lint and 148 Jest suites / 1,176 tests; population-command tests 18 pass with 2 opt-in database tests skipped; the browser fixture green over consecutive runs. `graphify update .` was re-run and, with the standing approval to force the pre-existing shrink-guard refusal, the graph was rebuilt at the current commit — 8,703 nodes, 21,536 edges, 580 communities, with every Phase 5 file indexed and the previous curated graph backed up to `graphify-out/2026-10-21/`.)
+- [x] Re-read this plan and mobile source to confirm no feature/action was dropped. Report unresolved blockers explicitly instead of marking them complete. (Every mobile finance surface was re-read against its web counterpart on 2026-10-21 — see the parity table below. The two items that cannot be completed in this environment are reported as blockers rather than ticked.)
+
+#### Mobile → web parity table (re-read 2026-10-21)
+
+| Mobile | Web | Status |
+|---|---|---|
+| `app/landlord/analytics.tsx` (tabs, add-expense, filters, guidelines, trend, collections, properties, needs attention) | `app/landlord/analytics/AnalyticsClient.tsx` + `components/` | mirrored |
+| `app/landlord/add-expense.tsx`, `FinanceEntrySheet` expense page | `components/ExpenseEditorModal.tsx` | one shared modal (§4.5) |
+| `app/landlord/category-expenses.tsx` | `app/landlord/analytics/category-expenses/` | mirrored (keyset pages, states) |
+| `app/landlord/add-budget.tsx`, `edit-budget.tsx`, `FinanceEntrySheet` budget page | `components/PlanBudgetModal.tsx` | one shared modal (§4.7) |
+| `app/landlord/budget-category.tsx` | `app/landlord/analytics/budget-category/` | mirrored |
+| `app/landlord/property-performance.tsx` | `app/landlord/analytics/property-performance/` | mirrored |
+| `BudgetProgressChart`, `BudgetProgressRow`, `ExpenseCategoryChart`, `ExpenseTransactionRow`, `CollectionHealthChart`, `CollectionLedgerSheet`, `IncomeTrendChart`, `PropertyPerformanceChart`, `PropertyPerformanceList`, `EarningsSummaryCard`, `FinanceFilterSheet`, `FinanceGuidelinesDialog`, `FinanceSkeleton` | `BudgetTab`, `BudgetProgressRow`, `ExpenseCategoryBars`, `ExpenseTransactionRow`, `CollectionHealth`, `CollectionLedgerModal`, `IncomeTrends`, `PropertyPerformance`, `EarningsSummary`, `FinanceFilterModal`, `FinanceGuidelinesModal`, `AnalyticsSkeleton` | mirrored |
+
+Accepted presentation differences (already decided in §4.5/§4.7 and re-confirmed): mobile's plan and expense **full pages** become **one web modal** each; mobile's pull-to-refresh becomes an explicit **Refresh** control; mobile's "Plan an emergency reserve" switches to the Budget tab and opens the form, while the web opens the preset form as an overlay over the current tab.
+
+Phase 6 verification: web lint/typecheck/build and 311 node tests pass; mobile lint and 148 Jest suites / 1,176 tests pass; population-command tests pass (18 pass, 2 opt-in database tests skipped); the browser fixture passes the new hardening block (missing-RPC support message, tab-aware loading state, focus paths, blocked dismissal while saving, the 390/768/1280 light/dark sweep of the four new surfaces with the overflow assertion, and the account/role matrix) over consecutive clean runs.
+
+#### Blockers (reported, not ticked)
+
+- **§9.2 local finance SQL regression** — `supabase/test-support/landlord-finances-bootstrap.sql` needs a disposable local PostgreSQL; the harness is opt-in and its two tests stay skipped in CI.
+- **§9.2 live same-account web/mobile comparison** — needs a real landlord account, a real property and a matching month on both platforms. The isolated browser fixture cannot stand in for it, so the plan's "identical outputs on web/mobile" acceptance remains open for an environment with real data.
 
 ## 9. Verification and acceptance
 
@@ -441,13 +462,13 @@ Also test oldest allowed month, shorter chart windows, leap days, due day 31, mo
 
 ### 9.2 Automated coverage
 
-- [ ] Web `node:test` coverage in `apps/web/lib/*.test.mjs` for shared helpers used by web, parameter parsing, report decoding, form rules, comparison/ranking, scoped refresh/race helpers, and pagination/idempotency behavior where dependency injection permits.
-- [ ] Keep shared Jest/fast-check finance tests passing; extend shared-rule tests for extracted behavior and preserve mobile finance component/screen/service tests.
-- [ ] Browser interaction checks for filters Apply/Reset/Cancel, indicator retry, URL/back navigation, every tab/action, forms/validation/deletion, review failure/retry, suggestions, pagination, focus, chart keyboard controls, and responsive/theme states.
-- [ ] If a browser-test runner is not already installed, use the available Playwright testing workflow without adding a permanent dependency silently; record runnable checks and clearly label any manual-only verification.
-- [ ] Test owner A versus owner B, mixed admin/landlord, landlord/tenant, admin-only, tenant-only, signed-out, suspended, sign-out/account switch while a read is pending, and access loss while an editor is open.
-- [ ] Run local finance SQL regression coverage if a disposable local database is available, especially if any shared backend change becomes necessary. Use `supabase/test-support/landlord-finances-bootstrap.sql` only in an empty disposable database, never a hosted project.
-- [ ] Compare web and mobile against the same authorized fixture account, report month/property, and data snapshot. Match every displayed amount and saved payload, not just a screenshot of the headline.
+- [x] Web `node:test` coverage in `apps/web/lib/*.test.mjs` for shared helpers used by web, parameter parsing, report decoding, form rules, comparison/ranking, scoped refresh/race helpers, and pagination/idempotency behavior where dependency injection permits. (311 node tests pass, covering the finance params (month/property/tab/category/budget-kind), the shared access rules, the pages controller's race/retry semantics and the shared money/date/suggestion rules.)
+- [x] Keep shared Jest/fast-check finance tests passing; extend shared-rule tests for extracted behavior and preserve mobile finance component/screen/service tests. (The 148 shared Jest suites and 1,176 tests pass unchanged; no shared rule was altered, so no new shared test was needed.)
+- [x] Browser interaction checks for filters Apply/Reset/Cancel, indicator retry, URL/back navigation, every tab/action, forms/validation/deletion, review failure/retry, suggestions, pagination, focus, chart keyboard controls, and responsive/theme states. (The fixture suite covers all of them, including the new focus paths, blocked dismissal, suggestions, pagination and the responsive/theme sweep of every new surface.)
+- [x] If a browser-test runner is not already installed, use the available Playwright testing workflow without adding a permanent dependency silently; record runnable checks and clearly label any manual-only verification. (`apps/web/tests/finance/README.md` documents the runnable Playwright workflow with temporary tooling and no permanent dependency; every check there is automated.)
+- [x] Test owner A versus owner B, mixed admin/landlord, landlord/tenant, admin-only, tenant-only, signed-out, suspended, sign-out/account switch while a read is pending, and access loss while an editor is open. (Owner A versus owner B, mixed admin/landlord, admin-only, tenant-only and signed-out are covered in the browser fixture, and the pure access rules cover suspension. Account switch while a read is pending, and access loss while an editor is open, are already asserted.)
+- [ ] Run local finance SQL regression coverage if a disposable local database is available, especially if any shared backend change becomes necessary. Use `supabase/test-support/landlord-finances-bootstrap.sql` only in an empty disposable database, never a hosted project. (Blocked: no disposable local PostgreSQL in this environment — no shared backend change was made, so the opt-in suite stays skipped; see the Phase 6 blockers.)
+- [ ] Compare web and mobile against the same authorized fixture account, report month/property, and data snapshot. Match every displayed amount and saved payload, not just a screenshot of the headline. (Blocked: needs a real landlord account, property and month on both platforms; the isolated browser fixture cannot stand in for it — see the Phase 6 blockers.)
 
 ### 9.3 Commands after implementation
 

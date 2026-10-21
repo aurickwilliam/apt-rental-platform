@@ -260,6 +260,10 @@ Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-c
 
 Standard anatomy (both platforms): surface bg, hairline border, no shadow, rounded, `p-4`.
 
+The web Profit & planning surfaces (Overview, Expenses, Budget, both drill-downs and the shared
+editors) are documented in "Landlord profit & planning (web Overview)" below; this section stays
+the shared card anatomy and the mobile finance cards.
+
 | Card | Spec |
 |---|---|
 | **ApartmentCard** (mobile ✅) | `bg-surface rounded-2xl border-border shadow-none`; square thumbnail; body `p-2 gap-2` grid / `p-3 gap-3` list; name `font-nunitoSemiBold text-base/xl`; location `text-muted text-[12px]/base`; price `text-accent font-nunitoSemiBold text-lg/xl`; `Verified` pill top-left (`bg-success-light`); favorite circle top-right (white/75) |

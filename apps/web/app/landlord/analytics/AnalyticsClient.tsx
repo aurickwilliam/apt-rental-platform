@@ -192,7 +192,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
       </div>
       {finance.userLoading || report.initialLoading ? (
         <div role="status" aria-label="Loading finance report">
-          <AnalyticsSkeleton />
+          <AnalyticsSkeleton tab={applied.tab} />
         </div>
       ) : !finance.enabled ? (
         <div className="py-12 text-center">

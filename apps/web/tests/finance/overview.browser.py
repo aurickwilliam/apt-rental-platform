@@ -20,6 +20,21 @@ def fixture_navigate(page, url):
         url,
     )
 
+
+def wait_for_modal(page):
+    """Wait until the open dialog is fully painted; HeroUI fades it in, and a
+    capture taken mid-fade shows a washed-out dialog."""
+    page.wait_for_function(
+        """() => {
+            const dialog = document.querySelector('[role=dialog]');
+            if (!dialog) return false;
+            for (let node = dialog; node; node = node.parentElement) {
+                if (parseFloat(getComputedStyle(node).opacity) < 0.99) return false;
+            }
+            return true;
+        }"""
+    )
+
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True)
     context = browser.new_context(viewport={"width": 1280, "height": 1000})
@@ -509,6 +524,126 @@ with sync_playwright() as playwright:
             page.evaluate("dark => document.documentElement.classList.toggle('dark', dark)", dark)
             page.screenshot(path=str(OUT / f"overview-{width}-{'dark' if dark else 'light'}.png"), full_page=True, animations="disabled")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow at {width}"
+
+    # A missing finance table or RPC shows the support message, never dummy data.
+    page.evaluate("financeTest.reportMissing = true")
+    page.get_by_role("button", name="Refresh", exact=True).click()
+    expect(
+        page.get_by_text("Finance tracking needs the latest database update")
+    ).to_be_visible()
+    page.evaluate("financeTest.reportMissing = false")
+    page.get_by_role("button", name="Retry report").click()
+    expect(page.get_by_role("button", name="Retry report")).to_have_count(0)
+
+    # The new surfaces get the same viewport and theme sweep as the report, and
+    # their controls stay clickable, so the notification bell cannot cover them.
+    for width in (390, 768, 1280):
+        page.set_viewport_size({"width": width, "height": 900})
+        for dark in (False, True):
+            theme = "dark" if dark else "light"
+            page.evaluate(
+                "dark => document.documentElement.classList.toggle('dark', dark)",
+                dark,
+            )
+            fixture_navigate(page, "/landlord/analytics/category-expenses?month=2026-10&category=maintenance")
+            expect(
+                page.get_by_role("heading", name="Maintenance & repairs", exact=True)
+            ).to_be_visible()
+            # Wait for the rows, so the capture shows the loaded surface.
+            expect(page.get_by_text("Turnover repaint", exact=True)).to_be_visible()
+            page.get_by_role("button", name="Refresh expenses", exact=True).click()
+            page.screenshot(path=str(OUT / f"expense-drilldown-{width}-{theme}.png"), full_page=True, animations="disabled")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow on the expense drill-down at {width}"
+            fixture_navigate(page, "/landlord/analytics/budget-category?month=2026-10&category=maintenance&kind=expense")
+            expect(
+                page.get_by_role("heading", name="Maintenance & repairs", exact=True)
+            ).to_be_visible()
+            expect(
+                page.get_by_role("button", name="Edit budget", exact=False).first
+            ).to_be_visible()
+            page.get_by_role("button", name="Refresh", exact=True).click()
+            page.screenshot(path=str(OUT / f"budget-drilldown-{width}-{theme}.png"), full_page=True, animations="disabled")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow on the budget drill-down at {width}"
+            # The plan editor opens from a row and stays usable at every width.
+            page.get_by_role("button", name="Edit budget", exact=False).first.click()
+            plan_editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+            expect(plan_editor).to_be_visible()
+            wait_for_modal(page)
+            page.screenshot(path=str(OUT / f"plan-editor-{width}-{theme}.png"), full_page=True, animations="disabled")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow in the plan editor at {width}"
+            plan_editor.get_by_role("button", name="Cancel", exact=True).click()
+            # The expense editor opens from a transaction row.
+            fixture_navigate(page, "/landlord/analytics/category-expenses?month=2026-10&category=maintenance")
+            page.get_by_role("button", name="Edit Turnover repaint", exact=False).first.click()
+            expense_editor = page.get_by_role("dialog", name="Edit expense", exact=True)
+            expect(expense_editor).to_be_visible()
+            wait_for_modal(page)
+            page.screenshot(path=str(OUT / f"expense-editor-{width}-{theme}.png"), full_page=True, animations="disabled")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Horizontal overflow in the expense editor at {width}"
+            expense_editor.get_by_role("button", name="Cancel", exact=True).click()
+
+    # A slow load shows the report's own loading state, and the placeholder
+    # follows the selected tab.
+    page.evaluate("financeTest.delay = 400")
+    fixture_navigate(page, "/landlord/analytics?month=2026-10&tab=budget")
+    expect(page.get_by_role("status", name="Loading finance report")).to_be_visible()
+    page.evaluate("financeTest.delay = 30")
+    expect(page.get_by_role("heading", name="Budget versus actual")).to_be_visible()
+
+    # One editor at a time; closing it returns focus to the row that opened it;
+    # an invalid submit focuses the first invalid field; a pending save keeps
+    # the editor open and refuses dismissal.
+    fixture_navigate(page, "/landlord/analytics/budget-category?month=2026-10&category=maintenance&kind=expense")
+    row = page.get_by_role("button", name="Edit budget", exact=False).first
+    row.click()
+    expect(page.get_by_role("dialog")).to_have_count(1)
+    editor = page.get_by_role("dialog", name="Edit budget", exact=True)
+    editor.get_by_label("Monthly spending limit", exact=False).fill("")
+    editor.get_by_role("button", name="Save budget", exact=True).click()
+    expect(
+        editor.get_by_text("Enter zero or a positive amount")
+    ).to_be_visible()
+    page.wait_for_function(
+        "() => document.activeElement?.getAttribute('placeholder') === '₱ 0'"
+    )
+    page.evaluate("financeTest.delay = 500")
+    editor.get_by_label("Monthly spending limit", exact=False).fill("2,000")
+    editor.get_by_role("button", name="Save budget", exact=True).click()
+    page.keyboard.press("Escape")
+    expect(editor).to_be_visible()
+    page.evaluate("financeTest.delay = 30")
+    expect(editor).to_have_count(0)
+    page.wait_for_function(
+        "() => (document.activeElement?.textContent ?? '').includes('Bayview')"
+    )
+
+    # Account and role matrix: figures follow the account, and roles decide
+    # access without leaking anything.
+    page.set_viewport_size({"width": 1280, "height": 1000})
+    fixture_navigate(page, "/landlord/analytics?month=2026-10")
+    page.get_by_role("tab", name="Overview", exact=True).click()
+    expect(summary).to_contain_text("₱ 50,000")
+    page.evaluate("financeTest.identity = {user: {id: 'auth-b'}, profile: {id: 'owner-b', roles: ['landlord']}, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(summary).to_contain_text("₱ 12,000")
+    expect(summary).not_to_contain_text("₱ 50,000")
+    # A mixed admin/landlord profile keeps landlord access.
+    page.evaluate("financeTest.identity = {user: {id: 'auth-b'}, profile: {id: 'owner-b', roles: ['admin', 'landlord']}, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(summary).to_contain_text("₱ 12,000")
+    # Admin-only and tenant-only profiles have no finance access at all.
+    page.evaluate("financeTest.identity = {user: {id: 'auth-b'}, profile: {id: 'owner-b', roles: ['admin']}, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(page.get_by_text("Switch to your landlord portal")).to_be_visible()
+    expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
+    page.evaluate("financeTest.identity = {user: {id: 'auth-b'}, profile: {id: 'owner-b', roles: ['tenant']}, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(page.get_by_text("Switch to your landlord portal")).to_be_visible()
+    expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
+    # Signed out: no figures, no editor.
+    page.evaluate("financeTest.identity = {user: null, profile: null, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(page.get_by_text("Switch to your landlord portal")).to_be_visible()
+    expect(page.get_by_role("dialog")).to_have_count(0)
+    # The original account keeps its own figures.
+    page.evaluate("financeTest.identity = {user: {id: 'auth-a'}, profile: {id: 'owner-a', roles: ['landlord']}, loading: false}; dispatchEvent(new Event('fixture-identity'))")
+    expect(summary).to_contain_text("₱ 50,000")
+
     page.evaluate("financeTest.noActivity = financeTest.noBillable = financeTest.noPlans = true")
     page.get_by_role("button", name="Refresh", exact=True).click()
     expect(page.get_by_role("heading", name="No income activity yet")).to_be_visible()
@@ -534,4 +669,4 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
     assert not failures, failures
     browser.close()
-    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states; budget sections, group rows, category drill-down, locked identity fields, goal suggestions, review-suggestion, repeated upserts, plan removal, unknown category/kind, and plan empty states.")
+    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states; budget sections, group rows, category drill-down, locked identity fields, goal suggestions, review-suggestion, repeated upserts, plan removal, unknown category/kind, and plan empty states; hardening: missing-RPC support message, tab-aware loading state, focus paths, blocked dismissal while saving, the drill-down and editor viewport × theme sweep, and the account and role matrix.")

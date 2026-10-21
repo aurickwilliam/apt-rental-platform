@@ -15,6 +15,8 @@ export const properties = [
 }));
 const state = (window.financeTest = {
   reportFail: false,
+  /** A missing finance table/RPC answers like Postgres does. */
+  reportMissing: false,
   indicatorFail: false,
   ledgerFail: false,
   reviewFail: false,
@@ -149,11 +151,19 @@ export async function fetchFinances(scope) {
   state.pendingReads += 1;
   await wait();
   state.pendingReads -= 1;
+  if (state.reportMissing) throw { code: "PGRST202" };
   if (fail) throw { code: "NETWORK" };
+  // Figures belong to the signed-in owner, so switching accounts must change
+  // them — the UI may never show the previous owner's numbers.
+  const owner = state.identity.profile?.id ?? "owner-a";
+  const ownerFigures =
+    owner === "owner-b"
+      ? { collected: 12000, operating: 4000 }
+      : { collected: 50000, operating: 11500 };
   const months = Array.from({ length: 12 }, (_, index) => ({
     month: shiftFinanceMonth(scope.month, index - 11),
-    collected: scope.apartmentId ? 9000 : 50000,
-    operating: scope.apartmentId ? 10000 : 11500,
+    collected: scope.apartmentId ? 9000 : ownerFigures.collected,
+    operating: scope.apartmentId ? 10000 : ownerFigures.operating,
     capital: 3000,
     reviewed,
   }));
