@@ -5,7 +5,7 @@ import { SkeletonGroup } from 'heroui-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
-import DropdownButton from 'components/buttons/DropdownButton';
+import NotificationFilterTabs from '@/app/(notification)/components/NotificationFilterTabs';
 import NotificationList from '@/app/(notification)/components/NotificationList';
 import { useNotifications, useNotificationActions } from '@/hooks/notifications';
 import { useCurrentUser } from '@/hooks/auth';
@@ -18,7 +18,7 @@ interface NotificationScreenProps {
 }
 
 export default function NotificationScreen({ title }: NotificationScreenProps) {
-  const [filterType, setFilterType] = useState<NotificationFilter>('All');
+  const [filterType, setFilterType] = useState<NotificationFilter>('all');
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
 
@@ -39,25 +39,13 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
       {loading ? (
         <View className="flex-row items-center justify-between gap-3">
           <SkeletonGroup isLoading isSkeletonOnly className="flex-1">
-            <SkeletonGroup.Item className="h-8 w-32 rounded-xl" />
+            <SkeletonGroup.Item className="h-8 w-36 rounded-full" />
           </SkeletonGroup>
         </View>
       ) : (
         <View className="flex-row items-center justify-between gap-3">
           <View className="flex-1">
-            <DropdownButton
-              value={filterType}
-              label={'Filter Notifications'}
-              options={[
-                'All',
-                'Payment',
-                'Message',
-                'Maintenance',
-                'Apartment',
-                'System'
-              ]}
-              onSelect={(value) => setFilterType(value as NotificationFilter)}
-            />
+            <NotificationFilterTabs value={filterType} onChange={setFilterType} />
           </View>
 
           {unreadCount > 0 && (

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { composeNotificationRowLabel, getNotificationRowPresentation } from "./notification-row.ts";
+import { composeNotificationRowLabel, getNotificationRowPresentation } from "../../../packages/utils/src/notificationRow.ts";
 
 test("composes a reaction row label from title, message, preview and unread state", () => {
   assert.equal(

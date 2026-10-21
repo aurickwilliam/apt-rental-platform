@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
-import * as rowHelpers from "./notification-row.ts";
+import * as rowHelpers from "../../../packages/utils/src/notificationRow.ts";
 import { getNotificationPreview } from "../../../packages/utils/src/notificationPreview.ts";
 
 const jsx = (type, props) => ({ type, props });
@@ -11,8 +11,7 @@ const exports = {};
 const modules = {
   "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
   "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
-  "@repo/utils": { getNotificationPreview, getRelativeTime: () => "Yesterday at 7:51 PM" },
-  "@/lib/notification-row": rowHelpers,
+  "@repo/utils": { ...rowHelpers, getNotificationPreview, getRelativeTime: () => "Yesterday at 7:51 PM" },
 };
 vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../app/components/notifications/NotificationRow.tsx", import.meta.url), "utf8"), {
   compilerOptions: { target: ts.ScriptTarget.ES2017, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
