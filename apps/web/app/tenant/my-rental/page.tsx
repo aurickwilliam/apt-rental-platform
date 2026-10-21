@@ -795,81 +795,83 @@ export default function MyRental() {
           </DashboardCard>
         </div>
 
-        <SignedLeaseCard
-          tenancyId={tenancy.id}
-          path={tenancy.signed_lease_path}
-          uploadedAt={tenancy.signed_lease_uploaded_at}
-          acknowledgedAt={tenancy.tenant_acknowledged_at}
-          onView={() => void handleViewSignedLease()}
-          viewing={viewingSignedLease}
-          onAcknowledged={() => {
-            toast.success("Lease confirmed");
-            void revalidate();
-          }}
-        />
-
-        <DashboardCard>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-nunito text-sm font-semibold text-card-foreground">
-              Maintenance
-            </h2>
-            <div className="flex items-center gap-2">
-              <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">
-                {openMaintenanceCount} open
-              </StatusChip>
-              <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">
-                View all
-              </Link>
-            </div>
-          </div>
-          {maintenanceLoading ? (
-            <div className="flex justify-center py-6">
-              <Spinner color="accent" />
-            </div>
-          ) : maintenanceError ? (
-            <p className="py-4 text-center font-inter text-xs text-danger">{maintenanceError}</p>
-          ) : maintenancePreview.length === 0 ? (
-            <p className="py-4 text-center font-inter text-xs text-muted-foreground">
-              No maintenance requests yet.
-            </p>
-          ) : (
-          <div className="space-y-0">
-            {maintenancePreview.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-wrap items-start gap-2.5 border-b border-border py-2.5 last:border-0 last:pb-0"
-              >
-                <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    item.status === "in_progress"
-                      ? "bg-amber-100/70 dark:bg-amber-900/40"
-                      : item.status === "resolved"
-                        ? "bg-green-100/70 dark:bg-green-900/40"
-                        : "bg-muted"
-                  }`}
-                >
-                  {item.status === "resolved" ? (
-                    <CheckCircle2 size={12} className="text-green-600" />
-                  ) : item.status === "in_progress" ? (
-                    <Wrench size={12} className="text-amber-600" />
-                  ) : (
-                    <Clock size={12} className="text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="break-words font-nunito text-sm font-semibold leading-tight text-card-foreground">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 font-inter text-xs text-muted-foreground">
-                    {item.subtitle}
-                  </p>
-                </div>
-                {maintenanceBadge(item.status)}
+        <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] items-stretch">
+          <DashboardCard>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-nunito text-sm font-semibold text-card-foreground">
+                Maintenance
+              </h2>
+              <div className="flex items-center gap-2">
+                <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">
+                  {openMaintenanceCount} open
+                </StatusChip>
+                <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">
+                  View all
+                </Link>
               </div>
-            ))}
-          </div>
-          )}
-        </DashboardCard>
+            </div>
+            {maintenanceLoading ? (
+              <div className="flex justify-center py-6">
+                <Spinner color="accent" />
+              </div>
+            ) : maintenanceError ? (
+              <p className="py-4 text-center font-inter text-xs text-danger">{maintenanceError}</p>
+            ) : maintenancePreview.length === 0 ? (
+              <p className="py-4 text-center font-inter text-xs text-muted-foreground">
+                No maintenance requests yet.
+              </p>
+            ) : (
+              <div className="space-y-0">
+                {maintenancePreview.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-wrap items-start gap-2.5 border-b border-border py-2.5 last:border-0 last:pb-0"
+                  >
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                        item.status === "in_progress"
+                          ? "bg-amber-100/70 dark:bg-amber-900/40"
+                          : item.status === "resolved"
+                            ? "bg-green-100/70 dark:bg-green-900/40"
+                            : "bg-muted"
+                      }`}
+                    >
+                      {item.status === "resolved" ? (
+                        <CheckCircle2 size={12} className="text-green-600" />
+                      ) : item.status === "in_progress" ? (
+                        <Wrench size={12} className="text-amber-600" />
+                      ) : (
+                        <Clock size={12} className="text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="break-words font-nunito text-sm font-semibold leading-tight text-card-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-0.5 font-inter text-xs text-muted-foreground">
+                        {item.subtitle}
+                      </p>
+                    </div>
+                    {maintenanceBadge(item.status)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </DashboardCard>
+
+          <SignedLeaseCard
+            tenancyId={tenancy.id}
+            path={tenancy.signed_lease_path}
+            uploadedAt={tenancy.signed_lease_uploaded_at}
+            acknowledgedAt={tenancy.tenant_acknowledged_at}
+            onView={() => void handleViewSignedLease()}
+            viewing={viewingSignedLease}
+            onAcknowledged={() => {
+              toast.success("Lease confirmed");
+              void refetch();
+            }}
+          />
+        </div>
 
         <DashboardCard>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">

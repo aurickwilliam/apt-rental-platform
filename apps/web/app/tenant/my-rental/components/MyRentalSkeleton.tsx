@@ -108,12 +108,35 @@ function TenancySkeleton() {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Sk className="h-4 w-28 rounded-lg" />
-          <Sk className="h-4 w-24 rounded-lg" />
+      <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] items-stretch">
+        <div className="min-w-0 space-y-3 rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Sk className="h-4 w-28 rounded-lg" />
+            <Sk className="h-4 w-24 rounded-lg" />
+          </div>
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div key={index} className="flex items-center gap-3 py-2">
+              <Sk className="size-7 shrink-0 rounded-lg" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Sk className="h-4 w-32 max-w-full rounded-lg" />
+                <Sk className="h-3 w-48 max-w-full rounded-lg" />
+              </div>
+              <Sk className="h-5 w-14 rounded-full" />
+            </div>
+          ))}
         </div>
-        <Sk className="mx-auto h-3 w-48 rounded-lg" />
+        <div className="min-w-0 space-y-4 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-start gap-3">
+            <Sk className="size-10 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Sk className="h-4 w-28 rounded-lg" />
+              <Sk className="h-3 w-full rounded-lg" />
+              <Sk className="h-3 w-3/4 rounded-lg" />
+            </div>
+          </div>
+          <Sk className="h-5 w-24 rounded-full" />
+          <Sk className="h-9 w-full rounded-full" />
+        </div>
       </div>
 
       <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
