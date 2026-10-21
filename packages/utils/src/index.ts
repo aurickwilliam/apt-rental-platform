@@ -115,3 +115,21 @@ export {
   groupNotificationsByLocalDate,
 } from './notificationOrder';
 export * from './tenancyBill';
+export {
+  MESSAGE_GROUP_WINDOW_MS,
+  type GroupableNotification,
+  type ChatMessageIdentity,
+  type NotificationFeedSingle,
+  type MessageGroupUnit,
+  type NotificationFeedUnit,
+  type NotificationGroupLabelParts,
+  getChatMessageIdentity,
+  groupNotificationFeed,
+  formatMessageGroupCount,
+  composeNotificationGroupLabel,
+} from './notificationGroups';
+export {
+  type NotificationRowLabelParts,
+  composeNotificationRowLabel,
+  getNotificationRowPresentation,
+} from './notificationRow';

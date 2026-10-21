@@ -30,8 +30,8 @@ const {
   formatMessageGroupCount,
   getChatMessageIdentity,
   groupNotificationFeed,
-} = load("./notification-groups.ts", {
-  "@repo/utils": { sortNotificationsNewestFirst },
+} = load(`${"../../../packages/utils/src/"}notificationGroups.ts`, {
+  "./notificationOrder": { sortNotificationsNewestFirst },
 });
 
 const SECOND = 1_000;

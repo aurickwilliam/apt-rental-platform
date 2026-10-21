@@ -1,13 +1,13 @@
 /**
  * Notification feed row composition.
  *
- * A web feed row is one button, so its accessible name has to spell out the
+ * A feed row (web drawer and mobile list) is one control, so its accessible name has to spell out the
  * text the row shows — sender/title, action, preview and timestamp — plus
  * unread state. Compact expanded members keep the sender in their accessible
  * name even though their visible identity is supplied by the parent summary.
  *
  * Kept pure and free of package imports so it runs under `node:test`
- * (`pnpm --filter web test`).
+ * (`pnpm --filter web test`) and the mobile Jest suite.
  */
 export interface NotificationRowLabelParts {
   title: string;

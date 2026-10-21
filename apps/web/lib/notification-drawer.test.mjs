@@ -85,8 +85,8 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     } });
     return exports;
   };
-  const notificationGroups = load("./notification-groups.ts", {
-    "@repo/utils": { sortNotificationsNewestFirst },
+  const notificationGroups = load("../../../packages/utils/src/notificationGroups.ts", {
+    "./notificationOrder": { sortNotificationsNewestFirst },
   });
   const chatAudience = load("./chat-notification-audience.ts", { "./notification-audience": audience });
   const resolvedRows = () => ownershipRecords === null ? serverRows
@@ -120,17 +120,16 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     "next/navigation": { useRouter: () => ({ push: href => { calls.pushes.push(href); } }) },
     "@heroui/react": { Button: "Button", Drawer: compound, Skeleton: "Skeleton", useOverlayState: state => state },
     "@tabler/icons-react": { IconBell: "IconBell", IconX: "IconX" },
-    "@repo/utils": { groupNotificationsByLocalDate },
-    "@/hooks/use-notifications": hook,
-    "@/lib/notification-fab-position": {},
-    "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
-    "@/lib/notification-groups": {
-      ...notificationGroups,
+    "@repo/utils": {
+      groupNotificationsByLocalDate,
       groupNotificationFeed: notifications => {
         calls.groupInputs.push([...notifications.map(notification => notification.id)]);
         return notificationGroups.groupNotificationFeed(notifications);
       },
     },
+    "@/hooks/use-notifications": hook,
+    "@/lib/notification-fab-position": {},
+    "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
     "@/lib/notification-links": drawerLinks,
     "./DraggableNotificationBell": { FAB_PLACEMENT_RESET_EVENT: "unused" },
     "./NotificationGroupRow": { default: "NotificationGroupRow" },
@@ -140,8 +139,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconChevronDown: "IconChevronDown", IconMessageCircle: "IconMessageCircle" },
-    "@repo/utils": { getRelativeTime: () => "Just now" },
-    "@/lib/notification-groups": notificationGroups,
+    "@repo/utils": { ...notificationGroups, getRelativeTime: () => "Just now" },
     "./NotificationRow": { default: "NotificationRow" },
   }).default;
   const nodes = element => {
