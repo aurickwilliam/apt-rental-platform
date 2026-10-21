@@ -3,51 +3,55 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button, Tabs } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { IconBook, IconChartBar, IconPlus } from "@tabler/icons-react";
 import {
-  IconChartBar,
-  IconFilter2,
-  IconPlus,
-  IconRefresh,
-} from "@tabler/icons-react";
-import {
+  financeCategoryLabel,
   financeMonthLabel,
   type BudgetKind,
   type CollectionStatus,
+  type ExpenseRecord,
   type FinanceBudget,
   type FinanceCategory,
   type FinanceScope,
 } from "@repo/utils";
 import {
   useFinanceAccess,
+  useFinanceExpenses,
   useLandlordFinances,
 } from "@/hooks/use-landlord-finances";
+import {
+  downloadCsv,
+  expensesCsvFilename,
+  expensesToCsv,
+} from "@/lib/landlord-finance-export";
 import {
   financeBudgetCategoryHref,
   financeCategoryHref,
   financeReportHref,
-  type FinanceTab,
   type LandlordFinanceRouteParams,
 } from "@/lib/landlord-finance-params";
 import AnalyticsSkeleton from "./components/AnalyticsSkeleton";
-import BudgetTab from "./components/BudgetTab";
+import { BudgetAside, BudgetMain } from "./components/BudgetTab";
 import EarningsSummary from "./components/EarningsSummary";
-import ExpenseEditorModal from "./components/ExpenseEditorModal";
-import ExpensesTab from "./components/ExpensesTab";
-import FinanceFilterModal from "./components/FinanceFilterModal";
+import ExpenseEditorDrawer from "./components/ExpenseEditorDrawer";
+import { ExpensesAside, ExpensesMain } from "./components/ExpensesTab";
 import FinanceGuidelinesModal from "./components/FinanceGuidelinesModal";
 import CollectionLedgerModal from "./components/CollectionLedgerModal";
-import Overview from "./components/Overview";
-import PlanBudgetModal from "./components/PlanBudgetModal";
+import NeedsAttention from "./components/NeedsAttention";
+import { OverviewAside, OverviewMain } from "./components/Overview";
+import PlanBudgetDrawer from "./components/PlanBudgetDrawer";
+import ReportControls from "./components/ReportControls";
 
 interface AnalyticsClientProps {
   params: LandlordFinanceRouteParams;
   currentMonth: string;
 }
 type Overlay =
-  | { scope: string; kind: "filters" | "guidelines" | "reserve" }
+  | { scope: string; kind: "guidelines" | "reserve" }
   | { scope: string; kind: "collections"; status: CollectionStatus }
   | { scope: string; kind: "expenseCreate" }
+  | { scope: string; kind: "expenseEdit"; initial: ExpenseRecord }
   | {
       scope: string;
       kind: "budget";
@@ -66,6 +70,8 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
   const [applied, setApplied] = useOptimistic(params);
   const [navigating, startNavigation] = useTransition();
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [expenseCategory, setExpenseCategory] =
+    useState<FinanceCategory | null>(null);
   const scope: FinanceScope = {
     month: applied.month,
     apartmentId: applied.apartmentId,
@@ -79,26 +85,32 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
   const { report } = finance;
   const { data } = report;
   const available = report.hasData && !!data.months.length;
+  const expenses = useFinanceExpenses(
+    finance.ownerId,
+    scope,
+    expenseCategory,
+    Boolean(finance.ownerId) && available && applied.tab === "expenses",
+  );
   const selectedProperty = data.properties.find(
     (property) => property.id === applied.apartmentId,
   );
   const propertyName = applied.apartmentId
     ? (selectedProperty?.name ?? "Selected property")
     : "All properties";
-  const filterCount =
-    Number(applied.apartmentId !== null) +
-    Number(applied.month !== currentMonth);
   const activeOverlay = overlay?.scope === scopeKey ? overlay : null;
   const close = () => setOverlay(null);
-  const open = (
-    kind: "filters" | "guidelines" | "reserve" | "expenseCreate",
-  ) => {
+  const open = (kind: "guidelines" | "reserve" | "expenseCreate") => {
     if (kind === "reserve") finance.savingBudget.clearError();
     if (kind === "expenseCreate") {
       finance.savingExpense.clearError();
       finance.removingExpense.clearError();
     }
     setOverlay({ kind, scope: scopeKey });
+  };
+  const openExpenseEdit = (initial: ExpenseRecord) => {
+    finance.savingExpense.clearError();
+    finance.removingExpense.clearError();
+    setOverlay({ kind: "expenseEdit", scope: scopeKey, initial });
   };
   /** One plan form for create and edit, mirroring mobile's budget entry page. */
   const openBudget = (
@@ -130,11 +142,23 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
       );
     });
   };
-  const expenses = (month?: string) =>
+  const goToExpenses = (month?: string) =>
     navigate({ tab: "expenses", ...(month ? { month } : {}) });
+  const propertyLabel = (id: string) =>
+    data.properties.find((property) => property.id === id)?.name ?? "Property";
+  const exportExpenses = () =>
+    downloadCsv(
+      expensesCsvFilename(scope.month, selectedProperty?.name ?? null),
+      expensesToCsv(expenses.rows, {
+        category: financeCategoryLabel,
+        property: propertyLabel,
+      }),
+    );
+  const onBudgetTab = applied.tab === "budget";
+  const ready = available && !!data.properties.length && !navigating;
   return (
-    <div className="finance-report mx-auto max-w-7xl space-y-5 p-4 md:p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="finance-report mx-auto max-w-7xl space-y-4 p-4 md:p-6">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <IconChartBar size={28} aria-hidden />
@@ -145,51 +169,35 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
           <Button
             variant="outline"
             size="sm"
-            isDisabled={!finance.enabled || report.loading || navigating}
-            isPending={report.refreshing}
-            onPress={() => void report.refresh()}
+            isDisabled={!available || navigating}
+            onPress={() => open("guidelines")}
           >
-            <IconRefresh size={16} aria-hidden />
-            Refresh
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            isDisabled={!available || !data.properties.length || navigating}
-            aria-expanded={activeOverlay?.kind === "filters"}
-            aria-label={`Filters${filterCount ? ` (${filterCount})` : ""}, ${propertyName}, ${financeMonthLabel(applied.month)}`}
-            onPress={() => open("filters")}
-          >
-            <IconFilter2 size={16} aria-hidden />
-            Filters
-            {filterCount ? (
-              <span className="rounded-full bg-secondary px-2 text-secondary-foreground">
-                {filterCount}
-              </span>
-            ) : null}
+            <IconBook size={16} aria-hidden />
+            Guidelines
           </Button>
           <Button
             size="sm"
-            isDisabled={!available || !data.properties.length || navigating}
-            onPress={() => open("expenseCreate")}
+            isDisabled={!ready}
+            onPress={() => (onBudgetTab ? openBudget() : open("expenseCreate"))}
           >
             <IconPlus size={16} aria-hidden />
-            Add expense
+            {onBudgetTab ? "Add budget" : "Add expense"}
           </Button>
         </div>
       </header>
-      <div aria-live="polite">
-        {applied.apartmentId ? (
-          <p className="text-xs text-muted-foreground">Filtered property</p>
-        ) : null}
-        <h2 className="font-nunito text-lg font-bold">{propertyName}</h2>
-        <p
-          className="mt-1 text-sm text-muted-foreground"
-          aria-label={`Report month: ${financeMonthLabel(applied.month)}`}
-        >
-          {financeMonthLabel(applied.month)}
-        </p>
-      </div>
+      <ReportControls
+        properties={data.properties}
+        scope={scope}
+        currentMonth={currentMonth}
+        tab={applied.tab}
+        disabled={!available || navigating}
+        refreshing={report.refreshing}
+        onChange={navigate}
+        onRefresh={() => void report.refresh()}
+      />
+      <p className="sr-only" aria-live="polite">
+        {propertyName}, {financeMonthLabel(applied.month)}
+      </p>
       {finance.userLoading || report.initialLoading ? (
         <div role="status" aria-label="Loading finance report">
           <AnalyticsSkeleton tab={applied.tab} />
@@ -260,115 +268,133 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               Refreshing report…
             </p>
           ) : null}
-          <EarningsSummary
-            data={data}
-            month={applied.month}
-            currentMonth={currentMonth}
-            onReview={() => expenses()}
-            onGuidelines={() => open("guidelines")}
-          />
-          <Tabs
-            selectedKey={applied.tab}
-            onSelectionChange={(key) =>
-              navigate({ tab: String(key) as FinanceTab })
-            }
+          <div
+            role="tabpanel"
+            aria-label={`${applied.tab} report`}
+            className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:items-start"
           >
-            <Tabs.ListContainer>
-              <Tabs.List aria-label="Finance report tabs">
-                <Tabs.Tab id="overview">
-                  <span>Overview</span>
-                  <Tabs.Indicator />
-                </Tabs.Tab>
-                <Tabs.Tab id="expenses">
-                  <span>Expenses</span>
-                  <Tabs.Indicator />
-                </Tabs.Tab>
-                <Tabs.Tab id="budget">
-                  <span>Budget</span>
-                  <Tabs.Indicator />
-                </Tabs.Tab>
-              </Tabs.List>
-            </Tabs.ListContainer>
-            <Tabs.Panel id="overview" className="pt-5">
-              <Overview
-                data={data}
-                onExpenses={expenses}
-                onBudgets={() => navigate({ tab: "budget" })}
-                onReserve={() => open("reserve")}
-                onCollection={(status) =>
-                  setOverlay({ kind: "collections", status, scope: scopeKey })
-                }
-                onProperty={(id) => navigate({ apartmentId: id })}
-                onViewAll={() =>
-                  router.push(
-                    financeReportHref(
-                      search.toString(),
-                      applied,
-                      "/landlord/analytics/property-performance",
-                    ),
-                  )
-                }
-              />
-            </Tabs.Panel>
-            <Tabs.Panel id="expenses" className="pt-5">
-              <ExpensesTab
-                data={data}
-                scope={scope}
-                onSelectCategory={(category) =>
-                  router.push(
-                    financeCategoryHref(
-                      applied.month,
-                      applied.apartmentId,
-                      category,
-                    ),
-                    { scroll: false },
-                  )
-                }
-                onReview={finance.reviewExpenses}
-                reviewing={finance.reviewing}
-              />
-            </Tabs.Panel>
-            <Tabs.Panel id="budget" className="pt-5">
-              <BudgetTab
-                data={data}
-                properties={data.properties}
-                onSelectGroup={(category, kind) =>
-                  router.push(
-                    financeBudgetCategoryHref(
-                      applied.month,
-                      applied.apartmentId,
-                      category,
-                      kind,
-                    ),
-                    { scroll: false },
-                  )
-                }
-                onCreate={(presetCategory, presetKind) =>
-                  openBudget({ presetCategory, presetKind })
-                }
-                onEdit={(budget, suggestedAmount) =>
-                  openBudget({ initial: budget, suggestedAmount })
-                }
-              />
-            </Tabs.Panel>
-          </Tabs>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-brand underline"
-            onPress={() => open("guidelines")}
-          >
-            Planning guidelines
-          </Button>
-          {activeOverlay?.kind === "filters" ? (
-            <FinanceFilterModal
-              applied={scope}
-              currentMonth={currentMonth}
-              properties={data.properties}
-              onClose={close}
-              onApply={(next) => navigate(next)}
-            />
-          ) : null}
+            <div className="max-lg:contents flex min-w-0 flex-col gap-4">
+              <div className="order-2 min-w-0">
+                <EarningsSummary
+                  data={data}
+                  month={applied.month}
+                  currentMonth={currentMonth}
+                  onReview={() => goToExpenses()}
+                  onGuidelines={() => open("guidelines")}
+                />
+              </div>
+              <div className="order-3 flex min-w-0 flex-col gap-4">
+                {applied.tab === "overview" ? (
+                  <OverviewMain
+                    data={data}
+                    onExpenses={goToExpenses}
+                    onProperty={(id) => navigate({ apartmentId: id })}
+                    onViewAll={() =>
+                      router.push(
+                        financeReportHref(
+                          search.toString(),
+                          applied,
+                          "/landlord/analytics/property-performance",
+                        ),
+                      )
+                    }
+                  />
+                ) : null}
+                {applied.tab === "expenses" ? (
+                  <ExpensesMain
+                    data={data}
+                    scope={scope}
+                    expenses={expenses}
+                    category={expenseCategory}
+                    onCategoryChange={setExpenseCategory}
+                    onEdit={openExpenseEdit}
+                    onExport={exportExpenses}
+                    onReview={finance.reviewExpenses}
+                    reviewing={finance.reviewing}
+                  />
+                ) : null}
+                {applied.tab === "budget" ? (
+                  <BudgetMain
+                    data={data}
+                    properties={data.properties}
+                    onSelectGroup={(category, kind) =>
+                      router.push(
+                        financeBudgetCategoryHref(
+                          applied.month,
+                          applied.apartmentId,
+                          category,
+                          kind,
+                        ),
+                        { scroll: false },
+                      )
+                    }
+                    onCreate={(presetCategory, presetKind) =>
+                      openBudget({ presetCategory, presetKind })
+                    }
+                    onEdit={(budget, suggestedAmount) =>
+                      openBudget({ initial: budget, suggestedAmount })
+                    }
+                  />
+                ) : null}
+              </div>
+            </div>
+            <div className="max-lg:contents flex min-w-0 flex-col gap-4">
+              <div className="order-1 min-w-0">
+                <NeedsAttention
+                  data={data}
+                  month={applied.month}
+                  onCollection={(status) =>
+                    setOverlay({ kind: "collections", status, scope: scopeKey })
+                  }
+                  onExpenses={() => goToExpenses()}
+                  onBudgets={() => navigate({ tab: "budget" })}
+                  onReserve={() => open("reserve")}
+                />
+              </div>
+              <div className="order-4 flex min-w-0 flex-col gap-4">
+                {applied.tab === "overview" ? (
+                  <OverviewAside
+                    data={data}
+                    onBudgets={() => navigate({ tab: "budget" })}
+                    onCollection={(status) =>
+                      setOverlay({
+                        kind: "collections",
+                        status,
+                        scope: scopeKey,
+                      })
+                    }
+                  />
+                ) : null}
+                {applied.tab === "expenses" ? (
+                  <ExpensesAside
+                    data={data}
+                    onSelectCategory={(category) =>
+                      router.push(
+                        financeCategoryHref(
+                          applied.month,
+                          applied.apartmentId,
+                          category,
+                        ),
+                        { scroll: false },
+                      )
+                    }
+                  />
+                ) : null}
+                {applied.tab === "budget" ? (
+                  <BudgetAside
+                    data={data}
+                    properties={data.properties}
+                    onCreate={(presetCategory, presetKind) =>
+                      openBudget({ presetCategory, presetKind })
+                    }
+                    onEdit={(budget, suggestedAmount) =>
+                      openBudget({ initial: budget, suggestedAmount })
+                    }
+                  />
+                ) : null}
+              </div>
+            </div>
+          </div>
           {activeOverlay?.kind === "guidelines" ? (
             <FinanceGuidelinesModal onClose={close} />
           ) : null}
@@ -381,7 +407,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
             />
           ) : null}
           {activeOverlay?.kind === "reserve" ? (
-            <PlanBudgetModal
+            <PlanBudgetDrawer
               scope={scope}
               properties={data.properties}
               presetCategory="emergency"
@@ -391,19 +417,41 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
               onClose={close}
             />
           ) : null}
-          {activeOverlay?.kind === "expenseCreate" ? (
-            <ExpenseEditorModal
+          {activeOverlay?.kind === "expenseCreate" ||
+          activeOverlay?.kind === "expenseEdit" ? (
+            <ExpenseEditorDrawer
               month={scope.month}
               properties={data.properties}
               apartmentId={scope.apartmentId}
+              initial={
+                activeOverlay.kind === "expenseEdit"
+                  ? activeOverlay.initial
+                  : undefined
+              }
               saving={finance.savingExpense}
               removing={finance.removingExpense}
-              onSave={finance.saveExpense}
+              onSave={async (draft, editing) => {
+                const ok = await finance.saveExpense(draft, editing);
+                // The report reloads itself after a write; the visible list
+                // refreshes through its own handle.
+                if (ok && applied.tab === "expenses") void expenses.refresh();
+                return ok;
+              }}
+              onDelete={
+                activeOverlay.kind === "expenseEdit"
+                  ? async (id) => {
+                      const ok = await finance.removeExpense(id);
+                      if (ok && applied.tab === "expenses")
+                        void expenses.refresh();
+                      return ok;
+                    }
+                  : undefined
+              }
               onClose={close}
             />
           ) : null}
           {activeOverlay?.kind === "budget" ? (
-            <PlanBudgetModal
+            <PlanBudgetDrawer
               scope={scope}
               properties={data.properties}
               presetCategory={activeOverlay.presetCategory}

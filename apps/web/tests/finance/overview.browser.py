@@ -4,6 +4,7 @@ Run after build-fixture.mjs using webapp-testing/scripts/with_server.py.
 FINANCE_BROWSER_URL defaults to http://127.0.0.1:4387.
 """
 import os
+import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
@@ -19,6 +20,10 @@ def fixture_navigate(page, url):
         "u => { history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }",
         url,
     )
+
+
+def property_trigger_for(page):
+    return page.get_by_role("button", name=re.compile(r"Property$"))
 
 
 def wait_for_modal(page):
@@ -51,6 +56,21 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("button", name="Review budgets over their limits")).to_be_visible()
     summary = page.get_by_role("region", name="Earnings summary")
     expect(summary).to_contain_text("₱ 50,000")
+    # Layout: Add expense is the rightmost header action, the scope controls sit
+    # left of the tabs, and the earnings summary shares the Income trends width
+    # while Needs attention heads the right column.
+    box = lambda locator: locator.bounding_box()
+    guidelines_box = box(page.get_by_role("button", name="Guidelines", exact=True))
+    add_box = box(page.get_by_role("button", name="Add expense", exact=True))
+    assert add_box["x"] > guidelines_box["x"]
+    assert add_box["x"] + add_box["width"] > guidelines_box["x"] + guidelines_box["width"]
+    assert box(property_trigger_for(page))["x"] < box(page.get_by_role("tablist", name="Finance report tabs"))["x"]
+    trends = page.get_by_role("heading", name="Income trends").locator("xpath=ancestor::*[contains(@class,'finance-card')][1]")
+    assert abs(box(summary)["width"] - box(trends)["width"]) <= 1
+    attention = page.get_by_role("heading", name="Needs attention").locator("xpath=ancestor::*[contains(@class,'finance-card')][1]")
+    assert box(attention)["x"] > box(summary)["x"] + box(summary)["width"]
+    assert abs(box(attention)["y"] - box(summary)["y"]) <= 1
+    expect(page.get_by_label("4 open items")).to_be_visible()
     expect(summary).to_contain_text("Not calculated")
     expect(page.get_by_text("₱ 70,000", exact=True)).to_be_visible()
     # Cash receipts deliberately differ from billing-period collections.
@@ -63,50 +83,60 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("button", name="How these figures are calculated")).to_be_focused()
     page.get_by_role("button", name="Hide breakdown").click()
 
-    def filters():
-        page.get_by_role("button", name="Filters", exact=False).first.click()
-        return page.get_by_role("dialog", name="Filters", exact=True)
+    def property_trigger():
+        # The select's accessible name is its value followed by its label.
+        return page.get_by_role("button", name=re.compile(r"Property$"))
 
-    dialog = filters()
-    dialog.get_by_role("searchbox").fill("GARDEN")
-    expect(dialog.get_by_role("button", name="Property: Garden Court")).to_be_visible()
-    expect(dialog.get_by_role("button", name="Property: Bayview")).to_have_count(0)
-    dialog.get_by_role("button", name="Property: Garden Court").click()
-    dialog.get_by_role("tab", name="Month", exact=True).click()
-    dialog.get_by_role("button", name="Month: September 2026", exact=False).click()
-    expect(page.get_by_role("heading", name="All properties", exact=True)).to_be_visible()
-    dialog.get_by_role("button", name="Cancel", exact=True).click()
-    dialog = filters()
-    expect(dialog.get_by_role("searchbox")).to_have_value("")
-    expect(dialog.get_by_role("button", name="Property: All properties")).to_have_attribute("aria-pressed", "true")
-    dialog.get_by_role("button", name="Property: Bayview").click()
-    dialog.get_by_role("tab", name="Month", exact=True).click()
-    dialog.get_by_role("button", name="Month: September 2026", exact=False).click()
-    dialog.get_by_role("button", name="Apply filters").click()
-    expect(page.get_by_role("heading", name="Bayview", exact=True)).to_be_visible()
-    expect(summary).to_contain_text("September 2026")
-    assert "notifications=open" in page.url and "settings=security" in page.url
+    def month_trigger():
+        return page.get_by_role("button", name=re.compile(r"^Report month:"))
+
+    def choose_property(name):
+        property_trigger().click()
+        page.get_by_role("option", name=name, exact=True).click()
+
+    def open_months():
+        month_trigger().click()
+        return page.get_by_role("dialog", name="Choose report month", exact=True)
+
+    # The header Guidelines button opens the same dialog and takes focus back.
+    page.get_by_role("button", name="Guidelines", exact=True).click()
+    header_guidelines = page.get_by_role("dialog", name="Profit & planning guidelines")
+    expect(header_guidelines).to_be_visible()
+    header_guidelines.get_by_role("button", name="Got it").click()
+    expect(page.get_by_role("button", name="Guidelines", exact=True)).to_be_focused()
+
+    # Scope controls apply at once and live in the URL, beside other params.
+    property_trigger().click()
+    expect(page.get_by_role("option", name="Garden Court", exact=True)).to_be_visible()
+    page.get_by_role("option", name="Bayview", exact=True).click()
+    expect(property_trigger()).to_contain_text("Bayview")
     expect(summary).to_contain_text("₱ 9,000")
+    assert "notifications=open" in page.url and "settings=security" in page.url
+    open_months().get_by_role("button", name="Month: September 2026", exact=False).click()
+    expect(month_trigger()).to_have_attribute("aria-label", "Report month: September 2026")
+    expect(summary).to_contain_text("September 2026")
     page.go_back()
-    expect(page.get_by_role("heading", name="All properties", exact=True)).to_be_visible()
+    expect(month_trigger()).to_have_attribute("aria-label", "Report month: October 2026")
+    page.go_back()
+    expect(property_trigger()).to_contain_text("All properties")
     expect(summary).to_contain_text("₱ 50,000")
 
-    # Failed indicators must not block choosing a month; Reset is draft-only.
+    # Failed indicators must not block choosing a month.
     page.evaluate("financeTest.indicatorFail = true")
-    dialog = filters()
-    dialog.get_by_role("tab", name="Month", exact=True).click()
-    expect(dialog.get_by_role("button", name="Retry rent indicators")).to_be_visible()
-    expect(dialog.get_by_role("button", name="Month: September 2026, rent data unavailable")).to_be_enabled()
+    months = open_months()
+    expect(months.get_by_role("button", name="Retry rent indicators")).to_be_visible()
+    expect(months.get_by_role("button", name="Month: September 2026, rent data unavailable")).to_be_enabled()
     page.evaluate("financeTest.indicatorFail = false")
-    dialog.get_by_role("button", name="Retry rent indicators").click()
-    expect(dialog.get_by_role("button", name="Month: October 2026, rent collected")).to_be_visible()
-    dialog.get_by_role("button", name="Previous year").click()
-    dialog.get_by_role("button", name="Previous year").click()
-    expect(dialog.get_by_role("button", name="Month: October 2024, outside report range")).to_be_disabled()
-    expect(dialog.get_by_role("button", name="Month: November 2024", exact=False)).to_be_enabled()
-    dialog.get_by_role("button", name="Reset", exact=True).click()
+    months.get_by_role("button", name="Retry rent indicators").click()
+    expect(months.get_by_role("button", name="Month: October 2026, rent collected")).to_be_visible()
+    months.get_by_role("button", name="Previous year").click()
+    months.get_by_role("button", name="Previous year").click()
+    expect(months.get_by_role("button", name="Month: October 2024, outside report range")).to_be_disabled()
+    expect(months.get_by_role("button", name="Month: November 2024", exact=False)).to_be_enabled()
+    # Disabling the year stepper drops its focus; Escape needs focus inside.
+    months.get_by_role("button", name="Month: November 2024", exact=False).focus()
     page.keyboard.press("Escape")
-    expect(dialog).to_have_count(0)
+    expect(months).to_have_count(0)
 
     # Trend controls: six-month default, keyboard month selection, one series retained.
     expect(page.get_by_role("button", name="6M", exact=True)).to_have_attribute("aria-pressed", "true")
@@ -122,9 +152,7 @@ with sync_playwright() as playwright:
     page.get_by_role("button", name="View expenses for this month").click()
     assert "month=2026-08" in page.url and "tab=expenses" in page.url
     page.get_by_role("tab", name="Overview", exact=True).click()
-    dialog = filters()
-    dialog.get_by_role("button", name="Reset", exact=True).click()
-    dialog.get_by_role("button", name="Apply filters", exact=True).click()
+    open_months().get_by_role("button", name="Month: October 2026", exact=False).click()
     expect(summary).to_contain_text("October 2026")
 
     # Status tabs, correct amounts, paging errors retain rows and can retry.
@@ -150,7 +178,7 @@ with sync_playwright() as playwright:
     page.set_viewport_size({"width": 1280, "height": 1000})
 
     # Reserve action is preset and only writes on valid Save; errors keep draft.
-    page.get_by_role("button", name="Plan an emergency reserve", exact=True).click()
+    page.get_by_role("button", name="Plan an emergency reserve").click()
     reserve = page.get_by_role("dialog", name="Plan a budget", exact=True)
     expect(reserve.get_by_role("button", name="Emergency reserve Category", exact=True)).to_be_visible()
     reserve.get_by_role("button", name="Save budget", exact=True).click()
@@ -178,24 +206,34 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("button", name="Retry report")).to_have_count(0)
 
     # A failed new scope must never display old-scope amounts under new labels.
-    dialog = filters()
-    dialog.get_by_role("button", name="Property: Bayview").click()
     page.evaluate("financeTest.reportFail = true")
-    dialog.get_by_role("button", name="Apply filters", exact=True).click()
+    choose_property("Bayview")
     expect(page.get_by_role("heading", name="Couldn’t load your finances")).to_be_visible()
     expect(summary).to_have_count(0)
     page.evaluate("financeTest.reportFail = false")
     page.get_by_role("button", name="Try again", exact=True).click()
     expect(summary).to_contain_text("₱ 9,000")
-    dialog = filters()
-    dialog.get_by_role("button", name="Reset", exact=True).click()
-    dialog.get_by_role("button", name="Apply filters", exact=True).click()
+    choose_property("All properties")
+    expect(summary).to_contain_text("₱ 50,000")
+
+    # The property table sorts by column and a row focuses the whole report.
+    performance = page.get_by_role("grid", name="Property performance")
+    expect(performance.get_by_role("row")).to_have_count(4)
+    performance.get_by_role("columnheader", name="Expenses").click()
+    expect(performance.get_by_role("row").nth(1)).to_contain_text("River Place")
+    performance.get_by_role("columnheader", name="Expenses").click()
+    expect(performance.get_by_role("row").nth(1)).to_contain_text("Bayview")
+    performance.get_by_role("row", name="Bayview", exact=False).click()
+    expect(property_trigger()).to_contain_text("Bayview")
+    expect(summary).to_contain_text("₱ 9,000")
+    choose_property("All properties")
     expect(summary).to_contain_text("₱ 50,000")
 
     page.get_by_role("button", name="View all 4 properties").click()
     expect(page.get_by_role("heading", name="Property performance", exact=True).first).to_be_visible()
-    page.get_by_role("button", name="Net income", exact=True).click()
-    expect(page.get_by_role("button", name="Bayview, net, expenses not reviewed. Filter this property.")).to_be_visible()
+    full_table = page.get_by_role("grid", name="Property performance")
+    full_table.get_by_role("columnheader", name="Net income").click()
+    expect(full_table.get_by_role("row", name="Bayview", exact=False)).to_contain_text("Not reviewed")
     page.get_by_role("link", name="Back to report").click()
 
     # Review failure retains dialog; success enables net charts and negative labels.
@@ -213,13 +251,41 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("heading", name="Net operating income", exact=True)).to_be_visible()
     expect(page.get_by_role("button", name="Toggle net", exact=True)).to_be_enabled()
     page.get_by_role("button", name="Toggle net", exact=True).click()
-    page.get_by_role("button", name="Net income", exact=True).click()
-    expect(page.get_by_role("button", name="Bayview, net, −₱ 1,000. Filter this property.")).to_be_visible()
+    expect(
+        page.get_by_role("grid", name="Property performance").get_by_role("row", name="Bayview", exact=False)
+    ).to_contain_text("−₱ 1,000")
 
     # Expenses tab: review card mirrors the shared copy; category bars open
     # the drill-down route for the applied scope.
     page.get_by_role("tab", name="Expenses", exact=True).click()
     expect(page.get_by_role("heading", name="Expenses reviewed", exact=True)).to_be_visible()
+    # The month's transactions sit beside the category bars, paged by keyset.
+    transactions = page.get_by_role("grid", name="Expense transactions")
+    expect(transactions).to_contain_text("Turnover repaint")
+    expect(transactions).to_contain_text("Garden Court · Improvement / replacement")
+    expect(transactions).not_to_contain_text("Kitchen sink repair")
+    page.get_by_role("button", name="Load more expenses", exact=True).click()
+    expect(transactions).to_contain_text("Kitchen sink repair")
+    with page.expect_download() as download:
+        page.get_by_role("button", name="Export CSV").click()
+    assert download.value.suggested_filename == "expenses-2026-10-all-properties.csv"
+    csv = Path(download.value.path()).read_text(encoding="utf-8-sig")
+    assert csv.splitlines()[0] == "Paid,Property,Category,Treatment,Description,Amount"
+    assert "Kitchen sink repair" in csv and "4000.00" in csv
+    # The category filter narrows the list on the server and empties cleanly.
+    page.get_by_role("button", name=re.compile(r"Category$")).click()
+    page.get_by_role("option", name="Insurance", exact=True).click()
+    expect(page.get_by_role("heading", name="No expenses in this category")).to_be_visible()
+    expect(page.get_by_role("button", name="Export CSV")).to_be_disabled()
+    page.get_by_role("button", name=re.compile(r"Category$")).click()
+    page.get_by_role("option", name="All categories", exact=True).click()
+    expect(page.get_by_role("grid", name="Expense transactions")).to_contain_text("Turnover repaint")
+    # A row opens the same drawer as the drill-down; Cancel keeps the row.
+    page.get_by_role("row", name="Turnover repaint", exact=False).click()
+    row_editor = page.get_by_role("dialog", name="Edit expense", exact=True)
+    expect(row_editor).to_be_visible()
+    row_editor.get_by_role("button", name="Cancel", exact=True).click()
+    expect(row_editor).to_have_count(0)
     bar = page.get_by_role("button", name="Maintenance & repairs, ₱ 14,500, 100 percent").first
     expect(bar).to_be_visible()
     expect(bar).to_contain_text("Previous comparable period:")
@@ -355,27 +421,38 @@ with sync_playwright() as playwright:
     page.get_by_role("tab", name="Budget", exact=True).click()
     expect(page.get_by_role("heading", name="Budget versus actual")).to_be_visible()
     expect(page.get_by_role("heading", name="Planned reserves")).to_be_visible()
+    # The header action follows the tab and opens the plan drawer.
+    page.get_by_role("button", name="Add budget", exact=True).click()
+    new_plan = page.get_by_role("dialog", name="Plan a budget", exact=True)
+    expect(new_plan).to_be_visible()
+    new_plan.get_by_role("button", name="Cancel", exact=True).click()
+    expect(new_plan).to_have_count(0)
+    expect(page.get_by_role("button", name="Add budget", exact=True)).to_be_focused()
     expect(page.get_by_role("heading", name="Budget suggestions")).to_be_visible()
     # The group hides the single over-limit plan: 4,200 spent of 13,000.
+    spending_group = page.get_by_role("row", name="Maintenance & repairs", exact=False).first
+    expect(spending_group).to_contain_text("₱ 13,000")
+    expect(spending_group).to_contain_text("₱ 4,200")
+    expect(spending_group).to_contain_text("32% used")
+    expect(spending_group).to_contain_text("₱ 8,800 remaining")
+    # A zero limit shows no percentage and an empty bar.
+    zero_group = page.get_by_role("row", name="Owner-paid utilities & dues", exact=False)
+    expect(zero_group).to_contain_text("No limit set")
+    expect(zero_group).to_contain_text("₱ 0 remaining")
+    expect(zero_group).not_to_contain_text("% used")
+    # Reserves stay their own table and never mix with spending limits.
+    reserve_group = page.get_by_role("grid", name="Planned reserves").get_by_role("row", name="Emergency reserve", exact=False)
+    expect(reserve_group).to_contain_text("₱ 1,500")
+    # Expanding a category shows each property's own plan in place.
+    page.get_by_role("button", name="Expand Maintenance & repairs, 2 properties").click()
+    expect(page.get_by_role("button", name="Edit budget: Bayview, Maintenance & repairs")).to_be_visible()
+    expect(page.get_by_role("button", name="Edit budget: Canal House, Maintenance & repairs")).to_be_visible()
+    page.get_by_role("button", name="Collapse Maintenance & repairs, 2 properties").click()
+    expect(page.get_by_role("button", name="Edit budget: Bayview, Maintenance & repairs")).to_have_count(0)
     spending_row = page.get_by_role(
         "button",
-        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 13,000. Within budget. View properties",
+        name="Maintenance & repairs, 2 properties. Planned ₱ 13,000. View properties",
     )
-    expect(spending_row).to_be_visible()
-    # A zero limit shows no percentage and an empty bar.
-    zero_row = page.get_by_role(
-        "button",
-        name="Owner-paid utilities & dues, Garden Court. Spent ₱ 0 of ₱ 0. Within budget. View properties",
-    )
-    expect(zero_row).to_be_visible()
-    expect(zero_row).to_contain_text("₱ 0 remaining")
-    expect(zero_row).not_to_contain_text("used")
-    # Reserves stay their own section and never mix with spending limits.
-    reserve_row = page.get_by_role(
-        "button",
-        name="Emergency reserve, Bayview. Planned ₱ 1,500 this month. View properties",
-    )
-    expect(reserve_row).to_be_visible()
 
     # The category drill-down lists each property's own limit and spending.
     spending_row.click()
@@ -451,16 +528,13 @@ with sync_playwright() as playwright:
     assert page.evaluate("financeTest.writes.at(-1).amount") == 1000
     page.get_by_role("tab", name="Budget", exact=True).click()
     expect(
-        page.get_by_role(
-            "button",
-            name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 11,000. Within budget. View properties",
-        )
-    ).to_be_visible()
+        page.get_by_role("row", name="Maintenance & repairs", exact=False).first
+    ).to_contain_text("₱ 11,000")
 
     # Removing a plan takes two steps and disappears from the list.
     page.get_by_role(
         "button",
-        name="Maintenance & repairs, 2 properties. Spent ₱ 4,200 of ₱ 11,000. Within budget. View properties",
+        name="Maintenance & repairs, 2 properties. Planned ₱ 11,000. View properties",
     ).click()
     page.get_by_role(
         "button",
@@ -483,7 +557,7 @@ with sync_playwright() as playwright:
     page.get_by_role("tab", name="Budget", exact=True).click()
     page.get_by_role(
         "button",
-        name="Emergency reserve, Bayview. Planned ₱ 1,500 this month. View properties",
+        name="Emergency reserve, Bayview. Planned ₱ 1,500. View properties",
     ).click()
     assert "kind=reserve" in page.url
     expect(page.get_by_text("Planned reserves · October 2026")).to_be_visible()
@@ -513,6 +587,10 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("heading", name="Budget versus actual")).to_be_visible()
     page.get_by_role("tab", name="Overview", exact=True).click()
 
+    # Below the desktop breakpoint the columns stack with Needs attention first.
+    page.set_viewport_size({"width": 390, "height": 900})
+    assert box(attention)["y"] < box(summary)["y"]
+    page.set_viewport_size({"width": 1280, "height": 900})
     for width in (390, 768, 1280):
         page.set_viewport_size({"width": width, "height": 900})
         # Exercise the chart controls at each width (not only desktop). Bringing
@@ -653,14 +731,16 @@ with sync_playwright() as playwright:
     page.evaluate("financeTest.noProperties = true")
     page.get_by_role("button", name="Refresh", exact=True).click()
     expect(page.get_by_role("link", name="Create a property")).to_be_visible()
-    expect(page.get_by_role("button", name="Filters", exact=False)).to_be_disabled()
+    expect(property_trigger()).to_be_disabled()
+    expect(month_trigger()).to_be_disabled()
+    expect(page.get_by_role("button", name="Add expense", exact=True)).to_be_disabled()
     page.evaluate("financeTest.noProperties = financeTest.noActivity = financeTest.noBillable = financeTest.noPlans = false")
     page.get_by_role("button", name="Refresh", exact=True).click()
     expect(summary).to_be_visible()
     # Account switch while a request is pending cannot resurrect former rows/modal.
     page.evaluate("financeTest.delay = 300")
     page.get_by_role("button", name="Refresh", exact=True).click()
-    page.get_by_role("button", name="Planning guidelines", exact=True).click()
+    page.get_by_role("button", name="Guidelines", exact=True).click()
     page.evaluate("financeTest.identity = {user: null, profile: null, loading: false}; dispatchEvent(new Event('fixture-identity'))")
     expect(page.get_by_role("heading", name="Finances unavailable")).to_be_visible()
     expect(page.get_by_role("dialog")).to_have_count(0)
@@ -669,4 +749,4 @@ with sync_playwright() as playwright:
     expect(page.get_by_role("region", name="Earnings summary")).to_have_count(0)
     assert not failures, failures
     browser.close()
-    print("PASS: Overview filters, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states; budget sections, group rows, category drill-down, locked identity fields, goal suggestions, review-suggestion, repeated upserts, plan removal, unknown category/kind, and plan empty states; hardening: missing-RPC support message, tab-aware loading state, focus paths, blocked dismissal while saving, the drill-down and editor viewport × theme sweep, and the account and role matrix.")
+    print("PASS: Overview two-column layout, inline property and month controls, header actions, indicators, guidelines/focus, chart controls, ledger pagination/retry, reserve save, review, comparison, refresh retention, account loss, and 3 viewport × 2 theme layouts; expenses card, transactions table with category filter, CSV export and row drawer, category bars, drill-down keyset pages, editor validation/save/delete, review invalidation on writes and date moves, list retry retention, and empty states; budget tables with expandable rows, the Add budget header action, category drill-down, locked identity fields, goal suggestions, review-suggestion, repeated upserts, plan removal, unknown category/kind, and plan empty states; hardening: missing-RPC support message, tab-aware loading state, focus paths, blocked dismissal while saving, the drill-down and editor viewport × theme sweep, and the account and role matrix.")

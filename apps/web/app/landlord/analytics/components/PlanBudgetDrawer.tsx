@@ -30,9 +30,9 @@ import {
 import { IconTrash } from "@tabler/icons-react";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import type { FinanceOperation } from "@/hooks/use-landlord-finances";
-import FinanceModal from "./FinanceModal";
+import FinanceDrawer from "./FinanceDrawer";
 
-interface PlanBudgetModalProps {
+interface PlanBudgetDrawerProps {
   scope: FinanceScope;
   properties: FinanceProperty[];
   presetCategory?: FinanceCategory;
@@ -52,7 +52,7 @@ interface PlanBudgetModalProps {
 
 /** Creation is needed by Overview's emergency-reserve action; the same form
  * can launch ordinary plans without introducing a second reserve workflow. */
-export default function PlanBudgetModal({
+export default function PlanBudgetDrawer({
   scope,
   properties,
   presetCategory = "maintenance",
@@ -64,7 +64,7 @@ export default function PlanBudgetModal({
   onSave,
   onDelete,
   onClose,
-}: PlanBudgetModalProps) {
+}: PlanBudgetDrawerProps) {
   const editing = !!initial;
   const busy = operation.pending || !!removing?.pending;
   const [property, setProperty] = useState(
@@ -148,7 +148,7 @@ export default function PlanBudgetModal({
     if (ok) onClose();
   };
   return (
-    <FinanceModal
+    <FinanceDrawer
       title={editing ? "Edit budget" : "Plan a budget"}
       description={`${financeMonthLabel(initial?.month ?? scope.month)} · plans do not move or hold money.`}
       busy={busy}
@@ -323,6 +323,6 @@ export default function PlanBudgetModal({
           </Button>
         </div>
       ) : null}
-    </FinanceModal>
+    </FinanceDrawer>
   );
 }

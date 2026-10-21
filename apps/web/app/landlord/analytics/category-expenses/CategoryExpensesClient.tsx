@@ -23,7 +23,7 @@ import {
 } from "@/lib/landlord-finance-params";
 import type { ExpenseRecord } from "@/service/landlordFinanceService";
 
-import ExpenseEditorModal from "../components/ExpenseEditorModal";
+import ExpenseEditorDrawer from "../components/ExpenseEditorDrawer";
 import ExpenseTransactionRow from "../components/ExpenseTransactionRow";
 import CategoryExpensesSkeleton from "./CategoryExpensesSkeleton";
 
@@ -215,7 +215,7 @@ function CategoryExpenses({
         </>
       )}
       {editor && report.hasData && data.properties.length ? (
-        <ExpenseEditorModal
+        <ExpenseEditorDrawer
           month={params.month}
           properties={data.properties}
           apartmentId={params.apartmentId}

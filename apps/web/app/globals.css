@@ -20,14 +20,34 @@
 }
 .finance-card.finance-attention { background: var(--primary); color: white; }
 .finance-attention .card__title { color: white; }
-.finance-attention .finance-attention-action {
+.finance-attention .finance-attention-item {
+  width: 100%;
+  height: auto;
+  min-height: 3.25rem;
+  padding: 0.625rem 0.75rem;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 0.16);
+  color: white;
+  white-space: normal;
+}
+.finance-attention .finance-attention-item:hover,
+.finance-attention .finance-attention-item[data-hovered] { background: rgb(255 255 255 / 0.26); }
+.finance-attention .finance-attention-item[data-focus-visible] { outline: 2px solid white; outline-offset: 2px; }
+.finance-attention-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
   background: white;
   color: var(--primary);
-  min-height: 2.75rem;
-  height: auto;
-  white-space: normal;
-  text-align: left;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
+.finance-report .finance-meter { --progress-bar-fill: var(--primary); }
+.finance-report .finance-meter.finance-meter--over { --progress-bar-fill: var(--destructive); }
 .finance-choice, .finance-property {
   width: 100%;
   height: auto;

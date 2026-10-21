@@ -25,7 +25,7 @@ import {
 
 import BudgetProgressRow from "../components/BudgetProgressRow";
 import FinanceMoneyRow from "../components/FinanceMoneyRow";
-import PlanBudgetModal from "../components/PlanBudgetModal";
+import PlanBudgetDrawer from "../components/PlanBudgetDrawer";
 import BudgetCategorySkeleton from "./BudgetCategorySkeleton";
 
 const KIND_TITLES = {
@@ -241,7 +241,7 @@ function BudgetCategory({
             </Link>
           </div>
         ) : (
-          <PlanBudgetModal
+          <PlanBudgetDrawer
             scope={scope}
             properties={data.properties}
             initial={editor}

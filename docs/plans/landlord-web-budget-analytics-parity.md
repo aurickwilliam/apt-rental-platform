@@ -438,6 +438,18 @@ Phase 6 verification: web lint/typecheck/build and 311 node tests pass; mobile l
 - **§9.2 local finance SQL regression** — `supabase/test-support/landlord-finances-bootstrap.sql` needs a disposable local PostgreSQL; the harness is opt-in and its two tests stay skipped in CI.
 - **§9.2 live same-account web/mobile comparison** — needs a real landlord account, a real property and a matching month on both platforms. The isolated browser fixture cannot stand in for it, so the plan's "identical outputs on web/mobile" acceptance remains open for an environment with real data.
 
+### Phase 7 — Web-native layout (post-parity redesign)
+
+Requested after the parity work: the page copied mobile's single column. Presentation only; no transport, shared rule, schema or token changed.
+
+- [x] Header: icon tile and blue title kept; Guidelines on the opposite side and the tab-aware primary action (Add expense / Add budget) rightmost.
+- [x] Controls row: Property `Select`, month `Popover` picker and icon Refresh on the left, report tabs on the right; scope applies immediately through the URL (Filters modal, draft, Apply and Reset removed).
+- [x] Two independent columns with natural card heights: earnings summary and main cards left, emphasized Needs attention first on the right; stacked with Needs attention first below `lg`; the summary and Income trends share one width.
+- [x] HeroUI `Table`s: Property performance (sortable), Expenses transactions (category filter, keyset paging, row opens the editor) and Budget tables with in-place expandable category rows; HeroUI `ProgressBar` for meters.
+- [x] Editors as right-hand `Drawer`s (`FinanceDrawer`: `ExpenseEditorDrawer`, `PlanBudgetDrawer`) with the same blocked-dismissal and focus rules.
+- [x] CSV export of the loaded expense rows (formula-safe, covered by node tests); lowest priority, delivered last.
+- Verification: web lint, typecheck, 500 node tests, production build and the browser fixture (which now also asserts the layout geometry, the stacked order, the tables, CSV download, the drawer flows and the header actions) pass. Not run here: mobile lint/Jest (no mobile or shared-package file changed), and the live same-account comparison, which remains open.
+
 ## 9. Verification and acceptance
 
 ### 9.1 Calculation fixtures — identical outputs on web/mobile

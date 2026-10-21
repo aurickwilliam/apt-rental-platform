@@ -8,7 +8,7 @@ import {
   type FinanceData,
 } from "@repo/utils";
 import FinanceCard from "./FinanceCard";
-import FinanceMoneyRow, { financeMoney } from "./FinanceMoneyRow";
+import FinanceMoneyRow from "./FinanceMoneyRow";
 import CollectionHealth from "./CollectionHealth";
 import PropertyPerformance from "./PropertyPerformance";
 
@@ -21,70 +21,47 @@ const IncomeTrends = dynamic(() => import("./IncomeTrends"), {
   ),
 });
 
-interface OverviewProps {
+interface OverviewMainProps {
   data: FinanceData;
   onExpenses: (month?: string) => void;
-  onBudgets: () => void;
-  onReserve: () => void;
-  onCollection: (status: CollectionStatus) => void;
   onProperty: (id: string) => void;
   onViewAll: () => void;
 }
 
-export default function Overview({
+/** Left column of the Overview tab: the income trend, then the properties. */
+export function OverviewMain({
   data,
   onExpenses,
-  onBudgets,
-  onReserve,
-  onCollection,
   onProperty,
   onViewAll,
-}: OverviewProps) {
-  const { spending, reserve, overLimit } = financePlanTotals(data.budgets);
-  const active = data.months.at(-1)!;
+}: OverviewMainProps) {
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-      <FinanceCard title="Needs attention" className="finance-attention">
-        {data.collections.overdue > 0 ? (
-          <Button
-            variant="secondary"
-            className="finance-attention-action"
-            onPress={() => onCollection("overdue")}
-          >
-            {financeMoney(data.collections.overdue)} overdue ·{" "}
-            {data.collections.overdueCount} tenancies ›
-          </Button>
-        ) : (
-          <p className="text-sm">No overdue balances for this rental month.</p>
-        )}
-        {!active.reviewed ? (
-          <Button
-            variant="secondary"
-            className="finance-attention-action"
-            onPress={() => onExpenses()}
-          >
-            Review expenses to see income
-          </Button>
-        ) : null}
-        {overLimit ? (
-          <Button
-            variant="secondary"
-            className="finance-attention-action"
-            onPress={onBudgets}
-          >
-            Review budgets over their limits
-          </Button>
-        ) : null}
-        {reserve === 0 ? (
-          <Button
-            variant="secondary"
-            className="finance-attention-action"
-            onPress={onReserve}
-          >
-            Plan an emergency reserve
-          </Button>
-        ) : null}
-      </FinanceCard>
+    <>
+      <IncomeTrends months={data.months} onViewExpenses={onExpenses} />
+      <PropertyPerformance
+        properties={data.performance}
+        onSelect={onProperty}
+        onViewAll={onViewAll}
+      />
+    </>
+  );
+}
+
+interface OverviewAsideProps {
+  data: FinanceData;
+  onBudgets: () => void;
+  onCollection: (status: CollectionStatus) => void;
+}
+
+/** Right column of the Overview tab, under Needs attention. */
+export function OverviewAside({
+  data,
+  onBudgets,
+  onCollection,
+}: OverviewAsideProps) {
+  const { spending, reserve } = financePlanTotals(data.budgets);
+  return (
+    <>
       <FinanceCard
         title="Your monthly plan"
         description="Spending limits and reserve allocations are kept separate."
@@ -115,15 +92,7 @@ export default function Overview({
           View budgets & suggestions
         </Button>
       </FinanceCard>
-      <div className="min-w-0 lg:col-span-2">
-        <IncomeTrends months={data.months} onViewExpenses={onExpenses} />
-      </div>
       <CollectionHealth data={data.collections} onSelect={onCollection} />
-      <PropertyPerformance
-        properties={data.performance}
-        onSelect={onProperty}
-        onViewAll={onViewAll}
-      />
-    </div>
+    </>
   );
 }

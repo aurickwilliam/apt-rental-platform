@@ -4,42 +4,54 @@ import { useState } from "react";
 import { Button, toast } from "@heroui/react";
 import {
   financeMonthLabel,
+  type ExpenseRecord,
   type FinanceCategory,
   type FinanceData,
   type FinanceScope,
 } from "@repo/utils";
 
-import type { FinanceOperation } from "@/hooks/use-landlord-finances";
+import type {
+  FinanceOperation,
+  FinancePagesResult,
+} from "@/hooks/use-landlord-finances";
 
 import ExpenseCategoryBars from "./ExpenseCategoryBars";
+import ExpenseTransactionsTable from "./ExpenseTransactionsTable";
 import FinanceCard from "./FinanceCard";
 import FinanceModal from "./FinanceModal";
 
-interface ExpensesTabProps {
+interface ExpensesMainProps {
   data: FinanceData;
   scope: FinanceScope;
-  /** Opens the category transaction drill-down for this bar. */
-  onSelectCategory: (category: FinanceCategory) => void;
+  expenses: FinancePagesResult<ExpenseRecord>;
+  category: FinanceCategory | null;
+  onCategoryChange: (category: FinanceCategory | null) => void;
+  onEdit: (expense: ExpenseRecord) => void;
+  onExport: () => void;
   onReview: () => Promise<boolean>;
   reviewing: FinanceOperation;
 }
 
 /**
- * Web mirror of mobile's Expenses tab: the review card with its confirm
- * dialog and the "Where expenses go" bars — the transactions themselves live
- * in the category drill-down route, exactly as on mobile.
+ * Left column of the Expenses tab: the review card with its confirm dialog,
+ * then the month's transactions. The category bars sit in the right column
+ * and still open the category drill-down.
  */
-export default function ExpensesTab({
+export function ExpensesMain({
   data,
   scope,
-  onSelectCategory,
+  expenses,
+  category,
+  onCategoryChange,
+  onEdit,
+  onExport,
   onReview,
   reviewing,
-}: ExpensesTabProps) {
+}: ExpensesMainProps) {
   const [confirming, setConfirming] = useState(false);
   const active = data.months.at(-1)!;
   return (
-    <div className="space-y-4">
+    <>
       <FinanceCard
         title={active.reviewed ? "Expenses reviewed" : "Review this month"}
         description={
@@ -59,9 +71,14 @@ export default function ExpensesTab({
           </Button>
         ) : null}
       </FinanceCard>
-      <ExpenseCategoryBars
-        categories={data.categories}
-        onSelect={onSelectCategory}
+      <ExpenseTransactionsTable
+        scope={scope}
+        properties={data.properties}
+        expenses={expenses}
+        category={category}
+        onCategoryChange={onCategoryChange}
+        onEdit={onEdit}
+        onExport={onExport}
       />
       {confirming ? (
         <FinanceModal
@@ -107,6 +124,23 @@ export default function ExpensesTab({
           )}
         </FinanceModal>
       ) : null}
-    </div>
+    </>
+  );
+}
+
+/** Right column of the Expenses tab, under Needs attention. */
+export function ExpensesAside({
+  data,
+  onSelectCategory,
+}: {
+  data: FinanceData;
+  /** Opens the category transaction drill-down for this bar. */
+  onSelectCategory: (category: FinanceCategory) => void;
+}) {
+  return (
+    <ExpenseCategoryBars
+      categories={data.categories}
+      onSelect={onSelectCategory}
+    />
   );
 }

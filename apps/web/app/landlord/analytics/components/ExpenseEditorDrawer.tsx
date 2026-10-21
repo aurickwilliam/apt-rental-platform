@@ -29,11 +29,11 @@ import {
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import type { FinanceOperation } from "@/hooks/use-landlord-finances";
 
-import FinanceModal from "./FinanceModal";
+import FinanceDrawer from "./FinanceDrawer";
 
 const EXPENSE_CATEGORY_OPTIONS = budgetCategoryOptions("expense");
 
-interface ExpenseEditorModalProps {
+interface ExpenseEditorDrawerProps {
   /** Report month the editor was opened from (seeds the date). */
   month: string;
   /** The owner's properties; create picks one, edit keeps the saved one. */
@@ -56,10 +56,10 @@ interface ExpenseEditorModalProps {
  * The one expense form, mirroring mobile's ExpenseEntrySheet: create and edit
  * share everything except that editing locks the property and enables the
  * two-step delete. Validation, date bounds and messages come from the shared
- * @repo/utils rules; failures keep the modal and its draft, and delete closes
+ * @repo/utils rules; failures keep the drawer and its draft, and delete closes
  * quietly like mobile.
  */
-export default function ExpenseEditorModal({
+export default function ExpenseEditorDrawer({
   month,
   properties,
   apartmentId,
@@ -69,7 +69,7 @@ export default function ExpenseEditorModal({
   onSave,
   onDelete,
   onClose,
-}: ExpenseEditorModalProps) {
+}: ExpenseEditorDrawerProps) {
   const today = manilaToday();
   const busy = saving.pending || removing.pending;
   const [property, setProperty] = useState(
@@ -163,7 +163,7 @@ export default function ExpenseEditorModal({
   };
 
   return (
-    <FinanceModal
+    <FinanceDrawer
       title={initial ? "Edit expense" : "Add expense"}
       description="Record money already spent. Reserve allocations and late rent are not expenses."
       busy={busy}
@@ -349,6 +349,6 @@ export default function ExpenseEditorModal({
           </Button>
         </div>
       ) : null}
-    </FinanceModal>
+    </FinanceDrawer>
   );
 }

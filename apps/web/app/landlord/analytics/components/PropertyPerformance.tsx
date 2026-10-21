@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@heroui/react";
-import { IconChevronRight } from "@tabler/icons-react";
+import { Button, Table } from "@heroui/react";
 import {
   financePerformanceValue,
   rankFinanceProperties,
@@ -10,6 +9,7 @@ import {
   type PropertyPerformanceMetric,
 } from "@repo/utils";
 import FinanceCard from "./FinanceCard";
+import FinanceMeter from "./FinanceMeter";
 import { financeMoney } from "./FinanceMoneyRow";
 
 interface PropertyPerformanceProps {
@@ -19,19 +19,45 @@ interface PropertyPerformanceProps {
   full?: boolean;
 }
 
+const COLUMNS: readonly { id: PropertyPerformanceMetric; label: string }[] = [
+  { id: "collected", label: "Collected" },
+  { id: "expenses", label: "Expenses" },
+  { id: "net", label: "Net income" },
+];
+
+type Direction = "ascending" | "descending";
+
+/** Ranks by the sorted metric; unreviewed net income always sorts last. */
+function sortProperties(
+  properties: Property[],
+  metric: PropertyPerformanceMetric,
+  direction: Direction,
+): Property[] {
+  const ranked = rankFinanceProperties(properties, metric);
+  if (direction === "descending") return ranked;
+  const known = ranked.filter(
+    (property) => financePerformanceValue(property, metric) !== null,
+  );
+  const unknown = ranked.filter(
+    (property) => financePerformanceValue(property, metric) === null,
+  );
+  return [...known.reverse(), ...unknown];
+}
+
 export default function PropertyPerformance({
   properties,
   onSelect,
   onViewAll,
   full = false,
 }: PropertyPerformanceProps) {
-  const [metric, setMetric] = useState<PropertyPerformanceMetric>("collected");
-  const ranked = rankFinanceProperties(properties, metric);
+  const [sort, setSort] = useState<{
+    metric: PropertyPerformanceMetric;
+    direction: Direction;
+  }>({ metric: "collected", direction: "descending" });
+  const ranked = sortProperties(properties, sort.metric, sort.direction);
   const maximum = Math.max(
     1,
-    ...ranked.map((property) =>
-      Math.abs(financePerformanceValue(property, metric) ?? 0),
-    ),
+    ...properties.map((property) => Math.abs(property.collected)),
   );
   const visible = full ? ranked : ranked.slice(0, 3);
   return (
@@ -39,76 +65,91 @@ export default function PropertyPerformance({
       title="Property performance"
       description="Select a property to focus the whole report."
     >
-      <div className="flex flex-wrap gap-2" aria-label="Performance metric">
-        {(
-          [
-            ["collected", "Collected"],
-            ["expenses", "Expenses"],
-            ["net", "Net income"],
-          ] as const
-        ).map(([value, label]) => (
-          <Button
-            key={value}
-            size="sm"
-            variant={metric === value ? "secondary" : "ghost"}
-            aria-pressed={metric === value}
-            onPress={() => setMetric(value)}
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
-      <div className="space-y-2">
-        {visible.map((property) => {
-          const amount = financePerformanceValue(property, metric);
-          return (
-            <Button
-              key={property.id}
-              className="finance-property"
-              variant="ghost"
-              aria-label={`${property.name}, ${metric}, ${amount === null ? "expenses not reviewed" : financeMoney(amount)}. Filter this property.`}
-              onPress={() => onSelect(property.id)}
+      {visible.length ? (
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content
+              aria-label="Property performance"
+              sortDescriptor={{
+                column: sort.metric,
+                direction: sort.direction,
+              }}
+              onSortChange={({ column, direction }) =>
+                setSort({
+                  metric: String(column) as PropertyPerformanceMetric,
+                  direction,
+                })
+              }
+              onRowAction={(key) => onSelect(String(key))}
             >
-              <div className="w-full space-y-2 text-left">
-                <div className="flex flex-wrap items-start gap-2">
-                  <span className="min-w-0 flex-1 whitespace-normal font-nunito font-semibold">
-                    {property.name}
-                  </span>
-                  <span
-                    className={`font-nunito font-bold tabular-nums ${amount !== null && amount < 0 ? "text-destructive" : "text-brand"}`}
-                  >
-                    {amount === null ? "Not reviewed" : financeMoney(amount)}
-                  </span>
-                  <IconChevronRight size={18} aria-hidden />
-                </div>
-                {amount !== null ? (
-                  <div
-                    className="h-2 overflow-hidden rounded-full bg-muted"
-                    aria-hidden
-                  >
-                    <div
-                      className={`h-full rounded-full ${amount < 0 ? "bg-destructive" : "bg-brand"}`}
-                      style={{
-                        width: `${(Math.abs(amount) / maximum) * 100}%`,
-                      }}
-                    />
-                  </div>
-                ) : null}
-                {!property.reviewed ? (
-                  <p className="whitespace-normal text-xs text-muted-foreground">
-                    Expenses incomplete · net income unavailable
-                  </p>
-                ) : null}
-              </div>
-            </Button>
-          );
-        })}
-        {!visible.length ? (
-          <p className="py-4 text-sm text-muted-foreground">
-            No property performance for this month.
-          </p>
-        ) : null}
-      </div>
+              <Table.Header className="text-foreground! [&_th]:text-foreground!">
+                <Table.Column id="name" isRowHeader>
+                  Property
+                </Table.Column>
+                {COLUMNS.map(({ id, label }) => (
+                  <Table.Column key={id} id={id} allowsSorting className="text-right">
+                    {({ sortDirection }) => (
+                      <Table.SortableColumnHeader className="justify-end" sortDirection={sortDirection}>
+                        {label}
+                      </Table.SortableColumnHeader>
+                    )}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body>
+                {visible.map((property) => {
+                  const net = financePerformanceValue(property, "net");
+                  return (
+                    <Table.Row
+                      key={property.id}
+                      id={property.id}
+                      textValue={`${property.name}. Filter this property.`}
+                      className="cursor-pointer hover:bg-primary/10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-primary"
+                    >
+                      <Table.Cell>
+                        <p className="whitespace-normal font-nunito text-sm font-semibold">
+                          {property.name}
+                        </p>
+                        {!property.reviewed ? (
+                          <p className="whitespace-normal text-xs text-muted-foreground">
+                            Expenses incomplete · net income unavailable
+                          </p>
+                        ) : null}
+                      </Table.Cell>
+                      <Table.Cell className="min-w-28 text-right text-sm tabular-nums">
+                        {financeMoney(property.collected)}
+                        <FinanceMeter
+                          className="mt-1"
+                          label={`${property.name} share of the highest collected rent`}
+                          value={(Math.abs(property.collected) / maximum) * 100}
+                        />
+                      </Table.Cell>
+                      <Table.Cell className="whitespace-nowrap text-right text-sm tabular-nums">
+                        {financeMoney(property.operating + property.capital)}
+                      </Table.Cell>
+                      <Table.Cell
+                        className={`text-right text-sm tabular-nums ${net !== null && net < 0 ? "text-destructive" : ""}`}
+                      >
+                        {net === null ? (
+                          <span className="text-muted-foreground">
+                            Not reviewed
+                          </span>
+                        ) : (
+                          financeMoney(net)
+                        )}
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
+      ) : (
+        <p className="py-4 text-sm text-muted-foreground">
+          No property performance for this month.
+        </p>
+      )}
       {!full && properties.length > 3 ? (
         <Button variant="tertiary" size="sm" onPress={onViewAll}>
           View all {properties.length} properties
