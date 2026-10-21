@@ -1,6 +1,11 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import {
+  useOptimistic,
+  useState,
+  useTransition,
+  type CSSProperties,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@heroui/react";
@@ -296,12 +301,14 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
             </div>
           ) : (
             <div
+              // Keyed by tab so each tab switch replays the entrance.
+              key={applied.tab}
               role="tabpanel"
               aria-label={`${applied.tab} report`}
               className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:items-start"
             >
               <div className="max-lg:contents flex min-w-0 flex-col gap-4">
-                <div className="order-2 min-w-0">
+                <div className="finance-enter order-2 min-w-0">
                   <EarningsSummary
                     data={data}
                     month={applied.month}
@@ -310,7 +317,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                     onGuidelines={() => open("guidelines")}
                   />
                 </div>
-                <div className="order-3 flex min-w-0 flex-col gap-4">
+                <div className="finance-enter order-3 flex min-w-0 flex-col gap-4" style={{ "--finance-enter-step": 1 } as CSSProperties}>
                   {applied.tab === "overview" ? (
                     <OverviewMain
                       data={data}
@@ -360,7 +367,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                 </div>
               </div>
               <div className="max-lg:contents flex min-w-0 flex-col gap-4">
-                <div className="order-1 min-w-0">
+                <div className="finance-enter order-1 min-w-0">
                   {applied.tab === "budget" ? (
                     <BudgetActual
                       data={data}
@@ -404,7 +411,7 @@ function AnalyticsReport({ params, currentMonth }: AnalyticsClientProps) {
                     />
                   )}
                 </div>
-                <div className="order-4 flex min-w-0 flex-col gap-4">
+                <div className="finance-enter order-4 flex min-w-0 flex-col gap-4" style={{ "--finance-enter-step": 1 } as CSSProperties}>
                   {applied.tab === "overview" ? (
                     <OverviewAside
                       data={data}

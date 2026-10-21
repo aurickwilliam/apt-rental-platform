@@ -306,6 +306,14 @@ with sync_playwright() as playwright:
     # the drill-down route for the applied scope.
     page.get_by_role("tab", name="Expenses", exact=True).click()
     expect(page.get_by_role("heading", name="Expenses reviewed", exact=True)).to_be_visible()
+    # Switching tabs replays the card entrance (it ends with no lasting transform).
+    assert page.evaluate(
+        "getComputedStyle(document.querySelector('[role=tabpanel] .finance-enter')).animationName"
+    ) in ("finance-enter", "none"), "tab panel entrance animation is wired"
+    page.wait_for_timeout(700)
+    assert page.evaluate(
+        "getComputedStyle(document.querySelector('[role=tabpanel] .finance-enter')).transform"
+    ) == "none", "entrance leaves no transform behind"
     # The month's transactions sit beside the category bars, paged by keyset.
     transactions = page.get_by_role("grid", name="Expense transactions")
     expect(transactions).to_contain_text("Turnover repaint")
