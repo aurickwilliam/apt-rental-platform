@@ -2,6 +2,7 @@
 
 import { createClient } from "@repo/supabase/browser";
 import type { Database } from "@repo/supabase";
+import { FAVORITES_PRESENTATION_LIMIT, invalidateFavoritePresentation, type FavoriteCursor, type FavoritePresentation } from "@/lib/favorite-resource";
 
 type FavoriteRow = Database["public"]["Tables"]["favorites"]["Row"];
 type ApartmentImageRow = Database["public"]["Tables"]["apartment_images"]["Row"];
@@ -93,6 +94,7 @@ export async function insertFavorite(
 
   if (error) throw error;
 
+  invalidateFavoritePresentation(tenantId);
   return data;
 }
 
@@ -106,6 +108,46 @@ export async function deleteFavorite(tenantId: string, apartmentId: string): Pro
     .eq("apartment_id", apartmentId);
 
   if (error) throw error;
+  invalidateFavoritePresentation(tenantId, apartmentId);
+}
+
+/** Bounded shortlist presentation only; never used for listing/rental decisions. */
+export async function fetchFavoritePresentation(tenantId: string, cursor: FavoriteCursor | null): Promise<FavoritePresentation> {
+  const supabase = createClient();
+  let query = supabase.from("favorites")
+    .select("apartment_id, created_at")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: false, nullsFirst: false })
+    .order("apartment_id", { ascending: true })
+    .limit(FAVORITES_PRESENTATION_LIMIT + 1);
+  if (cursor) {
+    query = cursor.createdAt === null
+      ? query.is("created_at", null).gt("apartment_id", cursor.apartmentId)
+      : query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},apartment_id.gt.${cursor.apartmentId}),created_at.is.null`);
+  }
+  const { data: favorites, error } = await query;
+  if (error) throw error;
+  const page = (favorites ?? []).slice(0, FAVORITES_PRESENTATION_LIMIT);
+  const last = page.at(-1);
+  const nextCursor = (favorites?.length ?? 0) > FAVORITES_PRESENTATION_LIMIT && last
+    ? { createdAt: last.created_at, apartmentId: last.apartment_id } : null;
+  const ids = [...new Set(page.map((row) => row.apartment_id))];
+  if (!ids.length) return { apartments: [], nextCursor };
+  const { data: apartments, error: apartmentError } = await supabase.from("apartments")
+    .select("id, name, barangay, city, average_rating, monthly_rent, no_bedrooms, no_bathrooms, area_sqm, apartment_images(url, is_cover, created_at)")
+    .is("deleted_at", null)
+    .eq("is_hidden_by_admin", false)
+    .in("id", ids)
+    .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
+    .order("created_at", { referencedTable: "apartment_images", ascending: true })
+    .order("id", { referencedTable: "apartment_images", ascending: true })
+    .limit(1, { referencedTable: "apartment_images" });
+  if (apartmentError) throw apartmentError;
+  const byId = new Map((apartments ?? []).map((row) => [row.id, row]));
+  return { apartments: ids.flatMap((id) => {
+    const apartment = byId.get(id);
+    return apartment ? [apartment] : [];
+  }) as FavoriteApartment[], nextCursor };
 }
 
 export async function fetchApartmentsByIds(apartmentIds: string[]): Promise<FavoriteApartment[]> {

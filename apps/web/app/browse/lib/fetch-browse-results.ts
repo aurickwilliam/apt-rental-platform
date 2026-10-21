@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@repo/supabase/server";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -179,3 +180,10 @@ export async function fetchBrowseResults(
     pageSize: BROWSE_PAGE_SIZE,
   };
 }
+
+/**
+ * Request-scoped dedupe for the shell pieces that need the same result count
+ * (filter rail, mobile filter entry) and the grid. React clears this cache
+ * after the request, so it is not a data cache and never survives navigation.
+ */
+export const loadBrowseResults = cache(fetchBrowseResults);

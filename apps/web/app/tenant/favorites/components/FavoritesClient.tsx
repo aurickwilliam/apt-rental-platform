@@ -1,35 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, toast } from "@heroui/react";
 import { IconAlertCircle, IconArrowRight, IconHeart, IconLayoutGrid as LayoutGrid, IconLayoutList as LayoutList } from "@tabler/icons-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
-import { useFavorites } from "@/hooks/use-favorites";
-import {
-  fetchApartmentsByIds,
-  type FavoriteApartment,
-} from "@/service/favoritesService";
+import { useFavoritePresentation } from "@/hooks/use-favorite-presentation";
+import type { FavoriteCursor, FavoritePresentationScope } from "@/lib/favorite-resource";
+import type { FavoriteApartment } from "@/service/favoritesService";
 
 import FavoriteListCard from "@/app/tenant/favorites/components/FavoriteListCard";
 import { FavoritesPageHeader, FavoritesPageShell } from "./FavoritesPageLayout";
 import { FavoritesCardsSkeleton } from "./FavoritesSkeleton";
 
-export default function FavoritesClient() {
+export default function FavoritesClient(scope: FavoritePresentationScope) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [apartments, setApartments] = useState<FavoriteApartment[]>([]);
-  const [loadingApartments, setLoadingApartments] = useState(false);
-  const [apartmentsError, setApartmentsError] = useState<string | null>(null);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
+  const [cursors, setCursors] = useState<(FavoriteCursor | null)[]>([null]);
 
-  const { favoriteApartmentIds, loading, error, isFavorite, toggleFavorite, refreshFavorites } = useFavorites();
-
-  const favoriteApartmentIdList = useMemo(
-    () => Array.from(favoriteApartmentIds),
-    [favoriteApartmentIds],
-  );
+  const { apartments, nextCursor, loading, error, hasData, refreshing, isFavorite, toggleFavorite, refreshFavorites } = useFavoritePresentation(scope, cursors.at(-1) ?? null);
 
   const resolveThumbnail = useCallback((apartment: FavoriteApartment) => {
     const images = apartment.apartment_images ?? [];
@@ -42,37 +33,6 @@ export default function FavoritesClient() {
 
     return oldest ?? "/default/default-thumbnail.jpeg";
   }, []);
-
-  useEffect(() => {
-    const loadFavoriteApartments = async () => {
-      if (favoriteApartmentIdList.length === 0) {
-        setApartments([]);
-        setApartmentsError(null);
-        return;
-      }
-
-      try {
-        setLoadingApartments(true);
-        setApartmentsError(null);
-
-        const apartmentRows = await fetchApartmentsByIds(favoriteApartmentIdList);
-        const apartmentById = new Map(apartmentRows.map((row) => [row.id, row]));
-        const orderedApartments = favoriteApartmentIdList
-          .map((id) => apartmentById.get(id))
-          .filter(Boolean) as FavoriteApartment[];
-
-        setApartments(orderedApartments);
-      } catch (err: unknown) {
-        const error = err as { message?: string };
-        console.error("Error fetching favorite apartments:", err);
-        setApartmentsError(error?.message ?? "Failed to load favorites.");
-      } finally {
-        setLoadingApartments(false);
-      }
-    };
-
-    void loadFavoriteApartments();
-  }, [favoriteApartmentIdList]);
 
   const handleFavoriteToggle = useCallback(
     async (id: string) => {
@@ -99,16 +59,24 @@ export default function FavoritesClient() {
     [toggleFavorite],
   );
 
-  const isLoading = loading || loadingApartments;
-  const combinedError = error ?? apartmentsError;
+  const isLoading = loading;
+  const combinedError = error;
 
   return (
     <FavoritesPageShell>
       <FavoritesPageHeader />
 
+      {hasData && error ? (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-sm">
+          <span>Couldn&apos;t refresh your favorites. Showing the last loaded shortlist.</span>
+          <Button variant="secondary" size="sm" onPress={() => void refreshFavorites()}>Try again</Button>
+        </div>
+      ) : null}
+      {refreshing ? <span role="status" className="sr-only">Refreshing favorites</span> : null}
+
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
         <p className="font-nunito text-sm font-semibold text-card-foreground" aria-live="polite">
-          {isLoading ? "Loading saved apartments…" : combinedError ? "Saved apartments" : `${apartments.length} saved ${apartments.length === 1 ? "apartment" : "apartments"}`}
+          {isLoading ? "Loading saved apartments…" : combinedError ? "Saved apartments" : `${apartments.length} saved ${apartments.length === 1 ? "apartment" : "apartments"}${nextCursor || cursors.length > 1 ? " on this page" : ""}`}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-full border border-border bg-background p-1" role="group" aria-label="Favorites view">
@@ -144,7 +112,7 @@ export default function FavoritesClient() {
 
       {isLoading ? (
         <FavoritesCardsSkeleton viewMode={viewMode} />
-      ) : combinedError ? (
+      ) : combinedError && !hasData ? (
         <Card className="favorites-state-card">
           <Card.Content className="items-center gap-4 px-4 py-10 text-center">
             <IconAlertCircle size={32} className="text-danger" aria-hidden="true" />
@@ -162,8 +130,8 @@ export default function FavoritesClient() {
               <IconHeart size={32} aria-hidden="true" />
             </span>
             <div className="max-w-sm space-y-2">
-              <h2 className="font-nunito text-xl font-bold text-card-foreground">Your shortlist starts here</h2>
-              <p className="text-sm text-muted-foreground">Tap the heart on an apartment to save it here and return to it whenever you&apos;re ready.</p>
+              <h2 className="font-nunito text-xl font-bold text-card-foreground">{cursors.length > 1 || nextCursor ? "No available saved apartments on this page" : "Your shortlist starts here"}</h2>
+              <p className="text-sm text-muted-foreground">{cursors.length > 1 || nextCursor ? "Some saved listings may no longer be available. Try another page or browse more apartments." : "Tap the heart on an apartment to save it here and return to it whenever you're ready."}</p>
             </div>
             <Button onPress={() => router.push("/tenant/browse")}>
               Browse apartments
@@ -208,6 +176,13 @@ export default function FavoritesClient() {
           ))}
         </div>
       )}
+      {cursors.length > 1 || nextCursor ? (
+        <nav aria-label="Favorites pages" className="flex items-center justify-end gap-3">
+          <Button variant="secondary" size="sm" isDisabled={cursors.length === 1} onPress={() => setCursors((current) => current.slice(0, -1))}>Previous</Button>
+          <span className="text-sm text-muted-foreground">Page {cursors.length}</span>
+          <Button variant="secondary" size="sm" isDisabled={!nextCursor || isLoading} onPress={() => { if (nextCursor) setCursors((current) => [...current, nextCursor]); }}>Next</Button>
+        </nav>
+      ) : null}
     </FavoritesPageShell>
   );
 }

@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Button, Card, buttonVariants } from "@heroui/react";
 import { IconFileCheck, IconLock } from "@tabler/icons-react";
 
-import VerificationActivityTimeline, {
-  type VerificationActivityRow,
-} from "@/app/components/passport/VerificationActivityTimeline";
 import VerifyDialog from "@/app/verify/components/VerifyDialog";
 import { preloadVerificationPageState } from "@/app/verify/components/verificationPageStateCache";
 
 interface PassportProfileCardProps {
+  /** Server-managed account status; the authoritative immediate state. */
   accountStatus: string | null | undefined;
   /** Route prefix for this portal's Passport, e.g. `/tenant/passport`. */
   basePath: string;
-  /** Latest verification submission, if the user ever submitted. */
-  verification?: VerificationActivityRow | null;
+  /**
+   * Secondary verification submission history, streamed in by the profile
+   * page inside its own Suspense boundary. Never gates the card itself.
+   */
+  verificationSlot?: ReactNode;
 }
 
 /**
@@ -34,16 +35,13 @@ interface PassportProfileCardProps {
 export default function PassportProfileCard({
   accountStatus,
   basePath,
-  verification = null,
+  verificationSlot = null,
 }: PassportProfileCardProps) {
   const isVerified = accountStatus === "verified";
   const isPending = accountStatus === "pending";
-  // Rejected derives from the latest submission record first (the trigger
-  // keeps account_status in sync, so it doubles as a safe fallback).
-  const isRejected =
-    !isVerified &&
-    !isPending &&
-    (verification?.status === "rejected" || accountStatus === "rejected");
+  // The trigger keeps account_status in sync with the latest submission, so
+  // the immediate card never waits for the secondary timeline query.
+  const isRejected = !isVerified && !isPending && accountStatus === "rejected";
   const [verifyOpen, setVerifyOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -105,12 +103,7 @@ export default function PassportProfileCard({
             </Button>
           ) : null}
 
-          {verification && !isVerified ? (
-            <>
-              <div className="border-t border-border" aria-hidden="true" />
-              <VerificationActivityTimeline row={verification} />
-            </>
-          ) : null}
+          {!isVerified ? verificationSlot : null}
         </Card.Content>
       </Card>
       <VerifyDialog open={verifyOpen} onClose={handleClose} />

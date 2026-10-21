@@ -1,17 +1,23 @@
-import ApartmentCarousel from "./components/ApartmentCarousel";
-import DiscoverNowBtn from "./components/DiscoverNowBtn";
-import HeroSection from "./components/HeroSection";
-
-import { Separator, Surface } from "@heroui/react";
-
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+import ApartmentCarousel from "./components/ApartmentCarousel";
+import AppSection from "./components/AppSection";
+import HeroSection from "./components/HeroSection";
+import HowItWorksSection from "./components/HowItWorksSection";
+import WhyUsSection from "./components/WhyUsSection";
+
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 import { rankTenantLovedApartments } from "@/lib/tenant-loved-apartments";
 
-import { IconKey as KeyRound, IconBuilding as Building2, IconClipboardCheck as ClipboardCheck, IconMap as Map, IconSearch as SearchCheck, IconFileCheck as FileCheckCorner, IconCashBanknote as BanknoteArrowUp } from "@tabler/icons-react";
+import { createClient } from "@repo/supabase/server";
 
-import { createClient } from '@repo/supabase/server';
+export const metadata: Metadata = {
+  title: "APT — Find, Rent, and Manage Apartments in Camanava",
+  description:
+    "Discover verified apartments in Caloocan, Malabon, Navotas and Valenzuela. Chat with landlords, apply online, sign leases and pay rent in one place.",
+};
 
 export default async function Home() {
   const supabase = await createClient();
@@ -65,182 +71,39 @@ export default async function Home() {
     image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
   }));
 
+  // Android APK download availability. To publish the app:
+  //   1. Apply the app-downloads bucket migration
+  //      (supabase/migrations/20261020100000_create_app_downloads_bucket.sql)
+  //      and upload the APK to that bucket (dashboard upload; the bucket is
+  //      public read, writes stay operator-only).
+  //   2. Set NEXT_PUBLIC_APT_APK_URL to the file's public URL in
+  //      apps/web/.env.local (and the host's env settings), e.g.
+  //      https://<project-ref>.supabase.co/storage/v1/object/public/app-downloads/APT-latest.apk
+  //      then restart/redeploy.
+  //   3. Until then the buttons render disabled with a "Coming soon" chip and
+  //      /download answers 404; no code change is needed to enable them.
+  const apkAvailable = Boolean(process.env.NEXT_PUBLIC_APT_APK_URL?.trim());
+
   return (
-    <>
-      <div className="min-h-screen">
-        <main className="max-w-7xl mx-auto px-4 pt-4 flex flex-col">
-          {/* Intro */}
-          <HeroSection />
+    <div className="min-h-screen">
+      <main className="mx-auto flex max-w-7xl flex-col px-4 pt-4">
+        {/* Intro */}
+        <HeroSection apkAvailable={apkAvailable} />
 
-          {/* Why Us */}
-          <section className="mt-10">
-            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
-              Why Us?
-            </h2>
+        {/* Why Us */}
+        <WhyUsSection />
 
-            <p className="text-center font-medium">
-              A comprehensive ecosystem designed to simplify the rental
-              experience for everyone involved.
-            </p>
+        {/* Featured Apartments */}
+        <section className="md:mt-16">
+          <ApartmentCarousel apartment={mapped} />
+        </section>
 
-            <div className="flex flex-col gap-5 md:flex-row mt-10 md:mt-20">
-              <div className="flex flex-col gap-3">
-                <KeyRound className="text-primary" size={48} />
+        {/* How it Works */}
+        <HowItWorksSection />
 
-                <h3 className="text-2xl font-inter font-semibold">
-                  For Tenants
-                </h3>
-
-                <p>
-                  Find a place that truly feels like home. We make renting
-                  simple with verified listings, transparent pricing, and
-                  responsive support, so you can move in with confidence and
-                  peace of mind.
-                </p>
-              </div>
-
-              <Separator className="my-3 md:hidden" />
-              <Separator
-                className="mx-2 hidden md:block self-stretch h-auto"
-                orientation="vertical"
-              />
-
-              <div className="flex flex-col gap-3">
-                <Building2 className="text-primary" size={48} />
-
-                <h3 className="text-2xl font-inter font-semibold">
-                  For Owners
-                </h3>
-
-                <p>
-                  Maximize your property’s value without the hassle. From tenant
-                  screening to rent collection, we help you manage your rentals
-                  efficiently while keeping your investment secure.
-                </p>
-              </div>
-
-              <Separator className="my-3 md:hidden" />
-              <Separator
-                className="mx-2 hidden md:block self-stretch h-auto"
-                orientation="vertical"
-              />
-
-              <div className="flex flex-col gap-3">
-                <ClipboardCheck className="text-primary" size={48} />
-
-                <h3 className="text-2xl font-inter font-semibold">
-                  For Management
-                </h3>
-
-                <p>
-                  Streamline operations and stay in control. Our platform
-                  centralizes property management, improves communication, and
-                  reduces manual work, so you can focus on growing your
-                  portfolio.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Featured Apartments */}
-          <section className="md:mt-20">
-            <ApartmentCarousel apartment={mapped} />
-          </section>
-
-          <Separator className="my-10" />
-
-          {/* How it Works */}
-          <section className="md:mt-10 mb-10">
-            <h2 className="text-3xl text-primary text-center font-inter font-semibold mb-4 md:text-5xl">
-              How it Works?
-            </h2>
-
-            <p className="text-center font-medium">
-              A stress-free way to navigate the rental market with verified
-              listings and secure digital tools.
-            </p>
-
-            <div className="flex flex-col md:flex-row gap-5 mt-5 md:mt-10">
-              {/* Discover */}
-              <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl md:w-1/2">
-                <Map size={48} className="text-primary" />
-
-                <h2 className="text-3xl text-primary font-inter font-semibold">
-                  Discover
-                </h2>
-
-                <p className="text-base">
-                  Explore a wide range of verified listings and use intelligent
-                  filters to narrow down your options based on location, budget,
-                  amenities, and lifestyle preferences. Finding the right home
-                  becomes faster, easier, and stress-free.
-                </p>
-
-                <div className="flex flex-col gap-3 mt-5">
-                  <div className="flex gap-2 items-center">
-                    <SearchCheck size={24} className="text-primary" />
-                    <p className="text-base font-medium">Verified Listings</p>
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <SearchCheck size={24} className="text-primary" />
-                    <p className="text-base font-medium">Intelligent Filters</p>
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <SearchCheck size={24} className="text-primary" />
-                    <p className="text-base font-medium">
-                      Lifestyle Preferences
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <SearchCheck size={24} className="text-primary" />
-                    <p className="text-base font-medium">AI Assist Search</p>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <DiscoverNowBtn />
-                </div>
-              </Surface>
-
-              {/* Apply & Pay */}
-              <div className="flex flex-col gap-5 md:w-1/2">
-                <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl">
-                  <FileCheckCorner size={48} className="text-primary" />
-
-                  <h2 className="text-3xl text-primary font-inter font-semibold">
-                    Apply & Sign
-                  </h2>
-
-                  <p className="text-base">
-                    Complete your rental application entirely online and upload
-                    required documents with ease. Review agreements clearly and
-                    sign securely using digital e-signing, eliminating paperwork
-                    and unnecessary delays.
-                  </p>
-                </Surface>
-
-                <Surface className="bg-surface flex flex-col gap-3 w-full p-8 rounded-2xl">
-                  <BanknoteArrowUp size={48} className="text-primary" />
-
-                  <h2 className="text-3xl text-primary font-inter font-semibold">
-                    Live & Pay
-                  </h2>
-
-                  <p className="text-base">
-                    Settle into your new home with full control at your
-                    fingertips. Manage rent payments, track records, receive
-                    updates, and communicate with owners or management, all
-                    conveniently from your mobile device.
-                  </p>
-                </Surface>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
-    </>
+        {/* Get the App */}
+        <AppSection apkAvailable={apkAvailable} />
+      </main>
+    </div>
   );
 }

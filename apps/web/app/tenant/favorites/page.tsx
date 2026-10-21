@@ -19,9 +19,9 @@ export default async function FavoritesPage() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!(profile as unknown as { roles: string[] } | null)?.roles.includes("tenant")) {
+  if (!profile?.roles.includes("tenant")) {
     redirect("/browse");
   }
 
-  return <FavoritesClient />;
+  return <FavoritesClient key={`${user.id}:${profile.id}`} authUserId={user.id} profileId={profile.id} />;
 }

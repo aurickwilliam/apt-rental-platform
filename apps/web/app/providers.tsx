@@ -5,6 +5,7 @@ import { Toast } from "@heroui/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getReducedMotion, subscribeReducedMotion } from "@/lib/reduced-motion";
+import ResourceCacheLifecycle from "./components/layout/ResourceCacheLifecycle";
 
 function ReducedMotionPreference() {
   const enabled = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider attribute="class" defaultTheme="light">
       <ReducedMotionPreference />
+      <ResourceCacheLifecycle />
       <TooltipProvider>
         {children}
         <Toast.Provider
