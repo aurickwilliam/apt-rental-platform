@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 
 import { IMAGES } from "@/constants/images";
 
-import { IconChartBar } from "@tabler/icons-react-native";
+import { IconCalendarCheck, IconChartBar } from "@tabler/icons-react-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -14,7 +14,7 @@ import MonthCollectionCard from "@/app/(tabs)/components/dashboard/MonthCollecti
 import DashboardStatTile from "@/app/(tabs)/components/dashboard/DashboardStatTile";
 import NewRequestsCard from "@/app/(tabs)/components/dashboard/NewRequestsCard";
 import ProfitTrendCard from "./../components/dashboard/ProfitTrendCard";
-import ProfitByPropertyCard from "./../components/dashboard/ProfitByPropertyCard";
+import CollectionHistoryCard from "./../components/dashboard/CollectionHistoryCard";
 import DashboardSkeleton from "./../components/dashboard/DashboardSkeleton";
 import EmptyProperties from "./../components/units/EmptyProperties";
 import EmptyState from "@/components/display/EmptyState";
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColors();
   const { data, isLoading, error } = useDashboardData();
-  const { stats, attention, thisMonth, monthlyRevenue, revenueByProperty, rentDues } =
+  const { stats, attention, thisMonth, collectionByMonth, monthlyRevenue, rentDues } =
     data;
 
   useEffect(() => {
@@ -49,8 +49,6 @@ export default function Dashboard() {
   const totalDue = rentDues.reduce((sum, rent) => sum + rent.amount, 0);
   const hasAnyRevenue = monthlyRevenue.some((point) => point.amount > 0);
   const showCombinedChartEmpty = !hasAnyRevenue;
-  // Comparing properties only makes sense with more than one.
-  const showPropertyComparison = stats.totalProperties > 1;
   const requestItems = buildRequestItems(attention);
 
   const openCashPayments = attention.pendingCashApartmentId
@@ -152,13 +150,9 @@ export default function Dashboard() {
                 />
               </View>
             ) : (
-              <>
-                <ProfitTrendCard monthlyRevenue={monthlyRevenue} />
-                {showPropertyComparison ? (
-                  <ProfitByPropertyCard revenueByProperty={revenueByProperty} />
-                ) : null}
-              </>
+              <ProfitTrendCard monthlyRevenue={monthlyRevenue} />
             )}
+            <CollectionHistoryCard collectionByMonth={collectionByMonth} />
           </View>
 
           <View className="flex gap-5 mt-5">
@@ -174,15 +168,11 @@ export default function Dashboard() {
             </View>
 
             {rentDues.length === 0 ? (
-              <View className="items-center py-10 gap-2">
-                <Text className="text-gray-400 font-nunitoSemiBold">
-                  No upcoming rent dues
-                </Text>
-                <Text className="text-gray-400 text-sm font-inter text-center px-8">
-                  You&apos;re all caught up — new dues will appear here as they
-                  come due.
-                </Text>
-              </View>
+              <EmptyState
+                icon={<IconCalendarCheck size={36} color={colors.gray500} />}
+                title="No upcoming rent dues"
+                description="You're all caught up. New dues will appear here as they come due."
+              />
             ) : (
               <View className="flex gap-3">
                 {rentDues.map((rent) => (
