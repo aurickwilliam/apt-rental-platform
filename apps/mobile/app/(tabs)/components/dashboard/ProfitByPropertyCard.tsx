@@ -7,6 +7,7 @@ import DropdownButton from "@/components/buttons/DropdownButton";
 import EmptyState from "@/components/display/EmptyState";
 
 import { MONTHS } from "@repo/constants";
+import { formatPesoCompact } from "@repo/utils";
 
 import { useColors } from "@/hooks/useTheme";
 
@@ -43,14 +44,34 @@ export default function ProfitByPropertyCard({
   const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
   const chartData = revenueByProperty
-    .map((entry) => ({
-      value: entry.months.find((month) => month.month === monthKey)?.amount ?? 0,
-      label: chartLabel(entry.apartmentName),
-      frontColor: colors.primary,
-    }))
-    .filter((datum) => datum.value > 0);
+    .map((entry) => {
+      const amount =
+        entry.months.find((month) => month.month === monthKey)?.amount ?? 0;
+
+      return {
+        value: amount,
+        label: chartLabel(entry.apartmentName),
+        frontColor: colors.primary,
+        topLabelComponent: () => (
+          <Text
+            style={{
+              color: colors.gray500,
+              fontSize: 9,
+              fontWeight: "600",
+              fontFamily: "Nunito-SemiBold",
+              paddingBottom: 4,
+            }}
+          >
+            {formatPesoCompact(amount)}
+          </Text>
+        ),
+      };
+    })
+    // Earners first so zero-revenue properties trail instead of hiding them.
+    .sort((a, b) => b.value - a.value);
 
   const maxValue = chartData.reduce((max, datum) => Math.max(max, datum.value), 0);
+  const hasEarnings = maxValue > 0;
 
   return (
     <View className="w-full border border-border p-4 rounded-3xl bg-surface">
@@ -72,7 +93,7 @@ export default function ProfitByPropertyCard({
 
       {/* CHART */}
       <View className="mt-4 overflow-hidden">
-        {chartData.length === 0 ? (
+        {!hasEarnings ? (
           <EmptyState
             icon={<IconChartBar size={36} color={colors.gray500} />}
             title="No earnings this month"
@@ -98,15 +119,7 @@ export default function ProfitByPropertyCard({
               fontFamily: "Nunito-SemiBold",
               textAlign: "center",
             }}
-            formatYLabel={(val) => `₱${Number(val) / 1000}k`}
-            showValuesAsTopLabel
-            topLabelTextStyle={{
-              color: colors.gray500,
-              fontSize: 9,
-              fontWeight: "600",
-              fontFamily: "Nunito-SemiBold",
-            }}
-            topLabelContainerStyle={{ paddingBottom: 4 }}
+            formatYLabel={(val) => formatPesoCompact(Number(val))}
             renderTooltip={(item: any) => (
               <View
                 style={{

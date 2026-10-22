@@ -3,6 +3,8 @@ import { useState } from "react";
 import { LineChart } from "react-native-gifted-charts";
 import { IconChartLine } from "@tabler/icons-react-native";
 
+import { formatPesoCompact } from "@repo/utils";
+
 import DropdownButton from "@/components/buttons/DropdownButton";
 import EmptyState from "@/components/display/EmptyState";
 
@@ -126,7 +128,9 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
             xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
             hideDataPoints={false}
             showVerticalLines={false}
-            formatYLabel={(val) => `₱${Number(val) / 1000}k`}
+            scrollToEnd
+            scrollAnimation={false}
+            formatYLabel={(val) => formatPesoCompact(Number(val))}
             pointerConfig={{
               pointerStripHeight: 140,
               pointerStripColor: colors.primary,
