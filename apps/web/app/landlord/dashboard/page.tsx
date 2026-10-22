@@ -9,7 +9,7 @@ import StatTile from "./components/StatTile";
 import RequestsCard from "./components/RequestsCard";
 import RentDueList from "./components/RentDueList";
 import ProfitTrendChart from "./components/ProfitTrendChart";
-import PropertyRevenueChart from "./components/PropertyRevenueChart";
+import CollectionHistoryChart from "./components/CollectionHistoryChart";
 import DashboardHeader from "./components/DashboardHeader";
 
 export const dynamic = "force-dynamic";
@@ -41,13 +41,13 @@ export default async function Dashboard() {
     );
   }
 
-  const { stats, attention, thisMonth, monthlyRevenue, revenueByProperty, rentDues } = data;
+  const { stats, attention, thisMonth, collectionByMonth, monthlyRevenue, rentDues } = data;
 
   if (stats.totalProperties === 0) {
     return (
       <div className="p-4 md:p-6">
         <DashboardHeader />
-        <div className="space-y-3 rounded-xl border border-border bg-card py-16 text-center">
+        <div className="space-y-3 rounded-3xl border border-border bg-card py-16 text-center">
           <h2 className="font-nunito text-xl font-bold">No properties yet</h2>
           <p className="text-sm text-muted-foreground">
             Add your first property to start managing your rentals.
@@ -69,13 +69,10 @@ export default async function Dashboard() {
     timeZone: MANILA_TIME_ZONE,
   });
   const requestItems = buildRequestItems(attention);
-  const hasRevenue = monthlyRevenue.some((point) => point.amount > 0);
   const occupancyPercent =
     stats.totalProperties > 0
       ? Math.round((stats.unitsOccupied / stats.totalProperties) * 100)
       : 0;
-  // Comparing properties only makes sense with more than one.
-  const showPropertyComparison = stats.totalProperties > 1;
 
   return (
     <div className="p-4 md:p-6">
@@ -134,15 +131,7 @@ export default async function Dashboard() {
         <ProfitTrendChart data={monthlyRevenue} className="lg:col-span-2" />
         <RentDueList rentDues={rentDues} />
 
-        {showPropertyComparison && hasRevenue ? (
-          <div className="rounded-xl border border-border bg-card p-4 lg:col-span-3">
-            <h3 className="mb-4 font-nunito text-xl font-bold text-primary">Revenue by Property</h3>
-            <PropertyRevenueChart
-              revenueByProperty={revenueByProperty}
-              monthKeys={monthlyRevenue.map((point) => point.month)}
-            />
-          </div>
-        ) : null}
+        <CollectionHistoryChart data={collectionByMonth} className="lg:col-span-3" />
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ export default function CollectionCard({ thisMonth, monthLabel, className = "" }
 
   return (
     <div
-      className={`flex flex-col justify-between gap-6 rounded-xl bg-primary p-5 text-white ${className}`}
+      className={`flex flex-col justify-between gap-6 rounded-3xl bg-primary p-5 text-white ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>

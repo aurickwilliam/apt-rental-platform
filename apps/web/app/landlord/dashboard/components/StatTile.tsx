@@ -53,7 +53,7 @@ export default function StatTile({
     </>
   );
 
-  const className = "flex flex-col gap-3 rounded-xl border border-border bg-card p-5";
+  const className = "flex flex-col gap-3 rounded-3xl border border-border bg-card p-5";
 
   if (!href) return <div className={className}>{content}</div>;
 

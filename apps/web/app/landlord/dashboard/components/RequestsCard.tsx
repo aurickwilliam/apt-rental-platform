@@ -28,7 +28,7 @@ type Props = {
 
 export default function RequestsCard({ items, className = "" }: Props) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
+    <div className={`rounded-3xl border border-border bg-card p-5 ${className}`}>
       <h3 className="mb-3 font-nunito text-xl font-bold text-primary">
         Waiting for your reply
       </h3>

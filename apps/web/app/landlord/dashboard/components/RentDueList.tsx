@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { IconCalendarCheck } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, type RentDue } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
+import ChartEmptyState from "./ChartEmptyState";
 
 const MAX_ROWS = 8;
 
@@ -16,7 +18,7 @@ export default function RentDueList({ rentDues, className = "" }: Props) {
   const hiddenCount = rentDues.length - visibleDues.length;
 
   return (
-    <div className={`flex flex-col rounded-xl border border-border bg-card p-5 ${className}`}>
+    <div className={`flex flex-col rounded-3xl border border-border bg-card p-5 ${className}`}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="font-nunito text-xl font-bold text-primary">Upcoming rent due</h3>
         <span className="rounded-full bg-primary px-3 py-1 text-sm font-semibold text-white">
@@ -25,12 +27,12 @@ export default function RentDueList({ rentDues, className = "" }: Props) {
       </div>
 
       {rentDues.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-          <p className="text-sm font-semibold text-foreground">No upcoming rent dues</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            You&apos;re all caught up. New dues appear here as they come due.
-          </p>
-        </div>
+        <ChartEmptyState
+          icon={IconCalendarCheck}
+          title="No upcoming rent dues"
+          description="You're all caught up. New dues appear here as they come due."
+          className="flex-1 py-8"
+        />
       ) : (
         <ul className="space-y-1">
           {visibleDues.map((due) => (

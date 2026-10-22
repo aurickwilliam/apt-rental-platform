@@ -45,7 +45,7 @@ test("Dashboard skeleton covers the collection and requests cards, four stat til
   const stats = elements.find(node => node.props.className?.includes("lg:grid-cols-4"));
   assert.equal(stats.props.children.length, 4);
   assert.deepEqual(elements.filter(node => node.type === "h3").map(node => node.props.children), [
-    "Profit Trend", "Upcoming rent due",
+    "Profit Trend", "Upcoming rent due", "Rent Collection",
   ]);
   const blocks = elements.filter(node => node.type === "Skeleton");
   assert.ok(blocks.length > 0);

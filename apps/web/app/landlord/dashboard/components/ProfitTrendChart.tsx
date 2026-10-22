@@ -37,7 +37,7 @@ export default function ProfitTrendChart({ data, className = "" }: Props) {
   const hasRevenue = series.some((point) => point.value > 0);
 
   return (
-    <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
+    <div className={`rounded-3xl border border-border bg-card p-5 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="font-nunito text-xl font-bold text-primary">Profit Trend</h3>
