@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import { getTenantContext } from "@/service/favoritesService";
 import {
   fetchVisitRequest,
@@ -19,13 +20,21 @@ interface VisitRequestData {
 const EMPTY: VisitRequestData = { current: null, history: [] };
 
 export function useVisitRequest(applicationId: string | undefined) {
+  const identity = useAuthIdentity();
+  const scope = useMemo(() => ({ applicationId, identity }), [applicationId, identity]);
+  const seenVisits = useRef(new WeakSet<object>());
   const load = useCallback(async (): Promise<VisitRequestData> => {
-    if (!applicationId) return EMPTY;
+    if (!applicationId || !identity.authUserId) return EMPTY;
     const context = await getTenantContext();
-    if (!context.tenantId) return EMPTY;
-    return fetchVisitRequest(applicationId, context.tenantId);
-  }, [applicationId]);
-  const { data, loading, error, refresh } = useAsyncResource(load, EMPTY, "Failed to load visit request.");
+    const result = context.tenantId ? await fetchVisitRequest(applicationId, context.tenantId) : EMPTY;
+    // Initial absence is valid; disappearance after a scoped read is not proof
+    // that a new request may be made. Retain only a weak scope marker, no data.
+    if (seenVisits.current.has(scope) && !result.current) throw new Error("This visit request is no longer available.");
+    if (result.current) seenVisits.current.add(scope);
+    return result;
+  }, [applicationId, identity, scope]);
+  const { data, loading, error, refresh, revalidate, revalidating } = useAsyncResource(load, EMPTY, "Failed to load visit request.", { clearOnRevalidateError: true });
+  const visible = !loading && !error && identity.authUserId ? data : EMPTY;
 
-  return { visitRequest: data.current, history: data.history, loading, error, refetch: refresh };
+  return { visitRequest: visible.current, history: visible.history, loading: identity.authUserId === undefined || loading, error, refetch: refresh, revalidate, revalidating };
 }

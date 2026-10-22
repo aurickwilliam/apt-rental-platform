@@ -34,6 +34,7 @@ function load(file, options = {}) {
     },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams, useParams: () => ({ requestId: "request-one" }) },
     "next/image": { default: "Image" },
+    "next/link": { default: "Link" },
     "@heroui/react": { Skeleton: "Skeleton", Card, Table, InputGroup, Dropdown, Button: "Button", Label: "Label", Chip: "Chip", Separator: "Separator", toast: { success: () => {}, danger: () => {} }, useOverlayState: () => ({ isOpen: false, setOpen: options.setOpen ?? (() => {}) }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatDate: value => value, formatPesoDisplay: value => `PHP ${value}`, getInitials: () => "T" },
@@ -51,6 +52,9 @@ function load(file, options = {}) {
     "../components/ResolveMaintenanceModal": { default: "ResolveMaintenanceModal" },
     "../components/WaiveMaintenanceFeeModal": { default: "WaiveMaintenanceFeeModal" },
     "./components/MaintenanceDetailSkeleton": { default: function MaintenanceDetailSkeleton() { return load("[requestId]/components/MaintenanceDetailSkeleton.tsx").default(); } },
+    "./components/MaintenanceDetailShell": { default: function MaintenanceDetailShell(props) { return load("[requestId]/components/MaintenanceDetailShell.tsx").default(props); } },
+    "./MaintenanceDetailShell": { default: function MaintenanceDetailShell(props) { return load("[requestId]/components/MaintenanceDetailShell.tsx").default(props); } },
+    "@/app/components/display/RouteLoadingStatus": { default: "RouteLoadingStatus" },
     "./lib/maintenance-list": maintenanceList,
     "./maintenance-list": maintenanceList,
     "./lib/use-maintenance-list-filters": { default: () => load("lib/use-maintenance-list-filters.ts", options).default() },
@@ -81,7 +85,7 @@ function nodes(element) {
   const expand = typeof element.type === "function" && [
     "Sk", "MaintenanceHeader", "MaintenanceSkeleton", "MaintenanceCountSkeleton", "MaintenanceResultsSkeleton",
     "MaintenanceTableSkeleton", "MaintenanceCardSkeleton", "MaintenanceEmptyState", "MaintenanceContent", "MaintenanceSummary",
-    "MaintenanceDetailSkeleton", "MaintenanceDetailFieldSkeleton", "MaintenanceDetailSectionTitle", "SectionTitle", "DetailField",
+    "MaintenanceDetailShell", "MaintenanceDetailSkeleton", "MaintenanceDetailFieldSkeleton", "MaintenanceDetailSectionTitle", "SectionTitle", "DetailField",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
@@ -250,16 +254,19 @@ test("Maintenance failures show unknown statistics and details warm on hover or 
   assert.deepEqual(warmed, Array(4).fill("/landlord/maintenance-requests/request-one"));
 });
 
-test("Maintenance detail route and client loading share a matching skeleton without showing request data or actions", () => {
-  for (const [file, options] of [["[requestId]/loading.tsx", {}], ["[requestId]/page.tsx", { loading: true }]]) {
-    const elements = nodes(load(file, options).default());
+test("Maintenance detail route keeps the shell while only the client renders body placeholders", () => {
+  const boundary = nodes(load("[requestId]/loading.tsx").default());
+  assert.equal(boundary.find(node => node.type === "h1").props.children, "Maintenance Request");
+  assert.ok(boundary.some(node => node.type === "RouteLoadingStatus"));
+  assert.equal(boundary.filter(node => node.type === "Skeleton").length, 0);
+  {
+    const elements = nodes(load("[requestId]/page.tsx", { loading: true }).default());
     assert.ok(elements.some(node => node.props["aria-busy"] === "true" && node.props["aria-label"] === "Loading maintenance request details"));
     assert.equal(elements.find(node => node.type === "h1").props.children, "Maintenance Request");
     const content = text({ type: "root", props: { children: elements } });
     for (const title of ["Property & Tenant", "Issue Description", "Issue Photos", "Resolution Notes", "Maintenance Fee"]) assert.ok(content.includes(title));
     assert.equal(elements.filter(node => node.type.name === "MaintenanceDetailFieldSkeleton").length, 6);
     assert.equal(elements.filter(node => node.type === "Skeleton" && node.props.className.includes("size-24")).length, 3);
-    assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
     assert.equal(elements.some(node => node.type === "Button"), false);
   }
 });

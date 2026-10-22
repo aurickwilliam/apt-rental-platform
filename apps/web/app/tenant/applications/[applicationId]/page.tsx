@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -33,6 +34,10 @@ import DetailField from "@/app/tenant/applications/components/DetailField";
 import ApplicationDetailSkeleton from "@/app/tenant/applications/components/ApplicationDetailSkeleton";
 import DocumentRow from "@/app/tenant/applications/components/DocumentRow";
 import VisitRequestDetailsCard from "@/app/tenant/applications/components/VisitRequestDetailsCard";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
+import { useReconciledAction } from "@/hooks/use-reconciled-action";
+import ReconciliationNotice from "@/app/components/display/ReconciliationNotice";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 
 function formatLongDate(d: string) {
   try {
@@ -50,23 +55,25 @@ function formatBirthDate(value: string) {
     : date.toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" });
 }
 
-export default function ApplicationDetailPage() {
+function ApplicationDetailContent() {
   const params = useParams<{ applicationId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
   const applicationId = params.applicationId;
   const apartmentIdParam = searchParams.get("apartmentId") ?? "";
 
-  const { applications, tenantId, loading: appsLoading, error: appsError, refresh } = useTenantApplications();
+  const { applications, tenantId, loading: appsLoading, error: appsError } = useTenantApplications();
   const { personalInfo, loading: profileLoading } = useApplicantPersonalInfo(tenantId);
   const {
     visitRequest,
     history,
     loading: visitLoading,
-    refetch: refetchVisit,
+    error: visitError,
+    revalidate: revalidateVisit,
   } = useVisitRequest(applicationId);
   const { cancelApplication, loading: cancelling } = useCancelApplication();
   const { accept, decline, loading: responding } = useRespondToReschedule();
+  const action = useReconciledAction(revalidateVisit);
 
   const cancelDialog = useOverlayState();
 
@@ -76,10 +83,12 @@ export default function ApplicationDetailPage() {
     return <ApplicationDetailSkeleton />;
   }
 
-  if (appsError || !application) {
+  if (appsError || visitError || !application) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <p className="text-muted-foreground">{appsError ?? "Application not found."}</p>
+        <h1 className="text-xl font-nunito font-bold">Application Details</h1>
+        <p className="text-muted-foreground">{appsError ?? visitError ?? "Application not found."}</p>
+        <ReconciliationNotice pending={action.pending} error={action.error ?? visitError} onRetry={() => void action.retry()} />
         <Button variant="outline" className="mt-4" onPress={() => router.back()}>
           <ArrowLeft size={16} /> Back
         </Button>
@@ -101,32 +110,36 @@ export default function ApplicationDetailPage() {
         .join(", ")
     : null;
 
-  const showRequestVisit = !visitRequest && application.status === "pending";
+  const actionsBlocked = action.blocked || !!visitError || cancelling || responding;
+  const showRequestVisit = !visitRequest && !visitError && !action.blocked && application.status === "pending";
 
   const handleConfirmCancel = async () => {
-    const { error } = await cancelApplication(applicationId, visitRequest?.id);
-    if (error) {
+    const result = await action.run(async () => {
+      const { error } = await cancelApplication(applicationId, visitRequest?.id);
+      return !error;
+    }, false);
+    if (result === "failed") {
       toast.danger("Failed to cancel application. Please try again.");
-    } else {
+    } else if (result === "confirmed") {
       cancelDialog.setOpen(false);
       toast.success("Application cancelled");
-      await refresh();
       router.push("/tenant/my-rental");
     }
   };
 
   const handleAccept = async () => {
-    if (!visitRequest) return;
-    const { error } = await accept(visitRequest.id);
-    if (error) toast.danger("Failed to accept visit. Please try again.");
-    else void refetchVisit();
+    if (!visitRequest || visitError) return;
+    const result = await action.run(async () => !(await accept(visitRequest.id)).error);
+    if (result === "failed") toast.danger("Failed to accept visit. Please try again.");
+    if (result === "confirmed") toast.success("Visit details updated");
   };
 
   const handleDecline = async () => {
-    if (!visitRequest) return;
-    const { error } = await decline(visitRequest.id);
-    if (error) toast.danger("Failed to update visit request. Please try again.");
-    else void refetchVisit();
+    if (!visitRequest || visitError) return false;
+    const result = await action.run(async () => !(await decline(visitRequest.id)).error);
+    if (result === "failed") toast.danger("Failed to update visit request. Please try again.");
+    if (result === "confirmed") toast.success("Visit details updated");
+    return result === "confirmed";
   };
 
   const handleRequestAgain = () =>
@@ -139,6 +152,8 @@ export default function ApplicationDetailPage() {
       <Button variant="outline" size="sm" onPress={() => router.back()}>
         <ArrowLeft size={16} /> Back
       </Button>
+
+      <ReconciliationNotice pending={action.pending} error={action.error ?? visitError} onRetry={() => void action.retry()} />
 
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -215,7 +230,7 @@ export default function ApplicationDetailPage() {
               onAccept={handleAccept}
               onDecline={handleDecline}
               onRequestAgain={handleRequestAgain}
-              actionLoading={responding}
+              actionLoading={actionsBlocked}
             />
           )}
         </div>
@@ -353,7 +368,7 @@ export default function ApplicationDetailPage() {
         {application.status === "pending" && (
           <div className="mt-auto pt-6">
             <div className="flex gap-3">
-              <Button variant="danger" className="flex-1" isDisabled={cancelling || responding} onPress={() => cancelDialog.setOpen(true)}>
+              <Button variant="danger" className="flex-1" isDisabled={actionsBlocked} onPress={() => cancelDialog.setOpen(true)}>
                 <Ban size={16} /> Cancel Application
               </Button>
             </div>
@@ -373,8 +388,8 @@ export default function ApplicationDetailPage() {
                       <Button variant="outline" size="sm" onPress={() => cancelDialog.setOpen(false)}>
                         Keep
                       </Button>
-                      <Button variant="danger" size="sm" isDisabled={cancelling} onPress={handleConfirmCancel}>
-                        Yes, Cancel
+                      <Button variant="danger" size="sm" isDisabled={actionsBlocked} onPress={handleConfirmCancel}>
+                        {action.pending ? "Cancelling…" : "Yes, Cancel"}
                       </Button>
                     </Modal.Footer>
                   </Modal.Dialog>
@@ -388,4 +403,17 @@ export default function ApplicationDetailPage() {
       </div>
     </div>
   );
+}
+
+export default function ApplicationDetailPage() {
+  const identity = useAuthIdentity();
+  const { applicationId } = useParams<{ applicationId: string }>();
+  if (identity.authUserId === undefined) return (
+    <div className="px-4 py-8 space-y-6">
+      <Link href="/tenant/my-rental" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft size={16} aria-hidden="true" /> Back to My Rental</Link>
+      <RouteLoadingStatus>Loading application details…</RouteLoadingStatus>
+    </div>
+  );
+  if (!identity.authUserId) return <p role="alert" className="p-4">Sign in to view this application.</p>;
+  return <ApplicationDetailContent key={`${identity.authUserId}:${identity.generation}:${applicationId}`} />;
 }

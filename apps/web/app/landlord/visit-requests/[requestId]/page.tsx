@@ -26,6 +26,9 @@ import UserAvatar from "@/app/components/profile/UserAvatar";
 
 import { useLandlordVisitRequests } from "@/hooks/use-landlord-visit-requests";
 import { useLandlordVisitRequestActions } from "@/hooks/use-landlord-visit-request-actions";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
+import { useReconciledAction } from "@/hooks/use-reconciled-action";
+import ReconciliationNotice from "@/app/components/display/ReconciliationNotice";
 
 import { getVisitStatusChipColor, getVisitStatusLabel } from "../lib/visit-status-styles";
 
@@ -45,12 +48,13 @@ function toSupabaseTime(hour: string, period: "AM" | "PM"): string {
   return `${String(h).padStart(2, "0")}:00:00`;
 }
 
-export default function LandlordVisitRequestDetailPage() {
+function LandlordVisitRequestDetailContent() {
   const router = useRouter();
   const params = useParams<{ requestId: string }>();
   const requestId = params.requestId;
 
-  const { visitRequests, loading, error, refetch } = useLandlordVisitRequests();
+  const { visitRequests, loading, error, revalidate } = useLandlordVisitRequests(requestId);
+  const action = useReconciledAction(revalidate);
   const {
     approve,
     reject,
@@ -59,7 +63,7 @@ export default function LandlordVisitRequestDetailPage() {
     isRejecting,
     isRescheduling,
     errorMessage,
-  } = useLandlordVisitRequestActions(requestId, () => void refetch());
+  } = useLandlordVisitRequestActions(requestId);
 
   const rejectDialog = useOverlayState();
   const approveDialog = useOverlayState();
@@ -88,6 +92,7 @@ export default function LandlordVisitRequestDetailPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <p className="text-muted-foreground">{error ?? "Visit request not found."}</p>
+        <ReconciliationNotice pending={action.pending} error={action.error ?? error} onRetry={() => void action.retry()} />
         <Button variant="outline" className="mt-4" onPress={() => router.back()}>
           <ArrowLeft size={16} /> Back
         </Button>
@@ -106,23 +111,25 @@ export default function LandlordVisitRequestDetailPage() {
     zip_code: request.apartment.zip_code !== null ? String(request.apartment.zip_code) : null,
   });
   const isPending = request.status === "pending";
-  const isAnyActionLoading = isApproving || isRejecting || isRescheduling;
+  const isAnyActionLoading = action.blocked || isApproving || isRejecting || isRescheduling;
 
   const handleApproveConfirm = async () => {
-    if (await approve()) {
-      approveDialog.setOpen(false);
+    const result = await action.run(approve);
+    if (result === "confirmed" || result === "unresolved") approveDialog.setOpen(false);
+    if (result === "confirmed") {
       toast.success("Visit request approved");
-    } else {
+    } else if (result === "failed") {
       toast.danger("Failed to approve. Please try again.");
     }
   };
 
   const handleRejectConfirm = async () => {
-    if (await reject(rejectReason.trim())) {
+    const result = await action.run(() => reject(rejectReason.trim()));
+    if (result === "confirmed" || result === "unresolved") rejectDialog.setOpen(false);
+    if (result === "confirmed") {
       setRejectReason("");
-      rejectDialog.setOpen(false);
       toast.success("Visit request rejected");
-    } else {
+    } else if (result === "failed") {
       toast.danger("Failed to reject. Please try again.");
     }
   };
@@ -139,10 +146,11 @@ export default function LandlordVisitRequestDetailPage() {
       return;
     }
     setRescheduleError("");
-    if (await reschedule(rescheduleDate, toSupabaseTime(rescheduleHour, reschedulePeriod))) {
-      rescheduleDialog.setOpen(false);
+    const result = await action.run(() => reschedule(rescheduleDate, toSupabaseTime(rescheduleHour, reschedulePeriod)));
+    if (result === "confirmed" || result === "unresolved") rescheduleDialog.setOpen(false);
+    if (result === "confirmed") {
       toast.success("New visit time proposed");
-    } else {
+    } else if (result === "failed") {
       toast.danger("Failed to reschedule. Please try again.");
     }
   };
@@ -152,6 +160,8 @@ export default function LandlordVisitRequestDetailPage() {
       <Button variant="outline" size="sm" onPress={() => router.back()}>
         <ArrowLeft size={16} /> Back
       </Button>
+
+      <ReconciliationNotice pending={action.pending} error={action.error} onRetry={() => void action.retry()} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
         <div className="flex flex-col gap-4 min-w-0">
@@ -269,8 +279,8 @@ export default function LandlordVisitRequestDetailPage() {
                 <Button variant="outline" size="sm" onPress={() => rejectDialog.setOpen(false)}>
                   Cancel
                 </Button>
-                <Button variant="danger" size="sm" isDisabled={isRejecting} onPress={handleRejectConfirm}>
-                  {isRejecting ? "Rejecting..." : "Confirm Reject"}
+                <Button variant="danger" size="sm" isDisabled={isAnyActionLoading || !isPending} onPress={handleRejectConfirm}>
+                  {action.pending ? "Updating details…" : isRejecting ? "Rejecting..." : "Confirm Reject"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -292,8 +302,8 @@ export default function LandlordVisitRequestDetailPage() {
                 <Button variant="outline" size="sm" onPress={() => approveDialog.setOpen(false)}>
                   Cancel
                 </Button>
-                <Button size="sm" isDisabled={isApproving} onPress={handleApproveConfirm}>
-                  {isApproving ? "Approving..." : "Approve"}
+                <Button size="sm" isDisabled={isAnyActionLoading || !isPending} onPress={handleApproveConfirm}>
+                  {action.pending ? "Updating details…" : isApproving ? "Approving..." : "Approve"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -385,8 +395,8 @@ export default function LandlordVisitRequestDetailPage() {
                 <Button variant="outline" size="sm" onPress={() => rescheduleDialog.setOpen(false)}>
                   Cancel
                 </Button>
-                <Button size="sm" isDisabled={isRescheduling} onPress={handleRescheduleConfirm}>
-                  {isRescheduling ? "Sending..." : "Send Proposal"}
+                <Button size="sm" isDisabled={isAnyActionLoading || !isPending} onPress={handleRescheduleConfirm}>
+                  {action.pending ? "Updating details…" : isRescheduling ? "Sending..." : "Send Proposal"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -395,4 +405,12 @@ export default function LandlordVisitRequestDetailPage() {
       </Modal>
     </div>
   );
+}
+
+export default function LandlordVisitRequestDetailPage() {
+  const identity = useAuthIdentity();
+  const { requestId } = useParams<{ requestId: string }>();
+  if (identity.authUserId === undefined) return <div className="p-4" role="status">Loading visit request…</div>;
+  if (!identity.authUserId) return <p role="alert" className="p-4">Sign in to view this visit request.</p>;
+  return <LandlordVisitRequestDetailContent key={`${identity.authUserId}:${identity.generation}:${requestId}`} />;
 }

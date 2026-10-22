@@ -56,7 +56,7 @@ export default function MaintenanceRequestPage() {
           </div>
 
           {tenancyLoading ? (
-            <MaintenancePageSkeleton />
+            <MaintenancePageSkeleton showHeader={false} />
           ) : tenancyError ? (
             <ErrorBanner message={tenancyError} />
           ) : !tenancy || !apartmentId ? (

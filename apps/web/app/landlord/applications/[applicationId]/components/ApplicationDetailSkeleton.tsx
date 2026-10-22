@@ -1,6 +1,7 @@
 import { Skeleton } from "@heroui/react";
 import { IconHome, IconUser, IconClipboardList, IconBriefcase, IconAdjustments, IconAddressBook, IconFileText, IconMessage } from "@tabler/icons-react";
 import ApplicationDetailSection from "./ApplicationDetailSection";
+import ApplicationDetailShell from "./ApplicationDetailShell";
 
 const DOCUMENT_COUNT = 5;
 const INFORMATION_SECTIONS = [
@@ -25,12 +26,8 @@ function ApplicationFieldSkeleton() {
 
 export default function ApplicationDetailSkeleton() {
   return (
-    <div className="w-full min-w-0 p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0" aria-busy="true" aria-label="Loading application details">
-      <div>
-        <Sk className="h-8 w-44 rounded-lg" />
-        <h1 className="mt-2 text-2xl font-nunito font-bold text-card-foreground">Application Details</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Review the tenant&apos;s information and supporting documents.</p>
-      </div>
+    <ApplicationDetailShell>
+      <div role="status" aria-busy="true" aria-label="Loading application details">
       <div className="flex flex-col gap-4" aria-hidden="true">
         <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
           <ApplicationDetailSection title="Property" subtitle="Tenant application for this property." icon={IconHome}>
@@ -84,6 +81,7 @@ export default function ApplicationDetailSkeleton() {
           </ApplicationDetailSection>
         </div>
       </div>
-    </div>
+      </div>
+    </ApplicationDetailShell>
   );
 }

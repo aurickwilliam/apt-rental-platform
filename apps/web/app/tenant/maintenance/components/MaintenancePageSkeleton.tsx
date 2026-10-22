@@ -16,20 +16,20 @@ function FieldSkeleton() {
   );
 }
 
-export default function MaintenancePageSkeleton() {
+export default function MaintenancePageSkeleton({ showHeader = true }: { showHeader?: boolean }) {
   return (
     <div
       className="space-y-4"
       aria-busy="true"
       aria-label="Loading maintenance page"
     >
-      <div className="flex items-center gap-3">
+      {showHeader ? <div className="flex items-center gap-3">
         <Sk className="size-11 shrink-0 rounded-2xl" />
         <div className="flex-1 space-y-2">
           <Sk className="h-8 w-56 max-w-full rounded-lg" />
           <Sk className="h-4 w-full max-w-md rounded-lg" />
         </div>
-      </div>
+      </div> : null}
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center gap-4">

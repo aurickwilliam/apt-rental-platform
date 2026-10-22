@@ -1,5 +1,6 @@
-import PaymentPageSkeleton from "./components/PaymentPageSkeleton";
+import { PaymentPageHeader, PaymentPageShell } from "./components/PaymentPageLayout";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 
 export default function TenantPaymentLoading() {
-  return <PaymentPageSkeleton />;
+  return <PaymentPageShell><PaymentPageHeader /><RouteLoadingStatus>Loading payment details…</RouteLoadingStatus></PaymentPageShell>;
 }

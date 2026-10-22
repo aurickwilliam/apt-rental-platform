@@ -1,5 +1,6 @@
-import MaintenanceDetailSkeleton from "./components/MaintenanceDetailSkeleton";
+import MaintenanceDetailShell from "./components/MaintenanceDetailShell";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 
 export default function MaintenanceDetailLoading() {
-  return <MaintenanceDetailSkeleton />;
+  return <MaintenanceDetailShell><RouteLoadingStatus>Loading maintenance request details…</RouteLoadingStatus></MaintenanceDetailShell>;
 }

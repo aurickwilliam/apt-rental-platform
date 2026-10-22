@@ -1,9 +1,5 @@
-export type PaymentMethod = "GCash" | "Maya" | "QRPh" | "Debit/Credit-Card" | "Cash";
-
-export type PaymentMethodPreference = {
-  savedMethods: PaymentMethod[];
-  defaultMethod: PaymentMethod | null;
-};
+import type { PaymentMethod } from "@repo/utils";
+export type { PaymentMethod, PaymentMethodPreference } from "@repo/utils";
 
 export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid" | "Rejected";
 

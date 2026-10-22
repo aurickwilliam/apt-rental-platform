@@ -8,7 +8,7 @@ const componentSource = name => readFileSync(new URL(`../app/tenant/my-rental/${
 const nodes = element => !element || typeof element !== "object" ? [] :
   [element, ...[element.props?.children].flat(Infinity).flatMap(nodes)];
 
-function renderRental({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null } } = {}) {
+function renderRental({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
   const jsx = (type, props) => ({ type, props });
   const noOp = () => {};
   const tenancy = {
@@ -40,18 +40,20 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [], 
         : { periodStart: "2026-12-01", dueDate: "2026-12-05" },
       nextUnpaidRentPeriod: () => ({ periodStart: "2026-12-01", dueDate: "2026-12-05" }),
     },
-    "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy, payments, loading: false, error: null, financeLoading: false, financeError: null, paymentError: null, refetch: noOp, revalidate: noOp, retryFinance: noOp }) },
-    "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: false, error: null }) },
+    "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy: noTenancy ? null : tenancy, payments, loading: false, error: null, financeLoading, financeError, paymentError, refetch: noOp, revalidate: noOp, retryFinance: noOp }) },
+    "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
+    "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: applicationsLoading, error: null }) },
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
     "../maintenance/data/maintenance-data": { CATEGORIES: [] },
   };
-  const compiled = ts.transpileModule(componentSource("page.tsx"), {
+  const compiled = ts.transpileModule(componentSource("MyRentalClient.tsx"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   const context = { exports: {}, require: name => modules[name] ?? { default: name } };
   vm.runInNewContext(compiled, context);
-  return nodes(context.exports.default());
+  const tree = context.exports.default({ initialContext: { authUserId: "auth-a", tenancy, error: null } });
+  return nodes(tree.type(tree.props));
 }
 
 const content = all => all.flatMap(node => [node.props?.children].flat(Infinity)).filter(value => typeof value === "string").join(" ").replace(/\s+/g, " ");
@@ -75,6 +77,32 @@ test("My Rental uses the checkout move-in total and includes each charge exactly
   }
   assert.equal(effects[0](), undefined, "server bills do not start a separate maintenance-fee lookup");
   assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightLabel, "Move-in payment due");
+});
+
+test("unresolved finance keeps the rental shell and hides payment actions; failures never masquerade as empty history", () => {
+  const loading = renderRental({ financeLoading: true });
+  assert.ok(loading.some(node => node.type === "./components/RentalHero"));
+  assert.ok(loading.some(node => node.type === "./components/SignedLeaseCard"));
+  assert.ok(loading.some(node => node.type === "./components/RentFinanceSkeleton"));
+  assert.ok(loading.some(node => node.type === "./components/PaymentHistorySkeleton"));
+  assert.ok(!loading.some(node => node.type === "./components/MyRentalSkeleton"));
+  assert.ok(!content(loading).includes("Pay now"));
+  for (const failure of [{ financeError: "Bill unavailable" }, { paymentError: "History unavailable" }]) {
+    const failed = renderRental(failure);
+    assert.ok(!content(failed).includes("Pay now"));
+    assert.ok(!content(failed).includes("No payments recorded yet."));
+    assert.ok(content(failed).includes("Payment history could not load"));
+    assert.ok(failed.some(node => node.type === "./components/RentalHero"));
+  }
+});
+
+test("no tenancy waits in the application region, not a second full-page skeleton, then settles honestly", () => {
+  const loading = renderRental({ noTenancy: true, applicationsLoading: true });
+  const list = loading.find(node => node.type === "./components/ApplicationsList");
+  assert.equal(list.props.loading, true);
+  assert.ok(!loading.some(node => node.type === "./components/MyRentalSkeleton"));
+  assert.ok(!loading.some(node => node.type === "./components/TenancyEmptyState"));
+  assert.ok(renderRental({ noTenancy: true }).some(node => node.type === "./components/TenancyEmptyState"));
 });
 
 test("My Rental pending move-in payments stay uncredited and link to their existing receipt", () => {
@@ -237,8 +265,15 @@ test("loading includes aligned Maintenance/lease cards followed by full-width Pa
   const compiled = ts.transpileModule(componentSource("components/MyRentalSkeleton.tsx"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  const context = { exports: {}, require: name => name === "@heroui/react"
-    ? { Skeleton: "Skeleton" } : { jsx, jsxs: jsx, Fragment: "Fragment" } };
+  const context = { exports: {}, require: name => {
+    if (name === "@heroui/react") return { Skeleton: "Skeleton" };
+    if (name === "./RentFinanceSkeleton" || name === "./PaymentHistorySkeleton") {
+      const child = { exports: {}, require: dependency => dependency === "@heroui/react" ? { Skeleton: "Skeleton" } : { jsx, jsxs: jsx, Fragment: "Fragment" } };
+      vm.runInNewContext(ts.transpileModule(componentSource(`components/${name.slice(2)}.tsx`), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText, child);
+      return child.exports;
+    }
+    return { jsx, jsxs: jsx, Fragment: "Fragment" };
+  } };
   vm.runInNewContext(compiled, context);
   const all = nodes(context.exports.default({}));
   const rows = all.filter(node => node.props.className?.includes("@min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]"));
@@ -252,5 +287,5 @@ test("loading includes aligned Maintenance/lease cards followed by full-width Pa
   const section = all.find(node => node.type === "Fragment");
   const history = section.props.children[section.props.children.indexOf(row) + 1];
   assert.match(history.props.className, /border border-border bg-card/);
-  assert.equal(nodes(history).filter(node => node.type === "Skeleton" && node.props.className.includes("h-8 w-full")).length, 3);
+  assert.equal(nodes(history).filter(node => node.type === "Skeleton" && node.props.className.includes("h-10 w-full")).length, 3);
 });

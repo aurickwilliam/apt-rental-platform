@@ -2,11 +2,12 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { usePaymentByReference } from "@/hooks/use-payments";
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useUser } from "@/hooks/use-user";
 import ReceiptView from "../components/ReceiptView";
+import PaymentStatusLoading from "../components/PaymentStatusLoading";
 
 // Web twin of mobile success.tsx: dedicated blue receipt route.
 // Polls while pending non-cash (webhook flips pending→paid); cash stays
@@ -77,14 +78,7 @@ function SuccessContent() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen px-5 flex flex-col" style={{ backgroundColor: "#376BF5" }}>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white text-base font-inter">{payment ? "Confirming your payment…" : "Loading your receipt…"}</p>
-        </div>
-      </div>
-    );
+    return <PaymentStatusLoading message={payment ? "Confirming your payment…" : "Loading your receipt…"} />;
   }
 
   if (!payment) {
@@ -120,12 +114,7 @@ function SuccessContent() {
 export default function TenantPaymentSuccessPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ backgroundColor: "#376BF5" }}>
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter text-center">Loading your receipt…</p>
-        </div>
-      }
+      fallback={<PaymentStatusLoading message="Loading your receipt…" />}
     >
       <SuccessContent />
     </Suspense>

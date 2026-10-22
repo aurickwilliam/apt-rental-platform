@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import {
   fetchLandlordVisitRequests,
   type LandlordVisitRequest,
@@ -12,9 +13,17 @@ export type { LandlordVisitRequest };
 
 const NO_VISIT_REQUESTS: LandlordVisitRequest[] = [];
 
-export function useLandlordVisitRequests() {
-  const load = useCallback(() => fetchLandlordVisitRequests(), []);
-  const { data, loading, error, refresh } = useAsyncResource(load, NO_VISIT_REQUESTS, "Failed to load visit requests.");
+export function useLandlordVisitRequests(resourceId?: string) {
+  const identity = useAuthIdentity();
+  const load = useCallback(async () => {
+    if (!identity.authUserId) return NO_VISIT_REQUESTS;
+    const requests = await fetchLandlordVisitRequests();
+    if (!resourceId) return requests;
+    const scoped = requests.filter((request) => request.id === resourceId);
+    if (scoped.length === 0) throw new Error("This visit request is no longer available.");
+    return scoped;
+  }, [identity, resourceId]);
+  const { data, loading, error, refresh, revalidate, revalidating } = useAsyncResource(load, NO_VISIT_REQUESTS, "Failed to load visit requests.", { clearOnRevalidateError: true });
 
-  return { visitRequests: data, loading, error, refetch: refresh };
+  return { visitRequests: !loading && !error && identity.authUserId ? data : NO_VISIT_REQUESTS, loading: identity.authUserId === undefined || loading, error, refetch: refresh, revalidate, revalidating };
 }

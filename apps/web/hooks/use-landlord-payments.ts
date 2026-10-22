@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import {
   fetchLandlordApartments,
   fetchLandlordPaymentById,
@@ -14,6 +15,7 @@ import {
 export type { LandlordApartment, PaymentRecord };
 
 const NO_PAYMENTS: PaymentRecord[] = [];
+const NO_APARTMENTS: LandlordApartment[] = [];
 
 function toMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -28,45 +30,29 @@ function toMessage(error: unknown): string {
 }
 
 export function useLandlordApartments() {
-  const [apartments, setApartments] = useState<LandlordApartment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setApartments(await fetchLandlordApartments());
-    } catch (err) {
-      setError(toMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) void refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh]);
-
-  return { apartments, loading, error, refresh };
+  const identity = useAuthIdentity();
+  const load = useCallback(() => identity.authUserId ? fetchLandlordApartments() : Promise.resolve(NO_APARTMENTS), [identity]);
+  const resource = useAsyncResource(load, NO_APARTMENTS, "Failed to load units.", { clearOnRevalidateError: true });
+  return {
+    apartments: resource.loading || resource.error ? NO_APARTMENTS : resource.data,
+    loading: identity.authUserId === undefined || resource.loading,
+    error: resource.error,
+    revalidating: resource.revalidating,
+    refresh: resource.revalidate,
+  };
 }
 
 export function useLandlordPayments(apartmentId: string | null) {
+  const identity = useAuthIdentity();
   const load = useCallback(async () => {
-    if (!apartmentId) return NO_PAYMENTS;
+    if (!apartmentId || !identity.authUserId) return NO_PAYMENTS;
     try {
       return await fetchLandlordPayments(apartmentId);
     } catch (err) {
       throw new Error(toMessage(err));
     }
-  }, [apartmentId]);
-  const { data, loading, error, refresh, setData } = useAsyncResource(load, NO_PAYMENTS, "Failed to load payments.");
+  }, [apartmentId, identity]);
+  const { data, loading, error, revalidate, revalidating, setData } = useAsyncResource(load, NO_PAYMENTS, "Failed to load payments.", { clearOnRevalidateError: true });
 
   const applyOptimisticPaid = useCallback((paymentId: string) => {
     setData((rows) => rows.map((row) => (row.id === paymentId ? { ...row, status: "paid" } : row)));
@@ -80,52 +66,36 @@ export function useLandlordPayments(apartmentId: string | null) {
   // the preceding unit's rows (including after the new unit's request fails).
   return {
     payments: apartmentId && !loading && !error ? data : NO_PAYMENTS,
-    loading: apartmentId !== null && loading,
+    loading: apartmentId !== null && (identity.authUserId === undefined || loading),
     error: apartmentId ? error : null,
-    refresh,
+    refresh: revalidate,
+    revalidating,
     applyOptimisticPaid,
     rollback,
   };
 }
 
 export function useLandlordPayment(paymentId: string | null) {
-  const [payment, setPayment] = useState<PaymentRecord | null>(null);
-  const [loading, setLoading] = useState(paymentId !== null);
-  const [error, setError] = useState<string | null>(null);
-
-  const refetch = useCallback(async () => {
-    if (!paymentId) return;
-    setLoading(true);
-    setError(null);
+  const identity = useAuthIdentity();
+  const load = useCallback(async (): Promise<PaymentRecord | null> => {
+    if (!paymentId || !identity.authUserId) return null;
     try {
-      setPayment(await fetchLandlordPaymentById(paymentId));
+      const payment = await fetchLandlordPaymentById(paymentId);
+      if (!payment) throw new Error("This receipt is no longer available.");
+      return payment;
     } catch (err) {
-      setError(toMessage(err));
-    } finally {
-      setLoading(false);
+      throw new Error(toMessage(err));
     }
-  }, [paymentId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      if (!paymentId) {
-        setPayment(null);
-        setLoading(false);
-        return;
-      }
-      void refetch();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [paymentId, refetch]);
-
-  if (!paymentId) {
-    return { payment: null, loading: false, error: null, refetch };
-  }
-  return { payment, loading, error, refetch };
+  }, [paymentId, identity]);
+  const resource = useAsyncResource(load, null, "Failed to load receipt.", { clearOnRevalidateError: true });
+  return {
+    payment: paymentId && identity.authUserId && !resource.loading && !resource.error ? resource.data : null,
+    loading: paymentId !== null && (identity.authUserId === undefined || resource.loading),
+    error: paymentId ? resource.error : null,
+    refetch: resource.refresh,
+    revalidate: resource.revalidate,
+    revalidating: resource.revalidating,
+  };
 }
 
 // Landlord resolves pending cash → paid or rejected. Rejected cash may be

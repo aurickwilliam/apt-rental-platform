@@ -75,9 +75,10 @@ test("Payments route and Suspense fallbacks share a header, selector/year placeh
   assert.equal(nodes(suspense.props.fallback).filter(node => node.type === Card).length, 3);
 });
 
-test("unit loading shows the full skeleton; payment loading keeps selection/filters without a Back button", () => {
+test("unit loading keeps the real heading/disabled selector; payment loading keeps selection/filters", () => {
   const unitsLoading = load("page.tsx", { units: { apartments: [], loading: true } }).default();
   assert.ok(nodes(unitsLoading).some(node => node.type === "Skeleton"));
+  assert.ok(nodes(unitsLoading).some(node => node.type === Select && node.props.isDisabled));
   const tree = load("page.tsx", { payments: { payments: [], loading: true } }).default();
   const elements = nodes(tree);
   assert.ok(elements.some(node => node.type === Select && node.props.value === "unit-a"));
@@ -107,6 +108,7 @@ test("payment filters/sorting and receipt links stay tied to the selected unit",
   for (const [sort, expected] of [["Newest", ["newer", "older"]], ["Oldest", ["older", "newer"]]]) {
     const tree = load("page.tsx", {
       states: [{ years: [], statuses: ["Paid"], sort }, false, "unit-b"],
+      units: { apartments: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }], loading: false },
       payments: { payments: records, loading: false },
     }).default();
     const elements = nodes(tree);

@@ -5,7 +5,9 @@ import type { TenancyBill } from "@repo/utils";
 import { useCallback, useEffect } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import { fetchActiveTenancy, type ActiveTenancy } from "@/service/tenancyService";
+import type { InitialRentalContext } from "@/service/tenancy-context";
 
 export type { TenancyApartment, TenancyLandlord } from "@/service/tenancyService";
 
@@ -47,17 +49,20 @@ const EMPTY_FINANCE: TenancyFinanceData = {
  *
  * Exported for direct unit coverage; the hook below is the only app caller.
  */
-export async function fetchTenancyContext(): Promise<ActiveTenancy | null> {
+export async function fetchTenancyContext(expectedAuthUserId?: string): Promise<ActiveTenancy | null> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError && authError.name !== "AuthSessionMissingError") throw authError;
   if (!user) return null;
+  if (expectedAuthUserId && user.id !== expectedAuthUserId) return null;
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("id")
+    .select("id, roles")
     .eq("user_id", user.id)
     .single();
   if (profileError || !profile) throw new Error(profileError?.message ?? "Profile not found");
+  if (!profile.roles.includes("tenant")) return null;
 
   return fetchActiveTenancy(profile.id);
 }
@@ -106,29 +111,39 @@ function latestPeriodPayment(payments: TenancyPayment[]): TenancyPayment | null 
   );
 }
 
-export function useTenancy() {
-  const context = useAsyncResource(
-    fetchTenancyContext,
-    null,
-    "An unexpected error occurred.",
+export function useTenancy(initialContext?: InitialRentalContext) {
+  const identity = useAuthIdentity(initialContext?.authUserId);
+  const loadContext = useCallback(
+    () => identity.authUserId ? fetchTenancyContext(identity.authUserId) : Promise.resolve(null),
+    [identity],
   );
-  const tenancyId = context.error ? null : context.data?.id ?? null;
+  const context = useAsyncResource(
+    loadContext,
+    null as ActiveTenancy | null,
+    "An unexpected error occurred.",
+    {
+      initial: initialContext ? { data: initialContext.tenancy, error: initialContext.error } : undefined,
+      clearOnRevalidateError: true,
+    },
+  );
+  const tenancyId = context.loading || context.error ? null : context.data?.id ?? null;
 
   const loadFinance = useCallback(
-    () => fetchTenancyFinance(tenancyId),
-    [tenancyId],
+    () => identity.authUserId ? fetchTenancyFinance(tenancyId) : Promise.resolve(EMPTY_FINANCE),
+    [tenancyId, identity],
   );
   const finance = useAsyncResource(
     loadFinance,
     EMPTY_FINANCE,
     "Unable to load your rental balance.",
+    { clearOnRevalidateError: true },
   );
 
   // Never pair a new tenancy (including a different account's) with the
   // previous financial snapshot while the new reads are still in flight.
   const financeReady = !finance.loading && !finance.error;
   const financeData = financeReady ? finance.data : EMPTY_FINANCE;
-  const tenancy = context.error ? null : context.data;
+  const tenancy = context.loading || context.error ? null : context.data;
   const financeLoading = tenancyId !== null && finance.loading;
 
   // Coming back to the tab re-reads the bill/payments so a landlord's
@@ -146,7 +161,8 @@ export function useTenancy() {
   }, [tenancyId, revalidateContext, revalidateFinance]);
 
   const revalidate = useCallback(async () => {
-    await Promise.all([revalidateContext(), revalidateFinance()]);
+    const results = await Promise.all([revalidateContext(), revalidateFinance()]);
+    return results.every(Boolean);
   }, [revalidateContext, revalidateFinance]);
 
   return {
@@ -155,7 +171,7 @@ export function useTenancy() {
       : null,
     payments: financeData.payments,
     currentPayment: latestPeriodPayment(financeData.payments),
-    loading: context.loading,
+    loading: identity.authUserId === undefined || context.loading,
     error: context.error,
     /** The bill/payment reads are still settling for the current tenancy. */
     financeLoading,

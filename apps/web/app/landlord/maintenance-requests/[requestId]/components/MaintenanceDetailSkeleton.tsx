@@ -1,4 +1,5 @@
 import { Card, Separator, Skeleton } from "@heroui/react";
+import MaintenanceDetailShell from "./MaintenanceDetailShell";
 
 const DETAIL_FIELD_COUNT = 4;
 const PHOTO_COUNT = 3;
@@ -22,11 +23,8 @@ function MaintenanceDetailSectionTitle({ children }: { children: string }) {
 
 export default function MaintenanceDetailSkeleton() {
   return (
-    <div className="w-full px-3 py-3 flex flex-col gap-3 bg-card" aria-busy="true" aria-label="Loading maintenance request details">
-      <div className="flex items-center gap-2 shrink-0">
-        <div aria-hidden="true"><Sk className="h-8 w-16 rounded-full" /></div>
-        <h1 className="text-xl font-nunito font-semibold text-card-foreground">Maintenance Request</h1>
-      </div>
+    <MaintenanceDetailShell>
+      <div role="status" aria-busy="true" aria-label="Loading maintenance request details">
       <div aria-hidden="true">
         <Card className="shadow-none bg-card rounded-2xl border border-border p-4 md:p-5 flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
@@ -75,6 +73,7 @@ export default function MaintenanceDetailSkeleton() {
           <Sk className="mt-2 h-10 w-36 rounded-full" />
         </Card>
       </div>
-    </div>
+      </div>
+    </MaintenanceDetailShell>
   );
 }

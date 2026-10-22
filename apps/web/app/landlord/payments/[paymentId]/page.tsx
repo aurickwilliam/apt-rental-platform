@@ -2,11 +2,15 @@
 
 import { Suspense, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Modal, Spinner, useOverlayState } from "@heroui/react";
+import { Button, Modal, useOverlayState } from "@heroui/react";
 import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
 import { methodLabel, periodMonthLabel } from "@/app/tenant/payment/utils";
 import ReceiptView from "@/app/tenant/payment/components/ReceiptView";
 import { useLandlordPayment, useLandlordPaymentConfirmation } from "@/hooks/use-landlord-payments";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
+import { useReconciledAction } from "@/hooks/use-reconciled-action";
+import ReconciliationNotice from "@/app/components/display/ReconciliationNotice";
+import PaymentStatusLoading from "@/app/tenant/payment/components/PaymentStatusLoading";
 
 function ReceiptContent() {
   const router = useRouter();
@@ -21,6 +25,8 @@ function ReceiptContent() {
   const paymentQuery = useLandlordPayment(paymentId);
   const payment = paymentQuery.payment;
   const confirmMutation = useLandlordPaymentConfirmation();
+  const action = useReconciledAction(paymentQuery.revalidate);
+  const actionsBlocked = action.blocked || confirmMutation.pending;
 
   const isCashPending = payment?.status === "pending" && payment?.method === "cash";
 
@@ -30,31 +36,22 @@ function ReceiptContent() {
 
   const handleConfirm = async () => {
     if (!paymentId) return;
-    const ok = await confirmMutation.confirm(paymentId);
-    if (ok) {
+    const result = await action.run(() => confirmMutation.confirm(paymentId));
+    if (result === "confirmed" || result === "unresolved") {
       setConfirmOpen(false);
-      void paymentQuery.refetch();
     }
   };
 
   const handleReject = async () => {
     if (!paymentId) return;
-    const ok = await confirmMutation.reject(paymentId);
-    if (ok) {
+    const result = await action.run(() => confirmMutation.reject(paymentId));
+    if (result === "confirmed" || result === "unresolved") {
       setRejectOpen(false);
-      void paymentQuery.refetch();
     }
   };
 
-  if (paymentQuery.loading || (!payment && !paymentQuery.error)) {
-    return (
-      <div className="min-h-[60vh] px-5 flex flex-col" style={{ backgroundColor: "#376BF5" }}>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white text-base font-inter">Loading receipt…</p>
-        </div>
-      </div>
-    );
+  if (paymentQuery.loading) {
+    return <PaymentStatusLoading message="Loading receipt…" receipt />;
   }
 
   if (paymentQuery.error || !payment) {
@@ -64,9 +61,10 @@ function ReceiptContent() {
           <p className="text-white text-base font-inter">
             {paymentQuery.error ?? "We could not find this payment."}
           </p>
-          <Button onPress={() => void paymentQuery.refetch()} className="bg-white text-primary rounded-full font-nunito">
+          <ReconciliationNotice pending={action.pending} error={action.error} onRetry={() => void action.retry()} />
+          {!action.error && <Button isDisabled={action.pending} onPress={() => void action.retry()} className="bg-white text-primary rounded-full font-nunito">
             Try Again
-          </Button>
+          </Button>}
         </div>
       </div>
     );
@@ -84,6 +82,7 @@ function ReceiptContent() {
         <ArrowLeft size={16} /> Back
       </Button>
       <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full max-w-xl mx-auto py-6">
+        <ReconciliationNotice pending={action.pending} error={action.error} onRetry={() => void action.retry()} />
         <ReceiptView payment={payment} />
         {isCashPending ? (
           <div className="flex flex-wrap justify-center gap-3">
@@ -93,7 +92,7 @@ function ReceiptContent() {
                 confirmMutation.clearError();
                 setRejectOpen(true);
               }}
-              isDisabled={confirmMutation.pending}
+              isDisabled={actionsBlocked}
             >
               Decline
             </Button>
@@ -102,7 +101,7 @@ function ReceiptContent() {
                 confirmMutation.clearError();
                 setConfirmOpen(true);
               }}
-              isDisabled={confirmMutation.pending}
+              isDisabled={actionsBlocked}
               className="bg-white text-primary rounded-full font-nunito"
             >
               {confirmMutation.pending ? "Confirming…" : "Mark as Paid"}
@@ -130,8 +129,8 @@ function ReceiptContent() {
                 <Button variant="ghost" size="sm" onPress={() => setConfirmOpen(false)} className="rounded-full font-nunito">
                   Cancel
                 </Button>
-                <Button size="sm" onPress={() => void handleConfirm()} isDisabled={confirmMutation.pending} className="rounded-full font-nunito">
-                  {confirmMutation.pending ? "Confirming…" : "Confirm"}
+                <Button size="sm" onPress={() => void handleConfirm()} isDisabled={actionsBlocked || !isCashPending} className="rounded-full font-nunito">
+                  {action.pending ? "Updating receipt…" : confirmMutation.pending ? "Confirming…" : "Confirm"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -156,8 +155,8 @@ function ReceiptContent() {
                 <Button variant="ghost" size="sm" onPress={() => setRejectOpen(false)} className="rounded-full font-nunito">
                   Cancel
                 </Button>
-                <Button variant="danger" size="sm" onPress={() => void handleReject()} isDisabled={confirmMutation.pending} className="rounded-full font-nunito">
-                  {confirmMutation.pending ? "Declining…" : "Decline"}
+                <Button variant="danger" size="sm" onPress={() => void handleReject()} isDisabled={actionsBlocked || !isCashPending} className="rounded-full font-nunito">
+                  {action.pending ? "Updating receipt…" : confirmMutation.pending ? "Declining…" : "Decline"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -169,16 +168,15 @@ function ReceiptContent() {
 }
 
 export default function LandlordPaymentReceiptPage() {
+  const identity = useAuthIdentity();
+  const { paymentId } = useParams<{ paymentId: string }>();
+  if (identity.authUserId === undefined) return <PaymentStatusLoading message="Loading receipt…" receipt />;
+  if (!identity.authUserId) return <p role="alert" className="p-4">Sign in to view this receipt.</p>;
   return (
     <Suspense
-      fallback={
-        <div className="min-h-[60vh] flex flex-col items-center justify-center px-5" style={{ backgroundColor: "#376BF5" }}>
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter text-center">Loading receipt…</p>
-        </div>
-      }
+      fallback={<PaymentStatusLoading message="Loading receipt…" receipt />}
     >
-      <ReceiptContent />
+      <ReceiptContent key={`${identity.authUserId}:${identity.generation}:${paymentId}`} />
     </Suspense>
   );
 }
