@@ -12,9 +12,7 @@ import ErrorDialog from "@/components/display/ErrorDialog";
 import EmptyState from "@/components/display/EmptyState";
 import { useColors } from "@/hooks/useTheme";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
-import PaymentMethodSelector, {
-  type PaymentMethod,
-} from "./components/PaymentMethodSelector";
+import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentFooter from "./components/PaymentFooter";
 import { type CardInformation } from "./components/CardPaymentForm";
 import {
@@ -35,6 +33,8 @@ import { usePayments } from "@/hooks/payments";
 import { useCurrentUser } from "@/hooks/auth";
 import { useTenancy } from "@/hooks/tenancy/useTenancy";
 import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
+import { usePaymentMethodPreferences } from "@/hooks/payments/usePaymentMethodPreferences";
+import { useCheckoutPaymentMethod } from "@/hooks/payments/useCheckoutPaymentMethod";
 
 import { getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
 
@@ -69,8 +69,6 @@ export default function PaymentCheckout() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const [activePaymentMethod, setActivePaymentMethod] =
-    useState<PaymentMethod | null>(null);
   const [cardInformation, setCardInformation] =
     useState<CardInformation>(INITIAL_CARD);
   const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
@@ -83,6 +81,10 @@ export default function PaymentCheckout() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { data: currentUser } = useCurrentUser();
+  const paymentPreferences = usePaymentMethodPreferences(currentUser?.id ?? null);
+  const { method: activePaymentMethod, selectMethod: setActivePaymentMethod } = useCheckoutPaymentMethod(
+    currentUser?.id ?? null, paymentPreferences.preferences.defaultMethod,
+  );
   const {
     tenancy,
     loading: tenancyLoading,
@@ -374,6 +376,12 @@ export default function PaymentCheckout() {
       </View> : null}
 
       <PaymentMethodSelector
+        selectedMethod={activePaymentMethod}
+        preferences={paymentPreferences.preferences}
+        preferencesLoading={paymentPreferences.loading}
+        preferencesError={paymentPreferences.error}
+        onRetryPreferences={() => { void paymentPreferences.refetch(); }}
+        onManagePreferences={() => router.push('/tenant/payment/saved-methods')}
         onPaymentMethodChange={setActivePaymentMethod}
         cardInformation={cardInformation}
         onCardInformationChange={handleCardInformationChange}

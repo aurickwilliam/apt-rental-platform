@@ -22,6 +22,8 @@ interface PaymentMethodButtonProps {
   selected?: boolean;
   onPress?: () => void;
   variant?: PaymentMethodButtonVariant;
+  badge?: string;
+  accessibilityLabel?: string;
 }
 
 export default function PaymentMethodButton({
@@ -31,22 +33,24 @@ export default function PaymentMethodButton({
   selected = false,
   onPress,
   variant = 'tile',
+  badge,
+  accessibilityLabel,
 }: PaymentMethodButtonProps) {
   const { colors } = useColors();
 
   const isTile = variant === 'tile';
 
   const containerBase = isTile
-    ? 'w-[48.5%] min-h-[76px] p-2 items-center justify-center bg-white rounded-xl border'
+    ? 'w-[48.5%] min-h-[76px] p-2 items-center justify-center bg-surface rounded-xl border'
     : label
-      ? 'flex-row items-center gap-2 px-3 py-2 bg-white rounded-xl border'
-      : 'flex-row items-center justify-center px-3 py-2 bg-white rounded-xl border';
+      ? 'flex-row items-center gap-2 px-3 py-2 bg-surface rounded-xl border'
+      : 'flex-row items-center justify-center px-3 py-2 bg-surface rounded-xl border';
 
   const borderClass = selected
     ? 'border-primary border-2'
     : 'border-border';
 
-  const backgroundClass = selected ? 'bg-primary/5' : 'bg-white';
+  const backgroundClass = selected ? 'bg-primary/5' : 'bg-surface';
 
   return (
     <TouchableOpacity
@@ -54,7 +58,8 @@ export default function PaymentMethodButton({
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole='radio'
-      accessibilityState={{ selected }}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ selected, checked: selected }}
     >
       {selected && (
         <View className='absolute top-1 right-1 w-5 h-5 rounded-full items-center justify-center'>
@@ -64,6 +69,7 @@ export default function PaymentMethodButton({
           />
         </View>
       )}
+      {badge && <Text className='text-primary text-xs font-nunitoSemiBold'>{badge}</Text>}
 
       {isTile ? (
         <>
