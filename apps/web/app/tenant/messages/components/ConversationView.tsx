@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Button, ScrollShadow, Spinner } from "@heroui/react";
+import { Button, ScrollShadow } from "@heroui/react";
 import {
   IconArrowDown,
   IconMessage,
@@ -11,6 +11,7 @@ import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "./MessageInput";
 import { Contact } from "./types";
 import ConversationHeader from "@/app/components/chat/ConversationHeader";
+import ConversationThreadSkeleton from "@/app/components/chat/ConversationThreadSkeleton";
 import ConversationApartmentRow from "@/app/components/chat/ConversationApartmentRow";
 import ConversationIntroduction from "@/app/components/chat/ConversationIntroduction";
 import { useConversationContext } from "@/hooks/use-conversation-context";
@@ -367,9 +368,7 @@ export default function ConversationView({
         )}
 
         {messagesLoading ? (
-          <div className="flex justify-center py-8">
-            <Spinner size="md" color="accent" />
-          </div>
+          <ConversationThreadSkeleton />
         ) : (
           <div data-message-timeline className="flex w-full min-w-0 flex-col">
             {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} role="Landlord" verified={context.verified} apartment={apartment} /> : null}
