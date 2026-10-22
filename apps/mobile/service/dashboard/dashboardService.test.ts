@@ -30,6 +30,7 @@ const PAYLOAD = {
     pendingVisitRequests: 0,
   },
   thisMonth: { collected: 15000, outstanding: 5000 },
+  collectionByMonth: [{ month: "2026-08", collected: 15000, unpaid: 5000 }],
   monthlyRevenue: [
     { month: "2025-09", amount: 0 },
     { month: "2025-10", amount: 0 },
@@ -79,7 +80,7 @@ describe("fetchDashboardData", () => {
   });
 
   it("defaults attention and thisMonth when the RPC predates them", async () => {
-    const { attention, thisMonth, ...legacyPayload } = PAYLOAD;
+    const { attention, thisMonth, collectionByMonth, ...legacyPayload } = PAYLOAD;
     mockRpc.mockResolvedValue({ data: legacyPayload, error: null });
 
     const result = await fetchDashboardData(LANDLORD_ID);

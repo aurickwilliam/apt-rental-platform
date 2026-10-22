@@ -138,10 +138,21 @@ export interface ThisMonthSummary {
   outstanding: number;
 }
 
+export interface CollectionMonthPoint {
+  /** "YYYY-MM" key of the month the rent was due. */
+  month: string;
+  /** Rental income already paid for that month. */
+  collected: number;
+  /** Rental income still pending, unpaid or partial for that month. */
+  unpaid: number;
+}
+
 export interface DashboardData {
   stats: DashboardStats;
   attention: DashboardAttention;
   thisMonth: ThisMonthSummary;
+  /** Last six months, oldest first (see the collection history migration). */
+  collectionByMonth: CollectionMonthPoint[];
   monthlyRevenue: MonthlyRevenuePoint[];
   revenueByProperty: PropertyRevenue[];
   rentDues: RentDue[];
@@ -192,13 +203,14 @@ export function buildRequestItems(attention: DashboardAttention): RequestItem[] 
 
 /**
  * Fills in fields an older get_landlord_dashboard deployment does not return
- * (attention, thisMonth), so callers can rely on the full shape.
+ * (attention, thisMonth, collectionByMonth), so callers can rely on the full shape.
  */
 export function normalizeDashboardData(payload: DashboardData): DashboardData {
   return {
     ...payload,
     attention: { ...EMPTY_ATTENTION, ...payload.attention },
     thisMonth: { ...EMPTY_THIS_MONTH, ...payload.thisMonth },
+    collectionByMonth: payload.collectionByMonth ?? [],
   };
 }
 
@@ -241,4 +253,29 @@ export function buildTrendSeries(
     totals.set(key, { label, value: (current?.value ?? 0) + point.amount });
   }
   return [...totals.values()];
+}
+
+export interface CollectionSummary {
+  collected: number;
+  unpaid: number;
+  /** Whole percent of billed rent that was collected; 0 when nothing was billed. */
+  percent: number;
+}
+
+/** Totals across the collection history window. */
+export function summarizeCollection(
+  points: readonly CollectionMonthPoint[],
+): CollectionSummary {
+  let collected = 0;
+  let unpaid = 0;
+  for (const point of points) {
+    collected += point.collected;
+    unpaid += point.unpaid;
+  }
+  const billed = collected + unpaid;
+  return {
+    collected,
+    unpaid,
+    percent: billed > 0 ? Math.round((collected / billed) * 100) : 0,
+  };
 }

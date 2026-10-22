@@ -37,11 +37,14 @@ export {
   monthLabel,
   monthRevenueTotal,
   normalizeDashboardData,
+  summarizeCollection,
   summarizeRentDues,
   topPropertiesByRevenue,
 } from './landlordDashboard';
 export type {
+  CollectionMonthPoint,
   CollectionProgress,
+  CollectionSummary,
   DashboardAttention,
   DashboardData,
   DashboardStats,

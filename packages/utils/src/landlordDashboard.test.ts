@@ -9,6 +9,7 @@ import {
   monthLabel,
   monthRevenueTotal,
   normalizeDashboardData,
+  summarizeCollection,
   summarizeRentDues,
   topPropertiesByRevenue,
 } from "./landlordDashboard";
@@ -31,6 +32,10 @@ const PAYLOAD = {
     pendingVisitRequests: 0,
   },
   thisMonth: { collected: 15000, outstanding: 5000 },
+  collectionByMonth: [
+    { month: "2026-07", collected: 10000, unpaid: 0 },
+    { month: "2026-08", collected: 15000, unpaid: 5000 },
+  ],
   monthlyRevenue: [
     { month: "2025-09", amount: 0 },
     { month: "2025-10", amount: 0 },
@@ -195,11 +200,12 @@ describe("buildRequestItems", () => {
 
 describe("normalizeDashboardData", () => {
   it("defaults attention and thisMonth for a payload that predates them", () => {
-    const { attention, thisMonth, ...legacy } = PAYLOAD;
+    const { attention, thisMonth, collectionByMonth, ...legacy } = PAYLOAD;
     const result = normalizeDashboardData(legacy as unknown as DashboardData);
 
     expect(result.attention).toEqual(EMPTY_ATTENTION);
     expect(result.thisMonth).toEqual(EMPTY_THIS_MONTH);
+    expect(result.collectionByMonth).toEqual([]);
     expect(result.stats).toEqual(PAYLOAD.stats);
   });
 
@@ -208,6 +214,7 @@ describe("normalizeDashboardData", () => {
 
     expect(result.attention).toEqual(PAYLOAD.attention);
     expect(result.thisMonth).toEqual(PAYLOAD.thisMonth);
+    expect(result.collectionByMonth).toEqual(PAYLOAD.collectionByMonth);
   });
 });
 
@@ -242,5 +249,19 @@ describe("buildTrendSeries", () => {
       { label: "2027", value: 700 },
     ]);
     expect(buildTrendSeries([], "Yearly")).toEqual([]);
+  });
+});
+
+describe("summarizeCollection", () => {
+  it("totals collected and unpaid rent and reports the collected share", () => {
+    expect(summarizeCollection(PAYLOAD.collectionByMonth)).toEqual({
+      collected: 25000,
+      unpaid: 5000,
+      percent: 83,
+    });
+  });
+
+  it("is zero when nothing was billed", () => {
+    expect(summarizeCollection([])).toEqual({ collected: 0, unpaid: 0, percent: 0 });
   });
 });

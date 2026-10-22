@@ -18,6 +18,7 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
   },
   attention: EMPTY_ATTENTION,
   thisMonth: EMPTY_THIS_MONTH,
+  collectionByMonth: [],
   monthlyRevenue: [],
   revenueByProperty: [],
   rentDues: [],
