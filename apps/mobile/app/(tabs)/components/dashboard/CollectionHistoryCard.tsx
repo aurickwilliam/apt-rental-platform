@@ -18,9 +18,13 @@ import { useColors } from "@/hooks/useTheme";
 
 const Y_AXIS_LABEL_WIDTH = 44;
 const SIDE_SPACING = 12;
+/** Extra room after the last bar so it is never clipped at the card edge. */
+const END_SPACING = 28;
 const BAR_WIDTH = 34;
 /** Narrowest gap between bars; more bars than fit scroll sideways. */
 const MIN_BAR_GAP = 30;
+/** Wait for the chart layout to settle so the scroll reaches the true end. */
+const SCROLL_SETTLE_MS = 150;
 
 interface CollectionHistoryCardProps {
   collectionByMonth: CollectionMonthPoint[];
@@ -68,7 +72,7 @@ export default function CollectionHistoryCard({
     if (chartAreaWidth === 0 || !hasBilledRent) return;
     const timer = setTimeout(
       () => scrollRef.current?.scrollToEnd({ animated: false }),
-      0,
+      SCROLL_SETTLE_MS,
     );
     return () => clearTimeout(timer);
   }, [chartAreaWidth, hasBilledRent, barCount]);
@@ -128,7 +132,7 @@ export default function CollectionHistoryCard({
               width={plotWidth}
               yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
               initialSpacing={SIDE_SPACING}
-              endSpacing={SIDE_SPACING}
+              endSpacing={END_SPACING}
               scrollRef={scrollRef}
               barWidth={BAR_WIDTH}
               spacing={barGap}
