@@ -30,6 +30,7 @@ const PAYLOAD = {
     pendingCashApartmentId: "apartment-1",
     pendingApplications: 2,
     pendingVisitRequests: 0,
+    pendingMaintenance: 3,
   },
   thisMonth: { collected: 15000, outstanding: 5000 },
   collectionByMonth: [
@@ -181,15 +182,17 @@ describe("collectionProgress", () => {
 });
 
 describe("buildRequestItems", () => {
-  it("returns only requests that are waiting, applications first", () => {
+  it("returns only requests that are waiting, in a fixed order", () => {
     expect(buildRequestItems(PAYLOAD.attention)).toEqual([
       { key: "applications", count: 2 },
+      { key: "maintenance", count: 3 },
     ]);
     expect(
       buildRequestItems({ ...PAYLOAD.attention, pendingVisitRequests: 1 }),
     ).toEqual([
       { key: "applications", count: 2 },
       { key: "visits", count: 1 },
+      { key: "maintenance", count: 3 },
     ]);
   });
 

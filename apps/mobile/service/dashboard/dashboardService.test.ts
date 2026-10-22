@@ -28,6 +28,7 @@ const PAYLOAD = {
     pendingCashApartmentId: "apartment-1",
     pendingApplications: 2,
     pendingVisitRequests: 0,
+    pendingMaintenance: 3,
   },
   thisMonth: { collected: 15000, outstanding: 5000 },
   collectionByMonth: [{ month: "2026-08", collected: 15000, unpaid: 5000 }],

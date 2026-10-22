@@ -129,6 +129,8 @@ export interface DashboardAttention {
   pendingCashApartmentId: string | null;
   pendingApplications: number;
   pendingVisitRequests: number;
+  /** Maintenance requests still waiting for a first response (status pending). */
+  pendingMaintenance: number;
 }
 
 export interface ThisMonthSummary {
@@ -166,6 +168,7 @@ export const EMPTY_ATTENTION: DashboardAttention = {
   pendingCashApartmentId: null,
   pendingApplications: 0,
   pendingVisitRequests: 0,
+  pendingMaintenance: 0,
 };
 
 export const EMPTY_THIS_MONTH: ThisMonthSummary = { collected: 0, outstanding: 0 };
@@ -185,7 +188,7 @@ export function collectionProgress(thisMonth: ThisMonthSummary): CollectionProgr
   return { collected: thisMonth.collected, expected, percent };
 }
 
-export type RequestKey = "applications" | "visits";
+export type RequestKey = "applications" | "visits" | "maintenance";
 
 export interface RequestItem {
   key: RequestKey;
@@ -197,6 +200,7 @@ export function buildRequestItems(attention: DashboardAttention): RequestItem[] 
   const items: RequestItem[] = [
     { key: "applications", count: attention.pendingApplications },
     { key: "visits", count: attention.pendingVisitRequests },
+    { key: "maintenance", count: attention.pendingMaintenance },
   ];
   return items.filter((item) => item.count > 0);
 }

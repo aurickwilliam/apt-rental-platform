@@ -4,6 +4,7 @@ import {
   IconCalendarEvent,
   IconChevronRight,
   IconFileDescription,
+  IconTool,
 } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
@@ -13,6 +14,7 @@ import type { RequestItem } from "@/service/dashboard/dashboardService";
 const ROWS = {
   applications: { Icon: IconFileDescription, singular: "new application" },
   visits: { Icon: IconCalendarEvent, singular: "visit request" },
+  maintenance: { Icon: IconTool, singular: "new maintenance request" },
 } as const;
 
 interface NewRequestsCardProps {

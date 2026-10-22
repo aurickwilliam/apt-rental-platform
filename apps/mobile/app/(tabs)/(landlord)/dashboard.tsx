@@ -33,6 +33,12 @@ import {
   FLOATING_TAB_BAR_BOTTOM_OFFSET,
 } from "@/app/(tabs)/components/CustomTabBar";
 
+const REQUEST_ROUTES = {
+  applications: "/landlord/tenant-applications",
+  visits: "/landlord/visit-requests",
+  maintenance: "/landlord/maintenance-requests",
+} as const;
+
 export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColors();
@@ -58,12 +64,7 @@ export default function Dashboard() {
         )
     : undefined;
 
-  const openRequest = (item: RequestItem) =>
-    router.push(
-      item.key === "applications"
-        ? "/landlord/tenant-applications"
-        : "/landlord/visit-requests",
-    );
+  const openRequest = (item: RequestItem) => router.push(REQUEST_ROUTES[item.key]);
 
   return (
     <ScreenWrapper

@@ -4,6 +4,7 @@ import {
   IconCircleCheck,
   IconChevronRight,
   IconFileDescription,
+  IconTool,
 } from "@tabler/icons-react";
 import type { RequestItem } from "@repo/utils";
 
@@ -17,6 +18,11 @@ const ROWS = {
     Icon: IconCalendarEvent,
     singular: "visit request",
     href: "/landlord/visit-requests",
+  },
+  maintenance: {
+    Icon: IconTool,
+    singular: "new maintenance request",
+    href: "/landlord/maintenance-requests",
   },
 } as const;
 
