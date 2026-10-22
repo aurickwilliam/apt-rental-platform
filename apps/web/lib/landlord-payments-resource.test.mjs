@@ -14,6 +14,7 @@ function deferred() {
 // Small hook runner: effects are flushed explicitly to test the render before
 // a unit-change effect starts, as well as responses arriving out of order.
 function harness(fetchPayments) {
+  const identity = { authUserId: "auth-a", generation: 0 };
   const slots = [];
   const effects = [];
   let cursor = 0;
@@ -54,6 +55,7 @@ function harness(fetchPayments) {
   }
   const resource = load("../hooks/use-async-resource.ts", { react });
   const hooks = load("../hooks/use-landlord-payments.ts", {
+    "@/hooks/use-auth-identity": { useAuthIdentity: () => identity },
     react, "@/hooks/use-async-resource": resource,
     "@/service/landlordPaymentService": { fetchLandlordPayments: fetchPayments },
   });

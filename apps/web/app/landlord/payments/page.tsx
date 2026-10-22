@@ -89,7 +89,8 @@ function PaymentsContent() {
 
   const unitsQuery = useLandlordApartments();
   const [apartmentId, setApartmentId] = useState<string | null>(null);
-  const activeApartmentId = apartmentId ?? unitsQuery.apartments[0]?.id ?? null;
+  const activeApartmentId = unitsQuery.apartments.some((unit) => unit.id === apartmentId)
+    ? apartmentId : unitsQuery.apartments[0]?.id ?? null;
   const paymentsQuery = useLandlordPayments(activeApartmentId);
 
   const currentYear = String(new Date().getFullYear());
@@ -119,10 +120,6 @@ function PaymentsContent() {
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
   }, [filtered, filters.sort]);
 
-  if (unitsQuery.loading) {
-    return <PaymentsSkeleton />;
-  }
-
   if (unitsQuery.error || paymentsQuery.error) {
     return (
       <div className="p-4 space-y-4">
@@ -145,7 +142,7 @@ function PaymentsContent() {
     );
   }
 
-  if (unitsQuery.apartments.length === 0) {
+  if (!unitsQuery.loading && unitsQuery.apartments.length === 0) {
     return (
       <div className="p-4 space-y-2">
         <PaymentsHeader />
@@ -169,9 +166,11 @@ function PaymentsContent() {
   return (
     <div className="p-4 space-y-4">
       <PaymentsHeader />
+      {unitsQuery.revalidating || paymentsQuery.revalidating ? <span role="status" className="sr-only">Updating payments</span> : null}
 
       <Select
-        placeholder="Select unit"
+        placeholder={unitsQuery.loading ? "Loading units…" : "Select unit"}
+        isDisabled={unitsQuery.loading || unitsQuery.revalidating}
         value={activeApartmentId}
         onChange={(key) => setApartmentId(key ? String(key) : null)}
         className="max-w-md"
@@ -191,7 +190,7 @@ function PaymentsContent() {
         </Select.Popover>
       </Select>
 
-      {paymentsQuery.loading ? <PaymentCardsSkeleton action={filtersButton} /> : filtered.length === 0 ? (
+      {unitsQuery.loading || paymentsQuery.loading ? <PaymentCardsSkeleton action={filtersButton} /> : filtered.length === 0 ? (
         <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
             <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">

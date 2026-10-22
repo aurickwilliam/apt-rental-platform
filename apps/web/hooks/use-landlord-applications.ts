@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import {
   fetchLandlordApplications,
   getLandlordContext,
@@ -15,12 +16,14 @@ export type DisplayStatus = LandlordApplication["status"];
 const NO_APPLICATIONS: LandlordApplication[] = [];
 
 export function useLandlordApplications() {
+  const identity = useAuthIdentity();
   const load = useCallback(async () => {
+    if (!identity.authUserId) return NO_APPLICATIONS;
     const context = await getLandlordContext();
     if (!context.landlordId) return NO_APPLICATIONS;
     return fetchLandlordApplications();
-  }, []);
-  const { data, loading, error, refresh } = useAsyncResource(load, NO_APPLICATIONS, "Failed to load applications.");
+  }, [identity]);
+  const { data, loading, error, refresh, revalidate, revalidating } = useAsyncResource(load, NO_APPLICATIONS, "Failed to load applications.", { clearOnRevalidateError: true });
 
-  return { applications: data, loading, error, refresh };
+  return { applications: loading || error ? NO_APPLICATIONS : data, loading: identity.authUserId === undefined || loading, error, refresh, revalidate, revalidating };
 }
