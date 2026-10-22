@@ -2,28 +2,30 @@ import Link from "next/link";
 import { formatDate, formatPesoDisplay, type RentDue } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 
-const MAX_ROWS = 6;
+const MAX_ROWS = 8;
 
 type Props = {
   rentDues: RentDue[];
+  /** Layout classes from the parent grid. */
+  className?: string;
 };
 
-export default function RentDueList({ rentDues }: Props) {
+export default function RentDueList({ rentDues, className = "" }: Props) {
   const totalDue = rentDues.reduce((sum, due) => sum + due.amount, 0);
   const visibleDues = rentDues.slice(0, MAX_ROWS);
   const hiddenCount = rentDues.length - visibleDues.length;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className={`flex flex-col rounded-xl border border-border bg-card p-5 ${className}`}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="text-base font-medium text-foreground">Upcoming rent due</h3>
+        <h3 className="font-nunito text-xl font-bold text-primary">Upcoming rent due</h3>
         <span className="rounded-full bg-primary px-3 py-1 text-sm font-semibold text-white">
           {formatPesoDisplay(totalDue) || "₱ 0"}
         </span>
       </div>
 
       {rentDues.length === 0 ? (
-        <div className="py-8 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
           <p className="text-sm font-semibold text-foreground">No upcoming rent dues</p>
           <p className="mt-1 text-sm text-muted-foreground">
             You&apos;re all caught up. New dues appear here as they come due.
@@ -35,13 +37,13 @@ export default function RentDueList({ rentDues }: Props) {
             <li key={due.id}>
               <Link
                 href={`/landlord/properties/${due.apartmentId}`}
-                className="flex cursor-pointer items-center justify-between gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+                className="flex cursor-pointer items-center justify-between gap-3 rounded-lg p-3 transition-colors hover:bg-muted"
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-foreground">
+                  <span className="block truncate text-base font-medium text-foreground">
                     {due.apartmentName}
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block truncate text-sm text-muted-foreground">
                     {due.tenantName} · Due {formatDate(due.dueDate, "medium")}
                   </span>
                 </span>

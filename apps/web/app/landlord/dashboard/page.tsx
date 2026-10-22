@@ -1,10 +1,5 @@
 import Link from "next/link";
-import {
-  IconAlertTriangle,
-  IconCash,
-  IconHome,
-  IconTool,
-} from "@tabler/icons-react";
+import { IconAlertTriangle, IconCash, IconHome, IconTool } from "@tabler/icons-react";
 
 import { buildRequestItems, formatPesoDisplay } from "@repo/utils";
 
@@ -13,14 +8,19 @@ import CollectionCard from "./components/CollectionCard";
 import StatTile from "./components/StatTile";
 import RequestsCard from "./components/RequestsCard";
 import RentDueList from "./components/RentDueList";
-import RevenueChart from "./components/RevenueChart";
+import ProfitTrendChart from "./components/ProfitTrendChart";
 import PropertyRevenueChart from "./components/PropertyRevenueChart";
-import ChartEmptyState from "./components/ChartEmptyState";
 import DashboardHeader from "./components/DashboardHeader";
 
 export const dynamic = "force-dynamic";
 
 const MANILA_TIME_ZONE = "Asia/Manila";
+
+const PESO_WHOLE = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+  maximumFractionDigits: 0,
+});
 
 export default async function Dashboard() {
   let data;
@@ -70,6 +70,10 @@ export default async function Dashboard() {
   });
   const requestItems = buildRequestItems(attention);
   const hasRevenue = monthlyRevenue.some((point) => point.amount > 0);
+  const occupancyPercent =
+    stats.totalProperties > 0
+      ? Math.round((stats.unitsOccupied / stats.totalProperties) * 100)
+      : 0;
   // Comparing properties only makes sense with more than one.
   const showPropertyComparison = stats.totalProperties > 1;
 
@@ -77,69 +81,62 @@ export default async function Dashboard() {
     <div className="p-4 md:p-6">
       <DashboardHeader />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CollectionCard thisMonth={thisMonth} monthLabel={monthLabel} />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <CollectionCard
+          className="lg:col-span-2"
+          thisMonth={thisMonth}
+          monthLabel={monthLabel}
+        />
+        <RequestsCard items={requestItems} />
+      </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatTile
-            label="Overdue"
-            icon={IconAlertTriangle}
-            value={formatPesoDisplay(attention.overdueAmount) || "₱ 0"}
-            caption={
-              attention.overdueCount === 0
-                ? "Nothing overdue"
-                : `${attention.overdueCount} ${attention.overdueCount === 1 ? "payment" : "payments"}`
-            }
-            isAlert={attention.overdueCount > 0}
-          />
-          <StatTile
-            label="Cash to confirm"
-            icon={IconCash}
-            value={String(attention.pendingCashCount)}
-            caption={
-              attention.pendingCashCount === 0
-                ? "All confirmed"
-                : formatPesoDisplay(attention.pendingCashAmount)
-            }
-            href={attention.pendingCashCount > 0 ? "/landlord/payments" : undefined}
-          />
-          <StatTile
-            label="Open maintenance"
-            icon={IconTool}
-            value={String(stats.maintenanceRequests)}
-            caption={stats.maintenanceRequests === 0 ? "All clear" : "Requests to handle"}
-            href={stats.maintenanceRequests > 0 ? "/landlord/maintenance-requests" : undefined}
-          />
-          <StatTile
-            label="Occupancy"
-            icon={IconHome}
-            value={`${stats.unitsOccupied}/${stats.totalProperties}`}
-            caption={stats.totalProperties === 1 ? "unit occupied" : "units occupied"}
-          />
-        </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Overdue Rent"
+          icon={IconAlertTriangle}
+          value={PESO_WHOLE.format(attention.overdueAmount)}
+          caption={
+            attention.overdueCount === 0
+              ? "Nothing overdue"
+              : `${attention.overdueCount} ${attention.overdueCount === 1 ? "payment" : "payments"}`
+          }
+          isAlert={attention.overdueCount > 0}
+        />
+        <StatTile
+          label="Cash to Confirm"
+          icon={IconCash}
+          value={String(attention.pendingCashCount)}
+          caption={
+            attention.pendingCashCount === 0
+              ? "All confirmed"
+              : formatPesoDisplay(attention.pendingCashAmount)
+          }
+          href={attention.pendingCashCount > 0 ? "/landlord/payments" : undefined}
+        />
+        <StatTile
+          label="Open Maintenance"
+          icon={IconTool}
+          value={String(stats.maintenanceRequests)}
+          caption={stats.maintenanceRequests === 0 ? "All clear" : "Requests to handle"}
+          href={stats.maintenanceRequests > 0 ? "/landlord/maintenance-requests" : undefined}
+        />
+        <StatTile
+          label="Occupancy"
+          icon={IconHome}
+          value={`${stats.unitsOccupied} / ${stats.totalProperties}`}
+          caption={`${occupancyPercent}% occupied`}
+          progress={occupancyPercent}
+          progressLabel="Units occupied"
+        />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-4 lg:col-span-2">
-          <h3 className="mb-4 text-base font-medium text-foreground">Monthly Revenue</h3>
-          {hasRevenue ? (
-            <RevenueChart data={monthlyRevenue} />
-          ) : (
-            <ChartEmptyState
-              title="No earnings yet"
-              description="Once tenants start paying rent, your earnings will show up here."
-            />
-          )}
-        </div>
-
-        <div className="space-y-4">
-          {requestItems.length > 0 ? <RequestsCard items={requestItems} /> : null}
-          <RentDueList rentDues={rentDues} />
-        </div>
+        <ProfitTrendChart data={monthlyRevenue} className="lg:col-span-2" />
+        <RentDueList rentDues={rentDues} />
 
         {showPropertyComparison && hasRevenue ? (
           <div className="rounded-xl border border-border bg-card p-4 lg:col-span-3">
-            <h3 className="mb-4 text-base font-medium text-foreground">Revenue by Property</h3>
+            <h3 className="mb-4 font-nunito text-xl font-bold text-primary">Revenue by Property</h3>
             <PropertyRevenueChart
               revenueByProperty={revenueByProperty}
               monthKeys={monthlyRevenue.map((point) => point.month)}

@@ -1337,3 +1337,6 @@ html.apt-reduce-motion *::after {
 /* Dashboard collection meter: white fill on the primary card. */
 .dashboard-meter { --progress-bar-fill: white; }
 .dashboard-meter .progress-bar__track { background: rgb(255 255 255 / 0.3); }
+
+/* Dashboard occupancy meter: brand fill on the neutral card. */
+.occupancy-meter { --progress-bar-fill: var(--primary); }
