@@ -56,14 +56,14 @@ test("Profile cards render account status first and stream verification activity
 
 test("My Rental splits rental context from fresh financial reads and localizes financial loading", () => {
   const hook = source("hooks/use-tenancy.ts");
-  assert.match(hook, /useAsyncResource\(\s*fetchTenancyContext/);
+  assert.match(hook, /useAsyncResource\(\s*loadContext/);
   assert.match(hook, /fetchTenancyFinance\(tenancyId\)/);
   assert.match(hook, /const financeReady = !finance\.loading && !finance\.error;/);
   assert.match(hook, /const financeLoading = tenancyId !== null && finance\.loading;/);
   assert.match(hook, /\.eq\("tenancy_id", tenancyId\)/);
   assert.match(hook, /\.limit\(200\)/);
 
-  const page = source("app/tenant/my-rental/page.tsx");
+  const page = source("app/tenant/my-rental/MyRentalClient.tsx");
   assert.match(page, /financeLoading \? \(\s*<RentFinanceSkeleton \/>/);
   assert.match(page, /financeError \? \(\s*<RentFinanceError /);
   assert.match(page, /paymentError \? \(\s*<RentFinanceError/);

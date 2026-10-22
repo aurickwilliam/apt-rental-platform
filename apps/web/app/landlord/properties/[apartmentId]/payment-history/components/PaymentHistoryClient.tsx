@@ -2,10 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button, Card, Chip, Spinner } from "@heroui/react";
+import { Button, Card, Chip } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
-import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
+import { IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
 import type { PaymentRecord } from "@/service/paymentService";
@@ -18,6 +17,9 @@ import {
 } from "@/app/tenant/payment/utils";
 import { useLandlordPayments } from "@/hooks/use-landlord-payments";
 import PaymentHistoryFilters from "@/app/tenant/payment/components/PaymentHistoryFilters";
+import PropertyPaymentHistoryShell from "./PropertyPaymentHistoryShell";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -67,14 +69,13 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
   );
 }
 
-export default function PaymentHistoryClient({
+function PaymentHistoryContent({
   apartmentId,
   apartmentName,
 }: {
   apartmentId: string;
   apartmentName: string;
 }) {
-  const router = useRouter();
   const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const paymentsQuery = useLandlordPayments(apartmentId);
@@ -107,39 +108,9 @@ export default function PaymentHistoryClient({
     return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
   }, [filtered, filters.sort]);
 
-  if (paymentsQuery.loading) {
-    return (
-      <div className="p-4 md:p-6 flex flex-col items-center justify-center py-20">
-        <Spinner size="lg" color="current" className="text-primary" />
-        <p className="text-zinc-500 mt-4 text-sm font-inter">Loading payment history…</p>
-      </div>
-    );
-  }
-
-  if (paymentsQuery.error) {
-    return (
-      <div className="p-4 md:p-6 space-y-4">
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{paymentsQuery.error}</p>
-        <Button variant="secondary" size="sm" className="rounded-full" onPress={() => void paymentsQuery.refresh()}>
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 md:p-6 space-y-4">
-      <Button variant="outline" size="sm" onPress={() => router.push(`/landlord/properties/${apartmentId}`)} className="w-fit">
-        <ArrowLeft size={16} /> Back to Property
-      </Button>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Banknote size={22} className="text-primary" /> Payment History
-          </h1>
-          <p className="text-sm text-zinc-500 mt-1">{apartmentName}</p>
-        </div>
-        <Button variant="secondary" size="sm" className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
+    <PropertyPaymentHistoryShell apartmentId={apartmentId} apartmentName={paymentsQuery.error ? undefined : apartmentName} controls={
+        <Button variant="secondary" size="sm" isDisabled={paymentsQuery.loading || !!paymentsQuery.error} className="rounded-full relative w-fit" onPress={() => setDrawerOpen(true)}>
           <SlidersHorizontal size={14} /> Filters
           {activeCount > 0 && (
             <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
@@ -147,9 +118,14 @@ export default function PaymentHistoryClient({
             </span>
           )}
         </Button>
-      </div>
+      }>
 
-      {filtered.length === 0 ? (
+      {paymentsQuery.loading ? <RouteLoadingStatus>Loading payment history…</RouteLoadingStatus> : paymentsQuery.error ? (
+        <div className="space-y-4" role="alert">
+          <p className="text-sm text-muted-foreground">{paymentsQuery.error}</p>
+          <Button variant="secondary" size="sm" isDisabled={paymentsQuery.revalidating} onPress={() => void paymentsQuery.refresh()}>Try Again</Button>
+        </div>
+      ) : filtered.length === 0 ? (
         <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
             <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
@@ -194,6 +170,25 @@ export default function PaymentHistoryClient({
         onOpenChange={setDrawerOpen}
         activeCount={activeCount}
       />
-    </div>
+    </PropertyPaymentHistoryShell>
   );
+}
+
+export default function PaymentHistoryClient(props: { apartmentId: string; apartmentName: string }) {
+  const identity = useAuthIdentity();
+  const [contextIdentity, setContextIdentity] = useState<typeof identity | null>(null);
+  // The name is server-authorized context, not a reusable cross-account seed.
+  if (contextIdentity === null && identity.authUserId !== undefined) setContextIdentity(identity);
+  if (identity.authUserId === undefined) {
+    return <PropertyPaymentHistoryShell apartmentId={props.apartmentId} apartmentName={props.apartmentName}><RouteLoadingStatus>Loading payment history…</RouteLoadingStatus></PropertyPaymentHistoryShell>;
+  }
+  if (!identity.authUserId || (contextIdentity !== null && contextIdentity !== identity)) {
+    return (
+      <PropertyPaymentHistoryShell>
+        <p role="alert">Your session changed. Open the property again to load its current details.</p>
+        <Link href="/landlord/properties" className="text-primary underline">My Properties</Link>
+      </PropertyPaymentHistoryShell>
+    );
+  }
+  return <PaymentHistoryContent key={`${identity.authUserId}:${identity.generation}:${props.apartmentId}`} {...props} />;
 }

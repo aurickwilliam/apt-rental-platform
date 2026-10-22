@@ -11,6 +11,15 @@ interface ResourceState<T> {
   /** The loader whose result is in `data`; differs from the current one while it runs. */
   settledLoader: Loader<T> | null;
   refreshing: boolean;
+  revalidating: boolean;
+  revalidationError: string | null;
+}
+
+interface ResourceOptions<T> {
+  /** Fresh request-owned data, not a cache. Skip only this loader's initial read. */
+  initial?: { data: T; error?: string | null };
+  /** Sensitive resources fail closed if a background access/read check fails. */
+  clearOnRevalidateError?: boolean;
 }
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -23,48 +32,81 @@ function errorMessage(err: unknown, fallback: string): string {
  * set state synchronously; `loading` is derived from whether the current
  * loader has settled. Responses from superseded loads are ignored.
  */
-export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackError: string) {
+export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackError: string, options: ResourceOptions<T> = {}) {
   const [state, setState] = useState<ResourceState<T>>({
-    data: initialData,
-    error: null,
-    settledLoader: null,
+    data: options.initial ? options.initial.data : initialData,
+    error: options.initial?.error ?? null,
+    settledLoader: options.initial ? load : null,
     refreshing: false,
+    revalidating: false,
+    revalidationError: null,
   });
+  const seededLoader = useRef(options.initial ? load : null);
+  const activeLoader = useRef<Loader<T> | null>(load);
+  const emptyData = useRef(initialData);
+  const { clearOnRevalidateError = false } = options;
   const latestRequest = useRef(0);
 
   const run = useCallback(
     (loader: Loader<T>, silent = false) => {
+      if (activeLoader.current !== loader) return Promise.resolve(false);
       const request = ++latestRequest.current;
-      return loader().then(
+      const current = () => request === latestRequest.current && activeLoader.current === loader;
+      let pending: Promise<T>;
+      try {
+        // Only background refresh sets progress; initial effects still update
+        // state exclusively when their read settles.
+        pending = silent ? Promise.resolve().then(() => {
+          if (!current()) return emptyData.current;
+          setState((previous) => ({ ...previous, revalidating: true, revalidationError: null }));
+          return loader();
+        }) : loader();
+      } catch (error) {
+        pending = Promise.reject(error);
+      }
+      return pending.then(
         (data) => {
-          if (request !== latestRequest.current) return;
-          setState({ data, error: null, settledLoader: loader, refreshing: false });
+          if (!current()) return false;
+          setState({ data, error: null, settledLoader: loader, refreshing: false, revalidating: false, revalidationError: null });
+          return true;
         },
         (err: unknown) => {
-          if (request !== latestRequest.current) return;
+          if (!current()) return false;
           console.error(fallbackError, err);
           // A background refresh never replaces data the user is reading.
-          if (silent) return;
+          if (silent && !clearOnRevalidateError) {
+            setState((previous) => ({ ...previous, revalidating: false, revalidationError: errorMessage(err, fallbackError) }));
+            return false;
+          }
           setState((current) => ({
             ...current,
+            data: silent ? emptyData.current : current.data,
             error: errorMessage(err, fallbackError),
             settledLoader: loader,
             refreshing: false,
+            revalidating: false,
+            revalidationError: null,
           }));
+          return false;
         },
       );
     },
-    [fallbackError],
+    [fallbackError, clearOnRevalidateError],
   );
 
   useEffect(() => {
-    void run(load);
+    const requests = latestRequest;
+    const active = activeLoader;
+    active.current = load;
+    if (seededLoader.current !== load) void run(load);
+    return () => { requests.current++; active.current = null; };
   }, [load, run]);
 
   /** Reloads with a loading state; resolves once the new data is in. */
   const refresh = useCallback(async () => {
+    if (activeLoader.current !== load) return false;
     setState((current) => ({ ...current, error: null, refreshing: true }));
-    await run(load);
+    return run(load);
   }, [load, run]);
 
   /**
@@ -75,17 +117,22 @@ export function useAsyncResource<T>(load: Loader<T>, initialData: T, fallbackErr
 
   /** Local (optimistic) edits to the loaded data. */
   const setData = useCallback((update: DataUpdate<T>) => {
+    if (activeLoader.current !== load) return;
     setState((current) => ({
       ...current,
-      data: typeof update === "function" ? (update as (value: T) => T)(current.data) : update,
+      data: current.settledLoader === load
+        ? typeof update === "function" ? (update as (value: T) => T)(current.data) : update
+        : current.data,
     }));
-  }, []);
+  }, [load]);
 
   const isCurrent = state.settledLoader === load;
   return {
     data: state.data,
     loading: !isCurrent || state.refreshing,
     error: isCurrent ? state.error : null,
+    revalidating: isCurrent && state.revalidating,
+    revalidationError: isCurrent ? state.revalidationError : null,
     refresh,
     revalidate,
     setData,

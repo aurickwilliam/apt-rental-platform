@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import PaymentStatusLoading from "../components/PaymentStatusLoading";
 import { getCheckoutSessionDetails, PaymongoError } from "@/service/paymongoService";
 
 // Web twin of mobile verify.tsx: hosted-checkout return landing on primary blue.
@@ -74,14 +75,11 @@ function VerifyContent() {
     router.replace("/tenant/payment");
   };
 
+  if (isVerifying) return <PaymentStatusLoading message="Verifying payment…" />;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 text-center" style={{ backgroundColor: "#376BF5" }}>
-      {isVerifying ? (
-        <>
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter">Verifying payment…</p>
-        </>
-      ) : errorMessage ? (
+      {errorMessage ? (
         <div className="flex flex-col items-center gap-4 max-w-sm">
           <p className="text-white text-base font-inter">{errorMessage}</p>
           {checkoutUrl && <Button onPress={() => { window.location.href = checkoutUrl; }} className="bg-white text-primary">Continue checkout</Button>}
@@ -106,12 +104,7 @@ function VerifyContent() {
 export default function TenantPaymentVerifyPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ backgroundColor: "#376BF5" }}>
-          <Spinner size="lg" color="current" className="text-white" />
-          <p className="text-white mt-4 text-base font-inter">Verifying payment…</p>
-        </div>
-      }
+      fallback={<PaymentStatusLoading message="Verifying payment…" />}
     >
       <VerifyContent />
     </Suspense>

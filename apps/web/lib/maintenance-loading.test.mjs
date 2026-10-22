@@ -40,7 +40,10 @@ function database(results) {
 
 const active = { id: "lease-a", apartment: { id: "apt-a", name: "Unit A" }, status: "active" };
 function tenancyService(client) {
-  return compile("../service/tenancyService.ts", { "@repo/supabase/browser": { createClient: () => client } });
+  return compile("../service/tenancyService.ts", {
+    "@repo/supabase/browser": { createClient: () => client },
+    "./tenancy-context": compile("../service/tenancy-context.ts", {}),
+  });
 }
 
 test("maintenance context reads only the caller-scoped active tenancy, never billing or payment history", async () => {
@@ -143,7 +146,7 @@ test("maintenance history reuses supplied identity, but omitted identity still f
 
 function financialHook({ billError = null, paymentError = null, signedIn = true, tenancy = active } = {}) {
   const payment = { id: "payment-a", status: "paid", period_start: "2026-10-01", amount: 15000 };
-  const db = database({ users: { data: { id: "tenant-a" }, error: null }, payment: { data: [payment], error: paymentError } });
+  const db = database({ users: { data: { id: "tenant-a", roles: ["tenant"] }, error: null }, payment: { data: [payment], error: paymentError } });
   let authReads = 0;
   let billReads = 0;
   let contextReads = 0;
@@ -155,6 +158,7 @@ function financialHook({ billError = null, paymentError = null, signedIn = true,
     return { data: { rentPaid: billReads > 1, monthlyRent: 15000 }, error: billError };
   };
   const hook = compile("../hooks/use-tenancy.ts", {
+    "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
     "@repo/supabase/browser": { createClient: () => db.client },
     react: { useEffect: () => {}, useCallback: (fn) => fn },
     "@/service/tenancyService": { fetchActiveTenancy: async (id) => { assert.equal(id, "tenant-a"); contextReads++; return tenancy; } },

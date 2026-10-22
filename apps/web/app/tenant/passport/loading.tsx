@@ -1,11 +1,11 @@
 import { PassportPageHeader, PassportPageShell } from "@/app/components/passport/PassportPageLayout";
-import { PassportWalletSkeleton } from "@/app/components/passport/PassportSkeleton";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 
 export default function TenantPassportLoading() {
   return (
     <PassportPageShell>
       <PassportPageHeader />
-      <PassportWalletSkeleton />
+      <RouteLoadingStatus>Loading documents…</RouteLoadingStatus>
     </PassportPageShell>
   );
 }

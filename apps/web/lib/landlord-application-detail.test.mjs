@@ -48,13 +48,15 @@ function harness(options = {}) {
         useState: initial => { const index = cursor++; if (!(index in state)) state[index] = initial; return [state[index], value => { state[index] = value; }]; },
       },
       "next/image": { default: "Image" },
+      "next/link": { default: "Link" },
       "next/navigation": { useParams: () => ({ applicationId: "application-one" }), useRouter: () => ({ push: href => pushed.push(href), prefetch: href => prefetched.push(href) }) },
       "@heroui/react": { Card, Modal, Button: "Button", Skeleton: "Skeleton", FieldError: "FieldError", Label: "Label", TextArea: "TextArea", TextField: "TextField", useOverlayState: () => overlay },
       "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
       "@repo/utils": { formatDate: value => value, formatPesoDisplay: value => `PHP ${value}`, getInitials: () => "ST" },
       "@/app/components/display/StatusChip": { default: "StatusChip" },
       "@/app/components/profile/UserAvatar": { default: "UserAvatar" },
-      "@/hooks/use-landlord-applications": { useLandlordApplications: () => ({ applications: application ? [application] : [], loading: options.loading ?? false, error: options.error ?? null, refresh: () => { retries += 1; } }) },
+      "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
+      "@/hooks/use-landlord-applications": { useLandlordApplications: () => ({ applications: application ? [application] : [], loading: options.loading ?? false, error: options.error ?? null, refresh: () => { retries += 1; }, revalidate: async () => true }) },
       "@/hooks/use-landlord-application-actions": { useLandlordApplicationActions: () => actions },
       "@/hooks/use-application-document-urls": { useApplicationDocumentUrls: entries => ({
         resolved: entries.filter(entry => entry.path).map(entry => ({ ...entry, signedUrl: options.documentsError ? null : `https://example.test/${entry.label}` })),
@@ -67,6 +69,9 @@ function harness(options = {}) {
       "./components/ApplicationDetailSection": { default: loadSection },
       "./ApplicationDetailSection": { default: loadSection },
       "./components/ApplicationDetailSkeleton": { default: loadSkeleton },
+      "./components/ApplicationDetailShell": { default: loadShell },
+      "./ApplicationDetailShell": { default: loadShell },
+      "@/app/components/display/RouteLoadingStatus": { default: "RouteLoadingStatus" },
     };
     const source = readFileSync(new URL(`../app/landlord/applications/[applicationId]/${file}`, import.meta.url), "utf8");
     const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
@@ -79,13 +84,14 @@ function harness(options = {}) {
   }
   function loadSection(props) { return load("components/ApplicationDetailSection.tsx").default(props); }
   function loadSkeleton() { return load("components/ApplicationDetailSkeleton.tsx").default(); }
+  function loadShell(props) { return load("components/ApplicationDetailShell.tsx").default(props); }
   const Page = load("page.tsx").default;
   return { render: () => { cursor = 0; return nodes(Page()); }, load, approved, rejected, prefetched, pushed, opened, actions, retries: () => retries };
 }
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
-  const expand = typeof element.type === "function" && ["ApplicationDetailContent", "DetailField", "DocumentRow", "Sk", "loadSection", "loadSkeleton", "ApplicationFieldSkeleton"].includes(element.type.name);
+  const expand = typeof element.type === "function" && ["ApplicationDetailContent", "DetailField", "DocumentRow", "Sk", "loadSection", "loadShell", "loadSkeleton", "ApplicationFieldSkeleton"].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 }
@@ -95,7 +101,7 @@ const button = (elements, label) => elements.find(element => element.type === "B
 test("Application details use one responsive set of cards, retain every field and show pending actions", () => {
   const h = harness();
   const elements = h.render();
-  assert.equal(elements[0].key, "application-one");
+  assert.equal(elements[0].key, "auth-a:0:application-one");
   assert.equal(elements.filter(element => element.type === "UserAvatar").length, 1);
   assert.equal(elements.filter(element => element.type.name === "DetailField").length, 13);
   assert.equal(elements.find(element => element.type === "Image").props.src, "/cover.jpg");
@@ -166,15 +172,17 @@ test("Private document rows distinguish missing, loading and unavailable preview
   assert.ok(failed.some(element => element.props.role === "alert"));
 });
 
-test("Route/client loading share the full detail skeleton and failures offer Retry without claiming not-found", () => {
+test("Route keeps the detail shell, client owns the body skeleton, and failures offer Retry", () => {
   const h = harness({ loading: true });
   const elements = h.render();
   assert.ok(elements.some(element => element.props["aria-label"] === "Loading application details" && element.props["aria-busy"] === "true"));
   assert.equal(elements.filter(element => element.type === "h2").length, 8);
   assert.ok(elements.filter(element => element.type === "Skeleton").every(element => element.props.className.includes("bg-grey-300!")));
   assert.equal(button(elements, "Approve"), undefined);
-  const boundary = h.load("loading.tsx").default();
-  assert.equal(boundary.type.name, "loadSkeleton");
+  const boundary = nodes(h.load("loading.tsx").default());
+  assert.ok(text(boundary).includes("Application Details"));
+  assert.equal(boundary.filter(element => element.type === "Skeleton").length, 0);
+  assert.ok(boundary.some(element => element.type === "RouteLoadingStatus"));
   const failed = harness({ error: "Unable to load applications" });
   const failure = failed.render();
   assert.ok(text(failure).includes("Could not load application"));
