@@ -106,8 +106,7 @@ async function LandlordMessagesWorkspace({
   const { pinned: currentTenants, others: inquiries } = buildPortalContacts({
     rows: conversationRows ?? [],
     pinned: activeTenants,
-    describeApartment: (apartmentName) =>
-      apartmentName ? `Inquiring: ${apartmentName}` : "Inquiring",
+    describeApartment: (apartmentName) => apartmentName || "No apartment linked",
   });
 
   return (

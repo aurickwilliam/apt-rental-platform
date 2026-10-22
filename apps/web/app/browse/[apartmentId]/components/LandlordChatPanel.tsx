@@ -59,7 +59,7 @@ export default function LandlordChatPanel({
       conversationKey,
       name: landlordName.trim() || "Landlord",
       avatar: landlordAvatarUrl?.trim() || "",
-      apartment: apartmentName.trim() ? `Inquiring: ${apartmentName.trim()}` : "Inquiring",
+      apartment: apartmentName.trim() || "No apartment linked",
       apartmentId,
       unreadCount: 0,
     };
