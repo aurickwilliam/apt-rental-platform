@@ -1,30 +1,15 @@
 import { createClient } from "@repo/supabase/server";
+import {
+  consolidateMonthlyRevenue,
+  normalizeDashboardData,
+  type DashboardData,
+} from "@repo/utils";
 
-import { summarizeDashboard } from "./summarize-dashboard";
-
-export interface MonthlyRevenuePoint {
-  month: string;
-  revenue: number;
-}
-
-export interface RentCollectionSlice {
-  name: string;
-  label: string;
-  value: number;
-}
-
-export interface DashboardData {
-  totalProperties: number;
-  totalRevenueThisMonth: number;
-  /** Null when the landlord has no properties (0/0 is undefined). */
-  occupancyRate: number | null;
-  pendingPayments: number;
-  /** Last 7 calendar months (inclusive of current), zero-filled. */
-  monthlyRevenue: MonthlyRevenuePoint[];
-  rentCollection: RentCollectionSlice[];
-  hasPayments: boolean;
-}
-
+/**
+ * Loads the landlord dashboard through the same get_landlord_dashboard RPC the
+ * mobile app uses, so both platforms report identical figures. RLS stays the
+ * final authority (security invoker).
+ */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
   const {
@@ -43,23 +28,17 @@ export async function getDashboardData(): Promise<DashboardData> {
     throw new Error("Landlord profile not found.");
   }
 
-  const landlordId = profile.id;
+  const { data, error } = await supabase.rpc("get_landlord_dashboard", {
+    p_landlord_id: profile.id,
+  });
 
-  const [{ data: apartments, error: apartmentsError }, { data: payments, error: paymentsError }] =
-    await Promise.all([
-      supabase
-        .from("apartments")
-        .select("id, status")
-        .eq("landlord_id", landlordId)
-        .is("deleted_at", null),
-      supabase
-        .from("payment")
-        .select("amount:rental_income_amount, date, status, due_date")
-        .eq("landlord_id", landlordId),
-    ]);
+  if (error) throw new Error(error.message);
 
-  if (apartmentsError) throw new Error(apartmentsError.message);
-  if (paymentsError) throw new Error(paymentsError.message);
+  const payload = normalizeDashboardData(data as unknown as DashboardData);
 
-  return summarizeDashboard(apartments, payments, new Date());
+  return {
+    ...payload,
+    // The RPC emits one row per (month x property); collapse to one per month.
+    monthlyRevenue: consolidateMonthlyRevenue(payload.monthlyRevenue),
+  };
 }

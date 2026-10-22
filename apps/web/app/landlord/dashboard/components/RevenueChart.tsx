@@ -8,12 +8,11 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 
-import { COLORS } from "@repo/constants";
-
-import type { MonthlyRevenuePoint } from "../lib/get-dashboard-data";
+import { formatPesoCompact, formatPesoDisplay, monthLabel } from "@repo/utils";
+import type { MonthlyRevenuePoint } from "@repo/utils";
 
 const revenueConfig = {
-  revenue: { label: "Revenue", color: COLORS.light.primary },
+  amount: { label: "Revenue", color: "var(--primary)" },
 } satisfies ChartConfig;
 
 type Props = {
@@ -21,25 +20,30 @@ type Props = {
 };
 
 export default function RevenueChart({ data }: Props) {
+  const chartData = data.map((point) => ({
+    month: monthLabel(point.month),
+    amount: point.amount,
+  }));
+
   return (
     <ChartContainer config={revenueConfig} className="h-[220px] w-full">
-      <BarChart data={data} barSize={28}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+      <BarChart data={chartData} barSize={24}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
         <YAxis
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 12 }}
-          tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`}
+          tickFormatter={(value) => formatPesoCompact(Number(value))}
         />
         <ChartTooltip
           content={
             <ChartTooltipContent
-              formatter={(value) => [`₱${Number(value).toLocaleString()}`, "Revenue"]}
+              formatter={(value) => [formatPesoDisplay(Number(value)) || "₱ 0", "Revenue"]}
             />
           }
         />
-        <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="amount" fill="var(--color-amount)" radius={[6, 6, 0, 0]} />
       </BarChart>
     </ChartContainer>
   );

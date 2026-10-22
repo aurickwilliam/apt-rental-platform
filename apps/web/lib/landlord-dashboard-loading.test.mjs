@@ -39,13 +39,13 @@ test("Dashboard route loading keeps its shared header visible and announces load
   assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
 });
 
-test("Dashboard skeleton covers four statistics and all three chart panels", () => {
+test("Dashboard skeleton covers the collection card, four stat tiles and both panels", () => {
   const elements = nodes(loadComponent("loading.tsx")());
-  const stats = elements.find(node => node.props.className?.includes("lg:grid-cols-4"));
+  assert.ok(elements.some(node => node.props.className?.includes("bg-primary")));
+  const stats = elements.find(node => node.props.className?.includes("sm:grid-cols-2"));
   assert.equal(stats.props.children.length, 4);
-  assert.ok(stats.props.children[0].props.className.includes("bg-primary"));
   assert.deepEqual(elements.filter(node => node.type === "h3").map(node => node.props.children), [
-    "Monthly Revenue", "Rent Collection", "Occupancy Rate",
+    "Monthly Revenue", "Upcoming rent due",
   ]);
   const blocks = elements.filter(node => node.type === "Skeleton");
   assert.ok(blocks.length > 0);
