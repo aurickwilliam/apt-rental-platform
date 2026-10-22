@@ -17,6 +17,7 @@ import { statusChipColor } from "../lib/application-status";
 import { applicationStatusLabel } from "../lib/application-list";
 import ApplicationDetailSection from "./components/ApplicationDetailSection";
 import ApplicationDetailSkeleton from "./components/ApplicationDetailSkeleton";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -52,13 +53,14 @@ function DocumentRow({ label, path, signedUrl, verified, emptyLabel, loading }: 
 
 export default function LandlordApplicationDetailPage() {
   const { applicationId } = useParams<{ applicationId: string }>();
-  return <ApplicationDetailContent key={applicationId} applicationId={applicationId} />;
+  const identity = useAuthIdentity();
+  return <ApplicationDetailContent key={`${identity.authUserId ?? "none"}:${identity.generation}:${applicationId}`} applicationId={applicationId} />;
 }
 
 function ApplicationDetailContent({ applicationId }: { applicationId: string }) {
   const router = useRouter();
-  const { applications, loading, error, refresh } = useLandlordApplications();
-  const { localStatus, actionLoading, isRejectDialogOpen, errorMessage, approve, reject, openRejectDialog, closeRejectDialog, clearError } = useLandlordApplicationActions(refresh);
+  const { applications, loading, error, refresh, revalidate, revalidating } = useLandlordApplications();
+  const { localStatus, actionLoading, isRejectDialogOpen, errorMessage, approve, reject, openRejectDialog, closeRejectDialog, clearError } = useLandlordApplicationActions(revalidate);
   const rejectModal = useOverlayState();
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
@@ -95,7 +97,7 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
     );
   }
 
-  const displayStatus = localStatus ?? app.status;
+  const displayStatus = app.status === "Applied" ? (localStatus ?? app.status) : app.status;
   const isPending = displayStatus === "Applied";
   const isUnitOccupied = app.apartment_status === "occupied";
   const handleRejectConfirm = () => {
@@ -115,6 +117,7 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
         <p className="mt-1 text-sm text-muted-foreground">Review the tenant&apos;s information and supporting documents.</p>
       </div>
       {errorMessage ? <div role="alert" className="rounded-xl border border-danger/20 bg-danger/5 p-4 text-sm text-danger">{errorMessage}</div> : null}
+      {revalidating ? <span role="status" className="sr-only">Updating application details</span> : null}
 
       <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
         <ApplicationDetailSection title="Property" subtitle="Tenant application for this property." icon={IconHome}>

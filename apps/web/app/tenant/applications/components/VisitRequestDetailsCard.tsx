@@ -4,12 +4,11 @@ import { Card, Button, Separator, Modal, useOverlayState } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconCalendar as Calendar, IconClock as Clock, IconUsers as Users, IconHourglass as Hourglass, IconCircleCheck as CheckCircle2, IconCircleX as XCircle, IconCalendarX as CalendarX } from "@tabler/icons-react";
-import { toast } from "@heroui/react";
 import type { VisitRequest } from "@/service/visitRequestsService";
 
 type Props = {
   visit: VisitRequest;
-  onCancel: () => void;
+  onCancel: () => Promise<boolean>;
   onAccept?: () => void;
   onDecline?: () => void;
   onRequestAgain?: () => void;
@@ -60,10 +59,9 @@ export default function VisitRequestDetailsCard({
   const isDeclinedReschedule =
     visit.status === "cancelled" && !!visit.confirmed_visit_date && !!visit.confirmed_time;
 
-  const handleConfirm = () => {
-    onCancel();
-    toast.success("Visit request cancelled");
-    confirm.setOpen(false);
+  const handleConfirm = async () => {
+    if (actionLoading) return;
+    if (await onCancel()) confirm.setOpen(false);
   };
 
   return (
@@ -172,7 +170,7 @@ export default function VisitRequestDetailsCard({
                 </>
               )}
               {(visit.status === "rejected" || visit.status === "cancelled") && onRequestAgain && (
-                <Button size="sm" className="flex-1" onPress={onRequestAgain}>
+                <Button size="sm" className="flex-1" isDisabled={actionLoading} onPress={onRequestAgain}>
                   Request Again
                 </Button>
               )}
@@ -216,8 +214,8 @@ export default function VisitRequestDetailsCard({
                 <Button variant="outline" size="sm" onPress={() => confirm.setOpen(false)}>
                   Keep
                 </Button>
-                <Button variant="danger" size="sm" onPress={handleConfirm}>
-                  Yes, Cancel
+                <Button variant="danger" size="sm" isDisabled={actionLoading} onPress={handleConfirm}>
+                  {actionLoading ? "Updating details…" : "Yes, Cancel"}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

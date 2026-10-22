@@ -1,11 +1,11 @@
 import { PassportBackLink, PassportPageShell } from "@/app/components/passport/PassportPageLayout";
-import { PassportDetailSkeleton } from "@/app/components/passport/PassportSkeleton";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 
 export default function LandlordPassportDocumentLoading() {
   return (
     <PassportPageShell>
       <PassportBackLink basePath="/landlord/passport" />
-      <PassportDetailSkeleton />
+      <RouteLoadingStatus>Loading document…</RouteLoadingStatus>
     </PassportPageShell>
   );
 }

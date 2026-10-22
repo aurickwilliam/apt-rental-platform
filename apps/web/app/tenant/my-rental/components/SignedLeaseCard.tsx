@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { IconFileText as FileText, IconShieldCheck as ShieldCheck } from "@tabler/icons-react";
 
@@ -22,7 +22,7 @@ interface SignedLeaseCardProps {
   onView: () => void;
   viewing: boolean;
   /** Re-reads the tenancy after the confirmation is saved. */
-  onAcknowledged: () => void;
+  onAcknowledged: () => Promise<boolean>;
 }
 
 function leaseSummary(
@@ -53,19 +53,37 @@ export default function SignedLeaseCard({
 }: SignedLeaseCardProps) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const busy = useRef(false);
+  const submitted = useRef(false);
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
   const status = signedLeaseStatus(path, acknowledgedAt);
 
   const handleConfirm = async () => {
+    if (busy.current || submitted.current || status !== "pending") return;
+    busy.current = true;
     setConfirming(true);
     setError(null);
     try {
       await acknowledgeSignedLease(tenancyId);
-      onAcknowledged();
+      if (!active.current) return;
+      submitted.current = true;
+      setSaved(true);
+      if (!await onAcknowledged() && active.current) {
+        setError("Your confirmation was saved, but rental details could not refresh. Please try refreshing again.");
+      }
     } catch (err) {
       console.error("Signed lease confirmation failed", err);
-      setError(err instanceof Error ? err.message : "Could not confirm the lease. Please try again.");
+      if (active.current) setError(submitted.current
+        ? "Your confirmation was saved, but rental details could not refresh. Please try refreshing again."
+        : err instanceof Error ? err.message : "Could not confirm the lease. Please try again.");
     } finally {
-      setConfirming(false);
+      busy.current = false;
+      if (active.current) setConfirming(false);
     }
   };
 
@@ -79,13 +97,13 @@ export default function SignedLeaseCard({
           <div className="min-w-0">
             <h2 className="font-nunito text-sm font-semibold text-card-foreground">Signed lease</h2>
             <p className="mt-0.5 font-inter text-xs text-muted-foreground">
-              {leaseSummary(path, uploadedAt, acknowledgedAt)}
+              {saved && !acknowledgedAt ? "Your confirmation was saved." : leaseSummary(path, uploadedAt, acknowledgedAt)}
             </p>
           </div>
         </div>
         {status === "missing" ? (
           <StatusChip className="font-nunito text-[11px] font-semibold" tone="neutral">Not uploaded</StatusChip>
-        ) : status === "pending" ? (
+        ) : status === "pending" && !saved ? (
           <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">Needs your confirmation</StatusChip>
         ) : (
           <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Confirmed</StatusChip>
@@ -102,10 +120,11 @@ export default function SignedLeaseCard({
           <FileText size={16} />
           View document
         </Button>
-        {status === "pending" && (
+        {status === "pending" && !saved && (
           <Button
             className="rounded-full"
             isPending={confirming}
+            isDisabled={confirming}
             onPress={() => void handleConfirm()}
           >
             <ShieldCheck size={16} />
@@ -115,6 +134,20 @@ export default function SignedLeaseCard({
       </div>
 
       {error ? <ErrorBanner message={error} /> : null}
+      {saved && error ? (
+        <Button variant="outline" size="sm" isPending={confirming} isDisabled={confirming} onPress={() => {
+          if (busy.current) return;
+          busy.current = true;
+          setConfirming(true);
+          void onAcknowledged().then((ok) => { if (active.current && ok) setError(null); }).catch((error: unknown) => {
+            console.error("Lease details refresh failed", error);
+            if (active.current) setError("Your confirmation was saved, but rental details could not refresh. Please try refreshing again.");
+          }).finally(() => {
+            busy.current = false;
+            if (active.current) setConfirming(false);
+          });
+        }}>Refresh lease details</Button>
+      ) : null}
     </DashboardCard>
   );
 }
