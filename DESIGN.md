@@ -123,7 +123,7 @@ Two families (via `packages/constants/src/typography.ts`, both platforms):
 | Primary text & labels | **Nunito** (`Nunito-*` / `font-nunito`) | semibold, bold |
 | Headings | **Nunito** (`Nunito-*` / `font-nunito`) | regular, medium, semibold, bold |
 
-Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile classes: `font-inter` (body copy), `font-nunitoMedium/SemiBold/Bold`. On mobile, all emphasized text (titles, section headers, card titles, labels, values, prices, tab/badge labels) uses Nunito — Inter medium/semibold classes (`font-interMedium`/`font-interSemiBold`) are web-only.
+Web loads via `next/font/google` (`--font-inter`, `--font-nunito`). Mobile classes: `font-inter` (body copy), `font-nunitoMedium/SemiBold/Bold`. On mobile, all emphasized text (titles, section headers, card titles, labels, values, prices, tab/badge labels) uses Nunito — Inter medium/semibold classes (`font-interMedium`/`font-interSemiBold`) are web-only. Tab labels on both platforms are Nunito SemiBold (web: global `.tabs__tab` rule in `globals.css`; mobile: `.tabs__label` in `global.css`); the web Messages category tabs and mobile tabs turn primary blue when selected.
 
 The web tenant Maintenance and Favorites headers follow the APT Passport header: Nunito bold `text-3xl text-primary`, a 28px icon in a `size-11 rounded-lg bg-primary/10` tile, and a `mt-1 text-sm text-muted-foreground` description below the full title row (aligned with the icon's left edge).
 

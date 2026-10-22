@@ -6,17 +6,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FlatList } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
+import { IconMessageQuestion, IconUsers } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from '@/components/display/PullToRefresh'
+import EmptyState from '@/components/display/EmptyState'
 import ConversationListHeader from '@/app/(tabs)/components/chat/ConversationListHeader'
 import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRow'
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
 import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays'
 
+import { useColors } from '@/hooks/useTheme'
 import { useConversationRowActions, useConversations } from '@/hooks/chat'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import {
@@ -34,8 +37,25 @@ const LIST_HORIZONTAL_PADDING = 20;
 
 type ConversationFilter = 'Tenant' | 'Inquiries';
 
+const FILTER_EMPTY_STATES: Record<
+  ConversationFilter,
+  { icon: typeof IconUsers; title: string; description: string }
+> = {
+  Tenant: {
+    icon: IconUsers,
+    title: 'No Tenant Conversations',
+    description: 'Messages with your current tenants will show up here.',
+  },
+  Inquiries: {
+    icon: IconMessageQuestion,
+    title: 'No Inquiries Yet',
+    description: "When someone asks about one of your listings, you'll see their message here.",
+  },
+};
+
 export default function Chat() {
   const router = useRouter();
+  const { colors } = useColors();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -109,12 +129,15 @@ export default function Chat() {
 
   const hasConversations = conversations.length > 0;
 
+  const EmptyFilterIcon = FILTER_EMPTY_STATES[selectedFilter].icon;
+
   // Shown when the selected filter has no chats.
   const filterEmptyState = !isSearching && hasConversations && filteredCount === 0 ? (
-    <ConversationListState
-      variant='compact'
-      title={`No ${selectedFilter} Messages`}
-      description='Try switching filters to view your other conversations.'
+    <EmptyState
+      className='mt-6'
+      icon={<EmptyFilterIcon size={36} color={colors.primary} />}
+      title={FILTER_EMPTY_STATES[selectedFilter].title}
+      description={FILTER_EMPTY_STATES[selectedFilter].description}
     />
   ) : null;
 

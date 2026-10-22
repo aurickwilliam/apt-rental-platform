@@ -170,7 +170,13 @@
   --button-bg-pressed: var(--secondary);
 }
 .apt-messages-categories .tabs__tab { color: var(--muted-foreground); }
-.apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--foreground); }
+.apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--primary); }
+
+/* Tabs — every HeroUI tab label uses Nunito SemiBold (DESIGN.md §4), like mobile. */
+.tabs__tab {
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  font-weight: 600;
+}
 .apt-message-bubble[data-mine="true"][data-group="first"],
 .apt-message-bubble[data-mine="true"][data-group="middle"] { border-bottom-right-radius: 6px; }
 .apt-message-bubble[data-mine="true"][data-group="last"],
