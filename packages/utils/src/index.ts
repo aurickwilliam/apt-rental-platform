@@ -25,6 +25,34 @@ export {
   extractRawNumber
 } from './formatCurrencyInput';
 export { formatPesoCompact } from './formatPesoCompact';
+export {
+  EMPTY_ATTENTION,
+  EMPTY_THIS_MONTH,
+  buildRequestItems,
+  collectionProgress,
+  consolidateMonthlyRevenue,
+  currentMonthKey,
+  monthLabel,
+  monthRevenueTotal,
+  normalizeDashboardData,
+  summarizeRentDues,
+  topPropertiesByRevenue,
+} from './landlordDashboard';
+export type {
+  CollectionProgress,
+  DashboardAttention,
+  DashboardData,
+  DashboardStats,
+  MonthlyRevenuePoint,
+  PropertyRevenue,
+  PropertyRevenueMonth,
+  RentDue,
+  RentDueSummary,
+  RequestItem,
+  RequestKey,
+  ThisMonthSummary,
+  TopProperty,
+} from './landlordDashboard';
 export { calcMoveInCost, toMoveInNumber } from './calcMoveInCost';
 export {
   MIN_MONTHLY_RENT,
