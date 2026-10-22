@@ -1,4 +1,8 @@
 import {
+  EMPTY_ATTENTION,
+  EMPTY_THIS_MONTH,
+  buildRequestItems,
+  collectionProgress,
   consolidateMonthlyRevenue,
   currentMonthKey,
   fetchDashboardData,
@@ -24,6 +28,16 @@ const PAYLOAD = {
     pendingPayments: 1,
     maintenanceRequests: 1,
   },
+  attention: {
+    overdueCount: 1,
+    overdueAmount: 12000,
+    pendingCashCount: 1,
+    pendingCashAmount: 5000,
+    pendingCashApartmentId: "apartment-1",
+    pendingApplications: 2,
+    pendingVisitRequests: 0,
+  },
+  thisMonth: { collected: 15000, outstanding: 5000 },
   monthlyRevenue: [
     { month: "2025-09", amount: 0 },
     { month: "2025-10", amount: 0 },
@@ -70,6 +84,17 @@ describe("fetchDashboardData", () => {
       p_landlord_id: LANDLORD_ID,
     });
     expect(result).toEqual(PAYLOAD);
+  });
+
+  it("defaults attention and thisMonth when the RPC predates them", async () => {
+    const { attention, thisMonth, ...legacyPayload } = PAYLOAD;
+    mockRpc.mockResolvedValue({ data: legacyPayload, error: null });
+
+    const result = await fetchDashboardData(LANDLORD_ID);
+
+    expect(result.attention).toEqual(EMPTY_ATTENTION);
+    expect(result.thisMonth).toEqual(EMPTY_THIS_MONTH);
+    expect(result.stats).toEqual(PAYLOAD.stats);
   });
 
   it("throws when the RPC returns an error", async () => {
@@ -167,5 +192,42 @@ describe("dashboard derivations", () => {
         { month: "2026-10", amount: Number.NaN } as unknown as { month: string; amount: number },
       ]),
     ).toEqual([{ month: "2026-09", amount: 10000 }]);
+  });
+});
+
+describe("collectionProgress", () => {
+  it("reports collected against collected + outstanding", () => {
+    expect(collectionProgress({ collected: 15000, outstanding: 5000 })).toEqual({
+      collected: 15000,
+      expected: 20000,
+      percent: 75,
+    });
+  });
+
+  it("is 0% when nothing is expected and 100% when fully collected", () => {
+    expect(collectionProgress(EMPTY_THIS_MONTH)).toEqual({
+      collected: 0,
+      expected: 0,
+      percent: 0,
+    });
+    expect(collectionProgress({ collected: 8000, outstanding: 0 }).percent).toBe(100);
+  });
+});
+
+describe("buildRequestItems", () => {
+  it("returns only requests that are waiting, applications first", () => {
+    expect(buildRequestItems(PAYLOAD.attention)).toEqual([
+      { key: "applications", count: 2 },
+    ]);
+    expect(
+      buildRequestItems({ ...PAYLOAD.attention, pendingVisitRequests: 1 }),
+    ).toEqual([
+      { key: "applications", count: 2 },
+      { key: "visits", count: 1 },
+    ]);
+  });
+
+  it("is empty when nothing is waiting", () => {
+    expect(buildRequestItems(EMPTY_ATTENTION)).toEqual([]);
   });
 });

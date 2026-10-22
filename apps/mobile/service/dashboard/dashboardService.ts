@@ -121,17 +121,82 @@ export interface RentDue {
   isOverdue: boolean;
 }
 
+/** Work waiting on the landlord (see the get_landlord_dashboard RPC). */
+export interface DashboardAttention {
+  overdueCount: number;
+  overdueAmount: number;
+  pendingCashCount: number;
+  pendingCashAmount: number;
+  /** Property of the oldest cash submission; cash is confirmed per property. */
+  pendingCashApartmentId: string | null;
+  pendingApplications: number;
+  pendingVisitRequests: number;
+}
+
+export interface ThisMonthSummary {
+  /** Rental income recorded this month (same figure as the trend chart's last point). */
+  collected: number;
+  /** Rental income still unpaid on bills due this month. */
+  outstanding: number;
+}
+
 export interface DashboardData {
   stats: DashboardStats;
+  attention: DashboardAttention;
+  thisMonth: ThisMonthSummary;
   monthlyRevenue: MonthlyRevenuePoint[];
   revenueByProperty: PropertyRevenue[];
   rentDues: RentDue[];
 }
 
+export const EMPTY_ATTENTION: DashboardAttention = {
+  overdueCount: 0,
+  overdueAmount: 0,
+  pendingCashCount: 0,
+  pendingCashAmount: 0,
+  pendingCashApartmentId: null,
+  pendingApplications: 0,
+  pendingVisitRequests: 0,
+};
+
+export const EMPTY_THIS_MONTH: ThisMonthSummary = { collected: 0, outstanding: 0 };
+
+export interface CollectionProgress {
+  collected: number;
+  expected: number;
+  /** Whole percent of expected rent collected, clamped to 0–100. */
+  percent: number;
+}
+
+/** Collected vs expected rent for the month; percent is 0 when nothing is expected. */
+export function collectionProgress(thisMonth: ThisMonthSummary): CollectionProgress {
+  const expected = thisMonth.collected + thisMonth.outstanding;
+  const percent =
+    expected > 0 ? Math.min(100, Math.round((thisMonth.collected / expected) * 100)) : 0;
+  return { collected: thisMonth.collected, expected, percent };
+}
+
+export type RequestKey = "applications" | "visits";
+
+export interface RequestItem {
+  key: RequestKey;
+  count: number;
+}
+
+/** Tenant requests awaiting the landlord's reply; empty when none are pending. */
+export function buildRequestItems(attention: DashboardAttention): RequestItem[] {
+  const items: RequestItem[] = [
+    { key: "applications", count: attention.pendingApplications },
+    { key: "visits", count: attention.pendingVisitRequests },
+  ];
+  return items.filter((item) => item.count > 0);
+}
+
 /**
  * Fetches the full landlord dashboard in a single RPC round trip:
- * stats, 12-month revenue series, revenue per property (12-month window)
- * and unpaid rent dues. See supabase/migrations/20260817020000_get_landlord_dashboard.sql.
+ * stats, attention counts, this-month collection, 12-month revenue series,
+ * revenue per property (12-month window) and unpaid rent dues. See
+ * supabase/migrations/20261022000000_landlord_dashboard_attention.sql.
  */
 export async function fetchDashboardData(landlordId: string): Promise<DashboardData> {
   const { data, error } = await supabase.rpc("get_landlord_dashboard", {
@@ -140,5 +205,12 @@ export async function fetchDashboardData(landlordId: string): Promise<DashboardD
 
   if (error) throw error;
 
-  return data as unknown as DashboardData;
+  // attention / thisMonth are absent until the matching RPC migration is
+  // deployed; default them so the dashboard still renders.
+  const payload = data as unknown as Partial<DashboardData> & DashboardData;
+  return {
+    ...payload,
+    attention: { ...EMPTY_ATTENTION, ...payload.attention },
+    thisMonth: { ...EMPTY_THIS_MONTH, ...payload.thisMonth },
+  };
 }
