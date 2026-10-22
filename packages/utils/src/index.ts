@@ -24,6 +24,7 @@ export {
   handlePesoChange,
   extractRawNumber
 } from './formatCurrencyInput';
+export { formatPesoCompact } from './formatPesoCompact';
 export { calcMoveInCost, toMoveInNumber } from './calcMoveInCost';
 export {
   MIN_MONTHLY_RENT,
