@@ -27,8 +27,10 @@ export {
 export { formatPesoCompact } from './formatPesoCompact';
 export {
   EMPTY_ATTENTION,
+  TREND_TIMEFRAMES,
   EMPTY_THIS_MONTH,
   buildRequestItems,
+  buildTrendSeries,
   collectionProgress,
   consolidateMonthlyRevenue,
   currentMonthKey,
@@ -52,6 +54,8 @@ export type {
   RequestKey,
   ThisMonthSummary,
   TopProperty,
+  TrendPoint,
+  TrendTimeframe,
 } from './landlordDashboard';
 export { calcMoveInCost, toMoveInNumber } from './calcMoveInCost';
 export {

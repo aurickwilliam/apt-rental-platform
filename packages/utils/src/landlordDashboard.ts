@@ -201,3 +201,44 @@ export function normalizeDashboardData(payload: DashboardData): DashboardData {
     thisMonth: { ...EMPTY_THIS_MONTH, ...payload.thisMonth },
   };
 }
+
+export type TrendTimeframe = "Monthly" | "Quarterly" | "Yearly";
+
+export const TREND_TIMEFRAMES: readonly TrendTimeframe[] = [
+  "Monthly",
+  "Quarterly",
+  "Yearly",
+];
+
+export interface TrendPoint {
+  label: string;
+  value: number;
+}
+
+/**
+ * Profit trend series for the dashboard chart. Monthly keeps each month,
+ * Quarterly sums into "Q1".."Q4" buckets per year, Yearly into one bucket per
+ * year; buckets keep first-seen (chronological) order.
+ */
+export function buildTrendSeries(
+  points: readonly MonthlyRevenuePoint[],
+  timeframe: TrendTimeframe,
+): TrendPoint[] {
+  if (timeframe === "Monthly") {
+    return points.map((point) => ({
+      label: monthLabel(point.month),
+      value: point.amount,
+    }));
+  }
+
+  const totals = new Map<string, TrendPoint>();
+  for (const point of points) {
+    const year = point.month.slice(0, 4);
+    const quarter = Math.floor((Number(point.month.slice(5, 7)) - 1) / 3);
+    const key = timeframe === "Quarterly" ? `${year}-${quarter}` : year;
+    const label = timeframe === "Quarterly" ? `Q${quarter + 1}` : year;
+    const current = totals.get(key);
+    totals.set(key, { label, value: (current?.value ?? 0) + point.amount });
+  }
+  return [...totals.values()];
+}

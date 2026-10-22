@@ -2,6 +2,7 @@ import {
   EMPTY_ATTENTION,
   EMPTY_THIS_MONTH,
   buildRequestItems,
+  buildTrendSeries,
   collectionProgress,
   consolidateMonthlyRevenue,
   currentMonthKey,
@@ -207,5 +208,39 @@ describe("normalizeDashboardData", () => {
 
     expect(result.attention).toEqual(PAYLOAD.attention);
     expect(result.thisMonth).toEqual(PAYLOAD.thisMonth);
+  });
+});
+
+describe("buildTrendSeries", () => {
+  const POINTS = [
+    { month: "2026-01", amount: 1000 },
+    { month: "2026-02", amount: 2000 },
+    { month: "2026-04", amount: 500 },
+    { month: "2027-01", amount: 700 },
+  ];
+
+  it("keeps each month with its short label", () => {
+    expect(buildTrendSeries(POINTS, "Monthly")).toEqual([
+      { label: "Jan", value: 1000 },
+      { label: "Feb", value: 2000 },
+      { label: "Apr", value: 500 },
+      { label: "Jan", value: 700 },
+    ]);
+  });
+
+  it("sums into quarters per year, in chronological order", () => {
+    expect(buildTrendSeries(POINTS, "Quarterly")).toEqual([
+      { label: "Q1", value: 3000 },
+      { label: "Q2", value: 500 },
+      { label: "Q1", value: 700 },
+    ]);
+  });
+
+  it("sums into one bucket per year", () => {
+    expect(buildTrendSeries(POINTS, "Yearly")).toEqual([
+      { label: "2026", value: 3500 },
+      { label: "2027", value: 700 },
+    ]);
+    expect(buildTrendSeries([], "Yearly")).toEqual([]);
   });
 });

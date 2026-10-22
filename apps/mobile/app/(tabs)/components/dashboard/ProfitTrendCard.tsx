@@ -3,74 +3,30 @@ import { useState } from "react";
 import { LineChart } from "react-native-gifted-charts";
 import { IconChartLine } from "@tabler/icons-react-native";
 
-import { formatPesoCompact } from "@repo/utils";
+import {
+  TREND_TIMEFRAMES,
+  buildTrendSeries,
+  formatPesoCompact,
+  type TrendTimeframe,
+} from "@repo/utils";
 
 import DropdownButton from "@/components/buttons/DropdownButton";
 import EmptyState from "@/components/display/EmptyState";
 
 import { useColors } from "@/hooks/useTheme";
 
-import {
-  monthLabel,
-  type MonthlyRevenuePoint,
-} from "@/service/dashboard/dashboardService";
-
-const filterOptions: FilterOption[] = ["Monthly", "Quarterly", "Yearly"];
-type FilterOption = "Monthly" | "Quarterly" | "Yearly";
-
-type ChartDatum = { value: number; label: string };
+import type { MonthlyRevenuePoint } from "@/service/dashboard/dashboardService";
 
 interface ProfitTrendCardProps {
   monthlyRevenue: MonthlyRevenuePoint[];
 }
 
-function toMonthly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  return points.map((point) => ({
-    value: point.amount,
-    label: monthLabel(point.month),
-  }));
-}
-
-function toQuarterly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<string, ChartDatum>();
-  points.forEach((point) => {
-    const year = point.month.slice(0, 4);
-    const quarter = Math.floor((Number(point.month.slice(5, 7)) - 1) / 3);
-    const key = `${year}-${quarter}`;
-    const current = totals.get(key);
-    totals.set(key, {
-      value: (current?.value ?? 0) + point.amount,
-      label: `Q${quarter + 1}`,
-    });
-  });
-  return [...totals.values()];
-}
-
-function toYearly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<string, ChartDatum>();
-  points.forEach((point) => {
-    const year = point.month.slice(0, 4);
-    const current = totals.get(year);
-    totals.set(year, {
-      value: (current?.value ?? 0) + point.amount,
-      label: year,
-    });
-  });
-  return [...totals.values()];
-}
-
-const BUILDERS: Record<FilterOption, (points: MonthlyRevenuePoint[]) => ChartDatum[]> = {
-  Monthly: toMonthly,
-  Quarterly: toQuarterly,
-  Yearly: toYearly,
-};
-
 export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps) {
   const { colors, isDark } = useColors();
 
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Monthly");
+  const [selectedFilter, setSelectedFilter] = useState<TrendTimeframe>("Monthly");
 
-  const chartData = BUILDERS[selectedFilter](monthlyRevenue);
+  const chartData = buildTrendSeries(monthlyRevenue, selectedFilter);
   const maxValue = chartData.reduce((max, datum) => Math.max(max, datum.value), 0);
   const hasRevenue = chartData.some((datum) => datum.value > 0);
 
@@ -89,7 +45,7 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
 
         <DropdownButton
           label="Select Timeframe"
-          options={filterOptions}
+          options={[...TREND_TIMEFRAMES]}
           value={selectedFilter}
           onSelect={setSelectedFilter}
         />
