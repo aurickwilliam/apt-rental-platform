@@ -25,6 +25,7 @@ it("shows preferred types first, labels the default, and keeps all other types a
   expect(screen.getByText("Other payment methods")).toBeTruthy();
   expect(screen.getByLabelText("Maya, default").props.accessibilityState.selected).toBe(true);
   expect(screen.getByText("Default")).toBeTruthy();
+  expect(screen.getByText("Default").props.className).toContain("mb-2");
   fireEvent.press(screen.getByLabelText("Cash"));
   expect(options.onPaymentMethodChange).toHaveBeenCalledWith("Cash");
   fireEvent.press(screen.getByText("Manage preferences"));

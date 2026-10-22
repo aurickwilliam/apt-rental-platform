@@ -69,7 +69,7 @@ export default function PaymentMethodButton({
           />
         </View>
       )}
-      {badge && <Text className='text-primary text-xs font-nunitoSemiBold'>{badge}</Text>}
+      {badge && <Text className={`text-primary text-xs font-nunitoSemiBold ${isTile ? 'mb-2' : ''}`}>{badge}</Text>}
 
       {isTile ? (
         <>
