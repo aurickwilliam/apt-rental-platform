@@ -371,7 +371,7 @@ export default function ConversationView({
           <ConversationThreadSkeleton />
         ) : (
           <div data-message-timeline className="flex w-full min-w-0 flex-col">
-            {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} role="Landlord" verified={context.verified} apartment={apartment} /> : null}
+            {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} verified={context.verified} apartment={apartment} /> : null}
             {messages.length === 0 ? (
               <div className="flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
                 <p className="text-sm font-medium text-foreground">No messages yet</p>

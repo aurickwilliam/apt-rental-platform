@@ -32,10 +32,6 @@ export function getChatApartmentRoute(role: ConversationRole, apartmentId: strin
 }
 
 /** The other person's role in the viewer's portal, for the chat header. */
-export function getOtherPartyLabel(role: ConversationRole): string {
-  return role === "tenant" ? "Landlord" : "Tenant";
-}
-
 /** Stable id for a pre-chat inquiry; shared by the apartment page and the landlord profile. */
 export function getInquiryConversationId(
   landlordId: string,

@@ -70,7 +70,6 @@ import { usePortalStore } from '@/stores/usePortalStore';
 import {
   getChatApartmentRoute,
   getChatProfileRoute,
-  getOtherPartyLabel,
 } from '@/service/chat/chatRoutes';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
@@ -674,7 +673,6 @@ export default function ChatScreen() {
                           otherUserName={otherUserName}
                           otherUserAvatar={otherUserAvatar ?? undefined}
                           apartmentTitle={apartmentTitle}
-                          otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
                           isVerified={otherUserIsVerified}
                           hasMessages={messages.length > 0}
                           onViewProfile={portal && otherUserId ? handleViewProfile : undefined}

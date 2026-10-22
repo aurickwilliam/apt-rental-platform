@@ -189,6 +189,7 @@
 /* Scoped overrides: HeroUI's unlayered avatar sizes outrank utilities. */
 .avatar.apt-message-sender-avatar { width: 28px; height: 28px; border-radius: 9999px; }
 .apt-message-sender-avatar .avatar__fallback { font-size: 10px; }
+.avatar.apt-conversation-intro-avatar { width: 96px; height: 96px; border-radius: 9999px; }
 .avatar.apt-message-seen-avatar { width: 16px; height: 16px; border-radius: 9999px; }
 .apt-message-seen-avatar .avatar__fallback { font-size: 7px; }
 
