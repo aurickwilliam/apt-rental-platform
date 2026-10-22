@@ -48,6 +48,20 @@ export const FieldError = TextStub;
 export const Input = (props: TextInputProps) => <TextInput {...props} />;
 export const InputGroup = Object.assign(Passthrough, { Input, Prefix: Passthrough, Suffix: Passthrough });
 export const Spinner = () => null;
+export const useThemeColor = () => "#FFFFFF";
+
+function ControlFieldStub({ children, isSelected, onSelectedChange, isDisabled, accessibilityLabel }: ChildrenProps & {
+  isSelected?: boolean;
+  onSelectedChange?: (selected: boolean) => void;
+  isDisabled?: boolean;
+  accessibilityLabel?: string;
+}) {
+  return <Pressable accessibilityRole="checkbox" accessibilityLabel={accessibilityLabel}
+    accessibilityState={{ checked: !!isSelected, disabled: !!isDisabled }} disabled={isDisabled}
+    onPress={() => onSelectedChange?.(!isSelected)}>{children}</Pressable>;
+}
+export const ControlField = Object.assign(ControlFieldStub, { Indicator: Passthrough });
+export const Checkbox = () => null;
 
 export const Alert = Object.assign(Passthrough, {
   Indicator: () => null,

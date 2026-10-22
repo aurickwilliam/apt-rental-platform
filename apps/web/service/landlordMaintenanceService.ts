@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
-import { formatAddress } from "@repo/utils";
+import { formatAddress, getMaintenanceFeeError, normalizeMaintenanceFeeStatus } from "@repo/utils";
 
 import { resolveMaintenanceImageUrls } from "@/service/maintenanceService";
 
@@ -154,7 +154,7 @@ export async function fetchLandlordMaintenanceRequests(
       photos,
       resolution_notes: row.resolution_notes ?? null,
       fee_amount: row.fee_amount ?? null,
-      fee_status: row.fee_status === "paid" ? "paid" : row.fee_status === "pending" ? "pending" : null,
+      fee_status: normalizeMaintenanceFeeStatus(row.fee_status),
     };
   });
 }
@@ -169,9 +169,8 @@ export async function updateLandlordMaintenanceStatus(
   if (nextStatus === "Resolved" && !resolutionNotes?.trim()) {
     return { success: false, error: "Resolution notes are required." };
   }
-  if (feeAmount !== undefined && !(feeAmount > 0)) {
-    return { success: false, error: "Fee amount must be greater than ₱0." };
-  }
+  const feeError = getMaintenanceFeeError(feeAmount);
+  if (feeError) return { success: false, error: feeError };
 
   const updatePayload: {
     status: string;

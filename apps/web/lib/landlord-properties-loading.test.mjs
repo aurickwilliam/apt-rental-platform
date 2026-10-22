@@ -23,6 +23,7 @@ function load(file, extra = {}) {
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
     "@/service/signOutService": { signOut: () => {} },
     "./SidebarLinkPending": { default: () => null },
+    "./SidebarNotificationsItem": { default: "SidebarNotificationsItem" },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => extra["next/navigation"].useRouter().push(href) }) },
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/app/components/settings/SettingsOverlay": { SETTINGS_QUERY_VALUE: "open" },

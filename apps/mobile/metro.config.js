@@ -48,7 +48,16 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(context, moduleName, platform);
 };
 
-module.exports = withUniwindConfig(config, {
+const metroConfig = withUniwindConfig(config, {
   cssEntryFile: './app/global.css',
   dtsFile: './uniwind-types.d.ts',
 });
+
+// Temporary Windows EMFILE workaround: Uniwind installs its disk cache above,
+// so disable it afterward to avoid parallel cache reads exhausting open files.
+if (process.platform === 'win32') {
+  metroConfig.maxWorkers = 1;
+  metroConfig.cacheStores = [];
+}
+
+module.exports = metroConfig;

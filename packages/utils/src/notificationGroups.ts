@@ -1,5 +1,5 @@
 /**
- * Grouped notification feed units (web).
+ * Grouped notification feed units (shared by web and mobile).
  *
  * One `notifications` row is written per incoming chat message, so a burst
  * from one sender floods the drawer. This module collapses consecutive
@@ -27,7 +27,7 @@
  * Counts describe the loaded feed and are never presented as exhaustive.
  */
 
-import { sortNotificationsNewestFirst } from "@repo/utils";
+import { sortNotificationsNewestFirst } from "./notificationOrder";
 
 /** Gap between consecutive messages that keeps one rolling group open. */
 export const MESSAGE_GROUP_WINDOW_MS = 15 * 60 * 1000;

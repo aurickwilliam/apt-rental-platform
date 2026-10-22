@@ -7,6 +7,7 @@ import MaintenanceRequestCard from "@/app/(tabs)/components/rentals/MaintenanceR
 import { useMaintenanceRequestHistory } from "@/hooks/maintenance-requests";
 import { useColors } from "@/hooks/useTheme";
 import StandardHeader from "@/components/layout/StandardHeader";
+import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
 
 export default function MaintenanceHistory() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function MaintenanceHistory() {
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   const { requests, loading } = useMaintenanceRequestHistory({ apartmentId });
+  useMaintenanceFocusRefresh(apartmentId);
 
   if (loading) {
     return (

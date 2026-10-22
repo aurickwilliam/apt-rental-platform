@@ -35,6 +35,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   let onRealtime;
   let store;
   let linkOverride = null;
+  let drawerSide = "right";
   const calls = { loads: 0, connections: 0, writes: [], pushes: [], closes: 0, groupInputs: [] };
   const captureStore = value => { store = value; };
   const subscriptions = new Map();
@@ -85,8 +86,8 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     } });
     return exports;
   };
-  const notificationGroups = load("./notification-groups.ts", {
-    "@repo/utils": { sortNotificationsNewestFirst },
+  const notificationGroups = load("../../../packages/utils/src/notificationGroups.ts", {
+    "./notificationOrder": { sortNotificationsNewestFirst },
   });
   const chatAudience = load("./chat-notification-audience.ts", { "./notification-audience": audience });
   const resolvedRows = () => ownershipRecords === null ? serverRows
@@ -120,17 +121,17 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     "next/navigation": { useRouter: () => ({ push: href => { calls.pushes.push(href); } }) },
     "@heroui/react": { Button: "Button", Drawer: compound, Skeleton: "Skeleton", useOverlayState: state => state },
     "@tabler/icons-react": { IconBell: "IconBell", IconX: "IconX" },
-    "@repo/utils": { groupNotificationsByLocalDate },
-    "@/hooks/use-notifications": hook,
-    "@/lib/notification-fab-position": {},
-    "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
-    "@/lib/notification-groups": {
-      ...notificationGroups,
+    "@repo/utils": {
+      groupNotificationsByLocalDate,
       groupNotificationFeed: notifications => {
         calls.groupInputs.push([...notifications.map(notification => notification.id)]);
         return notificationGroups.groupNotificationFeed(notifications);
       },
     },
+    "@/hooks/use-notifications": hook,
+    "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
+    "@/lib/notification-fab-position": {},
+    "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
     "@/lib/notification-links": drawerLinks,
     "./DraggableNotificationBell": { FAB_PLACEMENT_RESET_EVENT: "unused" },
     "./NotificationGroupRow": { default: "NotificationGroupRow" },
@@ -140,8 +141,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconChevronDown: "IconChevronDown", IconMessageCircle: "IconMessageCircle" },
-    "@repo/utils": { getRelativeTime: () => "Just now" },
-    "@/lib/notification-groups": notificationGroups,
+    "@repo/utils": { ...notificationGroups, getRelativeTime: () => "Just now" },
     "./NotificationRow": { default: "NotificationRow" },
   }).default;
   const nodes = element => {
@@ -206,6 +206,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     },
     setLinkOverride: resolve => { linkOverride = resolve; },
     setPortal: portal => { activePortal = portal; },
+    setDrawerSide: side => { drawerSide = side; },
     getRows: () => serverRows,
   };
 }
@@ -632,5 +633,22 @@ test("the group row renders a compact summary, expands in place, and keeps contr
     assert.doesNotMatch(expanded.find(n => n.type === "ul").props.className, /border|rail/);
     expanded.find(n => n.type === "NotificationRow").props.onOpen();
     assert.equal(openedMember, "chat-3", "compact children still open their own notification");
+  } finally { feed.stop(); }
+});
+
+test("drawer opens from the right by default and from the left when Settings says so", async () => {
+  const feed = createFeed();
+  try {
+    await feed.start();
+    const content = view => view.all.find(node => node.type === "Drawer.Content");
+    const dialog = view => view.all.find(node => node.type === "Drawer.Dialog");
+    let view = feed.render();
+    assert.equal(content(view).props.placement, "right");
+    assert.match(dialog(view).props.className, /rounded-l-3xl/);
+    feed.setDrawerSide("left");
+    view = feed.render();
+    assert.equal(content(view).props.placement, "left");
+    assert.match(dialog(view).props.className, /rounded-r-3xl/);
+    assert.doesNotMatch(dialog(view).props.className, /rounded-l-3xl/);
   } finally { feed.stop(); }
 });

@@ -148,7 +148,7 @@ function ApplicationDetailContent() {
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="px-4 py-8 space-y-6">
       <Button variant="outline" size="sm" onPress={() => router.back()}>
         <ArrowLeft size={16} /> Back
       </Button>
@@ -409,7 +409,7 @@ export default function ApplicationDetailPage() {
   const identity = useAuthIdentity();
   const { applicationId } = useParams<{ applicationId: string }>();
   if (identity.authUserId === undefined) return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="px-4 py-8 space-y-6">
       <Link href="/tenant/my-rental" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft size={16} aria-hidden="true" /> Back to My Rental</Link>
       <RouteLoadingStatus>Loading application details…</RouteLoadingStatus>
     </div>

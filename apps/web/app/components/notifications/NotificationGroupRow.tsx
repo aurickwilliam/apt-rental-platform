@@ -1,11 +1,14 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { getRelativeTime } from "@repo/utils";
+import {
+  composeNotificationGroupLabel,
+  formatMessageGroupCount,
+  getRelativeTime,
+  type MessageGroupUnit,
+} from "@repo/utils";
 import { IconChevronDown, IconMessageCircle } from "@tabler/icons-react";
 
-import type { MessageGroupUnit } from "@/lib/notification-groups";
-import { composeNotificationGroupLabel, formatMessageGroupCount } from "@/lib/notification-groups";
 import type { FeedNotification } from "@/service/notificationService";
 
 import NotificationRow from "./NotificationRow";

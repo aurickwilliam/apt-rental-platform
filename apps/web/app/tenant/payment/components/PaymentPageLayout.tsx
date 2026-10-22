@@ -11,7 +11,7 @@ import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
 export function PaymentPageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-4">{children}</div>
+      <div className="px-4 py-6 sm:py-8 space-y-4">{children}</div>
     </div>
   );
 }

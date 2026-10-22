@@ -5,18 +5,21 @@ import NotificationsOverlay from "../components/notifications/NotificationsOverl
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import { createClient } from "@repo/supabase/server";
 
+import { canManageLandlordFinances } from "@/lib/landlord-finance-access";
 import { canViewPassport } from "@/lib/passport-access";
 
 const PASSPORT_HREF = "/landlord/passport";
+const ANALYTICS_HREF = "/landlord/analytics";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport" },
-  { href: "/landlord/messages", label: "Messages", icon: "Messages", activityKey: "messages" },
+  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true, section: "Overview" },
+  { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, section: "Rentals" },
+  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, section: "Rentals" },
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, section: "Rentals" },
+  { href: "/landlord/messages", label: "Messages", icon: "Messages", activityKey: "messages", section: "Rentals" },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, section: "Finance" },
+  { href: ANALYTICS_HREF, label: "Profit & planning", icon: "ChartBar", prefetchOnIntent: true, section: "Finance" },
+  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport", section: "Verification" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -53,10 +56,16 @@ export default async function DashboardLayout({
   }
 
   // Pending/unverified accounts can't open the Passport (the route guard
-  // redirects them), so don't offer the link.
-  const navItems = canViewPassport(accountStatus)
-    ? [...LANDLORD_NAV]
-    : LANDLORD_NAV.filter((item) => item.href !== PASSPORT_HREF);
+  // redirects them), so don't offer the link. Profit & planning is offered
+  // only to landlord members — admins and tenants keep zero finance access.
+  // Suspension is invisible here (suspended sessions are deleted), so the
+  // filter checks roles and the analytics route guard enforces the rest.
+  const navItems = LANDLORD_NAV.filter(
+    (item) =>
+      (item.href !== PASSPORT_HREF || canViewPassport(accountStatus)) &&
+      (item.href !== ANALYTICS_HREF ||
+        canManageLandlordFinances({ roles: userRoles, isSuspended: false })),
+  );
 
   return (
     <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">

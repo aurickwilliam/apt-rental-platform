@@ -6,6 +6,8 @@ import { IconChartBar } from "@tabler/icons-react-native";
 import {
   financeIncome,
   financeMonthLabel,
+  financeTrendWindow,
+  toggleFinanceTrendSeries,
   type FinanceMonth,
 } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
@@ -33,11 +35,9 @@ export default function IncomeTrendChart({
   });
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [width, setWidth] = useState(0);
-  const points = months.slice(-Number(range));
+  const { points, allReviewed, hasActivity } = financeTrendWindow(months, Number(range));
   const selected =
     points.find((point) => point.month === selectedMonth) ?? points.at(-1);
-  const allReviewed =
-    points.length > 0 && points.every((point) => point.reviewed);
   const bars = points.flatMap((point) => {
     const label = new Date(`${point.month}-01T12:00:00Z`).toLocaleDateString(
       "en-PH",
@@ -61,17 +61,8 @@ export default function IncomeTrendChart({
     return data;
   });
   const toggle = (key: "collected" | "expenses" | "net") => {
-    if (key === "net") {
-      setSeries({ ...series, net: !series.net });
-      return;
-    }
-    if (series[key] && !series[key === "collected" ? "expenses" : "collected"])
-      return;
-    setSeries({ ...series, [key]: !series[key] });
+    setSeries(toggleFinanceTrendSeries(series, key));
   };
-  const hasActivity = points.some(
-    (point) => point.collected > 0 || point.operating + point.capital > 0,
-  );
   // Gifted Charts doesn't include the overlaid line in its automatic scale.
   // Include losses as well, or hiding expenses could create thousands of ticks.
   const scale = Math.max(

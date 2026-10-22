@@ -1,0 +1,82 @@
+import { createRoot } from "react-dom/client";
+import { Toast } from "@heroui/react";
+import AnalyticsClient from "../../app/landlord/analytics/AnalyticsClient";
+import BudgetCategoryClient from "../../app/landlord/analytics/budget-category/BudgetCategoryClient";
+import CategoryExpensesClient from "../../app/landlord/analytics/category-expenses/CategoryExpensesClient";
+import PropertyPerformanceClient from "../../app/landlord/analytics/property-performance/PropertyPerformanceClient";
+import {
+  FINANCE_CATEGORIES,
+  financeMonthFromParam,
+} from "@repo/utils";
+import {
+  parseFinanceBudgetParams,
+  parseFinanceCategoryParams,
+  parseLandlordFinanceParams,
+} from "../../lib/landlord-finance-params";
+import { financeReadCache } from "../../lib/landlord-finance-cache";
+import { currentMonth } from "./fixture-service";
+import { useFixtureUrl } from "./fixture-navigation";
+
+// The read cache is off by default so every step sees fresh transport data;
+// the caching checks turn it on explicitly (and it always starts empty).
+financeReadCache.configure({ freshMs: 0, maxStaleMs: 0 });
+window.financeTest.cache = {
+  enable: () => financeReadCache.configure({ freshMs: 60000, maxStaleMs: 300000 }),
+  disable: () => financeReadCache.configure({ freshMs: 0, maxStaleMs: 0 }),
+};
+
+function FixtureApp() {
+  const url = useFixtureUrl();
+  const query = url.split("?")[1] ?? "";
+  const searchParams = Object.fromEntries(new URLSearchParams(query));
+  if (url.startsWith("/landlord/analytics/budget-category")) {
+    // The server page revalidates through the shared rule; the fixture runs
+    // the same parse so the visible plans stay true to the route contract.
+    return (
+      <BudgetCategoryClient
+        params={parseFinanceBudgetParams(
+          searchParams,
+          currentMonth,
+          financeMonthFromParam,
+          FINANCE_CATEGORIES.map((item) => item.id),
+        )}
+      />
+    );
+  }
+  if (url.startsWith("/landlord/analytics/category-expenses")) {
+    // The server page revalidates through the shared rule; the fixture runs
+    // the same parse so the visible list stays true to the route contract.
+    return (
+      <CategoryExpensesClient
+        params={parseFinanceCategoryParams(
+          searchParams,
+          currentMonth,
+          financeMonthFromParam,
+          FINANCE_CATEGORIES.map((item) => item.id),
+        )}
+        currentMonth={currentMonth}
+      />
+    );
+  }
+  const params = parseLandlordFinanceParams(
+    searchParams,
+    currentMonth,
+    financeMonthFromParam,
+  );
+  return url.startsWith("/landlord/analytics/property-performance") ? (
+    <PropertyPerformanceClient params={params} />
+  ) : (
+    <AnalyticsClient params={params} currentMonth={currentMonth} />
+  );
+}
+createRoot(document.getElementById("root")).render(
+  <>
+    <FixtureApp />
+    {/* The app root mounts this in app/providers.tsx; toasts need the region. */}
+    <Toast.Provider
+      placement="top end"
+      maxVisibleToasts={3}
+      className="top-4 right-4"
+    />
+  </>,
+);

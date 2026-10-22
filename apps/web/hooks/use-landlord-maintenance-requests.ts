@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { getMaintenanceFeeError } from "@repo/utils";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
 
@@ -105,9 +106,8 @@ export function useLandlordMaintenanceRequests() {
       if (!resolutionNotes.trim()) {
         return { success: false as const, error: "Resolution notes are required." };
       }
-      if (feeAmount !== undefined && !(feeAmount > 0)) {
-        return { success: false as const, error: "Fee amount must be greater than ₱0." };
-      }
+      const feeError = getMaintenanceFeeError(feeAmount);
+      if (feeError) return { success: false as const, error: feeError };
       return updateStatus(id, "Resolved", resolutionNotes, feeAmount);
     },
     [updateStatus],

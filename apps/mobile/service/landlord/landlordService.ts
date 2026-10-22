@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
-import { formatAddress } from "@repo/utils";
+import { formatAddress, getMaintenanceFeeError, normalizeMaintenanceFeeStatus, type MaintenanceFeeStatus } from "@repo/utils";
 import { ApartmentStatus, VALID_APARTMENT_STATUSES } from "@repo/constants";
 
 import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
@@ -318,6 +318,11 @@ const DB_TO_DISPLAY_STATUS: Record<string, "Pending" | "In Progress" | "Resolved
 
 export type LandlordMaintenanceRequest = {
   id: string;
+  apartment_id: string;
+  tenant_id: string;
+  tenancy_id: string | null;
+  fee_amount: number | null;
+  fee_status: MaintenanceFeeStatus | null;
   issue_title: string;
   description: string;
   apartment_name: string;
@@ -335,6 +340,11 @@ export type LandlordMaintenanceRequest = {
 
 type LandlordMaintenanceRow = {
   id: string;
+  apartment_id: string;
+  tenant_id: string;
+  tenancy_id: string | null;
+  fee_amount: number | null;
+  fee_status: string | null;
   title: string;
   message: string;
   status: string;
@@ -372,12 +382,14 @@ export async function fetchLandlordMaintenanceRequests(
         urgency,
         image_urls,
         resolution_notes,
+        apartment_id, tenant_id, tenancy_id, fee_amount, fee_status,
         apartment:apartments!maintenance_request_apartment_id_fkey(name, street_address, barangay, city, province),
         tenant:users!maintenance_request_tenant_id_fkey(first_name, last_name, mobile_number, avatar_url)
       `
     )
     .eq("landlord_id", landlordId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) throw error;
 
@@ -406,6 +418,11 @@ export async function fetchLandlordMaintenanceRequests(
     return {
       id: row.id,
       issue_title: row.title,
+      apartment_id: row.apartment_id,
+      tenant_id: row.tenant_id,
+      tenancy_id: row.tenancy_id ?? null,
+      fee_amount: row.fee_amount == null ? null : Number(row.fee_amount),
+      fee_status: normalizeMaintenanceFeeStatus(row.fee_status),
       description: row.message,
       apartment_name: row.apartment?.name ?? "Unknown apartment",
       apartment_city: row.apartment?.city ?? "",
@@ -796,36 +813,62 @@ export const DISPLAY_TO_DB_STATUS: Record<MaintenanceRequestStatus, string> = {
 
 export async function updateLandlordMaintenanceStatus(
   id: string,
+  landlordId: string,
   nextStatus: MaintenanceRequestStatus,
-  resolutionNotes?: string
+  resolutionNotes?: string,
+  feeAmount?: number,
 ): Promise<{ success: boolean; error?: string }> {
+  if (nextStatus === "Resolved" && !resolutionNotes?.trim()) {
+    return { success: false, error: "Resolution notes are required." };
+  }
+  const feeError = getMaintenanceFeeError(feeAmount);
+  if (feeError) return { success: false, error: feeError };
+  if (feeAmount !== undefined && nextStatus !== "Resolved") {
+    return { success: false, error: "A maintenance fee can only be added when resolving a request." };
+  }
   const updatePayload: {
     status: string;
     resolved_at?: string | null;
     resolution_notes?: string | null;
     cancelled_at?: string | null;
+    fee_amount?: number;
+    fee_status?: "pending";
   } = {
     status: DISPLAY_TO_DB_STATUS[nextStatus],
   };
   if (nextStatus === "Resolved") {
     updatePayload.resolved_at = new Date().toISOString();
     updatePayload.resolution_notes = resolutionNotes?.trim() || null;
+    if (feeAmount !== undefined) {
+      updatePayload.fee_amount = feeAmount;
+      updatePayload.fee_status = "pending";
+    }
   }
   if (nextStatus === "Cancelled") {
     updatePayload.cancelled_at = new Date().toISOString();
   }
 
-  const { error, data } = await supabase
+  const query = supabase
     .from("maintenance_request")
     .update(updatePayload)
     .eq("id", id)
-    .select("id");
+    .eq("landlord_id", landlordId);
+  if (nextStatus === "Resolved") query.eq("status", "in_progress");
+  if (nextStatus === "In Progress") query.eq("status", "pending");
+  const { error, data } = await query.select("id");
 
   if (error || !data || data.length === 0) {
     return { success: false, error: error?.message ?? "Could not update request status." };
   }
 
   return { success: true };
+}
+
+export async function waiveMaintenanceFee(
+  requestId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.rpc("waive_maintenance_fee", { p_request_id: requestId });
+  return error ? { success: false, error: error.message } : { success: true };
 }
 
 // ─── Landlord payment history + status updates ────────────────────────────────

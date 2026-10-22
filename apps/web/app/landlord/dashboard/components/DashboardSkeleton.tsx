@@ -10,7 +10,7 @@ function Sk({ className }: { className: string }) {
 
 export default function DashboardSkeleton() {
   return (
-    <div className="p-4" aria-busy="true" aria-label="Loading dashboard">
+    <div className="p-4 md:p-6" aria-busy="true" aria-label="Loading dashboard">
       <DashboardHeader />
 
       <div aria-hidden="true">

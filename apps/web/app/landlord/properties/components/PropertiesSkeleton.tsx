@@ -15,7 +15,7 @@ function Sk({ className }: { className: string }) {
 
 export default function PropertiesSkeleton() {
   return (
-    <div className="p-4" aria-busy="true" aria-label="Loading properties">
+    <div className="p-4 md:p-6" aria-busy="true" aria-label="Loading properties">
       <PropertiesHeader />
 
       <div aria-hidden="true">

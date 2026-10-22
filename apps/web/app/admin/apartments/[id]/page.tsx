@@ -344,7 +344,7 @@ export default async function AdminApartmentDetailPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 p-4">
+    <div className="w-full space-y-4 p-4">
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] xl:gap-4">
         <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-3">
           <ApartmentOverview

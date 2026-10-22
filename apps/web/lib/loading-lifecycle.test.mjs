@@ -658,6 +658,9 @@ test("property payment history preserves its known shell during loading/error an
   const render = () => runtime.render(() => treeNodes(Client({ apartmentId: "property-a", apartmentName: "Private property name" })));
   render();
   const loading = render();
+  const frame = loading.find(n => n.type === "div");
+  assert.match(frame.props.className, /\bp-4 md:p-6\b/);
+  assert.doesNotMatch(frame.props.className, /max-w-5xl|mx-auto/);
   assert.ok(loading.some(n => n.type === "h1"));
   assert.ok(loading.some(n => n.type === "p" && n.props.children === "Private property name"));
   assert.ok(loading.some(n => n.type === "RouteLoadingStatus"));
@@ -671,4 +674,28 @@ test("property payment history preserves its known shell during loading/error an
   const changed = render();
   assert.equal(changed.some(n => n.props.children === "Private property name"), false);
   assert.ok(changed.some(n => n.props.role === "alert" && n.props.children.includes("session changed")));
+});
+
+test("portal width integration reaches extracted My Rental and detail shells without restoring body loading owners", () => {
+  const rental = source("app/tenant/my-rental/MyRentalClient.tsx");
+  const skeleton = source("app/tenant/my-rental/components/MyRentalSkeleton.tsx");
+  assert.doesNotMatch(rental, /max-w-7xl/);
+  assert.doesNotMatch(skeleton, /max-w-7xl|variant ===/);
+  for (const contents of [rental, skeleton]) {
+    assert.match(contents, /@container\/rental min-w-0/);
+    assert.match(contents, /<RentFinanceSkeleton \/>/);
+    assert.match(contents, /<PaymentHistorySkeleton \/>/);
+  }
+  const { default: Shell } = compile("app/landlord/applications/[applicationId]/components/ApplicationDetailShell.tsx", {
+    "react/jsx-runtime": jsxRuntime, "next/link": { default: "Link" },
+    "@tabler/icons-react": { IconArrowLeft: "ArrowLeft" },
+  });
+  const shell = treeNodes(Shell({ children: "body" }));
+  assert.match(shell[0].props.className, /\bp-4 md:p-6\b/);
+  assert.equal(shell.filter(n => n.type === "h1").length, 1);
+  const tenantApplication = source("app/tenant/applications/[applicationId]/page.tsx");
+  assert.doesNotMatch(tenantApplication, /max-w-7xl/);
+  assert.doesNotMatch(source("app/tenant/payment/components/PaymentPageLayout.tsx"), /max-w-7xl/);
+  assert.doesNotMatch(source("app/components/passport/PassportPageLayout.tsx"), /max-w-7xl/);
+  assert.doesNotMatch(source("app/tenant/maintenance/loading.tsx"), /max-w-7xl/);
 });

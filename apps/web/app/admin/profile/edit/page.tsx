@@ -41,7 +41,7 @@ export default async function EditAdminProfilePage() {
     backgroundUrl: media.background_url,
   };
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 p-4">
+    <div className="w-full space-y-4 p-4">
       <header>
         <Link
           href="/admin/profile"

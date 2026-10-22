@@ -8,6 +8,12 @@ export {
 } from './chatAttachments';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
+export {
+  type MaintenanceFeeStatus,
+  normalizeMaintenanceFeeStatus,
+  getMaintenanceFeeError,
+  canWaiveMaintenanceFee,
+} from './maintenanceFee';
 export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';
 export { formatFullName } from './formatFullName';
@@ -115,3 +121,21 @@ export {
   groupNotificationsByLocalDate,
 } from './notificationOrder';
 export * from './tenancyBill';
+export {
+  MESSAGE_GROUP_WINDOW_MS,
+  type GroupableNotification,
+  type ChatMessageIdentity,
+  type NotificationFeedSingle,
+  type MessageGroupUnit,
+  type NotificationFeedUnit,
+  type NotificationGroupLabelParts,
+  getChatMessageIdentity,
+  groupNotificationFeed,
+  formatMessageGroupCount,
+  composeNotificationGroupLabel,
+} from './notificationGroups';
+export {
+  type NotificationRowLabelParts,
+  composeNotificationRowLabel,
+  getNotificationRowPresentation,
+} from './notificationRow';

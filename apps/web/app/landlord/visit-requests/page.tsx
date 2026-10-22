@@ -98,7 +98,7 @@ export default function LandlordVisitRequestsPage() {
     router.push(`/landlord/visit-requests/${requestId}`);
 
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
+    <div className="p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onPress={() => router.back()} className="gap-1.5">
           <ArrowLeft size={16} />

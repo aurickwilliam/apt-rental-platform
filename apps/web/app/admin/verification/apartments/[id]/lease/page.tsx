@@ -50,7 +50,7 @@ export default async function ApartmentLeasePreviewPage({ params }: PageProps) {
   const sourceHref = `/admin/verification/apartments/${id}/lease/file`;
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-4 p-4">
+    <main className="w-full space-y-4 p-4">
       <Link
         href={`/admin/verification/apartments/${id}`}
         className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"

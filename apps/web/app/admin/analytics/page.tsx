@@ -124,7 +124,7 @@ export default async function AdminAnalyticsPage({
   const controlTo = (valid && finish ? finish : end).toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-4">
+    <div className="w-full space-y-6 p-4">
       <header className="space-y-4">
         <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
           <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10">

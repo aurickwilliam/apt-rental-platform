@@ -156,7 +156,7 @@ function LandlordVisitRequestDetailContent() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
+    <div className="px-4 py-6 space-y-4 md:px-6">
       <Button variant="outline" size="sm" onPress={() => router.back()}>
         <ArrowLeft size={16} /> Back
       </Button>
@@ -343,7 +343,7 @@ function LandlordVisitRequestDetailContent() {
                     <FieldError>{rescheduleError}</FieldError>
                   </TextField>
                   <div>
-                    <Label className="text-sm font-medium text-card-foreground mb-2 block">
+                    <Label className="text-sm font-medium text-card-foreground mb-1 block">
                       New Visit Time <span className="text-red-600">*</span>
                     </Label>
                     <div className="flex gap-2">

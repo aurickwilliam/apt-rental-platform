@@ -1,26 +1,33 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useToast } from 'heroui-native'
-import { getNotificationPreview, getRelativeTime, sortNotificationsNewestFirst } from '@repo/utils'
+import { Button, useToast } from 'heroui-native'
+import { IconBellCheck, IconBellOff } from '@tabler/icons-react-native'
+import { groupNotificationFeed, groupNotificationsByLocalDate } from '@repo/utils'
+import type { MessageGroupUnit } from '@repo/utils'
 
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
+import type { NotificationItem } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
+import { useColors } from '@/hooks/useTheme'
+import EmptyState from '@/components/display/EmptyState'
 import { buildNotificationDeepLink, getWebOnlyNotificationNotice } from '@/utils/notificationDeepLink'
 import { authorizedPortal } from '@/service/auth/portalPreference'
 import { usePortalStore } from '@/stores/usePortalStore'
-import NotificationCard from '@/app/(notification)/components/NotificationCard';
-import NotificationCardSkeleton from '@/app/(notification)/components/NotificationCardSkeleton';
+import NotificationRow from '@/app/(notification)/components/NotificationRow';
+import NotificationGroupRow from '@/app/(notification)/components/NotificationGroupRow';
+import NotificationRowSkeleton from '@/app/(notification)/components/NotificationRowSkeleton';
 
-import type { NotificationCardType } from '@/app/(notification)/components/NotificationCard';
-
-export type NotificationFilter = NotificationCardType | 'All';
+export type NotificationFilter = 'all' | 'unread';
 
 interface NotificationListProps {
   filter: NotificationFilter;
+  /** Leaves the Unread tab; offered from its empty state. */
+  onShowAll?: () => void;
 }
 
-export default function NotificationList({ filter }: NotificationListProps) {
+export default function NotificationList({ filter, onShowAll }: NotificationListProps) {
+  const { colors } = useColors();
   const router = useRouter();
   const { toast } = useToast();
   const currentUserQuery = useCurrentUser();
@@ -32,19 +39,55 @@ export default function NotificationList({ filter }: NotificationListProps) {
 
   const { notifications, loading, error } = useNotifications();
   const { markAsRead } = useNotificationActions(currentUserId);
+  // Keyed by group identity (conversation + sender + oldest member), so a
+  // realtime arrival keeps an already-expanded group open.
+  const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(() => new Set());
 
-  const visible = useMemo(
-    () => sortNotificationsNewestFirst(
-      filter === 'All' ? notifications : notifications.filter((n) => n.type === filter),
-    ),
-    [filter, notifications],
+  const units = useMemo(() => groupNotificationFeed(notifications), [notifications]);
+  const shown = useMemo(
+    () => filter === 'unread'
+      ? units.filter((unit) => unit.kind === 'single' ? !unit.notification.is_read : unit.hasUnread)
+      : units,
+    [filter, units],
   );
+  const dateGroups = useMemo(() => groupNotificationsByLocalDate(shown), [shown]);
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((previous) => {
+      const next = new Set(previous);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const openNotification = (n: NotificationItem) => {
+    markAsRead(n.id);
+    const href = buildNotificationDeepLink(n.data, currentUserId, currentUserRole);
+    if (href) {
+      router.push(href);
+      return;
+    }
+    const notice = getWebOnlyNotificationNotice(n.data);
+    if (notice) toast.show({ variant: 'default', ...notice });
+  };
+
+  // A group acknowledges its unread records only when the payload addresses
+  // the actual conversation, so an unresolved target never clears rows the
+  // user did not get to see.
+  const openGroup = (unit: MessageGroupUnit<NotificationItem>) => {
+    const href = buildNotificationDeepLink(unit.latest.data, currentUserId, currentUserRole);
+    if (!href) return;
+
+    unit.members.filter((member) => !member.is_read).forEach((member) => markAsRead(member.id));
+    router.push(href);
+  };
 
   if (loading) {
     return (
-      <View className="flex gap-3 mt-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <NotificationCardSkeleton key={i} />
+      <View className="mt-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <NotificationRowSkeleton key={i} />
         ))}
       </View>
     );
@@ -60,38 +103,59 @@ export default function NotificationList({ filter }: NotificationListProps) {
     );
   }
 
-  if (visible.length === 0) {
-    return (
-      <View className="mt-10">
-        <Text className="text-center text-muted font-inter">
-          {filter === 'All' ? 'No notifications yet.' : `No ${filter.toLowerCase()} notifications.`}
-        </Text>
-      </View>
+  if (shown.length === 0) {
+    return filter === 'unread' ? (
+      <EmptyState
+        className="mt-6"
+        icon={<IconBellCheck size={40} color={colors.primary} />}
+        title="You're all caught up"
+        description="No unread notifications. New messages, payments and updates will show up here."
+        action={onShowAll ? (
+          <Button size="sm" variant="secondary" onPress={onShowAll}>
+            <Button.Label>View all notifications</Button.Label>
+          </Button>
+        ) : undefined}
+      />
+    ) : (
+      <EmptyState
+        className="mt-6"
+        icon={<IconBellOff size={40} color={colors.gray500} />}
+        title="No notifications yet"
+        description="When something happens with your messages, payments or listings, you'll see it here."
+      />
     );
   }
 
   return (
-    <View className="flex gap-3 mt-4">
-      {visible.map((n) => (
-        <NotificationCard
-          key={n.id}
-          title={n.title}
-          type={n.type as NotificationCardType}
-          message={n.message}
-          preview={getNotificationPreview(n.data) ?? undefined}
-          date={getRelativeTime(new Date(n.created_at))}
-          unread={!n.is_read}
-          onPress={() => {
-            markAsRead(n.id);
-            const href = buildNotificationDeepLink(n.data, currentUserId, currentUserRole);
-            if (href) {
-              router.push(href);
-              return;
-            }
-            const notice = getWebOnlyNotificationNotice(n.data);
-            if (notice) toast.show({ variant: 'default', ...notice });
-          }}
-        />
+    <View className="mt-2">
+      {dateGroups.map((group) => (
+        <View key={group.key}>
+          <Text
+            accessibilityRole="header"
+            className="px-3 pb-1 pt-3 text-sm font-nunitoBold uppercase tracking-wide text-muted"
+          >
+            {group.label}
+          </Text>
+
+          {group.items.map((unit) =>
+            unit.kind === 'single' ? (
+              <NotificationRow
+                key={unit.id}
+                notification={unit.notification}
+                onPress={() => openNotification(unit.notification)}
+              />
+            ) : (
+              <NotificationGroupRow
+                key={unit.key}
+                unit={unit}
+                expanded={expandedGroups.has(unit.key)}
+                onToggle={() => toggleGroup(unit.key)}
+                onOpenGroup={() => openGroup(unit)}
+                onOpenMember={openNotification}
+              />
+            ),
+          )}
+        </View>
       ))}
     </View>
   )

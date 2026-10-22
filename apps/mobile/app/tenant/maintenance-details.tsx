@@ -10,6 +10,8 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
+import MaintenanceFeeCard from "@/components/maintenance/MaintenanceFeeCard";
+import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
 
 import { IconHammer, IconTrash } from "@tabler/icons-react-native";
 
@@ -44,6 +46,7 @@ export default function MaintenanceDetails() {
     loading,
     error,
   } = useMaintenanceRequest({ requestId, apartmentId });
+  useMaintenanceFocusRefresh(apartmentId, maintenanceRequest?.tenant_id);
 
   const router = useRouter();
   const { colors } = useColors();
@@ -270,6 +273,8 @@ export default function MaintenanceDetails() {
           </View>
         </>
       )}
+
+      <MaintenanceFeeCard amount={maintenanceRequest.fee_amount} status={maintenanceRequest.fee_status} />
 
       <View className="flex-1" />
 

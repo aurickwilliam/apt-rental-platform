@@ -11,12 +11,12 @@ export default function CreateApartmentSkeleton() {
       aria-busy="true"
       className="min-h-screen bg-background"
     >
-      <div className="max-w-7xl mx-auto py-6 px-6">
+      <div className="py-6 px-6">
         <Skeleton className="h-10 w-28 rounded-full" />
       </div>
 
       <div className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
-        <div className="max-w-7xl mx-auto">
+        <div>
           <div className="flex items-center">
             {Array.from({ length: 5 }, (_, i) => (
               <div key={i} className="flex items-center flex-1 last:flex-none">

@@ -1,38 +1,15 @@
 import { Text, View } from "react-native";
 import { Button } from "heroui-native";
 import { IconChevronRight } from "@tabler/icons-react-native";
-import { financeIncome, formatPesoDisplay } from "@repo/utils";
+import {
+  financePerformanceValue,
+  formatFinanceMoney,
+  formatPesoDisplay,
+  rankFinanceProperties,
+} from "@repo/utils";
 import type { PropertyPerformanceMetric } from "./PropertyPerformanceTabs";
 import { useColors } from "@/hooks/useTheme";
 import type { PropertyPerformance } from "@/service/finance/financeService";
-
-/** Expenses cover operating and capital spending; net income stays null until review. */
-function performanceValue(
-  property: PropertyPerformance,
-  metric: PropertyPerformanceMetric,
-): number | null {
-  if (metric === "net") return financeIncome(property);
-  return metric === "expenses"
-    ? property.operating + property.capital
-    : property.collected;
-}
-
-function rankProperties(
-  properties: PropertyPerformance[],
-  metric: PropertyPerformanceMetric,
-): PropertyPerformance[] {
-  return [...properties].sort((a, b) => {
-    const av = performanceValue(a, metric);
-    const bv = performanceValue(b, metric);
-    return av === null
-      ? bv === null
-        ? a.name.localeCompare(b.name)
-        : 1
-      : bv === null
-        ? -1
-        : bv - av;
-  });
-}
 
 /** Ranked property rows, shared by the overview card and its full page. */
 export default function PropertyPerformanceList({
@@ -49,18 +26,18 @@ export default function PropertyPerformanceList({
   limit?: number;
 }) {
   const { colors } = useColors();
-  const ranked = rankProperties(properties, metric);
+  const ranked = rankFinanceProperties(properties, metric);
   const max = Math.max(
     1,
     ...ranked.map((property) =>
-      Math.abs(performanceValue(property, metric) ?? 0),
+      Math.abs(financePerformanceValue(property, metric) ?? 0),
     ),
   );
   const visible = limit === undefined ? ranked : ranked.slice(0, limit);
   return (
     <>
       {visible.map((property) => {
-        const amount = performanceValue(property, metric);
+        const amount = financePerformanceValue(property, metric);
         const details = (
           <View className="w-full gap-2">
             <View className="flex-row justify-between gap-3">
@@ -70,7 +47,7 @@ export default function PropertyPerformanceList({
               <Text
                 className={`font-nunitoBold text-sm ${amount !== null && amount < 0 ? "text-danger" : "text-accent"}`}
               >
-                {amount === null ? "Not reviewed" : formatPesoDisplay(amount)}
+                {amount === null ? "Not reviewed" : formatFinanceMoney(amount, formatPesoDisplay)}
               </Text>
               {onSelect && (
                 <IconChevronRight size={18} color={colors.textPrimary} />
@@ -104,7 +81,7 @@ export default function PropertyPerformanceList({
             variant="ghost"
             className="h-auto min-h-14 py-2"
             onPress={() => onSelect(property.id)}
-            accessibilityLabel={`${property.name}, ${metric}, ${amount === null ? "expenses not reviewed" : formatPesoDisplay(amount)}. Filter this property.`}
+            accessibilityLabel={`${property.name}, ${metric}, ${amount === null ? "expenses not reviewed" : formatFinanceMoney(amount, formatPesoDisplay)}. Filter this property.`}
           >
             {details}
           </Button>

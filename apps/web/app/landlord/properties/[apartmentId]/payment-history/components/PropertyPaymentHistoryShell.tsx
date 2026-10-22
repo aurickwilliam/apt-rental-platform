@@ -16,7 +16,7 @@ export default function PropertyPaymentHistoryShell({ apartmentId, apartmentName
   const params = useParams<{ apartmentId: string }>();
   const id = apartmentId ?? params.apartmentId;
   return (
-    <div className="p-4 space-y-4 max-w-5xl mx-auto w-full">
+    <div className="p-4 md:p-6 space-y-4 w-full">
       <Button variant="outline" size="sm" onPress={() => router.push(id ? `/landlord/properties/${id}` : "/landlord/properties")} className="w-fit">
         <IconArrowLeft size={16} /> Back to Property
       </Button>

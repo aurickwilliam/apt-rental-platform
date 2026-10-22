@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Keyboard } from "react-native";
 import {
   budgetCategoryOptions,
+  financeBudgetMonthsDefault,
+  financeGoalFromForm,
   formatPesoDisplay,
   isBudgetCategoryAllowed,
   parseFinanceAmount,
@@ -46,8 +48,9 @@ export function useBudgetEntryForm({
   onSave,
   onDelete,
 }: BudgetEntryFormOptions) {
-  const seedProperty =
-    initial?.apartment_id ?? apartmentId ?? properties[0]?.id ?? "";
+  // A new plan starts without a property unless the report is already scoped
+  // to one; the landlord chooses it, and Save stays blocked until they do.
+  const seedProperty = initial?.apartment_id ?? apartmentId ?? "";
   const seedKind = initial?.kind ?? presetKind ?? "expense";
   const seedCategory =
     initial?.category ??
@@ -55,8 +58,7 @@ export function useBudgetEntryForm({
       ? presetCategory
       : "maintenance");
   const seedMonths =
-    initial?.months_remaining ??
-    (seedCategory === "insurance" || seedCategory === "taxes" ? 12 : 6);
+    initial?.months_remaining ?? financeBudgetMonthsDefault(seedCategory);
   const seedAmount = suggestedAmount ?? initial?.amount;
   const [property, setProperty] = useState(seedProperty);
   const [category, setCategory] = useState<FinanceCategory>(seedCategory);
@@ -74,8 +76,9 @@ export function useBudgetEntryForm({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const amountValue = parseFinanceAmount(amount, true);
-  const targetValue = target.trim() ? parseFinanceAmount(target) : null;
-  const monthsValue = /^\d+$/.test(months) ? Number(months) : 0;
+  const goal = financeGoalFromForm(target, months);
+  const targetValue = goal.target_amount;
+  const monthsValue = goal.months_remaining ?? 0;
   const propertyError = properties.some((item) => item.id === property)
     ? undefined
     : "Choose one of your properties.";
@@ -115,8 +118,8 @@ export function useBudgetEntryForm({
         category,
         kind,
         amount: amountValue,
-        target_amount: targetValue,
-        months_remaining: targetValue === null ? null : monthsValue,
+        target_amount: goal.target_amount,
+        months_remaining: goal.months_remaining,
       });
       onClose();
     } catch (err) {

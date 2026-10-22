@@ -198,7 +198,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   };
 
   return (
-    <div className="p-4 flex flex-col gap-4 bg-card min-h-0">
+    <div className="p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0">
       {/* Header */}
       <div className="flex flex-col gap-3">
         <Button variant="ghost" size="sm" onPress={() => router.push("/landlord/properties")} className="gap-1.5 font-nunito w-fit">

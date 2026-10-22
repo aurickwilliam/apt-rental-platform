@@ -53,7 +53,7 @@ export default function ReviewsClient({ apartmentId, apartmentName, reviews }: P
   }, [reviews, sortBy]);
 
   return (
-    <div className="w-full min-w-0 p-4 flex flex-col gap-4 bg-card min-h-0">
+    <div className="w-full min-w-0 p-4 md:p-6 flex flex-col gap-4 bg-card min-h-0">
       <div>
         <Button
           variant="ghost"
