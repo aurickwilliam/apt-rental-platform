@@ -45,8 +45,8 @@ export default function ConversationListState(props: ConversationListStateProps)
   return (
     <View className={`flex-1 items-center justify-center ${isCompact ? 'mt-10' : ''}`}>
       {EmptyIcon ? (
-        <View className='mb-3 rounded-full bg-surface-secondary p-3'>
-          <EmptyIcon size={28} color={colors.gray500} />
+        <View className='mb-3 rounded-full bg-surface-secondary p-4'>
+          <EmptyIcon size={44} color={colors.primary} />
         </View>
       ) : (
         <View className='aspect-square size-64'>
