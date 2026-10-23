@@ -269,6 +269,25 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('😂')).toBeTruthy();
   });
 
+  it('merges the same emoji from two people into one badge with a count', () => {
+    render(
+      <ChatBubbleContent
+        message="Hello"
+        messageType="text"
+        isSent
+        reactions={[
+          { emoji: '👍', userId: 'u1', isMine: true },
+          { emoji: '👍', userId: 'u2', isMine: false },
+        ]}
+        interactive={false}
+      />
+    );
+
+    expect(screen.getAllByText('👍')).toHaveLength(1);
+    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByLabelText('Reactions: 👍 2')).toBeTruthy();
+  });
+
   it('renders no badge when there are no reactions', () => {
     render(
       <ChatBubbleContent

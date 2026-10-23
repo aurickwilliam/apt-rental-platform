@@ -24,6 +24,7 @@ import { HEART_REACTION } from './reactionEmojis';
 import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
 import SenderAvatar from './SenderAvatar';
 import SeenAvatar from './SeenAvatar';
+import { groupReactionsByEmoji } from '@/service/chat/reactionGroups';
 import SwipeToReply from './SwipeToReply';
 import TimestampRevealRow from './TimestampRevealRow';
 import { formatRevealTime } from './timestampReveal';
@@ -173,7 +174,11 @@ function useDoubleTapPress({
   }, [disabled, onDoubleTap, onSingleTap]);
 }
 
-/** One circle per reaction, overlapped and pinned to the bubble's bottom-right (both sides). */
+/**
+ * One badge per distinct emoji (like web), overlapped and pinned to the bubble's
+ * bottom-right on both sides. Two people using the same emoji share one badge
+ * with a count beside it instead of drawing the emoji twice.
+ */
 export function ReactionBadge({
   reactions,
 }: {
@@ -181,23 +186,28 @@ export function ReactionBadge({
   isSent?: boolean;
 }) {
   if (reactions.length === 0) return null;
-  const shown = reactions.slice(0, 3);
+  const shown = groupReactionsByEmoji(reactions).slice(0, 3);
   return (
     <View
       className="absolute -bottom-3 right-1 z-10 flex-row items-center"
       accessibilityRole="text"
-      accessibilityLabel={`Reactions: ${shown.map((r) => r.emoji).join(', ')}`}
+      accessibilityLabel={`Reactions: ${shown
+        .map((g) => (g.count > 1 ? `${g.emoji} ${g.count}` : g.emoji))
+        .join(', ')}`}
     >
-      {shown.map((r, index) => (
+      {shown.map((group, index) => (
         <View
-          key={r.userId}
-          className={`size-6 rounded-full items-center justify-center border border-border bg-surface-tertiary ${
-            index > 0 ? '-ml-2' : ''
-          }`}
+          key={group.emoji}
+          className={`h-6 min-w-6 flex-row items-center justify-center gap-1 rounded-full border border-border bg-surface-tertiary ${
+            group.count > 1 ? 'px-1.5' : ''
+          } ${index > 0 ? '-ml-2' : ''}`}
         >
           <Text className="text-xs text-center" style={{ lineHeight: 14, textAlignVertical: 'center' }}>
-            {r.emoji}
+            {group.emoji}
           </Text>
+          {group.count > 1 && (
+            <Text className="text-[10px] font-inter text-gray-500">{group.count}</Text>
+          )}
         </View>
       ))}
     </View>
