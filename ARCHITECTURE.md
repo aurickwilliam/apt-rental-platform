@@ -425,6 +425,8 @@ sequenceDiagram
 
 **Current implementation (hybrid, no disbursement):**
 
+Payment-method preferences are shared across platforms through `public.payment_method_preferences`, keyed by the internal `users.id`. `@repo/utils/paymentMethodPreferences.ts` defines the supported types and credential-free row conversions used by Web and Mobile. Mobile's `usePaymentMethodPreferences` shares one account-keyed React Query read with the standard 30-second freshness window; focus refetches stale data only and reuses an in-flight read. A successful save writes the returned row into the existing cache without a follow-up fetch. Saves use column-scoped insert/update (never upsert of the protected owner column), or an account-scoped delete to clear preferences. Account generations and query-instance checks reject late saves after account changes, cache clearing or unmount. The editor draft and checkout choice stay local: a saved default is inherited until the tenant explicitly chooses a method for that checkout, and a preference edit never overwrites that manual choice. No payment record, provider token or card/wallet credential is created by preference reads or writes.
+
 | Piece | Status | Evidence |
 |---|---|---|
 | Mobile payment screens (method selection, card/cash forms, e-wallet redirect, success, history) | Hybrid — PayMongo hosted checkout in test mode, simulation fallback | `apps/mobile/app/tenant/payment/*` |

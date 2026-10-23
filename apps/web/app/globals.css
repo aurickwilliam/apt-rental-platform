@@ -1137,9 +1137,9 @@ body[data-scroll-locked] [role="option"] {
 }
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: var(--font-nunito-face), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
@@ -1359,3 +1359,10 @@ html.apt-reduce-motion *::after {
 @media (prefers-reduced-motion: reduce) {
   .finance-enter { animation: none; }
 }
+
+/* Dashboard collection meter: white fill on the primary card. */
+.dashboard-meter { --progress-bar-fill: white; }
+.dashboard-meter .progress-bar__track { background: rgb(255 255 255 / 0.3); }
+
+/* Dashboard occupancy meter: brand fill on the neutral card. */
+.occupancy-meter { --progress-bar-fill: var(--primary); }

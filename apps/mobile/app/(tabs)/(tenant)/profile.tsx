@@ -107,7 +107,7 @@ export default function Profile() {
       onPress: () => router.push('/tenant/payment/history')
     },
     {
-      title: 'Payment Methods',
+      title: 'Payment Preferences',
       icon: IconCreditCard,
       onPress: () => router.push('/tenant/payment/saved-methods')
     },

@@ -1,7 +1,7 @@
 // heroui-native ships untranspiled ESM that Jest cannot parse. Interactive
 // stand-ins for the components the auth and settings screens use:
 // jest.mock("heroui-native", () => require("<relative path>/support/heroUINativeStub")).
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { Pressable, Text, TextInput, View, type TextInputProps } from "react-native";
 
 interface ChildrenProps {
@@ -44,6 +44,8 @@ export const LinkButton = Object.assign(PressableStub, { Label: TextStub });
 
 export const TextField = Passthrough;
 export const Label = Object.assign(TextStub, { Text: TextStub });
+export const Description = TextStub;
+export const Card = Object.assign(Passthrough, { Body: Passthrough, Header: Passthrough, Footer: Passthrough });
 export const FieldError = TextStub;
 export const Input = (props: TextInputProps) => <TextInput {...props} />;
 export const InputGroup = Object.assign(Passthrough, { Input, Prefix: Passthrough, Suffix: Passthrough });
@@ -62,6 +64,24 @@ function ControlFieldStub({ children, isSelected, onSelectedChange, isDisabled, 
 }
 export const ControlField = Object.assign(ControlFieldStub, { Indicator: Passthrough });
 export const Checkbox = () => null;
+
+interface RadioGroupStubProps extends ChildrenProps {
+  value?: string;
+  onValueChange: (value: string) => void;
+  isDisabled?: boolean;
+}
+const RadioContext = createContext<Omit<RadioGroupStubProps, "children">>({ onValueChange: () => {} });
+function RadioGroupStub({ children, ...props }: RadioGroupStubProps) {
+  return <RadioContext.Provider value={props}><View>{children}</View></RadioContext.Provider>;
+}
+function RadioItemStub({ children, value, accessibilityLabel }: ChildrenProps & { value: string; accessibilityLabel?: string }) {
+  const group = useContext(RadioContext);
+  return <Pressable accessibilityRole="radio" accessibilityLabel={accessibilityLabel} disabled={group.isDisabled}
+    accessibilityState={{ checked: group.value === value, disabled: !!group.isDisabled }}
+    onPress={() => group.onValueChange(value)}>{children}</Pressable>;
+}
+export const RadioGroup = Object.assign(RadioGroupStub, { Item: RadioItemStub });
+export const Radio = Object.assign(() => null, { Indicator: () => null });
 
 export const Alert = Object.assign(Passthrough, {
   Indicator: () => null,

@@ -9,6 +9,19 @@ export {
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
 export {
+  PAYMENT_METHOD_TYPES,
+  EMPTY_PAYMENT_METHOD_PREFERENCES,
+  type PaymentMethod,
+  type PaymentMethodPreference,
+  type PaymentPreferenceRow,
+  isPaymentMethod,
+  paymentMethodLabel,
+  normalizePaymentMethodPreferences,
+  paymentMethodPreferencesFromRow,
+  paymentMethodPreferencesToRow,
+  togglePreferredPaymentMethod,
+} from './paymentMethodPreferences';
+export {
   type MaintenanceFeeStatus,
   normalizeMaintenanceFeeStatus,
   getMaintenanceFeeError,
@@ -24,6 +37,42 @@ export {
   handlePesoChange,
   extractRawNumber
 } from './formatCurrencyInput';
+export { formatPesoCompact } from './formatPesoCompact';
+export {
+  EMPTY_ATTENTION,
+  TREND_TIMEFRAMES,
+  EMPTY_THIS_MONTH,
+  buildRequestItems,
+  buildTrendSeries,
+  collectionProgress,
+  consolidateMonthlyRevenue,
+  currentMonthKey,
+  monthLabel,
+  monthRevenueTotal,
+  normalizeDashboardData,
+  summarizeCollection,
+  summarizeRentDues,
+  topPropertiesByRevenue,
+} from './landlordDashboard';
+export type {
+  CollectionMonthPoint,
+  CollectionProgress,
+  CollectionSummary,
+  DashboardAttention,
+  DashboardData,
+  DashboardStats,
+  MonthlyRevenuePoint,
+  PropertyRevenue,
+  PropertyRevenueMonth,
+  RentDue,
+  RentDueSummary,
+  RequestItem,
+  RequestKey,
+  ThisMonthSummary,
+  TopProperty,
+  TrendPoint,
+  TrendTimeframe,
+} from './landlordDashboard';
 export { calcMoveInCost, toMoveInNumber } from './calcMoveInCost';
 export {
   MIN_MONTHLY_RENT,

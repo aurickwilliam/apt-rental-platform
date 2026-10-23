@@ -6,6 +6,12 @@ export const BRAND = {
   hours: "Monday–Friday, 9:00 AM – 6:00 PM (PHT)",
 };
 
+export const LEGAL_META = {
+  lastUpdated: "January 15, 2026",
+  jurisdiction: "Effective in the Philippines",
+  version: "1.0",
+};
+
 export type Callout = { kind: "info" | "warning"; label: string; text: string };
 
 export type Block =
@@ -23,19 +29,19 @@ export type Section = {
 };
 
 export const TOC: { id: string; label: string }[] = [
-  { id: "p1", label: "1. Introduction" },
-  { id: "p2", label: "2. Information We Collect" },
-  { id: "p3", label: "3. How We Use Your Information" },
-  { id: "p4", label: "4. Sharing of Information" },
-  { id: "p5", label: "5. Data Security" },
-  { id: "p6", label: "6. User Responsibilities" },
-  { id: "p7", label: "7. Data Retention" },
-  { id: "p8", label: "8. Cookies & Similar Technologies" },
-  { id: "p9", label: "9. Third-Party Services" },
-  { id: "p10", label: "10. User Rights" },
-  { id: "p11", label: "11. Children's Privacy" },
-  { id: "p12", label: "12. Compliance with PH Laws" },
-  { id: "p13", label: "13. Changes to this Policy" },
+  { id: "p1", label: "Introduction" },
+  { id: "p2", label: "Information We Collect" },
+  { id: "p3", label: "How We Use Your Information" },
+  { id: "p4", label: "Sharing of Information" },
+  { id: "p5", label: "Data Security" },
+  { id: "p6", label: "User Responsibilities" },
+  { id: "p7", label: "Data Retention" },
+  { id: "p8", label: "Cookies & Similar Technologies" },
+  { id: "p9", label: "Third-Party Services" },
+  { id: "p10", label: "User Rights" },
+  { id: "p11", label: "Children's Privacy" },
+  { id: "p12", label: "Compliance with PH Laws" },
+  { id: "p13", label: "Changes to this Policy" },
 ];
 
 export const SECTIONS: Section[] = [

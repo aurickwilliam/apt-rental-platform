@@ -4,6 +4,12 @@ export const BRAND = {
   hours: "Monday–Friday, 9:00 AM – 6:00 PM (PHT)",
 };
 
+export const LEGAL_META = {
+  lastUpdated: "January 15, 2026",
+  jurisdiction: "Effective in the Philippines",
+  version: "1.0",
+};
+
 export type Callout = { kind: "info" | "warning"; label: string; text: string };
 
 // Same block-based shape as pap-sections.ts, since "Types of Cookies We Use"
@@ -23,15 +29,15 @@ export type Section = {
 };
 
 export const TOC: { id: string; label: string }[] = [
-  { id: "c1", label: "1. Introduction" },
-  { id: "c2", label: "2. What Are Cookies?" },
-  { id: "c3", label: "3. Types of Cookies We Use" },
-  { id: "c4", label: "4. How We Use Cookies" },
-  { id: "c5", label: "5. Third-Party Services" },
-  { id: "c6", label: "6. Managing Cookies" },
-  { id: "c7", label: "7. Data Collected Through Cookies" },
-  { id: "c8", label: "8. Cookie Retention" },
-  { id: "c9", label: "9. Changes to This Policy" },
+  { id: "c1", label: "Introduction" },
+  { id: "c2", label: "What Are Cookies?" },
+  { id: "c3", label: "Types of Cookies We Use" },
+  { id: "c4", label: "How We Use Cookies" },
+  { id: "c5", label: "Third-Party Services" },
+  { id: "c6", label: "Managing Cookies" },
+  { id: "c7", label: "Data Collected Through Cookies" },
+  { id: "c8", label: "Cookie Retention" },
+  { id: "c9", label: "Changes to This Policy" },
 ];
 
 export const SECTIONS: Section[] = [

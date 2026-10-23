@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/hooks/auth";
 import {
+  EMPTY_ATTENTION,
+  EMPTY_THIS_MONTH,
   consolidateMonthlyRevenue,
   fetchDashboardData,
   type DashboardData,
@@ -14,6 +16,9 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
     pendingPayments: 0,
     maintenanceRequests: 0,
   },
+  attention: EMPTY_ATTENTION,
+  thisMonth: EMPTY_THIS_MONTH,
+  collectionByMonth: [],
   monthlyRevenue: [],
   revenueByProperty: [],
   rentDues: [],
