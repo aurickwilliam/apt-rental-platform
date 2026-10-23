@@ -4,20 +4,25 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
-import { emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId } from "./chat-message-presentation.ts";
+import { isSameChatDay } from "../../../packages/utils/src/chatDay.ts";
+import { emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
 for (const portal of ["tenant", "landlord"]) {
-  test(`${portal}: consecutive message grouping keeps the inclusive five-minute rule`, () => {
+  test(`${portal}: consecutive message grouping matches mobile: same sender and day, no time limit`, () => {
     const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
-    const start = source.indexOf("const RUN_GAP_MS");
+    const start = source.indexOf("function getGroupPosition");
     const end = source.indexOf("function TypingIndicator");
     const code = ts.transpileModule(source.slice(start, end) + "\nexports.group = getGroupPosition;", { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
     const exports = {};
-    vm.runInNewContext(code, { exports });
+    vm.runInNewContext(code, { exports, isSameChatDay });
     const message = (sender, seconds) => ({ sender_id: sender, created_at: new Date(seconds * 1000).toISOString() });
-    const rows = [message("a", 0), message("a", 60), message("a", 360), message("a", 661), message("b", 662)];
-    assert.deepEqual(rows.map((_, i) => exports.group(rows, i)), ["first", "middle", "last", "single", "single"]);
+    // A long pause never splits a run (mobile has no time rule); only a sender change does.
+    const rows = [message("a", 0), message("a", 60), message("a", 360), message("a", 7200), message("b", 7201)];
+    assert.deepEqual(rows.map((_, i) => exports.group(rows, i)), ["first", "middle", "middle", "last", "single"]);
+    // A new calendar day starts a new run: the divider sits between the two bubbles.
+    const days = [message("a", 0), message("a", 86400 * 2)];
+    assert.deepEqual(days.map((_, i) => exports.group(days, i)), ["single", "single"]);
     assert.equal(exports.group([], 0), "single");
   });
 }
@@ -53,7 +58,7 @@ function harness(file, browser = { getSelection: () => null }) {
     "@repo/utils": { formatChatAttachmentSize },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
     "./reactionEmojis": { HEART_REACTION: "❤️" },
-    "@/lib/chat-message-presentation": { emojiMessageFontSize, isEmojiOnlyMessage },
+    "@/lib/chat-message-presentation": { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet },
   };
   const source = readFileSync(new URL(`../app/components/chat/${file}.tsx`, import.meta.url), "utf8");
   const exports = {};
@@ -194,8 +199,8 @@ test("sender avatars appear only at incoming run ends, with a consistent gutter"
       assert.equal(tree.filter((n) => n.type === "time").length, 0);
       const avatars = tree.filter((n) => n.props["data-message-sender-avatar"] !== undefined);
       assert.equal(avatars.length, !isMine && ["single", "last"].includes(groupPosition) ? 1 : 0);
-      assert.equal(tree[0].props.className.includes("ml-9"), !isMine);
-      assert.equal(tree[0].props.className.includes("max-w-[calc(100%-5.5rem)]"), !isMine);
+      assert.equal(tree[0].props.className.includes("ml-10"), !isMine);
+      assert.equal(tree[0].props.className.includes("max-w-[calc(100%-6rem)]"), !isMine);
       const avatar = tree.find((n) => n.props.className === "apt-message-sender-avatar");
       if (avatar) {
         assert.equal(avatar.props.src, "contact-photo");
@@ -290,10 +295,12 @@ test("reaction badges stay compact and only display counts above one", () => {
     const tree = h.render({ message: { id: "compact", message: "Hi", reactions }, isMine: false });
     const badges = tree.find(n => n.props.reactions);
     const row = badges.type(badges.props);
-    assert.match(row.props.className, /-mt-2/);
+    assert.match(row.props.className, /-mt-3/);
     const chip = nodes(row).find(n => n.type === "button");
-    assert.match(chip.props.className, /h-5/);
-    assert.match(chip.props.className, count === 1 ? /w-5 shrink-0 p-0/ : /min-w-5 px-0.5/);
+    // Same 24px grey circle as mobile's ReactionBadge, whoever sent the message.
+    assert.match(chip.props.className, /h-6/);
+    assert.match(chip.props.className, /bg-muted/);
+    assert.match(chip.props.className, count === 1 ? /w-6 shrink-0 p-0/ : /min-w-6 px-1/);
     assert.match(chip.props["aria-label"], new RegExp(`${count} reaction`));
     assert.equal(nodes(chip).some(n => n.type === "span" && n.props.children === count), count > 1);
     assert.equal(chip.props["aria-pressed"], true);
@@ -420,4 +427,14 @@ test("reply bar names the target and previews text or attachments like mobile", 
   assert.ok(tree.some(n => n.type === "IconPhoto"));
   tree = h.render({ replyTarget: { id: "m", message: null, message_type: "file", attachment_name: "lease.pdf" } });
   assert.ok(text(tree).includes("lease.pdf"));
+});
+
+test("quoted replies read like mobile: the text, else Photo / Video / GIF / Document", () => {
+  assert.equal(replyQuoteSnippet({ message: "  hi  ", messageType: "text" }), "hi");
+  assert.equal(replyQuoteSnippet({ message: "x".repeat(100), messageType: "text" }), `${"x".repeat(90)}…`);
+  assert.equal(replyQuoteSnippet({ message: null, messageType: "image" }), "Photo");
+  assert.equal(replyQuoteSnippet({ message: "", messageType: "video" }), "Video");
+  assert.equal(replyQuoteSnippet({ message: null, messageType: "gif" }), "GIF");
+  assert.equal(replyQuoteSnippet({ message: null, messageType: "file" }), "Document");
+  assert.equal(replyQuoteSnippet({ message: null, messageType: "text" }), "");
 });

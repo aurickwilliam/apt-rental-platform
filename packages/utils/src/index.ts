@@ -6,6 +6,7 @@ export {
   isChatDocumentType,
   formatChatAttachmentSize,
 } from './chatAttachments';
+export { isSameChatDay, formatChatDayLabel } from './chatDay';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
 export {

@@ -176,14 +176,12 @@ function useDoubleTapPress({
 /** One circle per reaction, overlapped and pinned to the bubble's bottom-right (both sides). */
 export function ReactionBadge({
   reactions,
-  isSent = false,
 }: {
   reactions: MessageReaction[];
   isSent?: boolean;
 }) {
   if (reactions.length === 0) return null;
   const shown = reactions.slice(0, 3);
-  const circleBg = isSent ? 'bg-accent' : 'bg-surface-tertiary';
   return (
     <View
       className="absolute -bottom-3 right-1 z-10 flex-row items-center"
@@ -193,7 +191,7 @@ export function ReactionBadge({
       {shown.map((r, index) => (
         <View
           key={r.userId}
-          className={`size-6 rounded-full items-center justify-center border border-border ${circleBg} ${
+          className={`size-6 rounded-full items-center justify-center border border-border bg-surface-tertiary ${
             index > 0 ? '-ml-2' : ''
           }`}
         >

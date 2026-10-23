@@ -37,3 +37,16 @@ export function formatMessageMenuDate(createdAt: string): string {
   if (!Number.isFinite(date.getTime())) return "";
   return `${date.toLocaleDateString([], { dateStyle: "medium" })} at ${date.toLocaleTimeString([], { timeStyle: "short" })}`;
 }
+
+/** One-line text for a quoted message in a reply card (mobile's `getReplySnippet`): the text, else Photo / Video / GIF / Document. */
+export function replyQuoteSnippet(reply: { message?: string | null; messageType?: string | null }): string {
+  const text = reply.message?.trim();
+  if (text) return text.length > 90 ? `${text.slice(0, 90)}…` : text;
+  switch (reply.messageType) {
+    case "image": return "Photo";
+    case "video": return "Video";
+    case "gif": return "GIF";
+    case "file": return "Document";
+    default: return "";
+  }
+}

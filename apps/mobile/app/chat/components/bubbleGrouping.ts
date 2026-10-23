@@ -1,5 +1,15 @@
+import { isSameChatDay } from '@repo/utils';
+
 interface GroupedMessage {
   isSent: boolean;
+  /** When given, a new calendar day ends a run (a day divider sits between them). */
+  createdAt?: string;
+}
+
+/** Same sender, and the same day when both timestamps are known. */
+function sameRun(a: GroupedMessage, b: GroupedMessage): boolean {
+  if (a.isSent !== b.isSent) return false;
+  return !a.createdAt || !b.createdAt || isSameChatDay(a.createdAt, b.createdAt);
 }
 
 /**
@@ -11,7 +21,7 @@ export function showsSenderAvatar(messages: readonly GroupedMessage[], index: nu
   const message = messages[index];
   if (!message || message.isSent) return false;
   const newer = messages[index - 1];
-  return !newer || newer.isSent;
+  return !newer || !sameRun(message, newer);
 }
 
 /** Width reserved left of received bubbles for the avatar: `w-8` + `mr-2`. */
@@ -30,8 +40,10 @@ export function getBubbleGroupPosition(
 ): BubbleGroupPosition {
   const message = messages[index];
   if (!message) return 'single';
-  const joinsAbove = messages[index + 1]?.isSent === message.isSent;
-  const joinsBelow = messages[index - 1]?.isSent === message.isSent;
+  const above = messages[index + 1];
+  const below = messages[index - 1];
+  const joinsAbove = !!above && sameRun(message, above);
+  const joinsBelow = !!below && sameRun(message, below);
   if (joinsAbove && joinsBelow) return 'middle';
   if (joinsAbove) return 'last';
   if (joinsBelow) return 'first';

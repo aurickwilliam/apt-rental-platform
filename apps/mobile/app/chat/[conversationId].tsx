@@ -46,6 +46,8 @@ import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
 import { getSeenMessageId } from '@/service/chat/readReceipts';
+import { formatChatDayLabel, isSameChatDay } from '@repo/utils';
+import DaySeparator from './components/DaySeparator';
 import {
   SENDER_AVATAR_GUTTER,
   getBubbleGroupPosition,
@@ -527,6 +529,7 @@ export default function ChatScreen() {
 
   const renderItem = useCallback(
     ({ item, index }: { item: Message; index: number }) => (
+      <>
       <ChatBubble
         id={item.id}
         message={item.message}
@@ -560,6 +563,11 @@ export default function ChatScreen() {
           void retryChatMediaOnce(item.id, mediaKind);
         }}
       />
+      {/* Inverted list: the divider renders above the first message of each day. */}
+      {(!messages[index + 1] || !isSameChatDay(messages[index + 1].createdAt, item.createdAt)) && (
+        <DaySeparator label={formatChatDayLabel(item.createdAt)} />
+      )}
+      </>
     ),
     [
       otherUserName,

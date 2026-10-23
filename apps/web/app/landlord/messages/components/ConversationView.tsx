@@ -26,6 +26,7 @@ import useConversationRealtime from "@/app/components/chat/useConversationRealti
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import type { ChatMessage } from "@/app/components/chat/types";
 import { formatMessageMenuDate, latestOutgoingMessageId } from "@/lib/chat-message-presentation";
+import { formatChatDayLabel, isSameChatDay } from "@repo/utils";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -46,14 +47,11 @@ interface ConversationViewProps {
 const BOTTOM_FOLLOW_THRESHOLD_PX = 150;
 
 /**
- * Runs consecutive messages from the same sender into a group, so a
- * multi-file attachment batch (one shared `group_id`) reads as one visual
- * cluster instead of a stack of unrelated bubbles. Realtime inserts can split
- * a run, so a gap in time also breaks it — otherwise a message sent minutes
- * later would be pulled into the previous group.
+ * Runs consecutive messages from the same sender into a group, like mobile's
+ * `getBubbleGroupPosition`: the corners where bubbles meet shrink and the gap
+ * tightens, with no time limit. A day divider between two messages ends the
+ * run, so the bubbles either side of it are never drawn as joined.
  */
-const RUN_GAP_MS = 5 * 60 * 1000;
-
 function getGroupPosition(
   messages: ChatMessage[],
   index: number
@@ -61,22 +59,15 @@ function getGroupPosition(
   const current = messages[index];
   if (!current) return "single";
 
-  const previous = messages[index - 1];
-  const next = messages[index + 1];
-
   const continuesRun = (other: ChatMessage | undefined) =>
     Boolean(
       other &&
         other.sender_id === current.sender_id &&
-        // A pending row and a just-inserted row can straddle the boundary.
-        Math.abs(
-          new Date(other.created_at).getTime() -
-            new Date(current.created_at).getTime()
-        ) <= RUN_GAP_MS
+        isSameChatDay(other.created_at, current.created_at)
     );
 
-  const joinsPrevious = continuesRun(previous);
-  const joinsNext = continuesRun(next);
+  const joinsPrevious = continuesRun(messages[index - 1]);
+  const joinsNext = continuesRun(messages[index + 1]);
 
   if (joinsPrevious && joinsNext) return "middle";
   if (joinsPrevious) return "last";
@@ -387,8 +378,8 @@ export default function ConversationView({
             ) : (
               messages.map((msg, index) => (
                 <Fragment key={msg.id}>
-                {(index === 0 || new Date(messages[index - 1].created_at).toDateString() !== new Date(msg.created_at).toDateString()) && (
-                  <p className="my-5 text-center font-inter text-[11px] text-muted-foreground"><time dateTime={msg.created_at}>{new Date(msg.created_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</time></p>
+                {(index === 0 || !isSameChatDay(messages[index - 1].created_at, msg.created_at)) && (
+                  <p className="my-5 text-center font-inter text-[11px] text-muted-foreground"><time dateTime={msg.created_at}>{formatChatDayLabel(msg.created_at)}</time></p>
                 )}
                 <MessageBubble
                   key={msg.id}

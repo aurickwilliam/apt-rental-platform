@@ -10,7 +10,7 @@ import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
-import { emojiMessageFontSize, isEmojiOnlyMessage } from "@/lib/chat-message-presentation";
+import { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -114,7 +114,7 @@ export default function MessageBubble({
   return (
     <div
       className={`relative flex min-w-0 flex-col sm:max-w-[75%] lg:max-w-[65%] ${runSpacing} ${
-        isMine ? "max-w-[calc(100%-3.25rem)] self-end items-end" : "ml-9 max-w-[calc(100%-5.5rem)] self-start items-start"
+        isMine ? "max-w-[calc(100%-3.25rem)] self-end items-end" : "ml-10 max-w-[calc(100%-6rem)] self-start items-start"
       }`}
     >
       {hasReply && (
@@ -150,7 +150,7 @@ export default function MessageBubble({
         >
           {message.replyTo.messageType === "text" ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">
-              {message.replyTo.message}
+              {replyQuoteSnippet(message.replyTo)}
             </p>
           ) : (
             <span className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export default function MessageBubble({
                 )}
               </span>
               <span className="line-clamp-2 flex-1 text-sm text-muted-foreground">
-                {message.replyTo.message || "Attachment"}
+                {replyQuoteSnippet(message.replyTo)}
               </span>
             </span>
           )}
@@ -182,7 +182,7 @@ export default function MessageBubble({
         data-overlay-open={isReactionOpen || isContextMenuOpen}
       >
       {!isMine && endsRun ? (
-        <span data-message-sender-avatar aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-9">
+        <span data-message-sender-avatar aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-10">
           <UserAvatar src={otherUserAvatar} initials={contactInitials} alt={otherUserName ?? "Sender"} size="sm" className="apt-message-sender-avatar" />
         </span>
       ) : null}
@@ -225,7 +225,7 @@ export default function MessageBubble({
         data-mine={isMine}
         data-chat-message-id={message.id}
         data-reply-highlight={isReplyHighlighted}
-        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : isEmojiMessage ? "p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : isEmojiMessage ? "p-0" : "px-3 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           isEmojiMessage
             ? "bg-transparent text-foreground"
             : isMine
@@ -372,7 +372,7 @@ function ReactionBadges({
 
   return (
     <div
-      className="relative z-10 -mt-2 mx-1 flex max-w-full flex-wrap items-center justify-end gap-0.5 self-end"
+      className="relative z-10 -mt-3 mx-1 flex max-w-full flex-wrap items-center justify-end gap-0.5 self-end"
       aria-label="Reactions"
     >
       {[...byEmoji.entries()].map(([emoji, count]) => {
@@ -384,11 +384,7 @@ function ReactionBadges({
             onClick={() => onToggle(messageId, emoji)}
             aria-label={`${emoji}, ${count} ${count === 1 ? "reaction" : "reactions"}${mine ? ", including yours" : ""}`}
             aria-pressed={mine}
-            className={`flex h-5 items-center justify-center gap-1 rounded-full border text-sm leading-none shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-5 shrink-0 p-0" : "min-w-5 px-0.5"} ${
-              mine
-                ? "border-card bg-secondary ring-1 ring-primary/30"
-                : "border-border bg-card hover:bg-muted"
-            }`}
+            className={`flex h-6 cursor-pointer items-center justify-center gap-1 rounded-full border border-border bg-muted text-xs leading-none transition-colors hover:bg-muted-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-6 shrink-0 p-0" : "min-w-6 px-1"}`}
           >
             <span>{emoji}</span>
             {count > 1 && <span className="pr-0.5 text-[10px] text-muted-foreground">{count}</span>}
