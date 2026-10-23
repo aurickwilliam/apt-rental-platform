@@ -1,10 +1,11 @@
+import type { ConversationPreferences } from "@/lib/conversation-contacts";
 import type {
   ChatMessage as Message,
   MessageReaction,
   ReplyPreview,
 } from "@/app/components/chat/types";
 
-export interface Contact {
+export interface Contact extends Partial<ConversationPreferences> {
   id: string;
   conversationKey: string;
   name: string;

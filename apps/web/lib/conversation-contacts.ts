@@ -11,10 +11,41 @@ export interface PortalConversationRow {
   last_message_type?: string | null;
   /** Who sent the latest message (`get_portal_conversations.last_sender_id`). */
   last_sender_id?: string | null;
+  /** Per-user list state, written only through `set_conversation_preference`. */
+  is_pinned?: boolean | null;
+  pinned_at?: string | null;
+  is_archived?: boolean | null;
+  is_muted?: boolean | null;
+  marked_unread?: boolean | null;
+  blocked_by_me?: boolean | null;
+  in_active_tenancy?: boolean | null;
+}
+
+/** The per-user list state shown and changed from a row's menu. */
+export interface ConversationPreferences {
+  isPinned: boolean;
+  pinnedAt: string | null;
+  isArchived: boolean;
+  isMuted: boolean;
+  markedUnread: boolean;
+  blockedByMe: boolean;
+  inActiveTenancy: boolean;
+}
+
+export function preferencesFromRow(row: PortalConversationRow): ConversationPreferences {
+  return {
+    isPinned: row.is_pinned === true,
+    pinnedAt: row.pinned_at ?? null,
+    isArchived: row.is_archived === true,
+    isMuted: row.is_muted === true,
+    markedUnread: row.marked_unread === true,
+    blockedByMe: row.blocked_by_me === true,
+    inActiveTenancy: row.in_active_tenancy === true,
+  };
 }
 
 /** Sidebar contact, structurally identical to both portals' `Contact`. */
-export interface ConversationContact {
+export interface ConversationContact extends Partial<ConversationPreferences> {
   id: string;
   conversationKey: string;
   name: string;
@@ -87,13 +118,14 @@ export function buildPortalContacts({
   others: ConversationContact[];
 } {
   const unreadByKey = new Map<string, number>();
-  const latestByKey = new Map<string, Pick<ConversationContact, "lastMessage" | "lastMessageTime" | "lastMessageType" | "lastSenderIsMe">>();
+  const latestByKey = new Map<string, Pick<ConversationContact, "lastMessage" | "lastMessageTime" | "lastMessageType" | "lastSenderIsMe" | keyof ConversationPreferences>>();
   for (const row of rows) {
     latestByKey.set(getContactConversationKey(row.other_user_id, row.apartment_id), {
       lastMessage: row.last_message,
       lastMessageTime: row.last_message_time,
       lastMessageType: row.last_message_type,
       lastSenderIsMe: Boolean(row.last_sender_id) && row.last_sender_id === currentUserId,
+      ...preferencesFromRow(row),
     });
     unreadByKey.set(
       getContactConversationKey(row.other_user_id, row.apartment_id),
@@ -120,6 +152,7 @@ export function buildPortalContacts({
       lastMessageTime: row.last_message_time,
       lastMessageType: row.last_message_type,
       lastSenderIsMe: Boolean(row.last_sender_id) && row.last_sender_id === currentUserId,
+      ...preferencesFromRow(row),
     }));
 
   return {

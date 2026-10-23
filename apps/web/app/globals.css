@@ -164,6 +164,12 @@
   --button-fg: var(--foreground);
   --button-bg-hover: color-mix(in oklab, var(--muted) 45%, transparent);
 }
+/* The row's "···" menu appears on hover or keyboard focus (always visible on touch). */
+.apt-conversation-item .apt-conversation-menu-trigger { opacity: 0; transition: opacity 120ms; }
+.apt-conversation-item:hover .apt-conversation-menu-trigger,
+.apt-conversation-item:focus-within .apt-conversation-menu-trigger,
+.apt-conversation-item .apt-conversation-menu-trigger[aria-expanded="true"] { opacity: 1; }
+@media (hover: none) { .apt-conversation-item .apt-conversation-menu-trigger { opacity: 1; } }
 .apt-conversation-row[data-active="true"] {
   --button-bg: var(--secondary);
   --button-bg-hover: var(--secondary);

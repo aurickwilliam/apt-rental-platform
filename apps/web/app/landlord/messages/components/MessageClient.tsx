@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import { selectPortalConversation } from "@/lib/conversation-contacts";
+import ConversationRowMenu from "@/app/components/chat/ConversationRowMenu";
+import { useConversationActions } from "@/app/components/chat/useConversationActions";
+import { arrangeContacts } from "@/lib/conversation-list";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact, TabKey } from "./types";
@@ -169,7 +172,14 @@ export default function MessagesClient({
     };
   }, [activeContact?.conversationKey, currentUserId, incrementUnreadForContact, refreshIfNewConversation, supabase]);
 
-  const contacts = activeTab === "current" ? currentTenantContacts : inquiryContacts;
+  // Row menu (pin, archive, mute, block…): changes show at once on top of the server lists.
+  const { withOverlay, onMenuAction, dialogs } = useConversationActions("landlord", markContactAsRead);
+  const currentTenantsView = useMemo(() => withOverlay(currentTenantContacts), [currentTenantContacts, withOverlay]);
+  const { inbox: inquiriesInbox, archived: archivedInquiries } = useMemo(
+    () => arrangeContacts(withOverlay(inquiryContacts)),
+    [inquiryContacts, withOverlay]
+  );
+  const contacts = activeTab === "current" ? currentTenantsView : inquiriesInbox;
 
   return (
     // The thread and the contact list each scroll internally, so this frame
@@ -183,6 +193,8 @@ export default function MessagesClient({
         activeTab={activeTab}
         activeContact={activeContact}
         onTabChange={setActiveTab}
+        archivedContacts={archivedInquiries}
+        renderMenu={(contact, pinLocked) => <ConversationRowMenu contact={contact} pinLocked={pinLocked} onAction={onMenuAction} />}
         onSelectContact={(contact) => {
           setActiveContact(contact);
           markContactAsRead(contact.conversationKey);
@@ -200,6 +212,7 @@ export default function MessagesClient({
         // The empty state only makes sense alongside the list on mobile.
         className={isThreadOpen ? "flex" : "hidden lg:flex"}
       />
+      {dialogs}
     </div>
   );
 }

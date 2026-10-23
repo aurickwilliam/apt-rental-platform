@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import { selectPortalConversation } from "@/lib/conversation-contacts";
+import ConversationRowMenu from "@/app/components/chat/ConversationRowMenu";
+import { useConversationActions } from "@/app/components/chat/useConversationActions";
+import { arrangeContacts } from "@/lib/conversation-list";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact } from "./types";
@@ -154,6 +157,14 @@ export default function MessagesClient({
     };
   }, [currentUserId, incrementUnreadForContact, refreshIfNewConversation, selectedConversationKey, supabase]);
 
+  // Row menu (pin, archive, mute, block…): changes show at once on top of the server lists.
+  const { withOverlay, onMenuAction, dialogs } = useConversationActions("tenant", markContactAsRead);
+  const myLandlordView = useMemo(() => withOverlay(myLandlordContacts), [myLandlordContacts, withOverlay]);
+  const { inbox: pastInquiriesInbox, archived: archivedInquiries } = useMemo(
+    () => arrangeContacts(withOverlay(pastInquiryContacts)),
+    [pastInquiryContacts, withOverlay]
+  );
+
   const activeContact =
     contacts.find((contact) => contact.conversationKey === selectedConversationKey) ??
     contacts[0] ??
@@ -167,8 +178,10 @@ export default function MessagesClient({
     // screen. `pb-20`/`md:pb-0` on the portal `main` is mirrored here.
     <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <ContactSidebar
-        myLandlord={myLandlordContacts}
-        pastInquiries={pastInquiryContacts}
+        myLandlord={myLandlordView}
+        pastInquiries={pastInquiriesInbox}
+        archivedContacts={archivedInquiries}
+        renderMenu={(contact, pinLocked) => <ConversationRowMenu contact={contact} pinLocked={pinLocked} onAction={onMenuAction} />}
         activeContact={activeContact}
         onSelectContact={(contact) => {
           setSelectedConversationKey(contact.conversationKey);
@@ -187,6 +200,7 @@ export default function MessagesClient({
         // The empty state only makes sense alongside the list on mobile.
         className={isThreadOpen ? "flex" : "hidden lg:flex"}
       />
+      {dialogs}
     </div>
   );
 }
