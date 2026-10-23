@@ -29,7 +29,13 @@ export default function ConversationRow({ contact, isActive, onSelect, menu }: C
       <Button variant="ghost" onPress={onSelect} aria-current={isActive ? "true" : undefined}
         aria-label={`${contact.name}, ${contact.apartment}${preview ? `, ${preview}` : ""}${unread ? `, ${contact.unreadCount > 0 ? `${contact.unreadCount} unread messages` : "marked unread"}` : ""}`}
         className="apt-conversation-row" data-active={isActive}>
-        <UserAvatar src={contact.avatar} initials={contact.name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("")} alt={contact.name} size="lg" />
+        <span className="relative shrink-0">
+          <UserAvatar src={contact.avatar} initials={contact.name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("")} alt={contact.name} size="lg" />
+          {/* Like mobile: a red count on the avatar's corner, or a dot for a manual "unread". */}
+          {unread && (contact.unreadCount > 0
+            ? <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 font-nunito text-xs font-semibold text-white">{contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>
+            : <span aria-hidden="true" className="absolute right-0 top-0 size-3.5 rounded-full border-2 border-card bg-danger" />)}
+        </span>
         <span className="min-w-0 flex-1 text-left">
           <span className="flex items-center gap-2">
             <span className={`truncate font-nunito text-sm ${unread ? "font-bold" : "font-semibold"}`}>{contact.name}</span>
@@ -44,9 +50,6 @@ export default function ConversationRow({ contact, isActive, onSelect, menu }: C
           <span className="mt-0.5 block truncate font-inter text-[11px] text-muted-foreground">{contact.apartment}</span>
           {preview && <span className={`mt-1 block truncate font-inter text-xs ${unread ? "font-medium text-foreground" : "text-muted-foreground"}`}>{preview}</span>}
         </span>
-        {unread && (contact.unreadCount > 0
-          ? <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">{contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>
-          : <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-primary" />)}
       </Button>
       {menu ? <div className="apt-conversation-menu absolute right-2 top-1/2 -translate-y-1/2">{menu}</div> : null}
     </div>

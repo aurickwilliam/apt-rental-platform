@@ -200,5 +200,13 @@ export function useConversationActions(portal: "tenant" | "landlord", onMarkedRe
     </>
   );
 
-  return { withOverlay, onMenuAction, dialogs };
+  /** Opening a chat clears a manual "mark as unread" (the way mobile does). */
+  const onConversationOpened = useCallback(
+    (contact: ConversationContact) => {
+      if (contact.markedUnread) void markRead(contact);
+    },
+    [markRead]
+  );
+
+  return { withOverlay, onMenuAction, onConversationOpened, dialogs };
 }

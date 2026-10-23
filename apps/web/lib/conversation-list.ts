@@ -15,15 +15,25 @@ export function applyPreferenceChange<T extends ConversationContact>(contact: T,
 }
 
 export interface ArrangedContacts<T extends ConversationContact> {
-  /** The inbox list: user-pinned first (newest pin first), then unread first. Archived are left out. */
+  /** The inbox list: user-pinned first (newest pin first), then newest message first. Archived are left out. */
   inbox: T[];
-  /** Archived conversations, in the order given (newest first). */
+  /** Archived conversations, newest message first. */
   archived: T[];
 }
 
+const messageTime = (contact: ConversationContact) => {
+  const time = contact.lastMessageTime ? new Date(contact.lastMessageTime).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+};
+
+/** Newest message first; conversations with no messages sink. Equal times keep their order. */
+const byNewestMessage = (a: ConversationContact, b: ConversationContact) => messageTime(b) - messageTime(a);
+
 /**
- * Orders the non-app-pinned conversations like mobile's `groupConversations`:
- * pinned on top, unread before read, archived moved to their own list.
+ * Orders the non-app-pinned conversations like an inbox: pinned on top (newest
+ * pin first), everything else by its latest message, and archived chats moved to
+ * their own list. A message you send or receive moves its row to the top of the
+ * unpinned group, behind any pinned rows.
  */
 export function arrangeContacts<T extends ConversationContact>(contacts: readonly T[]): ArrangedContacts<T> {
   const archived: T[] = [];
@@ -36,8 +46,32 @@ export function arrangeContacts<T extends ConversationContact>(contacts: readonl
   }
   pinned.sort((a, b) => new Date(b.pinnedAt ?? 0).getTime() - new Date(a.pinnedAt ?? 0).getTime());
   return {
-    inbox: [...pinned, ...rest.filter(hasUnreadContact), ...rest.filter((contact) => !hasUnreadContact(contact))],
-    archived,
+    inbox: [...pinned, ...[...rest].sort(byNewestMessage)],
+    archived: [...archived].sort(byNewestMessage),
+  };
+}
+
+/** The newest message of a conversation, from a `chat` insert. */
+export interface LatestMessage {
+  message: string | null;
+  messageType: string | null;
+  createdAt: string;
+  /** Sent by the signed-in user. */
+  fromMe: boolean;
+}
+
+/**
+ * Updates a row for a new message: the preview, its time and sender, and (for a
+ * message you received in a chat you aren't viewing) the unread count.
+ */
+export function applyLatestMessage<T extends ConversationContact>(contact: T, latest: LatestMessage, countAsUnread: boolean): T {
+  return {
+    ...contact,
+    lastMessage: latest.message,
+    lastMessageType: latest.messageType,
+    lastMessageTime: latest.createdAt,
+    lastSenderIsMe: latest.fromMe,
+    unreadCount: countAsUnread ? contact.unreadCount + 1 : contact.unreadCount,
   };
 }
 

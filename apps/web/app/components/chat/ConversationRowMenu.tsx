@@ -68,6 +68,7 @@ export default function ConversationRowMenu({ contact, pinLocked, onAction }: Co
                 id={item.action}
                 textValue={item.label}
                 variant={item.destructive ? "danger" : "default"}
+                className={item.destructive ? "text-danger" : undefined}
               >
                 <Icon size={18} className="shrink-0" aria-hidden />
                 <span className="flex min-w-0 flex-col">

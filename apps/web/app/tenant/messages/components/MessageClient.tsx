@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@repo/supabase/browser";
+import { useCallback, useMemo, useState } from "react";
 import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import { selectPortalConversation } from "@/lib/conversation-contacts";
 import ConversationRowMenu from "@/app/components/chat/ConversationRowMenu";
 import { useConversationActions } from "@/app/components/chat/useConversationActions";
-import { arrangeContacts } from "@/lib/conversation-list";
+import useConversationListRealtime from "@/app/components/chat/useConversationListRealtime";
+import { applyLatestMessage, arrangeContacts, type LatestMessage } from "@/lib/conversation-list";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact } from "./types";
@@ -25,7 +25,6 @@ export default function MessagesClient({
   currentUserId,
   initialConversationKey,
 }: MessagesClientProps) {
-  const supabase = useMemo(() => createClient(), []);
   const [myLandlordContacts, setMyLandlordContacts] = useState<Contact[]>(myLandlord);
   const [pastInquiryContacts, setPastInquiryContacts] = useState<Contact[]>(pastInquiries);
   const deepLinkContact = selectPortalConversation(myLandlord, pastInquiries, initialConversationKey);
@@ -101,64 +100,21 @@ export default function MessagesClient({
     }
   }
 
-  const incrementUnreadForContact = useCallback((conversationKey: string) => {
-    setMyLandlordContacts((prev) => {
-      let changed = false;
-      const next = prev.map((contact) => {
-        if (contact.conversationKey === conversationKey) {
-          changed = true;
-          return { ...contact, unreadCount: contact.unreadCount + 1 };
-        }
-        return contact;
-      });
-      return changed ? next : prev;
-    });
-
-    setPastInquiryContacts((prev) => {
-      let changed = false;
-      const next = prev.map((contact) => {
-        if (contact.conversationKey === conversationKey) {
-          changed = true;
-          return { ...contact, unreadCount: contact.unreadCount + 1 };
-        }
-        return contact;
-      });
-      return changed ? next : prev;
-    });
+  // Every message in or out updates its row and moves it up the list; a message from a
+  // chat that isn't open also raises a toast.
+  const applyLatestToContacts = useCallback((conversationKey: string, latest: LatestMessage, countAsUnread: boolean) => {
+    const patch = (list: Contact[]) =>
+      list.map((contact) => (contact.conversationKey === conversationKey ? applyLatestMessage(contact, latest, countAsUnread) : contact));
+    setMyLandlordContacts(patch);
+    setPastInquiryContacts(patch);
   }, []);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel(`tenant-unread:${currentUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat",
-          filter: `receiver_id=eq.${currentUserId}`,
-        },
-        (payload: { new: { sender_id: string; apartment_id: string | null } }) => {
-          const senderId = payload.new.sender_id;
-          const apartmentId = payload.new.apartment_id ?? "none";
-          const conversationKey = `${senderId}:${apartmentId}`;
-          if (conversationKey === selectedConversationKey) {
-            return;
-          }
-          // A chat that started while the page was open: reload the lists.
-          if (refreshIfNewConversation(conversationKey)) return;
-          incrementUnreadForContact(conversationKey);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUserId, incrementUnreadForContact, refreshIfNewConversation, selectedConversationKey, supabase]);
+  const findContact = useCallback(
+    (conversationKey: string) => [...myLandlordContacts, ...pastInquiryContacts].find((contact) => contact.conversationKey === conversationKey),
+    [myLandlordContacts, pastInquiryContacts]
+  );
 
   // Row menu (pin, archive, mute, block…): changes show at once on top of the server lists.
-  const { withOverlay, onMenuAction, dialogs } = useConversationActions("tenant", markContactAsRead);
+  const { withOverlay, onMenuAction, onConversationOpened, dialogs } = useConversationActions("tenant", markContactAsRead);
   const myLandlordView = useMemo(() => withOverlay(myLandlordContacts), [myLandlordContacts, withOverlay]);
   const { inbox: pastInquiriesInbox, archived: archivedInquiries } = useMemo(
     () => arrangeContacts(withOverlay(pastInquiryContacts)),
@@ -169,6 +125,14 @@ export default function MessagesClient({
     contacts.find((contact) => contact.conversationKey === selectedConversationKey) ??
     contacts[0] ??
     null;
+
+  useConversationListRealtime({
+    currentUserId,
+    activeKey: activeContact?.conversationKey ?? null,
+    findContact,
+    applyLatestMessage: applyLatestToContacts,
+    refreshIfNewConversation,
+  });
 
   return (
     // The thread and the contact list each scroll internally, so this frame
@@ -186,6 +150,7 @@ export default function MessagesClient({
         onSelectContact={(contact) => {
           setSelectedConversationKey(contact.conversationKey);
           markContactAsRead(contact.conversationKey);
+          onConversationOpened(contact);
           setIsThreadOpen(true);
         }}
         // Tablet widths use one pane; the portal sidebar also needs room.
