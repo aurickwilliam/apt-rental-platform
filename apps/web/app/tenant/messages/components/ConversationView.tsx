@@ -24,6 +24,7 @@ import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
+import useScrollToLatestOnOpen from "@/app/components/chat/useScrollToLatestOnOpen";
 import type { ChatMessage } from "@/app/components/chat/types";
 import { formatMessageMenuDate, latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 import { formatChatDayLabel, isSameChatDay } from "@repo/utils";
@@ -248,6 +249,14 @@ export default function ConversationView({
       setIsLoadingEarlier(false);
     }
   };
+
+  // Every conversation opens at its newest message, whatever the last one's scroll was.
+  useScrollToLatestOnOpen({
+    scrollRef,
+    nearBottomRef,
+    conversationKey: activeContact?.conversationKey ?? null,
+    isLoading: messagesLoading,
+  });
 
   // Re-sample before the new message lands, so the follow decision uses
   // the position the reader actually left behind.
