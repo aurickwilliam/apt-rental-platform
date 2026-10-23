@@ -137,7 +137,7 @@ export function useChat({
     setMessages((prev) => markSentReadUpTo(prev, readUpTo));
   }, []);
 
-  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence } = useChatChannel({
+  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, broadcastTyping } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
@@ -158,16 +158,16 @@ export function useChat({
   // ─── Typing indicators ──────────────────────────────────────────────────────
 
   const handleStartTyping = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, true);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, true);
+  }, [broadcastTyping]);
 
   const handleStopTyping = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, false);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, false);
+  }, [broadcastTyping]);
 
   const handleHeartbeat = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, true);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, true);
+  }, [broadcastTyping]);
 
   const {
     onTextChange: onTypingTextChange,
@@ -219,6 +219,12 @@ export function useChat({
         messageType: msg.messageType,
         senderId: msg.isSent ? (myId ?? '') : otherUserId,
         isSent: msg.isSent,
+        previewUrl:
+          msg.messageType === 'image' || msg.messageType === 'gif'
+            ? (msg.attachmentUrl ?? null)
+            : msg.messageType === 'video'
+              ? (msg.thumbnailUrl ?? null)
+              : null,
       };
     },
     [myId, otherUserId]
@@ -304,6 +310,7 @@ export function useChat({
         reply_message: currentReply?.message ?? null,
         reply_message_type: (currentReply?.messageType as any) ?? null,
         reply_sender_id: currentReply ? (currentReply.isSent ? myId : otherUserId) : null,
+        reply_preview_url: replyPreview?.previewUrl ?? null,
       });
     } catch (err) {
       console.error('Send failed:', err);
@@ -407,6 +414,7 @@ export function useChat({
             reply_message: isFirst ? (currentReply?.message ?? null) : null,
             reply_message_type: isFirst ? ((currentReply?.messageType as any) ?? null) : null,
             reply_sender_id: isFirst ? (currentReply ? (currentReply.isSent ? myId : otherUserId) : null) : null,
+            reply_preview_url: isFirst ? (replyPreview?.previewUrl ?? null) : null,
           });
         }
       } catch (err) {
@@ -507,8 +515,13 @@ export function useChat({
     [apartmentId, broadcastReaction, myId]
   );
 
-  const loadOlderMessages = useCallback(async () => {
-    if (!myId || !nextCursor || !hasMore || paginationInFlightRef.current) return;
+  /**
+   * Loads the next page of older messages. Resolves with whether more remain, or
+   * `null` when nothing was loaded (already loading, no more, or a failed read) —
+   * `useReplyNavigation` walks history with this to find a quoted original.
+   */
+  const loadOlderMessages = useCallback(async (): Promise<{ hasMore: boolean } | null> => {
+    if (!myId || !nextCursor || !hasMore || paginationInFlightRef.current) return null;
 
     paginationInFlightRef.current = true;
     setLoadingMore(true);
@@ -524,8 +537,10 @@ export function useChat({
       setMessages((prev) => mergeChatMessages(prev, page.messages, 'older'));
       setNextCursor(page.nextCursor);
       setHasMore(page.nextCursor !== null);
+      return { hasMore: page.nextCursor !== null };
     } catch (err) {
       console.error('Load older chat messages failed:', err);
+      return null;
     } finally {
       paginationInFlightRef.current = false;
       setLoadingMore(false);

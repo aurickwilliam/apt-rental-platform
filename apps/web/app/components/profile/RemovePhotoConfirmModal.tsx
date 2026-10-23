@@ -8,6 +8,8 @@ type RemovePhotoConfirmModalProps = {
   title: string;
   description: string;
   confirmLabel?: string;
+  /** Shown while the action runs; defaults to "Removing...". */
+  pendingLabel?: string;
   isRemoving: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -20,6 +22,7 @@ export default function RemovePhotoConfirmModal({
   title,
   description,
   confirmLabel = "Remove",
+  pendingLabel = "Removing...",
   isRemoving,
   onClose,
   onConfirm,
@@ -71,7 +74,7 @@ export default function RemovePhotoConfirmModal({
                 {isRemoving ? (
                   <>
                     <Spinner size="sm" color="current" aria-hidden="true" />
-                    Removing...
+                    {pendingLabel}
                   </>
                 ) : (
                   confirmLabel

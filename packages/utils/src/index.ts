@@ -6,6 +6,9 @@ export {
   isChatDocumentType,
   formatChatAttachmentSize,
 } from './chatAttachments';
+export { isSameChatDay, getChatDayKey, formatChatDayLabel } from './chatDay';
+export { getReplyCaption } from './replyCaption';
+export { USER_REPORT_REASONS, USER_REPORT_DETAILS_MAX_LENGTH, type UserReportReason } from './userReport';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
 export {
@@ -42,6 +45,7 @@ export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
   EMPTY_THIS_MONTH,
+  buildAttentionItems,
   buildRequestItems,
   buildTrendSeries,
   collectionProgress,
@@ -55,6 +59,8 @@ export {
   topPropertiesByRevenue,
 } from './landlordDashboard';
 export type {
+  AttentionItem,
+  AttentionKey,
   CollectionMonthPoint,
   CollectionProgress,
   CollectionSummary,

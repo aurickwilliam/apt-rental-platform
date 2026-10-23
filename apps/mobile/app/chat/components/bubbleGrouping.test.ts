@@ -59,3 +59,27 @@ describe('getBubbleGroupPosition', () => {
     expect(continuesBelow('single')).toBe(false);
   });
 });
+
+describe('day dividers end a run', () => {
+  // Newest first. Index 1 is on the previous day, so a divider sits above index 0.
+  const rows = [
+    { isSent: true, dayKey: 'today' },
+    { isSent: true, dayKey: 'yesterday' },
+    { isSent: true, dayKey: 'yesterday' },
+  ];
+
+  it('does not join bubbles across a day boundary', () => {
+    expect(getBubbleGroupPosition(rows, 0)).toBe('single');
+    expect(getBubbleGroupPosition(rows, 1)).toBe('last');
+    expect(getBubbleGroupPosition(rows, 2)).toBe('first');
+  });
+
+  it('shows the sender avatar on the newest received bubble of each day', () => {
+    const received = [
+      { isSent: false, dayKey: 'today' },
+      { isSent: false, dayKey: 'yesterday' },
+    ];
+    expect(showsSenderAvatar(received, 0)).toBe(true);
+    expect(showsSenderAvatar(received, 1)).toBe(true);
+  });
+});

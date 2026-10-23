@@ -8,3 +8,4 @@ export { useConversationRowActions } from './useConversationRowActions';
 export { useBlockStatus } from './useBlockStatus';
 export { useChatApartment } from './useChatApartment';
 export { useEmojiRecents } from './useEmojiRecents';
+export { useReplyNavigation } from './useReplyNavigation';

@@ -1,4 +1,4 @@
-import { getChatApartmentRoute, getChatProfileRoute, getOtherPartyLabel } from "./chatRoutes";
+import { getChatApartmentRoute, getChatProfileRoute } from "./chatRoutes";
 
 describe("chat routes", () => {
   it("opens the landlord profile from the tenant portal, keeping the apartment", () => {
@@ -20,10 +20,5 @@ describe("chat routes", () => {
     expect(getChatApartmentRoute("landlord", "apt-1").pathname).toBe(
       "/landlord/manage-apartment/[apartmentId]"
     );
-  });
-
-  it("labels the other person by the viewer's portal", () => {
-    expect(getOtherPartyLabel("tenant")).toBe("Landlord");
-    expect(getOtherPartyLabel("landlord")).toBe("Tenant");
   });
 });

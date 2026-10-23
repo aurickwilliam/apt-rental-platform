@@ -29,6 +29,7 @@ const pinnedContact = {
 
 const options = (rows, pinned = []) => ({
   rows,
+  currentUserId: "me",
   pinned,
   describeApartment: (name) => (name ? `Inquiry: ${name}` : "Inquiry"),
 });
@@ -147,4 +148,28 @@ test("deep links select the requested conversation, else the portal default", ()
     "landlord-2:apt-2",
   );
   assert.equal(selectPortalConversation([], [], "landlord-1:apt-1"), null);
+});
+
+test("rows record whether the signed-in user sent the latest message", () => {
+  const mine = row({ other_user_id: "a", last_message: "hi", last_sender_id: "me" });
+  const theirs = row({ other_user_id: "b", last_message: "yo", last_sender_id: "b" });
+  const unknown = row({ other_user_id: "c" });
+  const { others } = buildPortalContacts(options([mine, theirs, unknown]));
+  assert.deepEqual(others.map((c) => c.lastSenderIsMe), [true, false, false]);
+
+  const { pinned } = buildPortalContacts(options([row({ last_sender_id: "me" })], [pinnedContact]));
+  assert.equal(pinned[0].lastSenderIsMe, true);
+});
+
+test("rows carry the per-user list state from the RPC", () => {
+  const { others } = buildPortalContacts(options([
+    row({ other_user_id: "a", is_pinned: true, pinned_at: "2026-10-20T00:00:00Z", is_archived: false, is_muted: true, marked_unread: true, blocked_by_me: false, in_active_tenancy: true }),
+    row({ other_user_id: "b" }),
+  ]));
+  assert.deepEqual(
+    { pin: others[0].isPinned, at: others[0].pinnedAt, muted: others[0].isMuted, unread: others[0].markedUnread, tenancy: others[0].inActiveTenancy },
+    { pin: true, at: "2026-10-20T00:00:00Z", muted: true, unread: true, tenancy: true },
+  );
+  assert.equal(others[1].isPinned, false);
+  assert.equal(others[1].blockedByMe, false);
 });

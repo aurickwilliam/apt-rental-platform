@@ -3,58 +3,32 @@
 import { QUICK_REACTIONS } from "./reactionEmojis";
 
 interface ReactionStripProps {
-  /** The current user's reaction, if any (highlighted) */
+  /** The current user's reaction, if any (tinted) */
   myReaction?: string;
   onSelect?: (emoji: string) => void;
-  /** Renders inline without the floating pill surface (used in the context menu) */
-  bare?: boolean;
 }
 
 /**
- * Quick-reaction row. This is the whole reaction surface — the quick set only,
- * no full catalogue — so the strip is intentionally the only entry point.
- * `bare` renders the same row without the floating pill styling, for inline use
- * inside the message context menu.
+ * Quick-reaction row, mirroring mobile's ReactionStrip: icon-only 40px round
+ * buttons with 24px emoji, the current reaction tinted. The preset set only —
+ * there is no custom picker. The floating pill surface (border, shadow,
+ * padding) comes from the `apt-reaction-popover` popover that hosts it.
  */
-export default function ReactionStrip({
-  myReaction,
-  onSelect,
-  bare = false,
-}: ReactionStripProps) {
-  if (bare) {
-    return (
-      <div className="flex items-center justify-between gap-0.5" role="group" aria-label="Quick reactions">
-        {QUICK_REACTIONS.map((emoji) => (
-          <button
-            key={emoji}
-            type="button"
-            onClick={() => onSelect?.(emoji)}
-            aria-label={`React with ${emoji}`}
-            aria-pressed={myReaction === emoji}
-            className={`flex size-9 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-              myReaction === emoji ? "bg-secondary ring-1 ring-primary/30" : ""
-            }`}
-          >
-            <span className="text-xl leading-6">{emoji}</span>
-          </button>
-        ))}
-      </div>
-    );
-  }
-
+export default function ReactionStrip({ myReaction, onSelect }: ReactionStripProps) {
   return (
-    <div className="flex items-center gap-0.5 rounded-full border border-border bg-card px-2 py-1 shadow-md">
+    <div className="flex items-center gap-0.5" role="group" aria-label="Quick reactions">
       {QUICK_REACTIONS.map((emoji) => (
         <button
           key={emoji}
           type="button"
           onClick={() => onSelect?.(emoji)}
           aria-label={`React with ${emoji}`}
-          className={`rounded-full p-1.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-            myReaction === emoji ? "bg-accent/15" : ""
+          aria-pressed={myReaction === emoji}
+          className={`flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            myReaction === emoji ? "bg-primary/15" : ""
           }`}
         >
-          <span className="text-xl leading-7">{emoji}</span>
+          <span className="text-2xl leading-8">{emoji}</span>
         </button>
       ))}
     </div>

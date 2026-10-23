@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Alert, Keyboard, Linking, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { formatChatAttachmentSize } from '@repo/utils';
+import { emojiFontSizeForCount } from '@repo/constants';
+import { formatChatAttachmentSize, getReplyCaption } from '@repo/utils';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
@@ -23,6 +24,8 @@ import { isEmojiOnly } from '@/service/chat/chatService';
 import { HEART_REACTION } from './reactionEmojis';
 import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
 import SenderAvatar from './SenderAvatar';
+import SeenAvatar from './SeenAvatar';
+import { groupReactionsByEmoji } from '@/service/chat/reactionGroups';
 import SwipeToReply from './SwipeToReply';
 import TimestampRevealRow from './TimestampRevealRow';
 import { formatRevealTime } from './timestampReveal';
@@ -62,7 +65,11 @@ interface ChatBubbleProps {
   }) => void;
   /** Place in a run of same-sender messages: joined corners and a tighter gap. */
   groupPosition?: BubbleGroupPosition;
-  /** Sent bubbles: "Seen" under the newest message the other person has read. */
+  /** Tapping the quote above a reply scrolls to the original message. */
+  onJumpToReply?: (messageId: string) => void;
+  /** Flashes a ring around the bubble while it is the target of a jump. */
+  highlighted?: boolean;
+  /** Sent bubbles: the other person's avatar under the newest message they've read. */
   showSeen?: boolean;
   /** Received bubbles: the sender's avatar beside the last bubble of a run. */
   showSenderAvatar?: boolean;
@@ -100,6 +107,8 @@ export interface ChatBubbleContentProps {
   onReact?: (emoji: string) => void;
   /** Place in a run of same-sender messages; shrinks the joining corners of text bubbles. */
   groupPosition?: BubbleGroupPosition;
+  /** Tapping the quote above a reply scrolls to the original message. */
+  onJumpToReply?: (messageId: string) => void;
 }
 
 const DOUBLE_TAP_WINDOW_MS = 300;
@@ -172,33 +181,35 @@ function useDoubleTapPress({
   }, [disabled, onDoubleTap, onSingleTap]);
 }
 
-/** One circle per reaction, overlapped and pinned to the bubble's bottom-right (both sides). */
-export function ReactionBadge({
-  reactions,
-  isSent = false,
-}: {
-  reactions: MessageReaction[];
-  isSent?: boolean;
-}) {
+/**
+ * One badge per distinct emoji (like web), overlapped and pinned to the bubble's
+ * bottom-right on both sides. Two people using the same emoji share one badge
+ * with a count beside it instead of drawing the emoji twice.
+ */
+export function ReactionBadge({ reactions }: { reactions: MessageReaction[] }) {
   if (reactions.length === 0) return null;
-  const shown = reactions.slice(0, 3);
-  const circleBg = isSent ? 'bg-accent' : 'bg-surface-tertiary';
+  const shown = groupReactionsByEmoji(reactions).slice(0, 3);
   return (
     <View
       className="absolute -bottom-3 right-1 z-10 flex-row items-center"
       accessibilityRole="text"
-      accessibilityLabel={`Reactions: ${shown.map((r) => r.emoji).join(', ')}`}
+      accessibilityLabel={`Reactions: ${shown
+        .map((g) => (g.count > 1 ? `${g.emoji} ${g.count}` : g.emoji))
+        .join(', ')}`}
     >
-      {shown.map((r, index) => (
+      {shown.map((group, index) => (
         <View
-          key={r.userId}
-          className={`size-6 rounded-full items-center justify-center border border-border ${circleBg} ${
-            index > 0 ? '-ml-2' : ''
-          }`}
+          key={group.emoji}
+          className={`h-6 min-w-6 flex-row items-center justify-center gap-1 rounded-full border border-border bg-surface-tertiary ${
+            group.count > 1 ? 'px-1.5' : ''
+          } ${index > 0 ? '-ml-2' : ''}`}
         >
           <Text className="text-xs text-center" style={{ lineHeight: 14, textAlignVertical: 'center' }}>
-            {r.emoji}
+            {group.emoji}
           </Text>
+          {group.count > 1 && (
+            <Text className="text-[10px] font-inter text-gray-500">{group.count}</Text>
+          )}
         </View>
       ))}
     </View>
@@ -206,6 +217,10 @@ export function ReactionBadge({
 }
 
 const ATTACHMENT_BORDER_RADIUS = 18;
+// A quoted photo/GIF/video poster above a reply (Instagram-style, dimmed).
+const QUOTED_IMAGE_WIDTH = 150;
+const QUOTED_IMAGE_HEIGHT = 190;
+const QUOTED_IMAGE_RADIUS = 24;
 const ATTACHMENT_MAX_WIDTH = 220;
 const ATTACHMENT_MAX_HEIGHT = 280;
 
@@ -310,6 +325,7 @@ export function ChatBubbleContent({
   onLongPress,
   onReact,
   groupPosition = 'single',
+  onJumpToReply,
 }: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -325,17 +341,19 @@ export function ChatBubbleContent({
   const isEmojiMessage = messageType === 'text' && isEmojiOnly(message);
   const emojiCount = [...(message ?? '')].length;
 
-  let fontSize = 46;
-  if (emojiCount === 2) fontSize = 40;
-  if (emojiCount >= 3) fontSize = 34;
+  const fontSize = emojiFontSizeForCount(emojiCount);
 
   const hasReply = replyDeleted || !!replyTo;
   // IG-style caption names the replier (this bubble's sender), not the quoted author.
   const replierLabel = hasReply
-    ? isSent
-      ? 'You replied'
-      : `${otherUserName ?? 'Someone'} replied`
+    ? getReplyCaption({
+        replierIsMe: isSent,
+        quotedIsMine: replyTo ? replyTo.isSent : null,
+        otherName: otherUserName,
+      })
     : null;
+  // Instagram-style: a quoted photo, GIF or video shows its own image, dimmed, above the reply.
+  const quotedImage = replyTo?.previewUrl ?? null;
   const replySnippet = replyTo ? getReplySnippet(replyTo) : null;
   const quotedType = replyTo?.messageType ?? 'text';
   const isQuotedMedia = !!replyTo && quotedType !== 'text';
@@ -353,7 +371,7 @@ export function ChatBubbleContent({
       <IconPhoto size={16} color={colors.gray500} />
     );
 
-  const quoteBlock = replyDeleted ? (
+  const quoteContent = replyDeleted ? (
     <View
       className="px-3 py-2 rounded-3xl bg-surface"
       style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
@@ -361,6 +379,31 @@ export function ChatBubbleContent({
       <Text className="text-xs font-inter italic text-gray-500" numberOfLines={2}>
         Original message unavailable
       </Text>
+    </View>
+  ) : replyTo && quotedImage ? (
+    <View
+      accessibilityLabel={`Quoted ${replySnippet ?? 'media'}`}
+      style={{
+        width: QUOTED_IMAGE_WIDTH,
+        height: QUOTED_IMAGE_HEIGHT,
+        borderRadius: QUOTED_IMAGE_RADIUS,
+        overflow: 'hidden',
+      }}
+    >
+      <Image
+        source={{ uri: quotedImage }}
+        style={{ width: '100%', height: '100%', opacity: 0.6 }}
+        cachePolicy="disk"
+        contentFit="cover"
+        accessibilityIgnoresInvertColors
+      />
+      {quotedType === 'video' && (
+        <View className="absolute inset-0 items-center justify-center">
+          <View className="bg-black/50 rounded-full p-2">
+            <IconPlayerPlayFilled size={18} color="white" />
+          </View>
+        </View>
+      )}
     </View>
   ) : replyTo ? (
     <View
@@ -383,6 +426,21 @@ export function ChatBubbleContent({
       )}
     </View>
   ) : null;
+
+  const quoteBlock =
+    quoteContent && replyTo && interactive && onJumpToReply ? (
+      <Pressable
+        onPress={() => onJumpToReply(replyTo.id)}
+        onLongPress={onLongPress}
+        delayLongPress={350}
+        accessibilityRole="button"
+        accessibilityLabel="Jump to original message"
+      >
+        {quoteContent}
+      </Pressable>
+    ) : (
+      quoteContent
+    );
 
   return (
     <>
@@ -415,7 +473,7 @@ export function ChatBubbleContent({
               {attachmentSize != null ? <Text className={`font-inter text-xs ${textColor}`}>{formatChatAttachmentSize(attachmentSize)}</Text> : null}
             </View>
           </Pressable>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isVideo ? (
         <View className={`relative ${replyOverlap}`}>
@@ -429,7 +487,7 @@ export function ChatBubbleContent({
             canReact={interactive && canReact}
             onReact={interactive ? onReact : undefined}
           />
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isVisualMedia ? (
         <View className={`relative ${replyOverlap}`}>
@@ -445,7 +503,7 @@ export function ChatBubbleContent({
             canReact={interactive && canReact}
             onReact={interactive ? onReact : undefined}
           />
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isBrokenAttachment ? (
         <View className={`relative ${replyOverlap}`}>
@@ -459,12 +517,12 @@ export function ChatBubbleContent({
           >
             <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
           </View>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isEmojiMessage ? (
         <View className={`relative ${replyOverlap}`}>
           <Text style={{ fontSize }}>{message}</Text>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : (
         <View
@@ -472,7 +530,7 @@ export function ChatBubbleContent({
           style={getGroupedCornerStyle(isSent, groupPosition)}
         >
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       )}
     </>
@@ -503,6 +561,8 @@ export default function ChatBubble({
   onReply,
   groupPosition = 'single',
   showSeen = false,
+  onJumpToReply,
+  highlighted = false,
   showSenderAvatar = false,
   otherUserAvatar,
   onSenderAvatarPress,
@@ -517,6 +577,7 @@ export default function ChatBubble({
     onMenuOpenChangeRef.current = onMenuOpenChange;
   });
 
+  const { colors } = useColors();
   const rowRef = useRef<View>(null);
 
   const rowAlignment = isSent ? 'self-end' : 'self-start';
@@ -628,16 +689,32 @@ export default function ChatBubble({
                 onLongPress={handleLongPress}
                 onReact={onReact}
                 groupPosition={groupPosition}
+                onJumpToReply={onJumpToReply}
               />
+              {highlighted && (
+                // A ring that takes no layout space, flashed while this bubble is a jump target.
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    bottom: -2,
+                    left: -2,
+                    right: -2,
+                    borderWidth: 2,
+                    borderRadius: BUBBLE_RADIUS + 2,
+                    borderColor: colors.primary,
+                  }}
+                />
+              )}
             </Pressable>
           </SwipeToReply>
           {showSeen && (
-            <Text
-              className="self-end mt-1 mr-1 text-[11px] font-inter text-gray-500"
-              accessibilityLabel="Seen"
-            >
-              Seen
-            </Text>
+            <SeenAvatar
+              name={otherUserName}
+              avatarUrl={otherUserAvatar}
+              belowReactions={reactions.length > 0}
+            />
           )}
         </View>
       </View>
