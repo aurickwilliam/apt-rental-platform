@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
-import { latestOutgoingMessageId } from "./chat-message-presentation.ts";
+import { emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
 for (const portal of ["tenant", "landlord"]) {
@@ -53,6 +53,7 @@ function harness(file, browser = { getSelection: () => null }) {
     "@repo/utils": { formatChatAttachmentSize },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
     "./reactionEmojis": { HEART_REACTION: "❤️" },
+    "@/lib/chat-message-presentation": { emojiMessageFontSize, isEmojiOnlyMessage },
   };
   const source = readFileSync(new URL(`../app/components/chat/${file}.tsx`, import.meta.url), "utf8");
   const exports = {};
@@ -385,4 +386,26 @@ test("CSS hover tolerance is localized and adjacent grouped messages split the 4
     assert.match(source, /otherUserAvatar=\{activeContact.avatar\}/);
     assert.match(source, /isLatestOutgoing=\{msg.id === latestOutgoingId\}/);
   }
+});
+
+test("emoji-only messages are detected and sized like mobile", () => {
+  for (const text of ["😂", " 👍🏽 ", "👨‍👩‍👧", "🇵🇭", "😂😂", "😂 😂 😂"]) assert.equal(isEmojiOnlyMessage(text), true, text);
+  for (const text of ["", "   ", null, undefined, "hi 😂", "123", "#", "ok"]) assert.equal(isEmojiOnlyMessage(text), false, String(text));
+  assert.equal(emojiMessageFontSize("😂"), 46);
+  assert.equal(emojiMessageFontSize("👨‍👩‍👧"), 46);
+  assert.equal(emojiMessageFontSize("😂😂"), 40);
+  assert.equal(emojiMessageFontSize("😂😂😂"), 34);
+  assert.equal(emojiMessageFontSize("😂😂😂😂😂"), 34);
+});
+
+test("emoji-only text messages render large without a bubble background", () => {
+  const h = harness("MessageBubble");
+  const bubble = (message) => h.render({ message: { id: "m", message_type: "text", reactions: [], ...message }, isMine: true }).find((n) => n.props.className?.includes("apt-message-bubble"));
+  const emoji = bubble({ message: "😂" });
+  assert.match(emoji.props.className, /bg-transparent/);
+  assert.match(emoji.props.className, /\bp-0\b/);
+  assert.equal(nodes(emoji).find((n) => n.type === "p").props.style.fontSize, 46);
+  const text = bubble({ message: "hello 😂" });
+  assert.match(text.props.className, /bg-primary/);
+  assert.equal(nodes(text).find((n) => n.type === "p").props.style, undefined);
 });

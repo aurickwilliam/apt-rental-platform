@@ -10,6 +10,7 @@ import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import { emojiMessageFontSize, isEmojiOnlyMessage } from "@/lib/chat-message-presentation";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -97,6 +98,8 @@ export default function MessageBubble({
   const showSeen = isMine && isLatestOutgoing && canInteract && message.is_read;
   const mediaUrl = attachmentDisplayUrl(message);
   const showsAttachment = hasAttachment(message);
+  // Like mobile: a text message of only emoji renders large, with no bubble.
+  const isEmojiMessage = !showsAttachment && message.message_type === "text" && isEmojiOnlyMessage(message.message);
 
   // Consecutive messages hug together; separate runs keep the full gap.
   const runSpacing = continuesPrevious ? "mt-1" : "mt-4 first:mt-0";
@@ -222,17 +225,21 @@ export default function MessageBubble({
         data-mine={isMine}
         data-chat-message-id={message.id}
         data-reply-highlight={isReplyHighlighted}
-        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-          isMine
-            ? "bg-primary text-white"
-            : "bg-muted/60 text-foreground"
+        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : isEmojiMessage ? "p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+          isEmojiMessage
+            ? "bg-transparent text-foreground"
+            : isMine
+              ? "bg-primary text-white"
+              : "bg-muted/60 text-foreground"
         } ${canInteract ? "cursor-pointer" : ""}`}
       >
         {mediaUrl && showsAttachment ? (
           <AttachmentBody message={message} url={mediaUrl} />
         ) : null}
         {!mediaUrl && showsAttachment && <span className="flex items-center gap-2 text-sm"><IconPaperclip size={16} aria-hidden="true" />Attachment unavailable</span>}
-        {message.message && <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>}
+        {message.message && (isEmojiMessage
+          ? <p className="whitespace-pre-wrap leading-tight [overflow-wrap:anywhere]" style={{ fontSize: emojiMessageFontSize(message.message) }}>{message.message}</p>
+          : <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>)}
         {!message.message && !showsAttachment && (
           <span className="flex items-center gap-2 text-sm">
             <IconPaperclip size={16} aria-hidden="true" />

@@ -96,7 +96,7 @@ for (const portal of ["tenant", "landlord"]) {
     assert.ok(source.indexOf("<ConversationIntroduction") > source.indexOf("<ScrollShadow"));
     assert.ok(source.indexOf("<ConversationIntroduction") < source.indexOf("messages.map"));
     assert.ok(source.indexOf("<ConversationApartmentRow") > source.indexOf("<ConversationHeader"));
-    assert.match(source, new RegExp(`role="${portal === "tenant" ? "Landlord" : "Tenant"}"`));
+    assert.doesNotMatch(source, /<ConversationIntroduction[^>]*role=/);
   });
 }
 
