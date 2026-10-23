@@ -13,7 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { formatLeaseDate } from "@/app/tenant/payment/utils";
-import type { LandlordUnitDetail } from "@/service/landlordUnitDetailService";
+import type { LandlordUnitDescription } from "@/service/landlordUnitDetailService";
 import { toProperty } from "../../components/to-property";
 import { useLeaseViewer } from "../../components/use-lease-viewer";
 import { PERKS } from "@/app/components/inputs/perks";
@@ -45,7 +45,7 @@ function EditSectionButton({ label, onPress }: { label: string; onPress: () => v
   );
 }
 
-export default function DescriptionClient({ detail }: { detail: LandlordUnitDetail }) {
+export default function DescriptionClient({ detail }: { detail: LandlordUnitDescription }) {
   const router = useRouter();
   const [apartment, setApartment] = useState(detail.apartment);
   const [actionError, setActionError] = useState<string | null>(null);

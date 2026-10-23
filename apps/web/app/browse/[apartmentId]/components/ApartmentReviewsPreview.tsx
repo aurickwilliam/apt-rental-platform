@@ -42,7 +42,7 @@ function EmptyReviewsState() {
 
 export default function ApartmentReviewsPreview({ apartmentId, basePath = "/browse" }: ApartmentReviewsPreviewProps) {
   const router = useRouter();
-  const { reviews, loading, error } = useApartmentReviews(apartmentId);
+  const { reviews, loading, error } = useApartmentReviews(apartmentId, false);
 
   if (loading) return null;
   if (error || reviews.length === 0) {

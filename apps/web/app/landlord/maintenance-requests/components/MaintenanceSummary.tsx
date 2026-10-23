@@ -17,10 +17,10 @@ export default function MaintenanceSummary({ summary, loading = false }: Mainten
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-hidden={loading ? "true" : undefined}>
       {stats.map(({ label, value, icon: Icon, tone }) => (
         <div key={label} className={`maintenance-summary-card maintenance-summary-${tone}`}>
-          {loading ? <Skeleton className="size-14 shrink-0 rounded-2xl bg-grey-300!" /> : <span className="maintenance-summary-icon"><Icon size={26} aria-hidden="true" /></span>}
+          {loading ? <Skeleton className="size-14 shrink-0 rounded-2xl bg-skeleton!" /> : <span className="maintenance-summary-icon"><Icon size={26} aria-hidden="true" /></span>}
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">{label}</p>
-            {loading ? <Skeleton className="mt-1 h-9 w-12 rounded-lg bg-grey-300!" /> : <p className="mt-1 text-3xl font-nunito font-bold text-card-foreground">{value ?? "—"}</p>}
+            {loading ? <Skeleton className="mt-1 h-9 w-12 rounded-lg bg-skeleton!" /> : <p className="mt-1 text-3xl font-nunito font-bold text-card-foreground">{value ?? "—"}</p>}
           </div>
         </div>
       ))}

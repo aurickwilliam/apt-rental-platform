@@ -24,14 +24,15 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
 
   const resolveThumbnail = useCallback((apartment: FavoriteApartment) => {
     const images = apartment.apartment_images ?? [];
-    const cover = images.find((img) => img.is_cover)?.url;
+    const coverImage = images.find((img) => img.is_cover);
+    const cover = coverImage?.url_thumb || coverImage?.url;
     if (cover) return cover;
 
     const oldest = [...images].sort(
       (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
-    )[0]?.url;
+    )[0];
 
-    return oldest ?? "/default/default-thumbnail.jpeg";
+    return oldest?.url_thumb || oldest?.url || "/default/default-thumbnail.jpeg";
   }, []);
 
   const handleFavoriteToggle = useCallback(

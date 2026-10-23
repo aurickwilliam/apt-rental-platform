@@ -18,7 +18,7 @@ export default function RatingSection({
 }: RatingSectionProps) {
   const router = useRouter();
   const { overallRating, totalReviews, ratingsCount, loading, error } =
-    useApartmentReviews(apartmentId);
+    useApartmentReviews(apartmentId, false);
 
   const countFor = (star: number) =>
     ratingsCount.find((bucket) => bucket.rating === star)?.ratingCount ?? 0;

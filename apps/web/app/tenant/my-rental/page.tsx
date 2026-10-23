@@ -14,7 +14,7 @@ export default async function MyRentalPage() {
   if (error) throw new Error("Unable to verify rental access.");
   if (!profile?.roles.includes("tenant")) redirect("/browse");
 
-  const initialContext: InitialRentalContext = { authUserId: user.id, tenancy: null, error: null, renderedAt: new Date().toISOString() };
+  const initialContext: InitialRentalContext = { authUserId: user.id, tenantId: profile.id, tenancy: null, error: null, renderedAt: new Date().toISOString() };
   try {
     initialContext.tenancy = await fetchActiveTenancyWith(supabase, profile.id);
   } catch (error) {

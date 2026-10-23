@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { toast } from "@heroui/react";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
@@ -13,7 +13,7 @@ import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
-import { BrowseCardsSkeleton } from "./BrowsePageSkeleton";
+import BrowseSeeAllPending from "./BrowseSeeAllPending";
 import {
   previewPosition,
   useHoverPreview,
@@ -160,15 +160,9 @@ const SectionRow = memo(function SectionRow({
 
 export default function BrowseSectionsList({ sections, basePath = "/browse" }: BrowseSectionsListProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
-  // Set on See All click so the HeroUI card-grid skeleton shows instantly
-  // in the results area (search bar + sidebar persist) while the grid
-  // loads. A completed navigation unmounts this list; the check below
-  // clears the flag if the URL changes while still mounted.
-  const [navigatingHref, setNavigatingHref] = useState<string | null>(null);
   const {
     preview,
     handleHoverCard,
@@ -224,79 +218,47 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
     [handleFavoriteToggle],
   );
 
-  // Safety net: never stick on the skeleton if a See All click doesn't
-  // actually navigate away (modifier-clicks are filtered at the Link, this
-  // covers the rest). Compared during render, not in an effect.
-  const paramsSignature = searchParams.toString();
-  const [prevSig, setPrevSig] = useState(paramsSignature);
-  if (prevSig !== paramsSignature) {
-    setPrevSig(paramsSignature);
-    if (navigatingHref !== null) setNavigatingHref(null);
-  }
-
-  // Plain left-clicks navigate in the same tab; modifier/middle clicks
-  // must not trigger the skeleton.
-  const handleSeeAllClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string,
-  ) => {
-    if (
-      e.button !== 0 ||
-      e.metaKey ||
-      e.ctrlKey ||
-      e.shiftKey ||
-      e.altKey
-    ) {
-      return;
-    }
-    dismissPreview();
-    setNavigatingHref(href);
-  };
-
   return (
     <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
-      {navigatingHref !== null ? (
-        <BrowseCardsSkeleton />
-      ) : (
-        sections.map((section, sectionIndex) => (
-          <section key={section.id} aria-label={section.title} className="min-w-0">
-            <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
-              <div className="min-w-0">
-                <h3 className="min-w-0 truncate text-lg font-medium">
-                  {section.title}
-                </h3>
-                {section.subtitle ? (
-                  <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                    {section.subtitle}
-                  </p>
-                ) : null}
-              </div>
-              {section.seeAllHref ? (
-                <Link
-                  href={section.seeAllHref}
-                  onClick={(e) => handleSeeAllClick(e, section.seeAllHref as string)}
-                  className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-                  aria-label={`See all ${section.title}`}
-                >
-                  See All
-                  <IconChevronRight size={18} />
-                </Link>
+      {sections.map((section, sectionIndex) => (
+        <section key={section.id} aria-label={section.title} className="min-w-0">
+          <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
+            <div className="min-w-0">
+              <h3 className="min-w-0 truncate text-lg font-medium">
+                {section.title}
+              </h3>
+              {section.subtitle ? (
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                  {section.subtitle}
+                </p>
               ) : null}
             </div>
+            {section.seeAllHref ? (
+              <Link
+                href={section.seeAllHref}
+                onNavigate={dismissPreview}
+                className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+                aria-label={`See all ${section.title}`}
+              >
+                See All
+                <IconChevronRight size={18} />
+                <BrowseSeeAllPending />
+              </Link>
+            ) : null}
+          </div>
 
-            <SectionRow
-              section={section}
-              sectionIndex={sectionIndex}
-              isFavorite={isFavorite}
-              onToggleFavorite={handleToggleFavorite}
-              onPressApartment={handlePressApartment}
-              onHoverCard={handleHoverCard}
-              onLeaveCard={handleLeaveCard}
-              activeFavoriteId={activeFavoriteId}
-            />
-          </section>
-        ))
-      )}
+          <SectionRow
+            section={section}
+            sectionIndex={sectionIndex}
+            isFavorite={isFavorite}
+            onToggleFavorite={handleToggleFavorite}
+            onPressApartment={handlePressApartment}
+            onHoverCard={handleHoverCard}
+            onLeaveCard={handleLeaveCard}
+            activeFavoriteId={activeFavoriteId}
+          />
+        </section>
+      ))}
 
       {preview && (
         <ApartmentHoverPreview

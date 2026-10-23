@@ -1,4 +1,4 @@
-import { getLandlordUnitDetail, UnitNotice } from "../lib/get-unit-detail";
+import { getLandlordDescription, UnitNotice } from "../lib/get-unit-detail";
 import DescriptionClient from "./components/DescriptionClient";
 
 export const dynamic = "force-dynamic";
@@ -9,9 +9,9 @@ type PageProps = {
 
 export default async function LandlordPropertyDescriptionPage({ params }: PageProps) {
   const { apartmentId } = await params;
-  const result = await getLandlordUnitDetail(apartmentId);
+  const result = await getLandlordDescription(apartmentId);
   if ("error" in result) {
     return <UnitNotice title={result.error.title} message={result.error.message} />;
   }
-  return <DescriptionClient detail={result.detail} />;
+  return <DescriptionClient key={result.apartment.id} detail={result} />;
 }

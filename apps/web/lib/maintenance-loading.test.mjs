@@ -115,7 +115,7 @@ test("Maintenance page uses the independent context and shares its tenant identi
     });
     const nodes = (node) => !node || typeof node !== "object" ? [] : [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
     const tree = nodes(page.default());
-    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a"]]);
+    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false]]);
     assert.equal(tree.some((node) => node.type === "MaintenancePageSkeleton"), state.loading);
     assert.equal(tree.some((node) => node.type === "ErrorBanner"), !!state.error);
     assert.equal(tree.some((node) => node.type === "PropertyContextCard"), !!state.tenancy);
@@ -248,6 +248,20 @@ test("maintenance photos are freshly signed on repeat reads and signing failure 
   const rows = await failed.service.fetchMaintenanceRequestHistory("apt-a", "tenant-a");
   assert.deepEqual(plain(rows[0].image_urls), []);
   assert.deepEqual(plain(rows[0].image_paths), ["tenant-a/photo"]);
+});
+
+test("text-only rental maintenance keeps the same scoped rows without requesting signed photos", async () => {
+  const h = photoService([request("r1", ["tenant-a/photo"])], { data: null, error: { message: "Signing unavailable" } });
+  const text = await h.service.fetchMaintenanceRequestHistory("apt-a", "tenant-a", false);
+  assert.equal(h.signed.length, 0);
+  assert.equal(text[0].id, "r1");
+  assert.equal(text[0].status, "Pending");
+  assert.deepEqual(plain(text[0].image_paths), ["tenant-a/photo"]);
+  assert.deepEqual(plain(text[0].image_urls), []);
+  assert.deepEqual(h.calls[0].filters, [["apartment_id", "apt-a"], ["tenant_id", "tenant-a"]]);
+  assert.equal(h.calls[0].limit, 100);
+  await h.service.fetchMaintenanceRequestHistory("apt-a", "tenant-a");
+  assert.equal(h.signed.length, 1, "full-history callers still sign normally");
 });
 
 test("maintenance history skips signing for empty histories and requests without photos; latest-request reads still resolve photos", async () => {

@@ -25,7 +25,7 @@ function RequestVisitPageInner() {
   const [landlordId, setLandlordId] = useState<string | null>(null);
   const [resolvingLandlord, setResolvingLandlord] = useState(true);
 
-  const { applications } = useTenantApplications();
+  const { applications } = useTenantApplications(undefined, applicationId, false);
   const { visitRequest } = useVisitRequest(applicationId);
   const { submitVisitRequest, loading: submitting } = useSubmitVisitRequest();
 

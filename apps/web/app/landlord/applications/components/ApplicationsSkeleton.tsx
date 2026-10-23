@@ -9,7 +9,7 @@ const CARD_COUNT = 3;
 const COLUMNS = ["Tenant", "Property", "Location", "Date", "Status", "Actions"];
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 export function ApplicationsCountSkeleton() {

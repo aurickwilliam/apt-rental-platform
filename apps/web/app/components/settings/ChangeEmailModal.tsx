@@ -53,8 +53,8 @@ function ChangeEmailFormSkeleton() {
     <div className="mt-4 flex flex-col gap-4" aria-busy="true" aria-label="Loading your account">
       {[0, 1, 2].map((field) => (
         <div key={field} className="flex flex-col gap-2">
-          <Skeleton className="h-4 w-28 rounded-lg bg-grey-300!" />
-          <Skeleton className="h-10 w-full rounded-2xl bg-grey-300!" />
+          <Skeleton className="h-4 w-28 rounded-lg bg-skeleton!" />
+          <Skeleton className="h-10 w-full rounded-2xl bg-skeleton!" />
         </div>
       ))}
     </div>

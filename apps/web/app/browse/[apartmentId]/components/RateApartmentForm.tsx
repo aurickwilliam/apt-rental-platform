@@ -115,12 +115,12 @@ export function RateApartmentForm({
           );
         }
 
-        const apartmentHeader = showApartmentInfo
-          ? await fetchRateApartmentHeader(apartmentId)
-          : null;
+        const loadHeader = () => showApartmentInfo
+          ? fetchRateApartmentHeader(apartmentId)
+          : Promise.resolve(null);
 
         if (isEditMode) {
-          const review = await fetchReviewById(reviewId);
+          const [review, apartmentHeader] = await Promise.all([fetchReviewById(reviewId), loadHeader()]);
 
           // Client-side guard only — RLS remains the authority.
           if (review.tenantId !== context.tenantId) {
@@ -151,7 +151,7 @@ export function RateApartmentForm({
             throw new Error("Missing tenancy reference.");
           }
 
-          const lease = await fetchReviewTenancy(tenancyId);
+          const [lease, apartmentHeader] = await Promise.all([fetchReviewTenancy(tenancyId), loadHeader()]);
 
           // Client-side guard only — RLS and triggers remain the authority.
           if (lease.tenant_id !== context.tenantId || lease.apartment_id !== apartmentId) {

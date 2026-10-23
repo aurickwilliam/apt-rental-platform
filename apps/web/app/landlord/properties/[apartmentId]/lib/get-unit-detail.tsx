@@ -1,5 +1,5 @@
 import { createClient } from "@repo/supabase/server";
-import { fetchLandlordUnitDetail, type LandlordUnitDetail } from "@/service/landlordUnitDetailService";
+import { fetchLandlordUnitDetail, fetchLandlordUnitApartment, fetchLandlordUnitDescription, type LandlordUnitDetail, type LandlordUnitApartment } from "@/service/landlordUnitDetailService";
 
 export type UnitLoadError = { title: string; message: string };
 
@@ -8,6 +8,25 @@ export type UnitLoadResult = { detail: LandlordUnitDetail } | { error: UnitLoadE
 // Server-only loader shared by the property homepage + sub-pages.
 // Verifies the signed-in landlord owns the apartment; RLS gates the rows too.
 export async function getLandlordUnitDetail(apartmentId: string): Promise<UnitLoadResult> {
+  const result = await loadOwnedUnit(apartmentId, fetchLandlordUnitDetail);
+  return "error" in result ? result : { detail: result };
+}
+
+export async function getLandlordApartment(apartmentId: string) {
+  return loadOwnedUnit(apartmentId, async (supabase, id) => {
+    const apartment = await fetchLandlordUnitApartment(supabase, id);
+    return apartment ? { apartment } : null;
+  });
+}
+
+export async function getLandlordDescription(apartmentId: string) {
+  return loadOwnedUnit(apartmentId, fetchLandlordUnitDescription);
+}
+
+async function loadOwnedUnit<T extends { apartment: LandlordUnitApartment }>(
+  apartmentId: string,
+  load: (supabase: Awaited<ReturnType<typeof createClient>>, id: string) => Promise<T | null>,
+): Promise<T | { error: UnitLoadError }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,7 +45,7 @@ export async function getLandlordUnitDetail(apartmentId: string): Promise<UnitLo
   }
 
   try {
-    const detail = await fetchLandlordUnitDetail(supabase, apartmentId);
+    const detail = await load(supabase, apartmentId);
     if (!detail || detail.apartment.landlord_id !== (profile.id as string)) {
       return {
         error: {
@@ -35,7 +54,7 @@ export async function getLandlordUnitDetail(apartmentId: string): Promise<UnitLo
         },
       };
     }
-    return { detail };
+    return detail;
   } catch {
     return {
       error: { title: "Could not load property", message: "Something went wrong. Please try again." },

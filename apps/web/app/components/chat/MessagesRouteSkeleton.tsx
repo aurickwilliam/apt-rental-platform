@@ -17,16 +17,16 @@ export default function MessagesRouteSkeleton() {
     >
       <div className="flex w-full min-h-0 flex-col border-r border-border bg-card lg:w-80 lg:shrink-0 xl:w-88">
         <div className="border-b border-border px-5 py-4">
-          <Skeleton className="h-5 w-32 rounded-md bg-grey-300!" />
-          <Skeleton className="mt-2 h-3 w-48 rounded-md bg-grey-300!" />
+          <Skeleton className="h-5 w-32 rounded-md bg-skeleton!" />
+          <Skeleton className="mt-2 h-3 w-48 rounded-md bg-skeleton!" />
         </div>
         <div className="flex flex-col gap-1 p-2">
           {Array.from({ length: 6 }, (_, index) => (
             <div key={index} className="flex items-center gap-3 rounded-xl p-3">
-              <Skeleton className="size-11 shrink-0 rounded-full bg-grey-300!" />
+              <Skeleton className="size-11 shrink-0 rounded-full bg-skeleton!" />
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <Skeleton className="h-4 w-32 rounded-md bg-grey-300!" />
-                <Skeleton className="h-3 w-44 rounded-md bg-grey-300!" />
+                <Skeleton className="h-4 w-32 rounded-md bg-skeleton!" />
+                <Skeleton className="h-3 w-44 rounded-md bg-skeleton!" />
               </div>
             </div>
           ))}
@@ -35,20 +35,20 @@ export default function MessagesRouteSkeleton() {
 
       <div className="hidden min-w-0 flex-1 flex-col lg:flex">
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <Skeleton className="size-10 shrink-0 rounded-full bg-grey-300!" />
+          <Skeleton className="size-10 shrink-0 rounded-full bg-skeleton!" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-36 rounded-md bg-grey-300!" />
-            <Skeleton className="h-3 w-52 rounded-md bg-grey-300!" />
+            <Skeleton className="h-4 w-36 rounded-md bg-skeleton!" />
+            <Skeleton className="h-3 w-52 rounded-md bg-skeleton!" />
           </div>
         </div>
         <div className="flex flex-1 flex-col justify-end gap-3 p-4">
-          <Skeleton className="h-12 w-2/3 rounded-2xl bg-grey-300!" />
-          <Skeleton className="ml-auto h-12 w-1/2 rounded-2xl bg-grey-300!" />
-          <Skeleton className="h-12 w-3/5 rounded-2xl bg-grey-300!" />
-          <Skeleton className="ml-auto h-16 w-2/5 rounded-2xl bg-grey-300!" />
+          <Skeleton className="h-12 w-2/3 rounded-2xl bg-skeleton!" />
+          <Skeleton className="ml-auto h-12 w-1/2 rounded-2xl bg-skeleton!" />
+          <Skeleton className="h-12 w-3/5 rounded-2xl bg-skeleton!" />
+          <Skeleton className="ml-auto h-16 w-2/5 rounded-2xl bg-skeleton!" />
         </div>
         <div className="border-t border-border p-3">
-          <Skeleton className="h-11 w-full rounded-full bg-grey-300!" />
+          <Skeleton className="h-11 w-full rounded-full bg-skeleton!" />
         </div>
       </div>
     </div>

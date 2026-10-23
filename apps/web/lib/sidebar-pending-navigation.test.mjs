@@ -57,7 +57,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
   return { render, pushes, pending: href => { pendingHref = href; }, commit: href => { pathname = href; pendingHref = null; } };
 }
 
-test("sidebar keeps the real route selected and distinguishes immediate pending feedback from the hover background", () => {
+test("sidebar keeps the real route selected and announces pending navigation without an underline", () => {
   const h = harness();
   h.pending("/tenant/favorites");
   const all = h.render();
@@ -71,7 +71,8 @@ test("sidebar keeps the real route selected and distinguishes immediate pending 
   assert.equal(favorites.props.onClick, undefined, "Next Link keeps keyboard/modifier/native navigation semantics");
   assert.equal(favorites.props.onKeyDown, undefined);
   assert.equal(all.filter(node => node.props["data-navigation-pending"]).length, 1);
-  assert.ok(all.some(node => node.props.className?.includes("bottom-1 h-0.5")));
+  assert.equal(all.some(node => node.props.className?.includes("bottom-1 h-0.5")), false);
+  assert.ok(all.some(node => node.props.className === "sr-only" && JSON.stringify(node.props.children).includes("Opening")));
   h.commit("/tenant/favorites");
   const settled = h.render();
   assert.equal(settled.filter(node => node.props["data-navigation-pending"]).length, 0);

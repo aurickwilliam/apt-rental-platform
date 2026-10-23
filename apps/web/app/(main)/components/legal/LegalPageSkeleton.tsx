@@ -10,7 +10,7 @@ function Placeholder({ className }: { className: string }) {
   return (
     <Skeleton
       animationType="shimmer"
-      className={`bg-grey-300! dark:bg-muted! motion-reduce:after:hidden ${className}`}
+      className={`bg-skeleton! dark:bg-muted! motion-reduce:after:hidden ${className}`}
     />
   );
 }
