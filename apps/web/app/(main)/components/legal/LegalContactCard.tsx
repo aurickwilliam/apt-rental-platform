@@ -18,11 +18,15 @@ export interface LegalBrand {
 interface LegalContactCardProps {
   brand: LegalBrand;
   related?: { href: string; label: string }[];
+  eyebrow?: string;
+  description?: string | null;
 }
 
 export default function LegalContactCard({
   brand,
   related = [],
+  eyebrow = "Questions?",
+  description = "Reach us about these terms or how your information is handled.",
 }: LegalContactCardProps) {
   const details = [
     { label: "Address", value: brand.address, icon: IconMapPin },
@@ -34,14 +38,14 @@ export default function LegalContactCard({
       <Card.Content className="gap-5 p-0">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-brand">
-            Questions?
+            {eyebrow}
           </p>
           <h2 className="mt-1 font-nunito text-lg font-bold text-primary">
             Contact APT
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Reach us about these terms or how your information is handled.
-          </p>
+          {description ? (
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          ) : null}
         </div>
 
         <ul className="flex flex-col gap-4">
