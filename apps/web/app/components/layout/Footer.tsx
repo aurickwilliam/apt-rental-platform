@@ -4,6 +4,8 @@ import {Accordion, Button, Separator, Link} from "@heroui/react";
 import { IconBrandX, IconBrandFacebook, IconBrandInstagram } from "@tabler/icons-react";
 import Image from "next/image";
 
+import LegalPolicyLink from "@/app/(main)/components/legal/LegalPolicyLink";
+
 export default function Footer() {
   return (
     <footer className="bg-primary text-white">
@@ -165,15 +167,15 @@ export default function Footer() {
         </div>
 
         <div className="flex items-center justify-center mt-5">
-          <Link href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
+          <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
             Terms of Service
-          </Link>
-          <Link href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
+          </LegalPolicyLink>
+          <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
             Privacy Policy
-          </Link>
-          <Link href="/cookies" className="text-sm text-white/80 hover:text-white mx-2">
+          </LegalPolicyLink>
+          <LegalPolicyLink href="/cookies" className="text-sm text-white/80 hover:text-white mx-2">
             Cookie Policy
-          </Link>
+          </LegalPolicyLink>
         </div>
       </div>
 
@@ -188,15 +190,15 @@ export default function Footer() {
               © {new Date().getFullYear()} APT Rental Platform. All rights reserved.
             </p>
             <div className="flex items-center justify-center">
-              <Link href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
+              <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
                 Terms of Service
-              </Link>
-              <Link href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
+              </LegalPolicyLink>
+              <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
                 Privacy Policy
-              </Link>
-              <Link href="/cookies" className="text-sm text-white/80 hover:text-white mx-2">
+              </LegalPolicyLink>
+              <LegalPolicyLink href="/cookies" className="text-sm text-white/80 hover:text-white mx-2">
                 Cookie Policy
-              </Link>
+              </LegalPolicyLink>
             </div>
           </div>
         </div>

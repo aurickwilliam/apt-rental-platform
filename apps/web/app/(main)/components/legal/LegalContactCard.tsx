@@ -1,13 +1,11 @@
-"use client";
-
-import NextLink from "next/link";
-
 import { Card, Link } from "@heroui/react";
 import {
   IconClock,
   IconMail,
   IconMapPin,
 } from "@tabler/icons-react";
+
+import LegalPolicyLink from "./LegalPolicyLink";
 
 export interface LegalBrand {
   email: string;
@@ -84,16 +82,13 @@ export default function LegalContactCard({
         {related.length > 0 ? (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border pt-4 text-sm">
             {related.map((item) => (
-              <Link
+              <LegalPolicyLink
                 key={item.href}
                 href={item.href}
-                render={(props) =>
-                  "href" in props ? <NextLink {...props} /> : <span {...props} />
-                }
                 className="font-medium text-brand hover:underline"
               >
                 {item.label}
-              </Link>
+              </LegalPolicyLink>
             ))}
           </div>
         ) : null}
