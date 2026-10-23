@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, Popover, Separator } from "@heroui/react";
-import { IconCopy, IconCornerUpLeft, IconTrash } from "@tabler/icons-react";
+import { IconCopy, IconCornerUpLeft, IconPhoto, IconTrash } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
 
 export interface MessageContextMenuData {
@@ -9,6 +9,8 @@ export interface MessageContextMenuData {
   dateLabel: string;
   /** Only text messages can be copied. */
   canCopy: boolean;
+  /** Photos and GIFs can be copied as an image. */
+  canCopyImage: boolean;
   /** Only your own saved messages can be unsent; others see it disabled (mobile parity). */
   canUnsend: boolean;
 }
@@ -18,12 +20,13 @@ interface MessageContextMenuProps {
   position: { x: number; y: number };
   onReply: () => void;
   onCopy: () => void;
+  onCopyImage: () => void;
   onUnsend: () => void;
   onClose: () => void;
 }
 
 /**
- * Contextual action card: timestamp, Reply, Copy and Unsend (mirrors the
+ * Contextual action card: timestamp, Reply, Copy (text) or Copy image (photos, GIFs) and Unsend (mirrors the
  * mobile HoldMenu). Opened by right-click (desktop) or long-press (touch).
  * Reactions live on the message toolbar's React button.
  *
@@ -36,6 +39,7 @@ export default function MessageContextMenu({
   position,
   onReply,
   onCopy,
+  onCopyImage,
   onUnsend,
   onClose,
 }: MessageContextMenuProps) {
@@ -97,6 +101,7 @@ export default function MessageContextMenu({
               onAction={(key) => {
                 if (key === "reply") onReply();
                 else if (key === "copy") onCopy();
+                else if (key === "copy-image") onCopyImage();
                 else if (key === "unsend") onUnsend();
               }}
             >
@@ -120,6 +125,16 @@ export default function MessageContextMenu({
                 >
                   <IconCopy size={20} className="shrink-0" aria-hidden="true" />
                   <span className="text-base">Copy</span>
+                </Menu.Item>
+              ) : null}
+              {data.canCopyImage ? (
+                <Menu.Item
+                  id="copy-image"
+                  textValue="Copy image"
+                  className="min-h-8 gap-2 px-2 py-1"
+                >
+                  <IconPhoto size={20} className="shrink-0" aria-hidden="true" />
+                  <span className="text-base">Copy image</span>
                 </Menu.Item>
               ) : null}
               <Menu.Item

@@ -19,6 +19,7 @@ import { conversationApartmentPresentation } from "@/lib/conversation-context";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
 import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
 import { canUnsendMessage } from "@/app/components/chat/unsend";
+import { canCopyImageMessage, copyChatImage } from "@/app/components/chat/copyImage";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
@@ -466,6 +467,7 @@ export default function ConversationView({
           data={{
             dateLabel: formatMessageMenuDate(contextMenu.message.created_at),
             canCopy: (contextMenu.message.message_type ?? "text") === "text" && !!contextMenu.message.message,
+            canCopyImage: canCopyImageMessage(contextMenu.message),
             canUnsend: canUnsendMessage(contextMenu.message, currentUserId),
           }}
           position={contextMenu.position}
@@ -477,6 +479,14 @@ export default function ConversationView({
             if (contextMenu.message.message) {
               void handleCopy(contextMenu.message.message);
             }
+          }}
+          onCopyImage={() => {
+            const message = contextMenu.message;
+            closeContextMenu();
+            copyChatImage(message).catch((err) => {
+              console.error("Copy image failed:", err);
+              setSendError({ key: activeContact?.conversationKey ?? "", message: "Couldn't copy that image. Please try again." });
+            });
           }}
           onUnsend={() => {
             setUnsendTargetId(contextMenu.message.id);
