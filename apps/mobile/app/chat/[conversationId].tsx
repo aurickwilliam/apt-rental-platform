@@ -626,11 +626,15 @@ export default function ChatScreen() {
                     data={messages}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
+                    // The list is inverted, so `flex-end` packs a short conversation
+                    // against the top (intro first, then the messages) like web; a
+                    // long one fills the screen and scrolls as before.
                     contentContainerStyle={
                       messages.length === 0
-                        ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
+                        ? { flexGrow: 1, justifyContent: 'flex-end', paddingBottom: listTopInset }
                         : {
                             flexGrow: 1,
+                            justifyContent: 'flex-end',
                             paddingHorizontal: 16,
                             // Inverted: paddingTop is the gap above the chat box, which
                             // the newest bubble's own bottom gap already provides.
