@@ -225,12 +225,16 @@
   --button-fg: var(--muted-foreground);
   --button-bg-hover: var(--muted);
 }
+/* Mobile's reaction pill: rounded-full, bordered, px-1.5 py-1, shadow-lg. HeroUI's
+   popover dialog adds p-4 around its content, which made the pill tall. */
 .apt-reaction-popover {
-  padding: 0.375rem;
+  padding: 0.25rem 0.375rem;
   border: 1px solid var(--border);
   border-radius: 9999px;
   background: var(--card);
+  box-shadow: var(--shadow-lg);
 }
+.apt-reaction-popover .popover__dialog { padding: 0; }
 .apt-message-composer-field {
   border: 1px solid var(--border);
   border-radius: 1.5rem;

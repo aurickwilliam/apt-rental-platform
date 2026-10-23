@@ -191,7 +191,7 @@ export default function MessageBubble({
           <Button variant="ghost" isIconOnly size="sm" aria-label="React to message" className="apt-chat-action"><IconMoodSmile size={17} aria-hidden="true" /></Button>
           <Popover.Content placement={isMine ? "top end" : "top start"} offset={6} containerPadding={12} className="apt-reaction-popover">
             <Popover.Dialog aria-label="Choose a reaction">
-              <ReactionStrip bare myReaction={myReaction} onSelect={(emoji) => { void onToggleReaction(message.id, emoji); setIsReactionOpen(false); }} />
+              <ReactionStrip myReaction={myReaction} onSelect={(emoji) => { void onToggleReaction(message.id, emoji); setIsReactionOpen(false); }} />
             </Popover.Dialog>
           </Popover.Content>
         </Popover>
