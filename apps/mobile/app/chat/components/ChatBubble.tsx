@@ -23,6 +23,7 @@ import { isEmojiOnly } from '@/service/chat/chatService';
 import { HEART_REACTION } from './reactionEmojis';
 import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
 import SenderAvatar from './SenderAvatar';
+import SeenAvatar from './SeenAvatar';
 import SwipeToReply from './SwipeToReply';
 import TimestampRevealRow from './TimestampRevealRow';
 import { formatRevealTime } from './timestampReveal';
@@ -62,7 +63,7 @@ interface ChatBubbleProps {
   }) => void;
   /** Place in a run of same-sender messages: joined corners and a tighter gap. */
   groupPosition?: BubbleGroupPosition;
-  /** Sent bubbles: "Seen" under the newest message the other person has read. */
+  /** Sent bubbles: the other person's avatar under the newest message they've read. */
   showSeen?: boolean;
   /** Received bubbles: the sender's avatar beside the last bubble of a run. */
   showSenderAvatar?: boolean;
@@ -632,12 +633,11 @@ export default function ChatBubble({
             </Pressable>
           </SwipeToReply>
           {showSeen && (
-            <Text
-              className="self-end mt-1 mr-1 text-[11px] font-inter text-gray-500"
-              accessibilityLabel="Seen"
-            >
-              Seen
-            </Text>
+            <SeenAvatar
+              name={otherUserName}
+              avatarUrl={otherUserAvatar}
+              belowReactions={reactions.length > 0}
+            />
           )}
         </View>
       </View>

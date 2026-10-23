@@ -40,6 +40,15 @@ jest.mock('./SenderAvatar', () => {
     default: () => React.createElement(View, { testID: 'sender-avatar' }),
   };
 });
+jest.mock('./SeenAvatar', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: ({ belowReactions }: { belowReactions?: boolean }) =>
+      React.createElement(View, { testID: 'seen-avatar', accessibilityLabel: belowReactions ? 'below' : 'plain' }),
+  };
+});
 jest.mock('./TimestampRevealRow', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -463,11 +472,27 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     });
   });
 
-  it('shows "Seen" only on the bubble that asks for it', () => {
+  it('shows the Seen avatar only on the bubble that asks for it', () => {
     const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
-    expect(screen.getByText('Seen')).toBeTruthy();
+    expect(screen.getByTestId('seen-avatar')).toBeTruthy();
 
     rerender(<ChatBubble message="Sent" messageType="text" isSent />);
-    expect(screen.queryByText('Seen')).toBeNull();
+    expect(screen.queryByTestId('seen-avatar')).toBeNull();
+  });
+
+  it('moves the Seen avatar below a reaction badge so the two never overlap', () => {
+    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+    expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('plain');
+
+    rerender(
+      <ChatBubble
+        message="Sent"
+        messageType="text"
+        isSent
+        showSeen
+        reactions={[{ userId: 'u2', emoji: '👍', isMine: false }]}
+      />
+    );
+    expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('below');
   });
 });
