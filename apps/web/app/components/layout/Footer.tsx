@@ -165,13 +165,13 @@ export default function Footer() {
         </div>
 
         <div className="flex items-center justify-center mt-5">
-          <Link href="#" className="text-sm text-white/80 hover:text-white mx-2">
+          <Link href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
             Terms of Service
           </Link>
-          <Link href="#" className="text-sm text-white/80 hover:text-white mx-2">
+          <Link href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
             Privacy Policy
           </Link>
-          <Link href="#" className="text-sm text-white/80 hover:text-white mx-2">
+          <Link href="/cookies" className="text-sm text-white/80 hover:text-white mx-2">
             Cookie Policy
           </Link>
         </div>

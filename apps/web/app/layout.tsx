@@ -7,13 +7,13 @@ import { themeInitScript } from "./theme-init-script";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-inter-face",
 });
 
 const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-nunito",
+  variable: "--font-nunito-face",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${nunito.variable}`}
+    >
       <head>
         <Script
           id="theme-init"
@@ -40,7 +44,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeInitScript }}
         />
       </head>
-      <body className={`${inter.variable} ${nunito.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
