@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Alert, Keyboard, Linking, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { formatChatAttachmentSize } from '@repo/utils';
+import { formatChatAttachmentSize, getReplyCaption } from '@repo/utils';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageLoadEventData } from 'expo-image';
@@ -215,6 +215,10 @@ export function ReactionBadge({
 }
 
 const ATTACHMENT_BORDER_RADIUS = 18;
+// A quoted photo/GIF/video poster above a reply (Instagram-style, dimmed).
+const QUOTED_IMAGE_WIDTH = 150;
+const QUOTED_IMAGE_HEIGHT = 190;
+const QUOTED_IMAGE_RADIUS = 24;
 const ATTACHMENT_MAX_WIDTH = 220;
 const ATTACHMENT_MAX_HEIGHT = 280;
 
@@ -341,10 +345,14 @@ export function ChatBubbleContent({
   const hasReply = replyDeleted || !!replyTo;
   // IG-style caption names the replier (this bubble's sender), not the quoted author.
   const replierLabel = hasReply
-    ? isSent
-      ? 'You replied'
-      : `${otherUserName ?? 'Someone'} replied`
+    ? getReplyCaption({
+        replierIsMe: isSent,
+        quotedIsMine: replyTo ? replyTo.isSent : null,
+        otherName: otherUserName,
+      })
     : null;
+  // Instagram-style: a quoted photo, GIF or video shows its own image, dimmed, above the reply.
+  const quotedImage = replyTo?.previewUrl ?? null;
   const replySnippet = replyTo ? getReplySnippet(replyTo) : null;
   const quotedType = replyTo?.messageType ?? 'text';
   const isQuotedMedia = !!replyTo && quotedType !== 'text';
@@ -370,6 +378,31 @@ export function ChatBubbleContent({
       <Text className="text-xs font-inter italic text-gray-500" numberOfLines={2}>
         Original message unavailable
       </Text>
+    </View>
+  ) : replyTo && quotedImage ? (
+    <View
+      accessibilityLabel={`Quoted ${replySnippet ?? 'media'}`}
+      style={{
+        width: QUOTED_IMAGE_WIDTH,
+        height: QUOTED_IMAGE_HEIGHT,
+        borderRadius: QUOTED_IMAGE_RADIUS,
+        overflow: 'hidden',
+      }}
+    >
+      <Image
+        source={{ uri: quotedImage }}
+        style={{ width: '100%', height: '100%', opacity: 0.6 }}
+        cachePolicy="disk"
+        contentFit="cover"
+        accessibilityIgnoresInvertColors
+      />
+      {quotedType === 'video' && (
+        <View className="absolute inset-0 items-center justify-center">
+          <View className="bg-black/50 rounded-full p-2">
+            <IconPlayerPlayFilled size={18} color="white" />
+          </View>
+        </View>
+      )}
     </View>
   ) : replyTo ? (
     <View

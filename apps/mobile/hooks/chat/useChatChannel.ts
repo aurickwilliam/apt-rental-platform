@@ -27,6 +27,7 @@ type BroadcastPayload = {
   reply_message?: string | null;
   reply_message_type?: MessageType | null;
   reply_sender_id?: string | null;
+  reply_preview_url?: string | null;
 };
 
 export type ReactionBroadcast = {
@@ -174,6 +175,7 @@ export function useChatChannel({
                   messageType: (payload.reply_message_type ?? 'text') as MessageType,
                   senderId: payload.reply_sender_id ?? '',
                   isSent: payload.reply_sender_id === currentUserId,
+                  previewUrl: payload.reply_preview_url ?? null,
                 };
               } else {
                 replyDeleted = true;

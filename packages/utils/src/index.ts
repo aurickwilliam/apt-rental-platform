@@ -7,6 +7,7 @@ export {
   formatChatAttachmentSize,
 } from './chatAttachments';
 export { isSameChatDay, formatChatDayLabel } from './chatDay';
+export { getReplyCaption } from './replyCaption';
 export * from './landlordFinance';
 export { formatDate } from './formatDate';
 export {

@@ -219,6 +219,12 @@ export function useChat({
         messageType: msg.messageType,
         senderId: msg.isSent ? (myId ?? '') : otherUserId,
         isSent: msg.isSent,
+        previewUrl:
+          msg.messageType === 'image' || msg.messageType === 'gif'
+            ? (msg.attachmentUrl ?? null)
+            : msg.messageType === 'video'
+              ? (msg.thumbnailUrl ?? null)
+              : null,
       };
     },
     [myId, otherUserId]
@@ -304,6 +310,7 @@ export function useChat({
         reply_message: currentReply?.message ?? null,
         reply_message_type: (currentReply?.messageType as any) ?? null,
         reply_sender_id: currentReply ? (currentReply.isSent ? myId : otherUserId) : null,
+        reply_preview_url: replyPreview?.previewUrl ?? null,
       });
     } catch (err) {
       console.error('Send failed:', err);
@@ -407,6 +414,7 @@ export function useChat({
             reply_message: isFirst ? (currentReply?.message ?? null) : null,
             reply_message_type: isFirst ? ((currentReply?.messageType as any) ?? null) : null,
             reply_sender_id: isFirst ? (currentReply ? (currentReply.isSent ? myId : otherUserId) : null) : null,
+            reply_preview_url: isFirst ? (replyPreview?.previewUrl ?? null) : null,
           });
         }
       } catch (err) {

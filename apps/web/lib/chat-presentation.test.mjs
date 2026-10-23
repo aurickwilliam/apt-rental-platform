@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
 import { isSameChatDay } from "../../../packages/utils/src/chatDay.ts";
+import { getReplyCaption } from "../../../packages/utils/src/replyCaption.ts";
 import { emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
@@ -55,7 +56,7 @@ function harness(file, browser = { getSelection: () => null }) {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button", TextArea: "TextArea", Popover: Object.assign(() => {}, { Content: "PopoverContent", Dialog: "PopoverDialog" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
-    "@repo/utils": { formatChatAttachmentSize },
+    "@repo/utils": { formatChatAttachmentSize, getReplyCaption },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
     "./reactionEmojis": { HEART_REACTION: "❤️" },
     "@/lib/chat-message-presentation": { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet },
@@ -437,4 +438,29 @@ test("quoted replies read like mobile: the text, else Photo / Video / GIF / Docu
   assert.equal(replyQuoteSnippet({ message: null, messageType: "gif" }), "GIF");
   assert.equal(replyQuoteSnippet({ message: null, messageType: "file" }), "Document");
   assert.equal(replyQuoteSnippet({ message: null, messageType: "text" }), "");
+});
+
+test("a reply to a photo shows the quoted image, dimmed, under an Instagram-style caption", () => {
+  const h = harness("MessageBubble");
+  const render = (replyTo, isMine = true) => h.render({
+    message: { id: "m", message: "And blazing", message_type: "text", reactions: [], reply_to: "q", replyTo },
+    isMine,
+    otherUserName: "Case",
+  });
+  const quoted = { id: "q", message: null, messageType: "image", senderId: "me", isSent: true, previewUrl: "https://signed/photo.jpg" };
+
+  let tree = render(quoted);
+  assert.ok(tree.some(n => n.type === "p" && n.props.children === "You replied to yourself"));
+  const image = tree.find(n => n.type === "img");
+  assert.equal(image.props.src, "https://signed/photo.jpg");
+  assert.match(image.props.className, /opacity-60/);
+  assert.equal(tree.some(n => n.type === "IconPlayerPlay"), false);
+
+  // A video shows its poster with a play mark; a quote without an image keeps the icon card.
+  tree = render({ ...quoted, messageType: "video", isSent: false });
+  assert.ok(tree.some(n => n.type === "p" && n.props.children === "You replied to Case"));
+  assert.ok(tree.some(n => n.type === "IconPlayerPlay"));
+  tree = render({ ...quoted, previewUrl: null });
+  assert.equal(tree.some(n => n.type === "img"), false);
+  assert.ok(tree.some(n => n.type === "IconPhoto"));
 });

@@ -183,7 +183,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
 
     expect(screen.getByText('Hello preview')).toBeTruthy();
     expect(screen.getByText('Original question')).toBeTruthy();
-    expect(screen.getByText('You replied')).toBeTruthy();
+    expect(screen.getByText('You replied to Ana')).toBeTruthy();
   });
 
   it('labels a received reply with the other user name', () => {
@@ -198,7 +198,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       />
     );
 
-    expect(screen.getByText('Ana replied')).toBeTruthy();
+    expect(screen.getByText('Ana replied to you')).toBeTruthy();
     expect(screen.getByText('See you at 5?')).toBeTruthy();
   });
 
@@ -214,8 +214,32 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       />
     );
 
-    expect(screen.getByText('You replied')).toBeTruthy();
+    expect(screen.getByText('You replied to Ana')).toBeTruthy();
     expect(screen.getByText('Photo')).toBeTruthy();
+  });
+
+  it('shows the quoted photo itself, dimmed, instead of an icon tile when its image is known', () => {
+    render(
+      <ChatBubbleContent
+        message="And blazing"
+        messageType="text"
+        isSent
+        replyTo={{
+          id: 'r4',
+          message: null,
+          messageType: 'image',
+          senderId: 'me',
+          isSent: true,
+          previewUrl: 'https://signed.example.test/quoted.jpg',
+        }}
+        otherUserName="Ana"
+        interactive={false}
+      />
+    );
+
+    expect(screen.getByText('You replied to yourself')).toBeTruthy();
+    expect(screen.getByLabelText('Quoted Photo')).toBeTruthy();
+    expect(screen.queryByText('Photo')).toBeNull();
   });
 
   it('renders static video thumbnail without entering playback', () => {

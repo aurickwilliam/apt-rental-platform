@@ -10,6 +10,7 @@ import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import { getReplyCaption } from "@repo/utils";
 import { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
 
 interface MessageBubbleProps {
@@ -106,10 +107,14 @@ export default function MessageBubble({
 
   const hasReply = message.replyDeleted || !!message.replyTo;
   const replierLabel = hasReply
-    ? isMine
-      ? "You replied"
-      : `${otherUserName ?? "Someone"} replied`
+    ? getReplyCaption({
+        replierIsMe: isMine,
+        quotedIsMine: message.replyTo ? message.replyTo.isSent : null,
+        otherName: otherUserName,
+      })
     : null;
+  // Instagram-style: a quoted photo, GIF or video shows its own image, dimmed, above the reply.
+  const quotedImage = message.replyTo?.previewUrl ?? null;
 
   return (
     <div
@@ -146,9 +151,29 @@ export default function MessageBubble({
           }}
           onDoubleClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
-          className="mb-1 max-w-full cursor-pointer select-text rounded-2xl bg-muted px-3 py-2 text-left transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px]"
+          className={`mb-1 max-w-full cursor-pointer select-text text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px] ${
+            quotedImage ? "overflow-hidden rounded-[24px] p-0" : "rounded-2xl bg-muted px-3 py-2 hover:bg-primary/10"
+          }`}
         >
-          {message.replyTo.messageType === "text" ? (
+          {quotedImage ? (
+            <span className="relative block">
+              {/* Signed URL, plain <img> like the rest of the chat media. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={quotedImage}
+                alt={replyQuoteSnippet(message.replyTo)}
+                loading="lazy"
+                className="block max-h-56 w-auto max-w-full object-cover opacity-60"
+              />
+              {message.replyTo.messageType === "video" ? (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-black/50 text-white">
+                    <IconPlayerPlay size={18} aria-hidden="true" />
+                  </span>
+                </span>
+              ) : null}
+            </span>
+          ) : message.replyTo.messageType === "text" ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">
               {replyQuoteSnippet(message.replyTo)}
             </p>
