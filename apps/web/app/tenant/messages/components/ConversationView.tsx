@@ -455,7 +455,7 @@ export default function ConversationView({
         replyLabel={
           replyTarget
             ? replyTarget.sender_id === currentUserId
-              ? "your message"
+              ? "yourself"
               : activeContact.name
             : undefined
         }

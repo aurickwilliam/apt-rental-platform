@@ -105,7 +105,7 @@ export default function EmojiInsertPanel({
       ref={panelRef}
       role="dialog"
       aria-label="Insert emoji"
-      className="absolute bottom-full right-0 z-30 mb-2 flex max-h-[22rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
+      className="absolute bottom-full left-2 sm:left-3 z-30 mb-2 flex max-h-[22rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
     >
       <div className="flex items-center gap-1.5 border-b border-border px-2 py-2">
         <IconSearch size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />

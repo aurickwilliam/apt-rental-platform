@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Button, TextArea } from "@heroui/react";
 import {
-  IconMoodSmile,
-  IconCirclePlusFilled,
-  IconPhotoFilled,
+  IconMoodSmileFilled,
+  IconPhoto,
   IconGif,
-  IconSend,
+  IconPlayerPlayFilled,
+  IconSendFilled,
   IconFileText,
   IconX,
 } from "@tabler/icons-react";
@@ -25,6 +25,19 @@ import {
 } from "./attachments";
 import type { ChatMessage } from "./types";
 
+/** One-line preview of the message being replied to (mobile's `getSnippet`). */
+function replySnippet(message: ChatMessage): string {
+  const text = message.message?.trim();
+  if (text) return text.length > 90 ? `${text.slice(0, 90)}…` : text;
+  switch (message.message_type) {
+    case "image": return "Photo";
+    case "video": return "Video";
+    case "gif": return "GIF";
+    case "file": return message.attachment_name || "Document";
+    default: return "Attachment";
+  }
+}
+
 interface MessageInputProps {
   onSend?: (message: string) => void;
   onTypingChange?: (isTyping: boolean) => void;
@@ -33,7 +46,7 @@ interface MessageInputProps {
   /** Sends the Giphy CDN URL verbatim. */
   onSendGif?: (url: string) => void | Promise<void>;
   replyTarget?: ChatMessage | null;
-  /** Who the reply targets, e.g. "Charlie" or "your message". */
+  /** Who the reply targets, e.g. "Charlie" or "yourself". */
   replyLabel?: string;
   onClearReply?: () => void;
   /** User-facing message for a rejected file. */
@@ -63,7 +76,6 @@ export default function MessageInput({
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isGiphyOpen, setIsGiphyOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -131,7 +143,6 @@ export default function MessageInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
-    setShowAttachmentOptions(false);
 
     if (e.target.value.trim()) {
       setTyping(true);
@@ -248,7 +259,6 @@ export default function MessageInput({
   );
 
   const canSend = Boolean(value.trim()) || staged.length > 0;
-  const attachmentOptionsCollapsed = value.length > 0 && !showAttachmentOptions;
 
   const handleSend = useCallback((): void => {
     if (isSending) return;
@@ -291,7 +301,7 @@ export default function MessageInput({
   );
 
   const iconButtonClass =
-    "flex size-11 sm:size-9 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+    "mb-1 flex size-11 sm:size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
   return (
     // `relative` anchors the floating emoji panel above the composer. Without
@@ -299,20 +309,31 @@ export default function MessageInput({
     // and crushes the message thread.
     <div data-fab-clearance="messages-composer" className="relative shrink-0 border-t border-border bg-card">
       {replyTarget && (
-        <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-3 py-2">
+        <div className="mx-3 mt-2 flex items-center rounded-3xl bg-muted/60 px-3 py-2">
+          {replyTarget.message_type && replyTarget.message_type !== "text" ? (
+            <span className="mr-2 flex size-8 shrink-0 items-center justify-center rounded-lg bg-card text-muted-foreground">
+              {replyTarget.message_type === "video" ? (
+                <IconPlayerPlayFilled size={16} aria-hidden="true" />
+              ) : replyTarget.message_type === "gif" ? (
+                <IconGif size={16} aria-hidden="true" />
+              ) : (
+                <IconPhoto size={16} aria-hidden="true" />
+              )}
+            </span>
+          ) : null}
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-primary">
+            <p className="truncate font-inter text-xs text-muted-foreground">
               Replying to {replyLabel ?? "message"}
             </p>
-            <p className="truncate text-sm text-muted-foreground">
-              {replyTarget.message || "Attachment"}
+            <p className="line-clamp-2 font-inter text-sm text-foreground">
+              {replySnippet(replyTarget)}
             </p>
           </div>
           <button
             type="button"
             onClick={onClearReply}
             aria-label="Cancel reply"
-            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="ml-2 shrink-0 cursor-pointer rounded-full p-1 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <IconX size={16} aria-hidden="true" />
           </button>
@@ -363,7 +384,7 @@ export default function MessageInput({
         </div>
       )}
 
-      <div className="flex items-end gap-1 px-2 py-2 sm:gap-1.5 sm:px-3">
+      <div className="flex items-end px-2 py-2 sm:px-3">
         <input
           ref={fileInputRef}
           type="file"
@@ -377,42 +398,24 @@ export default function MessageInput({
           }}
         />
 
-        {attachmentOptionsCollapsed && <button
-          type="button"
-          className={iconButtonClass}
-          onClick={() => setShowAttachmentOptions(true)}
-          aria-label="Show attachment options"
-        >
-          <IconCirclePlusFilled size={22} aria-hidden="true" />
-        </button>}
-
-        {!attachmentOptionsCollapsed && <>
-          <button
-            type="button"
-            className={iconButtonClass}
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Attach photos, videos or documents"
-            title="Attach images, videos, PDF or DOCX · Up to 25 MB per file"
-          >
-            <IconPhotoFilled size={22} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className={iconButtonClass}
-            onClick={() => setIsGiphyOpen(true)}
-            aria-label="Send a GIF"
-          >
-            <IconGif size={22} aria-hidden="true" />
-          </button>
-        </>}
-
         <div data-composer-field className="apt-message-composer-field flex min-w-0 flex-1 items-end">
+          <button
+            ref={emojiButtonRef}
+            type="button"
+            className={iconButtonClass}
+            onMouseDown={preventFocusSteal}
+            onClick={toggleEmojiPanel}
+            aria-label="Insert emoji"
+            aria-expanded={isEmojiOpen}
+          >
+            <IconMoodSmileFilled size={24} aria-hidden="true" />
+          </button>
           <TextArea
             ref={inputRef}
             value={value}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Aa"
+            placeholder="Message..."
             rows={1}
             name="message"
             autoComplete="off"
@@ -421,30 +424,39 @@ export default function MessageInput({
             aria-label="Message"
             aria-describedby={hintId}
           />
-        <button
-          ref={emojiButtonRef}
-          type="button"
-          className={iconButtonClass}
-          onMouseDown={preventFocusSteal}
-          onClick={toggleEmojiPanel}
-          aria-label="Insert emoji"
-          aria-expanded={isEmojiOpen}
-        >
-          <IconMoodSmile size={20} aria-hidden="true" />
-        </button>
+          {canSend ? (
+            <Button
+              isIconOnly
+              className="apt-composer-send"
+              onPress={handleSend}
+              isDisabled={isSending}
+              isPending={isSending}
+              aria-label="Send message"
+            >
+              <IconSendFilled size={20} aria-hidden="true" />
+            </Button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={iconButtonClass}
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Attach photos, videos or documents"
+                title="Attach images, videos, PDF or DOCX · Up to 25 MB per file"
+              >
+                <IconPhoto size={26} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className={iconButtonClass}
+                onClick={() => setIsGiphyOpen(true)}
+                aria-label="Send a GIF"
+              >
+                <IconGif size={26} aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
-
-        <Button
-          isIconOnly
-          variant="ghost"
-          className="apt-composer-send"
-          onPress={handleSend}
-          isDisabled={!canSend || isSending}
-          isPending={isSending}
-          aria-label="Send message"
-        >
-          <IconSend size={22} aria-hidden="true" />
-        </Button>
       </div>
       <p id={hintId} className="sr-only">Enter to send · Shift+Enter for a new line</p>
 

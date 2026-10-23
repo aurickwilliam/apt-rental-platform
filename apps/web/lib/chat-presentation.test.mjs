@@ -85,43 +85,41 @@ test("shared composer sends Enter once, preserves Shift+Enter and guards IME com
   assert.equal(field().value, "");
 });
 
-test("composer places emoji inside the field, with attachments before it and send after it", () => {
+test("composer is one pill: emoji left, then the field, then photo and GIF on the right", () => {
   const tree = harness("MessageInput").render({});
   const field = tree.find(n => n.props["data-composer-field"] !== undefined);
   const contents = nodes(field);
-  assert.ok(contents.some(n => n.type === "TextArea" && n.props.placeholder === "Aa"));
-  assert.ok(contents.some(n => n.props["aria-label"] === "Insert emoji"));
-  for (const label of ["Attach photos, videos or documents", "Send a GIF", "Send message"]) {
-    assert.equal(contents.some(n => n.props["aria-label"] === label), false);
-  }
-  assert.ok(tree.findIndex(n => n.props["aria-label"] === "Attach photos, videos or documents") < tree.indexOf(field));
-  assert.ok(tree.findIndex(n => n.props["aria-label"] === "Send message") > tree.indexOf(field));
-  assert.equal(tree.find(n => n.props["aria-label"] === "Send message").props.variant, "ghost");
+  assert.ok(contents.some(n => n.type === "TextArea" && n.props.placeholder === "Message..."));
+  const order = ["Insert emoji", "Message", "Attach photos, videos or documents", "Send a GIF"].map(label => contents.findIndex(n => n.props["aria-label"] === label));
+  assert.ok(order.every(i => i >= 0), "every control lives inside the pill");
+  assert.deepEqual([...order].sort((x, y) => x - y), order);
+  assert.equal(contents.some(n => n.type === "IconMoodSmileFilled"), true);
+  assert.equal(tree.some(n => n.props["aria-label"] === "Send message"), false);
+  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled" || n.type === "IconMicrophone"), false);
   assert.ok(tree.some(n => n.type === "p" && n.props.className === "sr-only"));
 });
 
-test("empty composer hides plus; typing shows plus with expandable photo and GIF options", () => {
+test("typing swaps the photo and GIF icons for the send button; clearing brings them back", () => {
   const h = harness("MessageInput");
+  const sent = [];
+  const props = { onSend: (text) => sent.push(text) };
   const has = (tree, label) => tree.some(n => n.props["aria-label"] === label);
-  let tree = h.render({});
-  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
+  let tree = h.render(props);
   assert.ok(has(tree, "Attach photos, videos or documents"));
   assert.ok(has(tree, "Send a GIF"));
-  tree.find(n => n.type === "TextArea").props.onChange({ target: { value: "draft" } });
-  tree = h.render({});
-  assert.ok(has(tree, "Show attachment options"));
+  assert.equal(has(tree, "Send message"), false);
+
+  tree.find(n => n.type === "TextArea").props.onChange({ target: { value: "hello" } });
+  tree = h.render(props);
   assert.equal(has(tree, "Attach photos, videos or documents"), false);
   assert.equal(has(tree, "Send a GIF"), false);
-  tree.find(n => n.props["aria-label"] === "Show attachment options").props.onClick();
-  tree = h.render({});
-  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
-  assert.ok(has(tree, "Attach photos, videos or documents"));
+  assert.ok(nodes(tree.find(n => n.props["data-composer-field"] !== undefined)).some(n => n.props["aria-label"] === "Send message"));
+  tree.find(n => n.props["aria-label"] === "Send message").props.onPress();
+  assert.deepEqual(sent, ["hello"]);
+
+  tree = h.render(props);
   assert.ok(has(tree, "Send a GIF"));
-  tree.find(n => n.type === "TextArea").props.onChange({ target: { value: "" } });
-  tree = h.render({});
-  assert.equal(tree.some(n => n.type === "IconCirclePlusFilled"), false);
-  assert.ok(has(tree, "Attach photos, videos or documents"));
-  assert.ok(has(tree, "Send a GIF"));
+  assert.equal(has(tree, "Send message"), false);
 });
 
 test("composer only scrolls after its growing draft reaches the height limit", () => {
@@ -408,4 +406,18 @@ test("emoji-only text messages render large without a bubble background", () => 
   const text = bubble({ message: "hello 😂" });
   assert.match(text.props.className, /bg-primary/);
   assert.equal(nodes(text).find((n) => n.type === "p").props.style, undefined);
+});
+
+test("reply bar names the target and previews text or attachments like mobile", () => {
+  const h = harness("MessageInput");
+  const text = (tree) => nodes(tree.find(n => n.props["data-fab-clearance"] === "messages-composer")).filter(n => n.type === "p").map(n => n.props.children);
+  let tree = h.render({ replyTarget: { id: "m", message: "asdsa", message_type: "text" }, replyLabel: "yourself" });
+  assert.ok(text(tree).flat().join(" ").includes("asdsa"));
+  assert.ok(text(tree).some(c => Array.isArray(c) ? c.join("") === "Replying to yourself" : c === "Replying to yourself"));
+
+  tree = h.render({ replyTarget: { id: "m", message: null, message_type: "image" }, replyLabel: "Charlie" });
+  assert.ok(text(tree).includes("Photo"));
+  assert.ok(tree.some(n => n.type === "IconPhoto"));
+  tree = h.render({ replyTarget: { id: "m", message: null, message_type: "file", attachment_name: "lease.pdf" } });
+  assert.ok(text(tree).includes("lease.pdf"));
 });
