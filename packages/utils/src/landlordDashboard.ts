@@ -205,6 +205,44 @@ export function buildRequestItems(attention: DashboardAttention): RequestItem[] 
   return items.filter((item) => item.count > 0);
 }
 
+export type AttentionKey =
+  | "overdue"
+  | "cash"
+  | "applications"
+  | "visits"
+  | "maintenance";
+
+export interface AttentionItem {
+  key: AttentionKey;
+  count: number;
+  /** Peso total behind the count; only overdue rent and cash submissions carry one. */
+  amount?: number;
+}
+
+/**
+ * Everything the landlord can act on now, most urgent first; empty when the
+ * dashboard is clear. Rent goes before tenant requests because a payment can
+ * be confirmed today, while a request only needs a reply.
+ */
+export function buildAttentionItems(attention: DashboardAttention): AttentionItem[] {
+  const items: AttentionItem[] = [
+    {
+      key: "overdue",
+      count: attention.overdueCount,
+      amount: attention.overdueAmount,
+    },
+    {
+      key: "cash",
+      count: attention.pendingCashCount,
+      amount: attention.pendingCashAmount,
+    },
+    { key: "applications", count: attention.pendingApplications },
+    { key: "visits", count: attention.pendingVisitRequests },
+    { key: "maintenance", count: attention.pendingMaintenance },
+  ];
+  return items.filter((item) => item.count > 0);
+}
+
 /**
  * Fills in fields an older get_landlord_dashboard deployment does not return
  * (attention, thisMonth, collectionByMonth), so callers can rely on the full shape.

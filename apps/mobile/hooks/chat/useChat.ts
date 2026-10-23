@@ -137,7 +137,7 @@ export function useChat({
     setMessages((prev) => markSentReadUpTo(prev, readUpTo));
   }, []);
 
-  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence } = useChatChannel({
+  const { broadcast, broadcastDelete, broadcastReaction, broadcastRead, broadcastTyping } = useChatChannel({
     currentUserId: myId,
     otherUserId,
     apartmentId,
@@ -158,16 +158,16 @@ export function useChat({
   // ─── Typing indicators ──────────────────────────────────────────────────────
 
   const handleStartTyping = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, true);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, true);
+  }, [broadcastTyping]);
 
   const handleStopTyping = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, false);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, false);
+  }, [broadcastTyping]);
 
   const handleHeartbeat = useCallback(() => {
-    if (myIdRef.current) trackPresence(myIdRef.current, true);
-  }, [trackPresence]);
+    if (myIdRef.current) broadcastTyping(myIdRef.current, true);
+  }, [broadcastTyping]);
 
   const {
     onTextChange: onTypingTextChange,

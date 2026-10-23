@@ -5,11 +5,8 @@ import { getRelativeTime } from '@repo/utils';
 
 import { buildConversationKey, type Message, type MessageType, type ReplyPreview } from '../../service/chat/chatService';
 
-type PresenceState = {
-  userId: string;
-  isTyping: boolean;
-  lastTypedAt?: number;
-};
+/** How long a typing Broadcast stays on until a fresh or stopping one arrives. */
+const TYPING_FRESH_WINDOW_MS = 5000;
 
 type BroadcastPayload = {
   id: string;
@@ -62,8 +59,8 @@ type DeletePayload = { id: string; apartment_id: string | null };
 type DeleteEvent = { payload: DeletePayload };
 type ReactionEvent = { payload: ReactionBroadcast };
 type ReadEvent = { payload: ReadBroadcast };
-type PresenceJoinEvent = { key: string; newPresences: PresenceState[] };
-type PresenceLeaveEvent = { key: string };
+type TypingPayload = { userId: string; isTyping: boolean };
+type TypingEvent = { payload: TypingPayload };
 
 export function useChatChannel({
   currentUserId,
@@ -76,7 +73,6 @@ export function useChatChannel({
   onMessagesRead,
 }: UseChatChannelOptions) {
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSubscribedRef = useRef(false);
   const onNewMessageRef = useRef(onNewMessage);
   const onOtherUserTypingChangeRef = useRef(onOtherUserTypingChange);
@@ -109,10 +105,6 @@ export function useChatChannel({
       supabase.removeChannel(msgChannelRef.current);
       msgChannelRef.current = null;
     }
-    if (presenceChannelRef.current) {
-      supabase.removeChannel(presenceChannelRef.current);
-      presenceChannelRef.current = null;
-    }
     isSubscribedRef.current = false;
   }, []);
 
@@ -121,9 +113,8 @@ export function useChatChannel({
 
     const conversationKey = buildConversationKey(currentUserId, otherUserId, apartmentId);
     let cancelled = false;
-    let presenceTrackTimeout: ReturnType<typeof setTimeout> | null = null;
+    let typingClearTimeout: ReturnType<typeof setTimeout> | null = null;
     let msgChannel: ReturnType<typeof supabase.channel> | null = null;
-    let presenceChannel: ReturnType<typeof supabase.channel> | null = null;
 
     const findRegisteredChannel = (name: string) =>
       supabase
@@ -133,26 +124,19 @@ export function useChatChannel({
     void (async () => {
       // removeChannel is async: a previous instance for this conversation may
       // still be unregistering (StrictMode remount, fast back-and-reopen).
-      // supabase.channel() would return that stale joined channel and
-      // .on('presence') would throw "cannot add presence callbacks after
-      // subscribe()". Drain first so creation always yields a fresh object.
-      for (const name of [
-        `chat:msg:${conversationKey}`,
-        `chat:presence:${conversationKey}`,
-      ]) {
+      // supabase.channel() returns that stale joined channel, and new
+      // bindings throw after subscribe(). Drain first so creation always
+      // yields a fresh object.
+      for (const name of [`chat:msg:${conversationKey}`]) {
         const stale = findRegisteredChannel(name);
         if (stale) await supabase.removeChannel(stale);
       }
       if (cancelled) return;
 
       msgChannel = supabase.channel(`chat:msg:${conversationKey}`);
-      presenceChannel = supabase.channel(`chat:presence:${conversationKey}`, {
-        config: { presence: { key: currentUserId } },
-      });
-      if (!msgChannel || !presenceChannel) return;
-      // Const aliases for the closures below (TS can't narrow the lets).
+      if (!msgChannel) return;
+      // Const alias for the closures below (TS can't narrow the lets).
       const msg = msgChannel;
-      const presence = presenceChannel;
 
       msg
         .on('broadcast', { event: 'new_message' }, ({ payload }: BroadcastEvent) => {
@@ -234,70 +218,44 @@ export function useChatChannel({
           } else if (payload.apartment_id != null) return;
           onMessagesReadRef.current?.(payload.read_up_to);
         })
+        .on('broadcast', { event: 'typing' }, ({ payload }: TypingEvent) => {
+          if (!payload || payload.userId === currentUserId) return;
+          const isTyping = payload.isTyping === true;
+          if (typingClearTimeout) {
+            clearTimeout(typingClearTimeout);
+            typingClearTimeout = null;
+          }
+          onOtherUserTypingChangeRef.current(isTyping);
+          // A lost "stop" can never leave the indicator stuck.
+          if (isTyping) {
+            typingClearTimeout = setTimeout(() => {
+              typingClearTimeout = null;
+              onOtherUserTypingChangeRef.current(false);
+            }, TYPING_FRESH_WINDOW_MS);
+          }
+        })
         .subscribe((status) => {
           if (msgChannelRef.current === msg) {
             isSubscribedRef.current = status === 'SUBSCRIBED';
           }
         });
 
-      const resolveOtherTyping = (state: Record<string, PresenceState[]>) => {
-        const otherEntry = state[otherUserId];
-        if (!Array.isArray(otherEntry)) return false;
-
-        return otherEntry.some((entry) => {
-          const isFresh = Boolean(
-            entry.lastTypedAt && Date.now() - entry.lastTypedAt < 5000
-          );
-          return entry.isTyping && isFresh;
-        });
-      };
-
-      presence
-        .on('presence', { event: 'sync' }, () => {
-          onOtherUserTypingChangeRef.current(
-            resolveOtherTyping(presence.presenceState<PresenceState>())
-          );
-        })
-        .on('presence', { event: 'join' }, ({ key, newPresences }: PresenceJoinEvent) => {
-          if (key === otherUserId) {
-            onOtherUserTypingChangeRef.current(
-              newPresences.some((entry) => entry.isTyping)
-            );
-          }
-        })
-        .on('presence', { event: 'leave' }, ({ key }: PresenceLeaveEvent) => {
-          if (key === otherUserId) onOtherUserTypingChangeRef.current(false);
-        })
-        .subscribe((status) => {
-          if (status !== 'SUBSCRIBED') return;
-
-          presenceTrackTimeout = setTimeout(() => {
-            presence.track({
-              userId: currentUserId,
-              isTyping: false,
-              lastTypedAt: Date.now(),
-            });
-          }, 100);
-        });
-
       msgChannelRef.current = msg;
-      presenceChannelRef.current = presence;
     })();
 
     return () => {
       cancelled = true;
-      if (presenceTrackTimeout) clearTimeout(presenceTrackTimeout);
-      // msgChannel/presenceChannel are null when unmounting before the async
-      // setup finished — in that case there is nothing of ours to remove
-      // (the drain already took care of any stale predecessor).
+      if (typingClearTimeout) {
+        clearTimeout(typingClearTimeout);
+        typingClearTimeout = null;
+      }
+      // msgChannel is null when unmounting before the async setup finished —
+      // in that case there is nothing of ours to remove (the drain already
+      // took care of any stale predecessor).
       if (msgChannel && msgChannelRef.current === msgChannel) {
         supabase.removeChannel(msgChannel);
         msgChannelRef.current = null;
         isSubscribedRef.current = false;
-      }
-      if (presenceChannel && presenceChannelRef.current === presenceChannel) {
-        supabase.removeChannel(presenceChannel);
-        presenceChannelRef.current = null;
       }
     };
   }, [apartmentId, currentUserId, otherUserId]);
@@ -340,14 +298,19 @@ export function useChatChannel({
     msgChannelRef.current.send({ type: 'broadcast', event: 'messages_read', payload });
   }, []);
 
-  /** Tracks the current user's presence state (typing / not typing). */
-  const trackPresence = useCallback((currentUserId: string, isTyping: boolean) => {
-    presenceChannelRef.current?.track({
-      userId: currentUserId,
-      isTyping,
-      lastTypedAt: Date.now(),
+  /**
+   * Broadcasts the current user's typing state on the message channel.
+   * Presence was removed on purpose: its client-side limit (5 updates per
+   * 30 s) closed the presence channel while someone typed normally.
+   */
+  const broadcastTyping = useCallback((currentUserId: string, isTyping: boolean) => {
+    if (!isSubscribedRef.current || !msgChannelRef.current) return;
+    msgChannelRef.current.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { userId: currentUserId, isTyping },
     });
   }, []);
 
-  return { teardown, broadcast, broadcastDelete, broadcastReaction, broadcastRead, trackPresence };
+  return { teardown, broadcast, broadcastDelete, broadcastReaction, broadcastRead, broadcastTyping };
 }

@@ -19,6 +19,14 @@ interface ChatInsert {
   created_at: string;
 }
 
+/** The columns of a `chat` update the list needs (a read receipt). */
+interface ChatUpdate {
+  sender_id: string;
+  receiver_id: string;
+  apartment_id: string | null;
+  is_read: boolean;
+}
+
 interface Options {
   currentUserId: string;
   /** The open conversation's key: messages for it never count as unread or toast. */
@@ -26,6 +34,8 @@ interface Options {
   findContact: (conversationKey: string) => ConversationContact | undefined;
   /** Updates the row; `countAsUnread` is true for a message received in a chat that is not open. */
   applyLatestMessage: (conversationKey: string, latest: LatestMessage, countAsUnread: boolean) => void;
+  /** Clears a row's badge when the conversation is read on mobile or another tab. */
+  clearUnreadCount: (conversationKey: string) => void;
   /** Returns true (and reloads the lists) when the conversation isn't listed yet. */
   refreshIfNewConversation: (conversationKey: string) => boolean;
 }
@@ -34,9 +44,10 @@ const keyFor = (otherUserId: string, apartmentId: string | null) => `${otherUser
 
 /**
  * Keeps the Messages list live: every message you send or receive updates its
- * row (preview, time, unread count) and moves it up the list, and a message
- * from a chat you are not viewing raises a toast. Muted and blocked chats stay
- * quiet. One channel per signed-in user, shared by both portals.
+ * row (preview, time, unread count) and moves it up the list, a message from a
+ * chat you are not viewing raises a toast, and read receipts from another
+ * device clear a row's badge. Muted and blocked chats stay quiet. One channel
+ * per signed-in user, shared by both portals.
  */
 export default function useConversationListRealtime(options: Options) {
   const supabase = useMemo(() => createClient(), []);
@@ -74,6 +85,17 @@ export default function useConversationListRealtime(options: Options) {
       });
     };
 
+    // A read that happened elsewhere (mobile, another tab) clears this tab's
+    // badge. Reads mark a conversation wholesale (`mark_conversation_read`),
+    // so clearing the count — not decrementing — is accurate.
+    const handleRead = (row: ChatUpdate) => {
+      const current = latest.current;
+      if (!row.is_read) return;
+      const key = keyFor(row.sender_id, row.apartment_id);
+      if (!current.findContact(key)) return;
+      current.clearUnreadCount(key);
+    };
+
     const channel = supabase
       .channel(`messages-list:${currentUserId}`)
       .on(
@@ -85,6 +107,11 @@ export default function useConversationListRealtime(options: Options) {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat", filter: `sender_id=eq.${currentUserId}` },
         (payload: { new: ChatInsert }) => handle(payload.new, true)
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "chat", filter: `receiver_id=eq.${currentUserId}` },
+        (payload: { new: ChatUpdate }) => handleRead(payload.new)
       )
       .subscribe();
 

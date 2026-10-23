@@ -93,6 +93,19 @@ export default function MessagesClient({
     });
   }, []);
 
+  // A read receipt that landed on mobile or another tab clears this tab's
+  // badge. The same RPC also lifts a manual "mark unread".
+  const clearUnreadCount = useCallback((conversationKey: string) => {
+    const patch = (list: Contact[]) =>
+      list.map((contact) =>
+        contact.conversationKey === conversationKey && (contact.unreadCount > 0 || contact.markedUnread)
+          ? { ...contact, unreadCount: 0, markedUnread: false }
+          : contact
+      );
+    setCurrentTenantContacts(patch);
+    setInquiryContacts(patch);
+  }, []);
+
   // Notification deep link: apply each distinct `?conversation=` value the
   // server hands us, once, selecting the matching contact when it exists.
   const [syncedDeepLink, setSyncedDeepLink] = useState(initialConversationKey);
@@ -140,6 +153,7 @@ export default function MessagesClient({
     activeKey: activeContact?.conversationKey ?? null,
     findContact,
     applyLatestMessage: applyLatestToContacts,
+    clearUnreadCount,
     refreshIfNewConversation,
   });
 

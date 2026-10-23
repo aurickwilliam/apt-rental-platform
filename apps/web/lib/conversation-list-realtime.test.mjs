@@ -29,6 +29,7 @@ function setup(overrides = {}) {
   };
   const source = readFileSync(new URL("../app/components/chat/useConversationListRealtime.tsx", import.meta.url), "utf8");
   const exports = {};
+  const cleared = [];
   vm.runInNewContext(
     ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText,
     {
@@ -48,12 +49,22 @@ function setup(overrides = {}) {
     activeKey: null,
     findContact: (key) => contacts[key],
     applyLatestMessage: (key, latest, countAsUnread) => applied.push({ key, latest, countAsUnread }),
+    clearUnreadCount: (key) => cleared.push(key),
     refreshIfNewConversation: () => false,
     ...overrides,
   });
-  const incoming = handlers.find((h) => h.filter.filter === "receiver_id=eq.me").handler;
-  const outgoing = handlers.find((h) => h.filter.filter === "sender_id=eq.me").handler;
-  return { incoming, outgoing, toasts, applied, removed: () => removed, cleanups };
+  const byEvent = (id, event) =>
+    handlers.find((h) => h.filter.filter === id && h.filter.event === event).handler;
+  return {
+    incoming: byEvent("receiver_id=eq.me", "INSERT"),
+    outgoing: byEvent("sender_id=eq.me", "INSERT"),
+    readReceipt: byEvent("receiver_id=eq.me", "UPDATE"),
+    toasts,
+    applied,
+    cleared,
+    removed: () => removed,
+    cleanups,
+  };
 }
 
 const row = (extra = {}) => ({
@@ -115,4 +126,25 @@ test("leaving the page removes the channel", () => {
   const { cleanups, removed } = setup();
   cleanups.forEach((cleanup) => cleanup());
   assert.equal(removed(), 1);
+});
+
+const readRow = (extra = {}) => ({ sender_id: "u1", receiver_id: "me", apartment_id: "apt", is_read: true, ...extra });
+
+test("a read receipt from mobile or another tab clears the row's unread", () => {
+  const { readReceipt, cleared, toasts } = setup();
+  readReceipt({ new: readRow() });
+  assert.deepEqual(cleared, ["u1:apt"]);
+  assert.equal(toasts.length, 0, "a read never toasts");
+});
+
+test("an unread update is not a read receipt", () => {
+  const { readReceipt, cleared } = setup();
+  readReceipt({ new: readRow({ is_read: false }) });
+  assert.deepEqual(cleared, []);
+});
+
+test("read receipts for conversations that are not listed stay ignored", () => {
+  const { readReceipt, cleared } = setup();
+  readReceipt({ new: readRow({ sender_id: "stranger", apartment_id: null }) });
+  assert.deepEqual(cleared, []);
 });

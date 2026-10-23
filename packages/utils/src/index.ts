@@ -45,6 +45,7 @@ export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
   EMPTY_THIS_MONTH,
+  buildAttentionItems,
   buildRequestItems,
   buildTrendSeries,
   collectionProgress,
@@ -58,6 +59,8 @@ export {
   topPropertiesByRevenue,
 } from './landlordDashboard';
 export type {
+  AttentionItem,
+  AttentionKey,
   CollectionMonthPoint,
   CollectionProgress,
   CollectionSummary,

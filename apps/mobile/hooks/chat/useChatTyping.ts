@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 
 const TYPING_IDLE_DELAY = 2000; // ms of inactivity before stopping
-const TYPING_HEARTBEAT = 4000; // ms between presence re-tracks
+const TYPING_HEARTBEAT = 4000; // ms between re-sending the typing Broadcast
 
 type Options = {
   onStartTyping: () => void;

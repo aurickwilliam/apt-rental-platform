@@ -134,10 +134,10 @@ export default function ConversationView({
       setSendError({ key: activeContact?.conversationKey ?? "", message }),
   });
 
-  // Realtime: incoming messages, read receipts for sent ones, contact typing
-  // presence, and a resync after reconnects/refocus. Shared with the landlord
-  // view so both portals subscribe identically.
-  const { isContactTyping, trackTyping } = useConversationRealtime({
+  // Realtime: incoming messages, read receipts for sent ones, the contact's
+  // typing Broadcast, and a resync after reconnects/refocus. Shared with the
+  // landlord view so both portals subscribe identically.
+  const { isContactTyping, broadcastTyping } = useConversationRealtime({
     supabase,
     conversationId,
     currentUserId,
@@ -300,9 +300,9 @@ export default function ConversationView({
 
   const handleTypingChange = useCallback(
     async (isTyping: boolean) => {
-      await trackTyping(isTyping);
+      await broadcastTyping(isTyping);
     },
-    [trackTyping]
+    [broadcastTyping]
   );
 
   const handleCopy = useCallback(async (text: string) => {
