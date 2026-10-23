@@ -1,5 +1,5 @@
-import { AdminLoadingSkeleton } from "../_components/AdminLoadingSkeleton";
+import AdminAnalyticsLoading from "../_components/AdminAnalyticsLoading";
 
 export default function AnalyticsLoading() {
-  return <AdminLoadingSkeleton />;
+  return <AdminAnalyticsLoading />;
 }

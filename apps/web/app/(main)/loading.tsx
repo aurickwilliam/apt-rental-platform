@@ -1,10 +1,10 @@
 import { Skeleton } from "@heroui/react";
 
-// Darker-than-default block base so the shimmer sweep reads clearly.
+// Theme-aware block base keeps the shimmer subtle in both themes.
 // The `!` is intentional: @heroui/styles ships unlayered CSS, which
 // beats layered Tailwind utilities without it (same as the Alert fix).
 function Sk({ className = "" }: { className?: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 // Content-shaped loading state for the landing route, mirroring the

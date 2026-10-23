@@ -146,6 +146,34 @@ const REVIEW_SELECT = `
 export const LANDLORD_UNIT_PAYMENTS_LIMIT = 200;
 const RECENT_PAYMENTS_LIMIT = 4;
 
+/** Apartment-only presentation for subpages; callers retain the owner guard. */
+export async function fetchLandlordUnitApartment(supabase: Supabase, apartmentId: string): Promise<LandlordUnitApartment | null> {
+  const { data, error } = await supabase.from("apartments").select(APARTMENT_SELECT)
+    .eq("id", apartmentId).is("deleted_at", null).maybeSingle();
+  if (error) throw error;
+  return data as unknown as LandlordUnitApartment | null;
+}
+
+export interface LandlordUnitDescription {
+  apartment: LandlordUnitApartment;
+  tenant: Pick<LandlordUnitTenant, "leaseStart" | "leaseEnd"> | null;
+}
+
+export async function fetchLandlordUnitDescription(supabase: Supabase, apartmentId: string): Promise<LandlordUnitDescription | null> {
+  const [apartment, tenancy] = await Promise.all([
+    fetchLandlordUnitApartment(supabase, apartmentId),
+    supabase.from("tenancies")
+      .select("lease_start, lease_end, tenant:users!tenancies_tenant_id_fkey(id)")
+      .eq("apartment_id", apartmentId).eq("status", "active").maybeSingle(),
+  ]);
+  if (tenancy.error) throw tenancy.error;
+  if (!apartment) return null;
+  return {
+    apartment,
+    tenant: tenancy.data?.tenant ? { leaseStart: tenancy.data.lease_start, leaseEnd: tenancy.data.lease_end } : null,
+  };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Numeric form input → DB value. "" / NaN become null, never 0-by-accident. */

@@ -5,7 +5,7 @@ import { Skeleton } from "@heroui/react";
 // Loading state that mirrors the payment history page layout, so nothing
 // moves when the data arrives. Same logic as the other page skeletons.
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function RowCardSkeleton() {

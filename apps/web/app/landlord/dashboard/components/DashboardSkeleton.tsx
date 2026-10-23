@@ -5,7 +5,7 @@ import { Skeleton } from "@heroui/react";
 import DashboardHeader from "./DashboardHeader";
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 export default function DashboardSkeleton() {

@@ -56,20 +56,23 @@ const APPLICATION_SELECT = `id, status, created_at, rejected_reason, apartment_i
   gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
   apartments(name, monthly_rent, street_address, barangay, city, province, zip_code, apartment_images(url, is_cover))`;
 
-export async function fetchTenantApplications(tenantId: string): Promise<TenantApplication[]> {
+export interface TenantApplicationReadOptions {
+  applicationId?: string;
+  includeDocuments?: boolean;
+}
+
+export async function fetchTenantApplications(tenantId: string, options: TenantApplicationReadOptions = {}): Promise<TenantApplication[]> {
   const supabase = createClient();
 
-  const { data: rows, error } = await supabase
+  let query = supabase
     .from("rental_application")
     .select(APPLICATION_SELECT)
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
+  if (options.applicationId) query = query.eq("id", options.applicationId).limit(1);
+  const { data: rows, error } = await query;
 
   if (error) throw error;
-
-  const { resolveApplicationDocumentUrls } = await import(
-    "@/service/applicationDocumentsService"
-  );
 
   const typed = (rows ?? []) as unknown as (Omit<
     TenantApplication,
@@ -83,7 +86,9 @@ export async function fetchTenantApplications(tenantId: string): Promise<TenantA
     .flatMap((item) => APPLICATION_DOCUMENT_PATH_KEYS.map((key) => item[key]))
     .filter((path): path is string => !!path);
 
-  const { urls } = await resolveApplicationDocumentUrls(paths);
+  const { urls } = options.includeDocuments === false
+    ? { urls: {} }
+    : await import("@/service/applicationDocumentsService").then(({ resolveApplicationDocumentUrls }) => resolveApplicationDocumentUrls(paths));
 
   return typed.map((item) => {
     const documents = buildApplicationDocumentList(item, urls);

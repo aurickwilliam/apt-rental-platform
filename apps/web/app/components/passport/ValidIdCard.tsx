@@ -63,10 +63,12 @@ export default function ValidIdCard({
                 alt={`${idType} (${current.label.toLowerCase()})`}
                 fill
                 unoptimized
+                loading="eager"
+                fetchPriority="high"
                 className="object-contain"
               />
             ) : loading ? (
-              <Skeleton className="absolute inset-0 rounded-none bg-grey-300!" />
+              <Skeleton className="absolute inset-0 rounded-none bg-skeleton!" />
             ) : (
               <span className="text-sm text-muted-foreground">
                 Preview unavailable

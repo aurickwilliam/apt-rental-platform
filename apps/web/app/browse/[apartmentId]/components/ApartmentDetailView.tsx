@@ -62,14 +62,22 @@ export default async function ApartmentDetailView({
 
   // Batch 2: profile, landlord, and related apartments only need the
   // results above, so they run together.
-  const [profileResult, landlordResult, relatedResult] = await Promise.all([
-    user
-      ? supabase
+  const profilePromise = user
+      ? Promise.resolve(supabase
           .from("users")
           .select("id, roles, account_status")
           .eq("user_id", user.id)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
+          .maybeSingle())
+      : Promise.resolve({ data: null });
+  const pendingPromise = profilePromise.then(async ({ data: profile }) =>
+    profile?.roles?.includes("tenant")
+      ? await supabase.from("rental_application").select("id")
+          .eq("tenant_id", profile.id).eq("apartment_id", apartmentId)
+          .eq("status", "pending").limit(1)
+      : { data: null },
+  );
+  const [profileResult, landlordResult, relatedResult, pendingResult] = await Promise.all([
+    profilePromise,
     apartment.landlord_id
       ? supabase
           .from('users')
@@ -86,7 +94,10 @@ export default async function ApartmentDetailView({
       .in("status", ["available", "unverified"])
       .eq('is_hidden_by_admin', false)
       .is('deleted_at', null)
-      .limit(10),
+      .limit(10)
+      .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
+      .limit(1, { referencedTable: "apartment_images" }),
+    pendingPromise,
   ]);
 
   const { data: currentUser } = profileResult;
@@ -97,16 +108,7 @@ export default async function ApartmentDetailView({
   // Apply Now opens the start-of-application modal for tenants; everyone
   // else goes to the apply route, which redirects them (sign-in / browse).
   const isTenant = !!currentUser?.roles?.includes("tenant");
-  const { data: pendingApplications } =
-    currentUser && isTenant
-      ? await supabase
-          .from("rental_application")
-          .select("id")
-          .eq("tenant_id", currentUser.id)
-          .eq("apartment_id", apartmentId)
-          .eq("status", "pending")
-          .limit(1)
-      : { data: null };
+  const { data: pendingApplications } = pendingResult;
   const applyViewer =
     currentUser && isTenant
       ? {

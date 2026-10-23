@@ -105,7 +105,7 @@ test("Maintenance route skeleton keeps its header and mirrors desktop columns an
   assert.ok(elements.some(node => node.props.className === "hidden md:block"));
   const blocks = elements.filter(node => node.type === "Skeleton");
   assert.ok(blocks.length > 0);
-  assert.ok(blocks.every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(blocks.every(node => node.props.className.includes("bg-skeleton!")));
   assert.ok(elements.some(node => node.type === "Table.ScrollContainer" && node.props.className.includes("overflow-x-auto")));
 });
 

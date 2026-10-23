@@ -13,6 +13,7 @@ interface PassportDocumentThumbnailProps {
   /** `cover` fills the frame (cards, rows); `contain` shows the whole page. */
   fit?: "cover" | "contain";
   iconSize?: number;
+  priority?: boolean;
 }
 
 export function isPdfDocument(mimeType: string | null, storagePath: string): boolean {
@@ -31,6 +32,7 @@ export default function PassportDocumentThumbnail({
   mimeType,
   fit = "cover",
   iconSize = 36,
+  priority = false,
 }: PassportDocumentThumbnailProps) {
   if (isImageDocument(mimeType, storagePath)) {
     return signedUrl ? (
@@ -39,6 +41,8 @@ export default function PassportDocumentThumbnail({
         alt={label}
         fill
         unoptimized
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         className={fit === "cover" ? "object-cover" : "object-contain"}
       />
     ) : (

@@ -17,7 +17,7 @@ test("Tenant Browse authorizes first, then streams discovery and filtered result
   assert.ok(discovery > shell);
   assert.ok(!/await fetchBrowseSections/.test(page));
   assert.match(page, /<BrowseSectionsSkeleton \/>/);
-  assert.match(source("app/browse/components/BrowseDiscoveryContent.tsx"), /await fetchBrowseSections\(supabase, basePath\)/);
+  assert.match(source("app/browse/components/BrowseDiscoveryContent.tsx"), /await fetchDiscoverySections\(supabase, basePath\)/);
 
   // Filtered/search/paged state streams the rail, mobile entry and grid from
   // the same request-scoped result query.

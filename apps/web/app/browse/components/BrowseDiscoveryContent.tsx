@@ -3,7 +3,7 @@ import { createClient } from "@repo/supabase/server";
 import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import { fetchBrowseResults } from "../lib/fetch-browse-results";
-import { fetchBrowseSections } from "../lib/fetch-browse-sections";
+import { fetchDiscoverySections } from "../lib/fetch-browse-sections";
 import { buildRecommendedSection } from "../lib/fetch-recommended";
 import BrowseFilters from "./BrowseFilters";
 import BrowseSectionsList from "./BrowseSectionsList";
@@ -30,7 +30,7 @@ export default async function BrowseDiscoveryContent({
   basePath = "/browse",
   preferences = null,
 }: BrowseDiscoveryContentProps) {
-  const { sections } = await fetchBrowseSections(supabase, basePath);
+  const sections = await fetchDiscoverySections(supabase, basePath);
   const recommended = buildRecommendedSection(sections, preferences);
   const sectionsWithRecommended = recommended ? [recommended, ...sections] : sections;
 

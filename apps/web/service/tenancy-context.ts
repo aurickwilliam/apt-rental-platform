@@ -51,6 +51,8 @@ export type ActiveTenancy = {
 /** One fresh server request's context; never persisted or reused as authority. */
 export interface InitialRentalContext {
   authUserId: string;
+  /** Server-resolved query filter only; every secondary read still uses RLS. */
+  tenantId?: string;
   tenancy: ActiveTenancy | null;
   error: string | null;
   /** Keep the server shell's date identical during browser hydration. */

@@ -5,12 +5,12 @@ import { Skeleton } from "@heroui/react";
 import { PaymentPageHeader, PaymentPageShell } from "./PaymentPageLayout";
 
 // Loading state that mirrors the payment page card for card, so nothing moves
-// when the data arrives. Same `bg-grey-300!` shimmer as the other page
+// when the data arrives. Same theme-aware `bg-skeleton!` as the other page
 // skeletons (see PaymentHistorySkeleton / PassportSkeleton).
 const CARD = "rounded-2xl border border-border bg-card shadow-none";
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function SummaryRowSkeleton({ label, value }: { label: string; value: string }) {

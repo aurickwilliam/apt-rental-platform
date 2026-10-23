@@ -6,7 +6,7 @@ import { Skeleton } from "@heroui/react";
 // class-for-class, so every placeholder sits exactly where its content
 // will land when the data arrives.
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function SectionRowSkeleton() {

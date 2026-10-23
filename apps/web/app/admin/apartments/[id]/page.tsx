@@ -50,17 +50,7 @@ export default async function AdminApartmentDetailPage({
   }
   if (!apartment) notFound();
 
-  const [
-    landlordResult,
-    imagesResult,
-    verificationResult,
-    tenancyResult,
-    applicationsResult,
-    visitsResult,
-    maintenanceResult,
-    reviewsResult,
-    apartmentAuditResult,
-  ] = await Promise.all([
+  const previewsPromise = Promise.all([
     apartment.landlord_id
       ? supabase
           .from("users")
@@ -152,8 +142,7 @@ export default async function AdminApartmentDetailPage({
     "resolved",
     "high",
   ] as const;
-  const [applicationCounts, visitCounts, maintenanceCounts, propertyCount, verifiedPropertyCount] =
-    await Promise.all([
+  const countsPromise = Promise.all([
       Promise.all(
         applicationStatuses.map(async (status) => {
           let query = supabase
@@ -208,6 +197,13 @@ export default async function AdminApartmentDetailPage({
             .is("deleted_at", null)
         : Promise.resolve({ count: null, error: null }),
     ]);
+
+  // Counts need only the already-authorized apartment, not its previews.
+  // Keep one coherent result, but overlap the two independent request waves.
+  const [
+    [landlordResult, imagesResult, verificationResult, tenancyResult, applicationsResult, visitsResult, maintenanceResult, reviewsResult, apartmentAuditResult],
+    [applicationCounts, visitCounts, maintenanceCounts, propertyCount, verifiedPropertyCount],
+  ] = await Promise.all([previewsPromise, countsPromise]);
 
   const verifications = verificationResult.data ?? [];
   const reviewerIds = [

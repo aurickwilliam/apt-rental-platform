@@ -49,5 +49,5 @@ test("Dashboard skeleton covers four statistics and all three chart panels", () 
   ]);
   const blocks = elements.filter(node => node.type === "Skeleton");
   assert.ok(blocks.length > 0);
-  assert.ok(blocks.every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(blocks.every(node => node.props.className.includes("bg-skeleton!")));
 });

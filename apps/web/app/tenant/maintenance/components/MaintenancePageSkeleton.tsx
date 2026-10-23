@@ -4,7 +4,7 @@ import { Skeleton } from "@heroui/react";
 // nothing moves when the data arrives. Same logic as the Passport, Browse,
 // and My Rental skeletons.
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function FieldSkeleton() {

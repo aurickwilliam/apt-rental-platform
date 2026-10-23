@@ -6,7 +6,7 @@ const DETAIL_FIELD_COUNT = 8;
 const PRICING_FIELD_COUNT = 3;
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function FieldSkeleton() {
