@@ -2,31 +2,23 @@ import { Text, type LayoutChangeEvent } from 'react-native';
 
 import { Button, Surface } from 'heroui-native';
 
-import { IconPlus } from '@tabler/icons-react-native';
-
-import { useColors } from '@/hooks/useTheme';
-
 import { QUICK_REACTIONS } from './reactionEmojis';
 
 interface ReactionStripProps {
   myReaction?: string;
   onSelect?: (emoji: string) => void;
-  onOpenFullPicker?: () => void;
   onLayout?: (e: LayoutChangeEvent) => void;
 }
 
 /**
  * Quick-reaction pill shown above a held message: a HeroUI `Surface` with
- * icon-only ghost `Button`s; the current reaction is tinted.
+ * icon-only ghost `Button`s for the preset emoji only (no custom picker); the current reaction is tinted.
  */
 export default function ReactionStrip({
   myReaction,
   onSelect,
-  onOpenFullPicker,
   onLayout,
 }: ReactionStripProps) {
-  const { colors } = useColors();
-
   return (
     <Surface
       onLayout={onLayout}
@@ -48,15 +40,6 @@ export default function ReactionStrip({
           </Button>
         );
       })}
-      <Button
-        variant="ghost"
-        isIconOnly
-        onPress={onOpenFullPicker}
-        accessibilityLabel="More reactions"
-        className="rounded-full"
-      >
-        <IconPlus size={22} color={colors.textPrimary} />
-      </Button>
     </Surface>
   );
 }
