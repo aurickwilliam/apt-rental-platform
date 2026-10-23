@@ -10,8 +10,12 @@ import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import ChatImageViewer from "./ChatImageViewer";
 import { getReplyCaption } from "@repo/utils";
 import { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
+
+/** How long a click waits for a second click before opening the viewer (mobile uses 300 ms). */
+const IMAGE_OPEN_DELAY_MS = 300;
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -55,6 +59,7 @@ export default function MessageBubble({
   onOpenContextMenu,
 }: MessageBubbleProps) {
   const [isReactionOpen, setIsReactionOpen] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const canInteract = !message.isPending && !message.id.startsWith("temp-");
   const myReaction = message.reactions.find((r) => r.is_mine)?.emoji;
@@ -250,6 +255,7 @@ export default function MessageBubble({
         data-mine={isMine}
         data-chat-message-id={message.id}
         data-reply-highlight={isReplyHighlighted}
+        data-media-only={showsAttachment && !message.message ? "true" : undefined}
         className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : isEmojiMessage ? "p-0" : "px-3 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           isEmojiMessage
             ? "bg-transparent text-foreground"
@@ -259,7 +265,7 @@ export default function MessageBubble({
         } ${canInteract ? "cursor-pointer" : ""}`}
       >
         {mediaUrl && showsAttachment ? (
-          <AttachmentBody message={message} url={mediaUrl} />
+          <AttachmentBody message={message} url={mediaUrl} onOpenImage={setViewerUrl} />
         ) : null}
         {!mediaUrl && showsAttachment && <span className="flex items-center gap-2 text-sm"><IconPaperclip size={16} aria-hidden="true" />Attachment unavailable</span>}
         {message.message && (isEmojiMessage
@@ -296,6 +302,12 @@ export default function MessageBubble({
           ) : null}
         </div>
       ) : null}
+
+      <ChatImageViewer
+        url={viewerUrl}
+        alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
+        onClose={() => setViewerUrl(null)}
+      />
     </div>
   );
 }
@@ -308,11 +320,16 @@ export default function MessageBubble({
 function AttachmentBody({
   message,
   url,
+  onOpenImage,
 }: {
   message: ChatMessage;
   url: string;
+  /** Opens a photo or GIF full screen (a single click; a double click still hearts). */
+  onOpenImage?: (url: string) => void;
 }) {
   const isVideo = message.message_type === "video";
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (openTimer.current) clearTimeout(openTimer.current); }, []);
 
   if (message.message_type === "file") {
     const name = message.attachment_name || "Shared document";
@@ -366,13 +383,27 @@ function AttachmentBody({
           // Signed URL with a 60-minute TTL. `next/image` would cache the
           // optimized copy past expiry and then re-fetch a dead URL, so this
           // follows the plain-`<img>` convention used for private storage.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={url}
-            alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
-            loading="lazy"
-            className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
-          />
+          <button
+            type="button"
+            aria-label="View image"
+            disabled={message.isPending}
+            onClick={(event) => {
+              // Like mobile's single tap: wait out the double-click window so a
+              // double click reacts with a heart instead of also opening the viewer.
+              if (openTimer.current) clearTimeout(openTimer.current);
+              if (event.detail >= 2) return;
+              openTimer.current = setTimeout(() => onOpenImage?.(url), IMAGE_OPEN_DELAY_MS);
+            }}
+            className="block cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
+              loading="lazy"
+              className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
+            />
+          </button>
         )}
       </span>
     </span>

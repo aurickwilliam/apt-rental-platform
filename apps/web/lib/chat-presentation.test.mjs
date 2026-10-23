@@ -464,3 +464,36 @@ test("a reply to a photo shows the quoted image, dimmed, under an Instagram-styl
   assert.equal(tree.some(n => n.type === "img"), false);
   assert.ok(tree.some(n => n.type === "IconPhoto"));
 });
+
+test("clicking a chat photo opens the viewer after the double-click window; a double click does not", async () => {
+  const h = harness("MessageBubble");
+  const props = {
+    message: { id: "p", message: null, message_type: "image", attachment_path: "x", resolvedUrl: "https://signed/photo.jpg", reactions: [] },
+    isMine: true,
+  };
+  const viewerUrl = (tree) => tree.find((n) => n.type === "./ChatImageViewer").props.url;
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  let tree = h.render(props);
+  assert.equal(viewerUrl(tree), null);
+  // AttachmentBody is its own component: expand it to reach the button.
+  const open = () => {
+    const body = tree.find((n) => typeof n.type === "function" && n.props.onOpenImage);
+    return nodes(body.type(body.props)).find((n) => n.props["aria-label"] === "View image");
+  };
+
+  open().props.onClick({ detail: 1 });
+  assert.equal(viewerUrl(h.render(props)), null, "waits for a possible second click");
+  await wait(350);
+  assert.equal(viewerUrl(h.render(props)), "https://signed/photo.jpg");
+
+  // Fresh bubble: click, then a second click inside the window cancels the open.
+  const h2 = harness("MessageBubble");
+  tree = h2.render(props);
+  // One expansion = one component instance, so both clicks share the same timer.
+  const button = open();
+  button.props.onClick({ detail: 1 });
+  button.props.onClick({ detail: 2 });
+  await wait(350);
+  assert.equal(viewerUrl(h2.render(props)), null);
+});

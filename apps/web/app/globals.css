@@ -193,6 +193,16 @@
 .avatar.apt-message-seen-avatar { width: 16px; height: 16px; border-radius: 9999px; }
 .apt-message-seen-avatar .avatar__fallback { font-size: 7px; }
 
+/* A photo/GIF/video with no caption is just the media, like mobile: no bubble colour
+   behind it (it showed as a blue sliver where the media's corners are rounder than a
+   joined bubble corner) and the same corners all round, whatever its place in a run, with a
+   thin border like mobile's media. */
+.apt-message-bubble[data-media-only="true"][data-mine][data-group] {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+}
+
 .apt-message-bubble[data-reply-highlight="true"] {
   outline: 2px solid var(--brand);
   outline-offset: 3px;
