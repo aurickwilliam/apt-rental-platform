@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FlatList } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
-import { IconMessageQuestion, IconUsers } from '@tabler/icons-react-native'
+import { IconMessageQuestion, IconSearchOff, IconUsers } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import {
@@ -160,6 +160,7 @@ export default function Chat() {
   ) : isSearching ? (
     <ConversationListState
       variant='compact'
+      icon={IconSearchOff}
       title='No results found'
       description={`No conversations match "${searchQuery.trim()}". Try a different name, property, or message.`}
     />
