@@ -88,11 +88,8 @@ export async function fetchBrowseSections(
   supabase: ServerSupabaseClient,
   basePath = "/browse",
 ): Promise<BrowseSectionsResult> {
-  const [sectionsRes, countRes] = await Promise.all([
-    supabase.rpc("get_search_sections", {
-      p_city: "CAMANAVA",
-      p_limit: SECTION_LIMIT,
-    }),
+  const [sections, countRes] = await Promise.all([
+    fetchDiscoverySections(supabase, basePath),
     supabase
       .from("apartments")
       .select("id", { count: "exact", head: true })
@@ -101,11 +98,22 @@ export async function fetchBrowseSections(
       .in("status", ["available", "unverified"]),
   ]);
 
-  const totalCount = countRes.count ?? 0;
+  return { sections, totalCount: countRes.count ?? 0 };
+}
+
+/** Discovery renders cohorts, not pagination: don't wait for an unused count. */
+export async function fetchDiscoverySections(
+  supabase: ServerSupabaseClient,
+  basePath = "/browse",
+): Promise<BrowseSection[]> {
+  const sectionsRes = await supabase.rpc("get_search_sections", {
+    p_city: "CAMANAVA",
+    p_limit: SECTION_LIMIT,
+  });
 
   if (sectionsRes.error) {
     console.error(sectionsRes.error);
-    return { sections: [], totalCount };
+    return [];
   }
 
   const raw = (sectionsRes.data as { sections?: Array<{ id: string; title: string; apartments?: SectionRow[] }> } | null)?.sections ?? [];
@@ -122,5 +130,5 @@ export async function fetchBrowseSections(
     })
     .filter((section) => section.apartments.length > 0);
 
-  return { sections, totalCount };
+  return sections;
 }

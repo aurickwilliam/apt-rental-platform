@@ -53,7 +53,7 @@ export default function LandlordMaintenanceDetailPage() {
     resolveRequest,
     waiveFee,
     actionLoading,
-  } = useLandlordMaintenanceRequests();
+  } = useLandlordMaintenanceRequests(id);
   const resolveModal = useOverlayState();
   const waiveModal = useOverlayState();
 

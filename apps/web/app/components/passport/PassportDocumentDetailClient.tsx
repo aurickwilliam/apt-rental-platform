@@ -176,7 +176,7 @@ export default function PassportDocumentDetailClient({
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4" aria-label="Document preview">
-          {sides.map((side) => (
+          {sides.map((side, index) => (
             <div key={side.label} className="space-y-2">
               {sides.length > 1 ? (
                 <p className="font-nunito text-base font-semibold text-card-foreground">{side.label}</p>
@@ -200,6 +200,7 @@ export default function PassportDocumentDetailClient({
                     mimeType={side.label === "Front" ? document.mime_type : null}
                     fit="contain"
                     iconSize={48}
+                    priority={index === 0}
                   />
                 ) : urlsLoading ? (
                   <Spinner size="sm" color="accent" />

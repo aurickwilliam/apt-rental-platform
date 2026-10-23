@@ -59,7 +59,7 @@ export default function LandlordApplicationDetailPage() {
 
 function ApplicationDetailContent({ applicationId }: { applicationId: string }) {
   const router = useRouter();
-  const { applications, loading, error, refresh, revalidate, revalidating } = useLandlordApplications();
+  const { applications, loading, error, refresh, revalidate, revalidating } = useLandlordApplications(applicationId);
   const { localStatus, actionLoading, isRejectDialogOpen, errorMessage, approve, reject, openRejectDialog, closeRejectDialog, clearError } = useLandlordApplicationActions(revalidate);
   const rejectModal = useOverlayState();
   const [rejectReason, setRejectReason] = useState("");

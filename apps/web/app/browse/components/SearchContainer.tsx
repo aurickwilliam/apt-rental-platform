@@ -61,7 +61,7 @@ export default function SearchContainer({
           mobile-only, md:hidden); centered pill on desktop. The in-pill
           magnifier is the search trigger (plus Enter); no separate button. */}
       <div className="flex flex-row items-center gap-2 w-full max-w-xl mt-2 mx-auto min-w-0">
-        <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
+        <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
           <InputGroup.Prefix>
             {isPending ? (
               <Spinner size="sm" color="current" className="text-grey-500" />

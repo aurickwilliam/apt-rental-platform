@@ -1167,9 +1167,9 @@ body[data-scroll-locked] [role="option"] {
 }
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: var(--font-nunito-face), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
@@ -1196,6 +1196,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 @theme inline {
+  --color-skeleton: var(--skeleton-fill);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -1242,6 +1243,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 :root {
+  --skeleton-fill: #E5E7EB;
   /* No drop shadow on HeroUI fields (inputs, selects, combo boxes, text
      areas). Same transparent value HeroUI uses in dark mode, so ring
      utilities still work. */
@@ -1289,6 +1291,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 .dark {
+  --skeleton-fill: #303030;
   --background: oklch(0.17 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -1334,6 +1337,29 @@ body[data-scroll-locked] [role="option"] {
     @apply bg-background text-foreground;
   }
 }
+/* Keep HeroUI's engine, but soften the sweep over theme-aware neutral blocks. */
+.skeleton--shimmer::after,
+.skeleton--shimmer::before {
+  opacity: 0.45;
+}
+
+/* CSS honors the OS immediately, including the server-rendered loading frame. */
+html.apt-reduce-motion .skeleton,
+html.apt-reduce-motion .skeleton::before,
+html.apt-reduce-motion .skeleton::after,
+html.apt-reduce-motion .animate-pulse {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .skeleton::before,
+  .skeleton::after,
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 html.apt-reduce-motion *,
 html.apt-reduce-motion *::before,
 html.apt-reduce-motion *::after {

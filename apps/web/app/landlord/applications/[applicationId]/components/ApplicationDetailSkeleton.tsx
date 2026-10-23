@@ -12,7 +12,7 @@ const INFORMATION_SECTIONS = [
 ];
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function ApplicationFieldSkeleton() {

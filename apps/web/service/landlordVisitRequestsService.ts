@@ -42,22 +42,26 @@ export type LandlordVisitRequest = {
   };
 };
 
-export async function fetchLandlordVisitRequests(): Promise<LandlordVisitRequest[]> {
+export async function fetchLandlordVisitRequests(requestId?: string): Promise<LandlordVisitRequest[]> {
   const context = await getLandlordContext();
   if (!context.landlordId) return [];
 
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("visit_request")
     .select(
       `id, visit_date, time, no_visitors, notes, status, rejected_reason,
       responded_at, confirmed_visit_date, confirmed_time, created_at,
       tenant:users!visit_request_tenant_id_fkey(first_name, last_name, avatar_url, mobile_number),
-      apartment:apartments!visit_request_apartment_id_fkey(name, barangay, street_address, city, province, zip_code, apartment_images(url, is_cover))`,
+       apartment:apartments!visit_request_apartment_id_fkey(name, barangay, street_address, city, province, zip_code, apartment_images(url, url_thumb, is_cover))`,
     )
     .eq("landlord_id", context.landlordId)
-    .order("visit_date", { ascending: true });
+    .order("visit_date", { ascending: true })
+    .order("is_cover", { referencedTable: "apartment.apartment_images", ascending: false, nullsFirst: false })
+    .limit(1, { referencedTable: "apartment.apartment_images" });
+  if (requestId) query = query.eq("id", requestId).limit(1);
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -77,11 +81,12 @@ export async function fetchLandlordVisitRequests(): Promise<LandlordVisitRequest
       city: string;
       province: string;
       zip_code: number | null;
-      apartment_images: { url: string; is_cover: boolean | null }[] | null;
+      apartment_images: { url: string; url_thumb?: string | null; is_cover: boolean | null }[] | null;
     };
     // apartment-images bucket is public — urls are permanent CDN URLs, no signing.
     const images = apartment?.apartment_images ?? [];
-    const cover = images.find((img) => img.is_cover === true)?.url ?? null;
+    const image = images.find((img) => img.is_cover === true);
+    const cover = image?.url_thumb || image?.url || null;
 
     return {
       id: row.id as string,

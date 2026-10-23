@@ -17,7 +17,7 @@ export function useLandlordVisitRequests(resourceId?: string) {
   const identity = useAuthIdentity();
   const load = useCallback(async () => {
     if (!identity.authUserId) return NO_VISIT_REQUESTS;
-    const requests = await fetchLandlordVisitRequests();
+    const requests = await fetchLandlordVisitRequests(resourceId);
     if (!resourceId) return requests;
     const scoped = requests.filter((request) => request.id === resourceId);
     if (scoped.length === 0) throw new Error("This visit request is no longer available.");

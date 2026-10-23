@@ -8,7 +8,7 @@ const CARD = "rounded-2xl border border-border bg-card";
 // Darker-than-default base so the shimmer reads clearly; the `!` beats
 // @heroui/styles' unlayered CSS (same as app/(main)/loading.tsx).
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 function CardHeaderSkeleton({ titleWidth, withSubtitle = true }: { titleWidth: string; withSubtitle?: boolean }) {

@@ -175,6 +175,7 @@ function mapRow(row: MaintenanceRow, urls: Record<string, string | null>): Maint
 export async function fetchMaintenanceRequestHistory(
   apartmentId: string,
   tenantId: string,
+  includePhotos = true,
 ): Promise<MaintenanceRequest[]> {
   const supabase = createClient();
 
@@ -189,7 +190,11 @@ export async function fetchMaintenanceRequestHistory(
   if (error) throw error;
 
   const rows = (data ?? []) as unknown as MaintenanceRow[];
-  const { urls } = await resolveMaintenanceImageUrls(rows.flatMap((row) => row.image_urls ?? []));
+  // Text-only consumers don't need signed photo URLs. Full history keeps its
+  // existing batch signing; no signing or bucket-access behavior changes.
+  const { urls } = includePhotos
+    ? await resolveMaintenanceImageUrls(rows.flatMap((row) => row.image_urls ?? []))
+    : { urls: {} };
   return rows.map((row) => mapRow(row, urls));
 }
 

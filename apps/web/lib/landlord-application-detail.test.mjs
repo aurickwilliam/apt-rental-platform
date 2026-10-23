@@ -177,7 +177,7 @@ test("Route keeps the detail shell, client owns the body skeleton, and failures 
   const elements = h.render();
   assert.ok(elements.some(element => element.props["aria-label"] === "Loading application details" && element.props["aria-busy"] === "true"));
   assert.equal(elements.filter(element => element.type === "h2").length, 8);
-  assert.ok(elements.filter(element => element.type === "Skeleton").every(element => element.props.className.includes("bg-grey-300!")));
+  assert.ok(elements.filter(element => element.type === "Skeleton").every(element => element.props.className.includes("bg-skeleton!")));
   assert.equal(button(elements, "Approve"), undefined);
   const boundary = nodes(h.load("loading.tsx").default());
   assert.ok(text(boundary).includes("Application Details"));

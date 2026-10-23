@@ -69,7 +69,7 @@ test("Payments route and Suspense fallbacks share a header, selector/year placeh
   assert.equal(route.filter(node => node.type === Card).length, 3);
   const blocks = route.filter(node => node.type === "Skeleton");
   assert.ok(blocks.some(node => node.props.className.includes("h-10 w-full")));
-  assert.ok(blocks.every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(blocks.every(node => node.props.className.includes("bg-skeleton!")));
   assert.ok(!route.some(node => node.type === "IconArrowLeft"));
   const suspense = load("page.tsx").default();
   assert.equal(nodes(suspense.props.fallback).filter(node => node.type === Card).length, 3);

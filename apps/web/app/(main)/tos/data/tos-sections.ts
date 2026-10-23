@@ -4,6 +4,12 @@ export const BRAND = {
   hours: "Monday–Friday, 9:00 AM – 6:00 PM (PHT)",
 };
 
+export const LEGAL_META = {
+  lastUpdated: "January 15, 2026",
+  jurisdiction: "Effective in the Philippines",
+  version: "1.0",
+};
+
 export type Callout = { kind: "info" | "warning"; label: string; text: string };
 
 export type Section = {
@@ -18,28 +24,28 @@ export type Section = {
 };
 
 export const TOC: { id: string; label: string }[] = [
-  { id: "s1", label: "1. Acceptance of Terms" },
-  { id: "s2", label: "2. About APT" },
-  { id: "s3", label: "3. Eligibility" },
-  { id: "s4", label: "4. User Accounts" },
-  { id: "s5", label: "5. Identity Verification" },
-  { id: "s6", label: "6. Services for Tenants" },
-  { id: "s7", label: "7. Services for Rental Owners" },
-  { id: "s8", label: "8. Property Listings" },
-  { id: "s9", label: "9. Rental Applications" },
-  { id: "s10", label: "10. Rental Agreements" },
-  { id: "s11", label: "11. Payments" },
-  { id: "s12", label: "12. Maintenance Requests" },
-  { id: "s13", label: "13. Reviews & Ratings" },
-  { id: "s14", label: "14. Prohibited Activities" },
-  { id: "s15", label: "15. Intellectual Property" },
-  { id: "s16", label: "16. Privacy" },
-  { id: "s17", label: "17. Suspension & Termination" },
-  { id: "s18", label: "18. Disclaimer" },
-  { id: "s19", label: "19. Limitation of Liability" },
-  { id: "s20", label: "20. Governing Law" },
-  { id: "s21", label: "21. Changes to These Terms" },
-  { id: "s22", label: "22. Compliance with PH Rental Laws" },
+  { id: "s1", label: "Acceptance of Terms" },
+  { id: "s2", label: "About APT" },
+  { id: "s3", label: "Eligibility" },
+  { id: "s4", label: "User Accounts" },
+  { id: "s5", label: "Identity Verification" },
+  { id: "s6", label: "Services for Tenants" },
+  { id: "s7", label: "Services for Rental Owners" },
+  { id: "s8", label: "Property Listings" },
+  { id: "s9", label: "Rental Applications" },
+  { id: "s10", label: "Rental Agreements" },
+  { id: "s11", label: "Payments" },
+  { id: "s12", label: "Maintenance Requests" },
+  { id: "s13", label: "Reviews & Ratings" },
+  { id: "s14", label: "Prohibited Activities" },
+  { id: "s15", label: "Intellectual Property" },
+  { id: "s16", label: "Privacy" },
+  { id: "s17", label: "Suspension & Termination" },
+  { id: "s18", label: "Disclaimer" },
+  { id: "s19", label: "Limitation of Liability" },
+  { id: "s20", label: "Governing Law" },
+  { id: "s21", label: "Changes to These Terms" },
+  { id: "s22", label: "Compliance with PH Rental Laws" },
 ];
 
 export const SECTIONS: Section[] = [
@@ -50,8 +56,12 @@ export const SECTIONS: Section[] = [
     emphasis: "Terms",
     body: [
       `Welcome to APT (A Place to Thrive). These Terms of Service ("Terms") govern your access to and use of the APT website and mobile application ("Platform"). By creating an account, accessing, or using the Platform, you acknowledge that you have read, understood, and agree to comply with these Terms.`,
-      `If you do not agree with these Terms, you must discontinue use of the Platform immediately.`,
     ],
+    callout: {
+      kind: "info",
+      label: "Note",
+      text: `If you do not agree with these Terms, you must discontinue use of the Platform immediately.`,
+    },
   },
   {
     id: "s2",
@@ -255,7 +265,7 @@ export const SECTIONS: Section[] = [
       "Violate Philippine laws",
     ],
     callout: {
-      kind: "info",
+      kind: "warning",
       label: "Warning",
       text: "Violation may result in suspension or permanent account termination.",
     },

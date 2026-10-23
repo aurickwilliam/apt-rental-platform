@@ -18,13 +18,14 @@ interface TenantApplicationsData {
 
 const EMPTY: TenantApplicationsData = { tenantId: null, applications: [] };
 
-export function useTenantApplications() {
+export function useTenantApplications(knownTenantId?: string, applicationId?: string, includeDocuments = !!applicationId) {
   const load = useCallback(async (): Promise<TenantApplicationsData> => {
-    const context = await getTenantContext();
-    if (!context.tenantId) return EMPTY;
-    return { tenantId: context.tenantId, applications: await fetchTenantApplications(context.tenantId) };
-  }, []);
+    const tenantId = knownTenantId ?? (await getTenantContext()).tenantId;
+    if (!tenantId) return EMPTY;
+    return { tenantId, applications: await fetchTenantApplications(tenantId, { applicationId, includeDocuments }) };
+  }, [knownTenantId, applicationId, includeDocuments]);
   const { data, loading, error, refresh } = useAsyncResource(load, EMPTY, "Failed to load applications.");
 
-  return { applications: data.applications, tenantId: data.tenantId, loading, error, refresh };
+  const visible = loading || error ? EMPTY : data;
+  return { applications: visible.applications, tenantId: visible.tenantId, loading, error, refresh };
 }

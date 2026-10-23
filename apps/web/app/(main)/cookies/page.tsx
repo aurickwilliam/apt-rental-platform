@@ -1,51 +1,64 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useEffect, useRef, useState } from "react";
-import CookiesHero from "./components/CookiesHero";
-import CookiesTableOfContents from "./components/CookiesTableOfContents";
-import CookiesSection from "./components/CookiesSection";
-import CookiesContact from "./components/CookiesContact";
-import { SECTIONS } from "./data/cookies-sections";
+import { IconCookie } from "@tabler/icons-react";
+
+import LegalBlocks from "../components/legal/LegalBlocks";
+import LegalContactCard from "../components/legal/LegalContactCard";
+import LegalHero from "../components/legal/LegalHero";
+import LegalSection from "../components/legal/LegalSection";
+import LegalTableOfContents from "../components/legal/LegalTableOfContents";
+
+import { BRAND, LEGAL_META, SECTIONS, TOC } from "./data/cookies-sections";
+
+const DESCRIPTION =
+  "This Cookie Policy explains how APT uses cookies and similar technologies to improve your experience on our website and mobile application.";
+
+export const metadata: Metadata = {
+  title: "Cookie Policy — APT",
+  description: DESCRIPTION,
+};
+
+const RELATED_POLICIES = [
+  { href: "/tos", label: "Terms of Service" },
+  { href: "/pap", label: "Privacy Policy" },
+];
 
 export default function CookiesPage() {
-  const [activeId, setActiveId] = useState<string>("c1");
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.id);
-        });
-      },
-      { rootMargin: "-15% 0px -70% 0px", threshold: 0 }
-    );
-    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  const scrollTo = (id: string) => {
-    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
-    <div className="min-h-screen font-poppins">
-      <CookiesHero />
+    <div className="min-h-screen bg-muted/30 dark:bg-background">
+      <LegalHero
+        eyebrow="Legal"
+        title="Cookie"
+        titleAccent="Policy"
+        description={DESCRIPTION}
+        meta={LEGAL_META}
+        icon={<IconCookie size={14} aria-hidden="true" />}
+      />
 
-      <div className="mx-auto max-w-7xl grid grid-cols-1 gap-0 px-4 md:px-12 md:grid-cols-[240px_1fr]">
-        <CookiesTableOfContents activeId={activeId} onNavigate={scrollTo} />
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-8 lg:pt-10">
+        <LegalTableOfContents items={TOC} />
 
-        <div className="border-l-0 md:border-l border-default-200 py-10 md:pl-12 pb-20">
-          {SECTIONS.map((section, i) => (
-            <CookiesSection
+        <article className="min-w-0 max-w-4xl">
+          {SECTIONS.map((section) => (
+            <LegalSection
               key={section.id}
-              section={section}
-              isLast={i === SECTIONS.length - 1}
-              sectionRef={(el) => (sectionRefs.current[section.id] = el)}
-            />
+              id={section.id}
+              num={section.num}
+              title={section.title}
+              emphasis={section.emphasis}
+              callout={section.callout}
+            >
+              <LegalBlocks blocks={section.blocks} />
+            </LegalSection>
           ))}
-          <CookiesContact />
-        </div>
+
+          <LegalContactCard
+            brand={BRAND}
+            related={RELATED_POLICIES}
+            eyebrow="Questions about this Cookie Policy?"
+            description={null}
+          />
+        </article>
       </div>
     </div>
   );

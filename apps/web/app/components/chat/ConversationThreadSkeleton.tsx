@@ -15,8 +15,8 @@ export default function ConversationThreadSkeleton() {
     <div role="status" aria-busy="true" aria-label="Loading conversation" className="flex w-full flex-col gap-3 py-2">
       {BUBBLES.map((bubble, index) => (
         <div key={index} className={`flex items-end gap-2 ${bubble.mine ? "justify-end" : ""}`}>
-          {bubble.mine ? null : <Skeleton className="size-7 shrink-0 rounded-full bg-grey-300!" />}
-          <Skeleton className={`${bubble.height} ${bubble.width} rounded-3xl bg-grey-300!`} />
+          {bubble.mine ? null : <Skeleton className="size-7 shrink-0 rounded-full bg-skeleton!" />}
+          <Skeleton className={`${bubble.height} ${bubble.width} rounded-3xl bg-skeleton!`} />
         </div>
       ))}
     </div>

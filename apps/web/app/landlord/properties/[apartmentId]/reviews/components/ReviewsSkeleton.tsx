@@ -5,7 +5,7 @@ const RATING_ROW_COUNT = 5;
 const REVIEW_COUNT = 4;
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 export default function ReviewsSkeleton() {

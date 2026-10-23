@@ -20,7 +20,7 @@ function toErrorMessage(error: unknown): string | null {
   return "Failed to load reviews.";
 }
 
-export function useApartmentReviews(apartmentId?: string) {
+export function useApartmentReviews(apartmentId?: string, checkEligibility = true) {
   const [sortBy, setSortBy] = useState<ReviewSortOption>("Most Recent");
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ export function useApartmentReviews(apartmentId?: string) {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { canReview, canEdit, stayLocked, checkingEligibility, reviewableTenancyId, lockedTenancyId, existingReview, refreshEligibility } =
-    useReviewEligibility(apartmentId);
+    useReviewEligibility(checkEligibility ? apartmentId : undefined);
 
   const refresh = useCallback(() => {
     setLoading(true);

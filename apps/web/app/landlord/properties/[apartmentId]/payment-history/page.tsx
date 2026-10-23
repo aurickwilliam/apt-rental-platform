@@ -1,4 +1,4 @@
-import { getLandlordUnitDetail, UnitNotice } from "../lib/get-unit-detail";
+import { getLandlordApartment, UnitNotice } from "../lib/get-unit-detail";
 import PaymentHistoryClient from "./components/PaymentHistoryClient";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +9,11 @@ type PageProps = {
 
 export default async function LandlordPropertyPaymentHistoryPage({ params }: PageProps) {
   const { apartmentId } = await params;
-  const result = await getLandlordUnitDetail(apartmentId);
+  const result = await getLandlordApartment(apartmentId);
   if ("error" in result) {
     return <UnitNotice title={result.error.title} message={result.error.message} />;
   }
   return (
-    <PaymentHistoryClient apartmentId={apartmentId} apartmentName={result.detail.apartment.name} />
+    <PaymentHistoryClient apartmentId={apartmentId} apartmentName={result.apartment.name} />
   );
 }
