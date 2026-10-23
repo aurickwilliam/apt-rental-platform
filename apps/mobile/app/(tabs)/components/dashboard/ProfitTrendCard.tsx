@@ -1,76 +1,54 @@
 import { View, Text } from "react-native";
 import { useState } from "react";
+import type { LayoutChangeEvent } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { IconChartLine } from "@tabler/icons-react-native";
+
+import {
+  TREND_TIMEFRAMES,
+  buildTrendSeries,
+  formatPesoCompact,
+  type TrendTimeframe,
+} from "@repo/utils";
 
 import DropdownButton from "@/components/buttons/DropdownButton";
 import EmptyState from "@/components/display/EmptyState";
 
 import { useColors } from "@/hooks/useTheme";
 
-import {
-  monthLabel,
-  type MonthlyRevenuePoint,
-} from "@/service/dashboard/dashboardService";
+import type { MonthlyRevenuePoint } from "@/service/dashboard/dashboardService";
 
-const filterOptions: FilterOption[] = ["Monthly", "Quarterly", "Yearly"];
-type FilterOption = "Monthly" | "Quarterly" | "Yearly";
-
-type ChartDatum = { value: number; label: string };
+const Y_AXIS_LABEL_WIDTH = 44;
+const SIDE_SPACING = 12;
+/** Narrowest gap between points; more points than fit scroll sideways. */
+const MIN_POINT_SPACING = 48;
 
 interface ProfitTrendCardProps {
   monthlyRevenue: MonthlyRevenuePoint[];
 }
 
-function toMonthly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  return points.map((point) => ({
-    value: point.amount,
-    label: monthLabel(point.month),
-  }));
-}
-
-function toQuarterly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<string, ChartDatum>();
-  points.forEach((point) => {
-    const year = point.month.slice(0, 4);
-    const quarter = Math.floor((Number(point.month.slice(5, 7)) - 1) / 3);
-    const key = `${year}-${quarter}`;
-    const current = totals.get(key);
-    totals.set(key, {
-      value: (current?.value ?? 0) + point.amount,
-      label: `Q${quarter + 1}`,
-    });
-  });
-  return [...totals.values()];
-}
-
-function toYearly(points: MonthlyRevenuePoint[]): ChartDatum[] {
-  const totals = new Map<string, ChartDatum>();
-  points.forEach((point) => {
-    const year = point.month.slice(0, 4);
-    const current = totals.get(year);
-    totals.set(year, {
-      value: (current?.value ?? 0) + point.amount,
-      label: year,
-    });
-  });
-  return [...totals.values()];
-}
-
-const BUILDERS: Record<FilterOption, (points: MonthlyRevenuePoint[]) => ChartDatum[]> = {
-  Monthly: toMonthly,
-  Quarterly: toQuarterly,
-  Yearly: toYearly,
-};
-
 export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps) {
   const { colors, isDark } = useColors();
 
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Monthly");
+  const [selectedFilter, setSelectedFilter] = useState<TrendTimeframe>("Monthly");
 
-  const chartData = BUILDERS[selectedFilter](monthlyRevenue);
+  // Measured so the plot fills the card; points keep a readable gap and the
+  // chart scrolls sideways (opening on the latest month) when they don't fit.
+  const [chartAreaWidth, setChartAreaWidth] = useState(0);
+  const handleLayout = (event: LayoutChangeEvent) =>
+    setChartAreaWidth(event.nativeEvent.layout.width);
+
+  const chartData = buildTrendSeries(monthlyRevenue, selectedFilter);
+  const plotWidth = Math.max(chartAreaWidth - Y_AXIS_LABEL_WIDTH, 0);
+  const fitSpacing =
+    chartData.length > 1
+      ? (plotWidth - SIDE_SPACING * 2) / (chartData.length - 1)
+      : 0;
+  const pointSpacing = Math.max(fitSpacing, MIN_POINT_SPACING);
   const maxValue = chartData.reduce((max, datum) => Math.max(max, datum.value), 0);
   const hasRevenue = chartData.some((datum) => datum.value > 0);
+  // Headroom above the tallest point so the curve is never clipped at the top.
+  const chartMax = Math.ceil((maxValue * 1.15) / 1000) * 1000;
 
   return (
     <View className="w-full border border-border p-4 rounded-3xl bg-surface">
@@ -87,26 +65,33 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
 
         <DropdownButton
           label="Select Timeframe"
-          options={filterOptions}
+          options={[...TREND_TIMEFRAMES]}
           value={selectedFilter}
           onSelect={setSelectedFilter}
         />
       </View>
 
       {/* CHART */}
-      <View className="mt-4 overflow-hidden">
+      <View className="mt-4 overflow-hidden" onLayout={handleLayout}>
         {!hasRevenue ? (
           <EmptyState
             icon={<IconChartLine size={36} color={colors.gray500} />}
             title="No earnings yet"
             description="Your profit trend will appear here once payments come in."
           />
-        ) : (
+        ) : chartAreaWidth === 0 ? null : (
           <LineChart
             data={chartData}
             height={180}
-            width={280}
+            width={plotWidth}
+            yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
+            initialSpacing={SIDE_SPACING}
+            endSpacing={SIDE_SPACING}
+            spacing={pointSpacing}
+            scrollToEnd
+            scrollAnimation={false}
             curved
+            curvature={0.12}
             color={colors.primary}
             thickness={2.5}
             dataPointsColor={colors.primary}
@@ -116,17 +101,17 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
             startOpacity={0.2}
             endOpacity={0.01}
             areaChart
-            maxValue={maxValue + 2000}
+            maxValue={chartMax}
             noOfSections={4}
             yAxisColor="transparent"
             xAxisColor={isDark ? colors.gray200 : "#e5e7eb"}
             rulesColor={isDark ? colors.gray200 : "#f3f4f6"}
             rulesType="solid"
             yAxisTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
-            xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 10, fontFamily: "Nunito-SemiBold" }}
+            xAxisLabelTextStyle={{ color: "#9ca3af", fontSize: 9, fontFamily: "Nunito-SemiBold" }}
             hideDataPoints={false}
             showVerticalLines={false}
-            formatYLabel={(val) => `₱${Number(val) / 1000}k`}
+            formatYLabel={(val) => formatPesoCompact(Number(val))}
             pointerConfig={{
               pointerStripHeight: 140,
               pointerStripColor: colors.primary,
@@ -135,7 +120,8 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
               radius: 5,
               pointerLabelWidth: 90,
               pointerLabelHeight: 38,
-              activatePointersOnLongPress: false,
+              // A plain drag scrolls the chart; press and hold to read a value.
+              activatePointersOnLongPress: true,
               autoAdjustPointerLabelPosition: true,
               pointerLabelComponent: (items: any) => (
                 <View
