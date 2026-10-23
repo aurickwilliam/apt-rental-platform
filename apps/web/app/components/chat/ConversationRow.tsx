@@ -4,6 +4,7 @@ import { Button } from "@heroui/react";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import type { ConversationContact } from "@/lib/conversation-contacts";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { conversationPreview } from "@/lib/chat-message-presentation";
 
 interface ConversationRowProps {
   contact: ConversationContact;
@@ -16,12 +17,7 @@ export default function ConversationRow({ contact, isActive, onSelect }: Convers
   const unread = !isActive && contact.unreadCount > 0;
   const date = contact.lastMessageTime ? new Date(contact.lastMessageTime) : null;
   const validDate = date && Number.isFinite(date.getTime()) ? date : null;
-  const preview = contact.lastMessage?.trim() || (
-    contact.lastMessageType === "image" ? "Photo" :
-    contact.lastMessageType === "video" ? "Video" :
-    contact.lastMessageType === "gif" ? "GIF" :
-    contact.lastMessageType === "file" ? "Document" : null
-  );
+  const preview = conversationPreview(contact);
 
   return (
     <Button variant="ghost" onPress={onSelect} aria-current={isActive ? "true" : undefined}

@@ -116,6 +116,7 @@ async function TenantMessagesWorkspace({
   // Past Inquiries: every other tenant-side conversation, newest first
   const { pinned: myLandlord, others: pastInquiries } = buildPortalContacts({
     rows: conversationRows ?? [],
+    currentUserId: tenantId,
     pinned: activeLandlords,
     describeApartment: (apartmentName) =>
       apartmentName ? `Previous inquiry: ${apartmentName}` : "Previous inquiry",

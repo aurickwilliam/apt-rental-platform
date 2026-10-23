@@ -50,3 +50,21 @@ export function replyQuoteSnippet(reply: { message?: string | null; messageType?
     default: return "";
   }
 }
+
+/**
+ * The preview line of a conversation row (mobile's `MessageCard`): the text,
+ * else "Sent a photo" / "Sent a video" / "Sent a GIF" / "Sent a document". When
+ * you sent the latest message it reads "You: text" or "You sent a photo".
+ */
+export function conversationPreview(contact: {
+  lastMessage?: string | null;
+  lastMessageType?: string | null;
+  lastSenderIsMe?: boolean;
+}): string | null {
+  const mine = contact.lastSenderIsMe === true;
+  const text = contact.lastMessage?.trim();
+  if (text) return mine ? `You: ${text}` : text;
+  const kind = { image: "photo", video: "video", gif: "GIF", file: "document" }[contact.lastMessageType ?? ""];
+  if (!kind) return null;
+  return mine ? `You sent a ${kind}` : `Sent a ${kind}`;
+}

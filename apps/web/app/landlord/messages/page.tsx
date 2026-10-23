@@ -105,6 +105,7 @@ async function LandlordMessagesWorkspace({
   // Inquiries: every other landlord-side conversation, newest first
   const { pinned: currentTenants, others: inquiries } = buildPortalContacts({
     rows: conversationRows ?? [],
+    currentUserId: landlordId,
     pinned: activeTenants,
     describeApartment: (apartmentName) => apartmentName || "No apartment linked",
   });

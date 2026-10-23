@@ -9,6 +9,8 @@ export interface PortalConversationRow {
   last_message?: string | null;
   last_message_time?: string | null;
   last_message_type?: string | null;
+  /** Who sent the latest message (`get_portal_conversations.last_sender_id`). */
+  last_sender_id?: string | null;
 }
 
 /** Sidebar contact, structurally identical to both portals' `Contact`. */
@@ -23,11 +25,15 @@ export interface ConversationContact {
   lastMessage?: string | null;
   lastMessageTime?: string | null;
   lastMessageType?: string | null;
+  /** The signed-in user sent the latest message (shown as "You: …"). */
+  lastSenderIsMe?: boolean;
 }
 
 interface BuildPortalContactsOptions {
   /** Conversations from `get_portal_conversations`, newest first. */
   rows: PortalConversationRow[];
+  /** The signed-in user's internal `users.id`, to tell who sent the latest message. */
+  currentUserId: string;
   /** Pinned contacts (active tenancies), shown even before any message. */
   pinned: ConversationContact[];
   /** Subtitle for a conversation outside the pinned group. */
@@ -73,6 +79,7 @@ export function selectPortalConversation<C extends { conversationKey: string }>(
  */
 export function buildPortalContacts({
   rows,
+  currentUserId,
   pinned,
   describeApartment,
 }: BuildPortalContactsOptions): {
@@ -80,12 +87,13 @@ export function buildPortalContacts({
   others: ConversationContact[];
 } {
   const unreadByKey = new Map<string, number>();
-  const latestByKey = new Map<string, Pick<ConversationContact, "lastMessage" | "lastMessageTime" | "lastMessageType">>();
+  const latestByKey = new Map<string, Pick<ConversationContact, "lastMessage" | "lastMessageTime" | "lastMessageType" | "lastSenderIsMe">>();
   for (const row of rows) {
     latestByKey.set(getContactConversationKey(row.other_user_id, row.apartment_id), {
       lastMessage: row.last_message,
       lastMessageTime: row.last_message_time,
       lastMessageType: row.last_message_type,
+      lastSenderIsMe: Boolean(row.last_sender_id) && row.last_sender_id === currentUserId,
     });
     unreadByKey.set(
       getContactConversationKey(row.other_user_id, row.apartment_id),
@@ -111,6 +119,7 @@ export function buildPortalContacts({
       lastMessage: row.last_message,
       lastMessageTime: row.last_message_time,
       lastMessageType: row.last_message_type,
+      lastSenderIsMe: Boolean(row.last_sender_id) && row.last_sender_id === currentUserId,
     }));
 
   return {

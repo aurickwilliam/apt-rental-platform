@@ -17,6 +17,7 @@ export interface Contact {
   lastMessage?: string | null;
   lastMessageTime?: string | null;
   lastMessageType?: string | null;
+  lastSenderIsMe?: boolean;
 }
 
 export type { MessageReaction, ReplyPreview };

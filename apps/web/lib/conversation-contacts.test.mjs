@@ -29,6 +29,7 @@ const pinnedContact = {
 
 const options = (rows, pinned = []) => ({
   rows,
+  currentUserId: "me",
   pinned,
   describeApartment: (name) => (name ? `Inquiry: ${name}` : "Inquiry"),
 });
@@ -147,4 +148,15 @@ test("deep links select the requested conversation, else the portal default", ()
     "landlord-2:apt-2",
   );
   assert.equal(selectPortalConversation([], [], "landlord-1:apt-1"), null);
+});
+
+test("rows record whether the signed-in user sent the latest message", () => {
+  const mine = row({ other_user_id: "a", last_message: "hi", last_sender_id: "me" });
+  const theirs = row({ other_user_id: "b", last_message: "yo", last_sender_id: "b" });
+  const unknown = row({ other_user_id: "c" });
+  const { others } = buildPortalContacts(options([mine, theirs, unknown]));
+  assert.deepEqual(others.map((c) => c.lastSenderIsMe), [true, false, false]);
+
+  const { pinned } = buildPortalContacts(options([row({ last_sender_id: "me" })], [pinnedContact]));
+  assert.equal(pinned[0].lastSenderIsMe, true);
 });

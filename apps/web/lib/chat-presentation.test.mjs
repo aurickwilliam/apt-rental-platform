@@ -6,7 +6,7 @@ import ts from "typescript";
 import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
 import { isSameChatDay } from "../../../packages/utils/src/chatDay.ts";
 import { getReplyCaption } from "../../../packages/utils/src/replyCaption.ts";
-import { emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
+import { conversationPreview, emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
 for (const portal of ["tenant", "landlord"]) {
@@ -496,4 +496,16 @@ test("clicking a chat photo opens the viewer after the double-click window; a do
   button.props.onClick({ detail: 2 });
   await wait(350);
   assert.equal(viewerUrl(h2.render(props)), null);
+});
+
+test("conversation previews follow mobile: 'You: text' and 'You sent a photo' when you sent it", () => {
+  assert.equal(conversationPreview({ lastMessage: " Hello ", lastSenderIsMe: false }), "Hello");
+  assert.equal(conversationPreview({ lastMessage: "Hello", lastSenderIsMe: true }), "You: Hello");
+  assert.equal(conversationPreview({ lastMessage: null, lastMessageType: "image", lastSenderIsMe: true }), "You sent a photo");
+  assert.equal(conversationPreview({ lastMessage: "", lastMessageType: "image" }), "Sent a photo");
+  assert.equal(conversationPreview({ lastMessageType: "video", lastSenderIsMe: true }), "You sent a video");
+  assert.equal(conversationPreview({ lastMessageType: "gif" }), "Sent a GIF");
+  assert.equal(conversationPreview({ lastMessageType: "file", lastSenderIsMe: true }), "You sent a document");
+  assert.equal(conversationPreview({ lastMessageType: "text" }), null);
+  assert.equal(conversationPreview({}), null);
 });
