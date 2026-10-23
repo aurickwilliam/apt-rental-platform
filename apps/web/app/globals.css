@@ -212,7 +212,8 @@
   background: var(--card);
 }
 @media (max-width: 639px) {
-  .apt-message-actions > button:not(:last-child) { display: none; }
+  /* React and More stay; Reply is in the More menu. */
+  .apt-message-actions > button:nth-child(2) { display: none; }
   .apt-message-actions .apt-chat-action { width: 2.75rem; height: 2.75rem; }
 }
 .apt-chat-action {

@@ -17,12 +17,14 @@ import ConversationIntroduction from "@/app/components/chat/ConversationIntroduc
 import { useConversationContext } from "@/hooks/use-conversation-context";
 import { conversationApartmentPresentation } from "@/lib/conversation-context";
 import MessageContextMenu from "@/app/components/chat/MessageContextMenu";
+import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
+import { canUnsendMessage } from "@/app/components/chat/unsend";
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import type { ChatMessage } from "@/app/components/chat/types";
-import { latestOutgoingMessageId } from "@/lib/chat-message-presentation";
+import { formatMessageMenuDate, latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 
 interface ConversationViewProps {
   activeContact: Contact | null;
@@ -105,6 +107,7 @@ export default function ConversationView({
   className = "",
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
+  const [unsendTargetId, setUnsendTargetId] = useState<string | null>(null);
   const { context, loading: contextLoading } = useConversationContext(activeContact?.id ?? null, activeContact?.apartmentId ?? null, "landlord", currentUserId);
   const apartment = conversationApartmentPresentation(activeContact?.apartmentId ?? null, context.apartment, "landlord");
 
@@ -123,6 +126,7 @@ export default function ConversationView({
     sendAttachments,
     sendGif,
     toggleReaction,
+    unsendMessage,
     handleReply,
     clearReply,
     openContextMenu,
@@ -460,19 +464,11 @@ export default function ConversationView({
       {contextMenu && (
         <MessageContextMenu
           data={{
-            myReaction: contextMenu.message.reactions.find((r) => r.is_mine)?.emoji,
-            dateLabel: new Date(contextMenu.message.created_at).toLocaleString([], {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }),
-            canReact: !contextMenu.message.isPending && !contextMenu.message.id.startsWith("temp-"),
+            dateLabel: formatMessageMenuDate(contextMenu.message.created_at),
             canCopy: (contextMenu.message.message_type ?? "text") === "text" && !!contextMenu.message.message,
+            canUnsend: canUnsendMessage(contextMenu.message, currentUserId),
           }}
           position={contextMenu.position}
-          onSelectReaction={(emoji) => {
-            void toggleReaction(contextMenu.message.id, emoji);
-            closeContextMenu();
-          }}
           onReply={() => {
             handleReply(contextMenu.message);
             closeContextMenu();
@@ -482,9 +478,26 @@ export default function ConversationView({
               void handleCopy(contextMenu.message.message);
             }
           }}
+          onUnsend={() => {
+            setUnsendTargetId(contextMenu.message.id);
+            closeContextMenu();
+          }}
           onClose={closeContextMenu}
         />
       )}
+
+      <RemovePhotoConfirmModal
+        isOpen={unsendTargetId !== null}
+        title="Unsend message?"
+        description="This will remove it for everyone."
+        confirmLabel="Unsend"
+        isRemoving={false}
+        onClose={() => setUnsendTargetId(null)}
+        onConfirm={() => {
+          if (unsendTargetId) void unsendMessage(unsendTargetId);
+          setUnsendTargetId(null);
+        }}
+      />
     </div>
   );
 }

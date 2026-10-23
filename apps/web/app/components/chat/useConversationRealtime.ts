@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 
-import { applyReadReceipt, mergeIncomingMessage } from "./conversationEvents";
+import { applyReadReceipt, mergeIncomingMessage, removeMessage } from "./conversationEvents";
 import type { ChatMessage } from "./types";
 
 interface UseConversationRealtimeArgs {
@@ -180,6 +180,18 @@ export default function useConversationRealtime({
                 read_at: updated.read_at,
               })
             );
+          }
+        )
+        // Unsends from either side (web or mobile). DELETE events can't be
+        // filtered and carry only the old primary key; `removeMessage` ignores
+        // ids that aren't in this thread.
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "chat" },
+          (payload: { old: Record<string, unknown> }) => {
+            const id = payload.old?.id;
+            if (typeof id !== "string") return;
+            setMessages((prev) => removeMessage(prev, id));
           }
         )
         .on("presence", { event: "sync" }, () => {

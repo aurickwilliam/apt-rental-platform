@@ -219,6 +219,9 @@ test("subscribes only to published chat tables with participant filters", async 
     [
       { event: "INSERT", table: "chat", filter: "sender_id=eq.user-b" },
       { event: "UPDATE", table: "chat", filter: "receiver_id=eq.user-b" },
+      // Unsends: Postgres DELETE events can't be filtered; ids outside this
+      // thread are ignored by `removeMessage`.
+      { event: "DELETE", table: "chat", filter: undefined },
     ]
   );
   // Regression guard: `chat_reactions` is not in `supabase_realtime`, and
@@ -275,6 +278,22 @@ test("read receipts patch the matching sent message and ignore strays", async ()
 
   const before = h.getMessages();
   update.callback({ new: { id: "unknown", is_read: true, read_at: null } });
+  assert.equal(h.getMessages(), before);
+});
+
+test("unsend deletes from either side drop the message and ignore other threads", async () => {
+  const h = createHarness();
+  h.run();
+  await flush();
+  const remove = h.created[0].bindings.find((b) => b.filter?.event === "DELETE");
+
+  h.seed([chatRow({ id: "m1" }), chatRow({ id: "m2", created_at: "2026-01-01T10:01:00.000Z" })]);
+  remove.callback({ old: { id: "m1" } });
+  assert.deepEqual(ids(h), ["m2"]);
+
+  const before = h.getMessages();
+  remove.callback({ old: { id: "elsewhere" } });
+  remove.callback({ old: {} });
   assert.equal(h.getMessages(), before);
 });
 

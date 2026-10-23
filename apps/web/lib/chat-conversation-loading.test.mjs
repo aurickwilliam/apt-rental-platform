@@ -54,7 +54,7 @@ function harness(rows) {
   };
   const conversationModule = compile("../app/components/chat/useConversation.ts", {
     react: {}, "@repo/supabase/browser": {}, "./chatReactions": reactions,
-    "./conversationEvents": {}, "./attachments": attachments,
+    "./conversationEvents": {}, "./unsend": {}, "./attachments": attachments,
   }, "\nexports.loadConversation = loadConversation;");
   gates.page.resolve({ data: rows, error: null });
   return { gates, started, queries, load: (apartmentId = "apt-a", cursor, signal) => conversationModule.loadConversation(client, "user-a", "user-b", apartmentId, cursor, signal) };

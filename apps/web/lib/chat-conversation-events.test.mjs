@@ -7,6 +7,7 @@ import {
   isOptimisticMessage,
   mergeIncomingMessage,
   reconcileMessages,
+  removeMessage,
 } from "../app/components/chat/conversationEvents.ts";
 
 const message = (id, created_at, extra = {}) => ({
@@ -128,4 +129,18 @@ test("the comparator is total and deterministic", () => {
   assert.equal(compareChatMessages(a, a), 0);
   assert.ok(compareChatMessages(a, message("b", "2026-01-01T10:00:00.000Z")) < 0);
   assert.ok(compareChatMessages(a, message("a", "2026-01-01T10:00:01.000Z")) < 0);
+});
+
+test("removeMessage drops an unsent message and marks replies quoting it unavailable", () => {
+  const rows = [
+    message("a", "2026-10-01T00:00:00Z"),
+    message("b", "2026-10-01T00:01:00Z", { reply_to: "a", replyTo: { id: "a", message: "hi", messageType: "text", senderId: "u", isSent: true } }),
+    message("c", "2026-10-01T00:02:00Z"),
+  ];
+  const next = removeMessage(rows, "a");
+  assert.deepEqual(next.map((m) => m.id), ["b", "c"]);
+  assert.equal(next[0].replyTo, null);
+  assert.equal(next[0].replyDeleted, true);
+  assert.equal(next[1], rows[2]);
+  assert.equal(removeMessage(rows, "missing"), rows);
 });

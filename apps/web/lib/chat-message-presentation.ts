@@ -30,3 +30,10 @@ export function emojiMessageFontSize(text: string): number {
   const count = [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text.trim())].length;
   return EMOJI_FONT_SIZES[Math.min(count, EMOJI_FONT_SIZES.length) - 1] ?? EMOJI_FONT_SIZES[0];
 }
+
+/** "Oct 20, 2026 at 3:15 PM" — the timestamp in a message's action menu (same wording as mobile's hold menu). */
+export function formatMessageMenuDate(createdAt: string): string {
+  const date = new Date(createdAt);
+  if (!Number.isFinite(date.getTime())) return "";
+  return `${date.toLocaleDateString([], { dateStyle: "medium" })} at ${date.toLocaleTimeString([], { timeStyle: "short" })}`;
+}

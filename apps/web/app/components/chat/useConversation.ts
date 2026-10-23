@@ -9,7 +9,8 @@ import {
   toggleChatReaction,
   toReplyPreview,
 } from "./chatReactions";
-import { reconcileMessages } from "./conversationEvents";
+import { reconcileMessages, removeMessage } from "./conversationEvents";
+import { broadcastMessageDeleted, canUnsendMessage, deleteChatMessage } from "./unsend";
 import {
   generateAttachmentId,
   resolveAttachmentUrls,
@@ -430,6 +431,39 @@ export default function useConversation({
   );
 
   /**
+   * Unsends one of the current user's messages for everyone, like mobile:
+   * removed optimistically (replies quoting it turn into "unavailable"), then
+   * deleted, then broadcast to the other person's open mobile chat. Web peers
+   * hear the database DELETE. A failed delete re-syncs from the server.
+   */
+  const unsendMessage = useCallback(
+    async (messageId: string) => {
+      const target = messages.find((m) => m.id === messageId);
+      if (!target || !canUnsendMessage(target, currentUserId)) return;
+
+      setMessages((prev) => removeMessage(prev, messageId));
+      setReplyTarget((current) => (current?.id === messageId ? null : current));
+
+      try {
+        await deleteChatMessage(supabase, { message: target, senderId: currentUserId });
+      } catch (err) {
+        console.error("Unsend failed:", err);
+        onSendError?.("Couldn't unsend that message. Please try again.");
+        void refreshMessages();
+        return;
+      }
+
+      void broadcastMessageDeleted(supabase, {
+        messageId,
+        senderId: currentUserId,
+        receiverId: target.receiver_id,
+        apartmentId: target.apartment_id,
+      }).catch((err) => console.warn("Unsend broadcast failed (non-blocking):", err));
+    },
+    [currentUserId, messages, onSendError, refreshMessages, supabase]
+  );
+
+  /**
    * Uploads a staged attachment batch and writes the rows as one visual group.
    *
    * Optimistic like text send: every staged file becomes a pending bubble
@@ -695,6 +729,7 @@ export default function useConversation({
     sendAttachments,
     sendGif,
     toggleReaction,
+    unsendMessage,
     handleReply,
     clearReply,
     openContextMenu,
