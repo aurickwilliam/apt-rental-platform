@@ -75,6 +75,7 @@ export default function MessageInput({
   const [staged, setStaged] = useState<StagedAttachment[]>([]);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isGiphyOpen, setIsGiphyOpen] = useState(false);
+  const gifButtonRef = useRef<HTMLButtonElement | null>(null);
   const [isSending, setIsSending] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
@@ -447,10 +448,13 @@ export default function MessageInput({
                 <IconPhoto size={26} aria-hidden="true" />
               </button>
               <button
+                ref={gifButtonRef}
                 type="button"
                 className={iconButtonClass}
-                onClick={() => setIsGiphyOpen(true)}
+                onClick={() => setIsGiphyOpen((open) => !open)}
                 aria-label="Send a GIF"
+                aria-haspopup="dialog"
+                aria-expanded={isGiphyOpen}
               >
                 <IconGif size={26} aria-hidden="true" />
               </button>
@@ -467,8 +471,10 @@ export default function MessageInput({
         />
       )}
 
-      {isGiphyOpen && (
+      {/* The GIF button is replaced by Send once there is text, so the menu closes with it. */}
+      {isGiphyOpen && !canSend && (
         <GiphyPickerSheet
+          anchorRef={gifButtonRef}
           onSelect={handleGifSelected}
           onClose={() => setIsGiphyOpen(false)}
         />
