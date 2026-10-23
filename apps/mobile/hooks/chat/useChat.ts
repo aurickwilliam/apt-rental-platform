@@ -515,8 +515,13 @@ export function useChat({
     [apartmentId, broadcastReaction, myId]
   );
 
-  const loadOlderMessages = useCallback(async () => {
-    if (!myId || !nextCursor || !hasMore || paginationInFlightRef.current) return;
+  /**
+   * Loads the next page of older messages. Resolves with whether more remain, or
+   * `null` when nothing was loaded (already loading, no more, or a failed read) —
+   * `useReplyNavigation` walks history with this to find a quoted original.
+   */
+  const loadOlderMessages = useCallback(async (): Promise<{ hasMore: boolean } | null> => {
+    if (!myId || !nextCursor || !hasMore || paginationInFlightRef.current) return null;
 
     paginationInFlightRef.current = true;
     setLoadingMore(true);
@@ -532,8 +537,10 @@ export function useChat({
       setMessages((prev) => mergeChatMessages(prev, page.messages, 'older'));
       setNextCursor(page.nextCursor);
       setHasMore(page.nextCursor !== null);
+      return { hasMore: page.nextCursor !== null };
     } catch (err) {
       console.error('Load older chat messages failed:', err);
+      return null;
     } finally {
       paginationInFlightRef.current = false;
       setLoadingMore(false);

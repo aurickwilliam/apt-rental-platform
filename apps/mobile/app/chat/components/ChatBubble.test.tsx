@@ -539,3 +539,26 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('below');
   });
 });
+
+describe('ChatBubble reply navigation', () => {
+  it('jumps to the original when the quote above a reply is tapped', () => {
+    const onJumpToReply = jest.fn();
+    render(
+      <ChatBubbleContent
+        message="Got it"
+        messageType="text"
+        isSent
+        replyTo={{ id: 'orig-1', message: 'See you at 5?', messageType: 'text', senderId: 'u1', isSent: false }}
+        onJumpToReply={onJumpToReply}
+      />
+    );
+
+    fireEvent.press(screen.getByLabelText('Jump to original message'));
+    expect(onJumpToReply).toHaveBeenCalledWith('orig-1');
+  });
+
+  it('has no jump target for a plain message or when navigation is off', () => {
+    render(<ChatBubbleContent message="Hi" messageType="text" isSent onJumpToReply={jest.fn()} />);
+    expect(screen.queryByLabelText('Jump to original message')).toBeNull();
+  });
+});

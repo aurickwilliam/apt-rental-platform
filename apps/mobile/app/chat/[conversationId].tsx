@@ -65,7 +65,7 @@ import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { useBlockStatus, useChat, useChatApartment, useEmojiRecents } from 'hooks/chat';
+import { useBlockStatus, useChat, useChatApartment, useEmojiRecents, useReplyNavigation } from 'hooks/chat';
 import { usePortalStore } from '@/stores/usePortalStore';
 import {
   getChatApartmentRoute,
@@ -198,7 +198,16 @@ export default function ChatScreen() {
 
   const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
 
-  // Emoji pickers (chat box panel and reaction "+") share recents and styling.
+  // Tapping the quote above a reply scrolls to (and flashes) the original bubble.
+  const { jumpToOriginal, highlightedId, onScrollToIndexFailed } = useReplyNavigation({
+    messages,
+    hasMore,
+    loadOlderMessages,
+    listRef: flatListRef,
+    onNotice: (label) => toast.show({ variant: 'default', label }),
+  });
+
+  // The chat box emoji panel shares recents and styling.
   useEmojiRecents();
   const [isEmojiPanelOpen, setIsEmojiPanelOpen] = useState(false);
 
@@ -554,6 +563,8 @@ export default function ChatScreen() {
         onReply={() => handleReply(item)}
         groupPosition={getBubbleGroupPosition(messages, index)}
         showSeen={item.id === seenMessageId}
+        onJumpToReply={jumpToOriginal}
+        highlighted={item.id === highlightedId}
         showSenderAvatar={showsSenderAvatar(messages, index)}
         otherUserAvatar={otherUserAvatar}
         onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
@@ -576,6 +587,8 @@ export default function ChatScreen() {
       handleReply,
       messages,
       seenMessageId,
+      jumpToOriginal,
+      highlightedId,
       otherUserAvatar,
       portal,
       otherUserId,
@@ -668,7 +681,8 @@ export default function ChatScreen() {
                     }
                     onContentSizeChange={handleContentSizeChange}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onEndReached={hasMore ? loadOlderMessages : undefined}
+                    onEndReached={hasMore ? () => void loadOlderMessages() : undefined}
+                    onScrollToIndexFailed={onScrollToIndexFailed}
                     onEndReachedThreshold={0.2}
                     onScroll={handleScroll}
                     onScrollBeginDrag={handleScrollBeginDrag}

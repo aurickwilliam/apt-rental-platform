@@ -64,6 +64,10 @@ interface ChatBubbleProps {
   }) => void;
   /** Place in a run of same-sender messages: joined corners and a tighter gap. */
   groupPosition?: BubbleGroupPosition;
+  /** Tapping the quote above a reply scrolls to the original message. */
+  onJumpToReply?: (messageId: string) => void;
+  /** Flashes a ring around the bubble while it is the target of a jump. */
+  highlighted?: boolean;
   /** Sent bubbles: the other person's avatar under the newest message they've read. */
   showSeen?: boolean;
   /** Received bubbles: the sender's avatar beside the last bubble of a run. */
@@ -102,6 +106,8 @@ export interface ChatBubbleContentProps {
   onReact?: (emoji: string) => void;
   /** Place in a run of same-sender messages; shrinks the joining corners of text bubbles. */
   groupPosition?: BubbleGroupPosition;
+  /** Tapping the quote above a reply scrolls to the original message. */
+  onJumpToReply?: (messageId: string) => void;
 }
 
 const DOUBLE_TAP_WINDOW_MS = 300;
@@ -323,6 +329,7 @@ export function ChatBubbleContent({
   onLongPress,
   onReact,
   groupPosition = 'single',
+  onJumpToReply,
 }: ChatBubbleContentProps) {
   const { colors } = useColors();
   const { width: screenWidth } = useWindowDimensions();
@@ -370,7 +377,7 @@ export function ChatBubbleContent({
       <IconPhoto size={16} color={colors.gray500} />
     );
 
-  const quoteBlock = replyDeleted ? (
+  const quoteContent = replyDeleted ? (
     <View
       className="px-3 py-2 rounded-3xl bg-surface"
       style={{ maxWidth: isVisualMedia || isVideo ? ATTACHMENT_MAX_WIDTH : 260 }}
@@ -425,6 +432,21 @@ export function ChatBubbleContent({
       )}
     </View>
   ) : null;
+
+  const quoteBlock =
+    quoteContent && replyTo && interactive && onJumpToReply ? (
+      <Pressable
+        onPress={() => onJumpToReply(replyTo.id)}
+        onLongPress={onLongPress}
+        delayLongPress={350}
+        accessibilityRole="button"
+        accessibilityLabel="Jump to original message"
+      >
+        {quoteContent}
+      </Pressable>
+    ) : (
+      quoteContent
+    );
 
   return (
     <>
@@ -545,6 +567,8 @@ export default function ChatBubble({
   onReply,
   groupPosition = 'single',
   showSeen = false,
+  onJumpToReply,
+  highlighted = false,
   showSenderAvatar = false,
   otherUserAvatar,
   onSenderAvatarPress,
@@ -559,6 +583,7 @@ export default function ChatBubble({
     onMenuOpenChangeRef.current = onMenuOpenChange;
   });
 
+  const { colors } = useColors();
   const rowRef = useRef<View>(null);
 
   const rowAlignment = isSent ? 'self-end' : 'self-start';
@@ -670,7 +695,24 @@ export default function ChatBubble({
                 onLongPress={handleLongPress}
                 onReact={onReact}
                 groupPosition={groupPosition}
+                onJumpToReply={onJumpToReply}
               />
+              {highlighted && (
+                // A ring that takes no layout space, flashed while this bubble is a jump target.
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    bottom: -2,
+                    left: -2,
+                    right: -2,
+                    borderWidth: 2,
+                    borderRadius: BUBBLE_RADIUS + 2,
+                    borderColor: colors.primary,
+                  }}
+                />
+              )}
             </Pressable>
           </SwipeToReply>
           {showSeen && (
