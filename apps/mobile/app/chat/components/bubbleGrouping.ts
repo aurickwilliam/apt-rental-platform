@@ -1,15 +1,12 @@
-import { isSameChatDay } from '@repo/utils';
-
 interface GroupedMessage {
   isSent: boolean;
-  /** When given, a new calendar day ends a run (a day divider sits between them). */
-  createdAt?: string;
+  /** Local calendar day of the message (`getChatDayKey`); a new day ends a run (a divider sits between). */
+  dayKey?: string;
 }
 
-/** Same sender, and the same day when both timestamps are known. */
+/** Same sender, and the same day when both days are known. */
 function sameRun(a: GroupedMessage, b: GroupedMessage): boolean {
-  if (a.isSent !== b.isSent) return false;
-  return !a.createdAt || !b.createdAt || isSameChatDay(a.createdAt, b.createdAt);
+  return a.isSent === b.isSent && (!a.dayKey || !b.dayKey || a.dayKey === b.dayKey);
 }
 
 /**

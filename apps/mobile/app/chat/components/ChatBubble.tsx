@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { Alert, Keyboard, Linking, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { emojiFontSizeForCount } from '@repo/constants';
 import { formatChatAttachmentSize, getReplyCaption } from '@repo/utils';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -185,12 +186,7 @@ function useDoubleTapPress({
  * bottom-right on both sides. Two people using the same emoji share one badge
  * with a count beside it instead of drawing the emoji twice.
  */
-export function ReactionBadge({
-  reactions,
-}: {
-  reactions: MessageReaction[];
-  isSent?: boolean;
-}) {
+export function ReactionBadge({ reactions }: { reactions: MessageReaction[] }) {
   if (reactions.length === 0) return null;
   const shown = groupReactionsByEmoji(reactions).slice(0, 3);
   return (
@@ -345,9 +341,7 @@ export function ChatBubbleContent({
   const isEmojiMessage = messageType === 'text' && isEmojiOnly(message);
   const emojiCount = [...(message ?? '')].length;
 
-  let fontSize = 46;
-  if (emojiCount === 2) fontSize = 40;
-  if (emojiCount >= 3) fontSize = 34;
+  const fontSize = emojiFontSizeForCount(emojiCount);
 
   const hasReply = replyDeleted || !!replyTo;
   // IG-style caption names the replier (this bubble's sender), not the quoted author.
@@ -479,7 +473,7 @@ export function ChatBubbleContent({
               {attachmentSize != null ? <Text className={`font-inter text-xs ${textColor}`}>{formatChatAttachmentSize(attachmentSize)}</Text> : null}
             </View>
           </Pressable>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isVideo ? (
         <View className={`relative ${replyOverlap}`}>
@@ -493,7 +487,7 @@ export function ChatBubbleContent({
             canReact={interactive && canReact}
             onReact={interactive ? onReact : undefined}
           />
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isVisualMedia ? (
         <View className={`relative ${replyOverlap}`}>
@@ -509,7 +503,7 @@ export function ChatBubbleContent({
             canReact={interactive && canReact}
             onReact={interactive ? onReact : undefined}
           />
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isBrokenAttachment ? (
         <View className={`relative ${replyOverlap}`}>
@@ -523,12 +517,12 @@ export function ChatBubbleContent({
           >
             <Text className="text-gray-400 text-xs font-inter">Media unavailable</Text>
           </View>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : isEmojiMessage ? (
         <View className={`relative ${replyOverlap}`}>
           <Text style={{ fontSize }}>{message}</Text>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       ) : (
         <View
@@ -536,7 +530,7 @@ export function ChatBubbleContent({
           style={getGroupedCornerStyle(isSent, groupPosition)}
         >
           <Text className={`text-sm font-inter leading-6 ${textColor}`}>{message}</Text>
-          <ReactionBadge reactions={reactions} isSent={isSent} />
+          <ReactionBadge reactions={reactions} />
         </View>
       )}
     </>

@@ -20,22 +20,14 @@ export function canUnsendMessage(message: ChatMessage, currentUserId: string): b
 }
 
 /**
- * Removes a message for everyone, in mobile's order: its private
- * `chat-images` files first (best effort), then the row, scoped to the sender.
- * Throws when the row couldn't be deleted.
+ * Removes a message for everyone: the row first (scoped to the sender), then its
+ * private `chat-images` files (best effort). Throws when the row couldn't be deleted.
  */
 export async function deleteChatMessage(
   supabase: SupabaseClient,
   params: { message: ChatMessage; senderId: string }
 ): Promise<void> {
-  const paths = [params.message.attachment_path, params.message.attachment_thumbnail_path].filter(
-    (path): path is string => Boolean(path)
-  );
-  if (paths.length > 0) {
-    const { error: storageError } = await supabase.storage.from(CHAT_IMAGES_BUCKET).remove(paths);
-    if (storageError) console.warn("Chat attachment delete failed (non-blocking):", storageError.message);
-  }
-
+  // The row goes first: if it can't be deleted the message (and its files) must stay intact.
   const { data, error } = await supabase
     .from("chat")
     .delete()
@@ -44,6 +36,14 @@ export async function deleteChatMessage(
     .select("id");
   if (error) throw error;
   if (!data || data.length === 0) throw new Error("Message could not be unsent.");
+
+  const paths = [params.message.attachment_path, params.message.attachment_thumbnail_path].filter(
+    (path): path is string => Boolean(path)
+  );
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from(CHAT_IMAGES_BUCKET).remove(paths);
+    if (storageError) console.warn("Chat attachment delete failed (non-blocking):", storageError.message);
+  }
 }
 
 /** Tells the other person's open mobile chat to drop the message right away. */

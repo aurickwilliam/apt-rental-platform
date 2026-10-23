@@ -46,7 +46,7 @@ import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
 import { getSeenMessageId } from '@/service/chat/readReceipts';
-import { formatChatDayLabel, isSameChatDay } from '@repo/utils';
+import { formatChatDayLabel, getChatDayKey } from '@repo/utils';
 import DaySeparator from './components/DaySeparator';
 import {
   SENDER_AVATAR_GUTTER,
@@ -536,6 +536,13 @@ export default function ChatScreen() {
   // "Seen" sits under the newest of my messages the other person has read.
   const seenMessageId = useMemo(() => getSeenMessageId(messages), [messages]);
 
+  // Each message's day is worked out once per change to the list, not once per row render.
+  const dayKeys = useMemo(() => messages.map((message) => getChatDayKey(message.createdAt)), [messages]);
+  const groupItems = useMemo(
+    () => messages.map((message, index) => ({ isSent: message.isSent, dayKey: dayKeys[index] })),
+    [messages, dayKeys]
+  );
+
   const renderItem = useCallback(
     ({ item, index }: { item: Message; index: number }) => (
       <>
@@ -561,11 +568,11 @@ export default function ChatScreen() {
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
         onReply={() => handleReply(item)}
-        groupPosition={getBubbleGroupPosition(messages, index)}
+        groupPosition={getBubbleGroupPosition(groupItems, index)}
         showSeen={item.id === seenMessageId}
         onJumpToReply={jumpToOriginal}
         highlighted={item.id === highlightedId}
-        showSenderAvatar={showsSenderAvatar(messages, index)}
+        showSenderAvatar={showsSenderAvatar(groupItems, index)}
         otherUserAvatar={otherUserAvatar}
         onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
         hidden={activeHold?.id === item.id}
@@ -575,7 +582,7 @@ export default function ChatScreen() {
         }}
       />
       {/* Inverted list: the divider renders above the first message of each day. */}
-      {(!messages[index + 1] || !isSameChatDay(messages[index + 1].createdAt, item.createdAt)) && (
+      {dayKeys[index + 1] !== dayKeys[index] && (
         <DaySeparator label={formatChatDayLabel(item.createdAt)} />
       )}
       </>
@@ -585,8 +592,9 @@ export default function ChatScreen() {
       handleToggleReaction,
       handleHoldFor,
       handleReply,
-      messages,
       seenMessageId,
+      groupItems,
+      dayKeys,
       jumpToOriginal,
       highlightedId,
       otherUserAvatar,

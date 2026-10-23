@@ -5,6 +5,9 @@ import { useEffect, type RefObject } from "react";
 /** How long a freshly opened thread stays pinned to the bottom while its media sizes itself. */
 export const OPEN_PIN_WINDOW_MS = 2000;
 
+/** How far from the bottom still counts as "at the bottom" when the thread grows. */
+const AT_BOTTOM_PX = 4;
+
 interface ScrollToLatestOptions {
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Re-arms "follow the newest message" for the thread's own scroll logic. */
@@ -37,7 +40,18 @@ export default function useScrollToLatestOnOpen({ scrollRef, nearBottomRef, conv
       pinned = false;
     };
     const timeline = scroller.querySelector("[data-message-timeline]");
-    const observer = timeline ? new ResizeObserver(() => { if (pinned) toBottom(); }) : null;
+    // Growth only re-pins while the reader was still at the bottom before it happened. If something
+    // else moved the viewport (loading earlier history, jumping to a quoted reply), the pin lets go.
+    let lastHeight = scroller.scrollHeight;
+    const observer = timeline
+      ? new ResizeObserver(() => {
+          const wasAtBottom = lastHeight - scroller.scrollTop - scroller.clientHeight <= AT_BOTTOM_PX;
+          lastHeight = scroller.scrollHeight;
+          if (!pinned) return;
+          if (wasAtBottom) toBottom();
+          else release();
+        })
+      : null;
     if (timeline) observer?.observe(timeline);
     const timer = setTimeout(release, OPEN_PIN_WINDOW_MS);
     scroller.addEventListener("wheel", release, { passive: true });

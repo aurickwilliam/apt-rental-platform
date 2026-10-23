@@ -10,6 +10,7 @@ function run({ conversationKey = "a", isLoading = false, hasTimeline = true } = 
   const scroller = {
     scrollTop: 0,
     scrollHeight: 1000,
+    clientHeight: 0,
     addEventListener: (type, fn) => { listeners[type] = fn; },
     removeEventListener: (type) => { delete listeners[type]; },
     querySelector: () => (hasTimeline ? { id: "timeline" } : null),
@@ -68,4 +69,20 @@ test("nothing happens while loading or without a conversation, and cleanup relea
   opened.cleanup();
   assert.equal(opened.observers[0].disconnected, true);
   assert.deepEqual(Object.keys(opened.listeners), []);
+});
+
+test("growth after something else moved the viewport (load earlier, reply jump) does not drag it back", () => {
+  const { scroller, observers, cleanup } = run();
+  // e.g. the reader clicked "Load earlier messages" near the top: history is prepended.
+  scroller.scrollTop = 120;
+  scroller.scrollHeight = 1600;
+  observers[0].callback();
+  assert.equal(scroller.scrollTop, 120, "left where it is");
+
+  // and the pin has let go, so later growth does not re-pin either
+  scroller.scrollTop = scroller.scrollHeight;
+  scroller.scrollHeight = 2000;
+  observers[0].callback();
+  assert.equal(scroller.scrollTop, 1600);
+  cleanup();
 });

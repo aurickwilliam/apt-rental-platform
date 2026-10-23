@@ -62,12 +62,10 @@ describe('getBubbleGroupPosition', () => {
 
 describe('day dividers end a run', () => {
   // Newest first. Index 1 is on the previous day, so a divider sits above index 0.
-  const today = new Date(2026, 9, 21, 9, 0, 0).toISOString();
-  const yesterday = new Date(2026, 9, 20, 22, 0, 0).toISOString();
   const rows = [
-    { isSent: true, createdAt: today },
-    { isSent: true, createdAt: yesterday },
-    { isSent: true, createdAt: yesterday },
+    { isSent: true, dayKey: 'today' },
+    { isSent: true, dayKey: 'yesterday' },
+    { isSent: true, dayKey: 'yesterday' },
   ];
 
   it('does not join bubbles across a day boundary', () => {
@@ -78,8 +76,8 @@ describe('day dividers end a run', () => {
 
   it('shows the sender avatar on the newest received bubble of each day', () => {
     const received = [
-      { isSent: false, createdAt: today },
-      { isSent: false, createdAt: yesterday },
+      { isSent: false, dayKey: 'today' },
+      { isSent: false, dayKey: 'yesterday' },
     ];
     expect(showsSenderAvatar(received, 0)).toBe(true);
     expect(showsSenderAvatar(received, 1)).toBe(true);

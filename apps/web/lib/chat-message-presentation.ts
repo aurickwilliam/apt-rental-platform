@@ -17,7 +17,6 @@ export function latestOutgoingMessageId(
 }
 
 const EMOJI_ONLY = /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|[‍️⃣\u{1F3FB}-\u{1F3FF}\u{E0020}-\u{E007F}]|\s)+$/u;
-const EMOJI_FONT_SIZES = [46, 40, 34] as const;
 
 /** True when the text is nothing but emoji and whitespace (mobile's `isEmojiOnly`). */
 export function isEmojiOnlyMessage(text: string | null | undefined): boolean {
@@ -25,10 +24,9 @@ export function isEmojiOnlyMessage(text: string | null | undefined): boolean {
   return Boolean(trimmed) && EMOJI_ONLY.test(trimmed as string);
 }
 
-/** Font size in px for an emoji-only message: 46 for one emoji, 40 for two, 34 for three or more (mobile). */
-export function emojiMessageFontSize(text: string): number {
-  const count = [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text.trim())].length;
-  return EMOJI_FONT_SIZES[Math.min(count, EMOJI_FONT_SIZES.length) - 1] ?? EMOJI_FONT_SIZES[0];
+/** How many emoji a message holds, counting a flag or family as one (grapheme clusters). */
+export function emojiCount(text: string): number {
+  return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text.trim())].length;
 }
 
 /** "Oct 20, 2026 at 3:15 PM" — the timestamp in a message's action menu (same wording as mobile's hold menu). */

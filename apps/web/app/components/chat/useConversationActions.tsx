@@ -67,33 +67,38 @@ export function useConversationActions(portal: "tenant" | "landlord", onMarkedRe
   const runPreferenceChange = useCallback(
     async (contact: ConversationContact, change: ConversationPreferenceChange, successLabel: string) => {
       const key = contact.conversationKey;
-      const previous = overlay[key] ?? null;
       const applied = applyPreferenceChange(contact, change);
-      patch(key, { isPinned: applied.isPinned, pinnedAt: applied.pinnedAt, isArchived: applied.isArchived, isMuted: applied.isMuted, markedUnread: applied.markedUnread });
+      // Only the fields this call changes are rolled back, so overlapping changes never undo each other.
+      const before: Overlay = {};
+      if (change.isPinned !== undefined) Object.assign(before, { isPinned: contact.isPinned ?? false, pinnedAt: contact.pinnedAt ?? null });
+      if (change.isArchived !== undefined) before.isArchived = contact.isArchived ?? false;
+      if (change.isMuted !== undefined) before.isMuted = contact.isMuted ?? false;
+      if (change.markedUnread !== undefined) before.markedUnread = contact.markedUnread ?? false;
+      patch(key, {
+        ...(change.isPinned !== undefined && { isPinned: applied.isPinned, pinnedAt: applied.pinnedAt }),
+        ...(change.isArchived !== undefined && { isArchived: applied.isArchived }),
+        ...(change.isMuted !== undefined && { isMuted: applied.isMuted }),
+        ...(change.markedUnread !== undefined && { markedUnread: applied.markedUnread }),
+      });
       try {
         await setConversationPreference(supabase, { otherUserId: contact.id, apartmentId: contact.apartmentId }, change);
         toast.success(successLabel);
       } catch (error) {
-        setOverlay((prev) => {
-          const next = { ...prev };
-          if (previous) next[key] = previous;
-          else delete next[key];
-          return next;
-        });
+        patch(key, before);
         failed("Couldn't update this chat", error);
       }
     },
-    [failed, overlay, patch, supabase]
+    [failed, patch, supabase]
   );
 
   const markRead = useCallback(
     async (contact: ConversationContact) => {
       const key = contact.conversationKey;
-      // The caller zeroes the unread count in its own state; the overlay only owns the manual flag.
       patch(key, { markedUnread: false });
-      onMarkedRead?.(key);
       try {
         await markConversationRead(supabase, { otherUserId: contact.id, apartmentId: contact.apartmentId });
+        // Only once the database agrees does the caller zero its unread count.
+        onMarkedRead?.(key);
       } catch (error) {
         patch(key, { markedUnread: contact.markedUnread ?? false });
         failed("Couldn't mark as read", error);

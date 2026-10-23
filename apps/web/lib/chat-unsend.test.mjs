@@ -50,22 +50,25 @@ function fakeSupabase({ deleted = [{ id: "m1" }], deleteError = null } = {}) {
   };
 }
 
-test("deleteChatMessage removes files first, then the sender-scoped row", async () => {
+test("deleteChatMessage deletes the sender-scoped row first, then the files", async () => {
   const supabase = fakeSupabase();
   await unsend.deleteChatMessage(supabase, {
     message: { id: "m1", attachment_path: "a/photo.jpg", attachment_thumbnail_path: "a/thumb.jpg" },
     senderId: "me",
   });
   assert.deepEqual(plain(supabase.calls), [
-    ["remove", "chat-images", ["a/photo.jpg", "a/thumb.jpg"]],
     ["from", "chat"], ["delete"], ["eq", "id", "m1"], ["eq", "sender_id", "me"], ["select", "id"],
+    ["remove", "chat-images", ["a/photo.jpg", "a/thumb.jpg"]],
   ]);
 });
 
-test("deleteChatMessage skips storage for text and fails when no row was deleted", async () => {
+test("a failed row delete leaves the files alone", async () => {
   const supabase = fakeSupabase({ deleted: [] });
   await assert.rejects(unsend.deleteChatMessage(supabase, { message: { id: "m1" }, senderId: "me" }), /could not be unsent/);
   assert.equal(supabase.calls.some(([kind]) => kind === "remove"), false);
+  const withFiles = fakeSupabase({ deleted: [] });
+  await assert.rejects(unsend.deleteChatMessage(withFiles, { message: { id: "m1", attachment_path: "a/p.jpg" }, senderId: "me" }), /could not be unsent/);
+  assert.equal(withFiles.calls.some(([kind]) => kind === "remove"), false);
 });
 
 test("the unsend broadcast reaches mobile's chat topic and always releases the channel", async () => {

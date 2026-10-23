@@ -5,6 +5,7 @@ import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh"
 import { selectPortalConversation } from "@/lib/conversation-contacts";
 import ConversationRowMenu from "@/app/components/chat/ConversationRowMenu";
 import { useConversationActions } from "@/app/components/chat/useConversationActions";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import useConversationListRealtime from "@/app/components/chat/useConversationListRealtime";
 import { applyLatestMessage, arrangeContacts, type LatestMessage } from "@/lib/conversation-list";
 import ContactSidebar from "./ContactSidebar";
@@ -139,9 +140,12 @@ export default function MessagesClient({
     contacts[0] ??
     null;
 
+  const isWide = useMediaQuery("(min-width: 1024px)");
+  const isThreadVisible = isWide || isThreadOpen;
   useConversationListRealtime({
     currentUserId,
-    activeKey: activeContact?.conversationKey ?? null,
+    // Below lg the thread and the list share one pane: a chat only counts as open while its thread is showing.
+    activeKey: isThreadVisible ? (activeContact?.conversationKey ?? null) : null,
     findContact,
     applyLatestMessage: applyLatestToContacts,
     clearUnreadCount,

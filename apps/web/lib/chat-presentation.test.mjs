@@ -6,12 +6,13 @@ import ts from "typescript";
 import { formatChatAttachmentSize } from "../../../packages/utils/src/chatAttachments.ts";
 import { isSameChatDay } from "../../../packages/utils/src/chatDay.ts";
 import { getReplyCaption } from "../../../packages/utils/src/replyCaption.ts";
-import { conversationPreview, emojiMessageFontSize, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
+import { EMOJI_ONLY_SAMPLES, emojiFontSizeForCount } from "../../../packages/constants/src/chatEmoji.ts";
+import { conversationPreview, emojiCount, isEmojiOnlyMessage, latestOutgoingMessageId, replyQuoteSnippet } from "./chat-message-presentation.ts";
 import { applyReadReceipt } from "../app/components/chat/conversationEvents.ts";
 
 for (const portal of ["tenant", "landlord"]) {
   test(`${portal}: consecutive message grouping matches mobile: same sender and day, no time limit`, () => {
-    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
+    const source = readFileSync(new URL("../app/components/chat/ConversationView.tsx", import.meta.url), "utf8");
     const start = source.indexOf("function getGroupPosition");
     const end = source.indexOf("function TypingIndicator");
     const code = ts.transpileModule(source.slice(start, end) + "\nexports.group = getGroupPosition;", { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
@@ -32,7 +33,7 @@ const nodes = (element) => !element || typeof element !== "object" ? [] : [eleme
 
 for (const portal of ["tenant", "landlord"]) {
   test(`${portal}: timeline uses the full conversation width with compact edge spacing`, () => {
-    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
+    const source = readFileSync(new URL("../app/components/chat/ConversationView.tsx", import.meta.url), "utf8");
     assert.match(source, /data-message-timeline className="flex w-full min-w-0 flex-col"/);
     assert.match(source, /overflow-x-hidden overflow-y-auto bg-background\/50 px-3 py-4/);
     assert.doesNotMatch(source, /mx-auto flex w-full max-w-5xl/);
@@ -59,7 +60,8 @@ function harness(file, browser = { getSelection: () => null }) {
     "@repo/utils": { formatChatAttachmentSize, getReplyCaption },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
     "./reactionEmojis": { HEART_REACTION: "❤️" },
-    "@/lib/chat-message-presentation": { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet },
+    "@/lib/chat-message-presentation": { emojiCount, isEmojiOnlyMessage, replyQuoteSnippet },
+    "@repo/constants": { emojiFontSizeForCount },
   };
   const source = readFileSync(new URL(`../app/components/chat/${file}.tsx`, import.meta.url), "utf8");
   const exports = {};
@@ -385,23 +387,22 @@ test("CSS hover tolerance is localized and adjacent grouped messages split the 4
   assert.match(css, /\.apt-message-interaction:hover > \.apt-message-actions/);
   assert.match(css, /\.apt-message-interaction:focus-within > \.apt-message-actions/);
   assert.doesNotMatch(css, /group\\\/message:hover/);
-  for (const portal of ["tenant", "landlord"]) {
-    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
-    assert.match(source, /isContextMenuOpen=\{contextMenu\?\.message\.id === msg\.id\}/);
-    assert.match(source, /overflow-x-hidden overflow-y-auto/);
-    assert.match(source, /otherUserAvatar=\{activeContact.avatar\}/);
-    assert.match(source, /isLatestOutgoing=\{msg.id === latestOutgoingId\}/);
-  }
+  const source = readFileSync(new URL("../app/components/chat/ConversationView.tsx", import.meta.url), "utf8");
+  assert.match(source, /isContextMenuOpen=\{contextMenu\?\.message\.id === msg\.id\}/);
+  assert.match(source, /overflow-x-hidden overflow-y-auto/);
+  assert.match(source, /otherUserAvatar=\{activeContact.avatar\}/);
+  assert.match(source, /isLatestOutgoing=\{msg.id === latestOutgoingId\}/);
 });
 
 test("emoji-only messages are detected and sized like mobile", () => {
-  for (const text of ["😂", " 👍🏽 ", "👨‍👩‍👧", "🇵🇭", "😂😂", "😂 😂 😂"]) assert.equal(isEmojiOnlyMessage(text), true, text);
-  for (const text of ["", "   ", null, undefined, "hi 😂", "123", "#", "ok"]) assert.equal(isEmojiOnlyMessage(text), false, String(text));
-  assert.equal(emojiMessageFontSize("😂"), 46);
-  assert.equal(emojiMessageFontSize("👨‍👩‍👧"), 46);
-  assert.equal(emojiMessageFontSize("😂😂"), 40);
-  assert.equal(emojiMessageFontSize("😂😂😂"), 34);
-  assert.equal(emojiMessageFontSize("😂😂😂😂😂"), 34);
+  for (const text of EMOJI_ONLY_SAMPLES.emojiOnly) assert.equal(isEmojiOnlyMessage(text), true, text);
+  for (const text of [...EMOJI_ONLY_SAMPLES.notEmojiOnly, null, undefined]) assert.equal(isEmojiOnlyMessage(text), false, String(text));
+  const size = (text) => emojiFontSizeForCount(emojiCount(text));
+  assert.equal(size("😂"), 46);
+  assert.equal(size("👨‍👩‍👧"), 46);
+  assert.equal(size("😂😂"), 40);
+  assert.equal(size("😂😂😂"), 34);
+  assert.equal(size("😂😂😂😂😂"), 34);
 });
 
 test("emoji-only text messages render large without a bubble background", () => {

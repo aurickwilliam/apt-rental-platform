@@ -11,8 +11,9 @@ import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import ChatImageViewer from "./ChatImageViewer";
+import { emojiFontSizeForCount } from "@repo/constants";
 import { getReplyCaption } from "@repo/utils";
-import { emojiMessageFontSize, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
+import { emojiCount, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
 
 /** How long a click waits for a second click before opening the viewer (mobile uses 300 ms). */
 const IMAGE_OPEN_DELAY_MS = 300;
@@ -269,7 +270,7 @@ export default function MessageBubble({
         ) : null}
         {!mediaUrl && showsAttachment && <span className="flex items-center gap-2 text-sm"><IconPaperclip size={16} aria-hidden="true" />Attachment unavailable</span>}
         {message.message && (isEmojiMessage
-          ? <p className="whitespace-pre-wrap leading-tight [overflow-wrap:anywhere]" style={{ fontSize: emojiMessageFontSize(message.message) }}>{message.message}</p>
+          ? <p className="whitespace-pre-wrap leading-tight [overflow-wrap:anywhere]" style={{ fontSize: emojiFontSizeForCount(emojiCount(message.message)) }}>{message.message}</p>
           : <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>)}
         {!message.message && !showsAttachment && (
           <span className="flex items-center gap-2 text-sm">
