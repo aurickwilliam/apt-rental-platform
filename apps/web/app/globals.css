@@ -110,15 +110,6 @@
 .finance-report .finance-picker-trigger:hover,
 .finance-report .finance-picker-trigger[data-hovered] { background: var(--muted); }
 .finance-report .finance-picker-trigger--icon { width: 2.375rem; padding: 0; justify-content: center; }
-/* Indicators are controls, not placeholders: readable contrast, as in the
-   listing steps. The Select still owns disabled opacity and rotation. */
-.finance-report .select__indicator,
-.finance-drawer .select__indicator {
-  color: var(--muted-foreground);
-  width: 1.25rem;
-  height: 1.25rem;
-  stroke-width: 2;
-}
 /* The selected range keeps the outline button's border; only its fill changes. */
 .finance-report .finance-range-selected,
 .finance-report .finance-range-selected[data-hovered] {
@@ -227,6 +218,38 @@
 }
 .apt-messages-categories .tabs__tab { color: var(--muted-foreground); }
 .apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--primary); }
+
+/* Dropdown chevrons are controls, not placeholders: HeroUI's default is the faint
+   placeholder gray, so every Select/Autocomplete/DatePicker indicator uses the
+   readable muted text color. The parent still owns disabled opacity and the
+   open-state rotation. */
+.select__indicator,
+.autocomplete__indicator,
+.combo-box__trigger,
+.date-picker__trigger-indicator,
+.date-range-picker__trigger-indicator {
+  color: var(--muted-foreground);
+}
+/* Dropdown buttons are white (the card surface, so dark mode follows) instead of
+   HeroUI's tinted field fill, which reads grey on the page background. */
+.select .select__trigger {
+  --select-trigger-bg: var(--card);
+  --select-trigger-bg-hover: var(--muted);
+  --select-trigger-bg-focus: var(--card);
+}
+.select__indicator,
+.select__indicator[data-slot="select-default-indicator"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
+}
+
+/* Status tabs (landlord Payments): every tab shows at its own width (HeroUI's
+   full-width tabs push all but the first into a scroller) with readable labels on
+   one line, the selected one in brand blue. Labels sit above the sliding indicator, like the finance tabs. */
+.apt-status-tabs [role="tab"] { color: var(--muted-foreground); white-space: nowrap; width: auto; flex: 1 1 auto; padding-inline: 0.75rem; }
+.apt-status-tabs [role="tab"][data-selected="true"] { color: var(--primary); }
+.apt-status-tabs [role="tab"] > .apt-tab-label { position: relative; z-index: 1; }
 
 /* Tabs — every HeroUI tab label uses Nunito SemiBold (DESIGN.md §4), like mobile. */
 .tabs__tab {
@@ -723,6 +746,19 @@
     --chip-fg: var(--status-fg-dark);
     border-color: var(--status-border-dark);
   }
+
+  /* Payment method chips: PaymentMethodChip sets the --method-* values per method. */
+  .chip.method-chip {
+    --chip-bg: var(--method-bg);
+    --chip-fg: var(--method-fg);
+    border: 1px solid var(--method-border);
+  }
+
+  .dark .chip.method-chip {
+    --chip-bg: var(--method-bg-dark);
+    --chip-fg: var(--method-fg-dark);
+    border-color: var(--method-border-dark);
+  }
 }
 
 /* Fix HeroUI Select/Dropdown inside Radix Sheet/Dialog */
@@ -805,15 +841,6 @@ body[data-scroll-locked] [role="option"] {
   .create-listing-flow .create-listing-preview-ratings h3 {
     font-size: 3.75rem;
   }
-}
-
-/* Indicators are controls, not placeholders: give them readable contrast.
-   The parent Select still owns disabled opacity and open-state rotation. */
-.create-listing-flow .select__indicator {
-  color: var(--muted-foreground);
-  width: 1.25rem;
-  height: 1.25rem;
-  stroke-width: 2;
 }
 
 .create-listing-actions > .button {
@@ -1192,6 +1219,12 @@ body[data-scroll-locked] [role="option"] {
 .settings-select-list .list-box-item[data-selected="true"],
 .settings-select-list .list-box-item[aria-selected="true"] {
   background-color: color-mix(in oklab, #376BF5 12%, transparent);
+  color: #376BF5;
+}
+
+/* The selected option's check mark is brand blue, matching its tinted row. */
+.settings-select-list .list-box-item[data-selected="true"] [data-slot="list-box-item-indicator--checkmark"],
+.settings-select-list .list-box-item[data-selected="true"] .list-box-item__indicator {
   color: #376BF5;
 }
 

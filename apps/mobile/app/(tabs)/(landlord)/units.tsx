@@ -17,6 +17,7 @@ import {
   IconHome,
   IconHammer,
   IconCirclePlus,
+  IconWallet,
 } from "@tabler/icons-react-native";
 
 import {
@@ -119,27 +120,37 @@ export default function Units() {
 
         <View className="flex-row flex-wrap">
           <QuickActionButton
+            columns={5}
             label={"Add Property"}
             icon={IconCirclePlus}
             onPress={() => router.push("/landlord/manage-apartment/add-apartment/")}
           />
           <QuickActionButton
+            columns={5}
             label={"Maintenance Request"}
             icon={IconHammer}
             badgeCount={counts.maintenance}
             onPress={() => router.push("/landlord/maintenance-requests")}
           />
           <QuickActionButton
+            columns={5}
             label={"Visit Request"}
             icon={IconHome}
             badgeCount={counts.visits}
             onPress={() => router.push("/landlord/visit-requests")}
           />
           <QuickActionButton
+            columns={5}
             label={"Tenant Applications"}
             icon={IconFileText}
             badgeCount={counts.applications}
             onPress={() => router.push("/landlord/tenant-applications")}
+          />
+          <QuickActionButton
+            columns={5}
+            label={"Payments"}
+            icon={IconWallet}
+            onPress={() => router.push("/landlord/payments")}
           />
         </View>
       </View>

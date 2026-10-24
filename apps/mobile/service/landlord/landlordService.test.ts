@@ -1,6 +1,8 @@
 import {
   fetchLandlordApplications,
   fetchLandlordPayments,
+  fetchAllLandlordPayments,
+  ALL_LANDLORD_PAYMENTS_LIMIT,
   fetchLandlordTenancy,
   fetchLandlordMaintenanceRequests,
   updateLandlordMaintenanceStatus,
@@ -33,6 +35,7 @@ type SupabaseChain = {
   select: jest.Mock;
   eq: jest.Mock;
   in: jest.Mock;
+  is: jest.Mock;
   order: jest.Mock;
   limit: jest.Mock;
   update: jest.Mock;
@@ -49,6 +52,7 @@ function chainWith(result: QueryResult): SupabaseChain {
     ),
     eq: jest.fn(() => chain),
     in: jest.fn(() => chain),
+    is: jest.fn(() => chain),
     order: jest.fn(() => chain),
     limit: jest.fn(() => chain),
     update: jest.fn(() => chain),
@@ -148,6 +152,17 @@ describe('fetchLandlordPayments', () => {
 })
 
 describe('updateLandlordPaymentStatus', () => {
+  it("writes paid by default and rejected when declining, only for pending cash rows", async () => {
+    const chain = chainWith({ data: [{ id: 'payment-1' }] })
+    mockFrom.mockReturnValue(chain)
+    await updateLandlordPaymentStatus('payment-1')
+    expect(chain.update).toHaveBeenLastCalledWith({ status: 'paid' })
+    await updateLandlordPaymentStatus('payment-1', 'rejected')
+    expect(chain.update).toHaveBeenLastCalledWith({ status: 'rejected' })
+    expect(chain.eq).toHaveBeenCalledWith('method', 'cash')
+    expect(chain.eq).toHaveBeenCalledWith('status', 'pending')
+  })
+
   it('updates only pending cash rows to paid', async () => {
     const chain = chainWith({ data: [{ id: 'payment-1' }] })
     mockFrom.mockReturnValue(chain)
@@ -313,5 +328,55 @@ describe('maintenance fees', () => {
   it('preserves the reservation refusal from the database', async () => {
     mockRpc.mockResolvedValue({ error: { message: 'This fee is reserved by a pending payment.' } })
     expect(await waiveMaintenanceFee('request-1')).toEqual({ success: false, error: 'This fee is reserved by a pending payment.' })
+  })
+})
+
+describe('fetchAllLandlordPayments', () => {
+  beforeEach(() => { mockFrom.mockReset() })
+
+  const unit = (id: string, name: string) => ({ id, name })
+
+  it("reads the landlord's own units first, then every payment for exactly those units", async () => {
+    const unitsChain = chainWith({ data: [unit('unit-a', 'Unit A'), unit('unit-b', 'Unit B')] })
+    const paymentsChain = chainWith({
+      data: [
+        { ...ROW, id: 'p1', apartment_id: 'unit-a', apartment: { name: 'Unit A' } },
+        { ...ROW, id: 'p2', apartment_id: 'unit-b', apartment: null, tenant: null, status: 'paid' },
+      ],
+    })
+    mockFrom.mockReturnValueOnce(unitsChain).mockReturnValueOnce(paymentsChain)
+
+    const result = await fetchAllLandlordPayments('landlord-1')
+
+    expect(mockFrom).toHaveBeenNthCalledWith(1, 'apartments')
+    expect(unitsChain.eq).toHaveBeenCalledWith('landlord_id', 'landlord-1')
+    expect(unitsChain.is).toHaveBeenCalledWith('deleted_at', null)
+    expect(mockFrom).toHaveBeenNthCalledWith(2, 'payment')
+    expect(paymentsChain.in).toHaveBeenCalledWith('apartment_id', ['unit-a', 'unit-b'])
+    expect(paymentsChain.limit).toHaveBeenCalledWith(ALL_LANDLORD_PAYMENTS_LIMIT)
+    expect(result.units).toEqual([unit('unit-a', 'Unit A'), unit('unit-b', 'Unit B')])
+    expect(result.payments.map((p) => [p.id, p.apartment_id, p.apartment_name, p.tenant_name])).toEqual([
+      ['p1', 'unit-a', 'Unit A', 'Case Oh'],
+      ['p2', 'unit-b', null, null],
+    ])
+  })
+
+  it('never queries payments for a landlord without units', async () => {
+    mockFrom.mockReturnValueOnce(chainWith({ data: [] }))
+
+    const result = await fetchAllLandlordPayments('landlord-1')
+
+    expect(result).toEqual({ units: [], payments: [] })
+    expect(mockFrom).toHaveBeenCalledTimes(1)
+  })
+
+  it('surfaces a units or payments error instead of an empty list', async () => {
+    mockFrom.mockReturnValueOnce(chainWith({ error: new Error('units down') }))
+    await expect(fetchAllLandlordPayments('landlord-1')).rejects.toThrow('units down')
+
+    mockFrom
+      .mockReturnValueOnce(chainWith({ data: [unit('unit-a', 'Unit A')] }))
+      .mockReturnValueOnce(chainWith({ error: new Error('payments down') }))
+    await expect(fetchAllLandlordPayments('landlord-1')).rejects.toThrow('payments down')
   })
 })

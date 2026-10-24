@@ -26,7 +26,6 @@ type FlatPayment = {
   month: string
   amount: number
   status: 'paid' | 'pending' | 'unpaid'
-  paidDate: string
   method: string | null
   reference: string | null
   date: string
@@ -43,21 +42,21 @@ const toFlatPayment = (payment: {
   due_date: string | null
 }): FlatPayment => {
   const sourceDate = payment.period_start ?? payment.date
-  const date = new Date(`${payment.date.slice(0, 10)}T00:00:00`)
-  const paidDate = Number.isNaN(date.getTime())
-    ? payment.date
-    : `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
   return {
     id: payment.id,
     year: sourceDate.slice(0, 4),
     month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
     status: payment.status as FlatPayment['status'],
-    paidDate,
     method: payment.method,
     reference: payment.reference_id ?? null,
     date: payment.date,
   }
+}
+
+const formatPaidDate = (iso: string): string => {
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? '—' : `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 }
 
 export default function PaymentHistoryScreen() {
@@ -198,10 +197,10 @@ export default function PaymentHistoryScreen() {
           <PaymentHistoryCard
             month={item.month}
             amount={item.amount}
-            paidDate={item.paidDate}
             status={item.status}
             method={item.method}
             referenceId={item.reference}
+            paidDate={formatPaidDate(item.date)}
             onPress={() =>
               router.push({
                 pathname: '/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]',

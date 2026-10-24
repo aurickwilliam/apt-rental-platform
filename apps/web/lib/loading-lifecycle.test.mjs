@@ -313,7 +313,7 @@ test("loading composition retains one maintenance heading and common finance geo
   assert.match(client, /timeZone: "Asia\/Manila"/);
   assert.match(client, /onAcknowledged=\{async \(\) => \{\s*return revalidate\(\);/);
   assert.match(source("app/landlord/applications/[applicationId]/page.tsx"), /useLandlordApplicationActions\(revalidate\)/);
-  assert.match(source("app/landlord/payments/page.tsx"), /unitsQuery\.loading \|\| paymentsQuery\.loading \? <PaymentCardsSkeleton/);
+  assert.match(source("app/landlord/payments/page.tsx"), /\{loading \? \(\s*<PaymentsBodySkeleton/);
 });
 
 function detailResource(kind) {

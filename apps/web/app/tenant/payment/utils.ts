@@ -51,8 +51,8 @@ export function paymentStatusLabel(status: string | null | undefined): PaymentSt
 
 export function formatReferenceId(ref: string | null | undefined): string {
   if (!ref) return "—";
-  // APT-20260301-001A already formatted; keep as-is. For pay_ ids, prettify
-  if (ref.startsWith("pay_")) return ref.replace("pay_", "PAY-").toUpperCase();
+  // APT-8K2M9QX4 is already formatted; keep as-is. Older pay_ ids are shown in the same style.
+  if (ref.startsWith("pay_")) return ref.replace("pay_", "APT-").toUpperCase();
   return ref;
 }
 
