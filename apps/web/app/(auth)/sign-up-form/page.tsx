@@ -22,24 +22,24 @@ export default async function SignUpFormPage({
       <div className="min-h-screen w-full bg-card">
         <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-[clamp(1rem,4vw,2rem)] py-[clamp(1rem,3vh,2rem)]">
           <section className="flex min-w-0 flex-1 flex-col">
-            {/* Logo */}
-            <div className="flex items-center justify-center gap-2 md:justify-start">
+            {/* Back button left, logo centered on the same row */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+              <div className="justify-self-start">
+                <BackBtn />
+              </div>
               <Image
                 src="/logo/logo.svg"
                 alt="APT Logo"
-                width={75}
-                height={75}
+                width={64}
+                height={64}
+                priority
               />
-            </div>
-
-            {/* Back Button */}
-            <div className="mt-4">
-              <BackBtn />
+              <div aria-hidden />
             </div>
 
             {/* Title Description */}
             <div className="mt-[clamp(1.5rem,5vh,2.5rem)]">
-              <h1 className="text-[clamp(1.5rem,4vw,1.875rem)] font-medium font-noto-serif text-foreground">
+              <h1 className="text-[clamp(1.5rem,4vw,1.875rem)] font-bold font-nunito text-foreground">
                 Complete the{" "}
                 {initialRole === "landlord" ? "Landlord" : "Tenant"} Form
               </h1>

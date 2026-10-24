@@ -9,8 +9,7 @@ import {
   GENDERS,
   SUFFIXES,
   getCitiesByProvince,
-  getBarangaysByCity,
-  getPostalCode
+  getBarangaysByCity
 } from "@repo/constants";
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
@@ -26,12 +25,13 @@ import {
 
 import { supabase } from "@repo/supabase";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { clearQueryClient } from '@/utils/queryClient';
 import { hasMobilePortalRole, isPortal, type Portal } from '@/service/auth/portalPreference';
 
 import { useColors } from "hooks/useTheme";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
-import { getProfileSubmitError } from '@repo/utils';
+import { getProfileSubmitError, validateBirthDate } from '@repo/utils';
 
 import {
   TextField,
@@ -39,6 +39,7 @@ import {
   Input,
   FieldError,
   Button,
+  LinkButton,
   Separator,
   Spinner,
 } from 'heroui-native';
@@ -76,7 +77,8 @@ export default function AuthCompleteProfile() {
 
   const [canLeave, setCanLeave] = useState(false);
 
-  const { email, userSide, suggestedRole, firstName, lastName } = useLocalSearchParams();
+  const { email, userSide, suggestedRole, firstName, lastName, profileMissing } = useLocalSearchParams();
+  const isProfileMissing = (Array.isArray(profileMissing) ? profileMissing[0] : profileMissing) === '1';
 
   const requestedRole = Array.isArray(userSide) ? userSide[0] : userSide;
   const suggestedPortal = Array.isArray(suggestedRole) ? suggestedRole[0] : suggestedRole;
@@ -122,12 +124,11 @@ export default function AuthCompleteProfile() {
   // Postal code hook
   const {
     value: postalCode,
-    setValue: setPostalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
     validate: validatePostalCode,
-  } = usePHPostalCode();
+  } = usePHPostalCode({ city: profileForm.city, province: profileForm.province });
 
   // Mobile Number validation hook
   const {
@@ -158,19 +159,9 @@ export default function AuthCompleteProfile() {
       return 'This field is required';
     }
 
+    // Same rule as web and the database (18+, not in the future, not over 120).
     if (field === 'birthDate' && profileForm.birthDate) {
-      const birth = new Date(profileForm.birthDate);
-      const today = new Date();
-
-      const age = today.getFullYear() - birth.getFullYear();
-      const hasBirthdayPassed =
-        today.getMonth() > birth.getMonth() ||
-        (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
-      const actualAge = hasBirthdayPassed ? age : age - 1;
-
-      if (birth > today) return 'Date of birth cannot be in the future';
-      if (actualAge < 18) return 'You must be at least 18 years old';
-      if (actualAge > 120) return 'Please enter a valid date of birth';
+      return validateBirthDate(profileForm.birthDate) ?? undefined;
     }
 
     return undefined;
@@ -182,20 +173,23 @@ export default function AuthCompleteProfile() {
     const isPostalCodeValidOnSubmit = validatePostalCode();
     const isMobileValidOnSubmit = validateMobileNumber();
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
+    const birthDateInvalid = !!profileForm.birthDate && !!validateBirthDate(profileForm.birthDate);
 
     if (
       emptyFields.length > 0 ||
+      birthDateInvalid ||
       !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
     ) {
       const fieldOrder: ScrollableField[] = [
         'firstName', 'lastName', 'gender', 'birthDate',
         'mobileNumber',
-        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+        'province', 'city', 'barangay', 'streetAddress', 'postalCode',
       ];
       const firstError = fieldOrder.find((field) => {
         if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
         if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
+        if (field === 'birthDate' && birthDateInvalid) return true;
         return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();
       });
       const y = firstError ? fieldPositions.current[firstError] : undefined;
@@ -224,37 +218,53 @@ export default function AuthCompleteProfile() {
       if (updateError) throw updateError;
 
       const { data: currentProfile, error: profileError } = await supabase
-        .from('users').select('roles').eq('user_id', user.id).single();
-      if (profileError || !currentProfile) throw profileError ?? new Error('Profile not found.');
-      if (!hasMobilePortalRole(currentProfile.roles)) throw new Error('Admin accounts are available on the web portal only.');
-      if (!currentProfile.roles.includes(selectedRole)) {
-        if (currentProfile.roles.length !== 1) throw new Error('Cannot change the role of this account during onboarding.');
-        const { error: roleError } = await supabase.rpc('set_onboarding_role', {
-          requested_role: selectedRole,
+        .from('users').select('roles').eq('user_id', user.id).maybeSingle();
+      if (profileError) throw profileError;
+
+      const details = {
+        first_name: profileForm.firstName,
+        last_name: profileForm.lastName,
+        middle_name: profileForm.middleName || null,
+        suffix: profileForm.suffixName || null,
+        gender: profileForm.gender,
+        birth_date: profileForm.birthDate,
+        mobile_number: mobileValidation.formattedNumber ?? mobileNumber,
+        province: profileForm.province,
+        city: profileForm.city,
+        barangay: profileForm.barangay,
+        postal_code: postalCode ? parseInt(postalCode, 10) : null,
+        street_address: profileForm.streetAddress,
+      };
+
+      if (!currentProfile) {
+        // Confirmed account with no profile row (interrupted sign-up): create
+        // it like sign-up does (own row, tenant/landlord role, Auth email).
+        if (!user.email) throw new Error('No authenticated user found.');
+        const { error: insertError } = await supabase.from('users').insert({
+          user_id: user.id,
+          email: user.email,
+          roles: [selectedRole],
+          ...details,
         });
-        if (roleError) throw roleError;
+        if (insertError) throw insertError;
+      } else {
+        if (!hasMobilePortalRole(currentProfile.roles)) throw new Error('Admin accounts are available on the web portal only.');
+        if (!currentProfile.roles.includes(selectedRole)) {
+          if (currentProfile.roles.length !== 1) throw new Error('Cannot change the role of this account during onboarding.');
+          const { error: roleError } = await supabase.rpc('set_onboarding_role', {
+            requested_role: selectedRole,
+          });
+          if (roleError) throw roleError;
+        }
+
+        // Write profile data to users table
+        const { error: profileUpdateError } = await supabase
+          .from('users')
+          .update(details)
+          .eq('user_id', user.id);
+
+        if (profileUpdateError) throw profileUpdateError;
       }
-
-      // Write profile data to users table
-      const { error: profileUpdateError } = await supabase
-        .from('users')
-        .update({
-          first_name: profileForm.firstName,
-          last_name: profileForm.lastName,
-          middle_name: profileForm.middleName || null,
-          suffix: profileForm.suffixName || null,
-          gender: profileForm.gender,
-          birth_date: profileForm.birthDate,
-          mobile_number: mobileValidation.formattedNumber ?? mobileNumber,
-          province: profileForm.province,
-          city: profileForm.city,
-          barangay: profileForm.barangay,
-          postal_code: postalCode ? parseInt(postalCode, 10) : null,
-          street_address: profileForm.streetAddress,
-        })
-        .eq('user_id', user.id);
-
-      if (profileUpdateError) throw profileUpdateError;
 
       await usePortalStore.getState().switchTo(user.id, [selectedRole], selectedRole);
 
@@ -279,19 +289,21 @@ export default function AuthCompleteProfile() {
     }
   };
 
+  // The screen blocks back navigation, so an account that cannot finish here
+  // (wrong account, changed mind) needs an explicit way out.
+  const handleSignOut = async () => {
+    clearQueryClient();
+    await supabase.auth.signOut();
+    setCanLeave(true);
+    router.replace('/sign-in');
+  };
+
   const handleProvinceChange = (province: string | null) => {
     updateFields({ province: province ?? '', city: '', barangay: '' });
-    setPostalCode('');
   };
 
   const handleCityChange = (city: string | null) => {
     updateFields({ city: city ?? '', barangay: '' });
-    if (city) {
-      const code = getPostalCode(city);
-      if (code) setPostalCode(code);
-    } else {
-      setPostalCode('');
-    }
   };
 
   // Get the options depending on the province selected
@@ -491,6 +503,21 @@ export default function AuthCompleteProfile() {
           />
         </View>
 
+        {/* Street Address Field */}
+        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
+
         {/* Postal Code Field */}
         <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!postalCodeError}>
@@ -511,20 +538,6 @@ export default function AuthCompleteProfile() {
           </TextField>
         </View>
 
-        {/* Street Address Field */}
-        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("streetAddress")}>
-            <Label>Street Address:</Label>
-            <Input
-              className="shadow-none"
-              placeholder="Enter your street address"
-              onChangeText={(value) => updateField("streetAddress", value)}
-            />
-            {getError("streetAddress") && (
-              <FieldError>{getError("streetAddress")}</FieldError>
-            )}
-          </TextField>
-        </View>
       </View>
 
       {/* Submit Button */}
@@ -535,6 +548,14 @@ export default function AuthCompleteProfile() {
             <Spinner size="sm" color={colors.white} className="ml-2" />
           )}
         </Button>
+
+        {isProfileMissing && (
+          <LinkButton onPress={handleSignOut} className="mt-4 self-center p-0">
+            <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
+              Use a different account
+            </LinkButton.Label>
+          </LinkButton>
+        )}
       </View>
 
       {/* Error Dialog */}

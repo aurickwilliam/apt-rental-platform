@@ -18,7 +18,7 @@ interface CodeInputProps {
   "aria-label"?: string;
 }
 
-// Email code input (3 + 3 slots, centered), shared by the password-recovery
+// Email code input (one row of slots, centered), shared by the password-recovery
 // and change-email code steps.
 export default function CodeInput({
   value,
@@ -30,8 +30,6 @@ export default function CodeInput({
   autoFocus,
   "aria-label": ariaLabel = "6-digit code",
 }: CodeInputProps) {
-  const half = Math.ceil(length / 2);
-
   return (
     <InputOTP
       aria-label={ariaLabel}
@@ -48,14 +46,8 @@ export default function CodeInput({
       className="justify-center"
     >
       <InputOTP.Group>
-        {Array.from({ length: half }, (_, index) => (
+        {Array.from({ length }, (_, index) => (
           <InputOTP.Slot key={index} index={index} className={CODE_SLOT_CLASS} />
-        ))}
-      </InputOTP.Group>
-      <InputOTP.Separator />
-      <InputOTP.Group>
-        {Array.from({ length: length - half }, (_, index) => (
-          <InputOTP.Slot key={half + index} index={half + index} className={CODE_SLOT_CLASS} />
         ))}
       </InputOTP.Group>
     </InputOTP>

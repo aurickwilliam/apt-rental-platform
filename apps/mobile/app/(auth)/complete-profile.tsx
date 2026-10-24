@@ -7,8 +7,7 @@ import {
   GENDERS,
   SUFFIXES,
   getCitiesByProvince,
-  getBarangaysByCity,
-  getPostalCode
+  getBarangaysByCity
 } from "@repo/constants";
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
@@ -24,6 +23,8 @@ import {
 
 import { supabase } from "@repo/supabase";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
+
+import { getEmailCodeRequestError, validateBirthDate } from '@repo/utils';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -140,12 +141,11 @@ export default function CompleteProfile() {
   // Validates that a PH postal code is exactly 4 digits with proper blur/change handling
   const {
     value: postalCode,
-    setValue: setPostalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
     validate: validatePostalCode,
-  } = usePHPostalCode();
+  } = usePHPostalCode({ city: profileForm.city, province: profileForm.province });
 
   // Mobile Number validation hook
   const {
@@ -182,20 +182,9 @@ export default function CompleteProfile() {
       return 'Passwords do not match';
     }
 
-    // Birth Date Validation
+    // Same rule as web and the database (18+, not in the future, not over 120).
     if (field === 'birthDate' && profileForm.birthDate) {
-      const birth = new Date(profileForm.birthDate);
-      const today = new Date();
-
-      const age = today.getFullYear() - birth.getFullYear();
-      const hasBirthdayPassed =
-        today.getMonth() > birth.getMonth() ||
-        (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
-      const actualAge = hasBirthdayPassed ? age : age - 1;
-
-      if (birth > today) return 'Date of birth cannot be in the future';
-      if (actualAge < 18) return 'You must be at least 18 years old';
-      if (actualAge > 120) return 'Please enter a valid date of birth';
+      return validateBirthDate(profileForm.birthDate) ?? undefined;
     }
 
     return undefined;
@@ -210,23 +199,26 @@ export default function CompleteProfile() {
     const isPostalCodeValidOnSubmit = validatePostalCode();
     const isMobileValidOnSubmit = validateMobileNumber();
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
+    const birthDateInvalid = !!profileForm.birthDate && !!validateBirthDate(profileForm.birthDate);
 
     // if any validation fails, scroll to first error and return early
     if (
       !isPasswordValid ||
       emptyFields.length > 0 ||
+      birthDateInvalid ||
       !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
     ) {
       const fieldOrder: ScrollableField[] = [
         'firstName', 'lastName', 'gender', 'birthDate',
         'mobileNumber',
-        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+        'province', 'city', 'barangay', 'streetAddress', 'postalCode',
         'password', 'confirmPassword',
       ];
       const firstError = fieldOrder.find((field) => {
         if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
         if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
+        if (field === 'birthDate' && birthDateInvalid) return true;
         if (field === 'password') return !isPasswordValid && !!profileForm.password;
         if (field === 'confirmPassword') return !isPasswordValid;
         return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();
@@ -268,7 +260,7 @@ export default function CompleteProfile() {
       // Navigate to OTP verification screen with email as param
       router.push({ pathname: '/(auth)/otp-verification', params: { email: emailValue } });
     } catch (err: any) {
-      setError(err.message);
+      setError(getEmailCodeRequestError(err.message));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);
@@ -282,17 +274,10 @@ export default function CompleteProfile() {
 
   const handleProvinceChange = (province: string | null) => {
     updateFields({ province: province ?? '', city: '', barangay: '' });
-    setPostalCode('');
   };
 
   const handleCityChange = (city: string | null) => {
     updateFields({ city: city ?? '', barangay: '' });
-    if (city) {
-      const code = getPostalCode(city);
-      if (code) setPostalCode(code);
-    } else {
-      setPostalCode('');
-    }
   };
 
   const citiesForSelectedProvince = profileForm.province
@@ -485,6 +470,21 @@ export default function CompleteProfile() {
           />
         </View>
 
+        {/* Street Address Field */}
+        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
+
         {/* Postal Code Field */}
         <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!postalCodeError}>
@@ -501,21 +501,6 @@ export default function CompleteProfile() {
             />
             {postalCodeError && (
               <FieldError>{postalCodeError}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Street Address Field */}
-        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("streetAddress")}>
-            <Label>Street Address:</Label>
-            <Input
-              className="shadow-none"
-              placeholder="Enter your street address"
-              onChangeText={(value) => updateField("streetAddress", value)}
-            />
-            {getError("streetAddress") && (
-              <FieldError>{getError("streetAddress")}</FieldError>
             )}
           </TextField>
         </View>

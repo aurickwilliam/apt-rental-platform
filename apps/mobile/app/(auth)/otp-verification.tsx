@@ -12,8 +12,15 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 
-import { getProfileSubmitError } from '@repo/utils'
+import {
+  MAX_OTP_ATTEMPTS,
+  getEmailCodeRequestError,
+  getOtpAttemptError,
+  getProfileSubmitError,
+  parseResendWaitSeconds,
+} from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
 import { useCountdown } from 'hooks/auth'
@@ -27,11 +34,13 @@ import {
 } from 'heroui-native'
 
 const OTP_VALIDITY_DURATION = 60 // seconds
-const MAX_OTP_ATTEMPTS = 5
 
 export default function OTPVerification() {
   const router = useRouter()
-  const { email } = useLocalSearchParams()
+  const { email, mode } = useLocalSearchParams()
+  // Opened from sign-in for an account whose email was never confirmed: there
+  // is no sign-up form data, so a verified code continues at "finish profile".
+  const isConfirmMode = (Array.isArray(mode) ? mode[0] : mode) === 'confirm'
 
   const { colors } = useColors();
 
@@ -45,7 +54,6 @@ export default function OTPVerification() {
   const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_OTP_ATTEMPTS)
   const [otpLocked, setOtpLocked] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
-  const [otpExpired, setOtpExpired] = useState(false)
 
   const otpRef = useRef<InputOTPRef>(null)
 
@@ -67,11 +75,6 @@ export default function OTPVerification() {
 
     setResendLoading(true)
     setOtpError(null)
-    setAttemptsRemaining(MAX_OTP_ATTEMPTS)
-    setOtpLocked(false)
-    setOtpExpired(false)
-    clearOtp()
-    resetCountdown()
 
     try {
       const { error: resendError } = await supabase.auth.resend({
@@ -80,9 +83,22 @@ export default function OTPVerification() {
       })
 
       if (resendError) {
-        setError(resendError.message || 'Something went wrong')
+        // Supabase throttles resends ("...only request this after N seconds"):
+        // wait out the stated time instead of showing its raw message.
+        const waitSeconds = parseResendWaitSeconds(resendError.message)
+        if (waitSeconds !== null) {
+          resetCountdown(waitSeconds)
+          return
+        }
+        setError(getEmailCodeRequestError(resendError.message))
         setErrorDialogOpen(true)
+        return
       }
+
+      setAttemptsRemaining(MAX_OTP_ATTEMPTS)
+      setOtpLocked(false)
+      clearOtp()
+      resetCountdown()
     } finally {
       setResendLoading(false)
     }
@@ -96,6 +112,8 @@ export default function OTPVerification() {
     setLoading(true)
     setOtpError(null)
 
+    let emailVerified = false
+
     try {
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
@@ -104,6 +122,17 @@ export default function OTPVerification() {
       })
 
       if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
+      emailVerified = true
+
+      if (isConfirmMode) {
+        clearQueryClient()
+        if (await isProfileMissing(authData.user.id)) {
+          router.replace(profileMissingRoute(authData.user.email))
+        } else {
+          router.replace('/')
+        }
+        return
+      }
 
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
@@ -116,7 +145,7 @@ export default function OTPVerification() {
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,
-        suffix: data.suffixName ?? null,
+        suffix: data.suffixName || null,
         gender: data.gender,
         mobile_number: data.mobileNumber,
         birth_date: data.birthDate,
@@ -141,41 +170,40 @@ export default function OTPVerification() {
 
     } catch (err: any) {
       const msg: string = (err as any)?.message ?? ''
-      const isOtpExpired =
+      // Supabase answers a wrong code and an old code with the same
+      // "Token has expired or is invalid", so both are treated as an
+      // incorrect-or-expired code; the resend link only appears after its
+      // countdown, never because of this error.
+      const isInvalidOtp =
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
-        msg.includes('Email link is invalid or has expired')
-      const isInvalidOtp =
         msg.includes('invalid_otp') ||
         msg.includes('does not match') ||
-        msg.includes('Invalid token')
+        msg.includes('Invalid token') ||
+        msg.includes('Email link is invalid or has expired')
 
-      if (isOtpExpired) {
-        // OTP expired before verify succeeded — no auth user was created, safe to skip signOut
-        setOtpExpired(true)
-        clearOtp()
-
-        setError('Your verification code has expired. Please request a new one.')
-        setErrorDialogOpen(true)
-      } else if (isInvalidOtp) {
-        // Wrong code — surface inline with attempts remaining
+      if (isInvalidOtp) {
+        // Wrong or expired code — surface inline with attempts remaining
         const remaining = attemptsRemaining - 1
         setAttemptsRemaining(remaining)
         clearOtp()
 
-        if (remaining <= 0) {
-          setOtpLocked(true)
-          setOtpError('Too many incorrect attempts. Please request a new code.')
-        } else {
-          setOtpError(`Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`)
-        }
+        if (remaining <= 0) setOtpLocked(true)
+        setOtpError(getOtpAttemptError(remaining))
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
         clearQueryClient()
         await supabase.auth.signOut()
 
-        setError(getProfileSubmitError(err))
+        // Once the code is accepted the account exists; signing in continues
+        // at "finish your profile" if the profile write is what failed.
+        const message = getProfileSubmitError(err)
+        setError(
+          emailVerified
+            ? `${message} Your email is verified, so you can sign in to finish setting up your profile.`
+            : message,
+        )
         setErrorDialogOpen(true)
       }
     } finally {
@@ -236,9 +264,6 @@ export default function OTPVerification() {
                 <InputOTP.Slot index={0} />
                 <InputOTP.Slot index={1} />
                 <InputOTP.Slot index={2} />
-              </InputOTP.Group>
-              <InputOTP.Separator />
-              <InputOTP.Group>
                 <InputOTP.Slot index={3} />
                 <InputOTP.Slot index={4} />
                 <InputOTP.Slot index={5} />
@@ -258,7 +283,7 @@ export default function OTPVerification() {
               Didn&apos;t get the code?{' '}
             </Text>
 
-            {countdown > 0 && !otpExpired ? (
+            {countdown > 0 ? (
               <Text className="text-accent text-base font-nunitoSemiBold">
                 Resend in {countdown}s
               </Text>
@@ -269,11 +294,7 @@ export default function OTPVerification() {
                 className={resendLoading ? 'opacity-50' : ''}
               >
                 <Text className="text-accent text-base font-nunitoSemiBold">
-                  {resendLoading
-                    ? 'Sending...'
-                    : otpExpired
-                      ? 'Code expired — Resend'
-                      : 'Resend'}
+                  {resendLoading ? 'Sending...' : 'Resend'}
                 </Text>
               </Pressable>
             )}
@@ -286,7 +307,9 @@ export default function OTPVerification() {
           isDisabled={loading || otpLocked || otp.length < 6}
         >
           <Button.Label>
-            {loading ? 'Creating Account...' : 'Verify & Create Account'}
+            {loading
+              ? (isConfirmMode ? 'Verifying...' : 'Creating Account...')
+              : (isConfirmMode ? 'Verify Email' : 'Verify & Create Account')}
           </Button.Label>
         </Button>
       </View>

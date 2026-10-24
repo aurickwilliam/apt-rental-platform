@@ -82,11 +82,11 @@ export default function SignUp() {
     try {
       setCheckingEmail(true);
 
-      // Check if the email has already been registered
-      const { count, error } = await supabase
-        .from("users")
-        .select("id", { count: "exact", head: true })
-        .eq("email", email.trim().toLowerCase());
+      // Auth accounts count too: an email that was verified but never given a
+      // profile is still registered, and sign-up would send it no code.
+      const { data: registered, error } = await supabase.rpc("is_email_registered", {
+        p_email: email.trim().toLowerCase(),
+      });
 
       // Display Error if there's an issue with the query
       if (error) {
@@ -95,7 +95,7 @@ export default function SignUp() {
       }
 
       // If the email is already registered, show an error
-      if (count && count > 0) {
+      if (registered === true) {
         setServerError("This email is already registered. Please sign in instead.");
         return;
       }

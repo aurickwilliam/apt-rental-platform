@@ -10,7 +10,11 @@ import { useAuth } from "./AuthContext";
 // set_onboarding_role RPC with the chosen tab role, then reuses the
 // initial-Google-onboarding path to complete-profile. RPC failures are
 // shown verbatim so they can be reported.
-export default function RolePickerContinue() {
+//
+// skipRoleStep: the account has no profile row at all (interrupted sign-up), so
+// there is no placeholder for the RPC to update; the role travels in the URL
+// and complete-profile creates the profile with it.
+export default function RolePickerContinue({ skipRoleStep = false }: { skipRoleStep?: boolean }) {
   const { role } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -19,17 +23,20 @@ export default function RolePickerContinue() {
     setError(null);
     setIsPending(true);
 
-    const supabase = createClient();
-    const { error: roleError } = await supabase.rpc("set_onboarding_role", {
-      requested_role: role,
-    });
+    if (!skipRoleStep) {
+      const supabase = createClient();
+      const { error: roleError } = await supabase.rpc("set_onboarding_role", {
+        requested_role: role,
+      });
+
+      if (roleError) {
+        setIsPending(false);
+        setError(roleError.message);
+        return;
+      }
+    }
 
     setIsPending(false);
-
-    if (roleError) {
-      setError(roleError.message);
-      return;
-    }
 
     window.location.href = `/complete-profile?role=${role}`;
   };
