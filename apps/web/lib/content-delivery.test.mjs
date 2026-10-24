@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getImgProps } from "next/dist/shared/lib/get-img-props.js";
-import { imageConfigDefault } from "next/dist/shared/lib/image-config.js";
+import imageConfigModule from "next/dist/shared/lib/image-config.js";
 import imageLoaderModule from "next/dist/shared/lib/image-loader.js";
 import { canOptimizePublicApartmentImage } from "./public-apartment-image.ts";
 import { compile, hookRuntime, settle, deferred } from "./test-support/hook-runtime.mjs";
@@ -13,9 +13,11 @@ const publicPhoto = `${origin}/storage/v1/object/public/apartment-images/apartme
 const jsx = (type, props, key) => ({ type, props, key });
 const jsxRuntime = { jsx, jsxs: jsx, Fragment: "Fragment" };
 const nodes = node => !node || typeof node !== "object" ? [] : [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
-// The public getImageProps export relies on Next's build-time config injection;
-// exercise its exact underlying implementation with this app's real config.
-const imageConfig = { ...imageConfigDefault, ...compile("next.config.ts", {}).default.images };
+// The public getImageProps export relies on Next's build-time config injection.
+// Next 16.4 prepares config before getImgProps; 16.3 prepares it inside that call.
+// Mirror the installed version's setup while exercising the app's real config.
+const imageOptions = { ...imageConfigModule.imageConfigDefault, ...compile("next.config.ts", {}).default.images };
+const imageConfig = imageConfigModule.prepareImageConfig ? imageConfigModule.prepareImageConfig(imageOptions) : imageOptions;
 const getImageProps = props => getImgProps(props, { imgConf: imageConfig, defaultLoader: imageLoaderModule.default ?? imageLoaderModule });
 
 test("only known public apartment rasters opt into optimization, never signed or other private buckets", () => {
