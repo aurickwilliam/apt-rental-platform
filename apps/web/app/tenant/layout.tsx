@@ -66,20 +66,20 @@ export default async function TenantLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <MobileSidebarNavigation
+          navItems={navItems}
+          profileHref="/tenant/profile"
+          favoritesHref={FAVORITES_HREF}
+          iconSet="tabler"
+          navLabel="Tenant navigation"
+          menuLabel="Tenant pages"
+          buttonLabel="Open tenant navigation"
+          userRoles={userRoles}
+          activePortal="tenant"
+        />
         <DraggableNotificationBell activePortal="tenant" />
-        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col bg-background">{children}</main>
       </div>
-      <MobileSidebarNavigation
-        navItems={navItems}
-        profileHref="/tenant/profile"
-        favoritesHref={FAVORITES_HREF}
-        iconSet="tabler"
-        navLabel="Tenant navigation"
-        menuLabel="Tenant pages"
-        buttonLabel="Open tenant navigation"
-        userRoles={userRoles}
-        activePortal="tenant"
-      />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="tenant" />
       </Suspense>

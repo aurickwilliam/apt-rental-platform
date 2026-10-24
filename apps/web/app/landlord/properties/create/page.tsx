@@ -427,7 +427,7 @@ export default function CreateApartmentPage() {
   return (
     <div className="create-listing-flow min-h-screen bg-background">
       {/* Top progress bar */}
-      <nav aria-label="Listing progress" className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
+      <nav aria-label="Listing progress" className="sticky top-14 md:top-0 z-30 bg-background border-b border-border px-6 py-4">
         <div>
           <ol className="flex items-center justify-between">
             {STEPS.map((s, i) => {

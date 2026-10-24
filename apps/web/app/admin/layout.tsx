@@ -41,21 +41,21 @@ export default async function AdminLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <MobileSidebarNavigation
+          navItems={[...ADMIN_NAV]}
+          profileHref="/admin/profile"
+          iconSet="tabler"
+          navLabel="Admin navigation"
+          menuLabel="Admin pages"
+          buttonLabel="Open admin navigation"
+          userRoles={profile.roles}
+          activePortal="admin"
+        />
         <DraggableNotificationBell activePortal="admin" />
-        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">
+        <main className="flex min-h-0 flex-1 flex-col bg-background">
           {children}
         </main>
       </div>
-      <MobileSidebarNavigation
-        navItems={[...ADMIN_NAV]}
-        profileHref="/admin/profile"
-        iconSet="tabler"
-        navLabel="Admin navigation"
-        menuLabel="Admin pages"
-        buttonLabel="Open admin navigation"
-        userRoles={profile.roles}
-        activePortal="admin"
-      />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={profile.roles} activePortal="admin" />
       </Suspense>

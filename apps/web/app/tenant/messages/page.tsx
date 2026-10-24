@@ -109,7 +109,7 @@ async function TenantMessagesWorkspace({
   });
 
   return (
-    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
+    <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <MessagesClient
         myLandlord={myLandlord}
         pastInquiries={pastInquiries}
