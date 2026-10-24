@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { PressableProps, TextProps } from "react-native";
 import { fireEvent, render } from "@testing-library/react-native";
+import { View } from "react-native";
 import CurrentApartmentDetails from "@/app/tenant/current-apartment";
 
 const mockPush = jest.fn();
@@ -38,7 +39,7 @@ it("places Ratings & Reviews immediately after the lease action and opens the cu
   const screen = render(<CurrentApartmentDetails />);
   const actions = screen.getAllByRole("button");
   expect(actions).toHaveLength(2);
-  expect(actions[0]).toBe(screen.getByRole("button", { name: "View Lease Agreement" }));
+  expect(actions[0]).toBe(screen.getByRole("button", { name: "View Lease" }));
   expect(actions[1]).toBe(screen.getByRole("button", { name: "Ratings & Reviews" }));
   fireEvent.press(actions[1]);
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/apartment/[apartmentId]/ratings", params: { apartmentId: "cozy-cove" } });
@@ -49,10 +50,23 @@ it("places Ratings & Reviews immediately after the lease action and opens the cu
 it("keeps reviews available when there is no lease file", () => {
   mockTenancy = { ...tenancy, apartment: { ...apartment, lease_agreement_url: "" } };
   const screen = render(<CurrentApartmentDetails />);
-  expect(screen.getByRole("button", { name: "View Lease Agreement" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "View Lease" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Ratings & Reviews" })).toBeEnabled();
   fireEvent.press(screen.getByText("Ratings & Reviews"));
   expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ params: { apartmentId: "cozy-cove" } }));
+});
+
+it("keeps both icon-label pairs compact and centered inside full-width actions", () => {
+  const screen = render(<CurrentApartmentDetails />);
+  for (const name of ["View Lease", "Ratings & Reviews"]) {
+    const button = screen.getByRole("button", { name });
+    expect(button.props.className).toBe("w-full");
+    expect(screen.getByText(name).props.className).toBe("shrink-0 grow-0 text-center");
+    const rows = button.findAllByType(View);
+    expect(rows.some(row => row.props.className === "max-w-full self-center flex-row items-center justify-center gap-2")).toBe(true);
+    expect(rows.some(row => row.props.className === "size-5 shrink-0 items-center justify-center")).toBe(true);
+  }
+  expect(screen.queryByText("View Lease Agreement")).toBeNull();
 });
 
 it("uses the newly loaded current apartment rather than retaining a previous destination", () => {

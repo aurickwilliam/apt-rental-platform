@@ -237,11 +237,16 @@ export default function CurrentApartmentDetails() {
       <View className="mt-5 gap-3">
         <Button
           variant="tertiary"
+          className="w-full"
           onPress={handleViewLeaseAgreement}
           isDisabled={!tenancy?.apartment?.lease_agreement_url || leaseLoading}
         >
-          <IconFileText size={20} color={colors.textPrimary} />
-          <Button.Label>View Lease Agreement</Button.Label>
+          <View className="max-w-full self-center flex-row items-center justify-center gap-2">
+            <View className="size-5 shrink-0 items-center justify-center" accessible={false}>
+              <IconFileText size={20} color={colors.textPrimary} accessible={false} />
+            </View>
+            <Button.Label className="shrink-0 grow-0 text-center">View Lease</Button.Label>
+          </View>
         </Button>
         <Button
           variant="tertiary"
@@ -251,8 +256,12 @@ export default function CurrentApartmentDetails() {
             params: { apartmentId: apartment.id },
           })}
         >
-          <IconStar size={20} color={colors.textPrimary} accessible={false} />
-          <Button.Label>Ratings &amp; Reviews</Button.Label>
+          <View className="max-w-full self-center flex-row items-center justify-center gap-2">
+            <View className="size-5 shrink-0 items-center justify-center" accessible={false}>
+              <IconStar size={20} color={colors.textPrimary} accessible={false} />
+            </View>
+            <Button.Label className="shrink-0 grow-0 text-center">Ratings &amp; Reviews</Button.Label>
+          </View>
         </Button>
       </View>
     </ScreenWrapper>
