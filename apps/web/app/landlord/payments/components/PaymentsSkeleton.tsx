@@ -49,11 +49,13 @@ export function PaymentsBodySkeleton() {
 export default function PaymentsSkeleton() {
   return (
     <div className="p-4 md:p-6 space-y-4" aria-busy="true" aria-label="Loading payments">
-      <PaymentsHeader>
-        <div aria-hidden="true" className="w-full sm:w-64">
+      <PaymentsHeader />
+      <div aria-hidden="true" className="flex flex-wrap items-center gap-2">
+        <div className="w-full sm:w-64">
           <Sk className="h-10 w-full rounded-xl" />
         </div>
-      </PaymentsHeader>
+        <Sk className="size-10 rounded-xl" />
+      </div>
       <PaymentsBodySkeleton />
     </div>
   );

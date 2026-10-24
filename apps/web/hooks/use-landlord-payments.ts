@@ -4,17 +4,20 @@ import { useCallback, useState } from "react";
 import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import {
+  ALL_APARTMENTS,
+  fetchAllLandlordPayments,
   fetchLandlordApartments,
   fetchLandlordPaymentById,
   fetchLandlordPayments,
   updateLandlordPaymentStatus,
   type LandlordApartment,
+  type LandlordPaymentRecord,
   type PaymentRecord,
 } from "@/service/landlordPaymentService";
 
-export type { LandlordApartment, PaymentRecord };
+export type { LandlordApartment, LandlordPaymentRecord, PaymentRecord };
 
-const NO_PAYMENTS: PaymentRecord[] = [];
+const NO_PAYMENTS: LandlordPaymentRecord[] = [];
 const NO_APARTMENTS: LandlordApartment[] = [];
 
 function toMessage(error: unknown): string {
@@ -47,7 +50,7 @@ export function useLandlordPayments(apartmentId: string | null) {
   const load = useCallback(async () => {
     if (!apartmentId || !identity.authUserId) return NO_PAYMENTS;
     try {
-      return await fetchLandlordPayments(apartmentId);
+      return apartmentId === ALL_APARTMENTS ? await fetchAllLandlordPayments() : await fetchLandlordPayments(apartmentId);
     } catch (err) {
       throw new Error(toMessage(err));
     }
@@ -58,7 +61,7 @@ export function useLandlordPayments(apartmentId: string | null) {
     setData((rows) => rows.map((row) => (row.id === paymentId ? { ...row, status: "paid" } : row)));
   }, [setData]);
 
-  const rollback = useCallback((previous: PaymentRecord[]) => {
+  const rollback = useCallback((previous: LandlordPaymentRecord[]) => {
     setData(previous);
   }, [setData]);
 

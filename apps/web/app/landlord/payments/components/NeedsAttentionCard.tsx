@@ -4,17 +4,18 @@ import Link from "next/link";
 import { IconCash, IconChevronRight, IconCircleCheck } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import { ledgerPeriodLabel } from "@/lib/landlord-payments-view";
-import type { PaymentRecord } from "@/service/paymentService";
+import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 
 interface NeedsAttentionCardProps {
   /** Pending cash payments only. Each row opens the receipt, where the landlord confirms or rejects. */
-  payments: PaymentRecord[];
-  apartmentId: string;
+  payments: LandlordPaymentRecord[];
+  /** Names the unit on each row; on when the page lists several units at once. */
+  showUnit: boolean;
 }
 
 // Confirming or rejecting cash stays on the payment's own page, where the full
 // receipt is visible, so there is a single place that changes payment status.
-export default function NeedsAttentionCard({ payments, apartmentId }: NeedsAttentionCardProps) {
+export default function NeedsAttentionCard({ payments, showUnit }: NeedsAttentionCardProps) {
   if (payments.length === 0) {
     return (
       <div className="rounded-3xl border border-border bg-card p-5">
@@ -43,7 +44,7 @@ export default function NeedsAttentionCard({ payments, apartmentId }: NeedsAtten
         {payments.map((payment) => (
           <li key={payment.id}>
             <Link
-              href={`/landlord/payments/${payment.id}?apartmentId=${apartmentId}`}
+              href={`/landlord/payments/${payment.id}?apartmentId=${payment.apartment_id}`}
               className="flex cursor-pointer items-center gap-3 rounded-2xl bg-white/15 p-3 no-underline transition-colors hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <IconCash size={20} className="shrink-0" aria-hidden="true" />
@@ -53,6 +54,7 @@ export default function NeedsAttentionCard({ payments, apartmentId }: NeedsAtten
                   {payment.tenant_name ? ` · ${payment.tenant_name}` : ""}
                 </span>
                 <span className="block truncate text-xs text-white/80">
+                  {showUnit && payment.apartment_name ? `${payment.apartment_name} · ` : ""}
                   {payment.billing_kind === "move_in"
                     ? "Move-in payment"
                     : ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date)}

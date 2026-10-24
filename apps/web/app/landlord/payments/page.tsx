@@ -1,12 +1,13 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import { Button, Card, ListBox, Select, Tabs } from "@heroui/react";
-import { IconReceipt as Receipt } from "@tabler/icons-react";
+import { Badge, Button, Card, ComboBox, Input, ListBox, Tabs } from "@heroui/react";
+import { IconReceipt as Receipt, IconRefresh } from "@tabler/icons-react";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import { paymentStatusLabel } from "@/app/tenant/payment/utils";
 import { useLandlordApartments, useLandlordPayments } from "@/hooks/use-landlord-payments";
 import {
+  ALL_APARTMENTS,
   ALL_YEARS,
   availableLedgerYears,
   countByTab,
@@ -19,14 +20,14 @@ import {
   type LedgerSort,
   type LedgerTab,
 } from "@/lib/landlord-payments-view";
-import type { PaymentRecord } from "@/service/paymentService";
+import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import PaymentsHeader from "./components/PaymentsHeader";
 import PaymentsSkeleton, { PaymentsBodySkeleton } from "./components/PaymentsSkeleton";
 import PaymentsSummary from "./components/PaymentsSummary";
 import PaymentsTable from "./components/PaymentsTable";
 
-type PaymentLedgerRow = LedgerRow & { payment: PaymentRecord };
+type PaymentLedgerRow = LedgerRow & { payment: LandlordPaymentRecord };
 
 const TABS: { id: LedgerTab; label: string }[] = [
   { id: "all", label: "All" },
@@ -40,7 +41,7 @@ const SORT_OPTIONS = [
   { value: "oldest", label: "Oldest" },
 ] as const;
 
-function toLedgerRow(payment: PaymentRecord): PaymentLedgerRow {
+function toLedgerRow(payment: LandlordPaymentRecord): PaymentLedgerRow {
   return {
     id: payment.id,
     status: paymentStatusLabel(payment.status),
@@ -57,9 +58,11 @@ function PaymentsContent() {
   const [sort, setSort] = useState<LedgerSort>("newest");
 
   const unitsQuery = useLandlordApartments();
-  const [apartmentId, setApartmentId] = useState<string | null>(null);
-  const activeApartmentId = unitsQuery.apartments.some((unit) => unit.id === apartmentId)
-    ? apartmentId : unitsQuery.apartments[0]?.id ?? null;
+  const [apartmentId, setApartmentId] = useState<string>(ALL_APARTMENTS);
+  // A unit that is no longer in the list falls back to every unit.
+  const activeApartmentId = unitsQuery.apartments.some((unit) => unit.id === apartmentId) ? apartmentId : ALL_APARTMENTS;
+  const showUnit = activeApartmentId === ALL_APARTMENTS;
+  const unitOptions = [{ id: ALL_APARTMENTS, name: "All apartments" }, ...unitsQuery.apartments];
   const paymentsQuery = useLandlordPayments(activeApartmentId);
 
   const ledger = useMemo(() => paymentsQuery.payments.map(toLedgerRow), [paymentsQuery.payments]);
@@ -120,33 +123,52 @@ function PaymentsContent() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PaymentsHeader>
-        <Select
-          aria-label="Unit"
-          placeholder={unitsQuery.loading ? "Loading units…" : "Select unit"}
+      <PaymentsHeader />
+
+      <div className="flex flex-wrap items-center gap-2" data-fab-clearance>
+        <ComboBox
+          aria-label="Apartment"
+          className="w-full sm:w-72"
+          menuTrigger="focus"
           isDisabled={unitsQuery.loading || unitsQuery.revalidating}
-          value={activeApartmentId}
-          onChange={(key) => setApartmentId(key ? String(key) : null)}
-          className="w-full sm:w-64"
+          selectedKey={activeApartmentId}
+          onSelectionChange={(key) => {
+            if (key) setApartmentId(String(key));
+          }}
         >
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {unitsQuery.apartments.map((apt) => (
-                <ListBox.Item key={apt.id} id={apt.id} textValue={apt.name}>
-                  {apt.name}
+          <ComboBox.InputGroup className="w-full">
+            <Input placeholder={unitsQuery.loading ? "Loading apartments…" : "Search apartments"} />
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+          <ComboBox.Popover>
+            <ListBox renderEmptyState={() => <p className="px-3 py-2 text-sm text-muted-foreground">No apartments match.</p>}>
+              {unitOptions.map((unit) => (
+                <ListBox.Item key={unit.id} id={unit.id} textValue={unit.name}>
+                  {unit.name}
+                  <ListBox.ItemIndicator />
                 </ListBox.Item>
               ))}
             </ListBox>
-          </Select.Popover>
-        </Select>
-      </PaymentsHeader>
+          </ComboBox.Popover>
+        </ComboBox>
+        <Button
+          isIconOnly
+          variant="outline"
+          aria-label="Refresh payments"
+          className="cursor-pointer rounded-xl border-border"
+          isDisabled={loading}
+          isPending={unitsQuery.revalidating || paymentsQuery.revalidating}
+          onPress={() => {
+            void unitsQuery.refresh();
+            void paymentsQuery.refresh();
+          }}
+        >
+          <IconRefresh size={16} aria-hidden />
+        </Button>
+      </div>
       {unitsQuery.revalidating || paymentsQuery.revalidating ? <span role="status" className="sr-only">Updating payments</span> : null}
 
-      {loading || !activeApartmentId ? (
+      {loading ? (
         <PaymentsBodySkeleton />
       ) : (
         <>
@@ -155,12 +177,17 @@ function PaymentsContent() {
           <div className="grid gap-4 lg:grid-cols-[1.9fr_1fr] lg:items-start">
             <div className="order-2 min-w-0 space-y-3 lg:order-1">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key) as LedgerTab)} className="w-auto">
+                <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key) as LedgerTab)} className="apt-status-tabs w-full sm:w-auto">
                   <Tabs.ListContainer>
                     <Tabs.List aria-label="Payment status">
                       {TABS.map(({ id, label }) => (
                         <Tabs.Tab key={id} id={id}>
-                          <span>{label} {tabCounts[id]}</span>
+                          <span className="apt-tab-label">{label}</span>
+                          {id === "pending" && tabCounts.pending > 0 ? (
+                            <Badge color="danger" size="sm" placement="top-right">
+                              {tabCounts.pending}
+                            </Badge>
+                          ) : null}
                           <Tabs.Indicator />
                         </Tabs.Tab>
                       ))}
@@ -191,7 +218,9 @@ function PaymentsContent() {
                     <p className="max-w-sm text-sm text-muted-foreground">
                       {isFiltered
                         ? "Try another status or year to see more results."
-                        : "Payments for this unit will appear here."}
+                        : showUnit
+                          ? "Payments for your units will appear here."
+                          : "Payments for this unit will appear here."}
                     </p>
                     {isFiltered ? (
                       <Button
@@ -208,12 +237,12 @@ function PaymentsContent() {
                   </Card.Content>
                 </Card>
               ) : (
-                <PaymentsTable payments={rows.map((row) => row.payment)} apartmentId={activeApartmentId} />
+                <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} />
               )}
             </div>
 
             <div className="order-1 lg:order-2">
-              <NeedsAttentionCard payments={awaitingCash} apartmentId={activeApartmentId} />
+              <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} />
             </div>
           </div>
         </>

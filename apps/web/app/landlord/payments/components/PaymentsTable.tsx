@@ -7,30 +7,31 @@ import { formatPesoDisplay } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import { formatDateShort, formatReferenceId, methodLabel, paymentStatusLabel, statusVariant } from "@/app/tenant/payment/utils";
 import { ledgerPeriodLabel } from "@/lib/landlord-payments-view";
-import type { PaymentRecord } from "@/service/paymentService";
+import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 
 interface PaymentsTableProps {
-  payments: PaymentRecord[];
-  apartmentId: string;
+  payments: LandlordPaymentRecord[];
+  /** Adds the unit to each row; on when the page lists several units at once. */
+  showUnit: boolean;
 }
 
-function periodTitle(payment: PaymentRecord): string {
+function periodTitle(payment: LandlordPaymentRecord): string {
   if (payment.billing_kind === "move_in") return "Move-in payment";
   return ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date);
 }
 
-function dateCaption(payment: PaymentRecord): string {
+function dateCaption(payment: LandlordPaymentRecord): string {
   const verb = paymentStatusLabel(payment.status) === "Paid" ? "Paid" : "Recorded";
   return `${verb} ${formatDateShort(payment.date)}`;
 }
 
-function paymentHref(payment: PaymentRecord, apartmentId: string): string {
-  return `/landlord/payments/${payment.id}?apartmentId=${apartmentId}`;
+function paymentHref(payment: LandlordPaymentRecord): string {
+  return `/landlord/payments/${payment.id}?apartmentId=${payment.apartment_id}`;
 }
 
 // Wide screens get a table to compare months at a glance; narrow screens keep
 // the compact card, since a table would scroll sideways there.
-export default function PaymentsTable({ payments, apartmentId }: PaymentsTableProps) {
+export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps) {
   const router = useRouter();
 
   return (
@@ -42,11 +43,12 @@ export default function PaymentsTable({ payments, apartmentId }: PaymentsTablePr
               aria-label="Payments"
               onRowAction={(key) => {
                 const payment = payments.find((row) => row.id === String(key));
-                if (payment) router.push(paymentHref(payment, apartmentId));
+                if (payment) router.push(paymentHref(payment));
               }}
             >
               <Table.Header className="text-foreground! [&_th]:text-foreground!">
                 <Table.Column id="period" isRowHeader>Period</Table.Column>
+                {showUnit ? <Table.Column id="unit">Unit</Table.Column> : null}
                 <Table.Column id="tenant">Tenant</Table.Column>
                 <Table.Column id="method">Method</Table.Column>
                 <Table.Column id="amount" className="text-right">Amount</Table.Column>
@@ -67,6 +69,7 @@ export default function PaymentsTable({ payments, apartmentId }: PaymentsTablePr
                         <p className="whitespace-nowrap font-nunito text-sm font-semibold">{periodTitle(payment)}</p>
                         <p className="whitespace-nowrap text-xs text-muted-foreground">{dateCaption(payment)}</p>
                       </Table.Cell>
+                      {showUnit ? <Table.Cell className="text-sm">{payment.apartment_name ?? "—"}</Table.Cell> : null}
                       <Table.Cell className="text-sm">{payment.tenant_name ?? "—"}</Table.Cell>
                       <Table.Cell>
                         <Chip size="sm" variant="soft" color="default" className="text-[11px]">
@@ -98,7 +101,7 @@ export default function PaymentsTable({ payments, apartmentId }: PaymentsTablePr
           const status = paymentStatusLabel(payment.status);
           return (
             <li key={payment.id}>
-              <Link href={paymentHref(payment, apartmentId)} className="no-underline">
+              <Link href={paymentHref(payment)} className="no-underline">
                 <Card className="rounded-2xl border border-border bg-card shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
                   <Card.Header className="px-4 pt-4 pb-1">
                     <div className="flex items-center justify-between gap-2">
@@ -117,6 +120,9 @@ export default function PaymentsTable({ payments, apartmentId }: PaymentsTablePr
                   </Card.Header>
                   <Card.Content className="px-4 pb-2">
                     <p className="font-nunito text-sm font-bold text-primary">{formatPesoDisplay(payment.amount ?? 0)}</p>
+                    {showUnit && payment.apartment_name ? (
+                      <p className="mt-0.5 truncate text-xs font-semibold text-muted-foreground">{payment.apartment_name}</p>
+                    ) : null}
                     {payment.tenant_name ? (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">{payment.tenant_name}</p>
                     ) : null}

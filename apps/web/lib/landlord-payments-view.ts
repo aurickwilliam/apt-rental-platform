@@ -19,6 +19,9 @@ export type LedgerSort = "newest" | "oldest";
 
 export const ALL_YEARS = "all";
 
+/** Pseudo unit id for the unit picker: every unit the landlord owns. */
+export const ALL_APARTMENTS = "all";
+
 export function ledgerYear(iso: string): string {
   return iso.slice(0, 4);
 }

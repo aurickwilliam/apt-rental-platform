@@ -6,8 +6,8 @@ import ts from "typescript";
 
 const compound = (name, parts) => Object.assign(() => {}, Object.fromEntries(parts.map(part => [part, `${name}.${part}`])));
 const Card = compound("Card", ["Header", "Content", "Footer"]);
-const Select = compound("Select", ["Trigger", "Value", "Indicator", "Popover"]);
-const ListBox = compound("ListBox", ["Item"]);
+const ComboBox = compound("ComboBox", ["InputGroup", "Trigger", "Popover"]);
+const ListBox = compound("ListBox", ["Item", "ItemIndicator"]);
 const Table = compound("Table", ["ScrollContainer", "Content", "Header", "Column", "Body", "Row", "Cell"]);
 const Tabs = compound("Tabs", ["ListContainer", "List", "Tab", "Indicator"]);
 
@@ -52,7 +52,7 @@ function load(file, options = {}) {
     },
     "next/link": { default: "Link" },
     "next/navigation": { useRouter: () => ({ push: href => options.pushed?.push(href) }) },
-    "@heroui/react": { Skeleton: "Skeleton", Card, Select, ListBox, Table, Tabs, Button: "Button", Chip: "Chip" },
+    "@heroui/react": { Badge: "Badge", Skeleton: "Skeleton", Card, ComboBox, Input: "Input", ListBox, Table, Tabs, Button: "Button", Chip: "Chip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => `₱${value}` },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
@@ -86,9 +86,9 @@ function nodes(element) {
 
 const text = tree => nodes(tree).flatMap(node => [node.props?.children].flat(Infinity)).filter(value => typeof value === "string").join(" ");
 
-const older = { id: "older", date: "2025-01-01", period_start: "2025-01-01", status: "paid", method: "gcash", amount: 5000 };
-const newer = { id: "newer", date: "2026-01-01", period_start: "2026-01-01", status: "paid", method: "gcash", amount: 6000 };
-const cash = { id: "cash", date: "2026-02-01", period_start: "2026-02-01", status: "pending", method: "cash", amount: 7000, tenant_name: "Ryan" };
+const older = { apartment_id: "unit-a", apartment_name: "Unit A", id: "older", date: "2025-01-01", period_start: "2025-01-01", status: "paid", method: "gcash", amount: 5000 };
+const newer = { apartment_id: "unit-a", apartment_name: "Unit A", id: "newer", date: "2026-01-01", period_start: "2026-01-01", status: "paid", method: "gcash", amount: 6000 };
+const cash = { apartment_id: "unit-a", apartment_name: "Unit A", id: "cash", date: "2026-02-01", period_start: "2026-02-01", status: "pending", method: "cash", amount: 7000, tenant_name: "Ryan" };
 const hrefs = tree => nodes(tree).filter(node => node.type === "Link").map(node => node.props.href);
 
 test("Payments route and Suspense fallbacks share a header, unit placeholder, four tiles and the table shell", () => {
@@ -104,25 +104,62 @@ test("Payments route and Suspense fallbacks share a header, unit placeholder, fo
   assert.equal(suspense.filter(node => node.type === "Skeleton").length, blocks.length);
 });
 
-test("unit loading keeps the real heading and a disabled selector; payment loading keeps the selection and no figures", () => {
+test("unit loading keeps the real heading and a disabled selector; payment loading keeps the selection (All apartments by default) and no figures", () => {
   const unitsLoading = nodes(load("page.tsx", { units: { apartments: [], loading: true } }).default());
   assert.ok(unitsLoading.some(node => node.type === "Skeleton"));
-  assert.ok(unitsLoading.some(node => node.type === Select && node.props.isDisabled));
+  assert.ok(unitsLoading.some(node => node.type === ComboBox && node.props.isDisabled));
   const tree = load("page.tsx", { payments: { payments: [newer], loading: true } }).default();
   const elements = nodes(tree);
-  assert.ok(elements.some(node => node.type === Select && node.props.value === "unit-a"));
+  assert.ok(elements.some(node => node.type === ComboBox && node.props.selectedKey === "all"));
   assert.ok(elements.some(node => node.props["aria-label"] === "Loading payments"));
   assert.ok(!elements.some(node => node.type === "StatTile"));
   assert.ok(!text(tree).includes("No payments"));
   assert.ok(!elements.some(node => node.type === "Button" && text(node).includes("Back")));
 });
 
-test("the unit selector sits in the heading row and the old Filters modal is gone", () => {
-  const elements = nodes(load("page.tsx", { payments: { payments: [newer], loading: false } }).default());
+test("the unit selector and Refresh sit in a controls row above the tiles; the old Filters modal is gone", () => {
+  const refreshed = [];
+  const elements = nodes(load("page.tsx", {
+    payments: { payments: [newer], loading: false, refresh: () => refreshed.push("payments") },
+    units: { apartments: [{ id: "unit-a", name: "Unit A" }], loading: false, error: null, refresh: () => refreshed.push("units") },
+  }).default());
   const heading = elements.find(node => node.type.name === "PaymentsHeader");
-  assert.ok(nodes(heading).some(node => node.type === Select));
+  assert.ok(!nodes(heading).some(node => node.type === ComboBox));
+  assert.ok(elements.indexOf(elements.find(node => node.type === ComboBox)) < elements.indexOf(elements.find(node => node.type.name === "PaymentsSummary")));
+  const refresh = elements.find(node => node.type === "Button" && node.props["aria-label"] === "Refresh payments");
+  refresh.props.onPress();
+  assert.deepEqual([...refreshed].sort(), ["payments", "units"]);
   assert.ok(!elements.some(node => node.type === "PaymentHistoryFilters"));
-  assert.ok(elements.some(node => node.type === Tabs));
+  assert.ok(elements.some(node => node.type === Tabs && node.props.className.includes("apt-status-tabs")));
+});
+
+test("the picker lists All apartments first, is searchable, and defaults to every unit", () => {
+  const units = { apartments: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }], loading: false };
+  const elements = nodes(load("page.tsx", { units, payments: { payments: [newer], loading: false } }).default());
+  const combo = elements.find(node => node.type === ComboBox);
+  assert.equal(combo.props.selectedKey, "all");
+  assert.ok(elements.some(node => node.type === "Input" && node.props.placeholder === "Search apartments"));
+  const items = elements.filter(node => node.type === ListBox.Item).map(node => [node.props.id, node.props.textValue]);
+  assert.deepEqual([...items.map(([id]) => id)], ["all", "unit-a", "unit-b"]);
+  assert.equal(items[0][1], "All apartments");
+  // A selection that is not in the unit list falls back to every unit.
+  const stale = nodes(load("page.tsx", { states: ["all", "all", "newest", "gone"], units, payments: { payments: [newer], loading: false } }).default());
+  assert.equal(stale.find(node => node.type === ComboBox).props.selectedKey, "all");
+  // Clearing the input reports no key; that must not throw or unselect.
+  combo.props.onSelectionChange(null);
+});
+
+test("All apartments adds the unit to rows and Needs attention; one unit does not", () => {
+  const other = { ...cash, id: "cash-b", apartment_id: "unit-b", apartment_name: "Unit B" };
+  const units = { apartments: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }], loading: false };
+  const all = nodes(load("page.tsx", { units, payments: { payments: [newer, other], loading: false } }).default());
+  assert.equal(all.find(node => node.type.name === "PaymentsTable").props.showUnit, true);
+  assert.equal(all.find(node => node.type.name === "NeedsAttentionCard").props.showUnit, true);
+  assert.ok(all.some(node => node.type === "Table.Column" && node.props.children === "Unit"));
+  assert.ok(hrefs(all.find(node => node.type.name === "NeedsAttentionCard").type({ payments: [other], showUnit: true })).includes("/landlord/payments/cash-b?apartmentId=unit-b"));
+  const single = nodes(load("page.tsx", { states: ["all", "all", "newest", "unit-a"], units, payments: { payments: [newer], loading: false } }).default());
+  assert.equal(single.find(node => node.type.name === "PaymentsTable").props.showUnit, false);
+  assert.ok(!single.some(node => node.type === "Table.Column" && node.props.children === "Unit"));
 });
 
 test("settled empty, no-unit and error states and Retry remain intact", () => {
@@ -140,8 +177,9 @@ test("settled empty, no-unit and error states and Retry remain intact", () => {
 
 test("sorting, year and status filters and receipt links stay tied to the selected unit", () => {
   const units = { apartments: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }], loading: false };
+  const inUnitB = [older, newer].map(row => ({ ...row, apartment_id: "unit-b", apartment_name: "Unit B" }));
   for (const [sort, expected] of [["newest", ["newer", "older"]], ["oldest", ["older", "newer"]]]) {
-    const tree = load("page.tsx", { states: ["all", "all", sort, "unit-b"], units, payments: { payments: [older, newer], loading: false } }).default();
+    const tree = load("page.tsx", { states: ["all", "all", sort, "unit-b"], units, payments: { payments: inUnitB, loading: false } }).default();
     assert.deepEqual(hrefs(tree), expected.map(id => `/landlord/payments/${id}?apartmentId=unit-b`));
   }
   const byYear = load("page.tsx", { states: ["all", "2026", "newest", "unit-a"], payments: { payments: [older, newer], loading: false } }).default();
@@ -174,6 +212,17 @@ test("summary figures follow the selected year and Needs attention ignores every
   const attention = filtered.find(node => node.type.name === "NeedsAttentionCard");
   assert.deepEqual([...attention.props.payments.map(payment => payment.id)], ["cash"]);
   assert.ok(hrefs(attention.type(attention.props)).includes("/landlord/payments/cash?apartmentId=unit-a"));
+});
+
+test("tab labels carry no counts; only Pending shows a badge, and only when something is pending", () => {
+  const withPending = nodes(load("page.tsx", { payments: { payments: [older, cash], loading: false } }).default());
+  const badges = withPending.filter(node => node.type === "Badge");
+  assert.equal(badges.length, 1);
+  assert.equal(badges[0].props.children, 1);
+  const labels = withPending.filter(node => node.props?.className === "apt-tab-label").map(node => node.props.children);
+  assert.deepEqual([...labels], ["All", "Paid", "Pending", "Declined"]);
+  const none = nodes(load("page.tsx", { payments: { payments: [older], loading: false } }).default());
+  assert.equal(none.filter(node => node.type === "Badge").length, 0);
 });
 
 test("Needs attention is a quiet all-caught-up card when no cash is waiting", () => {

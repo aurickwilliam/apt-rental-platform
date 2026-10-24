@@ -11,6 +11,11 @@ export type LandlordApartment = {
   name: string;
 };
 
+/** A payment with the unit it belongs to, so rows from several units can be told apart. */
+export type LandlordPaymentRecord = PaymentRecord & { apartment_id: string };
+
+export { ALL_APARTMENTS } from "@/lib/landlord-payments-view";
+
 // Landlord unit list for the payments selector. RLS scopes apartments to the
 // signed-in landlord; role-gated to landlord profiles like the applications flow.
 export async function fetchLandlordApartments(): Promise<LandlordApartment[]> {
@@ -51,6 +56,7 @@ type LandlordPaymentRow = PaymentAllocation & {
   period_start: string | null;
   period_end: string | null;
   due_date: string | null;
+  apartment_id: string;
   apartment: { name: string | null } | null;
   tenant: { first_name: string | null; last_name: string | null } | null;
 };
@@ -68,11 +74,12 @@ const LANDLORD_PAYMENT_SELECT = `
   period_start,
   period_end,
   due_date,
+  apartment_id,
   apartment:apartments (name),
   tenant:users!payment_tenant_id_fkey (first_name, last_name)
 `;
 
-function toPaymentRecord(row: LandlordPaymentRow, fallbackApartmentName: string | null = null): PaymentRecord {
+function toPaymentRecord(row: LandlordPaymentRow, fallbackApartmentName: string | null = null): LandlordPaymentRecord {
   const tenant = row.tenant;
   return {
     billing_kind: row.billing_kind,
@@ -92,6 +99,7 @@ function toPaymentRecord(row: LandlordPaymentRow, fallbackApartmentName: string 
     period_start: row.period_start,
     period_end: row.period_end,
     due_date: row.due_date,
+    apartment_id: row.apartment_id,
     apartment_name: row.apartment?.name ?? fallbackApartmentName,
     landlord_name: null,
     tenant_name:
@@ -102,9 +110,10 @@ function toPaymentRecord(row: LandlordPaymentRow, fallbackApartmentName: string 
 }
 
 export const LANDLORD_PAYMENTS_LIMIT = 200;
+export const LANDLORD_ALL_PAYMENTS_LIMIT = 500;
 
 // Mobile parity: landlord sees every status for the unit (pending included).
-export async function fetchLandlordPayments(apartmentId: string): Promise<PaymentRecord[]> {
+export async function fetchLandlordPayments(apartmentId: string): Promise<LandlordPaymentRecord[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("payment")
@@ -113,6 +122,26 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Paymen
     .order("period_start", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(LANDLORD_PAYMENTS_LIMIT);
+
+  if (error) throw error;
+  return (data as unknown as LandlordPaymentRow[]).map((row) => toPaymentRecord(row));
+}
+
+// Every unit the landlord owns, newest first. The unit list is read first and
+// the payment query is bound to those ids, so the result never depends on RLS
+// alone (a profile that is also an admin can read other landlords' payments).
+export async function fetchAllLandlordPayments(): Promise<LandlordPaymentRecord[]> {
+  const apartments = await fetchLandlordApartments();
+  if (apartments.length === 0) return [];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("payment")
+    .select(LANDLORD_PAYMENT_SELECT)
+    .in("apartment_id", apartments.map((apartment) => apartment.id))
+    .order("period_start", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(LANDLORD_ALL_PAYMENTS_LIMIT);
 
   if (error) throw error;
   return (data as unknown as LandlordPaymentRow[]).map((row) => toPaymentRecord(row));
