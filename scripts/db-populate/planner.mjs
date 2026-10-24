@@ -18,6 +18,44 @@ export function stableId(seed, key) {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 
+const REFERENCE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+export const REFERENCE_PATTERN = /^APT-[A-Z0-9]{8}$/;
+
+// A payment reference in the same shape the apps generate for real checkouts
+// (`APT-` plus eight capital letters or digits), derived from the payment's stable
+// ID so a population is deterministic and a reset replays identical references.
+export function aptReference(stableKey) {
+  const digest = createHash("sha256").update(`apt-population-reference:${VERSION}:${stableKey}`).digest();
+  let suffix = "";
+  for (let i = 0; i < 8; i++) suffix += REFERENCE_ALPHABET[digest[i] % REFERENCE_ALPHABET.length];
+  return `APT-${suffix}`;
+}
+
+// Re-keys the `DEMO-<stable id>` references of an already recorded plan. Nothing
+// else in the plan changes, and the result equals what the generator now emits for
+// the same seed, so a re-keyed run is indistinguishable from a freshly generated one.
+export function rekeyPlanReferences(plan) {
+  const next = structuredClone(plan);
+  const seen = new Set();
+  let changed = 0;
+  for (const row of next.rows) {
+    if (row.table !== "payment") continue;
+    const current = row.data.reference_id;
+    if (REFERENCE_PATTERN.test(current)) {
+      if (seen.has(current)) throw new Error("Duplicate payment reference in the saved plan.");
+      seen.add(current);
+      continue;
+    }
+    if (typeof current !== "string" || !current.startsWith("DEMO-")) throw new Error("Unexpected payment reference in the saved plan.");
+    const replacement = aptReference(current.slice("DEMO-".length));
+    if (seen.has(replacement)) throw new Error("Re-keyed payment references would collide.");
+    seen.add(replacement);
+    row.data.reference_id = replacement;
+    changed++;
+  }
+  return { plan: next, changed };
+}
+
 export function manilaToday(now = new Date()) {
   return iso(new Date(now.getTime() + 8 * 3_600_000));
 }
@@ -176,7 +214,7 @@ export function buildPlan(inventory, options) {
         tenant_id: tenant.id, apartment_id: a.id, landlord_id: a.landlord_id, tenancy_id: tenancy.id,
         method, status: pending ? "pending" : "paid", date: paidOn, amount: a.monthly_rent,
         period_start: p.periodStart, period_end: p.periodEnd, due_date: p.dueDate,
-        reference_id: `DEMO-${stableId(seed, `${key}:${p.periodStart}`)}`,
+        reference_id: aptReference(stableId(seed, `${key}:${p.periodStart}`)),
         created_at: at(paidOn), updated_at: at(paidOn),
       }, paidOn);
     });
@@ -264,6 +302,7 @@ export function buildPlan(inventory, options) {
 
 export function validatePlan(plan, inventory) {
   const ids = new Set();
+  const references = new Set();
   const users = new Map(inventory.tables.users.map((u) => [u.id, u]));
   const apartments = new Map(inventory.tables.apartments.map((a) => [a.id, a]));
   const tenancies = [...inventory.tables.tenancies, ...plan.rows.filter((r) => r.table === "tenancies").map((r) => r.data)];
@@ -277,8 +316,10 @@ export function validatePlan(plan, inventory) {
     if (data.landlord_id && data.landlord_id !== a.landlord_id) throw new Error("Owner mismatch.");
     if (table === "tenancies" && (data.lease_start > (data.lease_end ?? "9999-12-31") || tenancies.some((t) => t.id !== data.id && (t.tenant_id === tenantId || t.apartment_id === a.id) && (overlaps(t, data) || (t.status === "active" && data.status === "active"))))) throw new Error("Rental dates overlap existing or generated activity.");
     if (table === "payment") {
+      if (references.has(data.reference_id)) throw new Error("Duplicate payment reference.");
+      references.add(data.reference_id);
       const t = tenancies.find((t) => t.id === data.tenancy_id);
-      if (!t || t.tenant_id !== tenantId || t.apartment_id !== a.id || Number(data.amount) !== Number(t.monthly_rent) || data.due_date < t.lease_start || data.due_date > t.lease_end || (data.status === "paid" && data.date > plan.asOf) || data.reference_id?.startsWith("DEMO-") !== true) throw new Error("Invalid demo payment.");
+      if (!t || t.tenant_id !== tenantId || t.apartment_id !== a.id || Number(data.amount) !== Number(t.monthly_rent) || data.due_date < t.lease_start || data.due_date > t.lease_end || (data.status === "paid" && data.date > plan.asOf) || !REFERENCE_PATTERN.test(data.reference_id ?? "")) throw new Error("Invalid demo payment.");
     }
     if (data.created_at && data.created_at.slice(0, 10) > plan.asOf) throw new Error("Generated activity cannot be created in the future.");
   }

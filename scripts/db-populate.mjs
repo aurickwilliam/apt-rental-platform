@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { buildPlan, DEFAULT_SEED, manilaToday, MAX_PLAN_ROWS, previewToken, stableId, validateOptions } from "./db-populate/planner.mjs";
+import { buildPlan, DEFAULT_SEED, manilaToday, MAX_PLAN_ROWS, previewToken, rekeyPlanReferences, stableId, validateOptions } from "./db-populate/planner.mjs";
 import { buildFinancePlan } from "./db-populate/finance-planner.mjs";
 
 const HELP = `Safe APT demo population (Node 22.17+, psql 17+)
@@ -16,6 +16,8 @@ const HELP = `Safe APT demo population (Node 22.17+, psql 17+)
   pnpm db:populate --finance --run <id> --dry-run
   pnpm db:populate --finance --run <id> --apply --expect-preview <token> --confirm-project <ref>
   pnpm db:populate --finance --reset|--cleanup|--verify --run <id> [--dry-run]
+  pnpm db:populate --rekey-references --run <id> --dry-run
+  pnpm db:populate --rekey-references --run <id> --apply --expect-preview <token> --confirm-project <ref>
 
 Options: --years 1..3 (default 3), --seed <name>, --as-of YYYY-MM-DD
          --local (explicit loopback PostgreSQL; confirm-project must be local)
@@ -29,7 +31,7 @@ Reset/cleanup preview by default; only --apply writes. No --force option.
 
 export function parseArgs(args) {
   const options = {};
-  const booleans = new Set(["apply", "dry-run", "reset", "cleanup", "verify", "local", "help", "finance"]);
+  const booleans = new Set(["apply", "dry-run", "reset", "cleanup", "verify", "local", "help", "finance", "rekey-references"]);
   const values = new Set(["years", "seed", "as-of", "expect-preview", "confirm-project", "run"]);
   for (let i = 0; i < args.length; i++) {
     const key = args[i].replace(/^--/, "");
@@ -41,7 +43,8 @@ export function parseArgs(args) {
     }
   }
   if ([options.reset, options.cleanup, options.verify].filter(Boolean).length > 1 || (options.apply && options["dry-run"]) || (options.verify && options.apply)) throw new Error("Conflicting operation flags.");
-  if ((options.reset || options.cleanup || options.verify || options.finance) && !/^[0-9a-f-]{36}$/.test(options.run ?? "")) throw new Error("Finance, reset, cleanup and verify require --run <recorded-id>.");
+  if (options["rekey-references"] && (options.reset || options.cleanup || options.verify || options.finance)) throw new Error("--rekey-references cannot be combined with another operation.");
+  if ((options.reset || options.cleanup || options.verify || options.finance || options["rekey-references"]) && !/^[0-9a-f-]{36}$/.test(options.run ?? "")) throw new Error("Finance, reset, cleanup and verify require --run <recorded-id>.");
   return options;
 }
 
@@ -113,15 +116,21 @@ function query(sql) {
 }
 
 export function operationSql(mode, plan, stateHash, runId, preview, financeOnly = false) {
+  const entry = mode === "rekey" ? "execute_rekey" : financeOnly ? "execute_finance" : "execute";
   return `begin${preview || mode === "verify" ? " read only" : ""};
 set local lock_timeout = '3s';
 set local statement_timeout = '60s';
 set local timezone = 'Asia/Manila';
-select demo_population.${financeOnly ? "execute_finance" : "execute"}(${sqlLiteral(mode)},${sqlLiteral(JSON.stringify(plan))}::jsonb,${sqlLiteral(stateHash)},${sqlLiteral(runId)}::uuid,${preview});
+select demo_population.${entry}(${sqlLiteral(mode)},${sqlLiteral(JSON.stringify(plan))}::jsonb,${sqlLiteral(stateHash)},${sqlLiteral(runId)}::uuid,${preview});
 commit;`;
 }
 
-export function selectPlan(inventory, config, financeOnly = false) {
+export function selectPlan(inventory, config, financeOnly = false, rekey = false) {
+  if (rekey) {
+    // Only the saved plan's payment references change; every other byte stays.
+    if (inventory.run?.status !== "applied") throw new Error("Re-keying references requires an applied rental run.");
+    return rekeyPlanReferences(inventory.run.plan).plan;
+  }
   if (financeOnly) {
     if (inventory.run?.status !== "applied") throw new Error("A finance extension requires an applied rental run.");
     return inventory.financeRun?.plan ?? buildFinancePlan(inventory, config);
@@ -147,8 +156,8 @@ export function main(args = process.argv.slice(2)) {
   };
   validateOptions(config);
   if (inventory.run && ["seed", "years", "asOf"].some((key) => config[key] !== inventory.run.plan[key])) throw new Error("A baseline is already recorded. Use its original seed, years and date; do not create another dataset.");
-  const mode = options.reset ? "reset" : options.cleanup ? "cleanup" : options.verify ? "verify" : "apply";
-  const plan = selectPlan(inventory, config, options.finance);
+  const mode = options["rekey-references"] ? "rekey" : options.reset ? "reset" : options.cleanup ? "cleanup" : options.verify ? "verify" : "apply";
+  const plan = selectPlan(inventory, config, options.finance, options["rekey-references"]);
   const runId = inventory.run?.id ?? stableId(config.seed, "run");
   if (options.run && options.run !== runId) throw new Error("Run ID does not match the recorded baseline.");
   const token = previewToken(inventory.stateHash, options.finance ? `finance:${mode}` : mode, plan);
