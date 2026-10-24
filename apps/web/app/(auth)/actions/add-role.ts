@@ -8,8 +8,9 @@ export type AddRoleState = {
 };
 
 // Self-service second-role grant: appends tenant/landlord to the caller's
-// roles via the grant_user_role RPC (which enforces completeness and
-// rejects admin). On success, lands in the new role's portal.
+// roles via the grant_user_role RPC (which enforces completeness and only
+// ever adds tenant/landlord, admins included). On success, lands in the new
+// role's portal.
 export async function addRole(
   _: AddRoleState,
   formData: FormData
