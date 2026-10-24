@@ -77,7 +77,8 @@ test("server-known secondary identity removes context reads, while handovers hid
 test("My Rental retires the secondary identity with the existing account-keyed seed and opts out only of unused preview signing", () => {
   const client = source("app/tenant/my-rental/MyRentalClient.tsx");
   assert.match(client, /identity\.authUserId === initialContext\.authUserId && identity\.generation === 0/);
-  assert.match(client, /useTenantApplications\(initialContext\?\.tenantId\)/);
+  assert.match(client, /<RentalApplications tenantId=\{initialContext\?\.tenantId\} initial=\{initialContext\?\.applications\}/);
+  assert.match(source("app/tenant/my-rental/components/RentalApplications.tsx"), /useTenantApplications\(tenantId, undefined, false, seed\)/);
   assert.match(client, /useMaintenanceRequestHistory\(tenancy\?\.apartment\.id \?\? null, initialContext\?\.tenantId, false\)/);
   assert.match(source("app/tenant/my-rental/page.tsx"), /tenantId: profile\.id/);
   assert.match(source("hooks/use-maintenance-request-history.ts"), /cancelRequest[\s\S]*await getTenantContext\(\)/, "mutation identity check is unchanged");

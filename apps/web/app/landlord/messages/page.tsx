@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { requirePortalViewer } from "@/lib/server-identity";
 
 import { createClient } from "@repo/supabase/server";
 
@@ -18,18 +18,7 @@ export default async function MessagesPage({
 }: {
   searchParams: Promise<{ conversation?: string | string[] }>;
 }) {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: landlord } = await supabase
-    .from("users")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!landlord) redirect("/login");
+  const { profile: landlord } = await requirePortalViewer("landlord");
 
   const landlordId = landlord.id;
 

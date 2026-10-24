@@ -3,7 +3,7 @@ import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSid
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
-import { createClient } from "@repo/supabase/server";
+import { getServerIdentity } from "@/lib/server-identity";
 
 import { canManageLandlordFinances } from "@/lib/landlord-finance-access";
 import { canViewPassport } from "@/lib/passport-access";
@@ -34,16 +34,8 @@ export default async function DashboardLayout({
   let accountStatus: string | null = null;
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { user, profile } = await getServerIdentity();
     if (user) {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("first_name, last_name, roles, avatar_url, account_status")
-        .eq("user_id", user.id)
-        .single();
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
       else if (user.email) userName = user.email;

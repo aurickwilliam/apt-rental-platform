@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { billingPeriods, buildPlan, manilaToday, previewToken, stableId, validateOptions, validatePlan } from "./planner.mjs";
-import { operationSql, parseArgs, sqlLiteral, validateConnection } from "../db-populate.mjs";
+import { aptReference, billingPeriods, buildPlan, manilaToday, previewToken, REFERENCE_PATTERN, rekeyPlanReferences, stableId, validateOptions, validatePlan } from "./planner.mjs";
+import { operationSql, parseArgs, selectPlan, sqlLiteral, validateConnection } from "../db-populate.mjs";
 
 export function fixture() {
   const users = Array.from({ length: 8 }, (_, i) => ({ id: stableId("fixture", `user:${i}`), roles: i < 6 ? ["tenant"] : ["landlord"], is_suspended: false, account_status: "verified" }));
@@ -38,7 +38,8 @@ test("many seeds preserve tenancy, financial and relational invariants", () => {
     assert.equal(validatePlan(plan, inventory), true);
     const payments = plan.rows.filter((r) => r.table === "payment").map((r) => r.data);
     assert.equal(new Set(payments.map((p) => `${p.tenancy_id}:${p.period_start}`)).size, payments.length);
-    assert.ok(payments.every((p) => p.date <= options.asOf && !p.paymongo_session_id && p.reference_id.startsWith("DEMO-")));
+    assert.ok(payments.every((p) => p.date <= options.asOf && !p.paymongo_session_id && REFERENCE_PATTERN.test(p.reference_id)));
+    assert.equal(new Set(payments.map((p) => p.reference_id)).size, payments.length);
     assert.ok(plan.rows.filter((r) => r.table === "tenancies").every((r) => r.data.tenant_id !== r.data.landlord_id));
   }
 });
@@ -143,4 +144,78 @@ test("preview receipts bind mode, options, data and state; SQL quotes input and 
   assert.match(operationSql("apply", plan, "state", stableId("x", "run"), true), /^begin read only;/);
   assert.match(operationSql("apply", plan, "state", stableId("x", "run"), false), /^begin;/);
   assert.match(operationSql("verify", plan, "state", stableId("x", "run"), false), /^begin read only;/);
+});
+
+test("generated payment references use the apps' APT- format and are deterministic", () => {
+  const reference = aptReference(stableId("seed", "payment"));
+  assert.match(reference, /^APT-[A-Z0-9]{8}$/);
+  assert.equal(aptReference(stableId("seed", "payment")), reference);
+  assert.notEqual(aptReference(stableId("seed", "other")), reference);
+  const references = Array.from({ length: 5000 }, (_, i) => aptReference(stableId("seed", `payment:${i}`)));
+  assert.equal(new Set(references).size, references.length);
+  const a = buildPlan(fixture(), options).rows.filter((r) => r.table === "payment").map((r) => r.data.reference_id);
+  const b = buildPlan(fixture(), options).rows.filter((r) => r.table === "payment").map((r) => r.data.reference_id);
+  assert.deepEqual(a, b);
+});
+
+// A plan as the old generator saved it: DEMO-<stable id> on every payment.
+function legacyPlan() {
+  const plan = buildPlan(fixture(), options);
+  const legacy = structuredClone(plan);
+  const expected = new Map();
+  for (const [i, row] of legacy.rows.entries()) {
+    if (row.table !== "payment") continue;
+    const id = stableId("legacy", `payment:${i}`);
+    row.data.reference_id = `DEMO-${id}`;
+    expected.set(row.data.id, aptReference(id));
+  }
+  return { legacy, expected };
+}
+
+test("re-keying changes only payment references, deterministically, without touching the input", () => {
+  const { legacy, expected } = legacyPlan();
+  const before = JSON.stringify(legacy);
+  const { plan: rekeyed, changed } = rekeyPlanReferences(legacy);
+  assert.equal(JSON.stringify(legacy), before, "the saved plan is not mutated");
+  assert.equal(changed, expected.size);
+  for (const [i, row] of rekeyed.rows.entries()) {
+    if (row.table === "payment") assert.equal(row.data.reference_id, expected.get(row.data.id));
+    else assert.deepEqual(row, legacy.rows[i]);
+  }
+  assert.deepEqual({ ...rekeyed, rows: undefined }, { ...legacy, rows: undefined });
+  // Idempotent: a plan that is already re-keyed is returned unchanged.
+  const again = rekeyPlanReferences(rekeyed);
+  assert.equal(again.changed, 0);
+  assert.deepEqual(again.plan, rekeyed);
+});
+
+test("re-keying refuses unexpected or colliding references", () => {
+  const { legacy } = legacyPlan();
+  const unknown = structuredClone(legacy);
+  unknown.rows.find((r) => r.table === "payment").data.reference_id = "pay_abc";
+  assert.throws(() => rekeyPlanReferences(unknown), /Unexpected payment reference/);
+  const duplicated = structuredClone(legacy);
+  const payments = duplicated.rows.filter((r) => r.table === "payment");
+  payments[1].data.reference_id = payments[0].data.reference_id;
+  assert.throws(() => rekeyPlanReferences(duplicated), /collide|Duplicate/);
+});
+
+test("the re-key command is its own operation: preview by default, never combined", () => {
+  const run = stableId("x", "run");
+  assert.equal(parseArgs(["--rekey-references", "--run", run])["rekey-references"], true);
+  for (const args of [["--rekey-references"], ["--rekey-references", "--reset", "--run", run], ["--rekey-references", "--finance", "--run", run], ["--rekey-references", "--verify", "--run", run], ["--rekey-references", "--apply", "--dry-run", "--run", run]]) {
+    assert.throws(() => parseArgs(args), undefined, args.join(" "));
+  }
+  const plan = { version: 1, rows: [] };
+  assert.match(operationSql("rekey", plan, "state", run, true), /^begin read only;[\s\S]*select demo_population\.execute_rekey\('rekey',/);
+  assert.match(operationSql("rekey", plan, "state", run, false), /^begin;[\s\S]*select demo_population\.execute_rekey\('rekey',/);
+  assert.notEqual(previewToken("state", "rekey", plan), previewToken("state", "reset", plan));
+});
+
+test("selectPlan for a re-key needs an applied run and returns the saved plan with new references", () => {
+  const { legacy, expected } = legacyPlan();
+  assert.throws(() => selectPlan({ tables: {}, run: null }, options, false, true), /applied rental run/);
+  assert.throws(() => selectPlan({ tables: {}, run: { status: "cleaned", plan: legacy } }, options, false, true), /applied rental run/);
+  const plan = selectPlan({ tables: {}, run: { status: "applied", plan: legacy } }, options, false, true);
+  for (const row of plan.rows.filter((r) => r.table === "payment")) assert.equal(row.data.reference_id, expected.get(row.data.id));
 });

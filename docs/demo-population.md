@@ -2,7 +2,7 @@
 
 `pnpm db:populate` fills existing demo accounts and listings with connected rental journeys and landlord expense/budget examples. It never creates users or apartments, changes ownership/roles/verification, uploads files, or contacts PayMongo. This is an **operator tool for demo data**, not an application endpoint or a production anonymization tool.
 
-All accounts in the approved target are demo accounts. Activity may span three simulated years even though the accounts/listings/documents were created more recently. Their original timestamps are unchanged. No real lease, payment-provider transaction, or document authenticity is implied. Synthetic payments use `DEMO-` references and empty provider IDs.
+All accounts in the approved target are demo accounts. Activity may span three simulated years even though the accounts/listings/documents were created more recently. Their original timestamps are unchanged. No real lease, payment-provider transaction, or document authenticity is implied. Synthetic payments use the same `APT-` plus eight capital letters or digits reference shape as real checkouts (derived deterministically from each payment's stable ID, so resets replay identical references) and empty provider IDs. Runs recorded before this change keep `DEMO-<id>` references until re-keyed (see below); both shapes pass verification.
 
 ## What each operation does
 
@@ -13,6 +13,7 @@ All accounts in the approved target are demo accounts. Activity may span three s
 | `--reset --apply` | Atomically remove and replay the same generated rows, IDs, dates and totals. |
 | `--cleanup --apply` | Remove tracked generated rows and restore the original apartment fields changed by the run. |
 | `--verify --run <id>` | Read-only integrity and tracked-record checks. |
+| `--rekey-references --run <id>` | Preview, then `--apply`: switch a legacy run's `DEMO-` payment references to the `APT-` shape (see below). |
 
 Reset and cleanup **preview by default**; only `--apply` writes. Every write requires `--confirm-project` and a matching `--expect-preview` token from that operation's preview. There is no force/overwrite option.
 
@@ -102,6 +103,19 @@ pnpm db:populate --finance --cleanup --run <run-id> --apply \
 These operations touch only tracked finance inserts and preserve all other public rows. Edited/missing finance rows, new dependent rows/files, or a later expense review for a generated expense month block cleanup/reset. Deleting an expense normally invalidates its month's review, so the importer refuses rather than remove that confirmation. New manual expenses in a generated month also prevent reset/replay from inserting into that now-manual month. Unrelated newer finance work is preserved.
 
 Full-run reset/cleanup coordinate both components in one transaction, handling finance first; any failure rolls back both. Finance-only preview tokens cannot authorize rental operations. Nothing loosens the operator-only connection, locks, trigger audit or private-schema permissions. Do not manually alter registries or use a blanket reset to get around refusals.
+
+## Re-key payment references on an existing run
+
+Runs recorded before the `APT-` format carry `DEMO-<id>` payment references, and a saved run is never regenerated, so they stay until explicitly re-keyed. Re-keying rewrites **only** `payment.reference_id`, those payments' recorded after-images and the saved plan, in one transaction. It needs migrations `20261024022954_demo_population_rekey_references.sql`, `20261024023810_demo_population_rekey_schema_drift.sql` and `20261024024024_demo_population_rekey_generated_columns.sql`, applied in that order. The last two exist because a recorded payment is compared with the row as it is now: columns added to `payment` after the run (the billing columns, and the generated `rental_income_amount`) are accepted only when empty or generated, while every recorded column must be unchanged.
+
+```bash
+pnpm db:populate --rekey-references --run <run-id> --dry-run
+pnpm db:populate --rekey-references --run <run-id> --apply \
+  --expect-preview <rekey-preview-token> --confirm-project <apps-project-ref>
+pnpm db:populate --verify --run <run-id>
+```
+
+The new reference of each payment is a pure function of its old `DEMO-` ID, so the result equals what a fresh run with the same seed generates. The operation refuses, changing nothing, when: the target plan differs from the saved plan in anything but payment references; any tracked payment was edited or removed; any other record (in any table) mentions an old reference; a new reference already belongs to another payment; or the preview is stale. Unlike reset/cleanup, it does not require generated notifications to be unread, because it never touches them. Repeating it is a zero-write no-op. Take and verify a Supabase backup first, as for any hosted write.
 
 ## Verify, reset or clean up
 

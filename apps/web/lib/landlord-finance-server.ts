@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@repo/supabase/server";
+import { getServerIdentity } from "@/lib/server-identity";
 
 import { landlordFinanceAccessRedirect } from "@/lib/landlord-finance-access";
 
@@ -19,17 +19,8 @@ export interface LandlordFinanceViewer {
  * without finance access. `cache` dedupes the lookup within one request.
  */
 export const requireLandlordFinanceViewer = cache(async (): Promise<LandlordFinanceViewer> => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, profile, error } = await getServerIdentity();
   if (!user) redirect("/sign-in");
-
-  const { data: profile, error } = await supabase
-    .from("users")
-    .select("id, roles, is_suspended")
-    .eq("user_id", user.id)
-    .maybeSingle();
   if (error) throw new Error(`Couldn't load your profile: ${error.message}`);
   if (!profile) redirect("/browse");
 
