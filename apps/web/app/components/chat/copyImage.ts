@@ -1,9 +1,9 @@
 import { attachmentDisplayUrl } from "./attachments";
 import type { ChatMessage } from "./types";
 
-/** Photos and GIFs with a resolved image URL; videos and documents can't go on the clipboard as images. */
+/** Photos with a resolved image URL; GIFs (animated), videos and documents aren't copyable as images. */
 export function canCopyImageMessage(message: ChatMessage): boolean {
-  return (message.message_type === "image" || message.message_type === "gif") && Boolean(attachmentDisplayUrl(message));
+  return message.message_type === "image" && Boolean(attachmentDisplayUrl(message));
 }
 
 /** The async clipboard only accepts PNG for images, so anything else is redrawn onto a canvas first. */
@@ -26,8 +26,7 @@ async function toPngBlob(source: Blob): Promise<Blob> {
 }
 
 /**
- * Copies a chat photo or GIF to the clipboard as an image. A GIF copies its
- * first frame (the clipboard has no animated format). The ClipboardItem takes a
+ * Copies a chat photo to the clipboard as an image. The ClipboardItem takes a
  * promise so the copy still counts as part of the click in Safari.
  */
 export async function copyChatImage(message: ChatMessage): Promise<void> {

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Keyboard, Pressable, ScrollView, TextInput as RNTextInput, View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { EmojiKeyboard, type EmojiType } from 'rn-emoji-keyboard';
+import { TextInputWrapper, type PasteEventPayload } from 'expo-paste-input';
 
 import {
   IconSend,
@@ -60,6 +61,8 @@ interface ChatBoxProps {
   onPickImage?: () => void;
   onPickGif?: () => void;
   onOpenCamera?: () => void;
+  /** Images pasted with the keyboard's own Paste button, as local file URIs. */
+  onPasteImages?: (uris: string[]) => void;
   pendingAssets?: StagedAsset[];
   onRemovePendingAsset?: (id: string) => void;
   replyTarget?: Message | null;
@@ -104,6 +107,7 @@ export default function ChatBox({
   onPickImage,
   onPickGif,
   onOpenCamera,
+  onPasteImages,
   pendingAssets = [],
   onRemovePendingAsset,
   replyTarget = null,
@@ -142,6 +146,10 @@ export default function ChatBox({
     onPickImage,
     onPickGif,
     onOpenCamera
+  };
+
+  const handlePaste = (payload: PasteEventPayload) => {
+    if (payload.type === 'images') onPasteImages?.(payload.uris);
   };
 
   const handleToggleEmojiPicker = () => {
@@ -268,65 +276,69 @@ export default function ChatBox({
           </Menu>
         )}
 
-        <TextField
-          isDisabled={isDisabled}
-          className="flex-1"
-          onFocus={() => {
-            setIsFocused(true);
-            onEmojiPickerOpenChange(false);
-            onFocus?.();
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-            onBlur?.();
-          }}
-        >
-          <InputGroup className={`rounded-full ${borderColor}`}>
-            <InputGroup.Prefix className="p-0 pl-2">
-              <Button
-                isIconOnly
-                isDisabled={isDisabled}
-                onPress={handleToggleEmojiPicker}
-                accessibilityLabel={isEmojiPickerOpen
-                  ? 'Show keyboard'
-                  : 'Show emoji picker'
-                }
-                className="size-8 items-center justify-center"
-                variant='ghost'
-              >
-                {isEmojiPickerOpen ? (
-                  <IconKeyboard size={22} color={colors.gray500} />
-                ) : (
-                  <IconMoodSmile size={22} color={colors.gray500} />
-                )}
-              </Button>
-            </InputGroup.Prefix>
-
-            <InputGroup.Input
-              ref={inputRef}
-              value={chatValue}
-              numberOfLines={1}
-              onChangeText={onChatValueChange}
-              onSelectionChange={(event) => {
-                selectionRef.current = event.nativeEvent.selection;
-              }}
-              placeholder={hasPending ? 'Add a caption...' : chatPlaceholder}
-              className="rounded-full border"
-            />
-
-            {showSendButton && (
-              <InputGroup.Suffix className="p-0">
+        {/* The keyboard's own Paste button (cursor menu) lands here: the wrapper
+            intercepts image pastes natively, while text pastes insert as usual. */}
+        <TextInputWrapper style={{ flex: 1 }} onPaste={handlePaste}>
+          <TextField
+            isDisabled={isDisabled}
+            className="flex-1"
+            onFocus={() => {
+              setIsFocused(true);
+              onEmojiPickerOpenChange(false);
+              onFocus?.();
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+              onBlur?.();
+            }}
+          >
+            <InputGroup className={`rounded-full ${borderColor}`}>
+              <InputGroup.Prefix className="p-0 pl-2">
                 <Button
+                  isIconOnly
                   isDisabled={isDisabled}
-                  onPress={onSendPress}
-                  className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
+                  onPress={handleToggleEmojiPicker}
+                  accessibilityLabel={isEmojiPickerOpen
+                    ? 'Show keyboard'
+                    : 'Show emoji picker'
+                  }
+                  className="size-8 items-center justify-center"
+                  variant='ghost'
                 >
-                  <IconSend size={20} color={colors.secondaryForeground} />
+                  {isEmojiPickerOpen ? (
+                    <IconKeyboard size={22} color={colors.gray500} />
+                  ) : (
+                    <IconMoodSmile size={22} color={colors.gray500} />
+                  )}
                 </Button>
-              </InputGroup.Suffix>
-            )}
-          </InputGroup>
-        </TextField>
+              </InputGroup.Prefix>
+
+              <InputGroup.Input
+                ref={inputRef}
+                value={chatValue}
+                numberOfLines={1}
+                onChangeText={onChatValueChange}
+                onSelectionChange={(event) => {
+                  selectionRef.current = event.nativeEvent.selection;
+                }}
+                placeholder={hasPending ? 'Add a caption...' : chatPlaceholder}
+                className="rounded-full border"
+              />
+
+              {showSendButton && (
+                <InputGroup.Suffix className="p-0">
+                  <Button
+                    isDisabled={isDisabled}
+                    onPress={onSendPress}
+                    className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
+                  >
+                    <IconSend size={20} color={colors.secondaryForeground} />
+                  </Button>
+                </InputGroup.Suffix>
+              )}
+            </InputGroup>
+          </TextField>
+        </TextInputWrapper>
       </View>
 
       {/* Inline panel in the keyboard's place: the message stays visible and it

@@ -5,6 +5,7 @@ import { ListGroup, Separator } from 'heroui-native';
 import {
   IconArrowBackUp,
   IconCopy,
+  IconPhoto,
   IconTrash,
   type Icon,
 } from '@tabler/icons-react-native';
@@ -17,6 +18,8 @@ export interface HoldMenuData {
   dateLabel: string;
   canReact: boolean;
   canCopy: boolean;
+  /** What Copy puts on the clipboard; defaults to the message text. */
+  copyTarget?: 'text' | 'image';
   canUnsend: boolean;
 }
 
@@ -47,6 +50,7 @@ const ICON_SIZE = 22;
  */
 export default function HoldMenu({ data, onReply, onCopy, onUnsend }: HoldMenuProps) {
   const { colors } = useColors();
+  const isImageCopy = data.copyTarget === 'image';
 
   const actions: HoldAction[] = [
     {
@@ -58,9 +62,9 @@ export default function HoldMenu({ data, onReply, onCopy, onUnsend }: HoldMenuPr
     },
     {
       key: 'copy',
-      label: 'Copy',
-      accessibilityLabel: 'Copy message',
-      icon: IconCopy,
+      label: isImageCopy ? 'Copy image' : 'Copy',
+      accessibilityLabel: isImageCopy ? 'Copy image' : 'Copy message',
+      icon: isImageCopy ? IconPhoto : IconCopy,
       onPress: onCopy,
       isDisabled: !data.canCopy,
     },
