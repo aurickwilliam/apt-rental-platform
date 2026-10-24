@@ -7,8 +7,7 @@ import {
   GENDERS,
   SUFFIXES,
   getCitiesByProvince,
-  getBarangaysByCity,
-  getPostalCode
+  getBarangaysByCity
 } from "@repo/constants";
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
@@ -140,12 +139,11 @@ export default function CompleteProfile() {
   // Validates that a PH postal code is exactly 4 digits with proper blur/change handling
   const {
     value: postalCode,
-    setValue: setPostalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
     validate: validatePostalCode,
-  } = usePHPostalCode();
+  } = usePHPostalCode({ city: profileForm.city, province: profileForm.province });
 
   // Mobile Number validation hook
   const {
@@ -221,7 +219,7 @@ export default function CompleteProfile() {
       const fieldOrder: ScrollableField[] = [
         'firstName', 'lastName', 'gender', 'birthDate',
         'mobileNumber',
-        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+        'province', 'city', 'barangay', 'streetAddress', 'postalCode',
         'password', 'confirmPassword',
       ];
       const firstError = fieldOrder.find((field) => {
@@ -282,17 +280,10 @@ export default function CompleteProfile() {
 
   const handleProvinceChange = (province: string | null) => {
     updateFields({ province: province ?? '', city: '', barangay: '' });
-    setPostalCode('');
   };
 
   const handleCityChange = (city: string | null) => {
     updateFields({ city: city ?? '', barangay: '' });
-    if (city) {
-      const code = getPostalCode(city);
-      if (code) setPostalCode(code);
-    } else {
-      setPostalCode('');
-    }
   };
 
   const citiesForSelectedProvince = profileForm.province
@@ -485,6 +476,21 @@ export default function CompleteProfile() {
           />
         </View>
 
+        {/* Street Address Field */}
+        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
+
         {/* Postal Code Field */}
         <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!postalCodeError}>
@@ -501,21 +507,6 @@ export default function CompleteProfile() {
             />
             {postalCodeError && (
               <FieldError>{postalCodeError}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Street Address Field */}
-        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("streetAddress")}>
-            <Label>Street Address:</Label>
-            <Input
-              className="shadow-none"
-              placeholder="Enter your street address"
-              onChangeText={(value) => updateField("streetAddress", value)}
-            />
-            {getError("streetAddress") && (
-              <FieldError>{getError("streetAddress")}</FieldError>
             )}
           </TextField>
         </View>

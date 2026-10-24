@@ -9,8 +9,7 @@ import {
   GENDERS,
   SUFFIXES,
   getCitiesByProvince,
-  getBarangaysByCity,
-  getPostalCode
+  getBarangaysByCity
 } from "@repo/constants";
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
@@ -122,12 +121,11 @@ export default function AuthCompleteProfile() {
   // Postal code hook
   const {
     value: postalCode,
-    setValue: setPostalCode,
     error: postalCodeError,
     handleChange: handlePostalCodeChange,
     handleBlur: handlePostalCodeBlur,
     validate: validatePostalCode,
-  } = usePHPostalCode();
+  } = usePHPostalCode({ city: profileForm.city, province: profileForm.province });
 
   // Mobile Number validation hook
   const {
@@ -191,7 +189,7 @@ export default function AuthCompleteProfile() {
       const fieldOrder: ScrollableField[] = [
         'firstName', 'lastName', 'gender', 'birthDate',
         'mobileNumber',
-        'province', 'city', 'barangay', 'postalCode', 'streetAddress',
+        'province', 'city', 'barangay', 'streetAddress', 'postalCode',
       ];
       const firstError = fieldOrder.find((field) => {
         if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
@@ -281,17 +279,10 @@ export default function AuthCompleteProfile() {
 
   const handleProvinceChange = (province: string | null) => {
     updateFields({ province: province ?? '', city: '', barangay: '' });
-    setPostalCode('');
   };
 
   const handleCityChange = (city: string | null) => {
     updateFields({ city: city ?? '', barangay: '' });
-    if (city) {
-      const code = getPostalCode(city);
-      if (code) setPostalCode(code);
-    } else {
-      setPostalCode('');
-    }
   };
 
   // Get the options depending on the province selected
@@ -491,6 +482,21 @@ export default function AuthCompleteProfile() {
           />
         </View>
 
+        {/* Street Address Field */}
+        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
+          <TextField isRequired isInvalid={!!getError("streetAddress")}>
+            <Label>Street Address:</Label>
+            <Input
+              className="shadow-none"
+              placeholder="Enter your street address"
+              onChangeText={(value) => updateField("streetAddress", value)}
+            />
+            {getError("streetAddress") && (
+              <FieldError>{getError("streetAddress")}</FieldError>
+            )}
+          </TextField>
+        </View>
+
         {/* Postal Code Field */}
         <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
           <TextField isRequired isInvalid={!!postalCodeError}>
@@ -511,20 +517,6 @@ export default function AuthCompleteProfile() {
           </TextField>
         </View>
 
-        {/* Street Address Field */}
-        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("streetAddress")}>
-            <Label>Street Address:</Label>
-            <Input
-              className="shadow-none"
-              placeholder="Enter your street address"
-              onChangeText={(value) => updateField("streetAddress", value)}
-            />
-            {getError("streetAddress") && (
-              <FieldError>{getError("streetAddress")}</FieldError>
-            )}
-          </TextField>
-        </View>
       </View>
 
       {/* Submit Button */}

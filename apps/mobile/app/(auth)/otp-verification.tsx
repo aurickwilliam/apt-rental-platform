@@ -29,6 +29,12 @@ import {
 const OTP_VALIDITY_DURATION = 60 // seconds
 const MAX_OTP_ATTEMPTS = 5
 
+// "For security purposes, you can only request this after 42 seconds."
+const parseResendWaitSeconds = (message: string | undefined): number | null => {
+  const match = message?.match(/after (\d+) seconds?/i)
+  return match ? Number(match[1]) : null
+}
+
 export default function OTPVerification() {
   const router = useRouter()
   const { email } = useLocalSearchParams()
@@ -45,7 +51,6 @@ export default function OTPVerification() {
   const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_OTP_ATTEMPTS)
   const [otpLocked, setOtpLocked] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
-  const [otpExpired, setOtpExpired] = useState(false)
 
   const otpRef = useRef<InputOTPRef>(null)
 
@@ -67,11 +72,6 @@ export default function OTPVerification() {
 
     setResendLoading(true)
     setOtpError(null)
-    setAttemptsRemaining(MAX_OTP_ATTEMPTS)
-    setOtpLocked(false)
-    setOtpExpired(false)
-    clearOtp()
-    resetCountdown()
 
     try {
       const { error: resendError } = await supabase.auth.resend({
@@ -80,9 +80,22 @@ export default function OTPVerification() {
       })
 
       if (resendError) {
+        // Supabase throttles resends ("...only request this after N seconds"):
+        // wait out the stated time instead of showing its raw message.
+        const waitSeconds = parseResendWaitSeconds(resendError.message)
+        if (waitSeconds !== null) {
+          resetCountdown(waitSeconds)
+          return
+        }
         setError(resendError.message || 'Something went wrong')
         setErrorDialogOpen(true)
+        return
       }
+
+      setAttemptsRemaining(MAX_OTP_ATTEMPTS)
+      setOtpLocked(false)
+      clearOtp()
+      resetCountdown()
     } finally {
       setResendLoading(false)
     }
@@ -141,24 +154,20 @@ export default function OTPVerification() {
 
     } catch (err: any) {
       const msg: string = (err as any)?.message ?? ''
-      const isOtpExpired =
+      // Supabase answers a wrong code and an old code with the same
+      // "Token has expired or is invalid", so both are treated as an
+      // incorrect-or-expired code; the resend link only appears after its
+      // countdown, never because of this error.
+      const isInvalidOtp =
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
-        msg.includes('Email link is invalid or has expired')
-      const isInvalidOtp =
         msg.includes('invalid_otp') ||
         msg.includes('does not match') ||
-        msg.includes('Invalid token')
+        msg.includes('Invalid token') ||
+        msg.includes('Email link is invalid or has expired')
 
-      if (isOtpExpired) {
-        // OTP expired before verify succeeded — no auth user was created, safe to skip signOut
-        setOtpExpired(true)
-        clearOtp()
-
-        setError('Your verification code has expired. Please request a new one.')
-        setErrorDialogOpen(true)
-      } else if (isInvalidOtp) {
-        // Wrong code — surface inline with attempts remaining
+      if (isInvalidOtp) {
+        // Wrong or expired code — surface inline with attempts remaining
         const remaining = attemptsRemaining - 1
         setAttemptsRemaining(remaining)
         clearOtp()
@@ -167,7 +176,7 @@ export default function OTPVerification() {
           setOtpLocked(true)
           setOtpError('Too many incorrect attempts. Please request a new code.')
         } else {
-          setOtpError(`Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`)
+          setOtpError(`Incorrect or expired code. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`)
         }
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
@@ -255,7 +264,7 @@ export default function OTPVerification() {
               Didn&apos;t get the code?{' '}
             </Text>
 
-            {countdown > 0 && !otpExpired ? (
+            {countdown > 0 ? (
               <Text className="text-accent text-base font-nunitoSemiBold">
                 Resend in {countdown}s
               </Text>
@@ -266,11 +275,7 @@ export default function OTPVerification() {
                 className={resendLoading ? 'opacity-50' : ''}
               >
                 <Text className="text-accent text-base font-nunitoSemiBold">
-                  {resendLoading
-                    ? 'Sending...'
-                    : otpExpired
-                      ? 'Code expired — Resend'
-                      : 'Resend'}
+                  {resendLoading ? 'Sending...' : 'Resend'}
                 </Text>
               </Pressable>
             )}
