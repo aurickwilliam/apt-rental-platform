@@ -86,7 +86,7 @@ export default function AdminTwoStep() {
           {data.devices.map((device) => (
             <div
               key={device.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-2 text-sm"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-2 text-sm text-foreground"
             >
               <span className="flex min-w-0 items-center gap-2">
                 <IconDeviceMobile size={16} aria-hidden="true" className="shrink-0" />

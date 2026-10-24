@@ -38,7 +38,7 @@ export default function SecurityTab({
       <AdminTwoStep />
       <div className="mt-4 space-y-3">
         <div className="rounded-xl border border-border p-4 text-sm">
-          <p className="font-semibold">Password and email</p>
+          <p className="font-semibold text-foreground">Password and email</p>
           <p className="mt-1 text-muted-foreground">
             Account credential changes are not available here yet.
           </p>
