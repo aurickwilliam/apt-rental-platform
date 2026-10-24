@@ -7,12 +7,12 @@ import ts from "typescript";
 const compound = (name, parts) => Object.assign(() => {}, Object.fromEntries(parts.map(part => [part, `${name}.${part}`])));
 const Modal = compound("Modal", ["Root", "Backdrop", "Container", "Dialog", "CloseTrigger", "Body"]);
 
-function compile(file, dependencies) {
+function compile(file, dependencies, globals = {}) {
   const source = readFileSync(new URL(`../app/landlord/payments/components/${file}`, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText;
-  const context = { exports: {}, console, require: name => {
+  const context = { exports: {}, console, ...globals, require: name => {
     assert.ok(name in dependencies, `Unexpected dependency: ${name}`);
     return dependencies[name];
   } };
@@ -60,6 +60,7 @@ function loadModal({ step, action = {}, confirmation = {} } = {}) {
       },
     },
     "./PaymentReceipt": { default: "PaymentReceipt" },
+    "./ReceiptShareActions": { default: "ReceiptShareActions" },
   };
   return { module: compile("PaymentReceiptModal.tsx", deps), calls };
 }
@@ -144,25 +145,28 @@ test("only the receipt shows: a transparent dialog, no Done button, dismissed by
   assert.equal(loaded.calls.overlay.isOpen, true);
 });
 
+const formatters = {
+  "@repo/utils": { formatPesoDisplay: value => `₱${value}`, paymentBreakdown: p => p.breakdown ?? [] },
+  "@/app/tenant/payment/utils": {
+    formatDateFull: value => `full:${value}`, formatReferenceId: value => value ?? "—", formatTimeShort: () => "10:00 AM",
+    methodLabel: value => ({ cash: "Cash", gcash: "GCash" })[value] ?? value,
+    paymentStatusLabel: value => ({ paid: "Paid", pending: "Pending", rejected: "Rejected", failed: "Failed" })[value] ?? "Pending",
+    statusVariant: () => "neutral",
+  },
+  "@/lib/landlord-payments-view": { ledgerPeriodLabel: value => `period:${value}` },
+};
+const receiptDataModule = () => compile("../lib/receiptData.ts", { ...formatters });
+
 function loadReceipt() {
-  const state = { copied: [] };
-  const react = {
-    useState: initial => [initial, () => {}], useRef: initial => ({ current: initial }), useEffect() {},
-  };
+  const react = { useState: initial => [initial, () => {}], useRef: initial => ({ current: initial }), useEffect() {} };
   const deps = {
-    ...runtime, react, "@tabler/icons-react": icons,
-    "@repo/utils": { formatPesoDisplay: value => `₱${value}`, paymentBreakdown: p => p.breakdown ?? [] },
+    ...runtime, react, "@tabler/icons-react": icons, ...formatters,
     "@/app/components/display/PaymentMethodChip": { default: "PaymentMethodChip" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/tenant/payment/components/ZigzagEdge": { default: "ZigzagEdge" },
-    "@/app/tenant/payment/utils": {
-      formatDateFull: value => `full:${value}`, formatReferenceId: value => value ?? "—", formatTimeShort: () => "10:00 AM",
-      paymentStatusLabel: value => ({ paid: "Paid", pending: "Pending", rejected: "Rejected", failed: "Failed" })[value] ?? "Pending",
-      statusVariant: () => "neutral",
-    },
-    "@/lib/landlord-payments-view": { ledgerPeriodLabel: value => `period:${value}` },
+    "../lib/receiptData": receiptDataModule(),
   };
-  return { module: compile("PaymentReceipt.tsx", deps), state };
+  return { module: compile("PaymentReceipt.tsx", deps) };
 }
 
 test("the receipt names the tenant and unit, titles the status for a landlord and shows the reference", () => {
@@ -202,4 +206,94 @@ test("missing tenant or unit show a dash and the copy control is labelled", () =
   const tree = module.default({ payment: payment({ tenant_name: null, apartment_name: null }), footer: null });
   assert.ok(text(tree).includes("—"));
   assert.ok(nodes(tree).some(node => node.type === "button" && node.props["aria-label"] === "Copy reference"));
+});
+
+test("the receipt data is plain text with landlord wording, a filename and a total only when there is a breakdown", () => {
+  const { receiptData } = receiptDataModule();
+  const paid = receiptData(payment({ status: "paid" }));
+  assert.deepEqual(
+    { title: paid.title, tone: paid.tone, amount: paid.amount, period: paid.period, tenant: paid.tenant, apartment: paid.apartment, dateLabel: paid.dateLabel, method: paid.method, reference: paid.reference, filename: paid.filename },
+    { title: "Payment received", tone: "success", amount: "₱6000", period: "period:2026-03-05", tenant: "Ryan", apartment: "Unit A", dateLabel: "Paid on", method: "Cash", reference: "APT-ABCD1234", filename: "receipt-APT-ABCD1234.png" },
+  );
+  assert.equal(paid.breakdown.length, 0);
+  assert.equal(receiptData(payment({ status: "rejected" })).tone, "danger");
+  assert.equal(receiptData(payment({ status: "pending" })).tone, "warning");
+  assert.equal(receiptData(payment({ status: "pending" })).dateLabel, "Recorded on");
+  assert.equal(receiptData(payment({ tenant_name: null, apartment_name: null })).tenant, "—");
+  const moveIn = receiptData(payment({ status: "paid", billing_kind: "move_in", breakdown: [{ label: "Rent", amount: 6000 }] }));
+  assert.equal(moveIn.period, "Move-in payment");
+  assert.deepEqual([...moveIn.breakdown.map(line => [line.label, line.value])], [["Rent", "₱6000"]]);
+  assert.equal(receiptData(payment({ reference_id: "a/b c" })).filename, "receipt-abc.png");
+});
+
+function fakeCanvas() {
+  const calls = { text: [], paths: 0, fills: 0, scale: null, lineDash: [] };
+  const context = new Proxy({}, {
+    get(target, key) {
+      if (key === "measureText") return text => ({ width: String(text).length * 7 });
+      if (key === "fillText") return (text, x, y) => calls.text.push({ text, x, y });
+      if (key === "scale") return (x, y) => { calls.scale = [x, y]; };
+      if (key === "fill") return () => { calls.fills += 1; };
+      if (key === "beginPath") return () => { calls.paths += 1; };
+      if (key === "setLineDash") return dash => calls.lineDash.push([...dash]);
+      return key in target ? target[key] : () => {};
+    },
+    set(target, key, value) { target[key] = value; return true; },
+  });
+  const canvas = { width: 0, height: 0, getContext: () => context, toBlob: callback => callback({ type: "image/png", size: 1 }) };
+  return { canvas, calls };
+}
+
+const imageModule = (globals) => compile("../lib/receiptImage.ts", {}, globals);
+const fonts = { heading: "Nunito", body: "Inter" };
+
+test("the receipt image is drawn from the same data, sized to its content, at twice the resolution", () => {
+  const { receiptData } = receiptDataModule();
+  const { drawReceipt, receiptImageSize, RECEIPT_IMAGE } = imageModule();
+  const plain = receiptData(payment({ status: "paid" }));
+  const { canvas, calls } = fakeCanvas();
+  drawReceipt(canvas, plain, fonts);
+  const size = receiptImageSize(plain);
+  assert.equal(canvas.width, size.width * RECEIPT_IMAGE.scale);
+  assert.equal(canvas.height, size.height * RECEIPT_IMAGE.scale);
+  assert.deepEqual([...calls.scale], [2, 2]);
+  const written = calls.text.map(item => item.text);
+  for (const expected of ["Payment received", "₱6000", "period:2026-03-05", "Tenant", "Ryan", "Apartment", "Unit A", "Paid on", "Method", "Cash", "Status", "Paid", "Reference No.", "APT-ABCD1234"]) {
+    assert.ok(written.includes(expected) || written.some(text => text.includes(expected)), expected);
+  }
+  assert.ok(!written.includes("Total"), "no total without a breakdown");
+  assert.ok(calls.fills >= 1, "the paper is filled");
+  assert.ok(calls.lineDash.length > 0, "dashed dividers are drawn");
+  // Nothing is drawn outside the image.
+  assert.ok(calls.text.every(item => item.y > 0 && item.y < size.height && item.x >= 0 && item.x <= size.width));
+});
+
+test("a move-in receipt is taller, lists its breakdown and a total, and long values are shortened to fit", () => {
+  const { receiptData } = receiptDataModule();
+  const { drawReceipt, receiptImageSize } = imageModule();
+  const plain = receiptData(payment({ status: "paid" }));
+  const moveIn = receiptData(payment({
+    status: "paid", billing_kind: "move_in", apartment_name: "A very long apartment name that would never fit on one line of the receipt image",
+    breakdown: [{ label: "First month’s rent", amount: 6000 }, { label: "Maintenance fees", amount: 500 }],
+  }));
+  assert.ok(receiptImageSize(moveIn).height > receiptImageSize(plain).height);
+  const { canvas, calls } = fakeCanvas();
+  drawReceipt(canvas, moveIn, fonts);
+  const written = calls.text.map(item => item.text);
+  for (const expected of ["Move-in payment", "First month’s rent", "Maintenance fees", "Total"]) assert.ok(written.includes(expected), expected);
+  const apartment = written.find(text => text.startsWith("A very long"));
+  assert.ok(apartment.endsWith("…") && apartment.length < moveIn.apartment.length);
+});
+
+test("renderReceiptImage waits for fonts and resolves a PNG blob, and rejects if the canvas cannot encode", async () => {
+  const { receiptData } = receiptDataModule();
+  const data = receiptData(payment({ status: "paid" }));
+  let fontsReady = false;
+  const { canvas } = fakeCanvas();
+  const document = { fonts: { ready: Promise.resolve().then(() => { fontsReady = true; }) }, createElement: () => canvas };
+  const blob = await imageModule({ document }).renderReceiptImage(data, fonts);
+  assert.equal(fontsReady, true);
+  assert.equal(blob.type, "image/png");
+  canvas.toBlob = callback => callback(null);
+  await assert.rejects(imageModule({ document }).renderReceiptImage(data, fonts), /Couldn't create the receipt image/);
 });

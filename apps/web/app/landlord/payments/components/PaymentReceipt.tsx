@@ -9,30 +9,28 @@ import {
   IconClockHour4,
   IconCopy,
 } from "@tabler/icons-react";
-import { formatPesoDisplay, paymentBreakdown } from "@repo/utils";
 import PaymentMethodChip from "@/app/components/display/PaymentMethodChip";
 import StatusChip from "@/app/components/display/StatusChip";
 import ZigzagEdge from "@/app/tenant/payment/components/ZigzagEdge";
 import type { PaymentStatus } from "@/app/tenant/payment/types";
-import {
-  formatDateFull,
-  formatReferenceId,
-  formatTimeShort,
-  paymentStatusLabel,
-  statusVariant,
-} from "@/app/tenant/payment/utils";
-import { ledgerPeriodLabel } from "@/lib/landlord-payments-view";
+import { statusVariant } from "@/app/tenant/payment/utils";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
+import { receiptData, type ReceiptTone } from "../lib/receiptData";
 
-type StatusMeta = { icon: ComponentType<{ size?: number; className?: string }>; color: string; title: string };
+type StatusIcon = ComponentType<{ size?: number; className?: string }>;
 
-// Worded for the landlord reading it, not the tenant who paid.
-const STATUS_META: Record<PaymentStatus, StatusMeta> = {
-  Paid: { icon: IconCircleCheck, color: "text-green-600", title: "Payment received" },
-  Pending: { icon: IconClockHour4, color: "text-amber-500", title: "Payment pending" },
-  Rejected: { icon: IconCircleX, color: "text-red-600", title: "Payment declined" },
-  Failed: { icon: IconCircleX, color: "text-red-600", title: "Payment failed" },
-  Unpaid: { icon: IconAlertCircle, color: "text-red-600", title: "Unpaid" },
+const STATUS_ICONS: Record<PaymentStatus, StatusIcon> = {
+  Paid: IconCircleCheck,
+  Pending: IconClockHour4,
+  Rejected: IconCircleX,
+  Failed: IconCircleX,
+  Unpaid: IconAlertCircle,
+};
+
+const TONE_COLORS: Record<ReceiptTone, string> = {
+  success: "text-green-600",
+  warning: "text-amber-500",
+  danger: "text-red-600",
 };
 
 const COPIED_MS = 1800;
@@ -87,52 +85,48 @@ interface PaymentReceiptProps {
 }
 
 export default function PaymentReceipt({ payment, footer }: PaymentReceiptProps) {
-  const status = paymentStatusLabel(payment.status);
-  const meta = STATUS_META[status];
-  const Icon = meta.icon;
-  const isMoveIn = payment.billing_kind === "move_in";
-  const period = isMoveIn ? "Move-in payment" : ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date);
-  const breakdown = paymentBreakdown(payment);
-  const paidLabel = status === "Paid" ? "Paid on" : "Recorded on";
+  const data = receiptData(payment);
+  const Icon = STATUS_ICONS[data.status];
+  const color = TONE_COLORS[data.tone];
 
   return (
     <div className="mx-auto w-full max-w-[460px]">
       <article
-        aria-label={`Receipt for ${period}`}
+        aria-label={`Receipt for ${data.period}`}
         className="rounded-t-2xl bg-white px-6 pb-14 pt-7 text-zinc-900"
       >
         <header className="flex flex-col items-center text-center">
-          <Icon size={44} className={meta.color} aria-hidden />
-          <h2 className={`mt-2 font-nunito text-lg font-bold ${meta.color}`}>{meta.title}</h2>
-          <p className="mt-3 font-nunito text-4xl font-bold tracking-tight text-primary">{formatPesoDisplay(payment.amount ?? 0)}</p>
-          <p className="mt-1 text-sm text-zinc-500">{period}</p>
+          <Icon size={44} className={color} aria-hidden />
+          <h2 className={`mt-2 font-nunito text-lg font-bold ${color}`}>{data.title}</h2>
+          <p className="mt-3 font-nunito text-4xl font-bold tracking-tight text-primary">{data.amount}</p>
+          <p className="mt-1 text-sm text-zinc-500">{data.period}</p>
         </header>
 
         <div className="my-5 border-t border-dashed border-zinc-300" />
 
         <dl className="space-y-3">
-          <Row label="Tenant">{payment.tenant_name ?? "—"}</Row>
-          <Row label="Apartment">{payment.apartment_name ?? "—"}</Row>
-          <Row label={paidLabel}>
-            {formatDateFull(payment.date)}
-            <span className="block text-xs font-normal text-zinc-500">{formatTimeShort(payment.created_at)}</span>
+          <Row label="Tenant">{data.tenant}</Row>
+          <Row label="Apartment">{data.apartment}</Row>
+          <Row label={data.dateLabel}>
+            {data.date}
+            <span className="block text-xs font-normal text-zinc-500">{data.time}</span>
           </Row>
           <Row label="Method"><PaymentMethodChip method={payment.method} /></Row>
           <Row label="Status">
-            <StatusChip size="sm" tone={statusVariant(status)} className="text-[11px]">{status}</StatusChip>
+            <StatusChip size="sm" tone={statusVariant(data.status)} className="text-[11px]">{data.status}</StatusChip>
           </Row>
         </dl>
 
-        {breakdown.length > 0 ? (
+        {data.breakdown.length > 0 ? (
           <>
             <div className="my-5 border-t border-dashed border-zinc-300" />
             <dl className="space-y-2.5">
-              {breakdown.map((item) => (
-                <Row key={item.label} label={item.label}>{formatPesoDisplay(item.amount)}</Row>
+              {data.breakdown.map((item) => (
+                <Row key={item.label} label={item.label}>{item.value}</Row>
               ))}
               <div className="flex items-center justify-between gap-4 border-t border-zinc-200 pt-2.5">
                 <dt className="text-sm font-semibold text-zinc-700">Total</dt>
-                <dd className="font-nunito text-sm font-bold text-primary">{formatPesoDisplay(payment.amount ?? 0)}</dd>
+                <dd className="font-nunito text-sm font-bold text-primary">{data.total}</dd>
               </div>
             </dl>
           </>
@@ -142,7 +136,7 @@ export default function PaymentReceipt({ payment, footer }: PaymentReceiptProps)
 
         <dl>
           <Row label="Reference No.">
-            <CopyReference value={formatReferenceId(payment.reference_id)} display={formatReferenceId(payment.reference_id)} />
+            <CopyReference value={data.reference} display={data.reference} />
           </Row>
         </dl>
 

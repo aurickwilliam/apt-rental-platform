@@ -9,6 +9,7 @@ import { useLandlordPaymentConfirmation } from "@/hooks/use-landlord-payments";
 import { useReconciledAction } from "@/hooks/use-reconciled-action";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 import PaymentReceipt from "./PaymentReceipt";
+import ReceiptShareActions from "./ReceiptShareActions";
 
 type Step = "idle" | "confirm" | "decline";
 
@@ -97,6 +98,7 @@ export default function PaymentReceiptModal({ payment, onClose, onChanged }: Pay
               : "No money was recorded for this payment."}
         </p>
       ) : null}
+      <ReceiptShareActions payment={payment} />
     </div>
   );
 
