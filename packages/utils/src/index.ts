@@ -15,7 +15,14 @@ export * from './landlordPayments';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
 export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
-export { MINIMUM_AGE, MAXIMUM_AGE, calculateAge, validateBirthDate } from './birthDate';
+export {
+  MINIMUM_AGE,
+  MAXIMUM_AGE,
+  calculateAge,
+  validateBirthDate,
+  toBirthDateValue,
+  fromBirthDateValue,
+} from './birthDate';
 export {
   PAYMENT_METHOD_TYPES,
   EMPTY_PAYMENT_METHOD_PREFERENCES,
@@ -38,6 +45,8 @@ export {
 export { isValidEmail } from './validateEmail';
 export { formatAddress } from './formatAddress';
 export { formatFullName } from './formatFullName';
+export { splitFullName, joinFullName } from './fullName';
+export { needsProfileOnboarding } from './profileOnboarding';
 export { getInitials } from './getInitials';
 export { formatTime } from './formatTime';
 export {

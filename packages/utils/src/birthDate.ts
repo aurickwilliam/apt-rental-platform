@@ -19,6 +19,21 @@ export function calculateAge(birthDate: Date, today: Date = new Date()): number 
   return age;
 }
 
+// Date <-> the YYYY-MM-DD string the form stores, both in local time. A date
+// picker's value carries the current time of day, so `toISOString()` (UTC)
+// would save the previous day for anyone ahead of UTC before 8 AM in Manila.
+export function toBirthDateValue(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+export function fromBirthDateValue(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const parsed = new Date(`${value}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }

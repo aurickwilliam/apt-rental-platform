@@ -4,7 +4,9 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { supabase } from "@repo/supabase";
+import { needsProfileOnboarding, splitFullName } from "@repo/utils";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { finishProfileRoute } from "@/service/auth/finishProfileRoute";
 import {
   choosePortal,
   hasMobilePortalRole,
@@ -66,7 +68,7 @@ export function useGoogleAuth() {
       const userId = data.session.user.id;
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .select("roles, mobile_number")
+        .select("roles, mobile_number, account_status")
         .eq("user_id", userId)
         .single();
 
@@ -92,20 +94,16 @@ export function useGoogleAuth() {
 
       setLoading(false);
 
-      // If the profile is incomplete, redirect to complete profile page first
-      const isProfileComplete = !!profile.mobile_number;
-
-      if (!isProfileComplete) {
-        router.replace({
-          pathname: "../(auth)/auth-complete-profile",
-          params: {
-            email: data.session.user.email ?? "",
-            ...(requestedRole ? { userSide: requestedRole } : {}),
-            suggestedRole: choosePortal(heldRoles, null) ?? "tenant",
-            firstName: data.session.user.user_metadata?.full_name?.split(" ")[0] ?? "",
-            lastName: data.session.user.user_metadata?.full_name?.split(" ")[1] ?? "",
-          },
-        });
+      // If the profile is incomplete, finish it first
+      if (needsProfileOnboarding(profile)) {
+        const { firstName, lastName } = splitFullName(data.session.user.user_metadata?.full_name);
+        router.replace(finishProfileRoute({
+          email: data.session.user.email ?? "",
+          userSide: requestedRole,
+          suggestedRole: choosePortal(heldRoles, null) ?? "tenant",
+          firstName,
+          lastName,
+        }));
         return;
       }
 

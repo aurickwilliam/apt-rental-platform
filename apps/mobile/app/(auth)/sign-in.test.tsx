@@ -162,7 +162,7 @@ describe("role-neutral mobile sign-in", () => {
 
     await waitFor(() =>
       expect(mockReplace).toHaveBeenCalledWith({
-        pathname: "/(auth)/auth-complete-profile",
+        pathname: "/(auth)/finish-profile",
         params: { email: "a@example.test", profileMissing: "1" },
       }),
     );

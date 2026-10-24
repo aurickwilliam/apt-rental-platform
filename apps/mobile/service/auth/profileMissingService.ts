@@ -1,5 +1,6 @@
 import { supabase } from "@repo/supabase";
 
+import { finishProfileRoute } from "./finishProfileRoute";
 import { getMySuspensionStatus } from "./suspensionService";
 
 // A confirmed email can end up with no profile row when sign-up is interrupted
@@ -22,11 +23,8 @@ export async function isProfileMissing(userId: string): Promise<boolean> {
   return data === null;
 }
 
-// The Google onboarding screen creates the profile when none exists. The
+// The finish-profile screen creates the profile when none exists. The
 // `profileMissing` param adds a way out (sign out) since the screen blocks back.
 export function profileMissingRoute(email: string | undefined) {
-  return {
-    pathname: "/(auth)/auth-complete-profile",
-    params: { email: email ?? "", profileMissing: "1" },
-  } as const;
+  return finishProfileRoute({ email: email ?? "", profileMissing: true });
 }
