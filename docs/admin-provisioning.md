@@ -24,7 +24,14 @@ Roll-out, in order:
                      where f.user_id = u.user_id and f.factor_type = 'totp' and f.status = 'verified');
    ```
 3. Set `ADMIN_MFA_REQUIRED=true` and redeploy. Admins now enter a code after signing in.
-4. Only after step 3 is live, apply the database enforcement migration so admin data also needs `aal2` (otherwise a stolen basic session could skip the page and call the database directly).
+4. Only after step 3 is live, apply `supabase/migrations/20261024140000_require_admin_second_step.sql`. Admin data then also needs `aal2` in the database (otherwise a stolen basic session could skip the page and call the database directly): `private.is_admin()`, the admin-only policies (audit logs, verifications, passport review, user-verification files) and the `admin_*` / `get_admin_*` functions all go through `private.has_admin_second_step()`. An admin who is also a tenant or landlord keeps normal access at `aal1`. An admin who has not enrolled can still reach `/two-step-login` (it needs only their own profile), so the migration cannot lock out enrolment.
+
+Emergency switch-off (database only; the web flag is separate): redefine just the one function, then enrol or fix the problem and restore it from the migration.
+
+```sql
+create or replace function private.has_admin_second_step() returns boolean
+language sql stable set search_path = '' as $$ select true; $$;
+```
 
 Lost device (and no backup): as a trusted operator, remove that admin's devices and end their sessions, then ask them to enrol again. Do this only after confirming their identity out of band.
 
