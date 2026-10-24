@@ -9,6 +9,7 @@ const Card = compound("Card", ["Header", "Content", "Footer"]);
 const ComboBox = compound("ComboBox", ["InputGroup", "Trigger", "Popover"]);
 const ListBox = compound("ListBox", ["Item", "ItemIndicator"]);
 const Table = compound("Table", ["ScrollContainer", "Content", "Header", "Column", "Body", "Row", "Cell"]);
+const Popover = compound("Popover", ["Content", "Dialog"]);
 const Tabs = compound("Tabs", ["ListContainer", "List", "Tab", "Indicator"]);
 
 function transpile(url) {
@@ -42,6 +43,7 @@ function load(file, options = {}) {
   const skeleton = {
     default: function PaymentsSkeleton() { return load("components/PaymentsSkeleton.tsx", options).default(); },
     PaymentsBodySkeleton: function PaymentsBodySkeleton() { return load("components/PaymentsSkeleton.tsx", options).PaymentsBodySkeleton(); },
+    NeedsAttentionSkeleton: function NeedsAttentionSkeleton() { return load("components/PaymentsSkeleton.tsx", options).NeedsAttentionSkeleton(); },
   };
   const dependencies = {
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
@@ -52,7 +54,7 @@ function load(file, options = {}) {
     },
     "next/link": { default: "Link" },
     "next/navigation": { useRouter: () => ({ push: href => options.pushed?.push(href) }) },
-    "@heroui/react": { Badge: "Badge", Skeleton: "Skeleton", Card, ComboBox, Input: "Input", ListBox, Table, Tabs, Button: "Button", Chip: "Chip" },
+    "@heroui/react": { Badge: "Badge", Skeleton: "Skeleton", Card, ComboBox, Input: "Input", ListBox, Popover, Table, Tabs, Button: "Button", Chip: "Chip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => `₱${value}` },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
@@ -77,7 +79,7 @@ function load(file, options = {}) {
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "PaymentsHeader", "PaymentsSkeleton", "PaymentsBodySkeleton", "PaymentsContent",
+    "Sk", "PaymentsHeader", "PaymentsSkeleton", "PaymentsBodySkeleton", "NeedsAttentionSkeleton", "PaymentsContent",
     "PaymentsSummary", "NeedsAttentionCard", "PaymentsTable",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props ?? {}) : element.props?.children;
@@ -223,6 +225,25 @@ test("tab labels carry no counts; only Pending shows a badge, and only when some
   assert.deepEqual([...labels], ["All", "Paid", "Pending", "Declined"]);
   const none = nodes(load("page.tsx", { payments: { payments: [older], loading: false } }).default());
   assert.equal(none.filter(node => node.type === "Badge").length, 0);
+});
+
+test("Needs attention sits in the title row beside the heading, lists its rows in a popover, and is absent while loading", () => {
+  const settled = nodes(load("page.tsx", { payments: { payments: [older, cash], loading: false } }).default());
+  const row = settled.find(node => node.type === "div" && node.props.className?.includes("justify-between") && nodes(node).some(n => n.type.name === "PaymentsHeader"));
+  assert.ok(nodes(row).some(node => node.type.name === "NeedsAttentionCard"));
+  // The table owns the full width: no side column or two-column grid remains.
+  assert.ok(!settled.some(node => typeof node.props?.className === "string" && node.props.className.includes("lg:grid-cols-[1.9fr_1fr]")));
+  const card = nodes(settled.find(node => node.type.name === "NeedsAttentionCard"));
+  assert.ok(card.some(node => node.type === Popover));
+  assert.ok(card.some(node => node.type === "Popover.Content"));
+  const loading = nodes(load("page.tsx", { payments: { payments: [cash], loading: true } }).default());
+  assert.ok(!loading.some(node => node.type.name === "NeedsAttentionCard"));
+  // A HeroUI Skeleton holds its place meanwhile, in the same row as the heading.
+  const placeholder = loading.find(node => node.type.name === "NeedsAttentionSkeleton");
+  assert.ok(placeholder);
+  assert.ok(nodes(placeholder).some(node => node.type === "Skeleton" && node.props.className.includes("h-[3.75rem]")));
+  const route = nodes(load("loading.tsx").default());
+  assert.ok(route.some(node => node.type.name === "NeedsAttentionSkeleton"));
 });
 
 test("Needs attention is a quiet all-caught-up card when no cash is waiting", () => {

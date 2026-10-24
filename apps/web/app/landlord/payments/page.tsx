@@ -23,7 +23,7 @@ import {
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import PaymentsHeader from "./components/PaymentsHeader";
-import PaymentsSkeleton, { PaymentsBodySkeleton } from "./components/PaymentsSkeleton";
+import PaymentsSkeleton, { NeedsAttentionSkeleton, PaymentsBodySkeleton } from "./components/PaymentsSkeleton";
 import PaymentsSummary from "./components/PaymentsSummary";
 import PaymentsTable from "./components/PaymentsTable";
 
@@ -123,7 +123,10 @@ function PaymentsContent() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PaymentsHeader />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PaymentsHeader />
+        {loading ? <NeedsAttentionSkeleton /> : <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} />}
+      </div>
 
       <div className="flex flex-wrap items-center gap-2" data-fab-clearance>
         <ComboBox
@@ -174,76 +177,70 @@ function PaymentsContent() {
         <>
           <PaymentsSummary summary={summary} scopeLabel={activeYear === ALL_YEARS ? "All years" : activeYear} />
 
-          <div className="grid gap-4 lg:grid-cols-[1.9fr_1fr] lg:items-start">
-            <div className="order-2 min-w-0 space-y-3 lg:order-1">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key) as LedgerTab)} className="apt-status-tabs w-full sm:w-auto">
-                  <Tabs.ListContainer>
-                    <Tabs.List aria-label="Payment status">
-                      {TABS.map(({ id, label }) => (
-                        <Tabs.Tab key={id} id={id}>
-                          <span className="apt-tab-label">{label}</span>
-                          {id === "pending" && tabCounts.pending > 0 ? (
-                            <Badge color="danger" size="sm" placement="top-right">
-                              {tabCounts.pending}
-                            </Badge>
-                          ) : null}
-                          <Tabs.Indicator />
-                        </Tabs.Tab>
-                      ))}
-                    </Tabs.List>
-                  </Tabs.ListContainer>
-                </Tabs>
-                <div className="flex items-center gap-2">
-                  <SettingsSelect label="Year" value={activeYear} options={yearOptions} onChange={setYear} className="w-32" />
-                  <SettingsSelect
-                    label="Sort"
-                    value={sort}
-                    options={SORT_OPTIONS}
-                    onChange={(value) => setSort(value as LedgerSort)}
-                    className="w-32"
-                  />
-                </div>
+          <div className="min-w-0 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key) as LedgerTab)} className="apt-status-tabs w-full sm:w-auto">
+                <Tabs.ListContainer>
+                  <Tabs.List aria-label="Payment status">
+                    {TABS.map(({ id, label }) => (
+                      <Tabs.Tab key={id} id={id}>
+                        <span className="apt-tab-label">{label}</span>
+                        {id === "pending" && tabCounts.pending > 0 ? (
+                          <Badge color="danger" size="sm" placement="top-right">
+                            {tabCounts.pending}
+                          </Badge>
+                        ) : null}
+                        <Tabs.Indicator />
+                      </Tabs.Tab>
+                    ))}
+                  </Tabs.List>
+                </Tabs.ListContainer>
+              </Tabs>
+              <div className="flex items-center gap-2">
+                <SettingsSelect label="Year" value={activeYear} options={yearOptions} onChange={setYear} className="w-32" />
+                <SettingsSelect
+                  label="Sort"
+                  value={sort}
+                  options={SORT_OPTIONS}
+                  onChange={(value) => setSort(value as LedgerSort)}
+                  className="w-32"
+                />
               </div>
-
-              {rows.length === 0 ? (
-                <Card className="rounded-2xl border border-dashed border-border bg-card">
-                  <Card.Content className="flex flex-col items-center gap-3 py-16 text-center">
-                    <span className="rounded-full bg-muted p-5">
-                      <Receipt size={32} className="text-primary" />
-                    </span>
-                    <p className="font-nunito text-base font-bold text-foreground">
-                      {isFiltered ? "No payments found" : "No payments yet"}
-                    </p>
-                    <p className="max-w-sm text-sm text-muted-foreground">
-                      {isFiltered
-                        ? "Try another status or year to see more results."
-                        : showUnit
-                          ? "Payments for your units will appear here."
-                          : "Payments for this unit will appear here."}
-                    </p>
-                    {isFiltered ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onPress={() => {
-                          setTab("all");
-                          setYear(ALL_YEARS);
-                        }}
-                      >
-                        Clear filters
-                      </Button>
-                    ) : null}
-                  </Card.Content>
-                </Card>
-              ) : (
-                <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} />
-              )}
             </div>
 
-            <div className="order-1 lg:order-2">
-              <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} />
-            </div>
+            {rows.length === 0 ? (
+              <Card className="rounded-2xl border border-dashed border-border bg-card">
+                <Card.Content className="flex flex-col items-center gap-3 py-16 text-center">
+                  <span className="rounded-full bg-muted p-5">
+                    <Receipt size={32} className="text-primary" />
+                  </span>
+                  <p className="font-nunito text-base font-bold text-foreground">
+                    {isFiltered ? "No payments found" : "No payments yet"}
+                  </p>
+                  <p className="max-w-sm text-sm text-muted-foreground">
+                    {isFiltered
+                      ? "Try another status or year to see more results."
+                      : showUnit
+                        ? "Payments for your units will appear here."
+                        : "Payments for this unit will appear here."}
+                  </p>
+                  {isFiltered ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onPress={() => {
+                        setTab("all");
+                        setYear(ALL_YEARS);
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  ) : null}
+                </Card.Content>
+              </Card>
+            ) : (
+              <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} />
+            )}
           </div>
         </>
       )}
