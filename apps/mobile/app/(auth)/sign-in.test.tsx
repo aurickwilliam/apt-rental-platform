@@ -42,7 +42,7 @@ jest.mock("@repo/supabase", () => ({
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
       signOut: (...args: unknown[]) => mockSignOut(...args),
     },
-    from: () => ({ select: () => ({ eq: () => ({ single: () => mockSingle() }) }) }),
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => mockSingle() }) }) }),
   },
 }));
 jest.mock("heroui-native", () => {
@@ -142,6 +142,40 @@ describe("role-neutral mobile sign-in", () => {
 
     await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockRestore).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("sends a confirmed account with no saved profile to finish it, keeping the session", async () => {
+    mockSignInWithPassword.mockResolvedValue({
+      data: { user: { id: "account-a", email: "a@example.test" } },
+      error: null,
+    });
+    mockSingle.mockResolvedValue({ data: null, error: null });
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith({
+        pathname: "/(auth)/auth-complete-profile",
+        params: { email: "a@example.test", profileMissing: "1" },
+      }),
+    );
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockRestore).not.toHaveBeenCalled();
+  });
+
+  it("still signs out when the profile lookup itself fails", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "boom" } });
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockReplace).not.toHaveBeenCalled();
   });
 

@@ -135,7 +135,13 @@ export function useOtpFlow({
       const result = await signUp({ error: null, success: false }, fd);
 
       if (result.error) {
-        fail(result.error);
+        // The email is already confirmed, so the session is live without a
+        // profile. End it: signing in again continues at "finish your
+        // profile" instead of leaving a half-signed-in browser behind.
+        await supabase.auth.signOut();
+        fail(
+          `${result.error} Your email is verified, so you can sign in to finish setting up your profile.`,
+        );
         onClose();
       } else if (result.success) {
         onClose();

@@ -41,6 +41,8 @@ import {
   SUSPENDED_TITLE,
 } from "@/service/auth/suspensionService";
 
+import { profileMissingRoute } from "@/service/auth/profileMissingService";
+
 import { isValidEmail } from "@repo/utils";
 
 export default function SignIn() {
@@ -156,8 +158,15 @@ export default function SignIn() {
         .from("users")
         .select("roles")
         .eq("user_id", authData.user!.id)
-        .single();
+        .maybeSingle();
 
+      // Confirmed account whose profile was never saved (sign-up interrupted
+      // after the email code): keep the session and finish the profile
+      // instead of locking the account out. Suspension was handled above.
+      if (!profileError && !userProfile) {
+        router.replace(profileMissingRoute(authData.user!.email));
+        return;
+      }
 
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");

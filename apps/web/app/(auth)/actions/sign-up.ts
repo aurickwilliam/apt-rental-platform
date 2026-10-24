@@ -4,7 +4,7 @@ import { createClient } from "@repo/supabase/server";
 import { validateForm } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
 import type { Database } from "@repo/supabase";
-import { SUFFIXES } from "@repo/constants";
+import { SUFFIXES, validatePHMobile } from "@repo/constants";
 
 export interface SignUpFormState {
   error: string | null;
@@ -72,7 +72,8 @@ export async function signUp(
       middle_name: mapped.middleName || null,
       suffix: SUFFIXES.includes(mapped.suffix) ? mapped.suffix : null,
       gender: mapped.gender,
-      mobile_number: mapped.mobileNumber,
+      // validateForm accepted it, so this is always the stored 09XXXXXXXXX form.
+      mobile_number: validatePHMobile(mapped.mobileNumber).formattedNumber,
       birth_date: mapped.birthDate,
       street_address: mapped.streetAddress,
       barangay: mapped.barangay,

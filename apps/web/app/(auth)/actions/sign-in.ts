@@ -76,11 +76,18 @@ export async function signIn(
     .from("users")
     .select("roles")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   const profile = profileData as unknown as UserRolesProfile | null;
 
   if (profile?.roles.includes("admin")) {
     redirect("/admin/dashboard");
+  }
+
+  // Confirmed account whose profile was never saved (sign-up interrupted
+  // after the email code): keep the session and finish the profile, instead
+  // of leaving the account locked out. Suspension was handled above.
+  if (!profileError && !profile) {
+    redirect("/sign-up?from=profile-missing");
   }
 
   if (profileError || !profile) {

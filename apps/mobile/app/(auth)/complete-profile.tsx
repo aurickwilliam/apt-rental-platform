@@ -24,6 +24,8 @@ import {
 import { supabase } from "@repo/supabase";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
+import { validateBirthDate } from '@repo/utils';
+
 import { useColors } from 'hooks/useTheme';
 
 import {
@@ -180,20 +182,9 @@ export default function CompleteProfile() {
       return 'Passwords do not match';
     }
 
-    // Birth Date Validation
+    // Same rule as web and the database (18+, not in the future, not over 120).
     if (field === 'birthDate' && profileForm.birthDate) {
-      const birth = new Date(profileForm.birthDate);
-      const today = new Date();
-
-      const age = today.getFullYear() - birth.getFullYear();
-      const hasBirthdayPassed =
-        today.getMonth() > birth.getMonth() ||
-        (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
-      const actualAge = hasBirthdayPassed ? age : age - 1;
-
-      if (birth > today) return 'Date of birth cannot be in the future';
-      if (actualAge < 18) return 'You must be at least 18 years old';
-      if (actualAge > 120) return 'Please enter a valid date of birth';
+      return validateBirthDate(profileForm.birthDate) ?? undefined;
     }
 
     return undefined;
@@ -208,11 +199,13 @@ export default function CompleteProfile() {
     const isPostalCodeValidOnSubmit = validatePostalCode();
     const isMobileValidOnSubmit = validateMobileNumber();
     const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
+    const birthDateInvalid = !!profileForm.birthDate && !!validateBirthDate(profileForm.birthDate);
 
     // if any validation fails, scroll to first error and return early
     if (
       !isPasswordValid ||
       emptyFields.length > 0 ||
+      birthDateInvalid ||
       !isPostalCodeValidOnSubmit ||
       !isMobileValidOnSubmit.isValid
     ) {
@@ -225,6 +218,7 @@ export default function CompleteProfile() {
       const firstError = fieldOrder.find((field) => {
         if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
         if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
+        if (field === 'birthDate' && birthDateInvalid) return true;
         if (field === 'password') return !isPasswordValid && !!profileForm.password;
         if (field === 'confirmPassword') return !isPasswordValid;
         return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();

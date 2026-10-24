@@ -109,6 +109,8 @@ export default function OTPVerification() {
     setLoading(true)
     setOtpError(null)
 
+    let emailVerified = false
+
     try {
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
@@ -117,6 +119,7 @@ export default function OTPVerification() {
       })
 
       if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
+      emailVerified = true
 
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
@@ -184,7 +187,14 @@ export default function OTPVerification() {
         clearQueryClient()
         await supabase.auth.signOut()
 
-        setError(getProfileSubmitError(err))
+        // Once the code is accepted the account exists; signing in continues
+        // at "finish your profile" if the profile write is what failed.
+        const message = getProfileSubmitError(err)
+        setError(
+          emailVerified
+            ? `${message} Your email is verified, so you can sign in to finish setting up your profile.`
+            : message,
+        )
         setErrorDialogOpen(true)
       }
     } finally {

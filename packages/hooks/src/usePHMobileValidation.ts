@@ -1,15 +1,10 @@
 import { useState, useCallback } from "react";
 
-import { PH_MOBILE_PREFIXES } from "@repo/constants";
+import { validatePHMobile, type PHMobileValidation } from "@repo/constants";
 
 type PhoneFormat = "09XXXXXXXXX" | "+639XXXXXXXXX" | "639XXXXXXXXX";
 
-interface ValidationResult {
-  isValid: boolean;
-  errorMessage: string | null;
-  formattedNumber: string | null;
-  prefix: string | null;
-}
+type ValidationResult = PHMobileValidation;
 
 interface UsePhilippineMobileValidationReturn {
   value: string;
@@ -20,55 +15,7 @@ interface UsePhilippineMobileValidationReturn {
   formatTo: (format: PhoneFormat) => string | null;
 }
 
-/**
- * Normalizes any PH mobile format to a raw 11-digit string starting with "09"
- */
-function normalize(input: string): string {
-  const stripped = input.trim().replace(/[\s\-().]/g, "");
-
-  if (/^\+639\d{9}$/.test(stripped)) return "0" + stripped.slice(3);  // +639XXXXXXXXX → 09XXXXXXXXX
-  if (/^639\d{9}$/.test(stripped))  return "0" + stripped.slice(2);   // 639XXXXXXXXX  → 09XXXXXXXXX
-  if (/^9\d{9}$/.test(stripped))    return "0" + stripped;            // 9XXXXXXXXX    → 09XXXXXXXXX
-  if (/^09\d{9}$/.test(stripped))   return stripped;                  // Already 09XXXXXXXXX
-
-  return stripped;
-}
-
-function runValidation(input: string): ValidationResult {
-  if (!input || input.trim() === "") {
-    return { isValid: false, errorMessage: "Mobile number is required.", formattedNumber: null, prefix: null };
-  }
-
-  const normalized = normalize(input);
-
-  if (!/^09\d{9}$/.test(normalized)) {
-    return {
-      isValid: false,
-      errorMessage: "Invalid format. Use 09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX.",
-      formattedNumber: null,
-      prefix: null,
-    };
-  }
-
-  const prefix = normalized.slice(0, 4);
-  const isKnownPrefix = PH_MOBILE_PREFIXES.includes(prefix);
-
-  if (!isKnownPrefix) {
-    return {
-      isValid: false,
-      errorMessage: `Unknown mobile prefix "${prefix}". Please enter a valid Philippine mobile number.`,
-      formattedNumber: null,
-      prefix,
-    };
-  }
-
-  return {
-    isValid: true,
-    errorMessage: null,
-    formattedNumber: normalized,
-    prefix,
-  };
-}
+const runValidation = validatePHMobile;
 
 export function usePHMobileValidation(
   initialValue: string = ""

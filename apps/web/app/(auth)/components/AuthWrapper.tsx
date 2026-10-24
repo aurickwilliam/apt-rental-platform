@@ -17,13 +17,15 @@ interface AuthWrapperProps {
   initialRole?: 'tenant' | 'landlord';
   portalError?: string | null;
   showWelcomeNotice?: boolean;
+  // Signed in with a confirmed email but no saved profile (interrupted sign-up).
+  profileMissing?: boolean;
   rolePickerMode?: boolean;
   // Verification handoff only: where to resume after login
   // (/verify or /verify/mobile?token=...). Never an external URL.
   next?: string;
 }
 
-function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: { portalError?: string | null; showWelcomeNotice?: boolean; rolePickerMode?: boolean; next?: string }) {
+function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePickerMode, next }: { portalError?: string | null; showWelcomeNotice?: boolean; profileMissing?: boolean; rolePickerMode?: boolean; next?: string }) {
   const { type, role, setRole } = useAuth();
 
   const description = type === 'sign-up'
@@ -82,6 +84,23 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: {
           </Alert>
         )}
 
+        {type === 'sign-up' && profileMissing && (
+          <Alert status="accent" className="mt-4 border border-primary/20 bg-accent!">
+            <Alert.Indicator className="text-primary!">
+              <Sparkles size={18} className="shrink-0" />
+            </Alert.Indicator>
+            <Alert.Content className="gap-1">
+              <Alert.Title className="font-poppinsSemiBold text-foreground!">
+                Finish setting up your account
+              </Alert.Title>
+              <Alert.Description className="text-sm text-foreground/80!">
+                Your email is verified, but your profile was not saved. Pick
+                a role below and re-enter your details to continue.
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+        )}
+
         {/* Role is chosen on sign-up only. Sign-in is role-agnostic and
             routes by the user's held roles after login. */}
         {type === 'sign-up' && (
@@ -124,7 +143,7 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: {
             selector above, and Continue. The email/password form, Google
             button, and footer links stay hidden. */}
         {rolePickerMode ? (
-          <RolePickerContinue />
+          <RolePickerContinue skipRoleStep={profileMissing} />
         ) : (
           <>
             {portalError && (
@@ -158,10 +177,10 @@ function AuthContent({ portalError, showWelcomeNotice, rolePickerMode, next }: {
   );
 }
 
-export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, rolePickerMode, next }: AuthWrapperProps) {
+export default function AuthWrapper({ type, initialRole, portalError, showWelcomeNotice, profileMissing, rolePickerMode, next }: AuthWrapperProps) {
   return (
     <AuthProvider type={type} initialRole={initialRole}>
-      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} rolePickerMode={rolePickerMode} next={next} />
+      <AuthContent portalError={portalError} showWelcomeNotice={showWelcomeNotice} profileMissing={profileMissing} rolePickerMode={rolePickerMode} next={next} />
     </AuthProvider>
   );
 }

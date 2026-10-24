@@ -13,6 +13,7 @@ export * from './landlordFinance';
 export * from './landlordPayments';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
+export { MINIMUM_AGE, MAXIMUM_AGE, calculateAge, validateBirthDate } from './birthDate';
 export {
   PAYMENT_METHOD_TYPES,
   EMPTY_PAYMENT_METHOD_PREFERENCES,

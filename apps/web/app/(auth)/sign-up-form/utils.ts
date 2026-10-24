@@ -1,6 +1,6 @@
 import { SignUpFormData } from "./types";
 import { validateBirthDate } from "@/lib/birth-date";
-import { isZipPlausibleForCity } from "@repo/constants";
+import { GENDERS, isZipPlausibleForCity, validatePHMobile } from "@repo/constants";
 
 export function validateForm(formData: SignUpFormData): string | null {
   if (!formData.firstName || !formData.lastName) {
@@ -36,6 +36,15 @@ export function validateForm(formData: SignUpFormData): string | null {
   const birthDateError = validateBirthDate(formData.birthDate);
   if (birthDateError) {
     return birthDateError;
+  }
+
+  if (!GENDERS.includes(formData.gender)) {
+    return "Please choose a valid gender.";
+  }
+
+  const mobileError = validatePHMobile(formData.mobileNumber).errorMessage;
+  if (mobileError) {
+    return mobileError;
   }
 
   if (
