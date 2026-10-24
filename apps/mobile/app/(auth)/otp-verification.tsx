@@ -12,8 +12,9 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 
-import { getProfileSubmitError } from '@repo/utils'
+import { getEmailCodeRequestError, getProfileSubmitError, parseResendWaitSeconds } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
 import { useCountdown } from 'hooks/auth'
@@ -29,15 +30,12 @@ import {
 const OTP_VALIDITY_DURATION = 60 // seconds
 const MAX_OTP_ATTEMPTS = 5
 
-// "For security purposes, you can only request this after 42 seconds."
-const parseResendWaitSeconds = (message: string | undefined): number | null => {
-  const match = message?.match(/after (\d+) seconds?/i)
-  return match ? Number(match[1]) : null
-}
-
 export default function OTPVerification() {
   const router = useRouter()
-  const { email } = useLocalSearchParams()
+  const { email, mode } = useLocalSearchParams()
+  // Opened from sign-in for an account whose email was never confirmed: there
+  // is no sign-up form data, so a verified code continues at "finish profile".
+  const isConfirmMode = (Array.isArray(mode) ? mode[0] : mode) === 'confirm'
 
   const { colors } = useColors();
 
@@ -87,7 +85,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(resendError.message || 'Something went wrong')
+        setError(getEmailCodeRequestError(resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -120,6 +118,16 @@ export default function OTPVerification() {
 
       if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
       emailVerified = true
+
+      if (isConfirmMode) {
+        clearQueryClient()
+        if (await isProfileMissing(authData.user.id)) {
+          router.replace(profileMissingRoute(authData.user.email))
+        } else {
+          router.replace('/')
+        }
+        return
+      }
 
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
@@ -298,7 +306,9 @@ export default function OTPVerification() {
           isDisabled={loading || otpLocked || otp.length < 6}
         >
           <Button.Label>
-            {loading ? 'Creating Account...' : 'Verify & Create Account'}
+            {loading
+              ? (isConfirmMode ? 'Verifying...' : 'Creating Account...')
+              : (isConfirmMode ? 'Verify Email' : 'Verify & Create Account')}
           </Button.Label>
         </Button>
       </View>

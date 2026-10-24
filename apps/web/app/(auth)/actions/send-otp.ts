@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
+import { getEmailCodeRequestError } from "@repo/utils";
 
 export async function sendEmailOtp(email: string, password: string, firstName: string, lastName: string) {
   const supabase = await createClient();
@@ -16,6 +17,6 @@ export async function sendEmailOtp(email: string, password: string, firstName: s
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: getEmailCodeRequestError(error.message) };
   return { success: true };
 }

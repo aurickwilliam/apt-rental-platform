@@ -13,6 +13,7 @@ export * from './landlordFinance';
 export * from './landlordPayments';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
+export { parseResendWaitSeconds, getEmailCodeRequestError } from './otpErrors';
 export { MINIMUM_AGE, MAXIMUM_AGE, calculateAge, validateBirthDate } from './birthDate';
 export {
   PAYMENT_METHOD_TYPES,

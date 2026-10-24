@@ -1,6 +1,12 @@
 import { SignUpFormData } from "./types";
 import { validateBirthDate } from "@/lib/birth-date";
-import { GENDERS, isZipPlausibleForCity, validatePHMobile } from "@repo/constants";
+import {
+  GENDERS,
+  PASSWORD_POLICY_MESSAGE,
+  isZipPlausibleForCity,
+  meetsPasswordPolicy,
+  validatePHMobile,
+} from "@repo/constants";
 
 export function validateForm(formData: SignUpFormData): string | null {
   if (!formData.firstName || !formData.lastName) {
@@ -11,8 +17,8 @@ export function validateForm(formData: SignUpFormData): string | null {
     return "Password and confirm password are required.";
   }
 
-  if (formData.password.length < 8) {
-    return "Password must be at least 8 characters long.";
+  if (!meetsPasswordPolicy(formData.password)) {
+    return PASSWORD_POLICY_MESSAGE;
   }
 
   if (formData.password !== formData.confirmPassword) {

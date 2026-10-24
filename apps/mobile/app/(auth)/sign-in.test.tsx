@@ -4,6 +4,8 @@ import SignIn from "./sign-in";
 import { useSuspensionStore } from "@/stores/useSuspensionStore";
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
+const mockResend = jest.fn();
 const mockSignInWithPassword = jest.fn();
 const mockSignOut = jest.fn();
 const mockSingle = jest.fn();
@@ -11,7 +13,7 @@ const mockRestore = jest.fn();
 const mockGetStatus = jest.fn();
 const mockErrorDialog = jest.fn();
 
-jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, push: jest.fn() }) }));
+jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }) }));
 jest.mock("expo-image", () => ({ Image: () => null }));
 jest.mock("constants/images", () => ({ IMAGES: { logo: "logo.png", googleLogo: "google.png" } }));
 jest.mock("components/layout/ScreenWrapper", () => {
@@ -41,6 +43,7 @@ jest.mock("@repo/supabase", () => ({
     auth: {
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
       signOut: (...args: unknown[]) => mockSignOut(...args),
+      resend: (...args: unknown[]) => mockResend(...args),
     },
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => mockSingle() }) }) }),
   },
@@ -164,6 +167,28 @@ describe("role-neutral mobile sign-in", () => {
       }),
     );
     expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockRestore).not.toHaveBeenCalled();
+  });
+
+  it("offers to confirm an unconfirmed email with a fresh code instead of dead-ending", async () => {
+    mockSignInWithPassword.mockResolvedValue({
+      data: { user: null },
+      error: { message: "Email not confirmed" },
+    });
+    mockResend.mockResolvedValue({ error: null });
+    render(<SignIn />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "A@Example.test");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    fireEvent.press(screen.getByText("Sign In"));
+
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: "/(auth)/otp-verification",
+        params: { email: "a@example.test", mode: "confirm" },
+      }),
+    );
+    expect(mockResend).toHaveBeenCalledWith({ type: "signup", email: "A@Example.test" });
     expect(mockRestore).not.toHaveBeenCalled();
   });
 

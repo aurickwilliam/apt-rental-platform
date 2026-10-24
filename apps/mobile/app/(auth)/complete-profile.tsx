@@ -24,7 +24,7 @@ import {
 import { supabase } from "@repo/supabase";
 import { useRegistrationStore } from '@/stores/useRegistrationStore';
 
-import { validateBirthDate } from '@repo/utils';
+import { getEmailCodeRequestError, validateBirthDate } from '@repo/utils';
 
 import { useColors } from 'hooks/useTheme';
 
@@ -260,7 +260,7 @@ export default function CompleteProfile() {
       // Navigate to OTP verification screen with email as param
       router.push({ pathname: '/(auth)/otp-verification', params: { email: emailValue } });
     } catch (err: any) {
-      setError(err.message);
+      setError(getEmailCodeRequestError(err.message));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);

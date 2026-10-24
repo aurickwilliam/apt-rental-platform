@@ -19,7 +19,7 @@ import {
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
-import PasswordChecklist from "./PasswordChecklist";
+import PasswordRequirementList from "@/app/components/inputs/PasswordRequirementList";
 import OtpModal from "./OtpModal";
 import SuccessModal from "./SuccessModal";
 import ErrorModal from "./ErrorModal";
@@ -34,6 +34,7 @@ import {
   SUFFIXES,
   getCitiesByProvince,
   getBarangaysByCity,
+  getPasswordRequirements,
   isZipPlausibleForCity,
   type Province,
 } from "@repo/constants";
@@ -520,9 +521,9 @@ export default function SignUpForm() {
             onChange={handleChange("confirmPassword")}
           />
 
-          <PasswordChecklist
-            password={formData.password}
-            confirmPassword={formData.confirmPassword}
+          <PasswordRequirementList
+            requirements={getPasswordRequirements(formData.password, formData.confirmPassword)}
+            hasInput={formData.password.length > 0 || formData.confirmPassword.length > 0}
           />
         </div>
 

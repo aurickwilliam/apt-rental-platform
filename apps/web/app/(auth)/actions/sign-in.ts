@@ -8,6 +8,9 @@ import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 export interface SignInFormState {
   error: string | null;
+  // The password was right but the email code was never entered: the form
+  // offers to send a new code and confirm it.
+  needsEmailConfirmation?: boolean;
 }
 
 interface UserRolesProfile { roles: string[] }
@@ -47,7 +50,10 @@ export async function signIn(
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
-      return { error: "Please verify your email address before signing in." };
+      return {
+        error: "Please verify your email address before signing in.",
+        needsEmailConfirmation: true,
+      };
     }
     if (error.message.includes("rate limit")) {
       return { error: "Too many sign-in attempts. Please try again later." };

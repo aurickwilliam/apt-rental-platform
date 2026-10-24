@@ -16,6 +16,7 @@ interface OtpModalProps {
   onResend: () => void;
   onVerify: (close: () => void) => void;
   onCancel: (close: () => void) => void;
+  verifyLabel?: string;
 }
 
 export default function OtpModal({
@@ -32,6 +33,7 @@ export default function OtpModal({
   onResend,
   onVerify,
   onCancel,
+  verifyLabel = "Verify & Create Account",
 }: OtpModalProps) {
   return (
     <Modal>
@@ -102,7 +104,7 @@ export default function OtpModal({
                     isPending={loading}
                     onPress={() => onVerify(close)}
                   >
-                    Verify &amp; Create Account
+                    {verifyLabel}
                   </Button>
                   <Button
                     variant="ghost"

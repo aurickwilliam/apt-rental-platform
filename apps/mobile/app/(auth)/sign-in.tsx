@@ -134,7 +134,14 @@ export default function SignIn() {
         if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
-          setError("Please verify your email address before signing in.");
+          // Sign-up was left before the email code was entered: send a fresh
+          // code and let the person confirm it here. A throttled resend still
+          // lets them use the code they already have.
+          await supabase.auth.resend({ type: "signup", email: email.trim() });
+          router.push({
+            pathname: "/(auth)/otp-verification",
+            params: { email: email.trim().toLowerCase(), mode: "confirm" },
+          });
         } else if (signInError.message.includes("rate limit")) {
           setError("Too many sign-in attempts. Please try again later.");
         } else {

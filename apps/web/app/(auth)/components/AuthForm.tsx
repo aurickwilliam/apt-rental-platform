@@ -7,6 +7,8 @@ import PasswordField from '@/app/components/inputs/PasswordField';
 import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
+import { useConfirmEmail } from '../hooks/use-confirm-email';
+import OtpModal from '../sign-up-form/components/OtpModal';
 
 import { Form, Input, Link, Button, TextField, FieldError, Label } from '@heroui/react'
 
@@ -21,6 +23,7 @@ export default function AuthForm({ next }: { next?: string }) {
   const [checkingEmail, setCheckingEmail] = useState(false);
 
   const [state, formAction, isPending] = useActionState(signIn, initialState);
+  const confirmEmail = useConfirmEmail(email);
 
   const clearSignUpError = useCallback(() => {
     setSignUpError((current) => (current === null ? current : null));
@@ -83,7 +86,39 @@ export default function AuthForm({ next }: { next?: string }) {
       {visibleError && (
         <div className="mt-4 p-3 bg-red-200 border border-red-400 rounded-lg">
           <p className="text-sm text-red-600">{visibleError}</p>
+          {type === 'sign-in' && state.needsEmailConfirmation && (
+            <Link
+              onPress={confirmEmail.open}
+              className="mt-1 cursor-pointer text-sm font-medium text-primary"
+            >
+              Send me a new code
+            </Link>
+          )}
         </div>
+      )}
+
+      {type === 'sign-in' && (
+        <OtpModal
+          isOpen={confirmEmail.isOpen}
+          onOpenChange={(open) => {
+            if (!open) confirmEmail.cancel();
+          }}
+          email={email.trim()}
+          otp={confirmEmail.otp}
+          otpError={confirmEmail.otpError}
+          resendCooldown={confirmEmail.resendCooldown}
+          resendLoading={confirmEmail.resendLoading}
+          loading={confirmEmail.loading}
+          formatCooldown={confirmEmail.formatCooldown}
+          onOtpChange={confirmEmail.setOtp}
+          onResend={confirmEmail.sendCode}
+          onVerify={() => void confirmEmail.verify()}
+          onCancel={(close) => {
+            confirmEmail.cancel();
+            close();
+          }}
+          verifyLabel="Verify Email"
+        />
       )}
 
       {/* Form */}
