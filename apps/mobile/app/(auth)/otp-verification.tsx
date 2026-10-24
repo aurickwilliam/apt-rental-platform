@@ -129,7 +129,7 @@ export default function OTPVerification() {
         first_name: data.firstName,
         last_name: data.lastName,
         middle_name: data.middleName ?? null,
-        suffix: data.suffixName ?? null,
+        suffix: data.suffixName || null,
         gender: data.gender,
         mobile_number: data.mobileNumber,
         birth_date: data.birthDate,
