@@ -1,124 +1,92 @@
 "use client";
 
-import { Suspense, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { Button, Card, Chip, ListBox, Select } from "@heroui/react";
-import StatusChip from "@/app/components/display/StatusChip";
-import type { StatusTone } from "@/lib/status-tone";
-import { IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
-import { formatPesoDisplay } from "@repo/utils";
-import type { PaymentHistoryFilter } from "@/app/tenant/payment/types";
-import type { PaymentRecord } from "@/service/paymentService";
-import { formatReferenceId, methodLabel, paymentStatusLabel, periodMonthLabel } from "@/app/tenant/payment/utils";
+import { Suspense, useMemo, useState } from "react";
+import { Badge, Button, Card, ComboBox, Input, ListBox, Tabs } from "@heroui/react";
+import { IconReceipt as Receipt, IconRefresh } from "@tabler/icons-react";
+import SettingsSelect from "@/app/components/settings/SettingsSelect";
+import { paymentStatusLabel } from "@/app/tenant/payment/utils";
 import { useLandlordApartments, useLandlordPayments } from "@/hooks/use-landlord-payments";
-import PaymentHistoryFilters from "@/app/tenant/payment/components/PaymentHistoryFilters";
+import {
+  ALL_APARTMENTS,
+  ALL_YEARS,
+  availableLedgerYears,
+  countByTab,
+  filterByYear,
+  isAwaitingCashConfirmation,
+  matchesTab,
+  sortLedger,
+  summarizeLedger,
+  type LedgerRow,
+  type LedgerSort,
+  type LedgerTab,
+} from "@/lib/landlord-payments-view";
+import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
+import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import PaymentsHeader from "./components/PaymentsHeader";
-import PaymentsSkeleton, { PaymentCardsSkeleton } from "./components/PaymentsSkeleton";
+import PaymentsSkeleton, { NeedsAttentionSkeleton, PaymentsBodySkeleton } from "./components/PaymentsSkeleton";
+import PaymentsSummary from "./components/PaymentsSummary";
+import PaymentReceiptModal from "./components/PaymentReceiptModal";
+import PaymentsTable from "./components/PaymentsTable";
 
-function toYear(payment: PaymentRecord): string {
-  const src = payment.period_start ?? payment.date;
-  return src.slice(0, 4);
-}
+type PaymentLedgerRow = LedgerRow & { payment: LandlordPaymentRecord };
 
-// One sticky year row per group. The Filters control rides this row — the same
-// row as the "This Year" tag — instead of the page heading.
-function SectionHeader({ year, currentYear, action }: { year: string; currentYear: string; action?: ReactNode }) {
-  return (
-    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-zinc-50 py-2 dark:bg-zinc-950">
-      {year === currentYear ? (
-        <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
-          <span className="text-sm font-nunito font-semibold text-primary">This Year</span>
-        </div>
-      ) : (
-        <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
-      )}
-      {action}
-    </div>
-  );
-}
+const TABS: { id: LedgerTab; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "paid", label: "Paid" },
+  { id: "pending", label: "Pending" },
+  { id: "declined", label: "Declined" },
+];
 
-function toPaidDate(iso: string): string {
-  const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-}
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+] as const;
 
-function LandlordRowCard({ payment, apartmentId }: { payment: PaymentRecord; apartmentId: string }) {
-  const status = paymentStatusLabel(payment.status);
-  const color: StatusTone =
-    status === "Paid" ? "success" : status === "Pending" ? "warning" : "danger";
-
-  return (
-    <Link href={`/landlord/payments/${payment.id}?apartmentId=${apartmentId}`} className="no-underline">
-      <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm hover:border-primary/30 hover:shadow-md transition-all">
-        <Card.Header className="px-4 pt-4 pb-1">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate flex-1">
-              {payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
-            </p>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Chip size="sm" variant="soft" color="default" className="text-[11px]">
-                {methodLabel(payment.method)}
-              </Chip>
-              <StatusChip size="sm" tone={color} className="text-[11px]">
-                {status}
-              </StatusChip>
-            </div>
-          </div>
-        </Card.Header>
-        <Card.Content className="px-4 pb-2">
-          <p className="text-sm font-nunito font-bold text-primary">{formatPesoDisplay(payment.amount ?? 0)}</p>
-          {payment.tenant_name ? (
-            <p className="text-xs text-zinc-500 truncate mt-0.5">{payment.tenant_name}</p>
-          ) : null}
-        </Card.Content>
-        <Card.Footer className="px-4 pb-4 flex items-center justify-between gap-2">
-          <span className="text-[11px] text-zinc-500 truncate flex-1">
-            {status === "Paid" ? "Paid on" : "Recorded on"}: {toPaidDate(payment.date)}
-          </span>
-          <span className="text-[11px] text-zinc-500 shrink-0">{formatReferenceId(payment.reference_id)}</span>
-        </Card.Footer>
-      </Card>
-    </Link>
-  );
+function toLedgerRow(payment: LandlordPaymentRecord): PaymentLedgerRow {
+  return {
+    id: payment.id,
+    status: paymentStatusLabel(payment.status),
+    method: payment.method,
+    amount: payment.amount,
+    date: payment.date,
+    payment,
+  };
 }
 
 function PaymentsContent() {
-  const [filters, setFilters] = useState<PaymentHistoryFilter>({ years: [], statuses: [], sort: "Newest" });
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [tab, setTab] = useState<LedgerTab>("all");
+  const [year, setYear] = useState<string>(ALL_YEARS);
+  const [sort, setSort] = useState<LedgerSort>("newest");
 
   const unitsQuery = useLandlordApartments();
-  const [apartmentId, setApartmentId] = useState<string | null>(null);
-  const activeApartmentId = unitsQuery.apartments.some((unit) => unit.id === apartmentId)
-    ? apartmentId : unitsQuery.apartments[0]?.id ?? null;
+  const [apartmentId, setApartmentId] = useState<string>(ALL_APARTMENTS);
+  // A unit that is no longer in the list falls back to every unit.
+  const activeApartmentId = unitsQuery.apartments.some((unit) => unit.id === apartmentId) ? apartmentId : ALL_APARTMENTS;
+  const showUnit = activeApartmentId === ALL_APARTMENTS;
+  const unitOptions = [{ id: ALL_APARTMENTS, name: "All apartments" }, ...unitsQuery.apartments];
   const paymentsQuery = useLandlordPayments(activeApartmentId);
+  // The receipt shown over the list is read from the list itself, so it reflects a
+  // confirmation as soon as the reloaded rows arrive and closes if its row is gone.
+  const [receiptId, setReceiptId] = useState<string | null>(null);
+  const receiptPayment = receiptId ? paymentsQuery.payments.find((payment) => payment.id === receiptId) ?? null : null;
 
-  const currentYear = String(new Date().getFullYear());
-  const availableYears = useMemo(
-    () => [...new Set(paymentsQuery.payments.map(toYear))].sort((a, b) => Number(b) - Number(a)),
-    [paymentsQuery.payments],
+  const ledger = useMemo(() => paymentsQuery.payments.map(toLedgerRow), [paymentsQuery.payments]);
+  const years = useMemo(() => availableLedgerYears(ledger), [ledger]);
+  // A year that no longer exists for the selected unit falls back to every year.
+  const activeYear = year === ALL_YEARS || years.includes(year) ? year : ALL_YEARS;
+
+  const inYear = useMemo(() => filterByYear(ledger, activeYear), [ledger, activeYear]);
+  const summary = useMemo(() => summarizeLedger(inYear), [inYear]);
+  const tabCounts = useMemo(() => countByTab(inYear), [inYear]);
+  const rows = useMemo(
+    () => sortLedger(inYear.filter((row) => matchesTab(row, tab)), sort),
+    [inYear, tab, sort],
   );
-  const activeCount = filters.years.length + filters.statuses.length;
-
-  const filtered = useMemo(() => {
-    let r = [...paymentsQuery.payments];
-    if (filters.years.length > 0) r = r.filter((p) => filters.years.includes(toYear(p)));
-    if (filters.statuses.length > 0) r = r.filter((p) => filters.statuses.includes(paymentStatusLabel(p.status)));
-    const dir = filters.sort === "Newest" ? -1 : 1;
-    r.sort((a, b) => dir * (new Date(a.date).getTime() - new Date(b.date).getTime()));
-    return r;
-  }, [filters, paymentsQuery.payments]);
-
-  const grouped = useMemo(() => {
-    const map = new Map<string, PaymentRecord[]>();
-    for (const p of filtered) {
-      const y = toYear(p);
-      if (!map.has(y)) map.set(y, []);
-      map.get(y)!.push(p);
-    }
-    const dir = filters.sort === "Newest" ? -1 : 1;
-    return [...map.entries()].sort(([a], [b]) => dir * (Number(a) - Number(b)));
-  }, [filtered, filters.sort]);
+  // Action list: every cash payment waiting on the landlord, whatever the filters say.
+  const awaitingCash = useMemo(
+    () => sortLedger(ledger.filter(isAwaitingCashConfirmation), "oldest").map((row) => row.payment),
+    [ledger],
+  );
 
   if (unitsQuery.error || paymentsQuery.error) {
     return (
@@ -133,7 +101,7 @@ function PaymentsContent() {
           className="rounded-full"
           onPress={() => {
             void unitsQuery.refresh();
-            void paymentsQuery.refresh();
+            void paymentsQuery.reload();
           }}
         >
           Try Again
@@ -151,81 +119,145 @@ function PaymentsContent() {
     );
   }
 
-  const filterRowYear = grouped.some(([year]) => year === currentYear) ? currentYear : grouped[0]?.[0];
-  const filtersButton = (
-    <Button variant="secondary" size="sm" className="rounded-full relative w-fit shrink-0" onPress={() => setDrawerOpen(true)}>
-      <SlidersHorizontal size={14} /> Filters
-      {activeCount > 0 && (
-        <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
-          {activeCount}
-        </span>
-      )}
-    </Button>
-  );
+  const loading = unitsQuery.loading || paymentsQuery.loading;
+  const isFiltered = tab !== "all" || activeYear !== ALL_YEARS;
+  const yearOptions = [
+    { value: ALL_YEARS, label: "All years" },
+    ...years.map((value) => ({ value, label: value })),
+  ];
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PaymentsHeader />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PaymentsHeader />
+        {loading ? <NeedsAttentionSkeleton /> : <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} onOpen={(payment) => setReceiptId(payment.id)} />}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2" data-fab-clearance>
+        <ComboBox
+          aria-label="Apartment"
+          className="w-full sm:w-72"
+          menuTrigger="focus"
+          isDisabled={unitsQuery.loading || unitsQuery.revalidating}
+          selectedKey={activeApartmentId}
+          onSelectionChange={(key) => {
+            if (key) setApartmentId(String(key));
+          }}
+        >
+          <ComboBox.InputGroup className="w-full">
+            <Input placeholder={unitsQuery.loading ? "Loading apartments…" : "Search apartments"} />
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+          <ComboBox.Popover>
+            <ListBox className="settings-select-list" renderEmptyState={() => <p className="px-3 py-2 text-sm text-muted-foreground">No apartments match.</p>}>
+              {unitOptions.map((unit) => (
+                <ListBox.Item key={unit.id} id={unit.id} textValue={unit.name}>
+                  {unit.name}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </ComboBox.Popover>
+        </ComboBox>
+        <Button
+          isIconOnly
+          variant="outline"
+          aria-label="Refresh payments"
+          className="cursor-pointer rounded-xl border-border"
+          isDisabled={loading}
+          isPending={unitsQuery.revalidating || paymentsQuery.revalidating}
+          onPress={() => {
+            void unitsQuery.refresh();
+            void paymentsQuery.reload();
+          }}
+        >
+          <IconRefresh size={16} aria-hidden />
+        </Button>
+      </div>
       {unitsQuery.revalidating || paymentsQuery.revalidating ? <span role="status" className="sr-only">Updating payments</span> : null}
 
-      <Select
-        placeholder={unitsQuery.loading ? "Loading units…" : "Select unit"}
-        isDisabled={unitsQuery.loading || unitsQuery.revalidating}
-        value={activeApartmentId}
-        onChange={(key) => setApartmentId(key ? String(key) : null)}
-        className="max-w-md"
-      >
-        <Select.Trigger>
-          <Select.Value />
-          <Select.Indicator />
-        </Select.Trigger>
-        <Select.Popover>
-          <ListBox>
-            {unitsQuery.apartments.map((apt) => (
-              <ListBox.Item key={apt.id} id={apt.id} textValue={apt.name}>
-                {apt.name}
-              </ListBox.Item>
-            ))}
-          </ListBox>
-        </Select.Popover>
-      </Select>
-
-      {unitsQuery.loading || paymentsQuery.loading ? <PaymentCardsSkeleton action={filtersButton} /> : filtered.length === 0 ? (
-        <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-          <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
-            <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
-              <Receipt size={32} className="text-primary" />
-            </span>
-            <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
-            <p className="text-sm text-zinc-500 max-w-sm">Try adjusting your filters to see more results.</p>
-            <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: [], sort: "Newest" })}>
-              Clear filters
-            </Button>
-          </Card.Content>
-        </Card>
+      {loading ? (
+        <PaymentsBodySkeleton />
       ) : (
-        <div className="space-y-6">
-          {grouped.map(([year, payments]) => (
-            <section key={year} className="space-y-3">
-              <SectionHeader year={year} currentYear={currentYear} action={year === filterRowYear ? filtersButton : undefined} />
-              <div className="grid gap-3">
-                {activeApartmentId &&
-                  payments.map((p) => <LandlordRowCard key={p.id} payment={p} apartmentId={activeApartmentId} />)}
+        <>
+          <PaymentsSummary summary={summary} scopeLabel={activeYear === ALL_YEARS ? "All years" : activeYear} />
+
+          <div className="min-w-0 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key) as LedgerTab)} className="apt-status-tabs w-full sm:w-auto">
+                <Tabs.ListContainer>
+                  <Tabs.List aria-label="Payment status">
+                    {TABS.map(({ id, label }) => (
+                      <Tabs.Tab key={id} id={id}>
+                        <span className="apt-tab-label">{label}</span>
+                        {id === "pending" && tabCounts.pending > 0 ? (
+                          <Badge color="danger" size="sm" placement="top-right">
+                            {tabCounts.pending}
+                          </Badge>
+                        ) : null}
+                        <Tabs.Indicator />
+                      </Tabs.Tab>
+                    ))}
+                  </Tabs.List>
+                </Tabs.ListContainer>
+              </Tabs>
+              <div className="flex items-center gap-2">
+                <SettingsSelect label="Year" value={activeYear} options={yearOptions} onChange={setYear} className="w-32" />
+                <SettingsSelect
+                  label="Sort"
+                  value={sort}
+                  options={SORT_OPTIONS}
+                  onChange={(value) => setSort(value as LedgerSort)}
+                  className="w-32"
+                />
               </div>
-            </section>
-          ))}
-        </div>
+            </div>
+
+            {rows.length === 0 ? (
+              <Card className="rounded-2xl border border-dashed border-border bg-card">
+                <Card.Content className="flex flex-col items-center gap-3 py-16 text-center">
+                  <span className="rounded-full bg-muted p-5">
+                    <Receipt size={32} className="text-primary" />
+                  </span>
+                  <p className="font-nunito text-base font-bold text-foreground">
+                    {isFiltered ? "No payments found" : "No payments yet"}
+                  </p>
+                  <p className="max-w-sm text-sm text-muted-foreground">
+                    {isFiltered
+                      ? "Try another status or year to see more results."
+                      : showUnit
+                        ? "Payments for your units will appear here."
+                        : "Payments for this unit will appear here."}
+                  </p>
+                  {isFiltered ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onPress={() => {
+                        setTab("all");
+                        setYear(ALL_YEARS);
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  ) : null}
+                </Card.Content>
+              </Card>
+            ) : (
+              <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} onOpen={(payment) => setReceiptId(payment.id)} />
+            )}
+          </div>
+        </>
       )}
 
-      <PaymentHistoryFilters
-        filters={filters}
-        onChange={setFilters}
-        availableYears={availableYears}
-        currentYear={currentYear}
-        isOpen={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        activeCount={activeCount}
-      />
+      {receiptPayment ? (
+        <PaymentReceiptModal
+          key={receiptPayment.id}
+          payment={receiptPayment}
+          onClose={() => setReceiptId(null)}
+          onChanged={paymentsQuery.refresh}
+        />
+      ) : null}
     </div>
   );
 }

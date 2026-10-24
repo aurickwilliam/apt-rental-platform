@@ -166,6 +166,11 @@ export {
   getCurrentRentStatus,
 } from './rentPeriod';
 export {
+  PAYMENT_REFERENCE_SUFFIX_LENGTH,
+  generatePaymentReference,
+  isPaymentReference,
+} from './paymentReference';
+export {
   NOTIFICATION_PREVIEW_MAX_LENGTH,
   getNotificationPreview,
 } from './notificationPreview';

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, toast, useOverlayState } from "@heroui/react";
 import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
-import { formatPesoDisplay, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
+import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
 import { formatLeaseDate, periodMonthLabel } from "./utils";
@@ -169,7 +169,7 @@ function PaymentContent() {
       return;
     }
 
-    const referenceId = `pay_${Date.now().toString(36)}`;
+    const referenceId = generatePaymentReference();
     const paymentDescription = bill?.kind === "move_in"
       ? `Move-in payment - ${apartment.name} (first rent, deposit and month 2 advance)`
       : feesTotal > 0
