@@ -21,6 +21,19 @@ export default function ReviewUnlockDialog({ isOpen, apartmentName, onDismiss, o
       onOpenChange={open => { if (!open) onDismiss(); }}
       title={`You can now review\n${apartmentName.trim()}!`}
       titleLayout="centered"
+      titleIllustration={
+        <View
+          testID="review-unlock-illustration"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          className="relative size-28 items-center justify-center rounded-full bg-primary-light"
+        >
+          <IconHomeFilled size={52} color={colors.primary} />
+          <IconStarFilled size={16} color={colors.rating} style={{ position: "absolute", right: -4, top: 8 }} />
+          <IconStarFilled size={12} color={colors.rating} style={{ position: "absolute", left: -4, top: 24 }} />
+          <IconStarFilled size={10} color={colors.rating} style={{ position: "absolute", bottom: -4, right: 12 }} />
+        </View>
+      }
       scrollable
       fitToViewport
       footer={
@@ -36,9 +49,6 @@ export default function ReviewUnlockDialog({ isOpen, apartmentName, onDismiss, o
       }
     >
       <View className="items-center gap-4">
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="size-20 items-center justify-center rounded-full bg-primary-light">
-          <IconHomeFilled size={40} color={colors.primary} />
-        </View>
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row gap-1">
           {[1, 2, 3, 4, 5].map(star => <IconStarFilled key={star} size={24} color={colors.rating} />)}
         </View>

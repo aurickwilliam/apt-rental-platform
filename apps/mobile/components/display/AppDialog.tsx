@@ -16,6 +16,8 @@ type AppDialogProps = {
   title: string;
   /** Centered headings join the scrollable body, below fixed close clearance. */
   titleLayout?: "default" | "centered";
+  /** Optional artwork above the title, in the same scrollable heading block. */
+  titleIllustration?: ReactNode;
   titleIcon?: ReactNode;
   description?: string;
   children: ReactNode;
@@ -31,6 +33,7 @@ export default function AppDialog({
   onOpenChange,
   title,
   titleLayout = "default",
+  titleIllustration,
   titleIcon,
   description,
   children,
@@ -44,7 +47,7 @@ export default function AppDialog({
   const centeredTitle = titleLayout === "centered";
   const heading = (
     <View
-      className={centeredTitle ? "mb-5 gap-1" : fitToViewport ? "mb-5 gap-1 pr-12" : titleIcon ? "mb-5 gap-1 pr-10" : "mb-5 gap-1"}
+      className={centeredTitle ? "mb-5 items-center gap-3" : fitToViewport ? "mb-5 gap-1 pr-12" : titleIcon ? "mb-5 gap-1 pr-10" : "mb-5 gap-1"}
       style={fitToViewport || centeredTitle ? {
         flexShrink: 0,
         minHeight: CLOSE_TARGET_SIZE,
@@ -52,6 +55,7 @@ export default function AppDialog({
         paddingTop: centeredTitle && !scrollable ? CLOSE_TARGET_SIZE : 0,
       } : undefined}
     >
+      {titleIllustration}
       <View className={centeredTitle ? "flex-row items-center justify-center gap-2" : "flex-row items-center gap-2"}>
         {titleIcon}
         <Dialog.Title

@@ -7,7 +7,14 @@ import ReviewUnlockDialog from "./ReviewUnlockDialog";
 let mockHeight = 640;
 jest.mock("react-native-safe-area-context", () => ({ SafeAreaInsetsContext: jest.requireActual<typeof import("react")>("react").createContext({ top: 24, bottom: 24, left: 0, right: 0 }) }));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5", rating: "#FBBF24", secondaryForeground: "#FFFFFF" } }) }));
-jest.mock("@tabler/icons-react-native", () => ({ IconHomeFilled: () => null, IconPencil: () => null, IconStarFilled: () => null }));
+jest.mock("@tabler/icons-react-native", () => {
+  const { View } = jest.requireActual<typeof import("react-native")>("react-native");
+  return {
+    IconHomeFilled: () => null,
+    IconPencil: () => null,
+    IconStarFilled: function Star({ size }: { size: number }) { return <View testID="rating-star" style={{ width: size, height: size }} />; },
+  };
+});
 jest.mock("heroui-native", () => {
   const { View, Text, Pressable } = jest.requireActual<typeof import("react-native")>("react-native");
   const Dialog = ({ isOpen, children }: { isOpen: boolean; children: ReactNode }) => isOpen ? <View>{children}</View> : null;
@@ -59,4 +66,19 @@ it("combines the message and dynamic apartment name into one centered heading", 
   expect(heading.props.className).toContain("text-2xl");
   expect(screen.queryByText("You can now review", { exact: true })).toBeNull();
   expect(screen.queryByText("Cozy Cove Apartment!", { exact: true })).toBeNull();
+});
+
+it("places the decorated home above the heading inside the same scroll surface", () => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native");
+  const screen = render(<ReviewUnlockDialog isOpen apartmentName="Cozy Cove Apartment" onDismiss={() => {}} onReview={() => {}} />);
+  const scroll = screen.UNSAFE_getByType(native.ScrollView);
+  const illustration = screen.getByTestId("review-unlock-illustration", { includeHiddenElements: true });
+  expect(illustration.props.accessibilityElementsHidden).toBe(true);
+  expect(illustration.props.className).toContain("size-28");
+  const decorativeStars = illustration.findAllByType(native.View).filter(node => node.props.testID === "rating-star");
+  expect(decorativeStars.map(star => StyleSheet.flatten(star.props.style).width)).toEqual([16, 12, 10]);
+  const ordered = scroll.findAll(node => node.props.testID === "review-unlock-illustration"
+    || node.props.children === "You can now review\nCozy Cove Apartment!");
+  expect(ordered[0].props.testID).toBe("review-unlock-illustration");
+  expect(ordered.some(node => node.props.children === "You can now review\nCozy Cove Apartment!")).toBe(true);
 });
