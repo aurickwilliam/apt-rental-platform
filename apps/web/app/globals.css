@@ -1172,6 +1172,12 @@ body[data-scroll-locked] [role="option"] {
   color: #376BF5;
 }
 
+/* The selected option's check mark is brand blue, matching its tinted row. */
+.settings-select-list .list-box-item[data-selected="true"] [data-slot="list-box-item-indicator--checkmark"],
+.settings-select-list .list-box-item[data-selected="true"] .list-box-item__indicator {
+  color: #376BF5;
+}
+
 /* Account/nav dropdown menus (all portals): same bluish hover instead of
    HeroUI's gray. Covers the sidebar account menu, navbar menu, and the
    mobile menu. Selected/active and danger text styling untouched. */

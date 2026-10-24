@@ -144,7 +144,7 @@ function PaymentsContent() {
             <ComboBox.Trigger />
           </ComboBox.InputGroup>
           <ComboBox.Popover>
-            <ListBox renderEmptyState={() => <p className="px-3 py-2 text-sm text-muted-foreground">No apartments match.</p>}>
+            <ListBox className="settings-select-list" renderEmptyState={() => <p className="px-3 py-2 text-sm text-muted-foreground">No apartments match.</p>}>
               {unitOptions.map((unit) => (
                 <ListBox.Item key={unit.id} id={unit.id} textValue={unit.name}>
                   {unit.name}
