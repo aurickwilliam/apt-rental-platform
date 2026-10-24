@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@repo/supabase/server";
+import { getServerIdentity } from "@/lib/server-identity";
 
 import { passportAccessRedirect } from "@/lib/passport-access";
 
@@ -24,17 +24,8 @@ export interface PassportViewer {
  * `cache` dedupes the lookup within one request.
  */
 export const requirePassportViewer = cache(async (portal: PassportPortal): Promise<PassportViewer> => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, profile, error } = await getServerIdentity();
   if (!user) redirect("/sign-in");
-
-  const { data: profile, error } = await supabase
-    .from("users")
-    .select("id, roles, account_status")
-    .eq("user_id", user.id)
-    .maybeSingle();
 
   if (error) throw new Error(`Couldn't load your profile: ${error.message}`);
   if (!profile?.roles?.includes(portal)) redirect("/browse");

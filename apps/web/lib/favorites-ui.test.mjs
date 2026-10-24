@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { canOptimizePublicApartmentImage } from "./public-apartment-image.ts";
 
 const apartment = {
   id: "saved-apartment", name: "Irene's Housing", barangay: "Malanday", city: "Valenzuela",
@@ -28,6 +29,7 @@ function loadComponent(file, modules = {}, exportName = "default") {
     "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "Content", Footer: "Footer" }), Skeleton: "Skeleton", toast: Object.assign(() => {}, { success: () => {}, danger: () => {} }) },
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage },
     ...modules,
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");

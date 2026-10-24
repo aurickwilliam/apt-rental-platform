@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import { IconChevronRight as ChevronRight, IconHome as House, IconMapPin as MapPin } from "@tabler/icons-react";
 
 type RentalHeroProps = {
@@ -21,7 +22,7 @@ export default function RentalHero({ name, address, imageUrl, descriptionHref }:
           src={imageUrl}
           alt={`Photo of ${name}`}
           fill
-          unoptimized
+          unoptimized={!canOptimizePublicApartmentImage(imageUrl)}
           sizes="(max-width: 1024px) 100vw, 66vw"
           className="object-cover"
         />
