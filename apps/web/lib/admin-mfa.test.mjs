@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { adminMfaDecision, isAdminMfaRequired, toAssuranceLevel } from "./admin-mfa.ts";
+import { adminMfaDecision, isAdminMfaRequired, qrCodeImageSrc, toAssuranceLevel } from "./admin-mfa.ts";
+
+test("the QR from Auth becomes a valid image src without the trailing newline", () => {
+  const svg = '<?xml version="1.0"?>\n<svg width="219"><rect fill="black"/></svg>\n';
+  const src = qrCodeImageSrc(`data:image/svg+xml;utf-8,${svg}`);
+  assert.ok(src.startsWith("data:image/svg+xml;utf-8,"));
+  assert.ok(!/[\s<>"]/.test(src), "nothing unencoded remains");
+  assert.equal(decodeURIComponent(src.slice(src.indexOf(",") + 1)), svg.trim());
+});
 
 test("nothing is enforced while the flag is off", () => {
   for (const hasVerifiedFactor of [true, false]) {

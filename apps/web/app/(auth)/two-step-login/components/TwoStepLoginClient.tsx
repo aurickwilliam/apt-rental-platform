@@ -9,7 +9,7 @@ import { getOtpAttemptError } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import CodeInput from "@/app/components/inputs/CodeInput";
-import { ADMIN_HOME } from "@/lib/admin-mfa";
+import { ADMIN_HOME, qrCodeImageSrc } from "@/lib/admin-mfa";
 import { signOut } from "../../actions/sign-out";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import RecoveryHeader from "../../forgot-password/components/RecoveryHeader";
@@ -64,7 +64,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
       }
       setEnrollment({
         factorId: data.id,
-        qrCode: data.totp.qr_code,
+        qrCode: qrCodeImageSrc(data.totp.qr_code),
         secret: data.totp.secret,
       });
     } catch (err) {
