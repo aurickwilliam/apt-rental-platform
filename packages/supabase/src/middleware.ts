@@ -47,6 +47,27 @@ function redirectWithCookies(
   return response;
 }
 
+// A signed-in account that is not suspended and has no profile row finished
+// the email code but never saved its profile (interrupted sign-up). A
+// suspended account looks the same to RLS, so ask the suspension RPC first;
+// when it cannot answer, assume nothing and leave the account where it is.
+async function isProfileMissing(
+  supabase: ReturnType<typeof createServerClient<Database>>,
+): Promise<boolean> {
+  const { data: suspension, error } = await supabase.rpc("get_my_suspension_status");
+  if (error) return false;
+  return (suspension as { suspended?: boolean } | null)?.suspended !== true;
+}
+
+// The sign-up page doubles as the role picker, and "profile-missing" sends the
+// account on to /complete-profile instead of the Google placeholder RPC.
+function redirectToProfileSetup(request: NextRequest): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = "/sign-up";
+  url.search = "?from=profile-missing";
+  return NextResponse.redirect(url);
+}
+
 export async function updateSession(request: NextRequest) {
   if (request.headers.get("next-action") !== null) {
     return NextResponse.next({ request });
@@ -205,7 +226,7 @@ export async function updateSession(request: NextRequest) {
   // redirect them to the home page — except pending-onboarding users, who
   // may only stay on the role picker and are sent back to it otherwise.
   if (user && authRoutes.some((route) => pathname.startsWith(route))) {
-    const { data: profileData } = await supabase.from("users")
+    const { data: profileData, error: authRouteProfileError } = await supabase.from("users")
       .select("id, roles, account_status, mobile_number").eq("user_id", user.id).maybeSingle();
     const profile = profileData as unknown as {
       id: string;
@@ -226,6 +247,10 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
+    }
+    if (!authRouteProfileError && (await isProfileMissing(supabase))) {
+      if (pathname !== "/sign-up") return redirectToProfileSetup(request);
+      return supabaseResponse;
     }
   }
 
@@ -261,6 +286,10 @@ export async function updateSession(request: NextRequest) {
 
     const role = defaultRole(profileRoles);
     const ownRoutes = role ? ROLE_ROUTES[role] : undefined;
+
+    if (profileError?.code === "PGRST116" && (await isProfileMissing(supabase))) {
+      return redirectToProfileSetup(request);
+    }
 
     if (profileError || !ownRoutes) {
       // A suspended account can authenticate but RLS hides its profile row.

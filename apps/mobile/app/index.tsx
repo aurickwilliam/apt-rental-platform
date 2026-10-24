@@ -10,6 +10,7 @@ import { usePortalStore } from "@/stores/usePortalStore";
 import { portalHome } from "@/service/auth/portalPreference";
 import { abandonUnfinishedPasswordRecovery } from "@/service/auth/passwordRecoveryService";
 import { getCurrentUser } from "@/service/auth/currentUserService";
+import { isProfileMissing, profileMissingRoute } from "@/service/auth/profileMissingService";
 import { CURRENT_USER_QUERY_KEY, queryClient } from "@/utils/queryClient";
 import { prepareTenantHome } from "@/hooks/tenancy";
 
@@ -27,13 +28,25 @@ export default function Index() {
       return false;
     };
 
-    const redirectByRole = async (userId: string) => {
+    const redirectByRole = async (userId: string, email: string | undefined) => {
       // Loads the full profile into the shared cache, so the portal layout
       // doesn't fetch it a second time before showing the home tab.
-      const userProfile = await queryClient.fetchQuery({
-        queryKey: CURRENT_USER_QUERY_KEY,
-        queryFn: getCurrentUser,
-      });
+      let userProfile;
+      try {
+        userProfile = await queryClient.fetchQuery({
+          queryKey: CURRENT_USER_QUERY_KEY,
+          queryFn: getCurrentUser,
+        });
+      } catch (error) {
+        // Session restored, but the profile was never saved (the app closed
+        // between the email code and the profile write): finish it.
+        if (await isProfileMissing(userId)) {
+          queryClient.removeQueries({ queryKey: CURRENT_USER_QUERY_KEY });
+          router.replace(profileMissingRoute(email));
+          return;
+        }
+        throw error;
+      }
 
       if (!userProfile) throw new Error("Profile not found.");
       const portal = await usePortalStore.getState().restore(userId, userProfile.roles ?? []);
@@ -68,7 +81,7 @@ export default function Index() {
           if (!session) {
             router.replace("/sign-in");
           } else {
-            await redirectByRole(session.user.id);
+            await redirectByRole(session.user.id, session.user.email);
           }
         } catch (error) {
           console.error("Error during app boot:", error);

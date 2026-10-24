@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
+import type { Database } from "@repo/supabase";
+import { GENDERS, validatePHMobile } from "@repo/constants";
 import { validateBirthDate } from "@/lib/birth-date";
 
 export type CompleteProfileState = {
@@ -45,18 +47,31 @@ export async function completeProfile(
       ? requestedRole
       : "tenant";
 
+  // maybeSingle: a confirmed account whose profile was never saved (sign-up
+  // interrupted after the email code) has no row yet and finishes here too.
   const { data: profileData, error: profileError } = await supabase
     .from("users")
     .select("roles, mobile_number, account_status")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   const profile = profileData as unknown as UserRolesProfile | null;
+  if (profileError) {
+    console.error("Could not load profile for completion", profileError);
+    return { error: "Could not load your profile. Please try again." };
+  }
+
+  // A suspended account's profile is hidden by RLS, so "no row" is only an
+  // unfinished sign-up when the account is not suspended.
+  if (!profile) {
+    const { data: suspension } = await supabase.rpc("get_my_suspension_status");
+    if ((suspension as { suspended?: boolean } | null)?.suspended) redirect("/suspended");
+  }
+
   if (
-    profileError ||
-    !profile ||
-    profile.roles.includes("admin") ||
-    profile.mobile_number ||
-    profile.account_status !== "unverified"
+    profile &&
+    (profile.roles.includes("admin") ||
+      profile.mobile_number ||
+      profile.account_status !== "unverified")
   ) {
     return { error: "Profile setup is no longer available for this account." };
   }
@@ -86,29 +101,48 @@ export async function completeProfile(
   const birthDateError = validateBirthDate(birthDate);
   if (birthDateError) return { error: birthDateError };
 
-  const { error: roleError } = await supabase.rpc("set_onboarding_role", {
-    requested_role: role,
-  });
-  if (roleError) return { error: "Could not select your account type. Please try again." };
+  if (!GENDERS.includes(gender)) return { error: "Please choose a valid gender." };
 
-  const { error } = await supabase
-    .from("users")
-    .update({
-      first_name: firstName,
-      last_name: lastName,
-      middle_name: middleName || null,
-      gender,
-      mobile_number: mobileNumber,
-      birth_date: birthDate,
-      street_address: streetAddress,
-      barangay,
-      city,
-      province,
-      postal_code: postalCode,
-    })
-    .eq("user_id", user.id);
+  const mobile = validatePHMobile(mobileNumber);
+  if (!mobile.formattedNumber) return { error: mobile.errorMessage ?? "Enter a valid mobile number." };
 
-  if (error) return { error: error.message };
+  if (postalCode !== null && !Number.isInteger(postalCode)) {
+    return { error: "Please enter a valid postal code." };
+  }
+
+  const details = {
+    first_name: firstName,
+    last_name: lastName,
+    middle_name: middleName || null,
+    gender,
+    mobile_number: mobile.formattedNumber,
+    birth_date: birthDate,
+    street_address: streetAddress,
+    barangay,
+    city,
+    province,
+    postal_code: postalCode,
+  };
+
+  if (!profile) {
+    if (!user.email) return { error: "Could not verify your account. Please sign in again." };
+    // Same write as sign-up: own row, tenant/landlord role, email = Auth email.
+    const { error: insertError } = await supabase.from("users").insert({
+      user_id: user.id,
+      email: user.email,
+      roles: [role],
+      ...details,
+    } as unknown as Database["public"]["Tables"]["users"]["Insert"]);
+    if (insertError) return { error: insertError.message };
+  } else {
+    const { error: roleError } = await supabase.rpc("set_onboarding_role", {
+      requested_role: role,
+    });
+    if (roleError) return { error: "Could not select your account type. Please try again." };
+
+    const { error } = await supabase.from("users").update(details).eq("user_id", user.id);
+    if (error) return { error: error.message };
+  }
 
   (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
   if (role === "landlord") redirect("/landlord/dashboard");

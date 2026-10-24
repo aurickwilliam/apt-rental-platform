@@ -12,6 +12,7 @@ import { useEmailChangeEligibility } from "@/hooks/use-email-change-eligibility"
 import { usePasswordSignInStatus } from "@/hooks/use-password-sign-in-status";
 import SettingsRow from "../SettingsRow";
 import StatusChip from "../StatusChip";
+import AdminTwoStep from "./AdminTwoStep";
 
 export default function SecurityTab({
   isAdmin = false,
@@ -34,6 +35,7 @@ export default function SecurityTab({
       <p className="mt-1 text-sm text-muted-foreground">
         Review how your information is handled.
       </p>
+      <AdminTwoStep />
       <div className="mt-4 space-y-3">
         <div className="rounded-xl border border-border p-4 text-sm">
           <p className="font-semibold">Password and email</p>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { PH_ZIP_DATABASE } from "@repo/constants";
+import { PH_ZIP_DATABASE, isZipPlausibleForCity } from "@repo/constants";
 import type { PHLocation } from "@repo/constants";
 
 // Philippine ZIP codes are exactly 4 digits (1000–9999)
@@ -41,21 +41,30 @@ interface UsePHPostalCodeReturn {
 interface UsePHPostalCodeOptions {
   /** Initial value */
   defaultValue?: string;
+  /** When both are set, the ZIP must also fit this city (see isZipPlausibleForCity) */
+  city?: string;
+  province?: string;
   /** Fires on every change with the new value and validity */
   onChange?: (value: string, isValid: boolean, location: PHLocation | null) => void;
 }
 
 
 function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeReturn {
-  const { defaultValue = "", onChange } = options;
+  const { defaultValue = "", onChange, city, province } = options;
 
   const [value, setValue] = useState<string>(defaultValue);
   const [isTouched, setIsTouched] = useState<boolean>(false);
 
-  const isValid = isValidPHZip(value);
+  const matchesCity =
+    !city || !province || !isValidPHZip(value) || isZipPlausibleForCity(city, province, value);
+  const isValid = isValidPHZip(value) && matchesCity;
   const location = isValid ? lookupLocation(value) : null;
 
   const error: string | null = (() => {
+    // A complete ZIP that does not fit the chosen city is flagged right away.
+    if (value.length === 4 && isValidPHZip(value) && !matchesCity) {
+      return `Enter a valid postal code for ${city}.`;
+    }
     if (!isTouched) return null;
     if (value.length === 0) return "ZIP code is required.";
     if (!/^\d+$/.test(value)) return "ZIP code must contain numbers only.";
@@ -80,8 +89,8 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
 
   const validate = useCallback((): boolean => {
     setIsTouched(true);
-    return isValidPHZip(value);
-  }, [value]);
+    return isValid;
+  }, [isValid]);
 
   const reset = useCallback(() => {
     setValue("");

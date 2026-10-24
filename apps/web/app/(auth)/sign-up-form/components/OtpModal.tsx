@@ -1,5 +1,6 @@
-import { Modal, Button, InputOTP, REGEXP_ONLY_DIGITS } from "@heroui/react";
+import { Modal, Button, Link as HeroLink } from "@heroui/react";
 import { IconMail as Mail } from "@tabler/icons-react";
+import CodeInput from "@/app/components/inputs/CodeInput";
 
 interface OtpModalProps {
   isOpen: boolean;
@@ -15,6 +16,9 @@ interface OtpModalProps {
   onResend: () => void;
   onVerify: (close: () => void) => void;
   onCancel: (close: () => void) => void;
+  verifyLabel?: string;
+  // Too many wrong codes: verifying stays off until a new code is sent.
+  locked?: boolean;
 }
 
 export default function OtpModal({
@@ -31,6 +35,8 @@ export default function OtpModal({
   onResend,
   onVerify,
   onCancel,
+  verifyLabel = "Verify & Create Account",
+  locked = false,
 }: OtpModalProps) {
   return (
     <Modal>
@@ -46,7 +52,7 @@ export default function OtpModal({
             {({ close }) => (
               <>
                 <Modal.Header>
-                  <Modal.Heading>Verify Your Email Address</Modal.Heading>
+                  <Modal.Heading className="font-nunito font-bold">Verify Your Email Address</Modal.Heading>
                 </Modal.Header>
 
                 <Modal.Body className="flex flex-col items-center gap-4 py-4">
@@ -60,33 +66,20 @@ export default function OtpModal({
                   </p>
 
                   <div className="flex w-full justify-center">
-                    <InputOTP
-                      maxLength={6}
+                    <CodeInput
+                      length={6}
                       value={otp}
-                      onChange={(val) => onOtpChange(val)}
+                      onChange={onOtpChange}
                       isInvalid={!!otpError}
-                      pattern={REGEXP_ONLY_DIGITS}
                       autoFocus
-                      className="justify-center"
-                    >
-                      <InputOTP.Group>
-                        <InputOTP.Slot index={0} />
-                        <InputOTP.Slot index={1} />
-                        <InputOTP.Slot index={2} />
-                      </InputOTP.Group>
-                      <InputOTP.Separator />
-                      <InputOTP.Group>
-                        <InputOTP.Slot index={3} />
-                        <InputOTP.Slot index={4} />
-                        <InputOTP.Slot index={5} />
-                      </InputOTP.Group>
-                    </InputOTP>
+                    />
                   </div>
 
                   {otpError && (
                     <p className="text-center text-sm text-danger">{otpError}</p>
                   )}
 
+                  {/* HeroUI Link without href: an action styled as a link (mobile's LinkButton). */}
                   <div className="flex items-center gap-2 text-sm text-foreground">
                     <span>Didn&apos;t receive a code?</span>
                     {resendCooldown > 0 ? (
@@ -94,16 +87,13 @@ export default function OtpModal({
                         Resend in {formatCooldown(resendCooldown)}
                       </span>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        isPending={resendLoading}
-                        isDisabled={resendLoading}
+                      <HeroLink
                         onPress={onResend}
-                        className="h-auto min-w-0 p-0 font-medium"
+                        isDisabled={resendLoading}
+                        className="cursor-pointer font-medium text-primary"
                       >
-                        Resend Code
-                      </Button>
+                        {resendLoading ? "Sending..." : "Resend Code"}
+                      </HeroLink>
                     )}
                   </div>
                 </Modal.Body>
@@ -113,11 +103,11 @@ export default function OtpModal({
                     variant="primary"
                     size="lg"
                     className="w-full"
-                    isDisabled={otp.length < 6 || loading}
+                    isDisabled={otp.length < 6 || loading || locked}
                     isPending={loading}
                     onPress={() => onVerify(close)}
                   >
-                    Verify &amp; Create Account
+                    {verifyLabel}
                   </Button>
                   <Button
                     variant="ghost"

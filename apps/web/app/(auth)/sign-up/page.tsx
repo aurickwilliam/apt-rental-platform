@@ -13,6 +13,9 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
   // First-time Google arrivals from sign-in (no profile yet) get a
   // contextual welcome banner; normal visits never set this param.
   const showWelcomeNotice = from === 'google-new';
+  // A confirmed account whose profile was never saved lands here from the
+  // middleware / sign-in to finish it.
+  const showProfileMissingNotice = from === 'profile-missing';
   // OAuth failures surface here in the same tab (the session was signed
   // out in the callback so this page stays reachable).
   const portalError =
@@ -27,6 +30,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
   // of the email form. Logged-out visitors and everyone else get the
   // normal sign-up flow.
   let rolePickerMode = false;
+  let profileMissing = false;
   const supabase = await createClient();
   const {
     data: { user },
@@ -44,6 +48,13 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
         mobile_number: string | null;
       } | null,
     );
+    if (!rolePickerMode && !profileData && showProfileMissingNotice) {
+      // Only the middleware / sign-in send people here with this flag; a
+      // suspended account (profile hidden by RLS) never finishes a profile.
+      const { data: suspension } = await supabase.rpc("get_my_suspension_status");
+      profileMissing = (suspension as { suspended?: boolean } | null)?.suspended !== true;
+      rolePickerMode = profileMissing;
+    }
   }
 
   return (
@@ -56,6 +67,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
             type="sign-up"
             initialRole={initialRole}
             showWelcomeNotice={showWelcomeNotice}
+            profileMissing={profileMissing}
             rolePickerMode={rolePickerMode}
             portalError={portalError}
           />

@@ -8,6 +8,9 @@ import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 export interface SignInFormState {
   error: string | null;
+  // The password was right but the email code was never entered: the form
+  // offers to send a new code and confirm it.
+  needsEmailConfirmation?: boolean;
 }
 
 interface UserRolesProfile { roles: string[] }
@@ -47,7 +50,10 @@ export async function signIn(
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
-      return { error: "Please verify your email address before signing in." };
+      return {
+        error: "Please verify your email address before signing in.",
+        needsEmailConfirmation: true,
+      };
     }
     if (error.message.includes("rate limit")) {
       return { error: "Too many sign-in attempts. Please try again later." };
@@ -76,11 +82,18 @@ export async function signIn(
     .from("users")
     .select("roles")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   const profile = profileData as unknown as UserRolesProfile | null;
 
   if (profile?.roles.includes("admin")) {
     redirect("/admin/dashboard");
+  }
+
+  // Confirmed account whose profile was never saved (sign-up interrupted
+  // after the email code): keep the session and finish the profile, instead
+  // of leaving the account locked out. Suspension was handled above.
+  if (!profileError && !profile) {
+    redirect("/sign-up?from=profile-missing");
   }
 
   if (profileError || !profile) {

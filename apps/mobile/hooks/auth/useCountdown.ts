@@ -14,7 +14,7 @@ export function useCountdown({ duration, enabled = true }: UseCountdownOptions) 
     return () => clearTimeout(timer);
   }, [countdown, enabled]);
 
-  const reset = () => setCountdown(duration);
+  const reset = (seconds: number = duration) => setCountdown(seconds);
 
   return { countdown, reset };
 }

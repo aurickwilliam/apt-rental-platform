@@ -41,6 +41,8 @@ import {
   SUSPENDED_TITLE,
 } from "@/service/auth/suspensionService";
 
+import { profileMissingRoute } from "@/service/auth/profileMissingService";
+
 import { isValidEmail } from "@repo/utils";
 
 export default function SignIn() {
@@ -132,7 +134,14 @@ export default function SignIn() {
         if (signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
-          setError("Please verify your email address before signing in.");
+          // Sign-up was left before the email code was entered: send a fresh
+          // code and let the person confirm it here. A throttled resend still
+          // lets them use the code they already have.
+          await supabase.auth.resend({ type: "signup", email: email.trim() });
+          router.push({
+            pathname: "/(auth)/otp-verification",
+            params: { email: email.trim().toLowerCase(), mode: "confirm" },
+          });
         } else if (signInError.message.includes("rate limit")) {
           setError("Too many sign-in attempts. Please try again later.");
         } else {
@@ -156,8 +165,15 @@ export default function SignIn() {
         .from("users")
         .select("roles")
         .eq("user_id", authData.user!.id)
-        .single();
+        .maybeSingle();
 
+      // Confirmed account whose profile was never saved (sign-up interrupted
+      // after the email code): keep the session and finish the profile
+      // instead of locking the account out. Suspension was handled above.
+      if (!profileError && !userProfile) {
+        router.replace(profileMissingRoute(authData.user!.email));
+        return;
+      }
 
       if (profileError || !userProfile) {
         setError("Could not load your profile. Please try again.");

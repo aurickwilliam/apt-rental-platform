@@ -19,7 +19,7 @@ import {
 import { useAuth } from "../../components/AuthContext";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
-import PasswordChecklist from "./PasswordChecklist";
+import PasswordRequirementList from "@/app/components/inputs/PasswordRequirementList";
 import OtpModal from "./OtpModal";
 import SuccessModal from "./SuccessModal";
 import ErrorModal from "./ErrorModal";
@@ -28,8 +28,23 @@ import { useOtpFlow } from "../hooks/useOtpFlow";
 import { validateForm } from "../utils";
 import { SignUpFormData } from "../types";
 
-import { PROVINCES, GENDERS } from "@repo/constants";
+import {
+  PROVINCES,
+  GENDERS,
+  SUFFIXES,
+  getCitiesByProvince,
+  getBarangaysByCity,
+  getPasswordRequirements,
+  isZipPlausibleForCity,
+  type Province,
+} from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
+
+// Selected option: soft blue surface with a primary-blue check.
+const OPTION_CLASS =
+  "data-[hovered=true]:bg-light-blue! data-[selected=true]:bg-primary/10! data-[selected=true]:text-primary";
+
+const NO_SUFFIX = "none";
 
 export default function SignUpForm() {
   const { role, email } = useAuth();
@@ -51,6 +66,7 @@ export default function SignUpForm() {
     firstName: "",
     lastName: "",
     middleName: "",
+    suffix: "",
     birthDate: "",
     gender: "",
     mobileNumber: "",
@@ -72,6 +88,39 @@ export default function SignUpForm() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);
   };
+
+  const handleProvinceChange = (province: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      stateProvince: province,
+      city: "",
+      barangay: "",
+    }));
+    if (error) setError(null);
+  };
+
+  const handleCityChange = (city: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      city,
+      barangay: "",
+    }));
+    if (error) setError(null);
+  };
+
+  const cities = formData.stateProvince
+    ? getCitiesByProvince(formData.stateProvince as Province)
+    : [];
+  const barangays = getBarangaysByCity(formData.city);
+
+  // Live feedback once all four digits are in and a city is chosen.
+  const postalCodeText = formData.postalCode !== undefined ? String(formData.postalCode) : "";
+  const postalCodeError =
+    formData.city &&
+    postalCodeText.length === 4 &&
+    !isZipPlausibleForCity(formData.city, formData.stateProvince, postalCodeText)
+      ? `Enter a valid postal code for ${formData.city}.`
+      : null;
 
   const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen });
 
@@ -110,7 +159,7 @@ export default function SignUpForm() {
     <>
       <Form onSubmit={handleSubmit} className="flex flex-col gap-[clamp(1.25rem,3vh,1.25rem)] my-[clamp(2rem,5vh,2.5rem)]">
         {/* Personal Information */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 text-foreground">
+        <h2 className="text-2xl font-bold font-nunito mb-3 text-foreground">
           Personal Information
         </h2>
 
@@ -163,6 +212,35 @@ export default function SignUpForm() {
           </TextField>
 
           <Select
+            name="suffix"
+            placeholder="No suffix"
+            value={formData.suffix || null}
+            onChange={(key) => handleChange("suffix")(key && key !== NO_SUFFIX ? String(key) : "")}
+            isDisabled={loading}
+          >
+            <Label>Suffix</Label>
+            <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {[NO_SUFFIX, ...SUFFIXES].map((option) => (
+                  <ListBox.Item
+                    key={option}
+                    id={option}
+                    textValue={option === NO_SUFFIX ? "No suffix" : option}
+                    className={OPTION_CLASS}
+                  >
+                    {option === NO_SUFFIX ? "No suffix" : option}
+                    <ListBox.ItemIndicator className="text-primary" />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <Select
             isRequired
             name="gender"
             placeholder="Select your gender"
@@ -182,9 +260,10 @@ export default function SignUpForm() {
                     key={gender}
                     id={gender}
                     textValue={gender}
-                    className="data-[hovered=true]:bg-light-blue!"
+                    className={OPTION_CLASS}
                   >
                     {gender}
+                    <ListBox.ItemIndicator className="text-primary" />
                   </ListBox.Item>
                 ))}
               </ListBox>
@@ -276,11 +355,104 @@ export default function SignUpForm() {
         </div>
 
         {/* Address Information */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
+        <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
           Address Information
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
+          <Select
+            isRequired
+            placeholder="Select your state/province"
+            name="stateProvince"
+            className="w-full"
+            value={formData.stateProvince || null}
+            onChange={(key) => handleProvinceChange(key ? String(key) : "")}
+            isDisabled={loading}
+          >
+            <Label>State/Province</Label>
+            <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {PROVINCES.map((option) => (
+                  <ListBox.Item
+                    key={option}
+                    id={option}
+                    textValue={option}
+                    className={OPTION_CLASS}
+                  >
+                    {option}
+                    <ListBox.ItemIndicator className="text-primary" />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <Select
+            isRequired
+            placeholder={formData.stateProvince ? "Select your city" : "Select a province first"}
+            name="city"
+            className="w-full"
+            value={formData.city || null}
+            onChange={(key) => handleCityChange(key ? String(key) : "")}
+            isDisabled={loading || !formData.stateProvince}
+          >
+            <Label>City</Label>
+            <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {cities.map((option) => (
+                  <ListBox.Item
+                    key={option}
+                    id={option}
+                    textValue={option}
+                    className={OPTION_CLASS}
+                  >
+                    {option}
+                    <ListBox.ItemIndicator className="text-primary" />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          <Select
+            isRequired
+            placeholder={formData.city ? "Select your barangay" : "Select a city first"}
+            name="barangay"
+            className="w-full"
+            value={formData.barangay || null}
+            onChange={(key) => handleChange("barangay")(key ? String(key) : "")}
+            isDisabled={loading || !formData.city}
+          >
+            <Label>Barangay</Label>
+            <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox className="max-h-64 overflow-y-auto">
+                {barangays.map((option) => (
+                  <ListBox.Item
+                    key={option}
+                    id={option}
+                    textValue={option}
+                    className={OPTION_CLASS}
+                  >
+                    {option}
+                    <ListBox.ItemIndicator className="text-primary" />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
           <TextField
             isRequired
             name="streetAddress"
@@ -295,64 +467,9 @@ export default function SignUpForm() {
 
           <TextField
             isRequired
-            name="barangay"
-            type="text"
-            value={formData.barangay}
-            onChange={handleChange("barangay")}
-            isDisabled={loading}
-          >
-            <Label>Barangay</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your barangay" />
-          </TextField>
-
-          <TextField
-            isRequired
-            name="city"
-            type="text"
-            value={formData.city}
-            onChange={handleChange("city")}
-            isDisabled={loading}
-          >
-            <Label>City</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your city" />
-          </TextField>
-
-          <Select
-            isRequired
-            placeholder="Select your state/province"
-            name="stateProvince"
-            className="w-full"
-            value={formData.stateProvince || null}
-            onChange={(key) => {
-              handleChange("stateProvince")(key ? String(key) : "");
-            }}
-            isDisabled={loading}
-          >
-            <Label>State/Province</Label>
-            <Select.Trigger className="bg-card! text-foreground!">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {PROVINCES.map((province) => (
-                  <ListBox.Item
-                    key={province}
-                    id={province}
-                    textValue={province}
-                    className="data-[hovered=true]:bg-light-blue!"
-                  >
-                    {province}
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <TextField
-            isRequired
             name="postalCode"
-            value={formData.postalCode !== undefined ? String(formData.postalCode) : ""}
+            isInvalid={!!postalCodeError}
+            value={postalCodeText}
             onChange={(val) => {
               const digits = val.replace(/\D/g, "").slice(0, 4);
               setFormData((prev) => ({
@@ -376,12 +493,12 @@ export default function SignUpForm() {
               placeholder="Enter your postal code"
               inputMode="numeric"
             />
-            <FieldError />
+            <FieldError>{postalCodeError}</FieldError>
           </TextField>
         </div>
 
         {/* Password */}
-        <h2 className="text-2xl font-medium font-noto-serif mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
+        <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
           Set Your Password
         </h2>
 
@@ -404,9 +521,9 @@ export default function SignUpForm() {
             onChange={handleChange("confirmPassword")}
           />
 
-          <PasswordChecklist
-            password={formData.password}
-            confirmPassword={formData.confirmPassword}
+          <PasswordRequirementList
+            requirements={getPasswordRequirements(formData.password, formData.confirmPassword)}
+            hasInput={formData.password.length > 0 || formData.confirmPassword.length > 0}
           />
         </div>
 
@@ -432,7 +549,8 @@ export default function SignUpForm() {
         resendLoading={otpFlow.resendLoading}
         loading={otpFlow.loading}
         formatCooldown={otpFlow.formatCooldown}
-        onOtpChange={(val) => { otpFlow.setOtp(val); otpFlow.setOtpError(null); }}
+        onOtpChange={(val) => { otpFlow.setOtp(val); if (!otpFlow.otpLocked) otpFlow.setOtpError(null); }}
+        locked={otpFlow.otpLocked}
         onResend={otpFlow.handleResendOtp}
         onVerify={otpFlow.handleVerifyOtp}
         onCancel={otpFlow.handleCancelOtp}

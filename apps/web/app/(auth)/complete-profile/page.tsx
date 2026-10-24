@@ -44,12 +44,18 @@ export default async function CompleteProfilePage({
     .from("users")
     .select("mobile_number, first_name, last_name, email, roles, account_status")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   const profile = profileData as unknown as UserRolesProfile | null;
 
+  // No profile row: a confirmed account whose sign-up was interrupted, and the
+  // form creates the profile. A suspended account looks the same under RLS.
+  if (!profile) {
+    const { data: suspension } = await supabase.rpc("get_my_suspension_status");
+    if ((suspension as { suspended?: boolean } | null)?.suspended) redirect("/suspended");
+  }
   if (profile?.roles.includes("admin")) redirect("/admin/dashboard");
   if (profile?.mobile_number) redirect("/");
-  if (profile?.account_status !== "unverified") {
+  if (profile && profile.account_status !== "unverified") {
     const portal = preferredPortal(profile?.roles ?? [], role);
     redirect(portal === "landlord" ? "/landlord/dashboard" : portal === "tenant" ? "/tenant/my-rental" : "/");
   }

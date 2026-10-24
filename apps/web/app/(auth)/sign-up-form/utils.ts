@@ -1,5 +1,12 @@
 import { SignUpFormData } from "./types";
 import { validateBirthDate } from "@/lib/birth-date";
+import {
+  GENDERS,
+  PASSWORD_POLICY_MESSAGE,
+  isZipPlausibleForCity,
+  meetsPasswordPolicy,
+  validatePHMobile,
+} from "@repo/constants";
 
 export function validateForm(formData: SignUpFormData): string | null {
   if (!formData.firstName || !formData.lastName) {
@@ -10,8 +17,8 @@ export function validateForm(formData: SignUpFormData): string | null {
     return "Password and confirm password are required.";
   }
 
-  if (formData.password.length < 8) {
-    return "Password must be at least 8 characters long.";
+  if (!meetsPasswordPolicy(formData.password)) {
+    return PASSWORD_POLICY_MESSAGE;
   }
 
   if (formData.password !== formData.confirmPassword) {
@@ -37,11 +44,30 @@ export function validateForm(formData: SignUpFormData): string | null {
     return birthDateError;
   }
 
+  if (!GENDERS.includes(formData.gender)) {
+    return "Please choose a valid gender.";
+  }
+
+  const mobileError = validatePHMobile(formData.mobileNumber).errorMessage;
+  if (mobileError) {
+    return mobileError;
+  }
+
   if (
     formData.postalCode === undefined ||
     Number.isNaN(Number(formData.postalCode))
   ) {
     return "Please enter a valid postal code.";
+  }
+
+  if (
+    !isZipPlausibleForCity(
+      formData.city,
+      formData.stateProvince,
+      String(formData.postalCode),
+    )
+  ) {
+    return `Enter a valid postal code for ${formData.city}.`;
   }
 
   return null;

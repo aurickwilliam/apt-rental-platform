@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useResendCooldown } from "../../hooks/use-resend-cooldown";
+import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
+import { getOtpAttemptError } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
@@ -28,10 +31,15 @@ export function useOtpFlow({
 }: UseOtpFlowOptions) {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const [resendLoading, setResendLoading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const {
+    cooldown: resendCooldown,
+    start: startCooldown,
+    stop: stopCooldown,
+    format: formatCooldown,
+  } = useResendCooldown(OTP_COOLDOWN);
+  const attempts = useOtpAttempts();
 
   // Keeps handlers stable while still reading the latest values when fired.
   // Mirrored in an effect (not during render) to satisfy
@@ -43,34 +51,6 @@ export function useOtpFlow({
     latest.current = { formData, role, showError, onSuccessOpen };
     otpRef.current = otp;
   }, [formData, role, showError, onSuccessOpen, otp]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const startCooldown = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setResendCooldown(OTP_COOLDOWN);
-
-    timerRef.current = setInterval(() => {
-      setResendCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          timerRef.current = null;
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
-  const formatCooldown = useCallback((seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  }, []);
 
   const handleResendOtp = useCallback(async () => {
     const { formData: data } = latest.current;
@@ -88,13 +68,14 @@ export function useOtpFlow({
         return;
       }
       setOtp("");
+      attempts.reset();
       startCooldown();
     } catch {
       setOtpError("Failed to resend code. Please try again.");
     } finally {
       setResendLoading(false);
     }
-  }, [startCooldown]);
+  }, [startCooldown, attempts]);
 
   const handleVerifyOtp = useCallback(async (onClose: () => void) => {
     const { formData: data, role: currentRole, showError: fail, onSuccessOpen: succeed } = latest.current;
@@ -109,7 +90,8 @@ export function useOtpFlow({
       });
 
       if (otpError || !session.user) {
-        setOtpError("Invalid or expired code. Please try again.");
+        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        setOtp("");
         return;
       }
 
@@ -119,6 +101,7 @@ export function useOtpFlow({
       fd.set("firstName", data.firstName);
       fd.set("lastName", data.lastName);
       fd.set("middleName", data.middleName);
+      fd.set("suffix", data.suffix);
       fd.set("birthDate", data.birthDate);
       fd.set("gender", data.gender);
       fd.set("mobileNumber", data.mobileNumber);
@@ -134,7 +117,13 @@ export function useOtpFlow({
       const result = await signUp({ error: null, success: false }, fd);
 
       if (result.error) {
-        fail(result.error);
+        // The email is already confirmed, so the session is live without a
+        // profile. End it: signing in again continues at "finish your
+        // profile" instead of leaving a half-signed-in browser behind.
+        await supabase.auth.signOut();
+        fail(
+          `${result.error} Your email is verified, so you can sign in to finish setting up your profile.`,
+        );
         onClose();
       } else if (result.success) {
         onClose();
@@ -146,16 +135,15 @@ export function useOtpFlow({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [attempts]);
 
   const handleCancelOtp = useCallback(async (onClose: () => void) => {
     await supabase.auth.signOut();
     setOtp("");
     setOtpError(null);
-    if (timerRef.current) clearInterval(timerRef.current);
-    setResendCooldown(0);
+    stopCooldown();
     onClose();
-  }, []);
+  }, [stopCooldown]);
 
   return {
     otp,
@@ -165,6 +153,7 @@ export function useOtpFlow({
     resendCooldown,
     resendLoading,
     loading,
+    otpLocked: attempts.locked,
     startCooldown,
     formatCooldown,
     handleResendOtp,
