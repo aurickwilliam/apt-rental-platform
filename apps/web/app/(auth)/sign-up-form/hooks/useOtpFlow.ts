@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
+import { getOtpAttemptError } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
@@ -89,7 +90,7 @@ export function useOtpFlow({
       });
 
       if (otpError || !session.user) {
-        setOtpError(attempts.recordWrongCode());
+        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
         setOtp("");
         return;
       }

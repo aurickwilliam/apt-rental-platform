@@ -8,3 +8,29 @@ Apply `supabase/migrations/20260923071226_harden_user_roles_and_onboarding.sql` 
 4. Confirm a normal account cannot update `roles`/`account_status` or insert an admin profile, and that the promoted account signs in on web through the existing sign-in tabs. To revoke admin access, use the same trusted connection to restore a normal role or roles and terminate that account's active sessions through Supabase Auth.
 
 Never expose a database operator credential or service-role key to web/mobile clients. Do not use client-facing Server Actions or user-editable auth metadata to promote admins. Audit any pre-existing `admin` profiles before enabling the portal: they may have been created while client `users` writes were unrestricted.
+
+## Two-step login (authenticator app)
+
+Admin pages, server actions and route handlers go through `requireAdmin`, which asks for a verified second step (session level `aal2`) when `ADMIN_MFA_REQUIRED=true` is set on the web server. Anything but the exact string `true` leaves it off. Never turn it on before every admin has enrolled.
+
+Roll-out, in order:
+
+1. Deploy with the flag **off**. Each admin opens Settings → Security → Two-step login → **Set up authenticator app**, scans the QR code and enters the first code. Ask them to also add a **backup device** there. This applies to Google sign-in admins too.
+2. As a database operator, confirm every admin has a verified device. The query must return no rows:
+   ```sql
+   select u.id, u.email from public.users u
+   where 'admin' = any(u.roles)
+     and not exists (select 1 from auth.mfa_factors f
+                     where f.user_id = u.user_id and f.factor_type = 'totp' and f.status = 'verified');
+   ```
+3. Set `ADMIN_MFA_REQUIRED=true` and redeploy. Admins now enter a code after signing in.
+4. Only after step 3 is live, apply the database enforcement migration so admin data also needs `aal2` (otherwise a stolen basic session could skip the page and call the database directly).
+
+Lost device (and no backup): as a trusted operator, remove that admin's devices and end their sessions, then ask them to enrol again. Do this only after confirming their identity out of band.
+
+```sql
+delete from auth.mfa_factors where user_id = '<verified auth UUID>';
+delete from auth.sessions where user_id = '<verified auth UUID>';
+```
+
+Enrolling or verifying a device ends the account's other sessions. Removing a verified device needs a code, and the last device cannot be removed from Settings.

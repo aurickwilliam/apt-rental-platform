@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { getEmailCodeRequestError, parseResendWaitSeconds } from "@repo/utils";
+import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
 
@@ -64,7 +64,7 @@ export function useConfirmEmail(email: string) {
         type: "signup",
       });
       if (error || !data.user) {
-        setOtpError(attempts.recordWrongCode());
+        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
         setOtp("");
         return;
       }

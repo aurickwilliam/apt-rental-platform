@@ -42,8 +42,15 @@ function serverIdentity() {
     "@repo/supabase/server": { createClient: async () => client },
     "@repo/supabase/pending-onboarding": pendingOnboarding,
   });
-  const admin = compile("app/admin/_lib/require-admin.ts", { react: { cache }, "next/navigation": navigation, "@/lib/server-identity": identity });
-  return { identity, admin, client, filters, counts: () => ({ authReads, profileReads }),
+  // Two-step login is off unless a test sets ADMIN_MFA_REQUIRED.
+  const env = {};
+  const mfa = { state: { currentLevel: "aal1", hasVerifiedFactor: true } };
+  const admin = compile("app/admin/_lib/require-admin.ts", {
+    react: { cache }, "next/navigation": navigation, "@/lib/server-identity": identity,
+    "@/lib/admin-mfa": compile("lib/admin-mfa.ts", {}),
+    "@/lib/server-admin-mfa": { getAdminMfaState: async () => mfa.state },
+  }, { process: { env } });
+  return { identity, admin, client, filters, env, mfa, counts: () => ({ authReads, profileReads }),
     next(options = {}) {
       request = new Map();
       if ("authUserId" in options) authUserId = options.authUserId;
@@ -355,4 +362,33 @@ test("Tenant Maintenance's initial active rental and history settle without clie
   assert.equal(render().tenancy.id, "owner-b-lease");
   identity = { authUserId: null, generation: 2 }; render(); runtime.flush(); await settle(); assert.equal(render().tenancy, null);
   runtime.unmount();
+});
+
+test("Admin guard asks for the second step only when two-step login is required", async () => {
+  const h = serverIdentity();
+  h.next();
+  h.mfa.state = { currentLevel: "aal1", hasVerifiedFactor: true };
+  assert.equal((await h.admin.requireAdmin()).id, "owner-a", "off by default: a basic session still works");
+
+  h.env.ADMIN_MFA_REQUIRED = "yes";
+  h.next();
+  assert.equal((await h.admin.requireAdmin()).id, "owner-a", "only the exact string 'true' turns it on");
+
+  h.env.ADMIN_MFA_REQUIRED = "true";
+  for (const hasVerifiedFactor of [true, false]) {
+    h.next();
+    h.mfa.state = { currentLevel: "aal1", hasVerifiedFactor };
+    await assert.rejects(h.admin.requireAdmin(), /redirect:\/two-step-login/);
+  }
+
+  h.next();
+  h.mfa.state = { currentLevel: "aal2", hasVerifiedFactor: true };
+  assert.equal((await h.admin.requireAdmin()).id, "owner-a");
+
+  // Signed-out, wrong-role and suspended accounts are turned away before any code is asked for.
+  h.mfa.state = { currentLevel: "aal1", hasVerifiedFactor: false };
+  h.next({ profile: { id: "owner-a", roles: ["tenant"], account_status: "verified", mobile_number: "phone", is_suspended: false } });
+  await assert.rejects(h.admin.requireAdmin(), /not-found/);
+  h.next({ profile: { id: "owner-a", roles: ["admin"], account_status: "verified", mobile_number: "phone", is_suspended: true } });
+  await assert.rejects(h.admin.requireAdmin(), /suspended/);
 });

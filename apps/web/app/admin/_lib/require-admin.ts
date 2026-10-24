@@ -1,6 +1,8 @@
 import { getServerIdentity, requirePortalViewer } from "@/lib/server-identity";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import { ADMIN_MFA_PATH, adminMfaDecision, isAdminMfaRequired } from "@/lib/admin-mfa";
+import { getAdminMfaState } from "@/lib/server-admin-mfa";
 
 export interface AdminProfile {
   id: string;
@@ -28,6 +30,16 @@ export const requireAdmin = cache(async (): Promise<AdminProfile> => {
   const profile = profileData as unknown as AdminProfile | null;
   if (!profile || !profile.roles.includes("admin")) notFound();
   await requirePortalViewer("admin");
+
+  // Two-step login: off until ADMIN_MFA_REQUIRED=true, so admins can enrol first.
+  // Every admin page, server action and route handler passes through here.
+  const required = isAdminMfaRequired(process.env.ADMIN_MFA_REQUIRED);
+  if (required) {
+    const { currentLevel, hasVerifiedFactor } = await getAdminMfaState();
+    if (adminMfaDecision({ required, currentLevel, hasVerifiedFactor }) !== "ok") {
+      redirect(ADMIN_MFA_PATH);
+    }
+  }
 
   return {
     id: profile.id,
