@@ -118,6 +118,7 @@ export default function AuthForm({ next }: { next?: string }) {
             close();
           }}
           verifyLabel="Verify Email"
+          locked={confirmEmail.otpLocked}
         />
       )}
 

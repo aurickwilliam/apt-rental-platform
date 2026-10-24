@@ -81,7 +81,7 @@ export default async function ApartmentDetailView({
     apartment.landlord_id
       ? supabase
           .from('users')
-          .select('first_name, last_name, mobile_number, avatar_url')
+          .select('first_name, last_name, avatar_url')
           .eq('id', apartment.landlord_id)
           .filter('roles', 'cs', '{landlord}')
           .single()

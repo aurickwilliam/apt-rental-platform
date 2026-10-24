@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { getEmailCodeRequestError, parseResendWaitSeconds } from "@repo/utils";
 import { useResendCooldown } from "./use-resend-cooldown";
+import { useOtpAttempts } from "./use-otp-attempts";
 
 const CODE_COOLDOWN = 60;
 
@@ -21,6 +22,7 @@ export function useConfirmEmail(email: string) {
   const [resendLoading, setResendLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const { cooldown, start, stop, format } = useResendCooldown(CODE_COOLDOWN);
+  const attempts = useOtpAttempts();
 
   const sendCode = useCallback(async () => {
     setResendLoading(true);
@@ -38,13 +40,14 @@ export function useConfirmEmail(email: string) {
         return;
       }
       setOtp("");
+      attempts.reset();
       start();
     } catch {
       setOtpError("Failed to send the code. Please try again.");
     } finally {
       setResendLoading(false);
     }
-  }, [email, start]);
+  }, [email, start, attempts]);
 
   const open = useCallback(() => {
     setIsOpen(true);
@@ -61,7 +64,8 @@ export function useConfirmEmail(email: string) {
         type: "signup",
       });
       if (error || !data.user) {
-        setOtpError("Invalid or expired code. Please try again.");
+        setOtpError(attempts.recordWrongCode());
+        setOtp("");
         return;
       }
       // Full navigation: the new session cookies must reach the server.
@@ -71,7 +75,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setLoading(false);
     }
-  }, [email, otp]);
+  }, [email, otp, attempts]);
 
   const cancel = useCallback(() => {
     setIsOpen(false);
@@ -89,6 +93,7 @@ export function useConfirmEmail(email: string) {
     formatCooldown: format,
     resendLoading,
     loading,
+    otpLocked: attempts.locked,
     open,
     sendCode,
     verify,

@@ -17,6 +17,8 @@ interface OtpModalProps {
   onVerify: (close: () => void) => void;
   onCancel: (close: () => void) => void;
   verifyLabel?: string;
+  // Too many wrong codes: verifying stays off until a new code is sent.
+  locked?: boolean;
 }
 
 export default function OtpModal({
@@ -34,6 +36,7 @@ export default function OtpModal({
   onVerify,
   onCancel,
   verifyLabel = "Verify & Create Account",
+  locked = false,
 }: OtpModalProps) {
   return (
     <Modal>
@@ -100,7 +103,7 @@ export default function OtpModal({
                     variant="primary"
                     size="lg"
                     className="w-full"
-                    isDisabled={otp.length < 6 || loading}
+                    isDisabled={otp.length < 6 || loading || locked}
                     isPending={loading}
                     onPress={() => onVerify(close)}
                   >

@@ -17,3 +17,12 @@ export function getEmailCodeRequestError(message: string | null | undefined): st
   }
   return message || "Something went wrong. Please try again.";
 }
+
+// Wrong-code attempts allowed per sent code before asking for a new one. A
+// convenience on top of Supabase's server-side limits, identical on web and mobile.
+export const MAX_OTP_ATTEMPTS = 5;
+
+export function getOtpAttemptError(attemptsRemaining: number): string {
+  if (attemptsRemaining <= 0) return "Too many incorrect attempts. Please request a new code.";
+  return `Incorrect or expired code. ${attemptsRemaining} attempt${attemptsRemaining === 1 ? "" : "s"} left.`;
+}

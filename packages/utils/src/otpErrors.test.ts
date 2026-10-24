@@ -1,4 +1,4 @@
-import { getEmailCodeRequestError, parseResendWaitSeconds } from "./otpErrors";
+import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "./otpErrors";
 
 describe("parseResendWaitSeconds", () => {
   it("reads the wait from Supabase's throttle message", () => {
@@ -23,5 +23,13 @@ describe("getEmailCodeRequestError", () => {
   it("passes other messages through", () => {
     expect(getEmailCodeRequestError("Password is too weak")).toBe("Password is too weak");
     expect(getEmailCodeRequestError("")).toBe("Something went wrong. Please try again.");
+  });
+});
+
+describe("getOtpAttemptError", () => {
+  it("counts the attempts left and locks at zero", () => {
+    expect(getOtpAttemptError(4)).toBe("Incorrect or expired code. 4 attempts left.");
+    expect(getOtpAttemptError(1)).toBe("Incorrect or expired code. 1 attempt left.");
+    expect(getOtpAttemptError(0)).toBe("Too many incorrect attempts. Please request a new code.");
   });
 });

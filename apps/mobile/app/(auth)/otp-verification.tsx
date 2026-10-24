@@ -14,7 +14,13 @@ import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 
-import { getEmailCodeRequestError, getProfileSubmitError, parseResendWaitSeconds } from '@repo/utils'
+import {
+  MAX_OTP_ATTEMPTS,
+  getEmailCodeRequestError,
+  getOtpAttemptError,
+  getProfileSubmitError,
+  parseResendWaitSeconds,
+} from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
 import { useCountdown } from 'hooks/auth'
@@ -28,7 +34,6 @@ import {
 } from 'heroui-native'
 
 const OTP_VALIDITY_DURATION = 60 // seconds
-const MAX_OTP_ATTEMPTS = 5
 
 export default function OTPVerification() {
   const router = useRouter()
@@ -183,12 +188,8 @@ export default function OTPVerification() {
         setAttemptsRemaining(remaining)
         clearOtp()
 
-        if (remaining <= 0) {
-          setOtpLocked(true)
-          setOtpError('Too many incorrect attempts. Please request a new code.')
-        } else {
-          setOtpError(`Incorrect or expired code. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`)
-        }
+        if (remaining <= 0) setOtpLocked(true)
+        setOtpError(getOtpAttemptError(remaining))
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
