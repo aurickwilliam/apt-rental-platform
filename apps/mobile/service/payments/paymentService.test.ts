@@ -70,6 +70,10 @@ describe('formatReferenceId', () => {
     expect(formatReferenceId('e2e-gcash')).toBe('APT-E2E-GCASH')
   })
 
+  it('keeps a generated APT- reference as is', () => {
+    expect(formatReferenceId('APT-8K2M9QX4')).toBe('APT-8K2M9QX4')
+  })
+
   it('returns an em dash for missing references', () => {
     expect(formatReferenceId(null)).toBe('—')
   })

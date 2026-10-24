@@ -13,7 +13,7 @@ function deferred() {
 
 // Small hook runner: effects are flushed explicitly to test the render before
 // a unit-change effect starts, as well as responses arriving out of order.
-function harness(fetchPayments) {
+function harness(fetchPayments, fetchAllPayments = async () => []) {
   const identity = { authUserId: "auth-a", generation: 0 };
   const slots = [];
   const effects = [];
@@ -57,7 +57,7 @@ function harness(fetchPayments) {
   const hooks = load("../hooks/use-landlord-payments.ts", {
     "@/hooks/use-auth-identity": { useAuthIdentity: () => identity },
     react, "@/hooks/use-async-resource": resource,
-    "@/service/landlordPaymentService": { fetchLandlordPayments: fetchPayments },
+    "@/service/landlordPaymentService": { ALL_APARTMENTS: "all", fetchLandlordPayments: fetchPayments, fetchAllLandlordPayments: fetchAllPayments },
   });
   return {
     render(id) { cursor = 0; return hooks.useLandlordPayments(id); },
@@ -110,4 +110,21 @@ test("optimistic paid/rollback work and a failed unit load never exposes old row
   assert.equal(state.loading, false);
   assert.equal(state.error, "Could not load this unit");
   assert.equal(state.payments.length, 0);
+});
+
+test("the all-apartments scope reads every unit through its own fetch, never a unit-scoped one", async () => {
+  const unitCalls = [];
+  const allCalls = [];
+  const hook = harness(
+    id => { unitCalls.push(id); return Promise.resolve([]); },
+    () => { allCalls.push("all"); return Promise.resolve([{ id: "x", apartment_id: "unit-a" }, { id: "y", apartment_id: "unit-b" }]); },
+  );
+  hook.render("all");
+  hook.flush();
+  await new Promise(setImmediate);
+  const state = hook.render("all");
+  assert.equal(state.loading, false);
+  assert.deepEqual(state.payments.map(row => row.id), ["x", "y"]);
+  assert.deepEqual(allCalls, ["all"]);
+  assert.deepEqual(unitCalls, []);
 });

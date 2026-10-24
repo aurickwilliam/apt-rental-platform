@@ -10,6 +10,8 @@ type Props = {
   icon: ComponentType<{ size?: number; className?: string }>;
   /** Shows the value in the destructive color (e.g. overdue rent). */
   isAlert?: boolean;
+  /** Paints the icon and label in the brand color instead of the neutral default. */
+  isAccented?: boolean;
   /** Omit for informational tiles. */
   href?: string;
   /** Percent filled (0-100); renders a brand-colored meter under the value. */
@@ -24,6 +26,7 @@ export default function StatTile({
   caption,
   icon: Icon,
   isAlert = false,
+  isAccented = false,
   href,
   progress,
   progressLabel = label,
@@ -31,8 +34,8 @@ export default function StatTile({
   const content = (
     <>
       <div className="flex items-center gap-3">
-        <Icon size={20} className="shrink-0 text-muted-foreground" />
-        <h2 className="flex-1 text-base font-medium text-foreground">{label}</h2>
+        <Icon size={20} className={`shrink-0 ${isAccented ? "text-primary" : "text-muted-foreground"}`} />
+        <h2 className={`flex-1 text-base font-medium ${isAccented ? "text-primary" : "text-foreground"}`}>{label}</h2>
         {href ? <IconArrowUpRight size={16} className="text-muted-foreground" /> : null}
       </div>
       <div className="space-y-1">

@@ -36,7 +36,7 @@ import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMain
 import { usePaymentMethodPreferences } from "@/hooks/payments/usePaymentMethodPreferences";
 import { useCheckoutPaymentMethod } from "@/hooks/payments/useCheckoutPaymentMethod";
 
-import { getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { generatePaymentReference, getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
@@ -145,7 +145,7 @@ export default function PaymentCheckout() {
       return;
     }
 
-    const referenceId = `pay_${Date.now().toString(36)}`;
+    const referenceId = generatePaymentReference();
     const paymentDescription = bill?.kind === "move_in" ? `Move-in payment - ${apartment.name}` : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
     const periodFields = {
       tenancyId: tenancy.id,

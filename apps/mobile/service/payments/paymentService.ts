@@ -153,6 +153,7 @@ export async function createCashPayment(params: CreateCashPaymentParams): Promis
 
 export function formatReferenceId(referenceId: string | null): string {
   if (!referenceId) return '—'
+  if (referenceId.startsWith('APT-')) return referenceId
   return `APT-${referenceId.replace(/^pay_/, '').toUpperCase()}`
 }
 

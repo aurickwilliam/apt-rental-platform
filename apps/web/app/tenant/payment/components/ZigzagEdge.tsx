@@ -7,12 +7,18 @@ type ZigzagEdgeProps = {
   depth?: number;
   toothWidth?: number;
   className?: string;
+  /**
+   * Draws white-paper teeth hanging below the receipt (filled with `cutColor`)
+   * instead of background-colored notches cut into it, so the edge stays
+   * correct over any background, including a transparent dialog.
+   */
+  hanging?: boolean;
 };
 
 // Web twin of mobile ZigzagEdge: an SVG notch path filled with the background
 // color behind the card (cutColor), so the white receipt looks cut out.
 // Teeth recompute from measured width so they fit evenly, no partial tooth.
-export default function ZigzagEdge({ cutColor = "#376BF5", depth = 13, toothWidth = 20, className = "" }: ZigzagEdgeProps) {
+export default function ZigzagEdge({ cutColor = "#376BF5", depth = 13, toothWidth = 20, className = "", hanging = false }: ZigzagEdgeProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -35,11 +41,11 @@ export default function ZigzagEdge({ cutColor = "#376BF5", depth = 13, toothWidt
   const teeth = Math.max(1, Math.round(width / toothWidth));
   const tooth = width / teeth;
 
-  let d = `M0,${depth} `;
+  let d = hanging ? "M0,0 " : `M0,${depth} `;
   for (let i = 0; i < teeth; i++) {
-    const peakX = i * tooth + tooth / 2;
-    const troughX = (i + 1) * tooth;
-    d += `L${peakX},0 L${troughX},${depth} `;
+    const midX = i * tooth + tooth / 2;
+    const endX = (i + 1) * tooth;
+    d += hanging ? `L${midX},${depth} L${endX},0 ` : `L${midX},0 L${endX},${depth} `;
   }
   d += "Z";
 

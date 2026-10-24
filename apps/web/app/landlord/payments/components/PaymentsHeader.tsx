@@ -11,7 +11,7 @@ export default function PaymentsHeader() {
         </span>
         Payments
       </h1>
-      <p className="text-sm text-muted-foreground mt-1">Payments for this unit will appear here.</p>
+      <p className="text-sm text-muted-foreground mt-1">Rent and fees collected for each of your units.</p>
     </div>
   );
 }

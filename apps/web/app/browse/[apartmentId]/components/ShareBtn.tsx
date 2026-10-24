@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { IconShare } from "@tabler/icons-react";
+import { IconShare2 } from "@tabler/icons-react";
 
 export default function ShareBtn() {
   return (
@@ -11,7 +11,7 @@ export default function ShareBtn() {
       isIconOnly
       aria-label="Share this apartment"
     >
-      <IconShare size={20} />
+      <IconShare2 size={20} />
     </Button>
   );
 }
