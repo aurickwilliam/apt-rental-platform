@@ -18,10 +18,11 @@ export async function checkEmailAvailability(
 
   const supabase = await createClient();
 
-  const { count, error } = await supabase
-    .from("users")
-    .select("id", { head: true, count: "exact" })
-    .eq("email", normalizedEmail);
+  // Auth accounts count too: an email verified but never given a profile
+  // is still registered, and sign-up would silently send it no code.
+  const { data: registered, error } = await supabase.rpc("is_email_registered", {
+    p_email: normalizedEmail,
+  });
 
   if (error) {
     return {
@@ -32,6 +33,6 @@ export async function checkEmailAvailability(
 
   return {
     error: null,
-    exists: (count ?? 0) > 0,
+    exists: registered === true,
   };
 }

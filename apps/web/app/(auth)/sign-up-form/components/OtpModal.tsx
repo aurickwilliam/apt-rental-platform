@@ -1,5 +1,6 @@
-import { Modal, Button, InputOTP, REGEXP_ONLY_DIGITS } from "@heroui/react";
+import { Modal, Button } from "@heroui/react";
 import { IconMail as Mail } from "@tabler/icons-react";
+import CodeInput from "@/app/components/inputs/CodeInput";
 
 interface OtpModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export default function OtpModal({
             {({ close }) => (
               <>
                 <Modal.Header>
-                  <Modal.Heading>Verify Your Email Address</Modal.Heading>
+                  <Modal.Heading className="font-nunito font-bold">Verify Your Email Address</Modal.Heading>
                 </Modal.Header>
 
                 <Modal.Body className="flex flex-col items-center gap-4 py-4">
@@ -60,27 +61,13 @@ export default function OtpModal({
                   </p>
 
                   <div className="flex w-full justify-center">
-                    <InputOTP
-                      maxLength={6}
+                    <CodeInput
+                      length={6}
                       value={otp}
-                      onChange={(val) => onOtpChange(val)}
+                      onChange={onOtpChange}
                       isInvalid={!!otpError}
-                      pattern={REGEXP_ONLY_DIGITS}
                       autoFocus
-                      className="justify-center"
-                    >
-                      <InputOTP.Group>
-                        <InputOTP.Slot index={0} />
-                        <InputOTP.Slot index={1} />
-                        <InputOTP.Slot index={2} />
-                      </InputOTP.Group>
-                      <InputOTP.Separator />
-                      <InputOTP.Group>
-                        <InputOTP.Slot index={3} />
-                        <InputOTP.Slot index={4} />
-                        <InputOTP.Slot index={5} />
-                      </InputOTP.Group>
-                    </InputOTP>
+                    />
                   </div>
 
                   {otpError && (

@@ -1827,6 +1827,7 @@ export type Database = {
       confirm_landlord_finance_month: { Args: { p_month: string; p_apartment_id?: string }; Returns: undefined }
       get_tenancy_bill: { Args: { p_tenancy_id: string }; Returns: Json }
       get_my_suspension_status: { Args: never; Returns: Json }
+      is_email_registered: { Args: { p_email: string }; Returns: boolean }
       get_portal_conversations: {
         Args: { p_portal: string }
         Returns: {
