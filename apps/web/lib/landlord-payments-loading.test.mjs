@@ -27,7 +27,9 @@ function run(compiled, dependencies) {
   return context.exports;
 }
 
-// `states` are the page's useState values in call order: tab, year, sort, unit.
+// `states` are the page's useState values in call order: tab, year, sort, unit. The
+// open receipt id (`options.selected`) is appended as a fifth. `options.setCalls` records
+// every value passed to a state setter.
 function load(file, options = {}) {
   const units = options.units ?? { apartments: [{ id: "unit-a", name: "Unit A" }], loading: false, error: null, refresh: () => {} };
   const payments = options.payments ?? { payments: [], loading: false, error: null, refresh: () => {} };
@@ -50,7 +52,10 @@ function load(file, options = {}) {
     "react": {
       Suspense: "Suspense", useMemo: callback => callback(),
       // Wraps so that re-expanding the same tree (text(), hrefs()) re-reads the same four values.
-      useState: initial => [options.states ? options.states[stateIndex++ % options.states.length] : initial, () => {}],
+      useState: initial => {
+        const states = file === "page.tsx" && (options.states || options.selected) ? [...(options.states ?? ["all", "all", "newest", null]).slice(0, 4), options.selected ?? null] : null;
+        return [states ? states[stateIndex++ % states.length] : initial, value => options.setCalls?.push(value)];
+      },
     },
     "next/link": { default: "Link" },
     "next/navigation": { useRouter: () => ({ push: href => options.pushed?.push(href) }) },
@@ -73,6 +78,7 @@ function load(file, options = {}) {
     "./components/PaymentsSummary": component("components/PaymentsSummary.tsx", "PaymentsSummary"),
     "./components/NeedsAttentionCard": component("components/NeedsAttentionCard.tsx", "NeedsAttentionCard"),
     "./components/PaymentsTable": component("components/PaymentsTable.tsx", "PaymentsTable"),
+    "./components/PaymentReceiptModal": { default: "PaymentReceiptModal" },
   };
   return run(transpile(new URL(`../app/landlord/payments/${file}`, import.meta.url)), dependencies);
 }
@@ -92,7 +98,8 @@ const text = tree => nodes(tree).flatMap(node => [node.props?.children].flat(Inf
 const older = { apartment_id: "unit-a", apartment_name: "Unit A", id: "older", date: "2025-01-01", period_start: "2025-01-01", status: "paid", method: "gcash", amount: 5000 };
 const newer = { apartment_id: "unit-a", apartment_name: "Unit A", id: "newer", date: "2026-01-01", period_start: "2026-01-01", status: "paid", method: "gcash", amount: 6000 };
 const cash = { apartment_id: "unit-a", apartment_name: "Unit A", id: "cash", date: "2026-02-01", period_start: "2026-02-01", status: "pending", method: "cash", amount: 7000, tenant_name: "Ryan" };
-const hrefs = tree => nodes(tree).filter(node => node.type === "Link").map(node => node.props.href);
+// The payments the table is given, in the order it shows them.
+const listed = tree => [...nodes(tree).find(node => node.type.name === "PaymentsTable").props.payments.map(payment => payment.id)];
 
 test("Payments route and Suspense fallbacks share a header, unit placeholder, four tiles and the table shell", () => {
   const route = nodes(load("loading.tsx").default());
@@ -160,7 +167,12 @@ test("All apartments adds the unit to rows and Needs attention; one unit does no
   assert.equal(all.find(node => node.type.name === "PaymentsTable").props.showUnit, true);
   assert.equal(all.find(node => node.type.name === "NeedsAttentionCard").props.showUnit, true);
   assert.ok(all.some(node => node.type === "Table.Column" && node.props.children === "Unit"));
-  assert.ok(hrefs(all.find(node => node.type.name === "NeedsAttentionCard").type({ payments: [other], showUnit: true })).includes("/landlord/payments/cash-b?apartmentId=unit-b"));
+  // Each waiting payment opens its own receipt, naming its unit when several are listed.
+  const opened = [];
+  const card = all.find(node => node.type.name === "NeedsAttentionCard").type({ payments: [other], showUnit: true, onOpen: (payment) => opened.push(payment.id) });
+  assert.ok(text(card).includes("Unit B"));
+  nodes(card).find(node => node.type === "button").props.onClick();
+  assert.deepEqual(opened, ["cash-b"]);
   const single = nodes(load("page.tsx", { states: ["all", "all", "newest", "unit-a"], units, payments: { payments: [newer], loading: false } }).default());
   assert.equal(single.find(node => node.type.name === "PaymentsTable").props.showUnit, false);
   assert.ok(!single.some(node => node.type === "Table.Column" && node.props.children === "Unit"));
@@ -179,29 +191,45 @@ test("settled empty, no-unit and error states and Retry remain intact", () => {
   assert.equal(refreshes, 2);
 });
 
-test("sorting, year and status filters and receipt links stay tied to the selected unit", () => {
+test("sorting, year and status filters decide which payments the table lists", () => {
   const units = { apartments: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }], loading: false };
   const inUnitB = [older, newer].map(row => ({ ...row, apartment_id: "unit-b", apartment_name: "Unit B" }));
   for (const [sort, expected] of [["newest", ["newer", "older"]], ["oldest", ["older", "newer"]]]) {
     const tree = load("page.tsx", { states: ["all", "all", sort, "unit-b"], units, payments: { payments: inUnitB, loading: false } }).default();
-    assert.deepEqual(hrefs(tree), expected.map(id => `/landlord/payments/${id}?apartmentId=unit-b`));
+    assert.deepEqual(listed(tree), expected);
   }
   const byYear = load("page.tsx", { states: ["all", "2026", "newest", "unit-a"], payments: { payments: [older, newer], loading: false } }).default();
-  assert.deepEqual(hrefs(byYear), ["/landlord/payments/newer?apartmentId=unit-a"]);
+  assert.deepEqual(listed(byYear), ["newer"]);
   // A remembered year the unit no longer has falls back to every year.
   const staleYear = load("page.tsx", { states: ["all", "1999", "newest", "unit-a"], payments: { payments: [older, newer], loading: false } }).default();
-  assert.equal(hrefs(staleYear).length, 2);
+  assert.equal(listed(staleYear).length, 2);
   const noPending = load("page.tsx", { states: ["pending", "all", "newest", "unit-a"], payments: { payments: [older, newer], loading: false } }).default();
   assert.ok(text(noPending).includes("No payments found"));
-  assert.equal(hrefs(noPending).length, 0);
+  assert.ok(!nodes(noPending).some(node => node.type.name === "PaymentsTable"));
 });
 
-test("a table row opens that payment's receipt for the selected unit", () => {
-  const pushed = [];
-  const tree = load("page.tsx", { pushed, payments: { payments: [older, newer], loading: false } }).default();
-  const content = nodes(tree).find(node => node.type === "Table.Content");
-  content.props.onRowAction("older");
-  assert.deepEqual(pushed, ["/landlord/payments/older?apartmentId=unit-a"]);
+test("a table row opens that payment's receipt over the list instead of navigating", () => {
+  const setCalls = [];
+  const tree = load("page.tsx", { setCalls, payments: { payments: [older, newer], loading: false } }).default();
+  nodes(tree).find(node => node.type === "Table.Content").props.onRowAction("older");
+  assert.deepEqual(setCalls, ["older"]);
+  // No link or route change is involved.
+  assert.ok(!nodes(tree).some(node => node.type === "Link"));
+});
+
+test("the receipt modal shows the selected payment from the list, reloads it on change and closes with its row", () => {
+  const refresh = () => {};
+  const setCalls = [];
+  const open = nodes(load("page.tsx", { selected: "older", setCalls, payments: { payments: [older, newer], loading: false, refresh } }).default());
+  const modal = open.find(node => node.type === "PaymentReceiptModal");
+  assert.equal(modal.props.payment.id, "older");
+  assert.equal(modal.props.onChanged, refresh);
+  modal.props.onClose();
+  assert.deepEqual(setCalls, [null]);
+  const none = nodes(load("page.tsx", { payments: { payments: [older, newer], loading: false } }).default());
+  assert.ok(!none.some(node => node.type === "PaymentReceiptModal"));
+  const gone = nodes(load("page.tsx", { selected: "removed", payments: { payments: [older], loading: false } }).default());
+  assert.ok(!gone.some(node => node.type === "PaymentReceiptModal"));
 });
 
 test("summary figures follow the selected year and Needs attention ignores every filter", () => {
@@ -215,7 +243,10 @@ test("summary figures follow the selected year and Needs attention ignores every
   assert.equal(filtered.find(node => node.type.name === "PaymentsSummary").props.summary.collected, 5000);
   const attention = filtered.find(node => node.type.name === "NeedsAttentionCard");
   assert.deepEqual([...attention.props.payments.map(payment => payment.id)], ["cash"]);
-  assert.ok(hrefs(attention.type(attention.props)).includes("/landlord/payments/cash?apartmentId=unit-a"));
+  const opened = [];
+  const rows = nodes(attention.type({ ...attention.props, onOpen: (payment) => opened.push(payment.id) })).filter(node => node.type === "button");
+  rows.forEach(row => row.props.onClick());
+  assert.deepEqual(opened, ["cash"]);
 });
 
 test("tab labels carry no counts; only Pending shows a badge, and only when something is pending", () => {

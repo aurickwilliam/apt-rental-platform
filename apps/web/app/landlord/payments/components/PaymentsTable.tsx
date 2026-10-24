@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { IconAlertCircle, IconCircleCheck, IconCircleX, IconClockHour4 } from "@tabler/icons-react";
 import { Card, Table } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
@@ -14,6 +12,8 @@ import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 
 interface PaymentsTableProps {
   payments: LandlordPaymentRecord[];
+  /** Opens a payment's receipt over the list. */
+  onOpen: (payment: LandlordPaymentRecord) => void;
   /** Adds the unit to each row; on when the page lists several units at once. */
   showUnit: boolean;
 }
@@ -47,15 +47,9 @@ function dateCaption(payment: LandlordPaymentRecord): string {
   return `${verb} ${formatDateShort(payment.date)}`;
 }
 
-function paymentHref(payment: LandlordPaymentRecord): string {
-  return `/landlord/payments/${payment.id}?apartmentId=${payment.apartment_id}`;
-}
-
 // Wide screens get a table to compare months at a glance; narrow screens keep
 // the compact card, since a table would scroll sideways there.
-export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps) {
-  const router = useRouter();
-
+export default function PaymentsTable({ payments, showUnit, onOpen }: PaymentsTableProps) {
   return (
     <>
       <div className="hidden md:block">
@@ -65,7 +59,7 @@ export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps
               aria-label="Payments"
               onRowAction={(key) => {
                 const payment = payments.find((row) => row.id === String(key));
-                if (payment) router.push(paymentHref(payment));
+                if (payment) onOpen(payment);
               }}
             >
               <Table.Header className="text-foreground! [&_th]:text-foreground!">
@@ -119,7 +113,12 @@ export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps
           const status = paymentStatusLabel(payment.status);
           return (
             <li key={payment.id}>
-              <Link href={paymentHref(payment)} className="no-underline">
+              <button
+                type="button"
+                onClick={() => onOpen(payment)}
+                aria-label={`Open receipt: ${periodTitle(payment)}, ${formatPesoDisplay(payment.amount ?? 0)}, ${status}`}
+                className="block w-full cursor-pointer rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-primary"
+              >
                 <Card className="rounded-2xl border border-border bg-card shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
                   <Card.Header className="px-4 pt-4 pb-1">
                     <div className="flex items-center justify-between gap-2">
@@ -146,7 +145,7 @@ export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps
                     <span className="shrink-0 text-[11px] text-muted-foreground">{formatReferenceId(payment.reference_id)}</span>
                   </Card.Footer>
                 </Card>
-              </Link>
+              </button>
             </li>
           );
         })}

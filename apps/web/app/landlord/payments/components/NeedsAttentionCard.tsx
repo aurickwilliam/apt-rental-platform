@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Button, Popover } from "@heroui/react";
 import { IconCash, IconChevronDown, IconChevronRight, IconCircleCheck } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
@@ -8,8 +8,9 @@ import { ledgerPeriodLabel } from "@/lib/landlord-payments-view";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 
 interface NeedsAttentionCardProps {
-  /** Pending cash payments only. Each row opens the receipt, where the landlord confirms or rejects. */
+  /** Pending cash payments only. Each row opens its receipt, where the landlord confirms or declines. */
   payments: LandlordPaymentRecord[];
+  onOpen: (payment: LandlordPaymentRecord) => void;
   /** Names the unit on each row; on when the page lists several units at once. */
   showUnit: boolean;
 }
@@ -18,7 +19,8 @@ interface NeedsAttentionCardProps {
 // are waiting: the list opens in a scrollable popover instead of growing the
 // page. Confirming or rejecting cash stays on the payment's own page, where the
 // full receipt is visible, so there is a single place that changes payment status.
-export default function NeedsAttentionCard({ payments, showUnit }: NeedsAttentionCardProps) {
+export default function NeedsAttentionCard({ payments, showUnit, onOpen }: NeedsAttentionCardProps) {
+  const [open, setOpen] = useState(false);
   if (payments.length === 0) {
     return (
       <p className="flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-white">
@@ -31,7 +33,7 @@ export default function NeedsAttentionCard({ payments, showUnit }: NeedsAttentio
   const noun = payments.length === 1 ? "cash payment" : "cash payments";
 
   return (
-    <Popover>
+    <Popover isOpen={open} onOpenChange={setOpen}>
       <Button
         variant="primary"
         className="h-auto cursor-pointer gap-3 rounded-2xl bg-primary! px-4 py-2.5 text-left text-white! opacity-100! hover:bg-primary/90! data-[pressed=true]:bg-primary/90! aria-expanded:bg-primary!"
@@ -59,9 +61,13 @@ export default function NeedsAttentionCard({ payments, showUnit }: NeedsAttentio
           <ul className="max-h-80 space-y-2 overflow-y-auto">
             {payments.map((payment) => (
               <li key={payment.id}>
-                <Link
-                  href={`/landlord/payments/${payment.id}?apartmentId=${payment.apartment_id}`}
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl bg-primary/10 p-3 text-foreground no-underline transition-colors hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onOpen(payment);
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl bg-primary/10 p-3 text-left text-foreground transition-colors hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <IconCash size={20} className="shrink-0 text-primary" aria-hidden="true" />
                   <span className="min-w-0 flex-1">
@@ -77,7 +83,7 @@ export default function NeedsAttentionCard({ payments, showUnit }: NeedsAttentio
                     </span>
                   </span>
                   <IconChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-                </Link>
+                </button>
               </li>
             ))}
           </ul>

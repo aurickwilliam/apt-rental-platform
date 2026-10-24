@@ -25,6 +25,7 @@ import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import PaymentsHeader from "./components/PaymentsHeader";
 import PaymentsSkeleton, { NeedsAttentionSkeleton, PaymentsBodySkeleton } from "./components/PaymentsSkeleton";
 import PaymentsSummary from "./components/PaymentsSummary";
+import PaymentReceiptModal from "./components/PaymentReceiptModal";
 import PaymentsTable from "./components/PaymentsTable";
 
 type PaymentLedgerRow = LedgerRow & { payment: LandlordPaymentRecord };
@@ -64,6 +65,10 @@ function PaymentsContent() {
   const showUnit = activeApartmentId === ALL_APARTMENTS;
   const unitOptions = [{ id: ALL_APARTMENTS, name: "All apartments" }, ...unitsQuery.apartments];
   const paymentsQuery = useLandlordPayments(activeApartmentId);
+  // The receipt shown over the list is read from the list itself, so it reflects a
+  // confirmation as soon as the reloaded rows arrive and closes if its row is gone.
+  const [receiptId, setReceiptId] = useState<string | null>(null);
+  const receiptPayment = receiptId ? paymentsQuery.payments.find((payment) => payment.id === receiptId) ?? null : null;
 
   const ledger = useMemo(() => paymentsQuery.payments.map(toLedgerRow), [paymentsQuery.payments]);
   const years = useMemo(() => availableLedgerYears(ledger), [ledger]);
@@ -125,7 +130,7 @@ function PaymentsContent() {
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <PaymentsHeader />
-        {loading ? <NeedsAttentionSkeleton /> : <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} />}
+        {loading ? <NeedsAttentionSkeleton /> : <NeedsAttentionCard payments={awaitingCash} showUnit={showUnit} onOpen={(payment) => setReceiptId(payment.id)} />}
       </div>
 
       <div className="flex flex-wrap items-center gap-2" data-fab-clearance>
@@ -239,11 +244,20 @@ function PaymentsContent() {
                 </Card.Content>
               </Card>
             ) : (
-              <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} />
+              <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} onOpen={(payment) => setReceiptId(payment.id)} />
             )}
           </div>
         </>
       )}
+
+      {receiptPayment ? (
+        <PaymentReceiptModal
+          key={receiptPayment.id}
+          payment={receiptPayment}
+          onClose={() => setReceiptId(null)}
+          onChanged={paymentsQuery.refresh}
+        />
+      ) : null}
     </div>
   );
 }
