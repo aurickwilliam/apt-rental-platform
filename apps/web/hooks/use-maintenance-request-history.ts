@@ -19,7 +19,7 @@ export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]
   return status === "Pending" || status === "In Progress";
 }
 
-export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null) {
+export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
@@ -28,8 +28,10 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     // Omitted context preserves the existing behavior for other consumers.
     const resolvedTenantId = tenantId === undefined ? (await getTenantContext()).tenantId : tenantId;
     if (!resolvedTenantId) return NO_REQUESTS;
-    return fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId);
-  }, [apartmentId, tenantId]);
+    return includePhotos
+      ? fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId)
+      : fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId, false);
+  }, [apartmentId, tenantId, includePhotos]);
   const {
     data: requests,
     loading,

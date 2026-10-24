@@ -48,11 +48,13 @@ export default async function Properties() {
           longitude, 
           amenities,
           lease_agreement_url,
-          apartment_images(url, is_cover)
+           apartment_images(url, url_thumb, is_cover)
         `)
         .eq("landlord_id", profile.id)
         .is("deleted_at", null)
         .order("created_at", {ascending: false})
+        .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
+        .limit(1, { referencedTable: "apartment_images" })
     : { data: [] };
 
   const mapped = (apartments ?? []).map((apt) => ({
@@ -82,8 +84,9 @@ export default async function Properties() {
     longitude:      apt.longitude,
     amenities:      apt.amenities ?? [],
     lease_agreement_url: apt.lease_agreement_url ?? null,
-    thumbnail:      apt.apartment_images?.find((img) => img.is_cover)?.url
-                    ?? "/default/default-thumbnail.jpeg",
+    thumbnail:      apt.apartment_images?.find((img) => img.is_cover)?.url_thumb
+                    || apt.apartment_images?.find((img) => img.is_cover)?.url
+                    || "/default/default-thumbnail.jpeg",
   }));
 
   // Stats

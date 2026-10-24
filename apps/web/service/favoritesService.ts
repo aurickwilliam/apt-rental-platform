@@ -20,7 +20,7 @@ export type FavoriteApartment = Pick<
   | "no_bathrooms"
   | "area_sqm"
 > & {
-  apartment_images: Pick<ApartmentImageRow, "url" | "is_cover" | "created_at">[] | null;
+  apartment_images: Pick<ApartmentImageRow, "url" | "url_thumb" | "is_cover" | "created_at">[] | null;
 };
 
 export type TenantContext = {
@@ -134,7 +134,7 @@ export async function fetchFavoritePresentation(tenantId: string, cursor: Favori
   const ids = [...new Set(page.map((row) => row.apartment_id))];
   if (!ids.length) return { apartments: [], nextCursor };
   const { data: apartments, error: apartmentError } = await supabase.from("apartments")
-    .select("id, name, barangay, city, average_rating, monthly_rent, no_bedrooms, no_bathrooms, area_sqm, apartment_images(url, is_cover, created_at)")
+    .select("id, name, barangay, city, average_rating, monthly_rent, no_bedrooms, no_bathrooms, area_sqm, apartment_images(url, url_thumb, is_cover, created_at)")
     .is("deleted_at", null)
     .eq("is_hidden_by_admin", false)
     .in("id", ids)

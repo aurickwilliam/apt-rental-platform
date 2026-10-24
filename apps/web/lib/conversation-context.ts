@@ -12,6 +12,13 @@ export interface ConversationContext {
   verified: boolean;
 }
 
+/** Where "View apartment" goes for a conversation in each portal. */
+export function conversationApartmentHref(apartmentId: string, portal: "tenant" | "landlord"): string {
+  return portal === "tenant"
+    ? `/tenant/browse/${encodeURIComponent(apartmentId)}`
+    : `/landlord/properties/${encodeURIComponent(apartmentId)}`;
+}
+
 /** Never reuse another thread's property, even while a new request is settling. */
 export function conversationApartmentPresentation(
   apartmentId: string | null,
@@ -27,9 +34,7 @@ export function conversationApartmentPresentation(
     rent: typeof apartment.monthly_rent === "number" && Number.isFinite(apartment.monthly_rent) && apartment.monthly_rent > 0
       ? apartment.monthly_rent : null,
     image: photo?.url_thumb || photo?.url || null,
-    href: portal === "tenant"
-      ? `/tenant/browse/${encodeURIComponent(apartmentId)}`
-      : `/landlord/properties/${encodeURIComponent(apartmentId)}`,
+    href: conversationApartmentHref(apartmentId, portal),
   };
 }
 

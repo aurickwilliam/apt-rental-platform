@@ -19,6 +19,8 @@ export type ReplyPreview = {
   messageType: MessageType;
   senderId: string;
   isSent: boolean;
+  /** Renderable image for a quoted photo / GIF / video poster, resolved at read time (never persisted). */
+  previewUrl?: string | null;
 };
 
 /** One user's reaction on a message — at most one row per (message, user). */
@@ -194,7 +196,7 @@ export async function fetchMessagePage(params: {
   if (replyIds.length > 0) {
     const { data: rData, error: rError } = await supabase
       .from('chat')
-      .select('id, message, message_type, sender_id')
+      .select('id, message, message_type, sender_id, attachment_path, attachment_url, attachment_thumbnail_path')
       .in('id', replyIds);
     if (!rError) replyRows = rData ?? [];
   }
@@ -632,11 +634,13 @@ export async function mapMessages(
   replyRows: any[] = [],
   reactionRows: any[] = []
 ): Promise<Message[]> {
-  const attachmentPaths = rows
+  // Quoted photos and videos show their own image above a reply, so their
+  // files are signed in the same batches as the page's own attachments.
+  const attachmentPaths = [...rows, ...replyRows]
     .filter((m) => m.attachment_path)
     .map((m) => m.attachment_path as string);
 
-  const thumbnailPaths = rows
+  const thumbnailPaths = [...rows, ...replyRows]
     .filter((m) => m.attachment_thumbnail_path)
     .map((m) => m.attachment_thumbnail_path as string);
 
@@ -670,6 +674,14 @@ export async function mapMessages(
           messageType: (r.message_type ?? 'text') as MessageType,
           senderId: r.sender_id,
           isSent: r.sender_id === currentUserId,
+          previewUrl:
+            r.message_type === 'image'
+              ? (r.attachment_path ? (signedUrls[r.attachment_path] ?? null) : null)
+              : r.message_type === 'gif'
+                ? (r.attachment_url ?? null)
+                : r.message_type === 'video'
+                  ? (r.attachment_thumbnail_path ? (thumbnailUrls[r.attachment_thumbnail_path] ?? null) : null)
+                  : null,
         };
       } else {
         replyDeleted = true;

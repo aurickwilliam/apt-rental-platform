@@ -41,7 +41,7 @@ function createHarness(overrides = {}) {
   const reads = [];
   const refreshCalls = [];
   const documentListeners = new Map();
-  let presenceState = {};
+  const sends = [];
   let messages = [];
   let refreshImpl = async () => {};
 
@@ -78,11 +78,14 @@ function createHarness(overrides = {}) {
         channel.subscribeCallback = callback;
         return channel;
       },
+      send(message) {
+        sends.push(plain(message));
+        return Promise.resolve("ok");
+      },
       track(payload) {
         tracked.push(payload);
         return Promise.resolve("ok");
       },
-      presenceState: () => presenceState,
       teardown() {
         channel.tornDown = true;
       },
@@ -132,7 +135,8 @@ function createHarness(overrides = {}) {
   const hookModule = compile(
     "../app/components/chat/useConversationRealtime.ts",
     { react, "./conversationEvents": events },
-    { document, console: { error: (...parts) => logs.push(parts) } }
+    // The typing auto-clear uses the host (possibly timer-mocked) setTimeout.
+    { document, setTimeout, clearTimeout, console: { error: (...parts) => logs.push(parts) } }
   );
 
   const hookResult = hookModule.default({
@@ -159,6 +163,7 @@ function createHarness(overrides = {}) {
     created,
     removals,
     tracked,
+    sends,
     updates,
     logs,
     reads,
@@ -173,9 +178,6 @@ function createHarness(overrides = {}) {
     getMessages: () => messages,
     setRefresh: (impl) => {
       refreshImpl = impl;
-    },
-    setPresence: (state) => {
-      presenceState = state;
     },
     setVisibility: (state) => {
       document.visibilityState = state;
@@ -205,9 +207,9 @@ test("subscribes only to published chat tables with participant filters", async 
   assert.equal(h.created.length, 1);
   const [channel] = h.created;
   assert.equal(channel.topic, "realtime:conversation:user-a_user-b");
-  assert.deepEqual(plain(channel.options), {
-    config: { presence: { key: "user-a" } },
-  });
+  // No presence config at all: typing moved off presence because its client
+  // update limit (5 per 30 s) closed the whole channel mid-chat.
+  assert.equal(channel.options, undefined);
 
   const postgres = channel.bindings.filter((b) => b.type === "postgres_changes");
   assert.deepEqual(
@@ -219,6 +221,9 @@ test("subscribes only to published chat tables with participant filters", async 
     [
       { event: "INSERT", table: "chat", filter: "sender_id=eq.user-b" },
       { event: "UPDATE", table: "chat", filter: "receiver_id=eq.user-b" },
+      // Unsends: Postgres DELETE events can't be filtered; ids outside this
+      // thread are ignored by `removeMessage`.
+      { event: "DELETE", table: "chat", filter: undefined },
     ]
   );
   // Regression guard: `chat_reactions` is not in `supabase_realtime`, and
@@ -227,7 +232,10 @@ test("subscribes only to published chat tables with participant filters", async 
     JSON.stringify(channel.bindings.map((b) => b.filter)).includes("chat_reactions"),
     false
   );
-  assert.ok(channel.bindings.some((b) => b.type === "presence" && b.filter.event === "sync"));
+  // Typing arrives as Broadcast on the message channel; no presence binding
+  // may come back — a single presence binding fails the whole join.
+  assert.ok(channel.bindings.some((b) => b.type === "broadcast" && b.filter.event === "typing"));
+  assert.equal(channel.bindings.some((b) => b.type === "presence"), false);
   assert.ok(channel.bindings.some((b) => b.type === "system"));
   assert.equal(typeof channel.subscribeCallback, "function");
 });
@@ -278,6 +286,22 @@ test("read receipts patch the matching sent message and ignore strays", async ()
   assert.equal(h.getMessages(), before);
 });
 
+test("unsend deletes from either side drop the message and ignore other threads", async () => {
+  const h = createHarness();
+  h.run();
+  await flush();
+  const remove = h.created[0].bindings.find((b) => b.filter?.event === "DELETE");
+
+  h.seed([chatRow({ id: "m1" }), chatRow({ id: "m2", created_at: "2026-01-01T10:01:00.000Z" })]);
+  remove.callback({ old: { id: "m1" } });
+  assert.deepEqual(ids(h), ["m2"]);
+
+  const before = h.getMessages();
+  remove.callback({ old: { id: "elsewhere" } });
+  remove.callback({ old: {} });
+  assert.equal(h.getMessages(), before);
+});
+
 test("re-joins and refocus resync once, and hidden tabs stay quiet", async () => {
   const h = createHarness();
   h.run();
@@ -285,7 +309,9 @@ test("re-joins and refocus resync once, and hidden tabs stay quiet", async () =>
   const { subscribeCallback } = h.created[0];
 
   subscribeCallback("SUBSCRIBED");
-  assert.equal(h.tracked.length, 1);
+  // Joining tracks no presence state — presence churn is what the client
+  // rate limit punished.
+  assert.equal(h.tracked.length, 0);
   assert.equal(h.refreshCalls.length, 0);
 
   subscribeCallback("SUBSCRIBED");
@@ -313,17 +339,25 @@ test("re-joins and refocus resync once, and hidden tabs stay quiet", async () =>
   assert.equal(h.refreshCalls.length, 3);
 });
 
-test("channel errors and system subscription failures are logged", async () => {
+test("channel errors and system subscription failures are logged", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   const h = createHarness();
   h.run();
   await flush();
   const [channel] = h.created;
+
+  // An open indicator must not outlive a channel failure.
+  const typing = channel.bindings.find((b) => b.type === "broadcast");
+  typing.callback({ payload: { userId: "user-b", isTyping: true } });
+  assert.equal(h.cells[0].value, true);
 
   channel.subscribeCallback("CHANNEL_ERROR", new Error("boom"));
   channel.subscribeCallback("TIMED_OUT");
   channel.bindings
     .find((b) => b.type === "system")
     .callback({ status: "error", message: "replication unavailable" });
+
+  assert.equal(h.cells[0].value, false);
 
   const logged = JSON.stringify(h.logs);
   assert.match(logged, /CHANNEL_ERROR/);
@@ -337,16 +371,22 @@ test("cleanup removes the channel, the listener and the typing publisher", async
   await flush();
   const [channel] = h.created;
 
-  await h.hookResult.trackTyping(true);
-  assert.equal(h.tracked.length, 1);
-  assert.equal(plain(h.tracked[0]).isTyping, true);
+  await h.hookResult.broadcastTyping(true);
+  assert.deepEqual(h.sends, [
+    {
+      type: "broadcast",
+      event: "typing",
+      payload: { userId: "user-a", isTyping: true },
+    },
+  ]);
 
   for (const cleanup of cleanups) cleanup();
   assert.ok(h.removals.includes(channel));
   assert.equal(h.documentListeners.has("visibilitychange"), false);
 
-  await h.hookResult.trackTyping(false);
-  assert.equal(h.tracked.length, 1);
+  // After cleanup there is no channel to publish through — a no-op, not an error.
+  await h.hookResult.broadcastTyping(false);
+  assert.equal(h.sends.length, 1);
 });
 
 test("a leftover channel for the same topic is closed before resubscribing", async () => {
@@ -379,21 +419,44 @@ test("an empty conversation never subscribes", async () => {
   assert.equal(h.documentListeners.has("visibilitychange"), false);
 });
 
-test("presence sync reports the contact's typing state", async () => {
+test("typing Broadcasts from the contact drive the indicator; everything else is filtered", async (t) => {
+  // Mocked so typing's auto-clear timer never leaks into the event loop.
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   const h = createHarness();
   h.run();
   await flush();
-  const presence = h.created[0].bindings.find((b) => b.type === "presence");
+  const typing = h.created[0].bindings.find((b) => b.type === "broadcast");
 
-  h.setPresence({ "user-b": [{ isTyping: true }] });
-  presence.callback({});
+  typing.callback({ payload: { userId: "user-b", isTyping: true } });
   assert.equal(h.cells[0].value, true);
 
-  h.setPresence({ "user-b": [{ isTyping: false }] });
-  presence.callback({});
+  // Anyone who is not the active contact is ignored — stops included — and a
+  // malformed or missing payload is swallowed instead of crashing.
+  typing.callback({ payload: { userId: "user-a", isTyping: true } });
+  typing.callback({ payload: { userId: "user-c", isTyping: false } });
+  typing.callback(undefined);
+  typing.callback({});
+  assert.equal(h.cells[0].value, true);
+
+  // Stopping clears the indicator and disarms the auto-clear.
+  typing.callback({ payload: { userId: "user-b", isTyping: false } });
   assert.equal(h.cells[0].value, false);
 
-  h.setPresence({});
-  presence.callback({});
+  // The stale auto-clear of the earlier "true" never comes back on.
+  t.mock.timers.tick(5000);
+  assert.equal(h.cells[0].value, false);
+});
+
+test("a lost stop Broadcast auto-clears typing after the freshness window", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const h = createHarness();
+  h.run();
+  await flush();
+  const typing = h.created[0].bindings.find((b) => b.type === "broadcast");
+
+  typing.callback({ payload: { userId: "user-b", isTyping: true } });
+  assert.equal(h.cells[0].value, true);
+
+  t.mock.timers.tick(5000);
   assert.equal(h.cells[0].value, false);
 });

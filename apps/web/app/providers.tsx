@@ -19,7 +19,7 @@ function ReducedMotionPreference() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="light">
+    <NextThemesProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
       <ReducedMotionPreference />
       <ResourceCacheLifecycle />
       <TooltipProvider>

@@ -185,14 +185,14 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
     applications,
     loading: applicationsLoading,
     error: applicationsError,
-  } = useTenantApplications();
+  } = useTenantApplications(initialContext?.tenantId);
   const historyDialog = useOverlayState();
   const hasApplications = !applicationsLoading && applications.length > 0;
   const {
     requests: maintenanceRequests,
     loading: maintenanceLoading,
     error: maintenanceError,
-  } = useMaintenanceRequestHistory(tenancy?.apartment.id ?? null);
+  } = useMaintenanceRequestHistory(tenancy?.apartment.id ?? null, initialContext?.tenantId, false);
   const { viewSignedLease, viewing: viewingSignedLease } = useSignedLeaseViewer();
 
   const renderedAt = initialContext?.renderedAt;

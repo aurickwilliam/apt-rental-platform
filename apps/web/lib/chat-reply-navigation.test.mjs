@@ -156,7 +156,7 @@ test("a different rapid target supersedes the old lookup and the timeout remains
 
 for (const portal of ["tenant", "landlord"]) {
   test(`${portal}: shares reply navigation without routes or extra subscriptions`, () => {
-    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
+    const source = readFileSync(new URL("../app/components/chat/ConversationView.tsx", import.meta.url), "utf8");
     assert.match(source, /onJumpToOriginal=\{replyNavigation.jumpToOriginal\}/);
     assert.match(source, /isReplyHighlighted=\{replyNavigation.highlightedId === msg.id\}/);
     assert.match(source, /\$\{currentUserId\}:\$\{activeContact.conversationKey\}/);

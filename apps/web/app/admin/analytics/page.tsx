@@ -46,6 +46,15 @@ export default async function AdminAnalyticsPage({
   let start = custom ? parseDate(params.from) : defaultStart;
   const finish = custom ? parseDate(params.to) : end;
   let startError: string | null = null;
+  // Current-state RPCs don't depend on the all-time reporting start date.
+  // Observe failures immediately; their results are used only for a valid range.
+  const currentState = allTime
+    ? Promise.all([
+        supabase.rpc("get_admin_listing_status"),
+        supabase.rpc("get_admin_listings_by_city"),
+        supabase.rpc("get_admin_application_status"),
+      ]).then((results) => ({ results }), (error: unknown) => ({ error }))
+    : null;
   if (allTime) {
     const { data, error } = await supabase.rpc("get_admin_analytics_start_date");
     if (error) {
@@ -73,18 +82,23 @@ export default async function AdminAnalyticsPage({
   if (!error && valid && start && finish) {
     const from = start.toISOString().slice(0, 10);
     const to = finish.toISOString().slice(0, 10);
-    const [summary, growth, payments, inventory, cities, applications] =
-      await Promise.all([
+    const [[summary, growth, payments], state] = await Promise.all([
+      Promise.all([
         supabase.rpc("get_admin_analytics", { date_from: from, date_to: to }),
         supabase.rpc("get_admin_analytics_trends", { p_from: from, p_to: to }),
         supabase.rpc("get_admin_rental_payment_trends", {
           p_from: from,
           p_to: to,
         }),
+      ]),
+      currentState ?? Promise.all([
         supabase.rpc("get_admin_listing_status"),
         supabase.rpc("get_admin_listings_by_city"),
         supabase.rpc("get_admin_application_status"),
-      ]);
+      ]).then((results) => ({ results })),
+    ]);
+    if ("error" in state) throw state.error;
+    const [inventory, cities, applications] = state.results;
     if (summary.error) {
       console.error("Admin analytics failed", summary.error);
       error = "Unable to load analytics. Refresh and try again.";

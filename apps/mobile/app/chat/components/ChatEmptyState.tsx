@@ -9,8 +9,6 @@ interface ChatEmptyStateProps {
   otherUserName?: string
   otherUserAvatar?: string
   apartmentTitle?: string
-  /** "Landlord" / "Tenant", shown before the apartment; omitted when unknown. */
-  otherPartyLabel?: string
   isVerified?: boolean
   hasMessages?: boolean
   onViewProfile?: () => void
@@ -25,7 +23,6 @@ export default function ChatEmptyState({
   otherUserName,
   otherUserAvatar,
   apartmentTitle,
-  otherPartyLabel,
   isVerified = false,
   hasMessages,
   onViewProfile,
@@ -33,7 +30,6 @@ export default function ChatEmptyState({
 }: ChatEmptyStateProps) {
   const { colors } = useColors()
 
-  const contextLine = [otherPartyLabel, apartmentTitle].filter(Boolean).join(' · ')
   const hasActions = Boolean(onViewProfile || onViewApartment)
 
   return (
@@ -67,8 +63,8 @@ export default function ChatEmptyState({
         </View>
       )}
 
-      {contextLine ? (
-        <Text className="text-center text-sm font-inter text-gray-500">{contextLine}</Text>
+      {apartmentTitle ? (
+        <Text className="text-center text-sm font-inter text-gray-500">{apartmentTitle}</Text>
       ) : null}
 
       {hasActions && (

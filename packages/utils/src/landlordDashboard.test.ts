@@ -1,6 +1,7 @@
 import {
   EMPTY_ATTENTION,
   EMPTY_THIS_MONTH,
+  buildAttentionItems,
   buildRequestItems,
   buildTrendSeries,
   collectionProgress,
@@ -198,6 +199,27 @@ describe("buildRequestItems", () => {
 
   it("is empty when nothing is waiting", () => {
     expect(buildRequestItems(EMPTY_ATTENTION)).toEqual([]);
+  });
+});
+
+describe("buildAttentionItems", () => {
+  it("lists every open item most urgent first, with its peso total", () => {
+    expect(buildAttentionItems(PAYLOAD.attention)).toEqual([
+      { key: "overdue", count: 1, amount: 12000 },
+      { key: "cash", count: 1, amount: 5000 },
+      { key: "applications", count: 2 },
+      { key: "maintenance", count: 3 },
+    ]);
+  });
+
+  it("drops cleared rows and is empty when nothing needs attention", () => {
+    expect(
+      buildAttentionItems({
+        ...EMPTY_ATTENTION,
+        pendingVisitRequests: 1,
+      }),
+    ).toEqual([{ key: "visits", count: 1 }]);
+    expect(buildAttentionItems(EMPTY_ATTENTION)).toEqual([]);
   });
 });
 

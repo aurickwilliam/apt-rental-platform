@@ -164,13 +164,25 @@
   --button-fg: var(--foreground);
   --button-bg-hover: color-mix(in oklab, var(--muted) 45%, transparent);
 }
+/* The row's "···" menu appears on hover or keyboard focus (always visible on touch). */
+.apt-conversation-item .apt-conversation-menu-trigger { opacity: 0; transition: opacity 120ms; }
+.apt-conversation-item:hover .apt-conversation-menu-trigger,
+.apt-conversation-item:focus-within .apt-conversation-menu-trigger,
+.apt-conversation-item .apt-conversation-menu-trigger[aria-expanded="true"] { opacity: 1; }
+@media (hover: none) { .apt-conversation-item .apt-conversation-menu-trigger { opacity: 1; } }
 .apt-conversation-row[data-active="true"] {
   --button-bg: var(--secondary);
   --button-bg-hover: var(--secondary);
   --button-bg-pressed: var(--secondary);
 }
 .apt-messages-categories .tabs__tab { color: var(--muted-foreground); }
-.apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--foreground); }
+.apt-messages-categories .tabs__tab[data-selected="true"] { color: var(--primary); }
+
+/* Tabs — every HeroUI tab label uses Nunito SemiBold (DESIGN.md §4), like mobile. */
+.tabs__tab {
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  font-weight: 600;
+}
 .apt-message-bubble[data-mine="true"][data-group="first"],
 .apt-message-bubble[data-mine="true"][data-group="middle"] { border-bottom-right-radius: 6px; }
 .apt-message-bubble[data-mine="true"][data-group="last"],
@@ -181,10 +193,21 @@
 .apt-message-bubble[data-mine="false"][data-group="middle"] { border-top-left-radius: 6px; }
 
 /* Scoped overrides: HeroUI's unlayered avatar sizes outrank utilities. */
-.avatar.apt-message-sender-avatar { width: 28px; height: 28px; border-radius: 9999px; }
-.apt-message-sender-avatar .avatar__fallback { font-size: 10px; }
+.avatar.apt-message-sender-avatar { width: 32px; height: 32px; border-radius: 9999px; }
+.apt-message-sender-avatar .avatar__fallback { font-size: 12px; }
+.avatar.apt-conversation-intro-avatar { width: 96px; height: 96px; border-radius: 9999px; }
 .avatar.apt-message-seen-avatar { width: 16px; height: 16px; border-radius: 9999px; }
 .apt-message-seen-avatar .avatar__fallback { font-size: 7px; }
+
+/* A photo/GIF/video with no caption is just the media, like mobile: no bubble colour
+   behind it (it showed as a blue sliver where the media's corners are rounder than a
+   joined bubble corner) and the same corners all round, whatever its place in a run, with a
+   thin border like mobile's media. */
+.apt-message-bubble[data-media-only="true"][data-mine][data-group] {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+}
 
 .apt-message-bubble[data-reply-highlight="true"] {
   outline: 2px solid var(--brand);
@@ -194,7 +217,9 @@
 
 .apt-message-actions {
   position: absolute;
-  top: 0;
+  /* Vertically centered on the bubble, so it sits mid-height on tall media. */
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 20;
   width: max-content;
   display: flex;
@@ -205,7 +230,8 @@
   background: var(--card);
 }
 @media (max-width: 639px) {
-  .apt-message-actions > button:not(:last-child) { display: none; }
+  /* React and More stay; Reply is in the More menu. */
+  .apt-message-actions > button:nth-child(2) { display: none; }
   .apt-message-actions .apt-chat-action { width: 2.75rem; height: 2.75rem; }
 }
 .apt-chat-action {
@@ -215,16 +241,20 @@
   --button-fg: var(--muted-foreground);
   --button-bg-hover: var(--muted);
 }
+/* Mobile's reaction pill: rounded-full, bordered, px-1.5 py-1, shadow-lg. HeroUI's
+   popover dialog adds p-4 around its content, which made the pill tall. */
 .apt-reaction-popover {
-  padding: 0.375rem;
+  padding: 0.25rem 0.375rem;
   border: 1px solid var(--border);
   border-radius: 9999px;
   background: var(--card);
+  box-shadow: var(--shadow-lg);
 }
+.apt-reaction-popover .popover__dialog { padding: 0; }
 .apt-message-composer-field {
   border: 1px solid var(--border);
   border-radius: 1.5rem;
-  padding-right: 0.25rem;
+  padding: 0 0.5rem 0 0.375rem;
   background: color-mix(in oklab, var(--muted) 30%, var(--card));
 }
 .apt-message-composer-field:focus-within {
@@ -242,7 +272,7 @@
   scrollbar-width: thin;
   border: 0;
   border-radius: inherit;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 0.5rem 0.625rem 0.125rem;
   background: transparent;
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
@@ -253,7 +283,7 @@
   outline: none;
   box-shadow: none;
 }
-.apt-composer-send { width: 2.75rem; height: 2.75rem; min-width: 2.75rem; border-radius: 9999px; background: transparent; color: var(--primary); }
+.apt-composer-send { width: 3.5rem; min-width: 3.5rem; height: 2.25rem; margin-bottom: 0.25rem; border-radius: 9999px; background: var(--primary); color: white; }
 .apt-message-actions button, .apt-conversation-row, .apt-composer-send { touch-action: manipulation; }
 @media (hover: hover) and (min-width: 640px) {
   /* Localized hover-safe area, not a full-width message lane. Consecutive
@@ -1137,9 +1167,9 @@ body[data-scroll-locked] [role="option"] {
 }
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-nunito: var(--font-nunito), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter-face), ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: var(--font-nunito-face), ui-sans-serif, sans-serif;
 
   --color-white: #FFFFFF;
   --color-primary: #376BF5;
@@ -1166,6 +1196,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 @theme inline {
+  --color-skeleton: var(--skeleton-fill);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -1212,6 +1243,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 :root {
+  --skeleton-fill: #E5E7EB;
   /* No drop shadow on HeroUI fields (inputs, selects, combo boxes, text
      areas). Same transparent value HeroUI uses in dark mode, so ring
      utilities still work. */
@@ -1259,6 +1291,7 @@ body[data-scroll-locked] [role="option"] {
 }
 
 .dark {
+  --skeleton-fill: #303030;
   --background: oklch(0.17 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -1304,6 +1337,29 @@ body[data-scroll-locked] [role="option"] {
     @apply bg-background text-foreground;
   }
 }
+/* Keep HeroUI's engine, but soften the sweep over theme-aware neutral blocks. */
+.skeleton--shimmer::after,
+.skeleton--shimmer::before {
+  opacity: 0.45;
+}
+
+/* CSS honors the OS immediately, including the server-rendered loading frame. */
+html.apt-reduce-motion .skeleton,
+html.apt-reduce-motion .skeleton::before,
+html.apt-reduce-motion .skeleton::after,
+html.apt-reduce-motion .animate-pulse {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .skeleton::before,
+  .skeleton::after,
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 html.apt-reduce-motion *,
 html.apt-reduce-motion *::before,
 html.apt-reduce-motion *::after {

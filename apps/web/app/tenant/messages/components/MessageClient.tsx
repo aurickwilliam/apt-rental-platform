@@ -1,9 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@repo/supabase/browser";
+import { useCallback, useMemo, useState } from "react";
 import { useNewConversationRefresh } from "@/hooks/use-new-conversation-refresh";
 import { selectPortalConversation } from "@/lib/conversation-contacts";
+import ConversationRowMenu from "@/app/components/chat/ConversationRowMenu";
+import { useConversationActions } from "@/app/components/chat/useConversationActions";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import useConversationListRealtime from "@/app/components/chat/useConversationListRealtime";
+import { applyLatestMessage, arrangeContacts, type LatestMessage } from "@/lib/conversation-list";
 import ContactSidebar from "./ContactSidebar";
 import ConversationView from "./ConversationView";
 import { Contact } from "./types";
@@ -22,7 +26,6 @@ export default function MessagesClient({
   currentUserId,
   initialConversationKey,
 }: MessagesClientProps) {
-  const supabase = useMemo(() => createClient(), []);
   const [myLandlordContacts, setMyLandlordContacts] = useState<Contact[]>(myLandlord);
   const [pastInquiryContacts, setPastInquiryContacts] = useState<Contact[]>(pastInquiries);
   const deepLinkContact = selectPortalConversation(myLandlord, pastInquiries, initialConversationKey);
@@ -83,6 +86,19 @@ export default function MessagesClient({
     });
   }, []);
 
+  // A read receipt that landed on mobile or another tab clears this tab's
+  // badge. The same RPC also lifts a manual "mark unread".
+  const clearUnreadCount = useCallback((conversationKey: string) => {
+    const patch = (list: Contact[]) =>
+      list.map((contact) =>
+        contact.conversationKey === conversationKey && (contact.unreadCount > 0 || contact.markedUnread)
+          ? { ...contact, unreadCount: 0, markedUnread: false }
+          : contact
+      );
+    setMyLandlordContacts(patch);
+    setPastInquiryContacts(patch);
+  }, []);
+
   // Notification deep link: apply each distinct `?conversation=` value the
   // server hands us, once, selecting the matching contact when it exists.
   const [syncedDeepLink, setSyncedDeepLink] = useState(initialConversationKey);
@@ -98,66 +114,43 @@ export default function MessagesClient({
     }
   }
 
-  const incrementUnreadForContact = useCallback((conversationKey: string) => {
-    setMyLandlordContacts((prev) => {
-      let changed = false;
-      const next = prev.map((contact) => {
-        if (contact.conversationKey === conversationKey) {
-          changed = true;
-          return { ...contact, unreadCount: contact.unreadCount + 1 };
-        }
-        return contact;
-      });
-      return changed ? next : prev;
-    });
-
-    setPastInquiryContacts((prev) => {
-      let changed = false;
-      const next = prev.map((contact) => {
-        if (contact.conversationKey === conversationKey) {
-          changed = true;
-          return { ...contact, unreadCount: contact.unreadCount + 1 };
-        }
-        return contact;
-      });
-      return changed ? next : prev;
-    });
+  // Every message in or out updates its row and moves it up the list; a message from a
+  // chat that isn't open also raises a toast.
+  const applyLatestToContacts = useCallback((conversationKey: string, latest: LatestMessage, countAsUnread: boolean) => {
+    const patch = (list: Contact[]) =>
+      list.map((contact) => (contact.conversationKey === conversationKey ? applyLatestMessage(contact, latest, countAsUnread) : contact));
+    setMyLandlordContacts(patch);
+    setPastInquiryContacts(patch);
   }, []);
+  const findContact = useCallback(
+    (conversationKey: string) => [...myLandlordContacts, ...pastInquiryContacts].find((contact) => contact.conversationKey === conversationKey),
+    [myLandlordContacts, pastInquiryContacts]
+  );
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(`tenant-unread:${currentUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat",
-          filter: `receiver_id=eq.${currentUserId}`,
-        },
-        (payload: { new: { sender_id: string; apartment_id: string | null } }) => {
-          const senderId = payload.new.sender_id;
-          const apartmentId = payload.new.apartment_id ?? "none";
-          const conversationKey = `${senderId}:${apartmentId}`;
-          if (conversationKey === selectedConversationKey) {
-            return;
-          }
-          // A chat that started while the page was open: reload the lists.
-          if (refreshIfNewConversation(conversationKey)) return;
-          incrementUnreadForContact(conversationKey);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUserId, incrementUnreadForContact, refreshIfNewConversation, selectedConversationKey, supabase]);
+  // Row menu (pin, archive, mute, block…): changes show at once on top of the server lists.
+  const { withOverlay, onMenuAction, onConversationOpened, dialogs } = useConversationActions("tenant", markContactAsRead);
+  const myLandlordView = useMemo(() => withOverlay(myLandlordContacts), [myLandlordContacts, withOverlay]);
+  const { inbox: pastInquiriesInbox, archived: archivedInquiries } = useMemo(
+    () => arrangeContacts(withOverlay(pastInquiryContacts)),
+    [pastInquiryContacts, withOverlay]
+  );
 
   const activeContact =
     contacts.find((contact) => contact.conversationKey === selectedConversationKey) ??
     contacts[0] ??
     null;
+
+  const isWide = useMediaQuery("(min-width: 1024px)");
+  const isThreadVisible = isWide || isThreadOpen;
+  useConversationListRealtime({
+    currentUserId,
+    // Below lg the thread and the list share one pane: a chat only counts as open while its thread is showing.
+    activeKey: isThreadVisible ? (activeContact?.conversationKey ?? null) : null,
+    findContact,
+    applyLatestMessage: applyLatestToContacts,
+    clearUnreadCount,
+    refreshIfNewConversation,
+  });
 
   return (
     // The thread and the contact list each scroll internally, so this frame
@@ -167,12 +160,15 @@ export default function MessagesClient({
     // screen. `pb-20`/`md:pb-0` on the portal `main` is mirrored here.
     <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <ContactSidebar
-        myLandlord={myLandlordContacts}
-        pastInquiries={pastInquiryContacts}
+        myLandlord={myLandlordView}
+        pastInquiries={pastInquiriesInbox}
+        archivedContacts={archivedInquiries}
+        renderMenu={(contact, pinLocked) => <ConversationRowMenu contact={contact} pinLocked={pinLocked} onAction={onMenuAction} />}
         activeContact={activeContact}
         onSelectContact={(contact) => {
           setSelectedConversationKey(contact.conversationKey);
           markContactAsRead(contact.conversationKey);
+          onConversationOpened(contact);
           setIsThreadOpen(true);
         }}
         // Tablet widths use one pane; the portal sidebar also needs room.
@@ -187,6 +183,7 @@ export default function MessagesClient({
         // The empty state only makes sense alongside the list on mobile.
         className={isThreadOpen ? "flex" : "hidden lg:flex"}
       />
+      {dialogs}
     </div>
   );
 }

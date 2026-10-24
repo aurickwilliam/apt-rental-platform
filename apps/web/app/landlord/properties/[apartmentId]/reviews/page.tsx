@@ -1,6 +1,6 @@
 import { createClient } from "@repo/supabase/server";
 import { fetchLandlordUnitReviews } from "@/service/landlordUnitDetailService";
-import { getLandlordUnitDetail, UnitNotice } from "../lib/get-unit-detail";
+import { getLandlordApartment, UnitNotice } from "../lib/get-unit-detail";
 import ReviewsClient from "./components/ReviewsClient";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ type PageProps = {
 
 export default async function LandlordPropertyReviewsPage({ params }: PageProps) {
   const { apartmentId } = await params;
-  const result = await getLandlordUnitDetail(apartmentId);
+  const result = await getLandlordApartment(apartmentId);
   if ("error" in result) {
     return <UnitNotice title={result.error.title} message={result.error.message} />;
   }
@@ -22,5 +22,5 @@ export default async function LandlordPropertyReviewsPage({ params }: PageProps)
     return <UnitNotice title="Could not load reviews" message="Something went wrong. Please try again." />;
   }
 
-  return <ReviewsClient apartmentId={apartmentId} apartmentName={result.detail.apartment.name} reviews={reviews} />;
+  return <ReviewsClient key={apartmentId} apartmentId={apartmentId} apartmentName={result.apartment.name} reviews={reviews} />;
 }

@@ -7,6 +7,7 @@ import type { StatusTone } from "@/lib/status-tone";
 import { IconTool as Wrench } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
+import { useMaintenancePhotoUrls } from "@/hooks/use-maintenance-photo-urls";
 import {
   canCancelMaintenanceRequest,
   type MaintenanceRequest,
@@ -46,6 +47,7 @@ export default function MaintenanceHistory({
 }: MaintenanceHistoryProps) {
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
   const cancelDialog = useOverlayState();
+  const photos = useMaintenancePhotoUrls(!loading && !error ? requests.flatMap((request) => request.image_paths ?? []) : []);
 
   const openCancel = (id: string) => {
     setPendingCancelId(id);
@@ -76,6 +78,8 @@ export default function MaintenanceHistory({
         <p className="font-inter text-sm text-muted-foreground mb-4">
           Track status and cancel open requests. Photos load via short-lived signed URLs.
         </p>
+        {photos.loading ? <p role="status" className="text-xs text-muted-foreground">Loading request photos…</p> : null}
+        {photos.error ? <p role="alert" className="text-xs text-danger">{photos.error}</p> : null}
 
         {loading ? (
           <div className="flex justify-center py-8">
@@ -90,6 +94,9 @@ export default function MaintenanceHistory({
         ) : (
           <div className="flex flex-col gap-3">
             {requests.map((request) => {
+              const imageUrls = request.image_paths?.length
+                ? request.image_paths.map((path) => photos.urls[path]).filter((url): url is string => !!url)
+                : request.image_urls;
               const urgencyStyle = URGENCY_STYLE[request.urgency] ?? URGENCY_STYLE.medium;
               const cancellable = canCancelMaintenanceRequest(request.status);
               return (
@@ -125,9 +132,9 @@ export default function MaintenanceHistory({
                     {request.message}
                   </p>
 
-                  {request.image_urls.length > 0 && (
+                  {imageUrls.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {request.image_urls.map((url, idx) => (
+                      {imageUrls.map((url, idx) => (
                         <a
                           key={`${request.id}-${idx}`}
                           href={url}

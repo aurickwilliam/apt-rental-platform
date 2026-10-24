@@ -21,6 +21,8 @@ export interface ReplyPreview {
   messageType: MessageType;
   senderId: string;
   isSent: boolean;
+  /** Renderable image for a quoted photo / GIF / video poster, resolved at read time (never persisted). */
+  previewUrl?: string | null;
 }
 
 export interface ChatMessage {

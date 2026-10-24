@@ -34,7 +34,6 @@ import {
 import { useVerificationReviewRealtime } from "@/hooks/verification";
 import { useSuspensionGuard } from "@/hooks/auth/useSuspensionGuard";
 import { useColors, useThemeSync } from 'hooks/useTheme';
-import DevBadge from '../components/dev/DevBadge';
 
 function NotificationManager() {
   usePushRegistration();
@@ -151,12 +150,8 @@ export default function RootLayout() {
                   <Stack.Screen name="settings" />
                   <Stack.Screen name="document-id" />
                   <Stack.Screen name="edit-profile" />
-                  <Stack.Screen name="dev/giphy" />
-                  <Stack.Screen name="dev/playground" />
-                  <Stack.Screen name="dev/notification-toast" />
                 </Stack>
                 <PortalHost name="root" />
-                <DevBadge />
               </View>
             </BottomSheetModalProvider>
           </PortalProvider>

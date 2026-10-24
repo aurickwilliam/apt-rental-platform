@@ -78,7 +78,7 @@ test("My Properties loading keeps its title, four stats, four actions and eight-
   ]);
   assert.equal(elements.filter(node => node.type === "Table.Row").length, 5);
   assert.ok(elements.some(node => node.type === "Table.ScrollContainer" && node.props.className.includes("overflow-x-auto")));
-  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-skeleton!")));
 });
 
 test("My Properties route boundary renders its skeleton without fetching data", () => {
@@ -98,7 +98,7 @@ test("Apartment detail boundary uses an accessible, responsive skeleton with rou
   assert.ok(elements.some(node => node.type === "Skeleton" && node.props.className.includes("h-64 sm:h-80 w-full rounded-xl")));
   assert.equal(elements.find(node => node.props.className === "flex gap-2 overflow-x-auto p-1").props.children.length, 3);
   assert.equal(elements.find(node => node.props.className === "grid grid-cols-2 sm:grid-cols-4 gap-3").props.children.length, 8);
-  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-skeleton!")));
 });
 
 test("Description route loading mirrors all five sections and announces loading without fetching data", () => {
@@ -115,7 +115,7 @@ test("Description route loading mirrors all five sections and announces loading 
   assert.equal(elements.find(node => node.props.className === "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2").props.children.length, 8);
   assert.equal(elements.find(node => node.props.className === "grid flex-1 grid-cols-1 sm:grid-cols-2 gap-2").props.children.length, 2);
   assert.ok(elements.some(node => node.type === "Skeleton" && node.props.className.includes("min-h-40 w-full rounded-xl")));
-  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-skeleton!")));
 });
 
 function descriptionHarness({ tenant = { leaseStart: "2026-10-20", leaseEnd: "2027-10-20" }, amenities = ["wifi"], lease = "lease.pdf", description = "A welcoming apartment." } = {}) {
@@ -252,7 +252,7 @@ test("Reviews skeleton mirrors the full-width summary and list without showing a
   assert.equal(elements.find(node => node.type === "h1").props.children, "Property Reviews");
   assert.equal(elements.find(node => node.props.className === "grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-2").props.children.length, 4);
   assert.ok(elements.some(node => node.props["aria-hidden"] === "true"));
-  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(elements.filter(node => node.type === "Skeleton").every(node => node.props.className.includes("bg-skeleton!")));
 });
 
 test("Property reviews link prefetches on pointer and keyboard intent", () => {

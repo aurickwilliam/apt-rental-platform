@@ -40,6 +40,15 @@ jest.mock('./SenderAvatar', () => {
     default: () => React.createElement(View, { testID: 'sender-avatar' }),
   };
 });
+jest.mock('./SeenAvatar', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: ({ belowReactions }: { belowReactions?: boolean }) =>
+      React.createElement(View, { testID: 'seen-avatar', accessibilityLabel: belowReactions ? 'below' : 'plain' }),
+  };
+});
 jest.mock('./TimestampRevealRow', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -174,7 +183,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
 
     expect(screen.getByText('Hello preview')).toBeTruthy();
     expect(screen.getByText('Original question')).toBeTruthy();
-    expect(screen.getByText('You replied')).toBeTruthy();
+    expect(screen.getByText('You replied to Ana')).toBeTruthy();
   });
 
   it('labels a received reply with the other user name', () => {
@@ -189,7 +198,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       />
     );
 
-    expect(screen.getByText('Ana replied')).toBeTruthy();
+    expect(screen.getByText('Ana replied to you')).toBeTruthy();
     expect(screen.getByText('See you at 5?')).toBeTruthy();
   });
 
@@ -205,8 +214,32 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       />
     );
 
-    expect(screen.getByText('You replied')).toBeTruthy();
+    expect(screen.getByText('You replied to Ana')).toBeTruthy();
     expect(screen.getByText('Photo')).toBeTruthy();
+  });
+
+  it('shows the quoted photo itself, dimmed, instead of an icon tile when its image is known', () => {
+    render(
+      <ChatBubbleContent
+        message="And blazing"
+        messageType="text"
+        isSent
+        replyTo={{
+          id: 'r4',
+          message: null,
+          messageType: 'image',
+          senderId: 'me',
+          isSent: true,
+          previewUrl: 'https://signed.example.test/quoted.jpg',
+        }}
+        otherUserName="Ana"
+        interactive={false}
+      />
+    );
+
+    expect(screen.getByText('You replied to yourself')).toBeTruthy();
+    expect(screen.getByLabelText('Quoted Photo')).toBeTruthy();
+    expect(screen.queryByText('Photo')).toBeNull();
   });
 
   it('renders static video thumbnail without entering playback', () => {
@@ -258,6 +291,25 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByLabelText('Reactions: ❤️, 😂')).toBeTruthy();
     expect(screen.getByText('❤️')).toBeTruthy();
     expect(screen.getByText('😂')).toBeTruthy();
+  });
+
+  it('merges the same emoji from two people into one badge with a count', () => {
+    render(
+      <ChatBubbleContent
+        message="Hello"
+        messageType="text"
+        isSent
+        reactions={[
+          { emoji: '👍', userId: 'u1', isMine: true },
+          { emoji: '👍', userId: 'u2', isMine: false },
+        ]}
+        interactive={false}
+      />
+    );
+
+    expect(screen.getAllByText('👍')).toHaveLength(1);
+    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByLabelText('Reactions: 👍 2')).toBeTruthy();
   });
 
   it('renders no badge when there are no reactions', () => {
@@ -463,11 +515,50 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     });
   });
 
-  it('shows "Seen" only on the bubble that asks for it', () => {
+  it('shows the Seen avatar only on the bubble that asks for it', () => {
     const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
-    expect(screen.getByText('Seen')).toBeTruthy();
+    expect(screen.getByTestId('seen-avatar')).toBeTruthy();
 
     rerender(<ChatBubble message="Sent" messageType="text" isSent />);
-    expect(screen.queryByText('Seen')).toBeNull();
+    expect(screen.queryByTestId('seen-avatar')).toBeNull();
+  });
+
+  it('moves the Seen avatar below a reaction badge so the two never overlap', () => {
+    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+    expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('plain');
+
+    rerender(
+      <ChatBubble
+        message="Sent"
+        messageType="text"
+        isSent
+        showSeen
+        reactions={[{ userId: 'u2', emoji: '👍', isMine: false }]}
+      />
+    );
+    expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('below');
+  });
+});
+
+describe('ChatBubble reply navigation', () => {
+  it('jumps to the original when the quote above a reply is tapped', () => {
+    const onJumpToReply = jest.fn();
+    render(
+      <ChatBubbleContent
+        message="Got it"
+        messageType="text"
+        isSent
+        replyTo={{ id: 'orig-1', message: 'See you at 5?', messageType: 'text', senderId: 'u1', isSent: false }}
+        onJumpToReply={onJumpToReply}
+      />
+    );
+
+    fireEvent.press(screen.getByLabelText('Jump to original message'));
+    expect(onJumpToReply).toHaveBeenCalledWith('orig-1');
+  });
+
+  it('has no jump target for a plain message or when navigation is off', () => {
+    render(<ChatBubbleContent message="Hi" messageType="text" isSent onJumpToReply={jest.fn()} />);
+    expect(screen.queryByLabelText('Jump to original message')).toBeNull();
   });
 });

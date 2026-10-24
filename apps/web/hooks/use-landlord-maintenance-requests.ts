@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { getMaintenanceFeeError } from "@repo/utils";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useAuthIdentity } from "@/hooks/use-auth-identity";
 
 import { getLandlordContext } from "@/service/landlordApplicationsService";
 import {
@@ -19,21 +20,23 @@ export { getNextStatus };
 
 const NO_REQUESTS: LandlordMaintenanceRequest[] = [];
 
-export function useLandlordMaintenanceRequests() {
+export function useLandlordMaintenanceRequests(requestId?: string) {
+  const identity = useAuthIdentity();
   const [actionLoading, setActionLoading] = useState(false);
 
   const load = useCallback(async (): Promise<LandlordMaintenanceRequest[]> => {
+    if (!identity.authUserId) return NO_REQUESTS;
     const context = await getLandlordContext();
     if (!context.landlordId) return NO_REQUESTS;
-    return fetchLandlordMaintenanceRequests(context.landlordId);
-  }, []);
+    return fetchLandlordMaintenanceRequests(context.landlordId, { requestId, includePhotos: !!requestId });
+  }, [identity, requestId]);
   const {
     data: requests,
     loading,
     error,
     refresh,
     setData: setRequests,
-  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.");
+  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", { clearOnRevalidateError: true });
 
   const updateStatus = useCallback(
     async (
@@ -144,8 +147,8 @@ export function useLandlordMaintenanceRequests() {
   );
 
   return {
-    requests,
-    loading,
+    requests: loading || error || !identity.authUserId ? NO_REQUESTS : requests,
+    loading: identity.authUserId === undefined || loading,
     error,
     refresh,
     updateStatus,

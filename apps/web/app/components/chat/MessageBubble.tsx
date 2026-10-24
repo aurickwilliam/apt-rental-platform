@@ -10,6 +10,13 @@ import type { ChatMessage } from "./types";
 import ReactionStrip from "./ReactionStrip";
 import { HEART_REACTION } from "./reactionEmojis";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import ChatImageViewer from "./ChatImageViewer";
+import { emojiFontSizeForCount } from "@repo/constants";
+import { getReplyCaption } from "@repo/utils";
+import { emojiCount, isEmojiOnlyMessage, replyQuoteSnippet } from "@/lib/chat-message-presentation";
+
+/** How long a click waits for a second click before opening the viewer (mobile uses 300 ms). */
+const IMAGE_OPEN_DELAY_MS = 300;
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -53,6 +60,7 @@ export default function MessageBubble({
   onOpenContextMenu,
 }: MessageBubbleProps) {
   const [isReactionOpen, setIsReactionOpen] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const canInteract = !message.isPending && !message.id.startsWith("temp-");
   const myReaction = message.reactions.find((r) => r.is_mine)?.emoji;
@@ -97,21 +105,27 @@ export default function MessageBubble({
   const showSeen = isMine && isLatestOutgoing && canInteract && message.is_read;
   const mediaUrl = attachmentDisplayUrl(message);
   const showsAttachment = hasAttachment(message);
+  // Like mobile: a text message of only emoji renders large, with no bubble.
+  const isEmojiMessage = !showsAttachment && message.message_type === "text" && isEmojiOnlyMessage(message.message);
 
   // Consecutive messages hug together; separate runs keep the full gap.
   const runSpacing = continuesPrevious ? "mt-1" : "mt-4 first:mt-0";
 
   const hasReply = message.replyDeleted || !!message.replyTo;
   const replierLabel = hasReply
-    ? isMine
-      ? "You replied"
-      : `${otherUserName ?? "Someone"} replied`
+    ? getReplyCaption({
+        replierIsMe: isMine,
+        quotedIsMine: message.replyTo ? message.replyTo.isSent : null,
+        otherName: otherUserName,
+      })
     : null;
+  // Instagram-style: a quoted photo, GIF or video shows its own image, dimmed, above the reply.
+  const quotedImage = message.replyTo?.previewUrl ?? null;
 
   return (
     <div
       className={`relative flex min-w-0 flex-col sm:max-w-[75%] lg:max-w-[65%] ${runSpacing} ${
-        isMine ? "max-w-[calc(100%-3.25rem)] self-end items-end" : "ml-9 max-w-[calc(100%-5.5rem)] self-start items-start"
+        isMine ? "max-w-[calc(100%-3.25rem)] self-end items-end" : "ml-10 max-w-[calc(100%-6rem)] self-start items-start"
       }`}
     >
       {hasReply && (
@@ -143,11 +157,31 @@ export default function MessageBubble({
           }}
           onDoubleClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
-          className="mb-1 max-w-full cursor-pointer select-text rounded-2xl bg-muted px-3 py-2 text-left transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px]"
+          className={`mb-1 max-w-full cursor-pointer select-text text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px] ${
+            quotedImage ? "overflow-hidden rounded-[24px] p-0" : "rounded-2xl bg-muted px-3 py-2 hover:bg-primary/10"
+          }`}
         >
-          {message.replyTo.messageType === "text" ? (
+          {quotedImage ? (
+            <span className="relative block">
+              {/* Signed URL, plain <img> like the rest of the chat media. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={quotedImage}
+                alt={replyQuoteSnippet(message.replyTo)}
+                loading="lazy"
+                className="block max-h-56 w-auto max-w-full object-cover opacity-60"
+              />
+              {message.replyTo.messageType === "video" ? (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-black/50 text-white">
+                    <IconPlayerPlay size={18} aria-hidden="true" />
+                  </span>
+                </span>
+              ) : null}
+            </span>
+          ) : message.replyTo.messageType === "text" ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">
-              {message.replyTo.message}
+              {replyQuoteSnippet(message.replyTo)}
             </p>
           ) : (
             <span className="flex items-center gap-2">
@@ -162,7 +196,7 @@ export default function MessageBubble({
                 )}
               </span>
               <span className="line-clamp-2 flex-1 text-sm text-muted-foreground">
-                {message.replyTo.message || "Attachment"}
+                {replyQuoteSnippet(message.replyTo)}
               </span>
             </span>
           )}
@@ -179,7 +213,7 @@ export default function MessageBubble({
         data-overlay-open={isReactionOpen || isContextMenuOpen}
       >
       {!isMine && endsRun ? (
-        <span data-message-sender-avatar aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-9">
+        <span data-message-sender-avatar aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-10">
           <UserAvatar src={otherUserAvatar} initials={contactInitials} alt={otherUserName ?? "Sender"} size="sm" className="apt-message-sender-avatar" />
         </span>
       ) : null}
@@ -188,7 +222,7 @@ export default function MessageBubble({
           <Button variant="ghost" isIconOnly size="sm" aria-label="React to message" className="apt-chat-action"><IconMoodSmile size={17} aria-hidden="true" /></Button>
           <Popover.Content placement={isMine ? "top end" : "top start"} offset={6} containerPadding={12} className="apt-reaction-popover">
             <Popover.Dialog aria-label="Choose a reaction">
-              <ReactionStrip bare myReaction={myReaction} onSelect={(emoji) => { void onToggleReaction(message.id, emoji); setIsReactionOpen(false); }} />
+              <ReactionStrip myReaction={myReaction} onSelect={(emoji) => { void onToggleReaction(message.id, emoji); setIsReactionOpen(false); }} />
             </Popover.Dialog>
           </Popover.Content>
         </Popover>
@@ -222,17 +256,22 @@ export default function MessageBubble({
         data-mine={isMine}
         data-chat-message-id={message.id}
         data-reply-highlight={isReplyHighlighted}
-        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : "px-3.5 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-          isMine
-            ? "bg-primary text-white"
-            : "bg-muted/60 text-foreground"
+        data-media-only={showsAttachment && !message.message ? "true" : undefined}
+        className={`apt-message-bubble relative rounded-3xl ${showsAttachment && !message.message ? "max-w-80 overflow-hidden p-0" : isEmojiMessage ? "p-0" : "px-3 py-2"} transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+          isEmojiMessage
+            ? "bg-transparent text-foreground"
+            : isMine
+              ? "bg-primary text-white"
+              : "bg-muted/60 text-foreground"
         } ${canInteract ? "cursor-pointer" : ""}`}
       >
         {mediaUrl && showsAttachment ? (
-          <AttachmentBody message={message} url={mediaUrl} />
+          <AttachmentBody message={message} url={mediaUrl} onOpenImage={setViewerUrl} />
         ) : null}
         {!mediaUrl && showsAttachment && <span className="flex items-center gap-2 text-sm"><IconPaperclip size={16} aria-hidden="true" />Attachment unavailable</span>}
-        {message.message && <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>}
+        {message.message && (isEmojiMessage
+          ? <p className="whitespace-pre-wrap leading-tight [overflow-wrap:anywhere]" style={{ fontSize: emojiFontSizeForCount(emojiCount(message.message)) }}>{message.message}</p>
+          : <p className="whitespace-pre-wrap font-inter text-sm leading-6 [overflow-wrap:anywhere]">{message.message}</p>)}
         {!message.message && !showsAttachment && (
           <span className="flex items-center gap-2 text-sm">
             <IconPaperclip size={16} aria-hidden="true" />
@@ -264,6 +303,12 @@ export default function MessageBubble({
           ) : null}
         </div>
       ) : null}
+
+      <ChatImageViewer
+        url={viewerUrl}
+        alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
+        onClose={() => setViewerUrl(null)}
+      />
     </div>
   );
 }
@@ -276,11 +321,16 @@ export default function MessageBubble({
 function AttachmentBody({
   message,
   url,
+  onOpenImage,
 }: {
   message: ChatMessage;
   url: string;
+  /** Opens a photo or GIF full screen (a single click; a double click still hearts). */
+  onOpenImage?: (url: string) => void;
 }) {
   const isVideo = message.message_type === "video";
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (openTimer.current) clearTimeout(openTimer.current); }, []);
 
   if (message.message_type === "file") {
     const name = message.attachment_name || "Shared document";
@@ -334,13 +384,27 @@ function AttachmentBody({
           // Signed URL with a 60-minute TTL. `next/image` would cache the
           // optimized copy past expiry and then re-fetch a dead URL, so this
           // follows the plain-`<img>` convention used for private storage.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={url}
-            alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
-            loading="lazy"
-            className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
-          />
+          <button
+            type="button"
+            aria-label="View image"
+            disabled={message.isPending}
+            onClick={(event) => {
+              // Like mobile's single tap: wait out the double-click window so a
+              // double click reacts with a heart instead of also opening the viewer.
+              if (openTimer.current) clearTimeout(openTimer.current);
+              if (event.detail >= 2) return;
+              openTimer.current = setTimeout(() => onOpenImage?.(url), IMAGE_OPEN_DELAY_MS);
+            }}
+            className="block cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={message.message || (message.message_type === "gif" ? "Shared GIF" : "Shared photo")}
+              loading="lazy"
+              className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
+            />
+          </button>
         )}
       </span>
     </span>
@@ -365,7 +429,7 @@ function ReactionBadges({
 
   return (
     <div
-      className="relative z-10 -mt-2 mx-1 flex max-w-full flex-wrap items-center justify-end gap-0.5 self-end"
+      className="relative z-10 -mt-3 mx-1 flex max-w-full flex-wrap items-center justify-end gap-0.5 self-end"
       aria-label="Reactions"
     >
       {[...byEmoji.entries()].map(([emoji, count]) => {
@@ -377,11 +441,7 @@ function ReactionBadges({
             onClick={() => onToggle(messageId, emoji)}
             aria-label={`${emoji}, ${count} ${count === 1 ? "reaction" : "reactions"}${mine ? ", including yours" : ""}`}
             aria-pressed={mine}
-            className={`flex h-5 items-center justify-center gap-1 rounded-full border text-sm leading-none shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-5 shrink-0 p-0" : "min-w-5 px-0.5"} ${
-              mine
-                ? "border-card bg-secondary ring-1 ring-primary/30"
-                : "border-border bg-card hover:bg-muted"
-            }`}
+            className={`flex h-6 cursor-pointer items-center justify-center gap-1 rounded-full border border-border bg-muted text-xs leading-none transition-colors hover:bg-muted-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-6 shrink-0 p-0" : "min-w-6 px-1"}`}
           >
             <span>{emoji}</span>
             {count > 1 && <span className="pr-0.5 text-[10px] text-muted-foreground">{count}</span>}

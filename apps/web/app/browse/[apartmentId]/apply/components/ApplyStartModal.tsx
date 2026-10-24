@@ -150,8 +150,8 @@ function ApplyStartContent({ apartment, viewer, basePath, onCancel, onOpenGuidel
 
         {readiness.loading ? (
           <div className="space-y-2" aria-busy="true" aria-label="Checking your APT Passport">
-            <Skeleton className="h-4 w-2/3 rounded-lg bg-grey-300!" />
-            <Skeleton className="h-4 w-1/2 rounded-lg bg-grey-300!" />
+            <Skeleton className="h-4 w-2/3 rounded-lg bg-skeleton!" />
+            <Skeleton className="h-4 w-1/2 rounded-lg bg-skeleton!" />
           </div>
         ) : readiness.error ? (
           <div className="space-y-2 rounded-2xl border border-danger/20 bg-danger/10 p-3" role="alert">

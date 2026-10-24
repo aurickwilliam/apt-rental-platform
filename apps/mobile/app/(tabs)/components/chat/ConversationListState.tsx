@@ -1,36 +1,54 @@
 import { View, Text, Image } from 'react-native'
+import type { Icon } from '@tabler/icons-react-native'
 
 import { Button } from 'heroui-native'
 
 import { EMPTY_STATE_IMAGES } from 'constants/images'
+import { useColors } from '@/hooks/useTheme'
 
 import ConversationListSkeleton from './ConversationListSkeleton'
 
 type ConversationListStateProps =
   | { variant: 'loading' }
   | {
-      variant: 'illustrated' | 'compact';
+      variant: 'illustrated';
       title: string;
       description: string;
       actionLabel?: string;
       onAction?: () => void;
+    }
+  | {
+      variant: 'compact';
+      icon: Icon;
+      title: string;
+      description: string;
     };
 
 /**
  * Loading (row skeletons), error and empty states for the Messages lists. "illustrated" is the
- * full empty/error screen; "compact" is the no-search-results message.
+ * full empty/error screen; "compact" is the smaller icon-led message for no search results and
+ * the empty archive.
  */
 export default function ConversationListState(props: ConversationListStateProps) {
+  const { colors } = useColors();
+
   if (props.variant === 'loading') {
     return <ConversationListSkeleton />;
   }
 
-  const { variant, title, description, actionLabel, onAction } = props;
+  const { variant, title, description } = props;
   const isCompact = variant === 'compact';
+  const EmptyIcon = variant === 'compact' ? props.icon : undefined;
+  const actionLabel = variant === 'illustrated' ? props.actionLabel : undefined;
+  const onAction = variant === 'illustrated' ? props.onAction : undefined;
 
   return (
     <View className={`flex-1 items-center justify-center ${isCompact ? 'mt-10' : ''}`}>
-      {!isCompact && (
+      {EmptyIcon ? (
+        <View className='mb-3 rounded-full bg-surface-secondary p-4'>
+          <EmptyIcon size={44} color={colors.primary} />
+        </View>
+      ) : (
         <View className='aspect-square size-64'>
           <Image
             source={EMPTY_STATE_IMAGES.emptyMessage}

@@ -4,8 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 
-import { applyReadReceipt, mergeIncomingMessage } from "./conversationEvents";
+import { applyReadReceipt, mergeIncomingMessage, removeMessage } from "./conversationEvents";
 import type { ChatMessage } from "./types";
+
+/** How long a typing Broadcast stays on until a fresh or stopping one arrives. */
+const TYPING_FRESH_WINDOW_MS = 5000;
+
+/** A `typing` Broadcast message (sent by `broadcastTyping`, mirrored by mobile). */
+interface TypingBroadcast {
+  payload: { userId: string; isTyping: boolean };
+}
 
 interface UseConversationRealtimeArgs {
   supabase: SupabaseClient;
@@ -23,7 +31,7 @@ interface UseConversationRealtimeArgs {
 
 interface UseConversationRealtimeResult {
   isContactTyping: boolean;
-  trackTyping: (isTyping: boolean) => Promise<void>;
+  broadcastTyping: (isTyping: boolean) => Promise<void>;
 }
 
 /** The `system` event payload Realtime delivers for subscription errors. */
@@ -38,7 +46,7 @@ type SubscribeStatus = "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR";
 /**
  * The realtime half of a conversation, shared by the tenant and landlord
  * views: `chat` INSERTs from the active contact, read receipts for messages
- * this user sent (the `chat` UPDATE event), typing presence, and a resync
+ * this user sent (the `chat` UPDATE event), typing Broadcasts, and a resync
  * whenever the channel re-joins or the tab becomes visible again.
  *
  * Only `chat` is bound. `chat_reactions` is not in the `supabase_realtime`
@@ -59,6 +67,8 @@ export default function useConversationRealtime({
 }: UseConversationRealtimeArgs): UseConversationRealtimeResult {
   const [isContactTyping, setIsContactTyping] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  // Auto-clears a typing Broadcast whose "stop" never arrived.
+  const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Read through refs so a live channel never needs its bindings
   // re-registered — Realtime refuses those once the channel subscribed.
@@ -73,12 +83,22 @@ export default function useConversationRealtime({
     refreshRef.current = refreshMessages;
   }, [apartmentId, conversationKey, onConversationRead, refreshMessages]);
 
-  /** Publishes this user's typing state on the shared presence topic. */
-  const trackTyping = useCallback(async (isTyping: boolean) => {
-    const channel = channelRef.current;
-    if (!channel) return;
-    await channel.track({ isTyping });
-  }, []);
+  /**
+   * Publishes this user's typing state as a Broadcast on the conversation
+   * channel. Presence was removed on purpose: its client-side limit (5 updates
+   * per 30 s) closed the whole channel and silenced its message bindings while
+   * someone was chatting normally.
+   */
+  const broadcastTyping = useCallback(
+    async (isTyping: boolean) => {
+      const channel = channelRef.current;
+      if (!channel) return;
+      await channel
+        .send({ type: "broadcast", event: "typing", payload: { userId: currentUserId, isTyping } })
+        .catch(() => undefined); // a lost typing signal is never an error for the user
+    },
+    [currentUserId]
+  );
 
   useEffect(() => {
     if (!conversationId || !contactId) return;
@@ -127,7 +147,7 @@ export default function useConversationRealtime({
       if (disposed) return;
 
       const channel = supabase
-        .channel(topic, { config: { presence: { key: currentUserId } } })
+        .channel(topic)
         // Messages from the active contact. `chat` is in `supabase_realtime`.
         .on(
           "postgres_changes",
@@ -182,18 +202,48 @@ export default function useConversationRealtime({
             );
           }
         )
-        .on("presence", { event: "sync" }, () => {
-          const state = channel.presenceState<{ isTyping: boolean }>();
-          setIsContactTyping(state[contactId]?.[0]?.isTyping ?? false);
+        // Unsends from either side (web or mobile). DELETE events can't be
+        // filtered and carry only the old primary key; `removeMessage` ignores
+        // ids that aren't in this thread.
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "chat" },
+          (payload: { old: Record<string, unknown> }) => {
+            const id = payload.old?.id;
+            if (typeof id !== "string") return;
+            setMessages((prev) => removeMessage(prev, id));
+          }
+        )
+        // Typing arrives as Broadcast on the same channel (its sender drops
+        // presence entirely — see `broadcastTyping`). The payload's user id
+        // filters out anything not from the active contact.
+        .on("broadcast", { event: "typing" }, (message: TypingBroadcast) => {
+          const payload = message?.payload;
+          if (!payload || payload.userId !== contactId) return;
+          const isTyping = payload.isTyping === true;
+          setIsContactTyping(isTyping);
+          if (typingClearRef.current) clearTimeout(typingClearRef.current);
+          // A lost "stop" can never leave the indicator stuck.
+          typingClearRef.current = isTyping
+            ? setTimeout(() => {
+                typingClearRef.current = null;
+                setIsContactTyping(false);
+              }, TYPING_FRESH_WINDOW_MS)
+            : null;
         })
         .on("system", { event: "*" }, (message: RealtimeSystemMessage) => {
           if (message.status === "error") {
             console.error("Realtime subscription error:", message.message);
+            // The channel is closing; the indicator must not outlive it.
+            setIsContactTyping(false);
           }
         })
         .subscribe((status: SubscribeStatus, err?: Error) => {
           if (status === "SUBSCRIBED") {
-            void channel.track({ isTyping: false });
+            // Every join starts quiet: a switch between threads (or a
+            // reconnect in one) must not inherit the previous channel's
+            // typing state. Broadcast has no presence sync to re-resolve it.
+            setIsContactTyping(false);
             // The first join is covered by the initial fetch; a later one
             // means the socket dropped and events were missed while it was
             // gone, so reconcile against the server.
@@ -216,11 +266,15 @@ export default function useConversationRealtime({
     return () => {
       disposed = true;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (typingClearRef.current) {
+        clearTimeout(typingClearRef.current);
+        typingClearRef.current = null;
+      }
       const channel = channelRef.current;
       channelRef.current = null;
       if (channel) void supabase.removeChannel(channel);
     };
   }, [contactId, conversationId, currentUserId, setMessages, supabase]);
 
-  return { isContactTyping, trackTyping };
+  return { isContactTyping, broadcastTyping };
 }

@@ -97,10 +97,11 @@ function asNullableString(value: unknown): string | null {
 
 export async function fetchLandlordMaintenanceRequests(
   landlordId: string,
+  options: { requestId?: string; includePhotos?: boolean } = {},
 ): Promise<LandlordMaintenanceRequest[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("maintenance_request")
     .select(
       `id, apartment_id, title, message, status, created_at, urgency, image_urls, resolution_notes, fee_amount, fee_status,
@@ -113,12 +114,16 @@ export async function fetchLandlordMaintenanceRequests(
     .order("id", { referencedTable: "apartment.apartment_images", ascending: true })
     .limit(1, { referencedTable: "apartment.apartment_images" })
     .limit(200);
+  if (options.requestId) query = query.eq("id", options.requestId).limit(1);
+  const { data, error } = await query;
 
   if (error) throw error;
 
   const rows = (data ?? []) as unknown as LandlordMaintenanceRow[];
   const imagePaths = rows.flatMap((row) => row.image_urls ?? []);
-  const { urls: mediaUrls } = await resolveMaintenanceImageUrls(imagePaths);
+  const { urls: mediaUrls } = options.includePhotos === false
+    ? { urls: {} as Record<string, string | null> }
+    : await resolveMaintenanceImageUrls(imagePaths);
 
   return rows.map((row) => {
     const apartment = Array.isArray(row.apartment) ? row.apartment[0] : row.apartment;

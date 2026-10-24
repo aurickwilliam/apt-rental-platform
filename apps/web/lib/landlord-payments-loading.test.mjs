@@ -97,7 +97,7 @@ test("Payments route and Suspense fallbacks share a header, unit placeholder, fo
   assert.ok(route.some(node => node.props["aria-label"] === "Loading payments" && node.props["aria-busy"] === "true"));
   const blocks = route.filter(node => node.type === "Skeleton");
   assert.ok(blocks.some(node => node.props.className.includes("h-10 w-full")));
-  assert.ok(blocks.every(node => node.props.className.includes("bg-grey-300!")));
+  assert.ok(blocks.every(node => node.props.className.includes("bg-skeleton!")));
   assert.equal(blocks.filter(node => node.props.className.includes("h-9 w-32 rounded-lg")).length, 4);
   assert.ok(!route.some(node => node.type === "IconArrowLeft"));
   const suspense = nodes(load("page.tsx").default().props.fallback);

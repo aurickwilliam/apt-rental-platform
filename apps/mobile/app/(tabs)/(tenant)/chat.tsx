@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
 // slight vertical drift and cancels the rows' swipe actions.
 import { FlatList } from 'react-native-gesture-handler';
+import { IconSearchOff } from '@tabler/icons-react-native';
 
 import { formatFullName } from '@repo/utils';
 
@@ -166,6 +167,7 @@ export default function Chat() {
   ) : isSearching ? (
     <ConversationListState
       variant='compact'
+      icon={IconSearchOff}
       title='No results found'
       description={`No conversations match "${searchQuery.trim()}". Try a different name, property, or message.`}
     />

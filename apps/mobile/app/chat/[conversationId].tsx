@@ -12,7 +12,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 // Gesture-handler's list: a plain RN list cancels the bubbles' swipe-to-reply on Android.
 import { FlatList, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { BlurTargetView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
@@ -46,8 +45,9 @@ import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
 import ChatEmptyState from './components/ChatEmptyState';
 import ChatApartmentCard from './components/ChatApartmentCard';
-import { useEmojiPickerSettings } from './components/emojiPicker';
 import { getSeenMessageId } from '@/service/chat/readReceipts';
+import { formatChatDayLabel, getChatDayKey } from '@repo/utils';
+import DaySeparator from './components/DaySeparator';
 import {
   SENDER_AVATAR_GUTTER,
   getBubbleGroupPosition,
@@ -65,12 +65,11 @@ import { Button, Spinner, useToast } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from '@/hooks/useTheme';
-import { useBlockStatus, useChat, useChatApartment, useEmojiRecents } from 'hooks/chat';
+import { useBlockStatus, useChat, useChatApartment, useEmojiRecents, useReplyNavigation } from 'hooks/chat';
 import { usePortalStore } from '@/stores/usePortalStore';
 import {
   getChatApartmentRoute,
   getChatProfileRoute,
-  getOtherPartyLabel,
 } from '@/service/chat/chatRoutes';
 
 import { resolveMessageType, type Message } from '@/service/chat/chatService';
@@ -150,8 +149,6 @@ export default function ChatScreen() {
   } | null>(null);
   // Measured card height (estimate until onLayout reports the real one).
   const insets = useSafeAreaInsets();
-  const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
-  const [pickerTargetId, setPickerTargetId] = useState<string | null>(null);
   const [rootY, setRootY] = useState(0);
   const isNearBottomRef = useRef(true);
 
@@ -201,9 +198,17 @@ export default function ChatScreen() {
 
   const { blockedByMe, blockedMe, unblock, isUnblocking } = useBlockStatus(otherUserId);
 
-  // Emoji pickers (chat box panel and reaction "+") share recents and styling.
+  // Tapping the quote above a reply scrolls to (and flashes) the original bubble.
+  const { jumpToOriginal, highlightedId, onScrollToIndexFailed } = useReplyNavigation({
+    messages,
+    hasMore,
+    loadOlderMessages,
+    listRef: flatListRef,
+    onNotice: (label) => toast.show({ variant: 'default', label }),
+  });
+
+  // The chat box emoji panel shares recents and styling.
   useEmojiRecents();
-  const emojiPickerSettings = useEmojiPickerSettings();
   const [isEmojiPanelOpen, setIsEmojiPanelOpen] = useState(false);
 
   // The active portal says who the other person is (tenant portal → landlord).
@@ -306,21 +311,6 @@ export default function ChatScreen() {
     []
   );
 
-  const handleStripPickerSelected = useCallback(
-    ({ emoji }: EmojiType) => {
-      const targetId = pickerTargetId ?? activeHold?.id;
-      const target = targetId ? messages.find((m) => m.id === targetId) : null;
-      if (target && !target.isPending && !target.id.startsWith('temp-')) {
-        playReactionHaptic();
-        void handleToggleReaction(target.id, emoji);
-      }
-      setIsReactionPickerOpen(false);
-      setPickerTargetId(null);
-      setActiveHold(null);
-    },
-    [pickerTargetId, activeHold, messages, handleToggleReaction]
-  );
-
   // Any scroll, keyboard pop, or list growth while the hold stack is open dismisses it.
   const handleScrollBeginDrag = useCallback(() => {
     setActiveHold(null);
@@ -390,12 +380,6 @@ export default function ChatScreen() {
     },
     [activeMsg, handleToggleReaction]
   );
-
-  const handleHoldPicker = useCallback(() => {
-    if (!activeMsg) return;
-    setPickerTargetId(activeMsg.id);
-    setIsReactionPickerOpen(true);
-  }, [activeMsg]);
 
   const handleHoldReply = useCallback(() => {
     if (!activeMsg) return;
@@ -552,8 +536,16 @@ export default function ChatScreen() {
   // "Seen" sits under the newest of my messages the other person has read.
   const seenMessageId = useMemo(() => getSeenMessageId(messages), [messages]);
 
+  // Each message's day is worked out once per change to the list, not once per row render.
+  const dayKeys = useMemo(() => messages.map((message) => getChatDayKey(message.createdAt)), [messages]);
+  const groupItems = useMemo(
+    () => messages.map((message, index) => ({ isSent: message.isSent, dayKey: dayKeys[index] })),
+    [messages, dayKeys]
+  );
+
   const renderItem = useCallback(
     ({ item, index }: { item: Message; index: number }) => (
+      <>
       <ChatBubble
         id={item.id}
         message={item.message}
@@ -576,9 +568,11 @@ export default function ChatScreen() {
         onReact={(emoji) => handleToggleReaction(item.id, emoji)}
         onHold={handleHoldFor(item)}
         onReply={() => handleReply(item)}
-        groupPosition={getBubbleGroupPosition(messages, index)}
+        groupPosition={getBubbleGroupPosition(groupItems, index)}
         showSeen={item.id === seenMessageId}
-        showSenderAvatar={showsSenderAvatar(messages, index)}
+        onJumpToReply={jumpToOriginal}
+        highlighted={item.id === highlightedId}
+        showSenderAvatar={showsSenderAvatar(groupItems, index)}
         otherUserAvatar={otherUserAvatar}
         onSenderAvatarPress={portal && otherUserId ? handleViewProfile : undefined}
         hidden={activeHold?.id === item.id}
@@ -587,14 +581,22 @@ export default function ChatScreen() {
           void retryChatMediaOnce(item.id, mediaKind);
         }}
       />
+      {/* Inverted list: the divider renders above the first message of each day. */}
+      {dayKeys[index + 1] !== dayKeys[index] && (
+        <DaySeparator label={formatChatDayLabel(item.createdAt)} />
+      )}
+      </>
     ),
     [
       otherUserName,
       handleToggleReaction,
       handleHoldFor,
       handleReply,
-      messages,
       seenMessageId,
+      groupItems,
+      dayKeys,
+      jumpToOriginal,
+      highlightedId,
       otherUserAvatar,
       portal,
       otherUserId,
@@ -645,11 +647,15 @@ export default function ChatScreen() {
                     data={messages}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
+                    // The list is inverted, so `flex-end` packs a short conversation
+                    // against the top (intro first, then the messages) like web; a
+                    // long one fills the screen and scrolls as before.
                     contentContainerStyle={
                       messages.length === 0
-                        ? { flexGrow: 1, justifyContent: 'center', paddingBottom: listTopInset }
+                        ? { flexGrow: 1, justifyContent: 'flex-end', paddingBottom: listTopInset }
                         : {
                             flexGrow: 1,
+                            justifyContent: 'flex-end',
                             paddingHorizontal: 16,
                             // Inverted: paddingTop is the gap above the chat box, which
                             // the newest bubble's own bottom gap already provides.
@@ -674,7 +680,6 @@ export default function ChatScreen() {
                           otherUserName={otherUserName}
                           otherUserAvatar={otherUserAvatar ?? undefined}
                           apartmentTitle={apartmentTitle}
-                          otherPartyLabel={portal ? getOtherPartyLabel(portal) : undefined}
                           isVerified={otherUserIsVerified}
                           hasMessages={messages.length > 0}
                           onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
@@ -684,7 +689,8 @@ export default function ChatScreen() {
                     }
                     onContentSizeChange={handleContentSizeChange}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onEndReached={hasMore ? loadOlderMessages : undefined}
+                    onEndReached={hasMore ? () => void loadOlderMessages() : undefined}
+                    onScrollToIndexFailed={onScrollToIndexFailed}
                     onEndReachedThreshold={0.2}
                     onScroll={handleScroll}
                     onScrollBeginDrag={handleScrollBeginDrag}
@@ -802,7 +808,6 @@ export default function ChatScreen() {
                 <ReactionStrip
                   myReaction={holdData.myReaction}
                   onSelect={handleHoldReact}
-                  onOpenFullPicker={handleHoldPicker}
                 />
               ) : null
             }
@@ -840,16 +845,6 @@ export default function ChatScreen() {
         )}
       </View>
     )}
-    <EmojiPicker
-      {...emojiPickerSettings}
-      expandable
-      open={isReactionPickerOpen}
-      onClose={() => {
-        setIsReactionPickerOpen(false);
-        setPickerTargetId(null);
-      }}
-      onEmojiSelected={handleStripPickerSelected}
-    />
     </View>
   );
 }

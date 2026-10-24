@@ -6,6 +6,7 @@ import { normalizeDashboardData, type DashboardData } from "@repo/utils";
 export {
   EMPTY_ATTENTION,
   EMPTY_THIS_MONTH,
+  buildAttentionItems,
   buildRequestItems,
   collectionProgress,
   consolidateMonthlyRevenue,
@@ -17,6 +18,8 @@ export {
   topPropertiesByRevenue,
 } from "@repo/utils";
 export type {
+  AttentionItem,
+  AttentionKey,
   CollectionProgress,
   DashboardAttention,
   DashboardData,

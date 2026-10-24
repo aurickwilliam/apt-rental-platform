@@ -67,6 +67,18 @@ export function groupReactions(
   return byMessage;
 }
 
+/** The image a quoted message shows in a reply: the photo, the GIF, or a video's poster. */
+export function quotedPreviewUrl(
+  message: Pick<ChatMessage, "message_type" | "attachment_url" | "resolvedUrl" | "resolvedThumbnailUrl">
+): string | null {
+  switch (message.message_type) {
+    case "image": return message.resolvedUrl ?? null;
+    case "gif": return message.attachment_url ?? message.resolvedUrl ?? null;
+    case "video": return message.resolvedThumbnailUrl ?? null;
+    default: return null;
+  }
+}
+
 /** Builds a display preview for a message being quoted in a reply. */
 export function toReplyPreview(msg: ChatMessage, currentUserId: string): ReplyPreview {
   return {
@@ -75,8 +87,15 @@ export function toReplyPreview(msg: ChatMessage, currentUserId: string): ReplyPr
     messageType: (msg.message_type ?? "text") as ReplyPreview["messageType"],
     senderId: msg.sender_id,
     isSent: msg.sender_id === currentUserId,
+    previewUrl: quotedPreviewUrl(msg),
   };
 }
+
+/** The columns of a quoted message that a reply preview needs. */
+export type QuotedRow = Pick<
+  ChatMessage,
+  "id" | "message" | "message_type" | "sender_id" | "attachment_path" | "attachment_url" | "attachment_thumbnail_path"
+>;
 
 /**
  * Resolves the quoted message for each row that has `reply_to`, and attaches
@@ -84,8 +103,9 @@ export function toReplyPreview(msg: ChatMessage, currentUserId: string): ReplyPr
  */
 export function attachReplyPreviews(
   rows: ChatMessage[],
-  replyRows: Pick<ChatMessage, "id" | "message" | "message_type" | "sender_id">[],
-  currentUserId: string
+  replyRows: QuotedRow[],
+  currentUserId: string,
+  signedUrls: ReadonlyMap<string, string> = new Map()
 ): ChatMessage[] {
   const replyById = new Map(replyRows.map((r) => [r.id, r]));
 
@@ -103,6 +123,14 @@ export function attachReplyPreviews(
       messageType: (original.message_type ?? "text") as ReplyPreview["messageType"],
       senderId: original.sender_id,
       isSent: original.sender_id === currentUserId,
+      previewUrl: quotedPreviewUrl({
+        message_type: original.message_type,
+        attachment_url: original.attachment_url,
+        resolvedUrl: original.attachment_path ? signedUrls.get(original.attachment_path) ?? null : null,
+        resolvedThumbnailUrl: original.attachment_thumbnail_path
+          ? signedUrls.get(original.attachment_thumbnail_path) ?? null
+          : null,
+      }),
     };
     return { ...m, replyTo, replyDeleted: false };
   });

@@ -88,3 +88,19 @@ export function applyReadReceipt(
   next[index] = { ...current, is_read: receipt.is_read, read_at: readAt };
   return next;
 }
+
+/**
+ * Drops an unsent message and marks replies that quoted it as unavailable
+ * (mobile's unsend does the same). Returns the same array when the id isn't
+ * loaded, so a delete for another thread never re-renders this one.
+ */
+export function removeMessage(prev: ChatMessage[], messageId: string): ChatMessage[] {
+  if (!prev.some((message) => message.id === messageId)) return prev;
+  return prev
+    .filter((message) => message.id !== messageId)
+    .map((message) =>
+      message.replyTo?.id === messageId || message.reply_to === messageId
+        ? { ...message, replyTo: null, replyDeleted: true }
+        : message
+    );
+}

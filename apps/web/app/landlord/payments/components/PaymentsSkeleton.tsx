@@ -8,7 +8,7 @@ const TILE_COUNT = 4;
 const ROW_COUNT = 4;
 
 function Sk({ className }: { className: string }) {
-  return <Skeleton className={`bg-grey-300! ${className}`} />;
+  return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
 // Mirrors the loaded body: summary tiles, then the tabs/table column beside the

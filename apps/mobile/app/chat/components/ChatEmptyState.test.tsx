@@ -48,14 +48,13 @@ describe('ChatEmptyState', () => {
       <ChatEmptyState
         otherUserName="Case Oh"
         apartmentTitle="Parada 3BR"
-        otherPartyLabel="Tenant"
         isVerified
         hasMessages
       />
     );
 
     expect(screen.getByText('Case Oh')).toBeTruthy();
-    expect(screen.getByText('Tenant · Parada 3BR')).toBeTruthy();
+    expect(screen.getByText('Parada 3BR')).toBeTruthy();
     expect(screen.getByLabelText('Verified account')).toBeTruthy();
     expect(screen.getByText('Keep payments inside APT, never through chat.')).toBeTruthy();
   });

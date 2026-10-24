@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Gesture-aware list so the rows' swipe actions work on Android.
 import { FlatList } from 'react-native-gesture-handler';
+import { IconArchive } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -85,6 +86,7 @@ export default function ArchivedChats() {
   ) : (
     <ConversationListState
       variant='compact'
+      icon={IconArchive}
       title='No archived chats'
       description='Swipe left on a chat and tap Archive to move it here. A new message brings it back.'
     />

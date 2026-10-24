@@ -99,12 +99,12 @@ function asNullableString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-export async function fetchLandlordApplications(): Promise<LandlordApplication[]> {
+export async function fetchLandlordApplications(applicationId?: string): Promise<LandlordApplication[]> {
   const supabase = createClient();
 
   // No landlord-side filter here — RLS scopes rows to the signed-in
   // landlord's own apartments, mirroring the mobile flow.
-  const { data, error } = await supabase
+  let query = supabase
     .from("rental_application")
     .select(
       `id, status, created_at, rejected_reason, apartment_id, tenant_id,
@@ -119,6 +119,8 @@ export async function fetchLandlordApplications(): Promise<LandlordApplication[]
     .order("is_cover", { referencedTable: "apartments.apartment_images", ascending: false, nullsFirst: false })
     .order("id", { referencedTable: "apartments.apartment_images", ascending: true })
     .limit(1, { referencedTable: "apartments.apartment_images" });
+  if (applicationId) query = query.eq("id", applicationId).limit(1);
+  const { data, error } = await query;
 
   if (error) throw error;
 

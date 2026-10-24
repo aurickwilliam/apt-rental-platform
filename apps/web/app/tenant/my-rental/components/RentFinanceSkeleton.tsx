@@ -21,8 +21,8 @@ export default function RentFinanceSkeleton() {
         </div>
       </div>
       <div className="min-w-0 rounded-2xl border border-border bg-card p-4">
-        <Skeleton className="h-5 w-28 rounded-lg bg-grey-300!" />
-        <Skeleton className="mx-auto mt-5 aspect-square w-full max-w-52 rounded-xl bg-grey-300!" />
+        <Skeleton className="h-5 w-28 rounded-lg bg-skeleton!" />
+        <Skeleton className="mx-auto mt-5 aspect-square w-full max-w-52 rounded-xl bg-skeleton!" />
       </div>
     </div>
   );

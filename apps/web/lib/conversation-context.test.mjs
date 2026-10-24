@@ -90,13 +90,13 @@ test("unavailable apartment row is not clickable; loading never invents rent", (
 
 for (const portal of ["tenant", "landlord"]) {
   test(`${portal}: introduction is once at the true history start, inside the scroller`, () => {
-    const source = readFileSync(new URL(`../app/${portal}/messages/components/ConversationView.tsx`, import.meta.url), "utf8");
+    const source = readFileSync(new URL("../app/components/chat/ConversationView.tsx", import.meta.url), "utf8");
     assert.equal(source.match(/<ConversationIntroduction /g).length, 1);
     assert.match(source, /!hasEarlierMessages \? <ConversationIntroduction/);
     assert.ok(source.indexOf("<ConversationIntroduction") > source.indexOf("<ScrollShadow"));
     assert.ok(source.indexOf("<ConversationIntroduction") < source.indexOf("messages.map"));
     assert.ok(source.indexOf("<ConversationApartmentRow") > source.indexOf("<ConversationHeader"));
-    assert.match(source, new RegExp(`role="${portal === "tenant" ? "Landlord" : "Tenant"}"`));
+    assert.doesNotMatch(source, /<ConversationIntroduction[^>]*role=/);
   });
 }
 

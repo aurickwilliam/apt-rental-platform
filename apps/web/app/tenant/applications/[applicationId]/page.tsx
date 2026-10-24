@@ -62,7 +62,7 @@ function ApplicationDetailContent() {
   const applicationId = params.applicationId;
   const apartmentIdParam = searchParams.get("apartmentId") ?? "";
 
-  const { applications, tenantId, loading: appsLoading, error: appsError } = useTenantApplications();
+  const { applications, tenantId, loading: appsLoading, error: appsError } = useTenantApplications(undefined, applicationId);
   const { personalInfo, loading: profileLoading } = useApplicantPersonalInfo(tenantId);
   const {
     visitRequest,

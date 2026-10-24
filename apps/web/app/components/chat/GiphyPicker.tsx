@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Input, Label, Modal, ScrollShadow, Spinner, TextField } from "@heroui/react";
+import { useEffect, useState, type RefObject } from "react";
+import { Input, Label, Popover, ScrollShadow, Spinner, TextField } from "@heroui/react";
 
 import { fetchGiphyGifs, type GiphyGif } from "./giphy";
 
@@ -10,17 +10,21 @@ interface GiphyPickerProps {
   onClose: () => void;
   /** Fires with the CDN URL, which is stored verbatim on the chat row. */
   onGifSelected: (url: string) => void;
+  /** The GIF button the menu opens above. */
+  anchorRef: RefObject<HTMLElement | null>;
 }
 
 /**
- * GIF search sheet for the composer. Trending on open, live search on typing,
- * and a click sends immediately — the chosen GIF is the whole message, so
- * there's nothing to stage or caption.
+ * GIF search menu for the composer, a HeroUI popover that opens above the GIF
+ * button: a search box over a three-column grid. Trending on open, live search
+ * on typing, and a click sends immediately — the chosen GIF is the whole
+ * message, so there's nothing to stage or caption.
  */
 export default function GiphyPicker({
   isOpen,
   onClose,
   onGifSelected,
+  anchorRef,
 }: GiphyPickerProps) {
   const [query, setQuery] = useState("");
   // Results are tagged with the query they were fetched for, so "loading" is
@@ -65,68 +69,59 @@ export default function GiphyPicker({
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <Modal.Backdrop variant="blur">
-        <Modal.Container size="md" placement="center" scroll="inside">
-          <Modal.Dialog className="flex max-h-[80vh] flex-col">
-            <Modal.Header>
-              <Modal.Heading>Send a GIF</Modal.Heading>
-            </Modal.Header>
+    <Popover isOpen={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <Popover.Content
+        triggerRef={anchorRef}
+        // A press on the GIF button itself is handled by the button (it toggles the menu).
+        shouldCloseOnInteractOutside={(element) => !anchorRef.current?.contains(element)}
+        placement="top end"
+        offset={8}
+        containerPadding={12}
+        className="flex w-[22rem] max-w-[calc(100vw-1.5rem)] flex-col"
+      >
+        <Popover.Dialog aria-label="Send a GIF" className="flex min-h-0 flex-1 flex-col gap-2 p-2">
+          <TextField type="search" value={query} onChange={setQuery} className="w-full">
+            <Label className="sr-only">Search GIFs</Label>
+            <Input placeholder="Search GIFs…" className="rounded-xl" />
+          </TextField>
 
-            <Modal.Body className="flex min-h-0 flex-col gap-3 py-2">
-              <TextField
-                type="search"
-                value={query}
-                onChange={setQuery}
-                className="w-full"
-              >
-                <Label className="sr-only">Search GIFs</Label>
-                <Input placeholder="Search GIFs…" className="rounded-xl" />
-              </TextField>
-
-              <ScrollShadow
-                className="min-h-0 flex-1 overflow-y-auto"
-                visibility="none"
-              >
-                {isLoading ? (
-                  <div className="flex justify-center py-10">
-                    <Spinner size="md" color="accent" />
-                  </div>
-                ) : gifs.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-muted-foreground">
-                    {query.trim()
-                      ? "No GIFs found."
-                      : "GIF search is unavailable right now."}
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {gifs.map((gif) => (
-                      <button
-                        key={gif.id}
-                        type="button"
-                        onClick={() => handleSelect(gif.url)}
-                        aria-label={gif.title || "Send GIF"}
-                        className="overflow-hidden rounded-xl border border-border transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      >
-                        {/* External CDN URL — not a configured `next/image`
-                            host, so plain `<img>` per the signed-URL
-                            convention. */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={gif.previewUrl}
-                          alt={gif.title || "GIF"}
-                          loading="lazy"
-                          className="aspect-square w-full bg-muted object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </ScrollShadow>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+          {/* Search + this grid add up to the emoji picker's 22rem, so the two menus match. */}
+          <ScrollShadow className="h-72 min-h-0 shrink overflow-y-auto" visibility="none">
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <Spinner size="md" color="accent" />
+              </div>
+            ) : gifs.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                {query.trim() ? "No GIFs found." : "GIF search is unavailable right now."}
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5">
+                {gifs.map((gif) => (
+                  <button
+                    key={gif.id}
+                    type="button"
+                    onClick={() => handleSelect(gif.url)}
+                    aria-label={gif.title || "Send GIF"}
+                    className="cursor-pointer overflow-hidden rounded-xl border border-border transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    {/* External CDN URL — not a configured `next/image`
+                        host, so plain `<img>` per the signed-URL
+                        convention. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={gif.previewUrl}
+                      alt={gif.title || "GIF"}
+                      loading="lazy"
+                      className="aspect-square w-full bg-muted object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollShadow>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
   );
 }

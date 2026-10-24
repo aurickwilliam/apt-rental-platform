@@ -19,7 +19,7 @@ export default function MaintenanceRequestPage() {
     refresh,
     cancelRequest,
     cancellingId,
-  } = useMaintenanceRequestHistory(apartmentId, tenantId);
+  } = useMaintenanceRequestHistory(apartmentId, tenantId, false);
 
   const apartment = tenancy?.apartment ?? null;
   const landlord = tenancy?.landlord ?? null;
