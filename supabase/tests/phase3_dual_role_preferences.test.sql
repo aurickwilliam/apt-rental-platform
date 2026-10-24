@@ -4,7 +4,7 @@
 -- still require NULL preferences.
 -- Run in an isolated test database or transaction (rolls back).
 begin;
-select plan(23);
+select plan(25);
 
 create temporary table dual_role_fixture as
   select gen_random_uuid() tenant_auth, gen_random_uuid() tenant_nomobile_auth,
@@ -87,7 +87,10 @@ select ok(has_function_privilege('anon', 'public.grant_user_role(text)', 'EXECUT
 select ok(has_function_privilege('authenticated', 'public.grant_user_role(text)', 'EXECUTE'), 'tenants can invoke the grant RPC');
 select set_config('request.jwt.claim.sub', (select admin_auth::text from dual_role_fixture), true);
 set local role authenticated;
-select throws_ok($$select public.grant_user_role('tenant')$$, 'P0001', 'Admin accounts cannot add tenant or landlord roles.', 'admin cannot self-add roles');
+select lives_ok($$select public.grant_user_role('tenant')$$, 'admin with a complete profile can add tenant access');
+select ok('tenant' = any(roles) and 'admin' = any(roles), 'admin keeps admin and gains tenant')
+  from public.users where user_id = (select admin_auth from dual_role_fixture);
+select throws_ok($$select public.grant_user_role('admin')$$, 'P0001', 'Invalid role grant.', 'admin can never be self-granted');
 select set_config('request.jwt.claim.sub', (select tenant_bare_auth::text from dual_role_fixture), true);
 select throws_ok($$select public.grant_user_role('owner')$$, 'P0001', 'Invalid role grant.', 'invalid role rejected');
 select set_config('request.jwt.claim.sub', gen_random_uuid()::text, true);

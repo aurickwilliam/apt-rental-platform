@@ -19,11 +19,9 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
   // OAuth failures surface here in the same tab (the session was signed
   // out in the callback so this page stays reachable).
   const portalError =
-    error === "role_mismatch"
-      ? "Admin accounts cannot add tenant or landlord roles."
-      : error === "grant_failed"
-        ? "We couldn't add that role to your account. Please sign in and try adding it from your profile."
-        : null;
+    error === "grant_failed"
+      ? "We couldn't add that role to your account. Please sign in and try adding it from your profile."
+      : null;
 
   // Pending-onboarding users arrive here authenticated with a placeholder
   // profile. Render the role picker (banner + selector + Continue) instead

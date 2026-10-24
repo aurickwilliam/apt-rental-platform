@@ -35,6 +35,18 @@ function getSafeNext(searchParams: URLSearchParams): string {
   return raw;
 }
 
+// Lands in the chosen portal and remembers it (portal cookie).
+function portalRedirect(appOrigin: string, portal: "tenant" | "landlord"): NextResponse {
+  const response = NextResponse.redirect(
+    `${appOrigin}${portal === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental"}`,
+  );
+  response.cookies.set(PORTAL_COOKIE, portal, {
+    path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+  return response;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const appOrigin = getAppOrigin(request);
@@ -89,18 +101,17 @@ export async function GET(request: Request) {
           return NextResponse.redirect(`${appOrigin}/sign-up?from=google-new`);
         }
 
-        // Explicit role requested on an admin account: block. Roles are
-        // never granted to admins.
-        if (role && isAdmin) {
-          await supabase.auth.signOut();
-          return NextResponse.redirect(`${appOrigin}/sign-up?error=role_mismatch`);
+        // An admin who already holds the requested role goes straight to that
+        // portal (the home page would send an admin to /admin/dashboard).
+        if (isAdmin && role && profile.roles.includes(role)) {
+          return portalRedirect(appOrigin, role);
         }
 
         // "Add role": authenticated Google session, explicit role requested
-        // from sign-up, complete non-admin account missing that role. This
-        // is the only place the grant runs — never from a client-side call.
-        // (Replaces the old role_mismatch sign-out for the normal flow.)
-        if (isOAuth && !isAdmin && role && profile.mobile_number && !profile.roles.includes(role)) {
+        // from sign-up, complete account (admins included: an admin who also
+        // owns or rents needs the role on the same account) missing that
+        // role. The grant RPC only ever adds tenant/landlord, never admin.
+        if (isOAuth && role && profile.mobile_number && !profile.roles.includes(role)) {
           const { error: grantError } = await supabase.rpc("grant_user_role", { new_role: role });
           if (grantError) {
             console.error("Could not grant OAuth role", grantError);
@@ -112,15 +123,7 @@ export async function GET(request: Request) {
           if (!profile.mobile_number) {
             return NextResponse.redirect(`${appOrigin}/complete-profile?role=${role}`);
           }
-          selectedPortal = role;
-          const granted = NextResponse.redirect(
-            `${appOrigin}${role === "landlord" ? "/landlord/dashboard" : "/tenant/my-rental"}`,
-          );
-          granted.cookies.set(PORTAL_COOKIE, selectedPortal, {
-            path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production",
-            maxAge: 60 * 60 * 24 * 30,
-          });
-          return granted;
+          return portalRedirect(appOrigin, role);
         }
 
         if (isInitialGoogleOnboarding && role && !profile.roles.includes(role)) {
