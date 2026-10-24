@@ -1,5 +1,6 @@
 import { SignUpFormData } from "./types";
 import { validateBirthDate } from "@/lib/birth-date";
+import { isZipPlausibleForCity } from "@repo/constants";
 
 export function validateForm(formData: SignUpFormData): string | null {
   if (!formData.firstName || !formData.lastName) {
@@ -42,6 +43,16 @@ export function validateForm(formData: SignUpFormData): string | null {
     Number.isNaN(Number(formData.postalCode))
   ) {
     return "Please enter a valid postal code.";
+  }
+
+  if (
+    !isZipPlausibleForCity(
+      formData.city,
+      formData.stateProvince,
+      String(formData.postalCode),
+    )
+  ) {
+    return `Enter a valid postal code for ${formData.city}.`;
   }
 
   return null;
