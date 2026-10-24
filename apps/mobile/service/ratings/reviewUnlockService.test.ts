@@ -78,7 +78,27 @@ it("manual review eligibility keeps past stays available under the same duration
     { id: "already-reviewed", lease_start: "2020-01-01", lease_end: null, reviews: [{ id: "review" }] },
     { id: "eligible", status: "ended", lease_start: "2020-01-01", lease_end: "2020-08-01", reviews: [] },
   ];
-  expect(await fetchReviewEligibility("apartment-a", "tenant-a")).toBe("eligible");
+  expect(await fetchReviewEligibility("apartment-a", "tenant-a")).toEqual({ reviewableTenancyId: "eligible", stayLocked: false });
   expect(mockQuery.select).toHaveBeenCalledWith("id, lease_start, lease_end, reviews(id)");
   expect(mockQuery.eq).not.toHaveBeenCalledWith("status", "active");
+});
+
+it("reports a locked stay only when an unreviewed stay is too recent", async () => {
+  mockQuery.data = [{ id: "too-soon", lease_start: "2099-01-01", lease_end: null, reviews: [] }];
+  expect(await fetchReviewEligibility("apartment-a", "tenant-a")).toEqual({ reviewableTenancyId: null, stayLocked: true });
+});
+
+it.each([
+  { reason: "no stays", rows: [] },
+  { reason: "already-reviewed stays", rows: [{ id: "reviewed", lease_start: "2020-01-01", lease_end: null, reviews: [{ id: "review" }] }] },
+])(
+  "does not report a locked stay for $reason", async ({ rows }) => {
+    mockQuery.data = rows;
+    expect(await fetchReviewEligibility("apartment-a", "tenant-a")).toEqual({ reviewableTenancyId: null, stayLocked: false });
+  }
+);
+
+it("does not treat an eligibility request failure as a locked stay", async () => {
+  mockQuery.error = new Error("denied");
+  await expect(fetchReviewEligibility("apartment-a", "tenant-a")).rejects.toThrow("denied");
 });

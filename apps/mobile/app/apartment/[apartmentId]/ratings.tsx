@@ -30,6 +30,7 @@ export default function RatingsPage() {
     sortBy,
     setSortBy,
     canReview,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId
   } = useApartmentReviews(apartmentId);
@@ -119,6 +120,12 @@ export default function RatingsPage() {
             onSelect={setSortBy}
           />
         </View>
+
+        {!checkingEligibility && stayLocked && (
+          <Text className='text-muted text-xs font-inter mt-3'>
+            Reviews unlock after 3 months of stay.
+          </Text>
+        )}
 
         {/* Render List of Tenant Reviews */}
         {totalReviews === 0 ? (

@@ -8,6 +8,9 @@ import RatingsPage from "@/app/apartment/[apartmentId]/ratings";
 
 let mockOverallRating = 0;
 let mockTotalReviews = 0;
+let mockStayLocked = false;
+let mockCheckingEligibility = false;
+let mockCanReview = false;
 const mockUseUniwind = useUniwind as jest.Mock;
 
 jest.mock("expo-router", () => ({ useLocalSearchParams: () => ({ apartmentId: "current-apartment" }), useRouter: () => ({ push: jest.fn() }) }));
@@ -16,7 +19,8 @@ jest.mock("hooks/ratings", () => ({
   useApartmentReviews: () => ({
     loading: false, error: null, overallRating: mockOverallRating, totalReviews: mockTotalReviews,
     ratingsCount: [5, 4, 3, 2, 1].map(rating => ({ rating, ratingCount: rating === 5 ? mockTotalReviews : 0, totalCount: mockTotalReviews })),
-    reviews: [], sortBy: "Most Recent", setSortBy: jest.fn(), canReview: false, checkingEligibility: false, reviewableTenancyId: null,
+    reviews: [], sortBy: "Most Recent", setSortBy: jest.fn(), canReview: mockCanReview, stayLocked: mockStayLocked,
+    checkingEligibility: mockCheckingEligibility, reviewableTenancyId: mockCanReview ? "eligible-stay" : null,
   }),
 }));
 jest.mock("components/layout/ScreenWrapper", () => {
@@ -42,9 +46,24 @@ jest.mock("heroui-native", () => {
   return { Slider, Button, Spinner: View };
 });
 
-beforeEach(() => { mockOverallRating = 0; mockTotalReviews = 0; mockUseUniwind.mockReturnValue({ theme: "light", hasAdaptiveThemes: true }); });
+beforeEach(() => {
+  mockOverallRating = 0;
+  mockTotalReviews = 0;
+  mockStayLocked = false;
+  mockCheckingEligibility = false;
+  mockCanReview = false;
+  mockUseUniwind.mockReturnValue({ theme: "light", hasAdaptiveThemes: true });
+});
 
 describe.each(["light", "dark"] as const)("ratings summary in %s mode", theme => {
+  it("explains the waiting period for a locked stay without offering a review", () => {
+    mockUseUniwind.mockReturnValue({ theme, hasAdaptiveThemes: true });
+    mockStayLocked = true;
+    const screen = render(<RatingsPage />);
+    expect(screen.getByText("Reviews unlock after 3 months of stay.").props.className).toContain("text-muted");
+    expect(screen.queryByText("Write a Review")).toBeNull();
+  });
+
   it.each([0, 4.5])("uses matching yellow score/stars/fills and a theme-aware track for score %s", score => {
     mockUseUniwind.mockReturnValue({ theme, hasAdaptiveThemes: true });
     mockOverallRating = score;
@@ -66,6 +85,25 @@ describe.each(["light", "dark"] as const)("ratings summary in %s mode", theme =>
     }
     expect(screen.getAllByTestId("rating-meter").map(meter => meter.props.accessibilityValue.now)).toEqual(score ? [100, 0, 0, 0, 0] : [0, 0, 0, 0, 0]);
   });
+});
+
+it("hides the waiting-period hint while eligibility is loading", () => {
+  mockStayLocked = true;
+  mockCheckingEligibility = true;
+  const screen = render(<RatingsPage />);
+  expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
+});
+
+it("does not show a waiting-period hint without a locked stay", () => {
+  const screen = render(<RatingsPage />);
+  expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
+});
+
+it("keeps the review action available when the stay is eligible", () => {
+  mockCanReview = true;
+  const screen = render(<RatingsPage />);
+  expect(screen.getByText("Write a Review")).toBeTruthy();
+  expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
 });
 
 it("updates meter surfaces when the resolved theme changes without changing the score", () => {

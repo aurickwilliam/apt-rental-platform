@@ -37,6 +37,7 @@ interface UseApartmentReviewsResult {
   sortBy: ReviewSortOption
   setSortBy: (option: ReviewSortOption) => void
   canReview: boolean
+  stayLocked: boolean
   checkingEligibility: boolean
   reviewableTenancyId: string | null
   refetch: () => Promise<void>
@@ -72,6 +73,7 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
 
   const {
     canReview,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId
   } = useReviewEligibility(apartmentId);
@@ -158,6 +160,7 @@ export function useApartmentReviews(apartmentId?: string): UseApartmentReviewsRe
     sortBy,
     setSortBy,
     canReview,
+    stayLocked,
     checkingEligibility,
     reviewableTenancyId,
     refetch: async () => {
