@@ -1,4 +1,4 @@
-import { Modal, Button } from "@heroui/react";
+import { Modal, Button, Link as HeroLink } from "@heroui/react";
 import { IconMail as Mail } from "@tabler/icons-react";
 import CodeInput from "@/app/components/inputs/CodeInput";
 
@@ -74,6 +74,7 @@ export default function OtpModal({
                     <p className="text-center text-sm text-danger">{otpError}</p>
                   )}
 
+                  {/* HeroUI Link without href: an action styled as a link (mobile's LinkButton). */}
                   <div className="flex items-center gap-2 text-sm text-foreground">
                     <span>Didn&apos;t receive a code?</span>
                     {resendCooldown > 0 ? (
@@ -81,16 +82,13 @@ export default function OtpModal({
                         Resend in {formatCooldown(resendCooldown)}
                       </span>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        isPending={resendLoading}
-                        isDisabled={resendLoading}
+                      <HeroLink
                         onPress={onResend}
-                        className="h-auto min-w-0 p-0 font-medium"
+                        isDisabled={resendLoading}
+                        className="cursor-pointer font-medium text-primary"
                       >
-                        Resend Code
-                      </Button>
+                        {resendLoading ? "Sending..." : "Resend Code"}
+                      </HeroLink>
                     )}
                   </div>
                 </Modal.Body>
