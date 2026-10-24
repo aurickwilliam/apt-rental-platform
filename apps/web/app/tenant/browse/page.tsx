@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { requirePortalViewer } from "@/lib/server-identity";
 
 import { createClient } from "@repo/supabase/server";
 
@@ -35,25 +35,7 @@ const FILTER_STICKY_CLASS = "md:top-4 md:max-h-[calc(100dvh-2rem)]";
 export const dynamic = "force-dynamic";
 
 export default async function TenantBrowsePage({ searchParams }: PageProps) {
-  const supabase = await createClient();
-
-  // Authorization must settle before any account-derived content (including
-  // the personalized discovery pool) can render.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/sign-in");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id, roles, preferences")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!(profile as unknown as { roles: string[] } | null)?.roles.includes("tenant")) {
-    redirect("/browse");
-  }
+  const { supabase, profile } = await requirePortalViewer("tenant");
 
   const params = await searchParams;
 

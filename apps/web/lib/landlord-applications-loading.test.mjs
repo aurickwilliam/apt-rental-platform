@@ -21,6 +21,7 @@ function load(file, options = {}) {
   let href = `https://apt.example/landlord/applications?${params}`;
   const jsx = (type, props) => ({ type, props });
   const dependencies = {
+    "@/app/components/display/PresentationBoundary": { default: function PresentationBoundary({ children }) { return children(undefined); } },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "react": { Suspense: "Suspense", useMemo: callback => callback(), useState: initial => [filters ? filters[stateIndex++] : initial, () => {}] },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams },
@@ -46,7 +47,7 @@ function load(file, options = {}) {
       ApplicationsSummarySkeleton: function ApplicationsSummarySkeleton() { return load("components/ApplicationsSkeleton.tsx").ApplicationsSummarySkeleton(); },
     },
   };
-  const source = readFileSync(new URL(`../app/landlord/applications/${file}`, import.meta.url), "utf8");
+  const source = readFileSync(new URL(`../app/landlord/applications/${file === "page.tsx" ? "ApplicationsClient.tsx" : file}`, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
@@ -58,13 +59,17 @@ function load(file, options = {}) {
     return dependencies[name];
   } };
   vm.runInNewContext(compiled, context);
+  if (file === "page.tsx") {
+    const Component = context.exports.default;
+    context.exports.default = () => Component({ initial: undefined });
+  }
   return context.exports;
 }
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "ApplicationsHeader", "ApplicationsContent", "ApplicationsSummary", "ApplicationsSummarySkeleton", "ApplicationsSkeleton", "ApplicationsCountSkeleton", "ApplicationsResultsSkeleton",
+    "Sk", "PresentationBoundary", "ApplicationsHeader", "ApplicationsContent", "ApplicationsSummary", "ApplicationsSummarySkeleton", "ApplicationsSkeleton", "ApplicationsCountSkeleton", "ApplicationsResultsSkeleton",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];

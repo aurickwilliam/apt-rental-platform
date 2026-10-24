@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 
 export type VisitRequestStatus =
@@ -35,8 +33,8 @@ export type VisitRequestResult = {
 export async function fetchVisitRequest(
   applicationId: string,
   tenantId: string,
+  supabase = createClient(),
 ): Promise<VisitRequestResult> {
-  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("visit_request")

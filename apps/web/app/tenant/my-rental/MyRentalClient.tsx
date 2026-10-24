@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Link, Modal, Spinner, Table, toast, useOverlayState } from "@heroui/react";
-import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight, IconX as X } from "@tabler/icons-react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Link, Spinner, Table, toast } from "@heroui/react";
+import { IconCreditCard as CreditCard, IconFileText as FileText, IconHistory as History, IconMessageCircle as MessageCircle, IconReceipt as Receipt, IconTool as Wrench, IconCircleCheck as CheckCircle2, IconClock as Clock, IconHome as House, IconCalendar as CalendarDays, IconCurrencyPeso as CurrencyPeso, IconChevronRight as ChevronRight } from "@tabler/icons-react";
 
 import { formatPesoDisplay, getCurrentRentStatus, nextPaymentPeriod, nextUnpaidRentPeriod } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
 import { useSignedLeaseViewer } from "@/hooks/use-signed-lease-viewer";
-import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-history";
 
@@ -25,8 +24,8 @@ import RentalHero from "./components/RentalHero";
 import SignedLeaseCard from "./components/SignedLeaseCard";
 import StatusChip from "@/app/components/display/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
-import TenancyEmptyState from "./components/TenancyEmptyState";
 import ApplicationsList from "./components/ApplicationsList";
+import RentalApplications from "./components/RentalApplications";
 import MyRentalSkeleton from "./components/MyRentalSkeleton";
 import RentFinanceSkeleton from "./components/RentFinanceSkeleton";
 import PaymentHistorySkeleton from "./components/PaymentHistorySkeleton";
@@ -182,13 +181,6 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
   } = useTenancy(initialContext);
   const bill = tenancy?.bill ?? null;
   const {
-    applications,
-    loading: applicationsLoading,
-    error: applicationsError,
-  } = useTenantApplications(initialContext?.tenantId);
-  const historyDialog = useOverlayState();
-  const hasApplications = !applicationsLoading && applications.length > 0;
-  const {
     requests: maintenanceRequests,
     loading: maintenanceLoading,
     error: maintenanceError,
@@ -273,17 +265,9 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
     return (
       <div className="min-h-screen bg-background">
         <div className="px-4 py-6 sm:py-8 space-y-4">
-          {applicationsLoading || hasApplications || applicationsError ? (
-            <ApplicationsList applications={applications} loading={applicationsLoading} error={applicationsError} />
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <House size={20} className="text-primary" />
-                <h2 className="text-lg font-semibold text-card-foreground">My Rental</h2>
-              </div>
-              <TenancyEmptyState />
-            </div>
-          )}
+          <Suspense fallback={<ApplicationsList applications={[]} loading error={null} />}>
+            <RentalApplications tenantId={initialContext?.tenantId} initial={initialContext?.applications} />
+          </Suspense>
         </div>
       </div>
     );
@@ -450,12 +434,9 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
             {headerDate}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {hasApplications && (
-              <Button variant="outline" size="sm" onPress={() => historyDialog.setOpen(true)}>
-                <History size={16} />
-                Application History
-              </Button>
-            )}
+            <Suspense fallback={null}>
+              <RentalApplications activeLease tenantId={initialContext?.tenantId} initial={initialContext?.applications} />
+            </Suspense>
             <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">Active lease</StatusChip>
           </div>
         </div>
@@ -929,30 +910,6 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
           )}
         </DashboardCard>
 
-        <Modal isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen}>
-          <Modal.Backdrop>
-            <Modal.Container size="lg" scroll="inside">
-              <Modal.Dialog>
-                <Modal.Header className="flex flex-row items-center justify-between">
-                  <Modal.Heading>Application History</Modal.Heading>
-                  <Button
-                    isIconOnly
-                    variant="ghost"
-                    size="sm"
-                    onPress={() => historyDialog.setOpen(false)}
-                    aria-label="Close application history"
-                    className="text-muted-foreground"
-                  >
-                    <X size={18} />
-                  </Button>
-                </Modal.Header>
-                <Modal.Body>
-                  <ApplicationsList showHeader={false} applications={applications} loading={applicationsLoading} error={applicationsError} />
-                </Modal.Body>
-              </Modal.Dialog>
-            </Modal.Container>
-          </Modal.Backdrop>
-        </Modal>
 
       </div>
     </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 import { formatAddress, getMaintenanceFeeError, normalizeMaintenanceFeeStatus } from "@repo/utils";
 
@@ -98,8 +96,8 @@ function asNullableString(value: unknown): string | null {
 export async function fetchLandlordMaintenanceRequests(
   landlordId: string,
   options: { requestId?: string; includePhotos?: boolean } = {},
+  supabase = createClient(),
 ): Promise<LandlordMaintenanceRequest[]> {
-  const supabase = createClient();
 
   let query = supabase
     .from("maintenance_request")

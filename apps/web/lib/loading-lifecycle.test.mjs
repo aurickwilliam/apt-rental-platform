@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { compile, deferred, hookRuntime, settle } from "./test-support/hook-runtime.mjs";
+import * as presentationSeed from "../service/presentation-seed.ts";
 
 const source = file => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const jsx = (type, props, key) => ({ type, props, key });
@@ -189,6 +190,12 @@ test("server rental loader authorizes first, shares the caller-bound query, and 
       "react/jsx-runtime": jsxRuntime,
       "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } },
       "@repo/supabase/server": { createClient: async () => client },
+      "@/lib/server-identity": { requirePortalViewer: async portal => {
+        if (role !== portal) throw new Error("redirect:/browse");
+        return { supabase: client, user: { id: "auth-a" }, profile: { id: "profile-a", roles: [role] } };
+      } },
+      "@/lib/presentation-seed-server": compile("lib/presentation-seed-server.ts", { "server-only": {} }),
+      "@/service/tenantApplicationsService": { fetchTenantApplications: async () => [] },
       "@/service/tenancy-context": { fetchActiveTenancyWith: async (boundClient, id) => { assert.equal(boundClient, client); assert.equal(id, "profile-a"); contextReads++; return { id: "lease-a" }; } },
       "./MyRentalClient": { default: "MyRentalClient" },
     });
@@ -290,7 +297,7 @@ test("a successful decision with failed reconciliation stays decided; an unmount
 });
 
 test("loading composition retains one maintenance heading and common finance geometry; mutations do not block-refresh", () => {
-  assert.match(source("app/tenant/maintenance/page.tsx"), /<MaintenancePageSkeleton showHeader=\{false\} \/>/);
+  assert.match(source("app/tenant/maintenance/MaintenanceClient.tsx"), /<MaintenancePageSkeleton showHeader=\{false\} \/>/);
   const skeleton = source("app/tenant/my-rental/components/MyRentalSkeleton.tsx");
   const client = source("app/tenant/my-rental/MyRentalClient.tsx");
   for (const component of ["RentFinanceSkeleton", "PaymentHistorySkeleton"]) {
@@ -319,7 +326,7 @@ function detailResource(kind) {
     return queued.length ? queued.shift().promise : kind === "payment" ? { id, status: "pending", amount: 100 } : kind === "tenantVisit" ? { current: { id: "visit-a", status: "rescheduled" }, history: [] } : [{ id: "visit-a", status: "pending" }];
   };
   const resource = compile("hooks/use-async-resource.ts", { react: runtime.react });
-  const common = { react: runtime.react, "@/hooks/use-async-resource": resource, "@/hooks/use-auth-identity": { useAuthIdentity: () => identity } };
+  const common = { react: runtime.react, "@/service/presentation-seed": presentationSeed, "@/hooks/use-async-resource": resource, "@/hooks/use-auth-identity": { useAuthIdentity: () => identity } };
   const hook = kind === "payment"
     ? compile("hooks/use-landlord-payments.ts", { ...common, "@/service/landlordPaymentService": { fetchLandlordPaymentById: fetch } }).useLandlordPayment
     : kind === "tenantVisit"
@@ -471,12 +478,15 @@ test("write failures, uncertain exceptions, cancellation navigation and unmount 
 
 test("detail action lifetimes are keyed by account generation and exact destination; no speculative receipt status", () => {
   for (const [file, id] of [
-    ["app/tenant/applications/[applicationId]/page.tsx", "applicationId"],
+    ["app/tenant/applications/[applicationId]/ApplicationDetailClient.tsx", "applicationId"],
     ["app/landlord/visit-requests/[requestId]/page.tsx", "requestId"],
     ["app/landlord/payments/[paymentId]/page.tsx", "paymentId"],
   ]) {
     const page = source(file);
-    assert.ok(page.includes(`key={\`\${identity.authUserId}:\${identity.generation}:\${${id}}\`}`));
+    const expectedKey = file.endsWith("ApplicationDetailClient.tsx")
+      ? 'key={`${identity.authUserId}:${identity.generation}:${applicationId}:${seed?.renderedAt ?? "browser"}`}'
+      : `key={\`\${identity.authUserId}:\${identity.generation}:\${${id}}\`}`;
+    assert.ok(page.includes(expectedKey));
     assert.match(page, /useReconciledAction\(/);
     assert.doesNotMatch(page, /await refresh\(\)|void refetchVisit\(\)|void paymentQuery\.refetch\(\)/);
   }
@@ -484,7 +494,7 @@ test("detail action lifetimes are keyed by account generation and exact destinat
   assert.match(receipt, /action\.run\(\(\) => confirmMutation\.confirm\(paymentId\)\)/);
   assert.match(receipt, /action\.run\(\(\) => confirmMutation\.reject\(paymentId\)\)/);
   assert.doesNotMatch(receipt, /applyStatus|status: "paid"|status: "rejected"/);
-  assert.doesNotMatch(source("app/tenant/applications/[applicationId]/page.tsx"), /identity\.authUserId === undefined\) return <ApplicationDetailSkeleton/);
+  assert.doesNotMatch(source("app/tenant/applications/[applicationId]/ApplicationDetailClient.tsx"), /identity\.authUserId === undefined\) return <ApplicationDetailSkeleton/);
   const visit = source("app/landlord/visit-requests/[requestId]/page.tsx");
   for (const dialog of ["approveDialog", "rejectDialog", "rescheduleDialog"]) {
     assert.ok(visit.includes(`if (result === "confirmed" || result === "unresolved") ${dialog}.setOpen(false)`), "a read-only retry must not reopen a completed decision dialog");
@@ -693,7 +703,7 @@ test("portal width integration reaches extracted My Rental and detail shells wit
   const shell = treeNodes(Shell({ children: "body" }));
   assert.match(shell[0].props.className, /\bp-4 md:p-6\b/);
   assert.equal(shell.filter(n => n.type === "h1").length, 1);
-  const tenantApplication = source("app/tenant/applications/[applicationId]/page.tsx");
+  const tenantApplication = source("app/tenant/applications/[applicationId]/ApplicationDetailClient.tsx");
   assert.doesNotMatch(tenantApplication, /max-w-7xl/);
   assert.doesNotMatch(source("app/tenant/payment/components/PaymentPageLayout.tsx"), /max-w-7xl/);
   assert.doesNotMatch(source("app/components/passport/PassportPageLayout.tsx"), /max-w-7xl/);

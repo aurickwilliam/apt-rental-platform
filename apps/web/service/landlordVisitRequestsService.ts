@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 
 import { getLandlordContext } from "@/service/landlordApplicationsService";
@@ -42,11 +40,9 @@ export type LandlordVisitRequest = {
   };
 };
 
-export async function fetchLandlordVisitRequests(requestId?: string): Promise<LandlordVisitRequest[]> {
-  const context = await getLandlordContext();
+export async function fetchLandlordVisitRequests(requestId?: string, supabase = createClient(), landlordId?: string): Promise<LandlordVisitRequest[]> {
+  const context = landlordId ? { landlordId } : await getLandlordContext();
   if (!context.landlordId) return [];
-
-  const supabase = createClient();
 
   let query = supabase
     .from("visit_request")

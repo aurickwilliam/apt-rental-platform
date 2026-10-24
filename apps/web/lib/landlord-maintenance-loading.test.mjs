@@ -27,6 +27,7 @@ function load(file, options = {}) {
   };
   const header = { default: function MaintenanceHeader() { return load("components/MaintenanceHeader.tsx").default(); } };
   const dependencies = {
+    "@/app/components/display/PresentationBoundary": { default: function PresentationBoundary({ children }) { return children(undefined); } },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "react": {
       Suspense: "Suspense", useMemo: callback => callback(), useEffect: callback => { if (!effectRan) { effectRan = true; callback(); } },
@@ -65,7 +66,7 @@ function load(file, options = {}) {
     "./components/MaintenanceHeader": header,
     "./components/MaintenanceSkeletons": skeletons,
   };
-  const source = readFileSync(new URL(`../app/landlord/maintenance-requests/${file}`, import.meta.url), "utf8");
+  const source = readFileSync(new URL(`../app/landlord/maintenance-requests/${file === "page.tsx" ? "MaintenanceRequestsClient.tsx" : file}`, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
@@ -77,13 +78,17 @@ function load(file, options = {}) {
     return dependencies[name];
   } };
   vm.runInNewContext(compiled, context);
+  if (file === "page.tsx") {
+    const Component = context.exports.default;
+    context.exports.default = () => Component({ initial: undefined });
+  }
   return context.exports;
 }
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "MaintenanceHeader", "MaintenanceSkeleton", "MaintenanceCountSkeleton", "MaintenanceResultsSkeleton",
+    "Sk", "PresentationBoundary", "MaintenanceHeader", "MaintenanceSkeleton", "MaintenanceCountSkeleton", "MaintenanceResultsSkeleton",
     "MaintenanceTableSkeleton", "MaintenanceCardSkeleton", "MaintenanceEmptyState", "MaintenanceContent", "MaintenanceSummary",
     "MaintenanceDetailShell", "MaintenanceDetailSkeleton", "MaintenanceDetailFieldSkeleton", "MaintenanceDetailSectionTitle", "SectionTitle", "DetailField",
   ].includes(element.type.name);

@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 
 export const MAINTENANCE_IMAGES_BUCKET = "maintenance-images";
@@ -176,8 +174,8 @@ export async function fetchMaintenanceRequestHistory(
   apartmentId: string,
   tenantId: string,
   includePhotos = true,
+  supabase = createClient(),
 ): Promise<MaintenanceRequest[]> {
-  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("maintenance_request")

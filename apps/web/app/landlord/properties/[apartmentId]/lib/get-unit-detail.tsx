@@ -1,4 +1,5 @@
 import { createClient } from "@repo/supabase/server";
+import { getServerIdentity } from "@/lib/server-identity";
 import { fetchLandlordUnitDetail, fetchLandlordUnitApartment, fetchLandlordUnitDescription, type LandlordUnitDetail, type LandlordUnitApartment } from "@/service/landlordUnitDetailService";
 
 export type UnitLoadError = { title: string; message: string };
@@ -27,18 +28,8 @@ async function loadOwnedUnit<T extends { apartment: LandlordUnitApartment }>(
   apartmentId: string,
   load: (supabase: Awaited<ReturnType<typeof createClient>>, id: string) => Promise<T | null>,
 ): Promise<T | { error: UnitLoadError }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user, profile } = await getServerIdentity();
   if (!user) return { error: { title: "Not authenticated", message: "Please sign in to view this property." } };
-
-  const { data: profileData } = await supabase
-    .from("users")
-    .select("id, roles")
-    .eq("user_id", user.id)
-    .single();
-  const profile = profileData as unknown as { id: string; roles: string[] } | null;
 
   if (!profile?.roles.includes("landlord")) {
     return { error: { title: "Unauthorized", message: "Only landlords can view this page." } };

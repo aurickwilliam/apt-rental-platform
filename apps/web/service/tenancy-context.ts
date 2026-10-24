@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@repo/supabase";
+import type { PresentationSeed } from "./presentation-seed";
+import type { TenantApplication } from "./tenantApplicationsService";
 
 export type TenancyApartment = {
   id: string;
@@ -57,6 +59,7 @@ export interface InitialRentalContext {
   error: string | null;
   /** Keep the server shell's date identical during browser hydration. */
   renderedAt: string;
+  applications?: Promise<PresentationSeed<TenantApplication[]>>;
 }
 
 /** Fresh caller-bound read; the internal tenant id is a filter, never authorization. */

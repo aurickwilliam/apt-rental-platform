@@ -1,4 +1,4 @@
-import { createClient } from "@repo/supabase/server";
+import { requirePortalViewer } from "@/lib/server-identity";
 import { IconHome as House, IconDoorEnter as DoorOpen, IconDoorExit as DoorClosed, IconCurrencyPeso as PhilippinePeso } from "@tabler/icons-react";
 import PropertiesTableSection from "./components/PropertiesTableSection";
 import PropertyActions from "./components/PropertyActions";
@@ -7,16 +7,7 @@ import PropertiesHeader from "./components/PropertiesHeader";
 export const dynamic = "force-dynamic";
 
 export default async function Properties() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return <div>Not authenticated.</div>;
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const { supabase, profile } = await requirePortalViewer("landlord");
 
   const { data: apartments } = profile?.id
     ? await supabase

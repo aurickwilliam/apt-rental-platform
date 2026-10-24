@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 import { formatAddress } from "@repo/utils";
 
@@ -99,11 +97,11 @@ function asNullableString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-export async function fetchLandlordApplications(applicationId?: string): Promise<LandlordApplication[]> {
-  const supabase = createClient();
+// Inject the caller-bound server client for SSR; the same query/mapping serves refetches.
+export async function fetchLandlordApplications(applicationId?: string, supabase = createClient(), landlordId?: string): Promise<LandlordApplication[]> {
 
-  // No landlord-side filter here — RLS scopes rows to the signed-in
-  // landlord's own apartments, mirroring the mobile flow.
+  // RLS remains authoritative; authorized callers also pass their owner id so
+  // mixed Admin/Landlord accounts never widen this consumer list.
   let query = supabase
     .from("rental_application")
     .select(
@@ -120,6 +118,7 @@ export async function fetchLandlordApplications(applicationId?: string): Promise
     .order("id", { referencedTable: "apartments.apartment_images", ascending: true })
     .limit(1, { referencedTable: "apartments.apartment_images" });
   if (applicationId) query = query.eq("id", applicationId).limit(1);
+  if (landlordId) query = query.eq("apartments.landlord_id", landlordId);
   const { data, error } = await query;
 
   if (error) throw error;

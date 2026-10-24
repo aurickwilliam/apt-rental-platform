@@ -5,6 +5,7 @@ import { getMaintenanceFeeError } from "@repo/utils";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
+import { matchesPresentationSeed, type PresentationSeed } from "@/service/presentation-seed";
 
 import { getLandlordContext } from "@/service/landlordApplicationsService";
 import {
@@ -20,8 +21,9 @@ export { getNextStatus };
 
 const NO_REQUESTS: LandlordMaintenanceRequest[] = [];
 
-export function useLandlordMaintenanceRequests(requestId?: string) {
-  const identity = useAuthIdentity();
+export function useLandlordMaintenanceRequests(requestId?: string, initial?: PresentationSeed<LandlordMaintenanceRequest[]>) {
+  const identity = useAuthIdentity(initial?.authUserId);
+  const seed = matchesPresentationSeed(initial, identity, requestId) ? initial : undefined;
   const [actionLoading, setActionLoading] = useState(false);
 
   const load = useCallback(async (): Promise<LandlordMaintenanceRequest[]> => {
@@ -36,7 +38,7 @@ export function useLandlordMaintenanceRequests(requestId?: string) {
     error,
     refresh,
     setData: setRequests,
-  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", { clearOnRevalidateError: true });
+  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", { initial: seed, clearOnRevalidateError: true });
 
   const updateStatus = useCallback(
     async (
