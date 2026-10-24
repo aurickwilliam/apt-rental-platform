@@ -40,9 +40,7 @@ export default function RatingSection({
 
       {loading ? (
         <p className="text-sm text-default-500">Loading ratings…</p>
-      ) : error ? (
-        <p className="text-sm text-red-600">{error}</p>
-      ) : (
+      ) : !error ? (
         <RatingBreakdown
           overallRate={overallRating}
           totalReviews={totalReviews}
@@ -52,7 +50,7 @@ export default function RatingSection({
           no2Star={countFor(2)}
           no1Star={countFor(1)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

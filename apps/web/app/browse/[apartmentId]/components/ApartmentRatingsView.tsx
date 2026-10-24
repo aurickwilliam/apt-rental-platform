@@ -23,6 +23,7 @@ import {
   type RateApartmentHeader,
 } from "@/service/reviewsService";
 import StatusChip from "@/app/components/display/StatusChip";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { statusToneFor } from "@/lib/status-tone";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
@@ -231,9 +232,7 @@ export default function ApartmentRatingsView() {
         )
       )}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-      {totalReviews > 0 && (
+      {!error && totalReviews > 0 && (
         <Card className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
           <RatingBreakdown
             overallRate={overallRating}
@@ -295,7 +294,11 @@ export default function ApartmentRatingsView() {
         </div>
       </div>
 
-      {totalReviews === 0 ? (
+      {error ? (
+        <ErrorBanner message={error}>
+          <Button size="sm" variant="outline" onPress={refresh}>Retry</Button>
+        </ErrorBanner>
+      ) : totalReviews === 0 ? (
         <Card className="mt-5 rounded-3xl border border-border bg-card shadow-none">
           <Card.Content className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
             <span className="rounded-full bg-muted p-5">
