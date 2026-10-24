@@ -29,35 +29,33 @@ export default function MonthCollectionCard({ thisMonth, onPressViewPayments }: 
         </Text>
       </View>
 
-      {onPressViewPayments ? (
-        <View className="flex-row items-center justify-end gap-1 -mb-1">
-          <Text className="text-sm text-white font-interMedium">View all payments</Text>
-          <IconChevronRight size={16} color="#FFFFFF" />
+      {hasExpectedRent ? (
+        <View
+          className="h-2 rounded-full bg-white/25 overflow-hidden"
+          accessibilityRole="progressbar"
+          accessibilityLabel="Rent collected this month"
+          accessibilityValue={{ min: 0, max: 100, now: percent }}
+        >
+          <View
+            className="h-2 rounded-full bg-white"
+            style={{ width: `${percent}%` }}
+          />
         </View>
       ) : null}
 
-      {hasExpectedRent ? (
-        <View className="gap-2">
-          <View
-            className="h-2 rounded-full bg-white/25 overflow-hidden"
-            accessibilityRole="progressbar"
-            accessibilityLabel="Rent collected this month"
-            accessibilityValue={{ min: 0, max: 100, now: percent }}
-          >
-            <View
-              className="h-2 rounded-full bg-white"
-              style={{ width: `${percent}%` }}
-            />
-          </View>
-          <Text className="text-sm text-gray-100 font-inter">
-            {percent}% of {formatPesoDisplay(expected)} expected
-          </Text>
-        </View>
-      ) : (
-        <Text className="text-sm text-gray-100 font-inter">
-          No rent is due this month.
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="text-sm text-gray-100 font-inter flex-1">
+          {hasExpectedRent
+            ? `${percent}% of ${formatPesoDisplay(expected)} expected`
+            : "No rent is due this month."}
         </Text>
-      )}
+        {onPressViewPayments ? (
+          <View className="flex-row items-center gap-1">
+            <Text className="text-sm text-white font-interMedium">View all payments</Text>
+            <IconChevronRight size={16} color="#FFFFFF" />
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 
