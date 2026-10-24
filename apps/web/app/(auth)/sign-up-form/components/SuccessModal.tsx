@@ -8,11 +8,19 @@ interface SuccessModalProps {
   role: string;
 }
 
+// Fresh tenants continue to rental personalization (the same page the
+// Google/complete-profile path uses); the page itself offers a skip and
+// never shows again once preferences are saved.
+const TENANT_NEXT_HREF = "/tenant/personalize?fresh=1";
+const LANDLORD_NEXT_HREF = "/landlord/dashboard";
+
 export default function SuccessModal({
   isOpen,
   onOpenChange,
   role,
 }: SuccessModalProps) {
+  const isTenant = role === "tenant";
+
   return (
     <Modal>
       <Modal.Backdrop
@@ -33,19 +41,20 @@ export default function SuccessModal({
                 Account Created!
               </h2>
               <p className="max-w-xs text-center text-sm text-foreground">
-                Your account has been created successfully. You can now sign in
-                with your email and password.
+                {isTenant
+                  ? "Your account has been created. Tell us what you're looking for and we'll tailor your apartment search."
+                  : "Your account has been created successfully. You can now manage your properties from your dashboard."}
               </p>
             </Modal.Body>
 
             <Modal.Footer>
-              <Link className="w-full" href={role === "tenant" ? "/tenant/my-rental" : "/landlord/dashboard"}>
+              <Link className="w-full" href={isTenant ? TENANT_NEXT_HREF : LANDLORD_NEXT_HREF}>
                 <Button
                   size="lg"
                   variant="primary"
                   className="w-full"
                 >
-                  Continue to {role === "tenant" ? "My Rental" : "Dashboard"}
+                  {isTenant ? "Personalize my experience" : "Continue to Dashboard"}
                 </Button>
               </Link>
             </Modal.Footer>
