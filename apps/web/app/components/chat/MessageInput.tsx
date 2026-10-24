@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 import { Button, TextArea } from "@heroui/react";
 import {
-  IconMoodSmileFilled,
+  IconMoodSmile,
   IconPhoto,
   IconGif,
   IconPlayerPlayFilled,
@@ -216,7 +216,7 @@ export default function MessageInput({
   }, []);
 
   const handleFilesPicked = useCallback(
-    async (files: FileList | null) => {
+    async (files: FileList | File[] | null) => {
       if (!files || files.length === 0) return;
 
       const picked = Array.from(files);
@@ -257,6 +257,22 @@ export default function MessageInput({
       if (rejected.length > 0) onError?.(rejected.join(" "));
     },
     [onError]
+  );
+
+  /**
+   * Stages files pasted from the clipboard (a screenshot, or an image copied
+   * with "Copy image" in this chat or another app). Pastes that carry text keep
+   * their normal behaviour, so copying spreadsheet cells never turns into a
+   * picture.
+   */
+  const handlePaste = useCallback(
+    (event: ClipboardEvent<HTMLElement>) => {
+      const { files, types } = event.clipboardData;
+      if (files.length === 0 || types.includes("text/plain")) return;
+      event.preventDefault();
+      void handleFilesPicked(Array.from(files));
+    },
+    [handleFilesPicked]
   );
 
   const canSend = Boolean(value.trim()) || staged.length > 0;
@@ -399,7 +415,11 @@ export default function MessageInput({
           }}
         />
 
-        <div data-composer-field className="apt-message-composer-field flex min-w-0 flex-1 items-end">
+        <div
+          data-composer-field
+          onPaste={handlePaste}
+          className="apt-message-composer-field flex min-w-0 flex-1 items-end"
+        >
           <button
             ref={emojiButtonRef}
             type="button"
@@ -409,7 +429,7 @@ export default function MessageInput({
             aria-label="Insert emoji"
             aria-expanded={isEmojiOpen}
           >
-            <IconMoodSmileFilled size={24} aria-hidden="true" />
+            <IconMoodSmile size={24} aria-hidden="true" />
           </button>
           <TextArea
             ref={inputRef}

@@ -101,7 +101,7 @@ test("composer is one pill: emoji left, then the field, then photo and GIF on th
   const order = ["Insert emoji", "Message", "Attach photos, videos or documents", "Send a GIF"].map(label => contents.findIndex(n => n.props["aria-label"] === label));
   assert.ok(order.every(i => i >= 0), "every control lives inside the pill");
   assert.deepEqual([...order].sort((x, y) => x - y), order);
-  assert.equal(contents.some(n => n.type === "IconMoodSmileFilled"), true);
+  assert.equal(contents.some(n => n.type === "IconMoodSmile"), true);
   assert.equal(tree.some(n => n.props["aria-label"] === "Send message"), false);
   assert.equal(tree.some(n => n.type === "IconCirclePlusFilled" || n.type === "IconMicrophone"), false);
   assert.ok(tree.some(n => n.type === "p" && n.props.className === "sr-only"));
