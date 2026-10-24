@@ -4,6 +4,8 @@ The tenant Rentals screen offers a review only for an active tenancy (`status = 
 
 The HeroUI Native prompt follows the mobile theme. Write a Review opens the existing apartment Ratings & Reviews screen; its review button opens the existing form. Maybe later, the close button, Android Back and backdrop dismissal remember that the prompt was seen. Only one offer is shown per account-keyed gate mount. It never opens on other tabs, pushed apartment/payment routes or while the app is in the background.
 
+After dismissing the popup, tenants can use **Rentals → View Description → Ratings & Reviews**. The persistent HeroUI Native action is directly below View Lease Agreement on Apartment Details and always opens the current apartment's ratings screen. It does not depend on the popup's saved dismissal or on having a lease file; the destination still decides whether the tenant may write a review.
+
 Dismissals are local to this app installation and scoped to the Auth account and tenancy. Signing out preserves them. Web's localStorage flag is separate. Storage failure can cause a prompt to return on a later visit, but does not prevent dismissal now.
 
 ## Reset one prompt in a development build
