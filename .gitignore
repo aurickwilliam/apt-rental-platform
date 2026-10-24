@@ -115,3 +115,6 @@ skills-lock.json
 
 # Local generated knowledge graph (configuration and tooling stay tracked)
 /graphify-out/
+
+# Supabase CLI local state (project link, versions); differs per machine
+supabase/.temp/
