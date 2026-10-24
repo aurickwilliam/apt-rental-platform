@@ -187,7 +187,7 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[13px] font-semibold text-foreground">Your preferences</p>
         <p className="text-xs text-muted-foreground" aria-live="polite">
@@ -399,7 +399,8 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
         )}
       </div>
 
-      <div className="mt-8 flex items-center gap-2">
+      {/* Pinned to the bottom of the screen so the actions stay in the same place on every step */}
+      <div className="sticky bottom-0 mt-auto flex items-center gap-2 bg-card py-4">
         {step > 1 ? (
           <Button
             type="button"
@@ -413,7 +414,7 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
         ) : (
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             onPress={() => router.replace("/tenant/my-rental")}
             isDisabled={isSaving}
             className="min-h-11 flex-1"

@@ -39,8 +39,8 @@ export default async function PersonalizePage({ searchParams }: PersonalizePageP
   }
 
   return (
-    <div className="min-h-screen w-full bg-card">
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="flex min-h-screen w-full flex-col bg-card">
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pt-8 sm:px-6 sm:pt-12">
         <Image src="/logo/logo.svg" alt="APT Logo" width={72} height={72} />
         <h1 className="mt-6 font-nunito text-3xl font-bold text-foreground">
           Personalize your experience
@@ -48,7 +48,7 @@ export default async function PersonalizePage({ searchParams }: PersonalizePageP
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Tell us what you&apos;re looking for in your next place.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-1 flex-col">
           <PersonalizeWizard initial={profile.preferences} />
         </div>
       </div>
