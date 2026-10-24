@@ -20,6 +20,7 @@ interface ApartmentEmbed {
 export interface ReviewUnlockStay {
   id: string;
   apartment_id: string;
+  status: string;
   lease_start: string | null;
   lease_end: string | null;
   apartment: ApartmentEmbed | ApartmentEmbed[] | null;
@@ -32,6 +33,8 @@ export function selectReviewUnlockCandidate(
   now: Date = new Date(),
 ): ReviewUnlockCandidate | null {
   for (const stay of stays) {
+    // This automatic prompt describes the current rental, not review history.
+    if (stay.status !== "active") continue;
     const apartment = Array.isArray(stay.apartment) ? stay.apartment[0] : stay.apartment;
     if (!apartment || apartment.is_hidden_by_admin || apartment.deleted_at || dismissed.has(stay.id)) continue;
     if (stay.reviews?.length || !isReviewStayEligible(stay.lease_start, stay.lease_end, now)) continue;
@@ -42,8 +45,9 @@ export function selectReviewUnlockCandidate(
 
 export async function fetchReviewUnlock(authUserId: string, tenantId: string, signal?: AbortSignal): Promise<ReviewUnlockCandidate | null> {
   const request = supabase.from("tenancies")
-    .select("id, apartment_id, lease_start, lease_end, apartment:apartments(id, name, is_hidden_by_admin, deleted_at), reviews(id)")
+    .select("id, apartment_id, status, lease_start, lease_end, apartment:apartments(id, name, is_hidden_by_admin, deleted_at), reviews(id)")
     .eq("tenant_id", tenantId)
+    .eq("status", "active")
     .order("lease_start", { ascending: false })
     .order("id", { ascending: false })
     .limit(REVIEW_UNLOCK_LIMIT);

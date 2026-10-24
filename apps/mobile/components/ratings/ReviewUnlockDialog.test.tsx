@@ -33,6 +33,9 @@ it.each([{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844,
   const scroll = screen.UNSAFE_getByType(native.ScrollView);
   expect(scroll.findAllByType(native.Pressable)).toHaveLength(0);
   expect(StyleSheet.flatten(scroll.props.style).flexShrink).toBe(1);
+  expect(scroll.findAllByType(native.Text).some(node =>
+    typeof node.props.children === "string" && node.props.children.startsWith("You can now review\n"),
+  )).toBe(true);
   const action = screen.getByRole("button", { name: "Write a Review" });
   expect(StyleSheet.flatten(action.props.style)?.flex).toBe(width > height ? 1 : undefined);
   fireEvent.press(screen.getByText("Write a Review"));
@@ -46,4 +49,14 @@ it.each([{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844,
 it("does not render a closed prompt", () => {
   const screen = render(<ReviewUnlockDialog isOpen={false} apartmentName="Cozy Cove" onDismiss={() => {}} onReview={() => {}} />);
   expect(screen.queryByText("Write a Review")).toBeNull();
+});
+
+it("combines the message and dynamic apartment name into one centered heading", () => {
+  const screen = render(<ReviewUnlockDialog isOpen apartmentName="Cozy Cove Apartment " onDismiss={() => {}} onReview={() => {}} />);
+  const heading = screen.getByText("You can now review\nCozy Cove Apartment!", { exact: true });
+  expect(heading.props.className).toContain("text-center");
+  expect(heading.props.className).toContain("font-nunitoBold");
+  expect(heading.props.className).toContain("text-2xl");
+  expect(screen.queryByText("You can now review", { exact: true })).toBeNull();
+  expect(screen.queryByText("Cozy Cove Apartment!", { exact: true })).toBeNull();
 });

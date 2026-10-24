@@ -14,6 +14,8 @@ type AppDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  /** Centered headings join the scrollable body, below fixed close clearance. */
+  titleLayout?: "default" | "centered";
   titleIcon?: ReactNode;
   description?: string;
   children: ReactNode;
@@ -28,6 +30,7 @@ export default function AppDialog({
   isOpen,
   onOpenChange,
   title,
+  titleLayout = "default",
   titleIcon,
   description,
   children,
@@ -38,6 +41,33 @@ export default function AppDialog({
   const { height } = useWindowDimensions();
   // Existing non-viewport dialogs can also be used outside a SafeAreaProvider.
   const insets = fitToViewport ? use(SafeAreaInsetsContext) ?? ZERO_INSETS : ZERO_INSETS;
+  const centeredTitle = titleLayout === "centered";
+  const heading = (
+    <View
+      className={centeredTitle ? "mb-5 gap-1" : fitToViewport ? "mb-5 gap-1 pr-12" : titleIcon ? "mb-5 gap-1 pr-10" : "mb-5 gap-1"}
+      style={fitToViewport || centeredTitle ? {
+        flexShrink: 0,
+        minHeight: CLOSE_TARGET_SIZE,
+        justifyContent: "center",
+        paddingTop: centeredTitle && !scrollable ? CLOSE_TARGET_SIZE : 0,
+      } : undefined}
+    >
+      <View className={centeredTitle ? "flex-row items-center justify-center gap-2" : "flex-row items-center gap-2"}>
+        {titleIcon}
+        <Dialog.Title
+          className={centeredTitle ? "text-center text-foreground font-nunitoBold text-2xl" : "text-foreground font-nunitoBold text-lg"}
+          style={fitToViewport || centeredTitle ? { flexShrink: 1 } : undefined}
+        >
+          {title}
+        </Dialog.Title>
+      </View>
+      {description ? (
+        <Dialog.Description className="text-muted">
+          {description}
+        </Dialog.Description>
+      ) : null}
+    </View>
+  );
   return (
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal style={fitToViewport ? {
@@ -61,28 +91,14 @@ export default function AppDialog({
             className="absolute top-4 right-4 z-50"
             style={fitToViewport ? { width: CLOSE_TARGET_SIZE, height: CLOSE_TARGET_SIZE, top: 12, right: 12 } : undefined}
           />
-          <View
-            className={fitToViewport ? "mb-5 gap-1 pr-12" : titleIcon ? "mb-5 gap-1 pr-10" : "mb-5 gap-1"}
-            style={fitToViewport ? { flexShrink: 0, minHeight: CLOSE_TARGET_SIZE, justifyContent: "center" } : undefined}
-          >
-            <View className="flex-row items-center gap-2">
-              {titleIcon}
-              <Dialog.Title className="text-foreground font-nunitoBold text-lg" style={fitToViewport ? { flexShrink: 1 } : undefined}>
-                {title}
-              </Dialog.Title>
-            </View>
-            {description ? (
-              <Dialog.Description className="text-muted">
-                {description}
-              </Dialog.Description>
-            ) : null}
-          </View>
+          {centeredTitle && scrollable ? <View style={{ height: CLOSE_TARGET_SIZE, flexShrink: 0 }} /> : heading}
           {scrollable ? (
             <ScrollView
               showsVerticalScrollIndicator
               style={fitToViewport ? { flexShrink: 1 } : { maxHeight: SCROLLABLE_BODY_MAX_HEIGHT }}
               contentContainerStyle={{ paddingBottom: 4 }}
             >
+              {centeredTitle ? heading : null}
               {children}
             </ScrollView>
           ) : (

@@ -1,6 +1,6 @@
 # Mobile review prompt: behavior and testing
 
-The tenant Rentals screen offers the newest eligible, unreviewed stay from its ten most recent tenancies. The apartment must still be visible and not deleted. Eligibility matches web: three calendar months of stay, or the lease end date reached. The database still checks every review submission.
+The tenant Rentals screen offers a review only for an active tenancy (`status = 'active'`). Its bounded query reads up to ten active records, never historical stays. The apartment must still be visible and not deleted, and the active stay must be eligible, unreviewed and undismissed. If there is no eligible active stay, no popup appears—there is no fallback to an older apartment. Duration eligibility remains shared with web: three calendar months of stay, or the lease end date reached. The database still checks every review submission. Historical stays remain available through the existing manual review screens; the web popup's selection behavior is unchanged.
 
 The HeroUI Native prompt follows the mobile theme. Write a Review opens the existing apartment Ratings & Reviews screen; its review button opens the existing form. Maybe later, the close button, Android Back and backdrop dismissal remember that the prompt was seen. Only one offer is shown per account-keyed gate mount. It never opens on other tabs, pushed apartment/payment routes or while the app is in the background.
 
@@ -16,7 +16,7 @@ await aptResetReviewUnlock("AUTH_USER_ID", "TENANCY_ID");
 
 Use the account's **Auth user ID** (`users.user_id`), not its internal profile ID (`users.id`). Use the exact tenancy ID for the stay you want to test. Then reload the app from the developer menu and open tenant Rentals. Reloading clears the current mount's in-memory dismissal and query cache; signing out or clearing all app storage is unnecessary.
 
-The helper exists only when `__DEV__` is true. It removes exactly one AsyncStorage key, `apt-review-unlock:v1:{authUserId}:{tenancyId}`. It does not alter login, other device preferences, reviews or database records. There is no production reset button. The stay must still be eligible and unreviewed: resetting dismissal does not undo an already-submitted review.
+The helper exists only when `__DEV__` is true. It removes exactly one AsyncStorage key, `apt-review-unlock:v1:{authUserId}:{tenancyId}`. It does not alter login, other device preferences, reviews or database records. There is no production reset button. The stay must still be active, eligible and unreviewed: resetting dismissal does not undo an already-submitted review or make an ended tenancy eligible for the automatic popup. A previously prepared ended test stay will no longer trigger this popup.
 
 ## Verification
 

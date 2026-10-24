@@ -19,7 +19,8 @@ export default function ReviewUnlockDialog({ isOpen, apartmentName, onDismiss, o
     <AppDialog
       isOpen={isOpen}
       onOpenChange={open => { if (!open) onDismiss(); }}
-      title="You can now review"
+      title={`You can now review\n${apartmentName.trim()}!`}
+      titleLayout="centered"
       scrollable
       fitToViewport
       footer={
@@ -38,9 +39,6 @@ export default function ReviewUnlockDialog({ isOpen, apartmentName, onDismiss, o
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="size-20 items-center justify-center rounded-full bg-primary-light">
           <IconHomeFilled size={40} color={colors.primary} />
         </View>
-        <Text className="text-center font-nunitoBold text-2xl text-foreground" selectable>
-          {apartmentName}!
-        </Text>
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row gap-1">
           {[1, 2, 3, 4, 5].map(star => <IconStarFilled key={star} size={24} color={colors.rating} />)}
         </View>
