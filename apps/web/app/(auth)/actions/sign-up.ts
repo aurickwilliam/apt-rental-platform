@@ -4,6 +4,7 @@ import { createClient } from "@repo/supabase/server";
 import { validateForm } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
 import type { Database } from "@repo/supabase";
+import { SUFFIXES } from "@repo/constants";
 
 export interface SignUpFormState {
   error: string | null;
@@ -20,6 +21,7 @@ export async function signUp(
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
       middleName: formData.get("middleName") as string,
+      suffix: (formData.get("suffix") as string | null) ?? "",
       birthDate: formData.get("birthDate") as string,
       gender: formData.get("gender") as string,
       mobileNumber: formData.get("mobileNumber") as string,
@@ -68,6 +70,7 @@ export async function signUp(
       first_name: mapped.firstName,
       last_name: mapped.lastName,
       middle_name: mapped.middleName || null,
+      suffix: SUFFIXES.includes(mapped.suffix) ? mapped.suffix : null,
       gender: mapped.gender,
       mobile_number: mapped.mobileNumber,
       birth_date: mapped.birthDate,

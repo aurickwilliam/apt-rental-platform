@@ -119,6 +119,7 @@ export function useOtpFlow({
       fd.set("firstName", data.firstName);
       fd.set("lastName", data.lastName);
       fd.set("middleName", data.middleName);
+      fd.set("suffix", data.suffix);
       fd.set("birthDate", data.birthDate);
       fd.set("gender", data.gender);
       fd.set("mobileNumber", data.mobileNumber);

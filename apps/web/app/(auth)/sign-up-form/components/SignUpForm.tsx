@@ -31,6 +31,7 @@ import { SignUpFormData } from "../types";
 import {
   PROVINCES,
   GENDERS,
+  SUFFIXES,
   getCitiesByProvince,
   getBarangaysByCity,
   isZipPlausibleForCity,
@@ -41,6 +42,8 @@ import { sendEmailOtp } from "../../actions/send-otp";
 // Selected option: soft blue surface with a primary-blue check.
 const OPTION_CLASS =
   "data-[hovered=true]:bg-light-blue! data-[selected=true]:bg-primary/10! data-[selected=true]:text-primary";
+
+const NO_SUFFIX = "none";
 
 export default function SignUpForm() {
   const { role, email } = useAuth();
@@ -62,6 +65,7 @@ export default function SignUpForm() {
     firstName: "",
     lastName: "",
     middleName: "",
+    suffix: "",
     birthDate: "",
     gender: "",
     mobileNumber: "",
@@ -205,6 +209,35 @@ export default function SignUpForm() {
             <Label>Middle Name</Label>
             <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
           </TextField>
+
+          <Select
+            name="suffix"
+            placeholder="No suffix"
+            value={formData.suffix || null}
+            onChange={(key) => handleChange("suffix")(key && key !== NO_SUFFIX ? String(key) : "")}
+            isDisabled={loading}
+          >
+            <Label>Suffix</Label>
+            <Select.Trigger className="bg-card! text-foreground!">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {[NO_SUFFIX, ...SUFFIXES].map((option) => (
+                  <ListBox.Item
+                    key={option}
+                    id={option}
+                    textValue={option === NO_SUFFIX ? "No suffix" : option}
+                    className={OPTION_CLASS}
+                  >
+                    {option === NO_SUFFIX ? "No suffix" : option}
+                    <ListBox.ItemIndicator className="text-primary" />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
 
           <Select
             isRequired

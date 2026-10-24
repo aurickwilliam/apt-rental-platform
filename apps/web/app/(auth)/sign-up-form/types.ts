@@ -3,6 +3,7 @@ export interface SignUpFormData {
   firstName: string;
   lastName: string;
   middleName: string;
+  suffix: string;
   birthDate: string;
   gender: string;
   mobileNumber: string;
