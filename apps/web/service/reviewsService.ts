@@ -1,6 +1,9 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import { isReviewStayEligible } from "@repo/utils";
+
+export { isReviewStayEligible } from "@repo/utils";
 
 export const REVIEW_IMAGES_BUCKET = "review-images";
 export const MAX_REVIEW_IMAGES = 5;
@@ -164,21 +167,6 @@ export function fetchApartmentReviews(apartmentId: string): Promise<ApartmentRev
 
   apartmentReviewsInflight.set(apartmentId, run);
   return run;
-}
-
-export function isReviewStayEligible(
-  leaseStart: string | null,
-  leaseEnd: string | null,
-  now: Date = new Date(),
-): boolean {
-  if (!leaseStart) return false;
-  const threeMonthsAgo = new Date(now);
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  const cutoff = threeMonthsAgo.toISOString().slice(0, 10);
-  const today = now.toISOString().slice(0, 10);
-  const stayedLongEnough = leaseStart.slice(0, 10) <= cutoff;
-  const ended = leaseEnd !== null && leaseEnd.slice(0, 10) <= today;
-  return stayedLongEnough || ended;
 }
 
 export async function fetchReviewEligibility(

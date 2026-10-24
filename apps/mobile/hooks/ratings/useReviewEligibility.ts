@@ -8,6 +8,7 @@ export const getReviewEligibilityQueryKey = (apartmentId: string, tenantId: stri
 
 interface UseReviewEligibilityResult {
   canReview: boolean
+  stayLocked: boolean
   checkingEligibility: boolean
   reviewableTenancyId: string | null
   refetch: () => Promise<unknown>
@@ -24,9 +25,10 @@ export function useReviewEligibility(apartmentId?: string): UseReviewEligibility
   })
 
   return {
-    canReview: eligibilityQuery.data !== null && eligibilityQuery.data !== undefined,
+    canReview: !eligibilityQuery.isError && eligibilityQuery.data?.reviewableTenancyId != null,
+    stayLocked: !eligibilityQuery.isError && eligibilityQuery.data?.stayLocked === true,
     checkingEligibility: currentUserQuery.isLoading || eligibilityQuery.isLoading,
-    reviewableTenancyId: eligibilityQuery.data ?? null,
+    reviewableTenancyId: eligibilityQuery.data?.reviewableTenancyId ?? null,
     refetch: eligibilityQuery.refetch,
   }
 }

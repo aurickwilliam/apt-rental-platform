@@ -39,8 +39,8 @@ export default function RatingBarCount({
           minValue={0}
           maxValue={100}
         >
-          <Slider.Track className='h-3 rounded-full bg-gray-100'>
-            <Slider.Fill className='rounded-full bg-rating' />
+          <Slider.Track className='h-3 rounded-full' style={{ backgroundColor: colors.surfaceTertiary }}>
+            <Slider.Fill className='rounded-full' style={{ backgroundColor: colors.rating }} />
           </Slider.Track>
         </Slider>
       </View>

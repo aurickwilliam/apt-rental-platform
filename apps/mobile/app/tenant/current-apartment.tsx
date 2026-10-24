@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
@@ -8,7 +9,7 @@ import { formatPesoDisplay } from '@repo/utils'
 
 import { Button, Separator, Spinner } from 'heroui-native'
 
-import { IconHome, IconBath, IconBed, IconMaximize, IconCalendar, IconArmchair, IconBuilding, IconUsers, IconFileText, IconAlertCircle } from '@tabler/icons-react-native';
+import { IconHome, IconBath, IconBed, IconMaximize, IconCalendar, IconArmchair, IconBuilding, IconUsers, IconFileText, IconAlertCircle, IconStar } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
 import { useTenancy } from 'hooks/tenancy'
@@ -25,6 +26,7 @@ function formatDateToMonthYear(dateStr: string) {
 }
 
 export default function CurrentApartmentDetails() {
+  const router = useRouter();
   const { colors } = useColors();
   const { tenancy, loading, error } = useTenancy()
   const { openLeaseAgreement, isLoading: leaseLoading } = useLeaseAgreement();
@@ -231,15 +233,35 @@ export default function CurrentApartmentDetails() {
 
       <Separator className="my-5" />
 
-      {/* View Lease Agreement */}
-      <View className="mt-5">
+      {/* Apartment actions */}
+      <View className="mt-5 gap-3">
         <Button
           variant="tertiary"
+          className="w-full"
           onPress={handleViewLeaseAgreement}
           isDisabled={!tenancy?.apartment?.lease_agreement_url || leaseLoading}
         >
-          <IconFileText size={20} color={colors.textPrimary} />
-          <Button.Label>View Lease Agreement</Button.Label>
+          <View className="max-w-full self-center flex-row items-center justify-center gap-2">
+            <View className="size-5 shrink-0 items-center justify-center" accessible={false}>
+              <IconFileText size={20} color={colors.textPrimary} accessible={false} />
+            </View>
+            <Button.Label className="shrink-0 grow-0 text-center">View Lease</Button.Label>
+          </View>
+        </Button>
+        <Button
+          variant="tertiary"
+          className="w-full"
+          onPress={() => router.push({
+            pathname: '/apartment/[apartmentId]/ratings',
+            params: { apartmentId: apartment.id },
+          })}
+        >
+          <View className="max-w-full self-center flex-row items-center justify-center gap-2">
+            <View className="size-5 shrink-0 items-center justify-center" accessible={false}>
+              <IconStar size={20} color={colors.textPrimary} accessible={false} />
+            </View>
+            <Button.Label className="shrink-0 grow-0 text-center">Ratings &amp; Reviews</Button.Label>
+          </View>
         </Button>
       </View>
     </ScreenWrapper>

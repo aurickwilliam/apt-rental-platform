@@ -8,6 +8,7 @@ import { usePortalStore } from '@/stores/usePortalStore';
 import { hasMobilePortalRole, portalHome } from '@/service/auth/portalPreference';
 import { useColors } from 'hooks/useTheme';
 import { getSplashBackground } from '@/utils/splashBackground';
+import ReviewUnlockGate from '@/components/ratings/ReviewUnlockGate';
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -58,9 +59,14 @@ export default function TabsLayout() {
   }
 
   return (
+    <>
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tenant)" />
       <Stack.Screen name="(landlord)" />
     </Stack>
+    {portal === 'tenant' && profile?.roles.includes('tenant') && segments[1] === '(tenant)' ? (
+      <ReviewUnlockGate key={`${profile.user_id}:${profile.id}`} authUserId={profile.user_id} tenantId={profile.id} />
+    ) : null}
+    </>
   );
 }

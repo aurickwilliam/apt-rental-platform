@@ -34,6 +34,9 @@ import {
 import { useVerificationReviewRealtime } from "@/hooks/verification";
 import { useSuspensionGuard } from "@/hooks/auth/useSuspensionGuard";
 import { useColors, useThemeSync } from 'hooks/useTheme';
+import { installReviewUnlockTesting } from '@/service/ratings/reviewUnlockTesting';
+
+installReviewUnlockTesting();
 
 function NotificationManager() {
   usePushRegistration();

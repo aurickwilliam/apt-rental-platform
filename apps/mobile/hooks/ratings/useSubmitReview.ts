@@ -2,9 +2,13 @@ import { useCallback, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File } from 'expo-file-system';
 import * as Crypto from 'expo-crypto';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@repo/supabase';
 import { useProfile } from '../auth/useProfile';
+import { usePortalStore } from '@/stores/usePortalStore';
+import { getReviewUnlockQueryKey } from './useReviewUnlock';
+import { getReviewEligibilityQueryKey } from './useReviewEligibility';
 
 type SubmitReviewParams = {
   tenancyId: string;
@@ -23,6 +27,7 @@ const REVIEW_IMAGES_BUCKET = 'review-images';
 
 export function useSubmitReview() {
   const { profile } = useProfile();
+  const client = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +115,7 @@ export function useSubmitReview() {
             stayed_date: stayedDate,
             image_paths: uploadedPaths,
           } as never)
-          .select('id')
+          .select('id, apartment_id')
           .single();
 
         if (insertError || !review) {
@@ -125,6 +130,13 @@ export function useSubmitReview() {
           throw new Error(insertError?.message ?? 'Failed to submit review.');
         }
 
+        if (usePortalStore.getState().authUserId === profile.user_id) {
+          await Promise.all([
+            client.invalidateQueries({ queryKey: ['apartment-reviews', review.apartment_id], exact: true }),
+            client.invalidateQueries({ queryKey: getReviewEligibilityQueryKey(review.apartment_id, profile.id), exact: true }),
+            client.invalidateQueries({ queryKey: getReviewUnlockQueryKey(profile.user_id, profile.id), exact: true }),
+          ]);
+        }
         return { success: true };
       } catch (err) {
         const message =
@@ -135,7 +147,7 @@ export function useSubmitReview() {
         setIsSubmitting(false);
       }
     },
-    [profile, uploadReviewImages]
+    [profile, uploadReviewImages, client]
   );
 
   return { submitReview, isSubmitting, error };
