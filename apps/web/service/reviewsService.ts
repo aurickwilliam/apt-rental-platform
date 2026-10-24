@@ -2,6 +2,7 @@
 
 import { createClient } from "@repo/supabase/browser";
 import { isReviewStayEligible } from "@repo/utils";
+import { apartmentReviewSelect } from "@/lib/apartment-review-query";
 
 export { isReviewStayEligible } from "@repo/utils";
 
@@ -81,23 +82,6 @@ export type RateApartmentHeader = {
   coverImage: string | null;
 };
 
-const REVIEW_SELECT = `
-  id,
-  rating,
-  comment,
-  created_at,
-  image_paths,
-  users!reviews_tenant_id_fkey (
-    first_name,
-    last_name,
-    avatar_url
-  ),
-  tenancy:tenancy_id (
-    lease_start,
-    lease_end
-  )
-`;
-
 function randomSuffix(): string {
   return Math.random().toString(36).slice(2);
 }
@@ -144,28 +128,34 @@ export function mapReviewRow(row: ApartmentReviewRow): ApartmentReview {
 // one request instead of scanning the reviews table twice.
 const apartmentReviewsInflight = new Map<string, Promise<ApartmentReviewRow[]>>();
 
-export function fetchApartmentReviews(apartmentId: string): Promise<ApartmentReviewRow[]> {
-  const shared = apartmentReviewsInflight.get(apartmentId);
+export async function fetchApartmentReviews(apartmentId: string): Promise<ApartmentReviewRow[]> {
+  const supabase = createClient();
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  const key = JSON.stringify([session?.user.id ?? null, apartmentId]);
+  const shared = apartmentReviewsInflight.get(key);
   if (shared) return shared;
 
   const run = (async () => {
     try {
-      const supabase = createClient();
       const { data, error } = await supabase
         .from("reviews")
-        .select(REVIEW_SELECT)
+        .select(apartmentReviewSelect(session !== null))
         .eq("apartment_id", apartmentId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      return (data ?? []) as unknown as ApartmentReviewRow[];
+      return ((data ?? []) as unknown as ApartmentReviewRow[]).map((row) => ({
+        ...row,
+        tenancy: row.tenancy ?? null,
+      }));
     } finally {
-      apartmentReviewsInflight.delete(apartmentId);
+      apartmentReviewsInflight.delete(key);
     }
   })();
 
-  apartmentReviewsInflight.set(apartmentId, run);
+  apartmentReviewsInflight.set(key, run);
   return run;
 }
 

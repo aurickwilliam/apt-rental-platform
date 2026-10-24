@@ -6,6 +6,7 @@ import { Button, Card } from "@heroui/react";
 import { IconMessage } from "@tabler/icons-react";
 
 import ReviewCard from "./ReviewCard";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface ApartmentReviewsPreviewProps {
@@ -42,10 +43,17 @@ function EmptyReviewsState() {
 
 export default function ApartmentReviewsPreview({ apartmentId, basePath = "/browse" }: ApartmentReviewsPreviewProps) {
   const router = useRouter();
-  const { reviews, loading, error } = useApartmentReviews(apartmentId, false);
+  const { reviews, loading, error, refresh } = useApartmentReviews(apartmentId, false);
 
   if (loading) return null;
-  if (error || reviews.length === 0) {
+  if (error) {
+    return (
+      <ErrorBanner message={error}>
+        <Button size="sm" variant="outline" onPress={refresh}>Retry</Button>
+      </ErrorBanner>
+    );
+  }
+  if (reviews.length === 0) {
     return <EmptyReviewsState />;
   }
 
