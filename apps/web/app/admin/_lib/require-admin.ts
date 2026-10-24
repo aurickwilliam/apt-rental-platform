@@ -1,4 +1,4 @@
-import { createClient } from "@repo/supabase/server";
+import { getServerIdentity, requirePortalViewer } from "@/lib/server-identity";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -12,8 +12,7 @@ export interface AdminProfile {
 }
 
 export const requireAdmin = cache(async (): Promise<AdminProfile> => {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, profile: profileData, error: authError } = await getServerIdentity();
 
   if (!user) {
     if (authError && authError.name !== "AuthSessionMissingError") {
@@ -22,21 +21,20 @@ export const requireAdmin = cache(async (): Promise<AdminProfile> => {
     redirect("/sign-in");
   }
 
-  const { data: profileData, error } = await supabase
-    .from("users")
-    .select("id, first_name, last_name, avatar_url, email, roles")
-    .eq("user_id", user.id)
-    .single();
-
-  if (error) {
-    console.error("Unable to verify admin profile", error);
+  if (authError) {
+    console.error("Unable to verify admin profile", authError);
     throw new Error("Unable to verify administrator access.");
   }
   const profile = profileData as unknown as AdminProfile | null;
   if (!profile || !profile.roles.includes("admin")) notFound();
+  await requirePortalViewer("admin");
 
   return {
-    ...profile,
+    id: profile.id,
+    first_name: profile.first_name,
+    last_name: profile.last_name,
+    email: profile.email,
+    roles: profile.roles,
     avatar_url: profile.avatar_url ?? user.user_metadata.avatar_url ?? null,
   };
 });

@@ -52,16 +52,17 @@ test("maintenance context reads only the caller-scoped active tenancy, never bil
   let load;
   const hook = compile("../hooks/use-maintenance-tenancy.ts", {
     react: { useCallback: (fn) => fn },
-    "@/hooks/use-user": { useUser: () => ({ profile: { id: "tenant-a", roles: ["tenant"] }, loading: false }) },
+    "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
+    "@/service/favoritesService": { getTenantContext: async () => ({ tenantId: "tenant-a" }) },
     "@/hooks/use-async-resource": { useAsyncResource: (loader) => {
       load = loader;
-      return { data: null, loading: true, error: null };
+      return { data: { tenancy: active, tenantId: "tenant-a" }, loading: false, error: null };
     } },
     "@/service/tenancyService": service,
   });
   const state = hook.useMaintenanceTenancy();
   assert.equal(state.tenantId, "tenant-a");
-  assert.deepEqual(plain(await load()), active);
+  assert.deepEqual(plain(await load()), { tenancy: active, tenantId: "tenant-a" });
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].filters, [["tenant_id", "tenant-a"], ["status", "active"]]);
   assert.match(calls[0].fields, /landlord:users!tenancies_landlord_id_fkey/);
@@ -73,17 +74,18 @@ test("maintenance hides old context while identity/context changes and never que
     let load;
     const hook = compile("../hooks/use-maintenance-tenancy.ts", {
       react: { useCallback: (fn) => fn },
-      "@/hooks/use-user": { useUser: () => ({ profile, loading: false }) },
+      "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: profile ? "auth-a" : null, generation: 0 }) },
+      "@/service/favoritesService": { getTenantContext: async () => ({ tenantId: profile?.roles.includes("tenant") ? profile.id : null }) },
       "@/hooks/use-async-resource": { useAsyncResource: (loader) => {
         load = loader;
-        return { data: active, loading: true, error: null };
+        return { data: { tenancy: active, tenantId: "old-tenant" }, loading: true, error: null };
       } },
       "@/service/tenancyService": { fetchActiveTenancy: () => assert.fail("Must not query") },
     });
     const result = hook.useMaintenanceTenancy();
     assert.equal(result.tenancy, null);
     assert.equal(result.tenantId, null);
-    assert.equal(await load(), null);
+    assert.deepEqual(plain(await load()), { tenancy: null, tenantId: null });
   }
 });
 
@@ -102,7 +104,7 @@ test("Maintenance page uses the independent context and shares its tenant identi
   ]) {
     const historyReads = [];
     const jsx = (type, props) => ({ type, props });
-    const page = compile("../app/tenant/maintenance/page.tsx", {
+    const page = compile("../app/tenant/maintenance/MaintenanceClient.tsx", {
       "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
       "@tabler/icons-react": { IconTool: "Tool" },
       "./components/PropertyContextCard": { default: "PropertyContextCard" },
@@ -112,10 +114,13 @@ test("Maintenance page uses the independent context and shares its tenant identi
       "@/app/components/display/ErrorBanner": { default: "ErrorBanner" },
       "@/hooks/use-maintenance-tenancy": { useMaintenanceTenancy: () => state },
       "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: (...args) => { historyReads.push(args); return { requests: [] }; } },
+      "@/app/components/display/PresentationBoundary": { default: "PresentationBoundary" },
     });
     const nodes = (node) => !node || typeof node !== "object" ? [] : [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
-    const tree = nodes(page.default());
-    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false]]);
+    const boundary = page.default({ initial: {} });
+    const content = boundary.props.children(undefined);
+    const tree = nodes(content.type(content.props));
+    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false, undefined]]);
     assert.equal(tree.some((node) => node.type === "MaintenancePageSkeleton"), state.loading);
     assert.equal(tree.some((node) => node.type === "ErrorBanner"), !!state.error);
     assert.equal(tree.some((node) => node.type === "PropertyContextCard"), !!state.tenancy);

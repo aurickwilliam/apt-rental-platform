@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import type { PresentationSeed } from "@/service/presentation-seed";
 
 import { getTenantContext } from "@/service/favoritesService";
 import {
@@ -19,7 +20,7 @@ export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]
   return status === "Pending" || status === "In Progress";
 }
 
-export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true) {
+export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true, initial?: PresentationSeed<MaintenanceRequest[]>) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
@@ -38,7 +39,10 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     error,
     refresh,
     setData: setRequests,
-  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.");
+  } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", {
+    initial: initial?.profileId === tenantId && initial?.resourceId === apartmentId && !includePhotos ? initial : undefined,
+    clearOnRevalidateError: true,
+  });
 
   const cancelRequest = useCallback(
     async (requestId: string) => {
@@ -79,9 +83,9 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     latestRequest && canCancelMaintenanceRequest(latestRequest.status) ? latestRequest : null;
 
   return {
-    requests,
-    latestRequest,
-    activeRequest,
+    requests: loading || error ? NO_REQUESTS : requests,
+    latestRequest: loading || error ? null : latestRequest,
+    activeRequest: loading || error ? null : activeRequest,
     loading,
     error,
     refresh,

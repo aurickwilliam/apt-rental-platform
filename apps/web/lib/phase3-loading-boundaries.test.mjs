@@ -7,7 +7,7 @@ const source = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 test("Tenant Browse authorizes first, then streams discovery and filtered results behind separate boundaries", () => {
   const page = source("app/tenant/browse/page.tsx");
 
-  const guard = page.indexOf('redirect("/sign-in")');
+  const guard = page.indexOf('await requirePortalViewer("tenant")');
   const shell = page.indexOf("<BrowseShell");
   assert.ok(guard > -1 && shell > guard, "the auth/role guard must run before the browser shell renders");
 

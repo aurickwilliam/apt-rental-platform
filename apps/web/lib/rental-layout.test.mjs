@@ -6,7 +6,8 @@ import ts from "typescript";
 
 const componentSource = name => readFileSync(new URL(`../app/tenant/my-rental/${name}`, import.meta.url), "utf8");
 const nodes = element => !element || typeof element !== "object" ? [] :
-  [element, ...[element.props?.children].flat(Infinity).flatMap(nodes)];
+  [element, ...[typeof element.type === "function" && element.type.name === "RentalApplications"
+    ? element.type(element.props) : element.props?.children].flat(Infinity).flatMap(nodes)];
 
 function renderRental({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
   const jsx = (type, props) => ({ type, props });
@@ -46,7 +47,14 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [], 
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
     "../maintenance/data/maintenance-data": { CATEGORIES: [] },
+    "./ApplicationsList": { default: "./components/ApplicationsList" },
+    "./TenancyEmptyState": { default: "./components/TenancyEmptyState" },
   };
+  const applicationContext = { exports: {}, require: name => modules[name] ?? { default: name } };
+  vm.runInNewContext(ts.transpileModule(componentSource("components/RentalApplications.tsx"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText, applicationContext);
+  modules["./components/RentalApplications"] = applicationContext.exports;
   const compiled = ts.transpileModule(componentSource("MyRentalClient.tsx"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;

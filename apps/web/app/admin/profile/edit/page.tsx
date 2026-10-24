@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Card } from "@heroui/react";
 import { IconChevronLeft, IconPencil } from "@tabler/icons-react";
-import { createClient } from "@repo/supabase/server";
+import { getServerIdentity } from "@/lib/server-identity";
 import ProfileForm, {
   type ProfileInitial,
 } from "@/app/components/profile/ProfileForm";
@@ -11,19 +10,8 @@ import { requireAdmin } from "../../_lib/require-admin";
 export const dynamic = "force-dynamic";
 
 export default async function EditAdminProfilePage() {
-  const admin = await requireAdmin();
-  const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-  if (!authUser) redirect("/sign-in");
-  const { data, error } = await supabase
-    .from("users")
-    .select(
-      "email, first_name, middle_name, last_name, suffix, gender, mobile_number, birth_date, street_address, barangay, city, province, postal_code, avatar_url, background_url",
-    )
-    .eq("id", admin.id)
-    .single();
+  await requireAdmin();
+  const { user: authUser, profile: data, error } = await getServerIdentity();
 
   if (error || !data) {
     console.error("Unable to load admin profile for editing", error);
@@ -34,9 +22,15 @@ export default async function EditAdminProfilePage() {
     avatar_url: string | null;
     background_url: string | null;
   };
-  const profile: ProfileInitial = media;
+  const profile: ProfileInitial = {
+    email: media.email, first_name: media.first_name, middle_name: media.middle_name,
+    last_name: media.last_name, suffix: media.suffix, gender: media.gender,
+    mobile_number: media.mobile_number, birth_date: media.birth_date,
+    street_address: media.street_address, barangay: media.barangay, city: media.city,
+    province: media.province, postal_code: media.postal_code,
+  };
   const photoEditing = {
-    authUserId: authUser.id,
+    authUserId: authUser!.id,
     avatarUrl: media.avatar_url,
     backgroundUrl: media.background_url,
   };

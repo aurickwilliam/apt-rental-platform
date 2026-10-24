@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@repo/supabase/browser";
 
 import {
@@ -61,8 +59,7 @@ export interface TenantApplicationReadOptions {
   includeDocuments?: boolean;
 }
 
-export async function fetchTenantApplications(tenantId: string, options: TenantApplicationReadOptions = {}): Promise<TenantApplication[]> {
-  const supabase = createClient();
+export async function fetchTenantApplications(tenantId: string, options: TenantApplicationReadOptions = {}, supabase = createClient()): Promise<TenantApplication[]> {
 
   let query = supabase
     .from("rental_application")

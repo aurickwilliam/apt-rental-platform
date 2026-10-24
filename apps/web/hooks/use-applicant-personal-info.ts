@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { createClient } from "@repo/supabase/browser";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import type { PresentationSeed } from "@/service/presentation-seed";
 import {
   applicantPersonalInfo,
   type ApplicantPersonalInfo,
@@ -23,7 +24,7 @@ const EMPTY: ApplicantPersonalInfo = {
  * The applicant's identity details for the application detail page, taken
  * from the tenant's own profile (read-only, as in the apply form).
  */
-export function useApplicantPersonalInfo(tenantId: string | null) {
+export function useApplicantPersonalInfo(tenantId: string | null, initial?: PresentationSeed<ApplicantPersonalInfo>) {
   const load = useCallback(async (): Promise<ApplicantPersonalInfo> => {
     if (!tenantId) return EMPTY;
     const supabase = createClient();
@@ -48,6 +49,7 @@ export function useApplicantPersonalInfo(tenantId: string | null) {
     load,
     EMPTY,
     "Failed to load applicant profile.",
+    { initial: initial?.profileId === tenantId ? initial : undefined, clearOnRevalidateError: true },
   );
 
   return { personalInfo: data, loading, error };

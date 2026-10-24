@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { IconAlertTriangle, IconCash, IconHome, IconTool } from "@tabler/icons-react";
 
 import { buildRequestItems, formatPesoDisplay } from "@repo/utils";
@@ -27,6 +28,7 @@ export default async function Dashboard() {
   try {
     data = await getDashboardData();
   } catch (err: unknown) {
+    unstable_rethrow(err);
     const message = err instanceof Error ? err.message : "Something went wrong.";
     if (message === "Not authenticated.") return <div>Not authenticated.</div>;
     return (

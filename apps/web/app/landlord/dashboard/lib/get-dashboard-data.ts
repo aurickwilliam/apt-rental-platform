@@ -1,4 +1,4 @@
-import { createClient } from "@repo/supabase/server";
+import { requirePortalViewer } from "@/lib/server-identity";
 import {
   consolidateMonthlyRevenue,
   normalizeDashboardData,
@@ -11,22 +11,7 @@ import {
  * final authority (security invoker).
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Not authenticated.");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profileError || !profile?.id) {
-    throw new Error("Landlord profile not found.");
-  }
+  const { supabase, profile } = await requirePortalViewer("landlord");
 
   const { data, error } = await supabase.rpc("get_landlord_dashboard", {
     p_landlord_id: profile.id,

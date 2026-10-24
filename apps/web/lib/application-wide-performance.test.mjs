@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as documents from "./application-documents.ts";
 import { compile, deferred, hookRuntime, settle } from "./test-support/hook-runtime.mjs";
+import * as presentationSeed from "../service/presentation-seed.ts";
 
 const plain = value => JSON.parse(JSON.stringify(value));
 const source = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -166,6 +167,7 @@ test("lightweight property paths preserve authentication, role, owner and error 
     const h = compile("app/landlord/properties/[apartmentId]/lib/get-unit-detail.tsx", {
       "react/jsx-runtime": jsxRuntime,
       "@repo/supabase/server": { createClient: async () => db.client },
+      "@/lib/server-identity": { getServerIdentity: async () => ({ supabase: db.client, user: scenario === "signed-out" ? null : { id: "auth-a" }, profile: { id: "owner", roles: [scenario === "tenant" ? "tenant" : "landlord"] } }) },
       "@/service/landlordUnitDetailService": { fetchLandlordUnitApartment: load },
     });
     const result = await h.getLandlordApartment("apt");
@@ -229,6 +231,7 @@ for (const kind of ["applications", "maintenance"]) {
       react: runtime.react,
       "@/hooks/use-async-resource": resource,
       "@/hooks/use-auth-identity": { useAuthIdentity: () => identity },
+      "@/service/presentation-seed": presentationSeed,
       "@/service/landlordApplicationsService": { getLandlordContext, fetchLandlordApplications: load },
       "@/service/landlordMaintenanceService": { fetchLandlordMaintenanceRequests: load },
       "@repo/utils": {},
