@@ -13,8 +13,8 @@ jest.mock("@/app/(tabs)/components/QuickActionButton", () => {
   const { Pressable, Text } = jest.requireActual("react-native");
   return {
     __esModule: true,
-    default: ({ label, onPress }: { label: string; onPress?: () => void }) => (
-      <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}><Text>{label}</Text></Pressable>
+    default: ({ label, onPress, columns }: { label: string; onPress?: () => void; columns?: number }) => (
+      <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityHint={`columns ${columns}`} onPress={onPress}><Text>{label}</Text></Pressable>
     ),
   };
 });
@@ -41,6 +41,12 @@ describe("Units tab property actions", () => {
     render(<Units />);
     const labels = screen.getAllByRole("button").map((node) => node.props.accessibilityLabel);
     expect(labels).toEqual(["Add Property", "Maintenance Request", "Visit Request", "Tenant Applications", "Payments"]);
+  });
+
+  it("fits all five actions in one compact row, as the five-column layout", () => {
+    render(<Units />);
+    const hints = screen.getAllByRole("button").map((node) => node.props.accessibilityHint);
+    expect(hints).toEqual(Array(5).fill("columns 5"));
   });
 
   it("opens the all-units Payments screen from the Payments action", () => {
