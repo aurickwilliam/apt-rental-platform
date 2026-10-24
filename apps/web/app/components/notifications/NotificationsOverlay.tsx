@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import type { ActivePortal } from "@/lib/notification-audience";
 
-import NotificationDrawer from "./NotificationDrawer";
+const NotificationDrawer = dynamic(() => import("./NotificationDrawer"), {
+  loading: () => <span role="status" className="sr-only">Opening notifications…</span>,
+});
 
 export const NOTIFICATIONS_QUERY_VALUE = "open";
 

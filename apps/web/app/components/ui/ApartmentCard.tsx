@@ -7,6 +7,7 @@ import { Card, Button, Spinner } from "@heroui/react";
 import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 interface ApartmentCardProps {
   name: string;
@@ -63,7 +64,7 @@ export default function ApartmentCard({
             alt="Apartment Thumbnail"
             width={600}
             height={600}
-            unoptimized
+            unoptimized={!canOptimizePublicApartmentImage(thumbnailUrl)}
             priority={priority}
             sizes={sizes}
             className="object-cover rounded-xl w-full aspect-square h-auto"

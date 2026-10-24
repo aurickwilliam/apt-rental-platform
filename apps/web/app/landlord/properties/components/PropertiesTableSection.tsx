@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import PropertiesTable from "./PropertiesTable";
-import PropertyDetailsSheet from "./PropertyDetailsSheet";
+import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 import type { Property } from "./propertyTypes";
 import { createBrowserClient } from "@repo/supabase";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
+
+const PropertyDetailsSheet = dynamic(() => import("./PropertyDetailsSheet"), {
+  loading: () => <RouteLoadingStatus>Opening property details…</RouteLoadingStatus>,
+});
 
 type Props = {
   properties: Property[];
