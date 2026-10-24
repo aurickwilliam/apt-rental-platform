@@ -40,6 +40,7 @@ import ChatBubble, {
 import HoldMenu, { type HoldMenuData } from '@/app/chat/components/HoldMenu';
 import HoldStack from '@/app/chat/components/HoldStack';
 import ReactionStrip from '@/app/chat/components/ReactionStrip';
+import { canCopyImageMessage, copyChatImageToClipboard, pastedImageMimeType } from '@/service/chat/clipboardImage';
 import ChatBox, { type StagedAsset } from '@/app/chat/components/ChatBox';
 import TypingIndicator from 'components/display/TypingIndicator';
 import GiphyPicker, { type GiphyMedia } from 'components/display/GiphyPicker';
@@ -120,6 +121,9 @@ function useRouteParams() {
     apartmentTitle: normalize(raw.apartmentTitle),
   };
 }
+
+/** What staging needs from a picked asset: library, camera and clipboard images all fit. */
+type PickedAsset = Pick<ImagePicker.ImagePickerAsset, 'uri' | 'mimeType'>;
 
 function generateStagedId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -366,7 +370,10 @@ export default function ChatScreen() {
         myReaction: activeMsg.reactions.find((r) => r.isMine)?.emoji,
         dateLabel: formatHoldDate(activeMsg.createdAt),
         canReact: !activeMsg.isPending && !activeMsg.id.startsWith('temp-'),
-        canCopy: activeMsg.messageType === 'text' && !!activeMsg.message,
+        canCopy:
+          canCopyImageMessage(activeMsg) ||
+          (activeMsg.messageType === 'text' && !!activeMsg.message),
+        copyTarget: canCopyImageMessage(activeMsg) ? ('image' as const) : ('text' as const),
         canUnsend: activeMsg.isSent && !activeMsg.isPending,
       }
     : null;
@@ -390,15 +397,22 @@ export default function ChatScreen() {
   // A static import: loading expo-clipboard on demand failed in development
   // ("Requiring unknown module") and fell back to an alert without copying.
   const handleHoldCopy = useCallback(async () => {
-    if (!activeMsg?.message) return;
+    if (!activeMsg) return;
+    const imageUrl = canCopyImageMessage(activeMsg) ? activeMsg.attachmentUrl : null;
     const text = activeMsg.message;
+    if (!imageUrl && !text) return;
     setActiveHold(null);
     try {
-      await Clipboard.setStringAsync(text);
-      toast.show({ variant: 'success', label: 'Message copied' });
+      if (imageUrl) {
+        await copyChatImageToClipboard(imageUrl);
+        toast.show({ variant: 'success', label: 'Image copied' });
+      } else if (text) {
+        await Clipboard.setStringAsync(text);
+        toast.show({ variant: 'success', label: 'Message copied' });
+      }
     } catch (error) {
       console.error('[chat] Failed to copy message:', error);
-      Alert.alert('Copy failed', 'Unable to copy message.');
+      Alert.alert('Copy failed', imageUrl ? 'Unable to copy image.' : 'Unable to copy message.');
     }
   }, [activeMsg, toast]);
 
@@ -419,7 +433,7 @@ export default function ChatScreen() {
 
   /** Builds a local preview thumbnail for a video pick so the staging strip isn't a blank tile. */
   const buildStagedAsset = useCallback(
-    async (asset: ImagePicker.ImagePickerAsset): Promise<StagedAsset> => {
+    async (asset: PickedAsset): Promise<StagedAsset> => {
       const messageType = resolveMessageType(asset.mimeType);
       let thumbnailUri: string | undefined;
 
@@ -446,7 +460,7 @@ export default function ChatScreen() {
   );
 
   const addStagedAssets = useCallback(
-    async (assets: ImagePicker.ImagePickerAsset[]) => {
+    async (assets: PickedAsset[]) => {
       const room = MAX_ATTACHMENTS_PER_SEND - pendingAssets.length;
       if (room <= 0) return;
 
@@ -476,6 +490,18 @@ export default function ChatScreen() {
 
     await addStagedAssets(result.assets);
   }, [addStagedAssets]);
+
+  const handlePasteImages = useCallback(
+    async (uris: string[]) => {
+      try {
+        await addStagedAssets(uris.map((uri) => ({ uri, mimeType: pastedImageMimeType(uri) })));
+      } catch (error) {
+        console.error('[chat] Failed to paste image:', error);
+        Alert.alert('Paste failed', 'Unable to paste the image.');
+      }
+    },
+    [addStagedAssets]
+  );
 
   const handlePickGif = useCallback(() => {
     setShowGifPicker(true);
@@ -730,6 +756,7 @@ export default function ChatScreen() {
             onChatValueChange={handleChatMessageChange}
             onSendPress={handleSendPress}
             onPickImage={handlePickImage}
+            onPasteImages={handlePasteImages}
             onPickGif={handlePickGif}
             onOpenCamera={handleOpenCamera}
             isDisabled={sending}

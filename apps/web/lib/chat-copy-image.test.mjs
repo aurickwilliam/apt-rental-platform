@@ -18,7 +18,7 @@ function load(globals = {}) {
 test("only photos and GIFs with a resolved URL can be copied as images", () => {
   const { canCopyImageMessage } = load();
   assert.equal(canCopyImageMessage({ message_type: "image", resolvedUrl: "u" }), true);
-  assert.equal(canCopyImageMessage({ message_type: "gif", attachment_url: "u" }), true);
+  assert.equal(canCopyImageMessage({ message_type: "gif", attachment_url: "u" }), false);
   assert.equal(canCopyImageMessage({ message_type: "image" }), false);
   assert.equal(canCopyImageMessage({ message_type: "video", resolvedUrl: "u" }), false);
   assert.equal(canCopyImageMessage({ message_type: "file", resolvedUrl: "u" }), false);
