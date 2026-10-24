@@ -54,6 +54,11 @@ const toFlatPayment = (payment: {
   }
 }
 
+const formatPaidDate = (iso: string): string => {
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? '—' : `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+}
+
 export default function PaymentHistoryScreen() {
   const { colors } = useColors()
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
@@ -195,6 +200,7 @@ export default function PaymentHistoryScreen() {
             status={item.status}
             method={item.method}
             referenceId={item.reference}
+            paidDate={formatPaidDate(item.date)}
             onPress={() =>
               router.push({
                 pathname: '/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]',

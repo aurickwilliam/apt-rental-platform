@@ -3,13 +3,12 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import PaymentHistoryCard from "./PaymentHistoryCard";
 
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: {}, isDark: false }) }));
-jest.mock("@/hooks/useStatusChipStyles", () => ({ statusChipSurface: () => ({}) }));
-jest.mock("hooks/payments", () => ({
-  usePaymentStatusStyles: () => ({ Paid: { textColor: "#166534" }, Pending: { textColor: "#92400E" }, Unpaid: { textColor: "#991B1B" } }),
+jest.mock("@/hooks/useStatusChipStyles", () => ({
+  statusChipSurface: () => ({}),
+  useStatusChipStyles: () => ({ success: { textColor: "#166534" }, warning: { textColor: "#92400E" }, danger: { textColor: "#991B1B" } }),
 }));
 jest.mock("@/service/payments/paymentService", () => ({
   formatReferenceId: (reference: string | null) => reference ?? "—",
-  paymentStatusLabel: (status: string) => ({ paid: "Paid", pending: "Pending" })[status] ?? "Unpaid",
 }));
 jest.mock("@/components/display/PaymentMethodChip", () => {
   const { Text } = jest.requireActual("react-native");
@@ -57,5 +56,18 @@ describe("PaymentHistoryCard", () => {
     expect(screen.queryByText("MAHARTT Navales")).toBeNull();
     fireEvent.press(screen.getByRole("button"));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows when a payment was recorded on a unit's own history, which names no unit or tenant", () => {
+    render(<PaymentHistoryCard {...base} paidDate="3/5/2026" />);
+    expect(screen.getByText("Paid on: 3/5/2026")).toBeTruthy();
+    render(<PaymentHistoryCard {...base} status="pending" paidDate="3/6/2026" />);
+    expect(screen.getByText("Recorded on: 3/6/2026")).toBeTruthy();
+  });
+
+  it("words a declined payment like its receipt instead of Unpaid", () => {
+    render(<PaymentHistoryCard {...base} status="rejected" />);
+    expect(screen.getByText("Rejected")).toBeTruthy();
+    expect(screen.queryByText("Unpaid")).toBeNull();
   });
 });

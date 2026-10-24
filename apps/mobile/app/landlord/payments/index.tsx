@@ -89,7 +89,7 @@ export default function LandlordPaymentsScreen() {
     () => sortLedger(inYear.filter((payment) => matchesLedgerTab(payment, tab)), sort),
     [inYear, tab, sort],
   );
-  const awaitingCash = useMemo(() => inUnit.filter(isAwaitingCashConfirmation), [inUnit]);
+  const awaitingCash = useMemo(() => inYear.filter(isAwaitingCashConfirmation), [inYear]);
   const awaitingAmount = awaitingCash.reduce((sum, payment) => sum + (payment.amount ?? 0), 0);
   const visibleRows = rows.slice(0, shown);
 

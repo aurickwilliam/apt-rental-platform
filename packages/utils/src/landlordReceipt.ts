@@ -64,3 +64,9 @@ export function receiptShareText(fields: ReceiptShareFields): string {
     `Reference No.: ${fields.reference}`,
   ].join('\n');
 }
+
+/** A receipt's date as the landlord reads it, e.g. "Thursday, March 5, 2026". */
+export function formatReceiptDate(iso: string): string {
+  const date = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('en-PH', { dateStyle: 'full' }).format(date);
+}

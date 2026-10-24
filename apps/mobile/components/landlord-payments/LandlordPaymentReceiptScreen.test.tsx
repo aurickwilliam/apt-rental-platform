@@ -12,7 +12,8 @@ jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ apartmentId: "unit-a", paymentId: "pay-1" }),
 }));
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 20, bottom: 10, left: 0, right: 0 }) }));
-jest.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({ invalidateQueries: mockInvalidate }) }));
+const mockSetQueryData = jest.fn();
+jest.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({ invalidateQueries: mockInvalidate, setQueryData: mockSetQueryData }) }));
 jest.mock("@tabler/icons-react-native", () => ({ IconChevronLeft: () => null }));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
 jest.mock("heroui-native", () => {
@@ -107,9 +108,15 @@ describe("landlord payment receipt screen", () => {
     expect(mockConfirm.mutate.mock.calls[0][0]).toBe("pay-1");
     mockConfirm.mutate.mock.calls[0][1].onSuccess();
     expect(mockInvalidate).toHaveBeenCalledWith({ queryKey: ["payment", "pay-1"] });
+    // The cached payment flips at once, so the buttons go before the refetch lands.
+    const [key, update] = mockSetQueryData.mock.calls[0];
+    expect(key).toEqual(["payment", "pay-1"]);
+    expect(update({ id: "pay-1", status: "pending" })).toEqual({ id: "pay-1", status: "paid" });
 
     fireEvent.press(screen.getByLabelText("actions decline"));
     expect(mockDecline.mutate.mock.calls[0][0]).toBe("pay-1");
+    mockDecline.mutate.mock.calls[0][1].onSuccess();
+    expect(mockSetQueryData.mock.calls[1][1]({ status: "pending" })).toEqual({ status: "rejected" });
     expect(mockConfirm.mutate).toHaveBeenCalledTimes(1);
   });
 

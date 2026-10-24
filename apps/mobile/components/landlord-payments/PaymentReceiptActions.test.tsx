@@ -93,7 +93,7 @@ describe("PaymentReceiptActions", () => {
     expect(message).toContain("Apartment: Unit A");
     expect(message).toContain("Method: Cash");
     expect(message).toContain("Reference No.: APT-ABCD1234");
-    expect(message).toContain("Paid on: 2026-03-05");
+    expect(message).toContain("Paid on: Thursday, March 5, 2026");
   });
 
   it("reports a share that fails", async () => {

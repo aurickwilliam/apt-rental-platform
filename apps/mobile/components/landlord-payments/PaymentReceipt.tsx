@@ -14,6 +14,7 @@ import {
 
 import {
   formatPesoDisplay,
+  formatReceiptDate,
   landlordReceiptStatus,
   ledgerPeriodLabel,
   paymentBreakdown,
@@ -42,11 +43,6 @@ const STATUS_ICONS: Record<ReceiptStatusLabel, StatusIcon> = {
 const PAPER = { text: "#18181B", muted: "#71717A", divider: "#D4D4D8" };
 const TONE_COLORS: Record<ReceiptTone, string> = { success: "#16A34A", warning: "#F59E0B", danger: "#DC2626" };
 const COPIED_MS = 1800;
-
-function formatDate(iso: string): string {
-  const date = new Date(`${iso.slice(0, 10)}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat("en-PH", { dateStyle: "full" }).format(date);
-}
 
 function formatTime(iso: string): string {
   const date = new Date(iso);
@@ -165,7 +161,7 @@ export default function PaymentReceipt({ payment, footer }: PaymentReceiptProps)
           <Row label="Tenant"><RowText>{payment.tenant_name ?? "—"}</RowText></Row>
           <Row label="Apartment"><RowText>{payment.apartment_name ?? "—"}</RowText></Row>
           <Row label={status.label === "Paid" ? "Paid on" : "Recorded on"}>
-            <RowText>{formatDate(payment.date)}</RowText>
+            <RowText>{formatReceiptDate(payment.date)}</RowText>
             <Text className="text-xs font-inter text-right" style={{ color: PAPER.muted }}>
               {formatTime(payment.created_at)}
             </Text>

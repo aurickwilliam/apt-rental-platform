@@ -1,16 +1,12 @@
 import { View, Text } from "react-native";
-import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 
 import { Card, Chip, PressableFeedback } from "heroui-native";
 
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, landlordReceiptStatus } from "@repo/utils";
 
 import PaymentMethodChip from "@/components/display/PaymentMethodChip";
-import { usePaymentStatusStyles } from "hooks/payments";
-import {
-  formatReferenceId,
-  paymentStatusLabel,
-} from "@/service/payments/paymentService";
+import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { formatReferenceId } from "@/service/payments/paymentService";
 
 interface PaymentHistoryCardProps {
   month: string;
@@ -21,6 +17,8 @@ interface PaymentHistoryCardProps {
   /** Names the unit when payments from several units share one list. */
   unitName?: string | null;
   tenantName?: string | null;
+  /** Shown on the footer's left when no unit or tenant name is given (a single unit's list). */
+  paidDate?: string | null;
   onPress: () => void;
 }
 
@@ -32,12 +30,14 @@ export default function PaymentHistoryCard({
   referenceId,
   unitName,
   tenantName,
+  paidDate,
   onPress,
 }: PaymentHistoryCardProps) {
-  const statusStyles = usePaymentStatusStyles();
+  const chipStyles = useStatusChipStyles();
 
-  const label = paymentStatusLabel(status);
-  const style = statusStyles[label];
+  // Worded like the receipt, so a declined payment never reads as plain "Unpaid".
+  const { label, tone } = landlordReceiptStatus(status);
+  const style = chipStyles[tone === "success" ? "success" : tone === "warning" ? "warning" : "danger"];
 
   return (
     <PressableFeedback
@@ -92,6 +92,11 @@ export default function PaymentHistoryCard({
             {tenantName ? (
               <Text className="text-gray-500 text-xs font-inter" numberOfLines={1}>
                 {tenantName}
+              </Text>
+            ) : null}
+            {!unitName && !tenantName && paidDate ? (
+              <Text className="text-gray-500 text-[11px] font-inter" numberOfLines={1}>
+                {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
               </Text>
             ) : null}
           </View>

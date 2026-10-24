@@ -310,6 +310,7 @@ export default function Index() {
                           status={payment.status}
                           method={payment.method}
                           referenceId={payment.reference}
+                          paidDate={payment.paidDate}
                           onPress={() =>
                             router.push({
                               pathname: '/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]',

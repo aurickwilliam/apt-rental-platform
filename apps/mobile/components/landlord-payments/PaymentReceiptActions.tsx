@@ -5,6 +5,7 @@ import { IconCheck, IconDownload, IconShare2 } from "@tabler/icons-react-native"
 
 import {
   formatPesoDisplay,
+  formatReceiptDate,
   landlordReceiptStatus,
   ledgerPeriodLabel,
   receiptShareText,
@@ -93,7 +94,7 @@ export default function PaymentReceiptActions({
           tenant: payment.tenant_name ?? "—",
           apartment: payment.apartment_name ?? "—",
           dateLabel: status.label === "Paid" ? "Paid on" : "Recorded on",
-          date: payment.date.slice(0, 10),
+          date: formatReceiptDate(payment.date),
           method: methodLabel(payment.method),
           reference: formatReferenceId(payment.reference_id),
         }),

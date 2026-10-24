@@ -41,10 +41,15 @@ export default function LandlordPaymentReceipt() {
   const errorMessage = failure ? (failure as Error).message || 'Could not update payment.' : null
   const { receiptRef, save: savePhoto } = useSaveReceiptPhoto()
 
-  const resolve = (mutation: typeof confirmMutation) => {
+  const resolve = (mutation: typeof confirmMutation, status: 'paid' | 'rejected') => {
     if (!paymentId) return
     mutation.mutate(paymentId, {
       onSuccess: () => {
+        // The buttons go as soon as the cached status changes, so a quick second tap
+        // can't hit a payment that is already settled while the refetch is in flight.
+        queryClient.setQueryData(getPaymentQueryKey(paymentId), (cached: unknown) =>
+          typeof cached === 'object' && cached !== null ? { ...cached, status } : cached
+        )
         void queryClient.invalidateQueries({ queryKey: getPaymentQueryKey(paymentId) })
       },
     })
@@ -78,8 +83,8 @@ export default function LandlordPaymentReceipt() {
                   payment={payment}
                   isBusy={isBusy}
                   error={errorMessage}
-                  onConfirm={() => resolve(confirmMutation)}
-                  onDecline={() => resolve(declineMutation)}
+                  onConfirm={() => resolve(confirmMutation, 'paid')}
+                  onDecline={() => resolve(declineMutation, 'rejected')}
                   onClearError={clearError}
                   onSavePhoto={savePhoto}
                 />
