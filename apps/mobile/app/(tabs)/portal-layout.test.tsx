@@ -5,6 +5,7 @@ import { usePortalStore } from "@/stores/usePortalStore";
 
 const mockReplace = jest.fn();
 const mockSignOut = jest.fn().mockResolvedValue({ error: null });
+const mockReviewGate = jest.fn((_props: unknown) => null);
 let mockGroup = "(landlord)";
 let mockRoles = ["tenant", "landlord"];
 
@@ -15,11 +16,14 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("hooks/auth", () => ({
-  useProfile: () => ({ profile: { user_id: "account-a", roles: mockRoles }, loading: false }),
+  useProfile: () => ({ profile: { id: "profile-a", user_id: "account-a", roles: mockRoles }, loading: false }),
 }));
 
 jest.mock("@repo/supabase", () => ({
   supabase: { auth: { signOut: () => mockSignOut() } },
+}));
+jest.mock("@/components/ratings/ReviewUnlockGate", () => ({
+  __esModule: true, default: (props: unknown) => mockReviewGate(props),
 }));
 
 describe("mobile portal tab guard", () => {
@@ -35,6 +39,7 @@ describe("mobile portal tab guard", () => {
     render(<TabsLayout />);
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockReviewGate).not.toHaveBeenCalled();
   });
 
   it("redirects a tab group that is not the active portal", async () => {
@@ -50,6 +55,7 @@ describe("mobile portal tab guard", () => {
     render(<TabsLayout />);
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockReviewGate).toHaveBeenCalledWith(expect.objectContaining({ authUserId: "account-a", tenantId: "profile-a" }));
   });
 
   it("rejects admin-only mobile sessions", async () => {

@@ -1,4 +1,5 @@
 export { getRelativeTime } from './getRelativeTime';
+export { isReviewStayEligible } from './reviewEligibility';
 export {
   MAX_CHAT_ATTACHMENT_BYTES,
   CHAT_DOCUMENT_MIME_TYPES,

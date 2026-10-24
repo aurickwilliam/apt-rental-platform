@@ -1,4 +1,5 @@
 import { supabase } from "@repo/supabase";
+import { isReviewStayEligible } from "@repo/utils";
 
 export type ApartmentReviewRow = {
   id: string;
@@ -150,7 +151,7 @@ export async function fetchReviewEligibility(
 ): Promise<string | null> {
   const { data, error } = await supabase
     .from("tenancies")
-    .select("id, lease_end, reviews(id)")
+    .select("id, lease_start, lease_end, reviews(id)")
     .eq("apartment_id", apartmentId)
     .eq("tenant_id", tenantId)
     .order("lease_end", { ascending: false, nullsFirst: false });
@@ -158,7 +159,8 @@ export async function fetchReviewEligibility(
   if (error) throw error;
 
   const unreviewed = (data ?? []).find(
-    (tenancy) => !tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0)
+    (tenancy) => (!tenancy.reviews || (Array.isArray(tenancy.reviews) && tenancy.reviews.length === 0))
+      && isReviewStayEligible(tenancy.lease_start, tenancy.lease_end)
   );
 
   return unreviewed?.id ?? null;

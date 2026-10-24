@@ -683,6 +683,14 @@ The isolated SQL regression harness is `supabase/test-support/landlord-finances-
 
 ---
 
+### 12.2 Apartment review readiness and mobile prompt
+
+Web and mobile use the pure `isReviewStayEligible` helper in `@repo/utils`: the stay has reached three calendar months (month-end clamped like PostgreSQL), or its lease end date has passed. The existing `enforce_review_stay_eligibility` database trigger is still the write authority; no schema, grants or eligibility overrides are added. Mobile's existing review-button query now includes `lease_start` and applies the shared check.
+
+The mobile `(tabs)` shell mounts one `ReviewUnlockGate`, keyed by Auth ID + internal profile ID, only for the selected tenant portal and matching tab group. The gate waits for foreground, focused Rentals and an idle JS turn; pushed routes and other tabs do not display it. `useReviewUnlock` loads the latest ten stays through `reviewUnlockService`, with an account-keyed React Query cache and request cancellation. The newest eligible, unreviewed, visible listing not dismissed on that device becomes the offer. Errors suppress the optional prompt and log a generic message, without blocking Rentals or logging personal data. It shows at most one offer per gate mount; account and portal changes retire the gate and its callbacks.
+
+Close, Back, backdrop, Maybe later and Write a Review all close immediately and save one AsyncStorage dismissal under `apt-review-unlock:v1:{authUserId}:{tenancyId}`. A failed storage write keeps the current mount dismissed. Write a Review opens the existing apartment Ratings & Reviews route; submitting successfully invalidates the exact apartment-review, tenant eligibility and account prompt keys, unless the initiating account has retired. Dismissal is a device preference, not an authorization decision and not shared with web. A development-only targeted reset is described in `docs/mobile-review-unlock.md`. Presentation reuses the shared `AppDialog`; see DESIGN.md §14.
+
 ## 13. Navigation
 
 ### Web (Next.js App Router)

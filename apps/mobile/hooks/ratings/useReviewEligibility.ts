@@ -24,7 +24,7 @@ export function useReviewEligibility(apartmentId?: string): UseReviewEligibility
   })
 
   return {
-    canReview: eligibilityQuery.data !== null && eligibilityQuery.data !== undefined,
+    canReview: !eligibilityQuery.isError && eligibilityQuery.data !== null && eligibilityQuery.data !== undefined,
     checkingEligibility: currentUserQuery.isLoading || eligibilityQuery.isLoading,
     reviewableTenancyId: eligibilityQuery.data ?? null,
     refetch: eligibilityQuery.refetch,

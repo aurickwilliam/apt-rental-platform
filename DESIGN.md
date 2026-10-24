@@ -463,7 +463,8 @@ Sidebar unread activity uses a solid 8px dot, never a numbered section badge: `b
 ### Mobile (HeroUI Native)
 
 - **Dialog** ✅: `Portal > Overlay > Content`, `Close variant="ghost"` top-right; backdrop 20%/40%
-  - `AppDialog` ✅: shared wrapper (optional `titleIcon`, `description`, `footer`); `scrollable` wraps long bodies in a max-height (360px) `ScrollView` while the title, close button and footer stay fixed
+  - `AppDialog` ✅: shared wrapper (optional `titleIcon`, `description`, `footer`); `scrollable` wraps long bodies in a max-height (360px) `ScrollView` while the title, close button and footer stay fixed. Opt-in `fitToViewport` instead bounds the whole card to the current safe viewport with 20px gutters and a 448px maximum width; the body shrinks and scrolls, while header/footer stay fixed and the close target is 44px.
+  - **Review-unlock prompt** ✅: one tenant Rentals prompt using `AppDialog` with `scrollable` + `fitToViewport`, the existing secondary surface and rounded-3xl card. A Nunito bold heading says "You can now review"; the body has a compact blue home illustration, the apartment name in Nunito bold 24px, five yellow rating stars and the web's explanatory copy. HeroUI Native actions use primary "Write a Review" and secondary "Maybe later", with 48px minimum heights: stacked full-width in portrait, equal-width in one row in landscape to leave room for the body. Long names wrap, text can scale, the body scrolls on short/landscape screens, and close/Back/backdrop all dismiss. Light/dark colors come from the existing mobile theme; no web CSS or new tokens.
   - `ConfirmDialog` ✅: footer `justify-end gap-3` — `ghost sm` cancel + `sm` confirm (default `danger`)
   - `ErrorDialog`/`SuccessDialog` ✅: icon 20 `danger`/`success`, title `text-danger`/`text-success-text`, dismiss `secondary sm`
   - `RejectDialog` ✅: `TextField` + `TextArea numberOfLines={3}`, footer `secondary` Cancel / `danger-soft` Reject (both `flex-1`)
