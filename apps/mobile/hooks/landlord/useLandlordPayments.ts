@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getLandlordTenancyQueryKey } from '@/hooks/tenancy'
 
+import { ALL_LANDLORD_PAYMENTS_QUERY_PREFIX } from './useAllLandlordPayments'
+
 import {
   fetchLandlordPayments,
   updateLandlordPaymentStatus,
@@ -29,7 +31,13 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (paymentId: string) => updateLandlordPaymentStatus(paymentId),
+    // The service reports a refused update as { success: false } instead of throwing;
+    // surface it as an error so the optimistic change rolls back and the screen shows it.
+    mutationFn: async (paymentId: string) => {
+      const result = await updateLandlordPaymentStatus(paymentId)
+      if (!result.success) throw new Error(result.error ?? 'Could not update payment status.')
+      return result
+    },
     onMutate: async (paymentId) => {
       const paymentsKey = getLandlordPaymentsQueryKey(apartmentId)
       const tenancyKey = getLandlordTenancyQueryKey(apartmentId)
@@ -37,12 +45,27 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
       await Promise.all([
         queryClient.cancelQueries({ queryKey: paymentsKey }),
         queryClient.cancelQueries({ queryKey: tenancyKey }),
+        queryClient.cancelQueries({ queryKey: ALL_LANDLORD_PAYMENTS_QUERY_PREFIX }),
       ])
 
       const previous = {
         payments: queryClient.getQueryData(paymentsKey),
         tenancy: queryClient.getQueryData(tenancyKey),
+        all: queryClient.getQueriesData({ queryKey: ALL_LANDLORD_PAYMENTS_QUERY_PREFIX }),
       }
+
+      // The all-units list shows the same payment, so it flips with it.
+      queryClient.setQueriesData({ queryKey: ALL_LANDLORD_PAYMENTS_QUERY_PREFIX }, (data: unknown) => {
+        if (typeof data !== 'object' || data === null) return data
+        const all = data as { payments?: { id: string; status: string }[] }
+        if (!all.payments) return data
+        return {
+          ...all,
+          payments: all.payments.map((payment) =>
+            payment.id === paymentId ? { ...payment, status: 'paid' } : payment
+          ),
+        }
+      })
 
       queryClient.setQueryData(paymentsKey, (rows: unknown) => {
         const list = Array.isArray(rows) ? rows : []
@@ -74,6 +97,7 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
         if (context.previous.tenancy !== undefined) {
           queryClient.setQueryData(getLandlordTenancyQueryKey(apartmentId), context.previous.tenancy)
         }
+        for (const [key, data] of context.previous.all) queryClient.setQueryData(key, data)
       }
     },
     onSettled: () => {
@@ -85,6 +109,10 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
       queryClient.invalidateQueries({
         queryKey: getLandlordTenancyQueryKey(apartmentId),
         exact: true,
+        refetchType: 'none',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ALL_LANDLORD_PAYMENTS_QUERY_PREFIX,
         refetchType: 'none',
       })
     },

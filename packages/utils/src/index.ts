@@ -10,6 +10,7 @@ export { isSameChatDay, getChatDayKey, formatChatDayLabel } from './chatDay';
 export { getReplyCaption } from './replyCaption';
 export { USER_REPORT_REASONS, USER_REPORT_DETAILS_MAX_LENGTH, type UserReportReason } from './userReport';
 export * from './landlordFinance';
+export * from './landlordPayments';
 export { formatDate } from './formatDate';
 export {
   PAYMENT_METHOD_TYPES,

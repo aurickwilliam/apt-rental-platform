@@ -946,6 +946,104 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
   });
 }
 
+// ─── All of a landlord's payments, across every unit ─────────────────────────
+
+export type LandlordPaymentWithUnit = LandlordPaymentRecord & {
+  apartment_id: string;
+  apartment_name: string | null;
+};
+
+export type LandlordUnitOption = { id: string; name: string };
+
+export type AllLandlordPayments = {
+  units: LandlordUnitOption[];
+  payments: LandlordPaymentWithUnit[];
+};
+
+export const ALL_LANDLORD_PAYMENTS_LIMIT = 500;
+
+// Reads the landlord's own units first and binds the payment query to those ids, so
+// the result never depends on row-level security alone (a profile that is also an
+// admin can read other landlords' payments).
+export async function fetchAllLandlordPayments(landlordId: string): Promise<AllLandlordPayments> {
+  const unitsResult = await supabase
+    .from("apartments")
+    .select("id, name")
+    .eq("landlord_id", landlordId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (unitsResult.error) throw unitsResult.error;
+
+  const units = (unitsResult.data ?? []).map((unit) => ({ id: unit.id as string, name: (unit.name as string | null) ?? "Unit" }));
+  if (units.length === 0) return { units, payments: [] };
+
+  const { data, error } = await supabase
+    .from("payment")
+    .select(
+      `
+        id,
+        created_at,
+        date,
+        amount,
+        status,
+        method,
+        reference_id,
+        period_start,
+        period_end,
+        due_date,
+        apartment_id,
+        apartment:apartments (name),
+        tenant:users!payment_tenant_id_fkey (first_name, last_name)
+      `
+    )
+    .in("apartment_id", units.map((unit) => unit.id))
+    .order("period_start", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(ALL_LANDLORD_PAYMENTS_LIMIT);
+
+  if (error) throw error;
+
+  const payments = (data ?? []).map((row) => {
+    const p = row as unknown as {
+      id: string;
+      created_at: string;
+      date: string;
+      amount: number | null;
+      status: string;
+      method: string | null;
+      reference_id: string | null;
+      period_start: string | null;
+      period_end: string | null;
+      due_date: string | null;
+      apartment_id: string;
+      apartment: { name: string | null } | null;
+      tenant: { first_name: string | null; last_name: string | null } | null;
+    };
+    const tenant = p.tenant;
+    return {
+      id: p.id,
+      created_at: p.created_at,
+      date: p.date,
+      amount: p.amount,
+      status: p.status,
+      method: p.method,
+      reference_id: p.reference_id,
+      period_start: p.period_start,
+      period_end: p.period_end,
+      due_date: p.due_date,
+      apartment_id: p.apartment_id,
+      apartment_name: p.apartment?.name ?? null,
+      tenant_name:
+        tenant?.first_name || tenant?.last_name
+          ? `${tenant.first_name ?? ""} ${tenant.last_name ?? ""}`.trim()
+          : null,
+    };
+  });
+
+  return { units, payments };
+}
+
 // Only cash rows awaiting landlord confirmation are flippable by hand; the
 // webhook owns e-wallet/card rows. RLS (landlord_update_payment_status) and the
 // status column grant already gate this server-side.

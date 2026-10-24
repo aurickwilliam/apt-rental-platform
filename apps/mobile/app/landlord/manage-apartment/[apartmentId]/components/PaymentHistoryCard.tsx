@@ -20,6 +20,9 @@ interface PaymentHistoryCardProps {
   status: string;
   method?: string | null;
   referenceId?: string | null;
+  /** Names the unit when payments from several units share one list. */
+  unitName?: string | null;
+  tenantName?: string | null;
   onPress: () => void;
 }
 
@@ -30,6 +33,8 @@ export default function PaymentHistoryCard({
   status = "paid",
   method,
   referenceId,
+  unitName,
+  tenantName,
   onPress,
 }: PaymentHistoryCardProps) {
   const { colors } = useColors();
@@ -93,6 +98,19 @@ export default function PaymentHistoryCard({
           <Text className="text-accent text-lg font-nunitoBold">
             {formatPesoDisplay(amount)}
           </Text>
+          {unitName ? (
+            <Text
+              className="text-foreground text-xs font-interMedium"
+              numberOfLines={1}
+            >
+              {unitName}
+            </Text>
+          ) : null}
+          {tenantName ? (
+            <Text className="text-gray-500 text-xs font-inter" numberOfLines={1}>
+              {tenantName}
+            </Text>
+          ) : null}
         </Card.Body>
 
         <Card.Footer className="flex-row items-center justify-between gap-2">
