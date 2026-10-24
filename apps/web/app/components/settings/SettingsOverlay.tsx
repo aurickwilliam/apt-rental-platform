@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import SettingsModal from "./SettingsModal";
-import ChangePasswordModal from "./ChangePasswordModal";
-import ChangeEmailModal from "./ChangeEmailModal";
+import dynamic from "next/dynamic";
+
+const SettingsModal = dynamic(() => import("./SettingsModal"), {
+  loading: () => <span role="status" className="sr-only">Opening settings…</span>,
+});
+const ChangePasswordModal = dynamic(() => import("./ChangePasswordModal"));
+const ChangeEmailModal = dynamic(() => import("./ChangeEmailModal"));
 
 export const SETTINGS_QUERY_VALUE = "open";
 

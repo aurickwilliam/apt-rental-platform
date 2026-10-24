@@ -12,6 +12,8 @@ const PASSPORT_PREFIX = "passport";
 const ACTIVE_APPLICATION_STATUSES = ["pending", "approved"];
 
 export type PassportDocumentRow = Database["public"]["Tables"]["passport_documents"]["Row"];
+type ApprovedVerificationRow = Database["public"]["Tables"]["user_verifications"]["Row"];
+type BrowserSupabaseClient = ReturnType<typeof createClient>;
 
 function slugify(docType: string): string {
   const slug = docType
@@ -26,8 +28,10 @@ function passportPath(userId: string, docType: string, fileName: string): string
   return `${userId}/${PASSPORT_PREFIX}/${slugify(docType)}-${Date.now()}.${ext}`;
 }
 
-export async function fetchPassportDocuments(userId: string): Promise<PassportDocumentRow[]> {
-  const supabase = createClient();
+async function fetchPassportDocumentsWithClient(
+  supabase: BrowserSupabaseClient,
+  userId: string,
+): Promise<PassportDocumentRow[]> {
   const { data, error } = await supabase
     .from("passport_documents")
     .select("*")
@@ -38,14 +42,15 @@ export async function fetchPassportDocuments(userId: string): Promise<PassportDo
   return (data ?? []) as PassportDocumentRow[];
 }
 
-/**
- * Links the user's latest approved ID verification into the passport as the
- * primary row holding its front and back captures. Idempotent: upgrades an
- * existing link to the verification row when its captures changed.
- */
-export async function linkApprovedVerification(userId: string): Promise<PassportDocumentRow | null> {
-  const supabase = createClient();
-  const { data: verification, error: verificationError } = await supabase
+export async function fetchPassportDocuments(userId: string): Promise<PassportDocumentRow[]> {
+  return fetchPassportDocumentsWithClient(createClient(), userId);
+}
+
+async function fetchLatestApprovedVerification(
+  supabase: BrowserSupabaseClient,
+  userId: string,
+): Promise<ApprovedVerificationRow | null> {
+  const { data, error } = await supabase
     .from("user_verifications")
     .select("*")
     .eq("user_id", userId)
@@ -55,25 +60,47 @@ export async function linkApprovedVerification(userId: string): Promise<Passport
     .limit(1)
     .maybeSingle();
 
-  if (verificationError) throw verificationError;
-  if (!verification) return null;
+  if (error) throw error;
+  return (data ?? null) as ApprovedVerificationRow | null;
+}
 
-  const { data: existing, error: existingError } = await supabase
+async function fetchLinkedPassportDocument(
+  supabase: BrowserSupabaseClient,
+  userId: string,
+  verificationId: string,
+): Promise<PassportDocumentRow | null> {
+  const { data, error } = await supabase
     .from("passport_documents")
     .select("*")
     .eq("user_id", userId)
-    .eq("verification_id", verification.id)
+    .eq("verification_id", verificationId)
     .limit(1)
     .maybeSingle();
 
-  if (existingError) throw existingError;
+  if (error) throw error;
+  return (data ?? null) as PassportDocumentRow | null;
+}
+
+function needsVerificationLinkUpdate(
+  existing: PassportDocumentRow,
+  verification: ApprovedVerificationRow,
+): boolean {
+  return (
+    !existing.is_verified ||
+    !existing.is_primary ||
+    (existing.storage_path_back ?? null) !== (verification.id_back_path ?? null) ||
+    existing.storage_path !== verification.id_front_path
+  );
+}
+
+async function applyVerificationLink(
+  supabase: BrowserSupabaseClient,
+  userId: string,
+  verification: ApprovedVerificationRow,
+  existing: PassportDocumentRow | null,
+): Promise<PassportDocumentRow | null> {
   if (existing) {
-    const needsUpgrade =
-      !existing.is_verified ||
-      !existing.is_primary ||
-      (existing.storage_path_back ?? null) !== (verification.id_back_path ?? null) ||
-      existing.storage_path !== verification.id_front_path;
-    if (!needsUpgrade) return existing as PassportDocumentRow;
+    if (!needsVerificationLinkUpdate(existing, verification)) return existing;
 
     const { data: updated, error: updateError } = await supabase
       .from("passport_documents")
@@ -115,14 +142,49 @@ export async function linkApprovedVerification(userId: string): Promise<Passport
 }
 
 /**
- * Wallet read: links the approved verification ID first, then reads the
- * wallet, so callers never see an empty state before the linked ID lands.
+ * Links the user's latest approved ID verification into the passport as the
+ * primary row holding its front and back captures. Sequential calls reuse or
+ * upgrade an existing link; concurrent calls still require database-level
+ * uniqueness or transactional linking to prevent duplicate inserts.
+ */
+export async function linkApprovedVerification(userId: string): Promise<PassportDocumentRow | null> {
+  const supabase = createClient();
+  const verification = await fetchLatestApprovedVerification(supabase, userId);
+  if (!verification) return null;
+
+  const existing = await fetchLinkedPassportDocument(supabase, userId, verification.id);
+  return applyVerificationLink(supabase, userId, verification, existing);
+}
+
+/**
+ * Verification resolves before the wallet snapshot is read. The common
+ * already-linked path uses two sequential reads (verification -> wallet),
+ * without a separate linked-row query. Any required link write settles
+ * before a fresh wallet snapshot is returned.
  */
 export async function fetchPassportDocumentsWithVerification(
   userId: string,
 ): Promise<PassportDocumentRow[]> {
-  await linkApprovedVerification(userId);
-  return fetchPassportDocuments(userId);
+  const supabase = createClient();
+  const verification = await fetchLatestApprovedVerification(supabase, userId);
+  const documents = await fetchPassportDocumentsWithClient(supabase, userId);
+
+  if (!verification) return documents;
+
+  const snapshot =
+    documents.find((document) => document.verification_id === verification.id) ?? null;
+  if (snapshot && !needsVerificationLinkUpdate(snapshot, verification)) return documents;
+
+  // Best-effort only: this can find a link committed after the wallet snapshot,
+  // but concurrent requests can both pass the separate SELECT before INSERT.
+  // Preventing duplicates requires database uniqueness or transactional linking.
+  const existing = snapshot ?? (await fetchLinkedPassportDocument(supabase, userId, verification.id));
+  if (existing && !needsVerificationLinkUpdate(existing, verification)) {
+    return fetchPassportDocumentsWithClient(supabase, userId);
+  }
+
+  await applyVerificationLink(supabase, userId, verification, existing);
+  return fetchPassportDocumentsWithClient(supabase, userId);
 }
 
 export interface UploadPassportDocumentInput {
