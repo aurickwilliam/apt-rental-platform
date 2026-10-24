@@ -180,6 +180,13 @@
 .date-range-picker__trigger-indicator {
   color: var(--muted-foreground);
 }
+/* Dropdown buttons are white (the card surface, so dark mode follows) instead of
+   HeroUI's tinted field fill, which reads grey on the page background. */
+.select .select__trigger {
+  --select-trigger-bg: var(--card);
+  --select-trigger-bg-hover: var(--muted);
+  --select-trigger-bg-focus: var(--card);
+}
 .select__indicator,
 .select__indicator[data-slot="select-default-indicator"] {
   width: 1.25rem;
@@ -688,6 +695,19 @@
     --chip-bg: var(--status-bg-dark);
     --chip-fg: var(--status-fg-dark);
     border-color: var(--status-border-dark);
+  }
+
+  /* Payment method chips: PaymentMethodChip sets the --method-* values per method. */
+  .chip.method-chip {
+    --chip-bg: var(--method-bg);
+    --chip-fg: var(--method-fg);
+    border: 1px solid var(--method-border);
+  }
+
+  .dark .chip.method-chip {
+    --chip-bg: var(--method-bg-dark);
+    --chip-fg: var(--method-fg-dark);
+    border-color: var(--method-border-dark);
   }
 }
 

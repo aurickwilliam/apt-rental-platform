@@ -58,6 +58,7 @@ function load(file, options = {}) {
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => `₱${value}` },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
+    "@/app/components/display/PaymentMethodChip": { default: "PaymentMethodChip" },
     "@/app/components/settings/SettingsSelect": { default: "SettingsSelect" },
     "@/app/landlord/dashboard/components/StatTile": { default: "StatTile" },
     "@/app/tenant/payment/utils": {
@@ -80,7 +81,7 @@ function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
     "Sk", "PaymentsHeader", "PaymentsSkeleton", "PaymentsBodySkeleton", "NeedsAttentionSkeleton", "PaymentsContent",
-    "PaymentsSummary", "NeedsAttentionCard", "PaymentsTable",
+    "PaymentsSummary", "NeedsAttentionCard", "PaymentsTable", "PaymentStatusChip",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props ?? {}) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
@@ -122,7 +123,7 @@ test("unit loading keeps the real heading and a disabled selector; payment loadi
 test("the unit selector and Refresh sit in a controls row above the tiles; the old Filters modal is gone", () => {
   const refreshed = [];
   const elements = nodes(load("page.tsx", {
-    payments: { payments: [newer], loading: false, refresh: () => refreshed.push("payments") },
+    payments: { payments: [newer], loading: false, refresh: () => refreshed.push("quiet"), reload: () => refreshed.push("payments") },
     units: { apartments: [{ id: "unit-a", name: "Unit A" }], loading: false, error: null, refresh: () => refreshed.push("units") },
   }).default());
   const heading = elements.find(node => node.type.name === "PaymentsHeader");
@@ -130,6 +131,7 @@ test("the unit selector and Refresh sit in a controls row above the tiles; the o
   assert.ok(elements.indexOf(elements.find(node => node.type === ComboBox)) < elements.indexOf(elements.find(node => node.type.name === "PaymentsSummary")));
   const refresh = elements.find(node => node.type === "Button" && node.props["aria-label"] === "Refresh payments");
   refresh.props.onPress();
+  // The payments reload shows the skeleton; the unit list refreshes quietly.
   assert.deepEqual([...refreshed].sort(), ["payments", "units"]);
   assert.ok(!elements.some(node => node.type === "PaymentHistoryFilters"));
   assert.ok(elements.some(node => node.type === Tabs && node.props.className.includes("apt-status-tabs")));
@@ -170,7 +172,7 @@ test("settled empty, no-unit and error states and Retry remain intact", () => {
   let refreshes = 0;
   const tree = load("page.tsx", {
     units: { apartments: [], loading: false, error: "Unable to load units", refresh: () => refreshes++ },
-    payments: { payments: [], loading: false, refresh: () => refreshes++ },
+    payments: { payments: [], loading: false, reload: () => refreshes++ },
   }).default();
   assert.ok(text(tree).includes("Unable to load units"));
   nodes(tree).find(node => node.type === "Button" && node.props.children === "Try Again").props.onPress();
@@ -249,4 +251,44 @@ test("Needs attention sits in the title row beside the heading, lists its rows i
 test("Needs attention is a quiet all-caught-up card when no cash is waiting", () => {
   const tree = load("page.tsx", { payments: { payments: [older, newer], loading: false } }).default();
   assert.ok(text(tree).includes("all caught up"));
+});
+
+test("status chips carry an icon matching their status", () => {
+  const tree = nodes(load("page.tsx", { payments: { payments: [older, cash], loading: false } }).default());
+  const chips = tree.filter(node => node.type === "StatusChip");
+  assert.ok(chips.length >= 2);
+  for (const chip of chips) {
+    const [icon, label] = [chip.props.children].flat();
+    assert.ok(typeof icon.type === "string" && icon.type.startsWith("Icon"), "icon before the label");
+    assert.equal(typeof label, "string");
+  }
+  assert.ok(chips.some(chip => chip.props.children[0].type === "IconCircleCheck" && chip.props.children[1] === "Paid"));
+  assert.ok(chips.some(chip => chip.props.children[0].type === "IconClockHour4" && chip.props.children[1] === "Pending"));
+});
+
+test("each payment method has its own chip color and icon; unknown methods stay plain", () => {
+  const jsx = (type, props) => ({ type, props });
+  const exports = run(
+    transpile(new URL("../app/components/display/PaymentMethodChip.tsx", import.meta.url)),
+    {
+      "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+      "@heroui/react": { Chip: "Chip" },
+      "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+      "@/app/tenant/payment/utils": { methodLabel: value => value ?? "—" },
+    },
+  );
+  const chip = method => exports.default({ method });
+  const methods = ["gcash", "maya", "qrph", "Debit/Credit-Card", "card", "cash", "GCash"];
+  const backgrounds = new Map(methods.map(method => [method, chip(method).props.style["--method-bg"]]));
+  assert.equal(new Set(["gcash", "maya", "qrph", "card", "cash"].map(method => backgrounds.get(method))).size, 5);
+  assert.equal(backgrounds.get("Debit/Credit-Card"), backgrounds.get("card"));
+  assert.equal(backgrounds.get("GCash"), backgrounds.get("gcash"));
+  for (const method of methods) {
+    assert.ok(chip(method).props.className.includes("method-chip"));
+    assert.ok(chip(method).props.children[0], `${method} has an icon`);
+  }
+  const unknown = chip("bank-transfer");
+  assert.equal(unknown.props.style, undefined);
+  assert.ok(!unknown.props.className.includes("method-chip"));
+  assert.equal(unknown.props.children[0], null);
 });

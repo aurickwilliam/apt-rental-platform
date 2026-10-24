@@ -2,17 +2,39 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Chip, Table } from "@heroui/react";
+import { IconAlertCircle, IconCircleCheck, IconCircleX, IconClockHour4 } from "@tabler/icons-react";
+import { Card, Table } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
+import PaymentMethodChip from "@/app/components/display/PaymentMethodChip";
 import StatusChip from "@/app/components/display/StatusChip";
-import { formatDateShort, formatReferenceId, methodLabel, paymentStatusLabel, statusVariant } from "@/app/tenant/payment/utils";
+import { formatDateShort, formatReferenceId, paymentStatusLabel, statusVariant } from "@/app/tenant/payment/utils";
 import { ledgerPeriodLabel } from "@/lib/landlord-payments-view";
+import type { PaymentStatus } from "@/app/tenant/payment/types";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 
 interface PaymentsTableProps {
   payments: LandlordPaymentRecord[];
   /** Adds the unit to each row; on when the page lists several units at once. */
   showUnit: boolean;
+}
+
+const STATUS_ICONS = {
+  Paid: IconCircleCheck,
+  Pending: IconClockHour4,
+  Rejected: IconCircleX,
+  Failed: IconCircleX,
+  Unpaid: IconAlertCircle,
+} satisfies Record<PaymentStatus, typeof IconCircleCheck>;
+
+// The icon repeats the status in shape, so it never rests on color alone.
+function PaymentStatusChip({ status }: { status: PaymentStatus }) {
+  const Icon = STATUS_ICONS[status];
+  return (
+    <StatusChip size="sm" tone={statusVariant(status)} className="text-[11px]">
+      <Icon size={12} aria-hidden />
+      {status}
+    </StatusChip>
+  );
 }
 
 function periodTitle(payment: LandlordPaymentRecord): string {
@@ -72,17 +94,13 @@ export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps
                       {showUnit ? <Table.Cell className="text-sm">{payment.apartment_name ?? "—"}</Table.Cell> : null}
                       <Table.Cell className="text-sm">{payment.tenant_name ?? "—"}</Table.Cell>
                       <Table.Cell>
-                        <Chip size="sm" variant="soft" color="default" className="text-[11px]">
-                          {methodLabel(payment.method)}
-                        </Chip>
+                        <PaymentMethodChip method={payment.method} />
                       </Table.Cell>
                       <Table.Cell className="text-right text-sm font-semibold tabular-nums">
                         {formatPesoDisplay(payment.amount ?? 0)}
                       </Table.Cell>
                       <Table.Cell>
-                        <StatusChip size="sm" tone={statusVariant(status)} className="text-[11px]">
-                          {status}
-                        </StatusChip>
+                        <PaymentStatusChip status={status} />
                       </Table.Cell>
                       <Table.Cell className="whitespace-nowrap text-xs text-muted-foreground">
                         {formatReferenceId(payment.reference_id)}
@@ -109,12 +127,8 @@ export default function PaymentsTable({ payments, showUnit }: PaymentsTableProps
                         {periodTitle(payment)}
                       </p>
                       <div className="flex shrink-0 items-center gap-1.5">
-                        <Chip size="sm" variant="soft" color="default" className="text-[11px]">
-                          {methodLabel(payment.method)}
-                        </Chip>
-                        <StatusChip size="sm" tone={statusVariant(status)} className="text-[11px]">
-                          {status}
-                        </StatusChip>
+                        <PaymentMethodChip method={payment.method} />
+                        <PaymentStatusChip status={status} />
                       </div>
                     </div>
                   </Card.Header>

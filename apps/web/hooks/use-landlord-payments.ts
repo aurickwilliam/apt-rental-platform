@@ -55,7 +55,7 @@ export function useLandlordPayments(apartmentId: string | null) {
       throw new Error(toMessage(err));
     }
   }, [apartmentId, identity]);
-  const { data, loading, error, revalidate, revalidating, setData } = useAsyncResource(load, NO_PAYMENTS, "Failed to load payments.", { clearOnRevalidateError: true });
+  const { data, loading, error, refresh: refreshWithLoading, revalidate, revalidating, setData } = useAsyncResource(load, NO_PAYMENTS, "Failed to load payments.", { clearOnRevalidateError: true });
 
   const applyOptimisticPaid = useCallback((paymentId: string) => {
     setData((rows) => rows.map((row) => (row.id === paymentId ? { ...row, status: "paid" } : row)));
@@ -72,6 +72,8 @@ export function useLandlordPayments(apartmentId: string | null) {
     loading: apartmentId !== null && (identity.authUserId === undefined || loading),
     error: apartmentId ? error : null,
     refresh: revalidate,
+    // Manual reload: shows the loading state, unlike the quiet `refresh`.
+    reload: refreshWithLoading,
     revalidating,
     applyOptimisticPaid,
     rollback,

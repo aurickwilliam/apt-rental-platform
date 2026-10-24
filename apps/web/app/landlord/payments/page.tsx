@@ -96,7 +96,7 @@ function PaymentsContent() {
           className="rounded-full"
           onPress={() => {
             void unitsQuery.refresh();
-            void paymentsQuery.refresh();
+            void paymentsQuery.reload();
           }}
         >
           Try Again
@@ -163,7 +163,7 @@ function PaymentsContent() {
           isPending={unitsQuery.revalidating || paymentsQuery.revalidating}
           onPress={() => {
             void unitsQuery.refresh();
-            void paymentsQuery.refresh();
+            void paymentsQuery.reload();
           }}
         >
           <IconRefresh size={16} aria-hidden />
