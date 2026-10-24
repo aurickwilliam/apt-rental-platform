@@ -9,7 +9,9 @@ import { aptReference, rekeyPlanReferences } from "./planner.mjs";
 // bodies it extends, in embedded PostgreSQL. Only the operator/locking/inventory
 // helpers are stubbed; they are covered by the opt-in suite in database.test.mjs.
 const original = await readFile(new URL("../../supabase/migrations/20261017075357_safe_demo_population.sql", import.meta.url), "utf8");
-const migration = await readFile(new URL("../../supabase/migrations/20261024090000_demo_population_rekey_references.sql", import.meta.url), "utf8");
+const migration = await readFile(new URL("../../supabase/migrations/20261024022954_demo_population_rekey_references.sql", import.meta.url), "utf8");
+const drift = await readFile(new URL("../../supabase/migrations/20261024023810_demo_population_rekey_schema_drift.sql", import.meta.url), "utf8");
+const generated = await readFile(new URL("../../supabase/migrations/20261024024024_demo_population_rekey_generated_columns.sql", import.meta.url), "utf8");
 const extract = (name) => {
   const start = original.indexOf(`create function demo_population.${name}(`);
   assert.notEqual(start, -1, `${name} is defined in the original migration`);
@@ -67,6 +69,8 @@ async function freshDb() {
   const db = new PGlite();
   await db.exec(schema);
   await db.exec(migration);
+  await db.exec(drift);
+  await db.exec(generated);
   const plan = savedPlan();
   await db.exec(`
     insert into apartments values ('${apartment}','${landlord}',5000,5,'occupied');
@@ -194,4 +198,49 @@ test("a failure part-way rolls every table back, including the saved plan", asyn
   const before = await snapshot(db);
   await assert.rejects(rekey(db, rekeyPlanReferences(plan).plan), /boom/);
   assert.equal(await snapshot(db), before);
+});
+
+test("columns added to payment after the run was recorded do not block the re-key", async () => {
+  const { db, plan } = await freshDb();
+  // The live project gained the move-in billing columns after its run was recorded.
+  await db.exec(`alter table payment add column billing_kind text, add column rent_amount numeric,
+    add column rental_income_amount numeric generated always as (case when billing_kind is null then amount else rent_amount end) stored`);
+  const target = rekeyPlanReferences(plan).plan;
+  const preview = await rekey(db, target, { preview: true });
+  assert.equal(preview.rekeyed, 3);
+  const result = await rekey(db, target);
+  assert.equal(result.rekeyed, 3);
+  const payments = (await db.query("select reference_id, billing_kind, rent_amount from payment order by period_start")).rows;
+  assert.deepEqual(payments.map((p) => p.reference_id), refs);
+  assert.ok(payments.every((p) => p.billing_kind === null && p.rent_amount === null));
+  assert.equal((await db.query("select count(*) n from payment where rental_income_amount = amount")).rows[0].n, 3, "the generated column is populated and was ignored");
+});
+
+test("a newer column that now holds a value, or an edit to a recorded column, still refuses", async () => {
+  for (const mutate of [
+    (db) => db.query("update payment set rent_amount = 1 where id = $1", [ids[0]]),
+    (db) => db.query("update payment set method = 'cash' where id = $1", [ids[0]]),
+  ]) {
+    const { db, plan } = await freshDb();
+    await db.exec("alter table payment add column billing_kind text, add column rent_amount numeric");
+    await mutate(db);
+    const before = await snapshot(db);
+    await refused(rekey(db, rekeyPlanReferences(plan).plan), "AP005");
+    assert.equal(await snapshot(db), before);
+  }
+});
+
+test("matches_recorded compares recorded columns exactly and tolerates only empty newer ones", async () => {
+  const { db } = await freshDb();
+  const check = async (current, recorded) => (await db.query("select demo_population.matches_recorded($1::jsonb, $2::jsonb) r", [current === null ? null : JSON.stringify(current), recorded === null ? null : JSON.stringify(recorded)])).rows[0].r;
+  assert.equal(await check({ a: 1, b: "x" }, { a: 1, b: "x" }), true);
+  assert.equal(await check({ a: 1, b: "x", c: null }, { a: 1, b: "x" }), true);
+  assert.equal(await check({ a: 1, b: "x", c: 5 }, { a: 1, b: "x" }), false);
+  // A populated newer column is accepted only when it is generated.
+  await db.exec("alter table payment add column derived numeric generated always as (amount) stored");
+  assert.equal(await check({ a: 1, derived: 5000 }, { a: 1 }), true);
+  assert.equal(await check({ a: 1, written: 5000 }, { a: 1 }), false);
+  assert.equal(await check({ a: 2, b: "x" }, { a: 1, b: "x" }), false);
+  assert.equal(await check({ a: 1 }, { a: 1, b: "x" }), false, "a recorded column that disappeared");
+  assert.equal(await check(null, { a: 1 }), false);
 });

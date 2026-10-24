@@ -106,7 +106,7 @@ Full-run reset/cleanup coordinate both components in one transaction, handling f
 
 ## Re-key payment references on an existing run
 
-Runs recorded before the `APT-` format carry `DEMO-<id>` payment references, and a saved run is never regenerated, so they stay until explicitly re-keyed. Re-keying rewrites **only** `payment.reference_id`, those payments' recorded after-images and the saved plan, in one transaction. It needs migration `20261024090000_demo_population_rekey_references.sql`.
+Runs recorded before the `APT-` format carry `DEMO-<id>` payment references, and a saved run is never regenerated, so they stay until explicitly re-keyed. Re-keying rewrites **only** `payment.reference_id`, those payments' recorded after-images and the saved plan, in one transaction. It needs migrations `20261024022954_demo_population_rekey_references.sql`, `20261024023810_demo_population_rekey_schema_drift.sql` and `20261024024024_demo_population_rekey_generated_columns.sql`, applied in that order. The last two exist because a recorded payment is compared with the row as it is now: columns added to `payment` after the run (the billing columns, and the generated `rental_income_amount`) are accepted only when empty or generated, while every recorded column must be unchanged.
 
 ```bash
 pnpm db:populate --rekey-references --run <run-id> --dry-run
