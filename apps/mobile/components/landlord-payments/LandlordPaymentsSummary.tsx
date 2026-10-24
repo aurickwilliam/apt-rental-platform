@@ -29,11 +29,13 @@ export default function LandlordPaymentsSummary({
     <View className="gap-3">
       <View className="flex-row gap-3">
         <DashboardStatTile
+          isLabelAccented
           label="Collected"
           value={formatPesoDisplay(collected)}
           caption={`${scopeLabel} · ${plural(paidCount, "paid payment")}`}
         />
         <DashboardStatTile
+          isLabelAccented
           label="Cash to confirm"
           value={formatPesoDisplay(awaitingAmount)}
           caption={awaitingCount === 0 ? "Nothing waiting" : `${plural(awaitingCount, "payment")} waiting`}
@@ -42,11 +44,13 @@ export default function LandlordPaymentsSummary({
       </View>
       <View className="flex-row gap-3">
         <DashboardStatTile
+          isLabelAccented
           label="Last payment"
           value={lastPaid ? formatPesoDisplay(lastPaid.amount) : "—"}
           caption={lastPaid ? `Paid ${ledgerDateLabel(lastPaid.date)}` : "No paid payments yet"}
         />
         <DashboardStatTile
+          isLabelAccented
           label="Declined or failed"
           value={String(declinedCount)}
           caption={declinedCount === 0 ? "All clear" : "Rejected, failed or unpaid"}

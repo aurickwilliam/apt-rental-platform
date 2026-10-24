@@ -32,6 +32,13 @@ describe("LandlordPaymentsSummary", () => {
     expect(screen.getByText("Rejected, failed or unpaid")).toBeTruthy();
   });
 
+  it("paints every tile title in the brand color", () => {
+    render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
+    for (const title of ["Collected", "Cash to confirm", "Last payment", "Declined or failed"]) {
+      expect(screen.getByText(title).props.className).toContain("text-primary");
+    }
+  });
+
   it("is calm when nothing is waiting or declined, and has no last payment", () => {
     render(
       <LandlordPaymentsSummary

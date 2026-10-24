@@ -5,11 +5,10 @@ import { Card, Chip, PressableFeedback } from "heroui-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
-import { useColors } from "hooks/useTheme";
+import PaymentMethodChip from "@/components/display/PaymentMethodChip";
 import { usePaymentStatusStyles } from "hooks/payments";
 import {
   formatReferenceId,
-  methodLabel,
   paymentStatusLabel,
 } from "@/service/payments/paymentService";
 
@@ -37,7 +36,6 @@ export default function PaymentHistoryCard({
   tenantName,
   onPress,
 }: PaymentHistoryCardProps) {
-  const { colors } = useColors();
   const statusStyles = usePaymentStatusStyles();
 
   const label = paymentStatusLabel(status);
@@ -61,21 +59,7 @@ export default function PaymentHistoryCard({
             </Text>
 
             <View className="flex-row items-center gap-1.5 shrink-0">
-              {method ? (
-                <Chip
-                  variant="soft"
-                  size="sm"
-                  animation="disable-all"
-                  style={{ backgroundColor: colors.gray100 }}
-                >
-                  <Chip.Label
-                    style={{ color: colors.gray500 }}
-                    className="text-[11px] font-nunitoSemiBold"
-                  >
-                    {methodLabel(method)}
-                  </Chip.Label>
-                </Chip>
-              ) : null}
+              {method ? <PaymentMethodChip method={method} /> : null}
 
               <Chip
                 variant="soft"

@@ -15,6 +15,10 @@ interface DropdownButtonProps<T extends string> {
   multi?: boolean;
   placeholder?: string;
   width?: number | "trigger" | "content-fit" | "full";
+  /** Which edge of the trigger the menu lines up with. Defaults to the end (right). */
+  align?: "start" | "center" | "end";
+  /** Tints the selected option soft blue and its check mark brand blue. */
+  highlightSelected?: boolean;
   buttonClassName?: string;
   textClassName?: string;
 }
@@ -37,6 +41,8 @@ export default function DropdownButton<T extends string>({
   multi = false,
   placeholder = "Select",
   width = 200,
+  align = "end",
+  highlightSelected = false,
   buttonClassName,
   textClassName,
 }: DropdownButtonProps<T>) {
@@ -62,7 +68,7 @@ export default function DropdownButton<T extends string>({
 
       <Menu.Portal>
         <Menu.Overlay />
-        <Menu.Content presentation="popover" align="end" width={width}>
+        <Menu.Content presentation="popover" align={align} width={width}>
           {label ? <Menu.Label className="mb-1">{label}</Menu.Label> : null}
 
           <Menu.Group
@@ -90,12 +96,25 @@ export default function DropdownButton<T extends string>({
               }
             }}
           >
-            {options.map((option) => (
-              <Menu.Item key={option} id={option}>
-                <Menu.ItemIndicator />
-                <Menu.ItemTitle>{option}</Menu.ItemTitle>
-              </Menu.Item>
-            ))}
+            {options.map((option) => {
+              const highlighted = highlightSelected && selectedKeys.has(option);
+              return (
+                // A menu item animates its own background for press feedback, which a
+                // class cannot override, so the highlighted row opts out of that
+                // animation and takes the tint from its class.
+                <Menu.Item
+                  key={option}
+                  id={option}
+                  className={highlighted ? "bg-primary-light rounded-xl" : undefined}
+                  isAnimatedStyleActive={!highlighted}
+                >
+                  <Menu.ItemIndicator
+                    iconProps={highlightSelected ? { color: colors.primary } : undefined}
+                  />
+                  <Menu.ItemTitle>{option}</Menu.ItemTitle>
+                </Menu.Item>
+              );
+            })}
           </Menu.Group>
         </Menu.Content>
       </Menu.Portal>

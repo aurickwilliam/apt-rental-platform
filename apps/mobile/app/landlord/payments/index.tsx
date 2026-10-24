@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Spinner } from "heroui-native";
-import { IconWallet } from "@tabler/icons-react-native";
+import { Button } from "heroui-native";
+import { IconFilter2, IconWallet } from "@tabler/icons-react-native";
 
 import {
   ALL_APARTMENTS,
@@ -23,9 +23,11 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import EmptyState from "@/components/display/EmptyState";
 import FinanceSelect from "@/components/finance/FinanceSelect";
-import FinanceTabs from "@/components/finance/FinanceTabs";
+import DropdownButton from "@/components/buttons/DropdownButton";
 import CashToConfirmCard from "@/components/landlord-payments/CashToConfirmCard";
+import LandlordPaymentsSkeleton from "@/components/landlord-payments/LandlordPaymentsSkeleton";
 import LandlordPaymentsSummary from "@/components/landlord-payments/LandlordPaymentsSummary";
+import PaymentFilterSheet from "@/components/landlord-payments/PaymentFilterSheet";
 import { useAllLandlordPayments } from "@/hooks/landlord";
 import { useColors } from "@/hooks/useTheme";
 import type { LandlordPaymentWithUnit } from "@/service/landlord/landlordService";
@@ -34,8 +36,9 @@ import PaymentHistoryCard from "../manage-apartment/[apartmentId]/components/Pay
 
 const PAGE_SIZE = 30;
 
+// The status menu's labels; "All payments" reads naturally on the closed menu.
 const TAB_OPTIONS: { value: LedgerTab; label: string }[] = [
-  { value: "all", label: "All" },
+  { value: "all", label: "All payments" },
   { value: "paid", label: "Paid" },
   { value: "pending", label: "Pending" },
   { value: "declined", label: "Declined" },
@@ -45,6 +48,11 @@ const SORT_OPTIONS: { value: LedgerSort; label: string }[] = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
 ];
+
+const ALL_YEARS_LABEL = "All years";
+
+const STATUS_TRIGGER_CLASS =
+  "bg-surface px-4 py-3 rounded-2xl flex-row items-center justify-between gap-2 border border-field-border";
 
 const isTab = (value: string | undefined): value is LedgerTab =>
   TAB_OPTIONS.some((option) => option.value === value);
@@ -62,6 +70,7 @@ export default function LandlordPaymentsScreen() {
   const [year, setYear] = useState<string>(ALL_YEARS);
   const [sort, setSort] = useState<LedgerSort>("newest");
   const [shown, setShown] = useState(PAGE_SIZE);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // A unit that is no longer in the list falls back to every unit.
   const activeUnitId = units.some((unit) => unit.id === unitId) ? unitId : ALL_APARTMENTS;
@@ -89,10 +98,19 @@ export default function LandlordPaymentsScreen() {
     { value: ALL_APARTMENTS, label: "All apartments" },
     ...units.map((unit) => ({ value: unit.id, label: unit.name })),
   ];
-  const yearOptions = [{ value: ALL_YEARS, label: "All years" }, ...years.map((value) => ({ value, label: value }))];
+  const yearLabels = [ALL_YEARS_LABEL, ...years];
+  const activeFilters = (activeYear !== ALL_YEARS ? 1 : 0) + (sort !== "newest" ? 1 : 0);
+  const statusLabel = TAB_OPTIONS.find((option) => option.value === tab)?.label ?? TAB_OPTIONS[0].label;
+  const sortLabel = SORT_OPTIONS.find((option) => option.value === sort)?.label ?? SORT_OPTIONS[0].label;
 
-  const changeTab = (value: string) => {
-    setTab(value as LedgerTab);
+  const changeTab = (value: LedgerTab) => {
+    setTab(value);
+    setShown(PAGE_SIZE);
+  };
+
+  const resetFilters = () => {
+    setYear(ALL_YEARS);
+    setSort("newest");
     setShown(PAGE_SIZE);
   };
 
@@ -106,10 +124,8 @@ export default function LandlordPaymentsScreen() {
 
   if (isLoading) {
     return (
-      <ScreenWrapper header={header}>
-        <View className="flex-1 items-center justify-center">
-          <Spinner size="lg" color={colors.primary} accessibilityLabel="Loading payments" />
-        </View>
+      <ScreenWrapper header={header} scrollable className="p-5">
+        <LandlordPaymentsSkeleton />
       </ScreenWrapper>
     );
   }
@@ -178,29 +194,37 @@ export default function LandlordPaymentsScreen() {
           />
         ) : null}
 
-        <FinanceTabs value={tab} options={TAB_OPTIONS} onChange={changeTab} />
-
-        <View className="flex-row gap-3">
+        <View className="flex-row items-center gap-3">
           <View className="flex-1">
-            <FinanceSelect
-              label="Year"
-              value={activeYear}
-              options={yearOptions}
-              onChange={(value) => {
-                setYear(value);
-                setShown(PAGE_SIZE);
+            <DropdownButton
+              options={TAB_OPTIONS.map((option) => option.label)}
+              value={statusLabel}
+              onSelect={(label) => {
+                const next = TAB_OPTIONS.find((option) => option.label === label);
+                if (next) changeTab(next.value);
               }}
-              sheetHeight="50%"
+              width="trigger"
+              align="start"
+              highlightSelected
+              buttonClassName={STATUS_TRIGGER_CLASS}
+              textClassName="text-foreground text-base font-inter flex-1"
             />
           </View>
-          <View className="flex-1">
-            <FinanceSelect
-              label="Sort"
-              value={sort}
-              options={SORT_OPTIONS}
-              onChange={(value) => setSort(value as LedgerSort)}
-              sheetHeight="35%"
-            />
+
+          <View className="relative">
+            <Pressable
+              onPress={() => setFilterOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={activeFilters > 0 ? `Filters, ${activeFilters} active` : "Filters"}
+              className="size-12 rounded-full bg-primary-light items-center justify-center active:opacity-70"
+            >
+              <IconFilter2 size={22} color={colors.primary} />
+            </Pressable>
+            {activeFilters > 0 ? (
+              <View className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-primary items-center justify-center">
+                <Text className="text-white text-[11px] font-nunitoBold">{activeFilters}</Text>
+              </View>
+            ) : null}
           </View>
         </View>
 
@@ -255,6 +279,25 @@ export default function LandlordPaymentsScreen() {
           </View>
         )}
       </View>
+
+      <PaymentFilterSheet
+        isOpen={filterOpen}
+        onOpenChange={setFilterOpen}
+        yearOptions={yearLabels}
+        year={activeYear === ALL_YEARS ? ALL_YEARS_LABEL : activeYear}
+        onYearChange={(label) => {
+          setYear(label === ALL_YEARS_LABEL ? ALL_YEARS : label);
+          setShown(PAGE_SIZE);
+        }}
+        sortOptions={SORT_OPTIONS.map((option) => option.label)}
+        sort={sortLabel}
+        onSortChange={(label) => {
+          const next = SORT_OPTIONS.find((option) => option.label === label);
+          if (next) setSort(next.value);
+        }}
+        onReset={resetFilters}
+        isChanged={activeFilters > 0}
+      />
     </ScreenWrapper>
   );
 }

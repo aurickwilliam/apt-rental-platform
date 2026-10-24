@@ -42,6 +42,10 @@ jest.mock("@/components/layout/StandardHeader", () => {
   const { Text: T } = jest.requireActual("react-native");
   return { __esModule: true, default: ({ title }: { title: string }) => <T>{title}</T> };
 });
+jest.mock("@/components/landlord-payments/LandlordPaymentsSkeleton", () => {
+  const { Text: T } = jest.requireActual("react-native");
+  return { __esModule: true, default: () => <T>payments skeleton</T> };
+});
 jest.mock("@/components/display/EmptyState", () => {
   const { Text: T } = jest.requireActual("react-native");
   return { __esModule: true, default: ({ title }: { title: string }) => <T>{title}</T> };
@@ -60,14 +64,32 @@ jest.mock("@/components/finance/FinanceSelect", () => {
     ),
   };
 });
-jest.mock("@/components/finance/FinanceTabs", () => {
+jest.mock("@/components/buttons/DropdownButton", () => {
   const { Pressable: P, Text: T, View: V } = jest.requireActual("react-native");
   return {
     __esModule: true,
-    default: ({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) => (
+    default: ({ options, value, onSelect, align, width }: { options: string[]; value: string; onSelect: (v: string) => void; align?: string; width?: unknown }) => (
       <V>
-        <T>{`tab: ${value}`}</T>
-        {options.map((o) => <P key={o.value} accessibilityLabel={`tab ${o.label}`} onPress={() => onChange(o.value)}><T>{o.label}</T></P>)}
+        <T>{`status menu: ${value} (${align}, ${String(width)})`}</T>
+        {options.map((o) => <P key={o} accessibilityLabel={`status option ${o}`} onPress={() => onSelect(o)}><T>{o}</T></P>)}
+      </V>
+    ),
+  };
+});
+jest.mock("@/components/landlord-payments/PaymentFilterSheet", () => {
+  const { Pressable: P, Text: T, View: V } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({ isOpen, onOpenChange, yearOptions, year, onYearChange, sortOptions, sort, onSortChange, onReset, isChanged }: {
+      isOpen: boolean; onOpenChange: (open: boolean) => void; yearOptions: string[]; year: string; onYearChange: (v: string) => void;
+      sortOptions: string[]; sort: string; onSortChange: (v: string) => void; onReset: () => void; isChanged: boolean;
+    }) => (
+      <V>
+        <T>{`sheet: ${isOpen ? "open" : "closed"} year=${year} sort=${sort} changed=${String(isChanged)}`}</T>
+        {yearOptions.map((o) => <P key={o} accessibilityLabel={`sheet year ${o}`} onPress={() => onYearChange(o)}><T>{o}</T></P>)}
+        {sortOptions.map((o) => <P key={o} accessibilityLabel={`sheet sort ${o}`} onPress={() => onSortChange(o)}><T>{o}</T></P>)}
+        <P accessibilityLabel="sheet reset" onPress={onReset}><T>reset</T></P>
+        <P accessibilityLabel="sheet close" onPress={() => onOpenChange(false)}><T>close</T></P>
       </V>
     ),
   };
@@ -110,6 +132,9 @@ describe("landlord Payments screen", () => {
   it("shows loading, an error with Try Again, and an empty state for a landlord without units", () => {
     mockData.isLoading = true;
     const loading = render(<LandlordPaymentsScreen />);
+    // The skeleton stands in for the whole body; no figures or spinner.
+    expect(loading.getByText("payments skeleton")).toBeTruthy();
+    expect(loading.getByText("Payments")).toBeTruthy();
     expect(loading.queryByText(/Collected/)).toBeNull();
     loading.unmount();
 
@@ -133,7 +158,7 @@ describe("landlord Payments screen", () => {
     expect(screen.getByText("Apartment: All apartments (searchable)")).toBeTruthy();
     expect(screen.getByText("April 2026|Unit B|Ryan")).toBeTruthy();
     expect(screen.getByText("March 2026|Unit A|Ryan")).toBeTruthy();
-    expect(screen.getByText("tab: all")).toBeTruthy();
+    expect(screen.getByText(/^status menu: All payments \(start, trigger\)/)).toBeTruthy();
   });
 
   it("totals only paid money and shows the cash waiting for the landlord", () => {
@@ -155,34 +180,79 @@ describe("landlord Payments screen", () => {
     expect(screen.getByText(/^Collected: ₱\s?0\b/)).toBeTruthy();
   });
 
-  it("filters by status tab, opens on the tab from the Dashboard link, and the cash card jumps to Pending", () => {
+  it("filters by status through the menu, opens on the status from the Dashboard link, and the cash card jumps to Pending", () => {
     mockData.payments = rows();
     mockParams = { status: "pending" };
     const first = render(<LandlordPaymentsScreen />);
-    expect(screen.getByText("tab: pending")).toBeTruthy();
+    expect(screen.getByText(/^status menu: Pending/)).toBeTruthy();
     expect(screen.getByText("April 2026|Unit B|Ryan")).toBeTruthy();
     expect(screen.queryByText(/March 2026/)).toBeNull();
     first.unmount();
 
-    mockParams = { status: "not-a-tab" };
+    mockParams = { status: "not-a-status" };
     render(<LandlordPaymentsScreen />);
-    expect(screen.getByText("tab: all")).toBeTruthy();
+    expect(screen.getByText(/^status menu: All payments/)).toBeTruthy();
     fireEvent.press(screen.getByLabelText(/Needs attention/));
-    expect(screen.getByText("tab: pending")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("tab Declined"));
+    expect(screen.getByText(/^status menu: Pending/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("status option Declined"));
     expect(screen.getByText("February 2026|Unit A|Ryan")).toBeTruthy();
+    expect(screen.queryByText(/April 2026/)).toBeNull();
   });
 
-  it("filters by year and offers Clear filters when nothing matches", () => {
+  it("has no tabs and no year or sort selects on the screen itself", () => {
     mockData.payments = rows();
     render(<LandlordPaymentsScreen />);
-    fireEvent.press(screen.getByLabelText("Year option 2025"));
+    expect(screen.queryByText(/^tab:/)).toBeNull();
+    expect(screen.queryByTestId("select-Year")).toBeNull();
+    expect(screen.queryByTestId("select-Sort")).toBeNull();
+  });
+
+  it("opens the filter sheet from the filter icon, with year and sort inside it", () => {
+    mockData.payments = rows();
+    render(<LandlordPaymentsScreen />);
+    expect(screen.getByText(/^sheet: closed year=All years sort=Newest changed=false/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("Filters"));
+    expect(screen.getByText(/^sheet: open/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("sheet close"));
+    expect(screen.getByText(/^sheet: closed/)).toBeTruthy();
+  });
+
+  it("filters by year through the sheet, badges the icon, and Reset puts it back", () => {
+    mockData.payments = rows();
+    render(<LandlordPaymentsScreen />);
+    fireEvent.press(screen.getByLabelText("sheet year 2025"));
     expect(screen.getByText("January 2025|Unit A|Ryan")).toBeTruthy();
     expect(screen.queryByText(/March 2026/)).toBeNull();
-    fireEvent.press(screen.getByLabelText("tab Pending"));
+    expect(screen.getByText(/year=2025 sort=Newest changed=true/)).toBeTruthy();
+    expect(screen.getByLabelText("Filters, 1 active")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
+    expect(screen.getByLabelText("Filters, 2 active")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText("sheet reset"));
+    expect(screen.getByLabelText("Filters")).toBeTruthy();
+    expect(screen.getByText(/year=All years sort=Newest changed=false/)).toBeTruthy();
+    expect(screen.getByText("March 2026|Unit A|Ryan")).toBeTruthy();
+  });
+
+  it("sorts the list oldest first through the sheet", () => {
+    mockData.payments = rows();
+    render(<LandlordPaymentsScreen />);
+    const order = () => screen.getAllByLabelText(/^payment /).map((node) => node.props.accessibilityLabel);
+    expect(order()[0]).toBe("payment April 2026 7000");
+    fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
+    expect(order()[0]).toBe("payment January 2025 4000");
+  });
+
+  it("offers Clear filters when the status and year match nothing", () => {
+    mockData.payments = rows();
+    render(<LandlordPaymentsScreen />);
+    fireEvent.press(screen.getByLabelText("sheet year 2025"));
+    fireEvent.press(screen.getByLabelText("status option Pending"));
     expect(screen.getByText("No payments found")).toBeTruthy();
     fireEvent.press(screen.getByText("Clear filters"));
     expect(screen.getByText("January 2025|Unit A|Ryan")).toBeTruthy();
+    expect(screen.getByText(/^status menu: All payments/)).toBeTruthy();
   });
 
   it("opens that payment's receipt for its own unit", () => {
