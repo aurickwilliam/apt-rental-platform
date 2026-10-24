@@ -33,6 +33,17 @@ export function isAdminMfaRequired(value: string | undefined): boolean {
   return value === "true";
 }
 
+const SVG_DATA_URI_PREFIX = "data:image/svg+xml;utf-8,";
+
+// Auth hands back the QR as a raw, unencoded SVG data URI that ends in a
+// newline, which next/image rejects. Re-encode the markup so it is a valid src.
+export function qrCodeImageSrc(qrCode: string): string {
+  const markup = qrCode.startsWith("data:")
+    ? qrCode.slice(qrCode.indexOf(",") + 1)
+    : qrCode;
+  return `${SVG_DATA_URI_PREFIX}${encodeURIComponent(markup.trim())}`;
+}
+
 // The token's claim is the only trusted source for the level.
 export function toAssuranceLevel(claim: unknown): AssuranceLevel {
   return claim === "aal2" ? "aal2" : "aal1";
