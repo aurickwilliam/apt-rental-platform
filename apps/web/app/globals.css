@@ -4,6 +4,56 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Keep the review prompt's controls outside its scroll surface. HeroUI's
+   unlayered positioning/sizing rules need scoped overrides, not utilities. */
+.review-unlock-container {
+  width: 100%;
+  max-width: 48rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+}
+.review-unlock-modal { max-width: 100%; }
+.review-unlock-header { flex-shrink: 0; align-items: flex-end; }
+.review-unlock-close {
+  position: static;
+  width: 2.75rem;
+  height: 2.75rem;
+  touch-action: manipulation;
+}
+.review-unlock-body { flex-basis: auto; }
+.review-unlock-heading {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--card-foreground);
+  text-wrap: balance;
+}
+.review-unlock-footer {
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: stretch;
+  align-self: center;
+  width: 100%;
+  max-width: 28rem;
+}
+.review-unlock-action { flex: none; width: 100%; min-height: 2.75rem; touch-action: manipulation; }
+@media (min-width: 40rem) {
+  .review-unlock-container {
+    padding-top: max(2.5rem, env(safe-area-inset-top));
+    padding-right: max(2.5rem, env(safe-area-inset-right));
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+    padding-left: max(2.5rem, env(safe-area-inset-left));
+  }
+  .review-unlock-heading { font-size: 2.25rem; }
+  .review-unlock-footer { flex-direction: row; }
+  .review-unlock-action { flex: 1 1 0; width: auto; }
+}
+
 /* Finance controls use HeroUI behavior, with APT's existing surface/spacing
    roles. Unlayered overrides belong here, not competing Tailwind utilities. */
 .finance-report { --finance-expenses: #FF4B4B; --finance-pending: #FACC15; }
