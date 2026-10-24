@@ -2,6 +2,7 @@ import { Card } from "@heroui/react";
 import { IconUserCog } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import AccountActions from "./AccountActions";
+import AddRoleSection from "@/app/components/profile/AddRoleSection";
 import { requireAdmin } from "../_lib/require-admin";
 import UserProfileHeader from "../users/[id]/components/UserProfileHeader";
 import UserPersonalInfo from "../users/[id]/components/UserPersonalInfo";
@@ -96,14 +97,27 @@ export default async function AdminProfilePage() {
             />
           )}
         </div>
-        <Card className="h-fit rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-          <Card.Content className="p-0">
-            <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
-              <IconUserCog size={20} aria-hidden="true" /> Account actions
-            </h2>
-            <AccountActions />
-          </Card.Content>
-        </Card>
+        <div className="grid h-fit grid-cols-1 gap-4">
+          <Card className="h-fit rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+            <Card.Content className="p-0">
+              <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
+                <IconUserCog size={20} aria-hidden="true" /> Account actions
+              </h2>
+              <AccountActions />
+            </Card.Content>
+          </Card>
+          {/* An admin who also owns or rents adds that role to this same account.
+              AddRoleSection renders nothing once the role is held, so each card is gated too. */}
+          {(["tenant", "landlord"] as const)
+            .filter((role) => !user.roles.includes(role))
+            .map((role) => (
+              <Card key={role} className="h-fit rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+                <Card.Content className="p-0">
+                  <AddRoleSection currentRoles={user.roles} targetRole={role} />
+                </Card.Content>
+              </Card>
+            ))}
+        </div>
       </div>
     </div>
   );
