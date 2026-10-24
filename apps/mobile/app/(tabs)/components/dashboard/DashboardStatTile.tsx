@@ -28,7 +28,7 @@ export default function DashboardStatTile({
   const content = (
     <>
       <View className="flex-row items-center justify-between">
-        <Text className={`text-sm font-interMedium flex-1 ${isLabelAccented ? "text-primary" : "text-muted"}`}>{label}</Text>
+        <Text className={`text-sm flex-1 ${isLabelAccented ? "text-primary font-nunitoSemiBold" : "text-muted font-interMedium"}`}>{label}</Text>
         {onPress ? <IconChevronRight size={16} color={colors.gray500} /> : null}
       </View>
       <Text

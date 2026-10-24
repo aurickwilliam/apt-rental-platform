@@ -1047,12 +1047,15 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
 // Only cash rows awaiting landlord confirmation are flippable by hand; the
 // webhook owns e-wallet/card rows. RLS (landlord_update_payment_status) and the
 // status column grant already gate this server-side.
+export type LandlordPaymentDecision = "paid" | "rejected";
+
 export async function updateLandlordPaymentStatus(
-  id: string
+  id: string,
+  status: LandlordPaymentDecision = "paid"
 ): Promise<{ success: boolean; error?: string }> {
   const { error, data } = await supabase
     .from("payment")
-    .update({ status: "paid" })
+    .update({ status })
     .eq("id", id)
     .eq("method", "cash")
     .eq("status", "pending")

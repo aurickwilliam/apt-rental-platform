@@ -7,6 +7,7 @@ import { ALL_LANDLORD_PAYMENTS_QUERY_PREFIX } from './useAllLandlordPayments'
 import {
   fetchLandlordPayments,
   updateLandlordPaymentStatus,
+  type LandlordPaymentDecision,
 } from '@/service/landlord/landlordService'
 
 export type {
@@ -24,17 +25,17 @@ export function useLandlordPayments(apartmentId: string | undefined) {
   })
 }
 
-// Landlord confirms a pending cash payment → 'paid'. Optimistic update with
-// rollback; the flip settles via the notification trigger (tenant gets
-// "Payment Successful"), so we only mark the cache stale — no extra refetch.
-export function useLandlordPaymentConfirmation(apartmentId: string | undefined) {
+// Landlord resolves a pending cash payment: 'paid' (confirm) or 'rejected' (decline,
+// which lets the tenant submit another cash request). Optimistic update with rollback;
+// the flip settles through the notification trigger, so we only mark the cache stale.
+function useLandlordPaymentDecision(apartmentId: string | undefined, decision: LandlordPaymentDecision) {
   const queryClient = useQueryClient()
 
   return useMutation({
     // The service reports a refused update as { success: false } instead of throwing;
     // surface it as an error so the optimistic change rolls back and the screen shows it.
     mutationFn: async (paymentId: string) => {
-      const result = await updateLandlordPaymentStatus(paymentId)
+      const result = await updateLandlordPaymentStatus(paymentId, decision)
       if (!result.success) throw new Error(result.error ?? 'Could not update payment status.')
       return result
     },
@@ -62,7 +63,7 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
         return {
           ...all,
           payments: all.payments.map((payment) =>
-            payment.id === paymentId ? { ...payment, status: 'paid' } : payment
+            payment.id === paymentId ? { ...payment, status: decision } : payment
           ),
         }
       })
@@ -71,7 +72,7 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
         const list = Array.isArray(rows) ? rows : []
         return list.map((row) =>
           typeof row === 'object' && row !== null && (row as { id?: string }).id === paymentId
-            ? { ...(row as object), status: 'paid' }
+            ? { ...(row as object), status: decision }
             : row
         )
       })
@@ -81,7 +82,7 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
         const tenancy = data as { paymentHistory?: { id: string; status: string }[] }
         const paymentHistory = tenancy.paymentHistory
           ? tenancy.paymentHistory.map((payment) =>
-              payment.id === paymentId ? { ...payment, status: 'paid' } : payment
+              payment.id === paymentId ? { ...payment, status: decision } : payment
             )
           : undefined
         return { ...tenancy, paymentHistory }
@@ -117,4 +118,12 @@ export function useLandlordPaymentConfirmation(apartmentId: string | undefined) 
       })
     },
   })
+}
+
+export function useLandlordPaymentConfirmation(apartmentId: string | undefined) {
+  return useLandlordPaymentDecision(apartmentId, 'paid')
+}
+
+export function useLandlordPaymentDecline(apartmentId: string | undefined) {
+  return useLandlordPaymentDecision(apartmentId, 'rejected')
 }

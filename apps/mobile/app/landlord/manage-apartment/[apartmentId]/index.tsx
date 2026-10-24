@@ -307,7 +307,6 @@ export default function Index() {
                           key={payment.id}
                           month={payment.month}
                           amount={payment.amount}
-                          paidDate={payment.paidDate}
                           status={payment.status}
                           method={payment.method}
                           referenceId={payment.reference}

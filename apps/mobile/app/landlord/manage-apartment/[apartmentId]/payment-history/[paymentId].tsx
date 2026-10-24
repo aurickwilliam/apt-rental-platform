@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { View, Text, ScrollView } from 'react-native'
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Button, Spinner } from 'heroui-native'
@@ -8,152 +7,126 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { useColors } from '@/hooks/useTheme'
 import { usePayment, getPaymentQueryKey } from '@/hooks/payments'
-import { useLandlordPaymentConfirmation } from '@/hooks/landlord'
 import {
-  formatReferenceId,
-  methodLabel,
-  paymentStatusLabel,
-  periodMonthLabel,
-} from '@/service/payments/paymentService'
-import ConfirmDialog from 'components/display/ConfirmDialog'
+  useLandlordPaymentConfirmation,
+  useLandlordPaymentDecline,
+  useSaveReceiptPhoto,
+} from '@/hooks/landlord'
+import PaymentReceipt from '@/components/landlord-payments/PaymentReceipt'
+import PaymentReceiptActions from '@/components/landlord-payments/PaymentReceiptActions'
 
-import ReceiptCard from '@/app/tenant/payment/components/ReceiptCard'
+const SCREEN_PADDING = 20
+const CAPTURE_FRAME = 16
 
+// The landlord's receipt: the web's white paper on the app's blue. A copy of the paper
+// without its buttons is kept off screen so Save as photo captures only the receipt.
 export default function LandlordPaymentReceipt() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { colors } = useColors()
+  const { width: windowWidth } = useWindowDimensions()
   const queryClient = useQueryClient()
   const { apartmentId, paymentId } = useLocalSearchParams<{
     apartmentId: string
     paymentId: string
   }>()
 
-  const [confirmOpen, setConfirmOpen] = useState(false)
-
   const paymentQuery = usePayment(paymentId ?? null)
   const payment = paymentQuery.data
 
   const confirmMutation = useLandlordPaymentConfirmation(apartmentId)
+  const declineMutation = useLandlordPaymentDecline(apartmentId)
+  const isBusy = confirmMutation.isPending || declineMutation.isPending
+  const failure = confirmMutation.error ?? declineMutation.error
+  const errorMessage = failure ? (failure as Error).message || 'Could not update payment.' : null
+  const { receiptRef, save: savePhoto } = useSaveReceiptPhoto()
 
-  const isCashPending = payment?.status === 'pending' && payment?.method === 'cash'
-
-  const handleConfirm = () => {
+  const resolve = (mutation: typeof confirmMutation) => {
     if (!paymentId) return
-    confirmMutation.mutate(paymentId, {
+    mutation.mutate(paymentId, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getPaymentQueryKey(paymentId) })
-        setConfirmOpen(false)
+        void queryClient.invalidateQueries({ queryKey: getPaymentQueryKey(paymentId) })
       },
     })
   }
 
-  const paymentDate = payment ? new Date(`${payment.date.slice(0, 10)}T00:00:00`) : null
-  const createdDate = payment?.created_at ? new Date(payment.created_at) : null
-
-  const dateLabel = paymentDate
-    ? Number.isNaN(paymentDate.getTime())
-      ? '—'
-      : new Intl.DateTimeFormat('en-PH', { dateStyle: 'full' }).format(paymentDate)
-    : '—'
-  const timeLabel = createdDate
-    ? Number.isNaN(createdDate.getTime())
-      ? '—'
-      : new Intl.DateTimeFormat('en-PH', { timeStyle: 'short' }).format(createdDate)
-    : '—'
-  const periodLabel = payment?.period_start
-    ? `${periodMonthLabel(payment.due_date ?? payment.period_start)}, ${payment.period_start.slice(0, 4)}`
-    : undefined
+  const clearError = () => {
+    confirmMutation.reset()
+    declineMutation.reset()
+  }
 
   return (
-    <View
-      className="flex-1 bg-primary px-5"
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-      }}
-    >
-      <View className="pt-2">
-        <Button onPress={() => router.back()} variant="ghost" isIconOnly className="bg-white/20 self-start">
-          <IconChevronLeft size={24} color="#FFFFFF" />
+    <View className='flex-1 bg-primary' style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View className='px-5 pt-2'>
+        <Button onPress={() => router.back()} variant='ghost' isIconOnly className='bg-white/20 self-start' accessibilityLabel='Back'>
+          <IconChevronLeft size={24} color='#FFFFFF' />
         </Button>
       </View>
 
-      {paymentQuery.isLoading || !payment ? (
-        <View className="flex-1 items-center justify-center gap-4">
-          {paymentQuery.error ? (
+      {payment ? (
+        <>
+          <ScrollView
+            className='flex-1'
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: SCREEN_PADDING }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+          >
+            <PaymentReceipt
+              payment={payment}
+              footer={
+                <PaymentReceiptActions
+                  payment={payment}
+                  isBusy={isBusy}
+                  error={errorMessage}
+                  onConfirm={() => resolve(confirmMutation)}
+                  onDecline={() => resolve(declineMutation)}
+                  onClearError={clearError}
+                  onSavePhoto={savePhoto}
+                />
+              }
+            />
+          </ScrollView>
+
+          <View
+            ref={receiptRef}
+            collapsable={false}
+            pointerEvents='none'
+            accessibilityElementsHidden
+            importantForAccessibility='no-hide-descendants'
+            style={{
+              position: 'absolute',
+              left: -10000,
+              top: 0,
+              width: windowWidth - SCREEN_PADDING * 2 + CAPTURE_FRAME * 2,
+              padding: CAPTURE_FRAME,
+              backgroundColor: colors.primary,
+            }}
+          >
+            <PaymentReceipt payment={payment} footer={null} />
+          </View>
+        </>
+      ) : (
+        <View className='flex-1 items-center justify-center gap-4 px-5'>
+          {paymentQuery.isLoading ? (
+            <Spinner size='lg' color='#FFFFFF' accessibilityLabel='Loading receipt' />
+          ) : (
             <>
-              <Text className="text-white text-base font-inter text-center">We could not load this receipt.</Text>
+              <Text className='text-white text-base font-inter text-center'>
+                {paymentQuery.error ? 'We could not load this receipt.' : 'We could not find this payment.'}
+              </Text>
               <Button
                 onPress={() => {
-                  void paymentQuery.refetch()
+                  if (paymentQuery.error) void paymentQuery.refetch()
+                  else router.back()
                 }}
-                className="bg-white"
+                className='bg-white'
               >
-                <Button.Label className="text-primary">Try Again</Button.Label>
+                <Button.Label className='text-primary'>{paymentQuery.error ? 'Try Again' : 'Go Back'}</Button.Label>
               </Button>
             </>
-          ) : !payment && !paymentQuery.isLoading ? (
-            <>
-              <Text className="text-white text-base font-inter text-center">We could not find this payment.</Text>
-              <Button onPress={() => router.back()} className="bg-white">
-                <Button.Label className="text-primary">Go Back</Button.Label>
-              </Button>
-            </>
-          ) : (
-            <Spinner size="lg" color="#FFFFFF" accessibilityLabel="Loading receipt" />
           )}
         </View>
-      ) : (
-        <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 24, paddingVertical: 16 }}>
-          <ReceiptCard
-            payment={payment}
-            apartmentName={payment.apartment_name ?? '—'}
-            tenantName={payment.tenant_name ?? undefined}
-            landlordName={undefined}
-            date={dateLabel}
-            time={timeLabel}
-            method={methodLabel(payment.method)}
-            amount={payment.amount ?? 0}
-            referenceNumber={formatReferenceId(payment.reference_id)}
-            status={paymentStatusLabel(payment.status)}
-            periodLabel={periodLabel}
-            backgroundColor={colors.primary}
-          />
-
-          {isCashPending ? (
-            <Button
-              onPress={() => setConfirmOpen(true)}
-              isDisabled={confirmMutation.isPending}
-              className="bg-white"
-            >
-              <Button.Label className="text-primary">
-                {confirmMutation.isPending ? 'Confirming…' : 'Mark as Paid'}
-              </Button.Label>
-            </Button>
-          ) : payment.status === 'pending' ? (
-            <Text className="text-white/70 text-sm font-inter text-center">
-              Awaiting payment confirmation.
-            </Text>
-          ) : null}
-        </ScrollView>
       )}
-
-      <ConfirmDialog
-        isOpen={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="Mark as Paid"
-        description={
-          payment
-            ? `Confirm the ${methodLabel(payment.method)} payment for ${periodLabel ?? paymentDate?.toLocaleDateString()}? This notifies the tenant that their payment was received.`
-            : ''
-        }
-        confirmLabel="Confirm"
-        confirmVariant="primary"
-        onConfirm={handleConfirm}
-        isConfirmDisabled={confirmMutation.isPending}
-        errorMessage={confirmMutation.isError ? (confirmMutation.error as Error)?.message ?? 'Could not update payment.' : null}
-      />
     </View>
   )
 }

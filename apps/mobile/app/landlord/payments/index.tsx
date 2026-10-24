@@ -10,7 +10,6 @@ import {
   availableLedgerYears,
   filterLedgerByYear,
   isAwaitingCashConfirmation,
-  ledgerDateLabel,
   ledgerPeriodLabel,
   matchesLedgerTab,
   sortLedger,
@@ -260,7 +259,6 @@ export default function LandlordPaymentsScreen() {
                 key={payment.id}
                 month={ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date)}
                 amount={payment.amount ?? 0}
-                paidDate={ledgerDateLabel(payment.date)}
                 status={payment.status}
                 method={payment.method}
                 referenceId={payment.reference_id}

@@ -17,6 +17,7 @@ import {
   IconHome,
   IconHammer,
   IconCirclePlus,
+  IconWallet,
 } from "@tabler/icons-react-native";
 
 import {
@@ -140,6 +141,12 @@ export default function Units() {
             icon={IconFileText}
             badgeCount={counts.applications}
             onPress={() => router.push("/landlord/tenant-applications")}
+          />
+          {/* A fifth action wraps onto a second row, under the other four. */}
+          <QuickActionButton
+            label={"Payments"}
+            icon={IconWallet}
+            onPress={() => router.push("/landlord/payments")}
           />
         </View>
       </View>

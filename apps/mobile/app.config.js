@@ -152,6 +152,14 @@ module.exports = {
         },
       ],
       '@react-native-community/datetimepicker',
+      [
+        'expo-media-library',
+        {
+          // Add-only: the app saves a receipt, it never reads the photo library through this.
+          savePhotosPermission: 'APT saves a copy of a payment receipt to your photos when you choose Save as photo.',
+          isAccessMediaLocationEnabled: false,
+        },
+      ],
       'expo-web-browser',
       'expo-video',
       [

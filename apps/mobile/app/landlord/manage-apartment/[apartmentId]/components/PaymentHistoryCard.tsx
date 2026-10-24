@@ -15,7 +15,6 @@ import {
 interface PaymentHistoryCardProps {
   month: string;
   amount: number;
-  paidDate: string;
   status: string;
   method?: string | null;
   referenceId?: string | null;
@@ -28,7 +27,6 @@ interface PaymentHistoryCardProps {
 export default function PaymentHistoryCard({
   month,
   amount = 0,
-  paidDate = "0/0/0000",
   status = "paid",
   method,
   referenceId,
@@ -79,31 +77,24 @@ export default function PaymentHistoryCard({
         </Card.Header>
 
         <Card.Body className="gap-0">
-          <Text className="text-accent text-lg font-nunitoBold">
+          <Text className="text-accent text-2xl font-nunitoBold">
             {formatPesoDisplay(amount)}
           </Text>
-          {unitName ? (
-            <Text
-              className="text-foreground text-xs font-interMedium"
-              numberOfLines={1}
-            >
-              {unitName}
-            </Text>
-          ) : null}
-          {tenantName ? (
-            <Text className="text-gray-500 text-xs font-inter" numberOfLines={1}>
-              {tenantName}
-            </Text>
-          ) : null}
         </Card.Body>
 
-        <Card.Footer className="flex-row items-center justify-between gap-2">
-          <Text
-            className="text-gray-500 text-[11px] font-inter flex-1"
-            numberOfLines={1}
-          >
-            {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
-          </Text>
+        <Card.Footer className="flex-row items-end justify-between gap-3">
+          <View className="flex-1 min-w-0">
+            {unitName ? (
+              <Text className="text-foreground text-sm font-interMedium" numberOfLines={1}>
+                {unitName}
+              </Text>
+            ) : null}
+            {tenantName ? (
+              <Text className="text-gray-500 text-xs font-inter" numberOfLines={1}>
+                {tenantName}
+              </Text>
+            ) : null}
+          </View>
           <Text
             className="text-gray-500 text-[11px] font-inter shrink-0"
             numberOfLines={1}

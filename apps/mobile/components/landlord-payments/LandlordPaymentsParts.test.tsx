@@ -36,6 +36,7 @@ describe("LandlordPaymentsSummary", () => {
     render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
     for (const title of ["Collected", "Cash to confirm", "Last payment", "Declined or failed"]) {
       expect(screen.getByText(title).props.className).toContain("text-primary");
+      expect(screen.getByText(title).props.className).toContain("font-nunitoSemiBold");
     }
   });
 

@@ -152,6 +152,17 @@ describe('fetchLandlordPayments', () => {
 })
 
 describe('updateLandlordPaymentStatus', () => {
+  it("writes paid by default and rejected when declining, only for pending cash rows", async () => {
+    const chain = chainWith({ data: [{ id: 'payment-1' }] })
+    mockFrom.mockReturnValue(chain)
+    await updateLandlordPaymentStatus('payment-1')
+    expect(chain.update).toHaveBeenLastCalledWith({ status: 'paid' })
+    await updateLandlordPaymentStatus('payment-1', 'rejected')
+    expect(chain.update).toHaveBeenLastCalledWith({ status: 'rejected' })
+    expect(chain.eq).toHaveBeenCalledWith('method', 'cash')
+    expect(chain.eq).toHaveBeenCalledWith('status', 'pending')
+  })
+
   it('updates only pending cash rows to paid', async () => {
     const chain = chainWith({ data: [{ id: 'payment-1' }] })
     mockFrom.mockReturnValue(chain)
