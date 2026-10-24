@@ -37,8 +37,8 @@ export default function SidebarNotificationsItem({
       type="button"
       onClick={openDrawer}
       aria-haspopup="dialog"
-      aria-label={hasUnread ? "Notifications, Unread activity" : collapsed ? "Notifications" : undefined}
-      title={collapsed ? `Notifications${hasUnread ? ", Unread activity" : ""}` : undefined}
+      aria-label={hasUnread ? `Notifications, ${unreadCount} unread` : collapsed ? "Notifications" : undefined}
+      title={collapsed ? `Notifications${hasUnread ? `, ${unreadCount} unread` : ""}` : undefined}
       className={`group relative flex min-h-11 w-full cursor-pointer items-center rounded-xl text-sm font-semibold text-sidebar-foreground/70 transition-all hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"}`}
     >
       <IconBell
@@ -50,8 +50,10 @@ export default function SidebarNotificationsItem({
       {hasUnread ? (
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute size-2 rounded-full bg-primary ${collapsed ? "right-0.5 top-0.5" : "right-3 top-1/2 -translate-y-1/2"}`}
-        />
+          className={`pointer-events-none absolute flex items-center justify-center rounded-full bg-danger font-bold text-white ${collapsed ? "right-0 top-0 min-h-4 min-w-4 px-0.5 text-[10px]" : "right-3 top-1/2 min-h-5 min-w-5 -translate-y-1/2 px-1 text-[11px]"}`}
+        >
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
       ) : null}
     </button>
   );
