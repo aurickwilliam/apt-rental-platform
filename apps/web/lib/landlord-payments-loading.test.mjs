@@ -305,6 +305,7 @@ test("each payment method has its own chip color and icon; unknown methods stay 
       "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
       "@heroui/react": { Chip: "Chip" },
       "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+      "@repo/constants": run(transpile(new URL("../../../packages/constants/src/paymentMethods.ts", import.meta.url)), {}),
       "@/app/tenant/payment/utils": { methodLabel: value => value ?? "—" },
     },
   );

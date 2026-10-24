@@ -1,42 +1,43 @@
 import { View, Text } from "react-native";
-import { statusChipSurface } from "@/hooks/useStatusChipStyles";
 
 import { Card, Chip, PressableFeedback } from "heroui-native";
 
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, landlordReceiptStatus } from "@repo/utils";
 
-import { useColors } from "hooks/useTheme";
-import { usePaymentStatusStyles } from "hooks/payments";
-import {
-  formatReferenceId,
-  methodLabel,
-  paymentStatusLabel,
-} from "@/service/payments/paymentService";
+import PaymentMethodChip from "@/components/display/PaymentMethodChip";
+import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { formatReferenceId } from "@/service/payments/paymentService";
 
 interface PaymentHistoryCardProps {
   month: string;
   amount: number;
-  paidDate: string;
   status: string;
   method?: string | null;
   referenceId?: string | null;
+  /** Names the unit when payments from several units share one list. */
+  unitName?: string | null;
+  tenantName?: string | null;
+  /** Shown on the footer's left when no unit or tenant name is given (a single unit's list). */
+  paidDate?: string | null;
   onPress: () => void;
 }
 
 export default function PaymentHistoryCard({
   month,
   amount = 0,
-  paidDate = "0/0/0000",
   status = "paid",
   method,
   referenceId,
+  unitName,
+  tenantName,
+  paidDate,
   onPress,
 }: PaymentHistoryCardProps) {
-  const { colors } = useColors();
-  const statusStyles = usePaymentStatusStyles();
+  const chipStyles = useStatusChipStyles();
 
-  const label = paymentStatusLabel(status);
-  const style = statusStyles[label];
+  // Worded like the receipt, so a declined payment never reads as plain "Unpaid".
+  const { label, tone } = landlordReceiptStatus(status);
+  const style = chipStyles[tone === "success" ? "success" : tone === "warning" ? "warning" : "danger"];
 
   return (
     <PressableFeedback
@@ -56,21 +57,7 @@ export default function PaymentHistoryCard({
             </Text>
 
             <View className="flex-row items-center gap-1.5 shrink-0">
-              {method ? (
-                <Chip
-                  variant="soft"
-                  size="sm"
-                  animation="disable-all"
-                  style={{ backgroundColor: colors.gray100 }}
-                >
-                  <Chip.Label
-                    style={{ color: colors.gray500 }}
-                    className="text-[11px] font-nunitoSemiBold"
-                  >
-                    {methodLabel(method)}
-                  </Chip.Label>
-                </Chip>
-              ) : null}
+              {method ? <PaymentMethodChip method={method} /> : null}
 
               <Chip
                 variant="soft"
@@ -90,18 +77,29 @@ export default function PaymentHistoryCard({
         </Card.Header>
 
         <Card.Body className="gap-0">
-          <Text className="text-accent text-lg font-nunitoBold">
+          <Text className="text-accent text-2xl font-nunitoBold">
             {formatPesoDisplay(amount)}
           </Text>
         </Card.Body>
 
-        <Card.Footer className="flex-row items-center justify-between gap-2">
-          <Text
-            className="text-gray-500 text-[11px] font-inter flex-1"
-            numberOfLines={1}
-          >
-            {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
-          </Text>
+        <Card.Footer className="flex-row items-end justify-between gap-3">
+          <View className="flex-1 min-w-0">
+            {unitName ? (
+              <Text className="text-foreground text-sm font-interMedium" numberOfLines={1}>
+                {unitName}
+              </Text>
+            ) : null}
+            {tenantName ? (
+              <Text className="text-gray-500 text-xs font-inter" numberOfLines={1}>
+                {tenantName}
+              </Text>
+            ) : null}
+            {!unitName && !tenantName && paidDate ? (
+              <Text className="text-gray-500 text-[11px] font-inter" numberOfLines={1}>
+                {label === "Paid" ? "Paid on" : "Recorded on"}: {paidDate}
+              </Text>
+            ) : null}
+          </View>
           <Text
             className="text-gray-500 text-[11px] font-inter shrink-0"
             numberOfLines={1}

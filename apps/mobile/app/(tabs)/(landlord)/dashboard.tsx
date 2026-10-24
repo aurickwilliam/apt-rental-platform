@@ -57,12 +57,9 @@ export default function Dashboard() {
   const showCombinedChartEmpty = !hasAnyRevenue;
   const requestItems = buildRequestItems(attention);
 
-  const openCashPayments = attention.pendingCashApartmentId
-    ? () =>
-        router.push(
-          `/landlord/manage-apartment/${attention.pendingCashApartmentId}/payment-history`,
-        )
-    : undefined;
+  // The payments screen lists every unit, so cash waiting in several units is one tap.
+  const openPayments = () => router.push("/landlord/payments");
+  const openCashPayments = () => router.push("/landlord/payments?status=pending");
 
   const openRequest = (item: RequestItem) => router.push(REQUEST_ROUTES[item.key]);
 
@@ -93,7 +90,7 @@ export default function Dashboard() {
       ) : (
         <>
           <View className="flex gap-3">
-            <MonthCollectionCard thisMonth={thisMonth} />
+            <MonthCollectionCard thisMonth={thisMonth} onPressViewPayments={openPayments} />
 
             <View className="flex-row gap-3">
               <DashboardStatTile

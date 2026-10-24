@@ -9,6 +9,8 @@ interface DashboardStatTileProps {
   caption?: string;
   /** Highlights the value in the danger color (e.g. overdue rent). */
   isAlert?: boolean;
+  /** Paints the label in the brand color instead of the muted default. */
+  isLabelAccented?: boolean;
   /** Omit for informational tiles. */
   onPress?: () => void;
 }
@@ -18,6 +20,7 @@ export default function DashboardStatTile({
   value,
   caption,
   isAlert = false,
+  isLabelAccented = false,
   onPress,
 }: DashboardStatTileProps) {
   const { colors } = useColors();
@@ -25,7 +28,7 @@ export default function DashboardStatTile({
   const content = (
     <>
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm text-muted font-interMedium flex-1">{label}</Text>
+        <Text className={`text-sm flex-1 ${isLabelAccented ? "text-primary font-nunitoSemiBold" : "text-muted font-interMedium"}`}>{label}</Text>
         {onPress ? <IconChevronRight size={16} color={colors.gray500} /> : null}
       </View>
       <Text
