@@ -103,7 +103,7 @@ describe("Google sign-in without a role tab", () => {
     await act(async () => { await result.current.signInWithGoogle(); });
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith({
-      pathname: "../(auth)/auth-complete-profile",
+      pathname: "/(auth)/finish-profile",
       params: {
         email: "a@example.test",
         suggestedRole: "landlord",
@@ -112,6 +112,31 @@ describe("Google sign-in without a role tab", () => {
       },
     }));
     expect(mockRestore).not.toHaveBeenCalled();
+  });
+
+  it("splits a multi-word Google name into first and last name", async () => {
+    mockExchangeCodeForSession.mockResolvedValue({
+      data: { session: { user: { ...session.user, user_metadata: { full_name: "Maria Dela Cruz" } } } },
+      error: null,
+    });
+    mockSingle.mockResolvedValue({ data: { roles: ["tenant"], mobile_number: null }, error: null });
+
+    const { result } = renderHook(() => useGoogleAuth());
+    await act(async () => { await result.current.signInWithGoogle(); });
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({
+      params: expect.objectContaining({ firstName: "Maria", lastName: "Dela Cruz" }),
+    })));
+  });
+
+  it("skips onboarding for an account already past unverified, like the web page", async () => {
+    mockSingle.mockResolvedValue({ data: { roles: ["tenant"], mobile_number: null, account_status: "verified" }, error: null });
+    mockRestore.mockResolvedValue("tenant");
+
+    const { result } = renderHook(() => useGoogleAuth());
+    await act(async () => { await result.current.signInWithGoogle(); });
+
+    expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
   });
 
   it("keeps the role chosen on sign-up for incomplete Google onboarding", async () => {

@@ -1,661 +1,99 @@
-import { View, Text, Pressable } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useRef, useState } from 'react';
+import { View, Text } from 'react-native'
+import { useLocalSearchParams } from 'expo-router'
+import { useRef } from 'react';
 
-import {
-  PROVINCES,
-  GENDERS,
-  SUFFIXES,
-  getCitiesByProvince,
-  getBarangaysByCity
-} from "@repo/constants";
+import { usePasswordValidation } from '@repo/hooks';
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
-import DateField from '@/components/inputs/DateField';
-import DropdownField from 'components/inputs/DropdownField';
+import ProfileDetailsFields from '@/components/profile/ProfileDetailsFields';
+import NewPasswordFields from '@/components/inputs/NewPasswordFields';
 import ErrorDialog from '@/components/display/ErrorDialog';
 
-import {
-  usePasswordValidation,
-  usePHMobileValidation,
-  usePHPostalCode
-} from '@repo/hooks';
-
-import { supabase } from "@repo/supabase";
-import { useRegistrationStore } from '@/stores/useRegistrationStore';
-
-import { getEmailCodeRequestError, validateBirthDate } from '@repo/utils';
+import { useProfileDetailsForm } from '@/hooks/auth/useProfileDetailsForm';
+import { useSignUpProfile } from '@/hooks/auth/useSignUpProfile';
+import { isPortal } from '@/service/auth/portalPreference';
+import { firstParam } from '@/utils/routeParams';
 
 import { useColors } from 'hooks/useTheme';
 
 import {
   CloseButton,
-  TextField,
-  Label,
-  Input,
-  FieldError,
   Button,
   Separator,
   Spinner,
-  InputGroup,
 } from 'heroui-native';
 
-import {
-  IconEye,
-  IconEyeOff,
-  IconCircleCheckFilled,
-  IconMinus,
-} from "@tabler/icons-react-native";
-
-type ProfileForm = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  suffixName: string;
-  gender: string;
-  birthDate: string;
-
-  province: string;
-  city: string;
-  barangay: string;
-  streetAddress: string;
-
-  password: string;
-  confirmPassword: string;
-}
-
-const requiredFields: (keyof ProfileForm)[] = [
-  'firstName',
-  'lastName',
-  'gender',
-  'birthDate',
-
-  'province',
-  'city',
-  'barangay',
-  'streetAddress',
-
-  'password',
-  'confirmPassword',
-]
-
+// Profile step of email sign-up: the account does not exist yet, so besides
+// the shared details it asks for the password.
 export default function CompleteProfile() {
-  const router = useRouter();
   const { colors } = useColors();
 
-  const { email, userSide } = useLocalSearchParams();
-  const { setData, reset } = useRegistrationStore();
+  const params = useLocalSearchParams();
+  const email = firstParam(params.email) ?? '';
+  const userSide = firstParam(params.userSide);
+  const role = isPortal(userSide) ? userSide : 'tenant';
 
-  // Handle case where email might be an array
-  const emailValue = Array.isArray(email) ? email[0] : email;
-
-  const [submitted, setSubmitted] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [profileForm, setProfileForm] = useState<ProfileForm>({
-    email: emailValue || "",
-    firstName: "",
-    lastName: "",
-    middleName: "",
-    suffixName: "",
-    gender: "",
-    birthDate: "",
-
-    province: "",
-    city: "",
-    barangay: "",
-    streetAddress: "",
-
-    password: "",
-    confirmPassword: ""
+  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
+  const form = useProfileDetailsForm({ scrollRef });
+  const passwords = usePasswordValidation();
+  const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog } = useSignUpProfile({
+    form,
+    passwords,
+    email,
+    userSide: role,
   });
 
-  // Scroll-to-error refs
-  const scrollRef = useRef<ScreenWrapperScrollRef>(null);
+  const getPasswordError = (field: 'password' | 'confirmPassword') => {
+    if (!form.submitted) return undefined;
 
-  type ScrollableField =
-    | keyof ProfileForm
-    | 'mobileNumber'
-    | 'postalCode';
-
-  const fieldPositions = useRef<Partial<Record<ScrollableField, number>>>({});
-
-  // Password validation hook
-  // Tracks password strength requirements separately from the form state
-  const {
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    passwordRequirements,
-    isPasswordValid,
-  } = usePasswordValidation();
-
-  // Postal code hook
-  // Validates that a PH postal code is exactly 4 digits with proper blur/change handling
-  const {
-    value: postalCode,
-    error: postalCodeError,
-    handleChange: handlePostalCodeChange,
-    handleBlur: handlePostalCodeBlur,
-    validate: validatePostalCode,
-  } = usePHPostalCode({ city: profileForm.city, province: profileForm.province });
-
-  // Mobile Number validation hook
-  const {
-    value: mobileNumber,
-    validation: mobileValidation,
-    onChange: onMobileChange,
-    validate: validateMobileNumber,
-  } = usePHMobileValidation();
-
-  // Update individual field in profile form
-  const updateField = (key: keyof ProfileForm, value: string | Date | null) => {
-    setProfileForm(prev => ({ ...prev, [key]: value }));
-  };
-
-  // Update multiple fields at once (used for province -> city/barangay reset)
-  const updateFields = (updates: Partial<ProfileForm>) => {
-    setProfileForm(prev => ({ ...prev, ...updates }));
-  };
-
-  // Return error message if field is required and not filled out after form submission
-  const getError = (field: keyof ProfileForm) => {
-    // Required field check
-    if (submitted && requiredFields.includes(field) && !profileForm[field]?.trim()) {
-      return 'This field is required';
+    if (field === 'password') {
+      if (!passwords.password) return 'This field is required';
+      if (!passwords.isPasswordValid) {
+        return 'Password does not meet the requirements or password does not match';
+      }
+      return undefined;
     }
 
-    // Password validation errors
-    if (submitted && field === 'password' && profileForm.password && !isPasswordValid) {
-      return 'Password does not meet the requirements or password does not match';
-    }
-
-    // Confirm password match check
-    if (submitted && field === 'confirmPassword' && profileForm.confirmPassword && password !== confirmPassword) {
-      return 'Passwords do not match';
-    }
-
-    // Same rule as web and the database (18+, not in the future, not over 120).
-    if (field === 'birthDate' && profileForm.birthDate) {
-      return validateBirthDate(profileForm.birthDate) ?? undefined;
-    }
-
+    if (!passwords.confirmPassword) return 'This field is required';
+    if (passwords.password !== passwords.confirmPassword) return 'Passwords do not match';
     return undefined;
   };
 
-
-  // Handle Form Submission and Sign Up with Supabase
-  const handleSubmit = async () => {
-    setSubmitted(true);
-
-    // set up validation checks for all fields on submit
-    const isPostalCodeValidOnSubmit = validatePostalCode();
-    const isMobileValidOnSubmit = validateMobileNumber();
-    const emptyFields = requiredFields.filter(field => !profileForm[field]?.trim());
-    const birthDateInvalid = !!profileForm.birthDate && !!validateBirthDate(profileForm.birthDate);
-
-    // if any validation fails, scroll to first error and return early
-    if (
-      !isPasswordValid ||
-      emptyFields.length > 0 ||
-      birthDateInvalid ||
-      !isPostalCodeValidOnSubmit ||
-      !isMobileValidOnSubmit.isValid
-    ) {
-      const fieldOrder: ScrollableField[] = [
-        'firstName', 'lastName', 'gender', 'birthDate',
-        'mobileNumber',
-        'province', 'city', 'barangay', 'streetAddress', 'postalCode',
-        'password', 'confirmPassword',
-      ];
-      const firstError = fieldOrder.find((field) => {
-        if (field === 'mobileNumber') return !isMobileValidOnSubmit.isValid;
-        if (field === 'postalCode') return !isPostalCodeValidOnSubmit;
-        if (field === 'birthDate' && birthDateInvalid) return true;
-        if (field === 'password') return !isPasswordValid && !!profileForm.password;
-        if (field === 'confirmPassword') return !isPasswordValid;
-        return requiredFields.includes(field as keyof ProfileForm) && !profileForm[field as keyof ProfileForm]?.trim();
-      });
-      const y = firstError ? fieldPositions.current[firstError] : undefined;
-      if (y !== undefined) {
-        scrollRef.current?.scrollTo({ x: 0, y: Math.max(y - 16, 0), animated: true });
-      }
-      return;
-    }
-
-    // exclude confirmPassword
-    const { confirmPassword, ...rest } = profileForm;
-
-    setLoading(true);
-
-    try {
-      // Sign up the user with Supabase Auth using email and password
-      const { error } = await supabase.auth.signUp({
-        email: emailValue!,
-        password,
-        options: {
-          data: {
-            full_name: `${profileForm.firstName} ${profileForm.lastName} ${profileForm.suffixName}`,
-          },
-        },
-      });
-      if (error) throw error;
-
-      // Set the data to the registration store for the OTP verification step
-      setData({
-        ...rest,
-        postalCode,
-        password,
-        mobileNumber: mobileValidation.formattedNumber ?? mobileNumber,
-        userSide: userSide as 'tenant' | 'landlord',
-      });
-
-      // Navigate to OTP verification screen with email as param
-      router.push({ pathname: '/(auth)/otp-verification', params: { email: emailValue } });
-    } catch (err: any) {
-      setError(getEmailCodeRequestError(err.message));
-      setErrorDialogOpen(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleBackToSignUp = () => {
-    reset();
-    router.back();
-  }
-
-  const handleProvinceChange = (province: string | null) => {
-    updateFields({ province: province ?? '', city: '', barangay: '' });
-  };
-
-  const handleCityChange = (city: string | null) => {
-    updateFields({ city: city ?? '', barangay: '' });
-  };
-
-  const citiesForSelectedProvince = profileForm.province
-    ? getCitiesByProvince(profileForm.province as Parameters<typeof getCitiesByProvince>[0])
-    : [];
-  const barangaysForSelectedCity = profileForm.city ? getBarangaysByCity(profileForm.city) : [];
-
   return (
     <ScreenWrapper scrollable ref={scrollRef} className="p-5">
-      {/* Back button */}
       <CloseButton
-        onPress={handleBackToSignUp}
+        onPress={goBack}
         iconProps={{ size: 20, color: colors.textPrimary }}
       />
 
-      {/* Title */}
       <Text className="text-2xl text-foreground font-nunitoBold my-5">
-        Complete Your {userSide === "landlord" ? "Landlord " : "Tenant"} Profile
+        Complete Your {role === "landlord" ? "Landlord " : "Tenant"} Profile
       </Text>
 
-      {/* Form Inputs */}
-
       <View className="flex gap-4">
-        {/* Email Address Field */}
-        <TextField isDisabled>
-          <Label>Email Address:</Label>
-          <Input value={emailValue} />
-        </TextField>
+        <ProfileDetailsFields form={form} email={email} />
 
         <Separator />
 
-        {/*
-          ===== Personal Information Section =====
-        */}
-        <Text className="text-xl text-foreground font-nunitoBold mt-3">
-          Personal Information
-        </Text>
-
-        {/* First Name Field */}
-        <View onLayout={(event) => { fieldPositions.current.firstName = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("firstName")}>
-            <Label>First Name:</Label>
-            <Input
-              placeholder="Enter your first name"
-              onChangeText={(value) => updateField("firstName", value)}
-            />
-            {getError("firstName") && (
-              <FieldError>{getError("firstName")}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Last Name Field */}
-        <View onLayout={(event) => { fieldPositions.current.lastName = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("lastName")}>
-            <Label>Last Name:</Label>
-            <Input
-              placeholder="Enter your last name"
-              onChangeText={(value) => updateField("lastName", value)}
-            />
-            {getError("lastName") && (
-              <FieldError>{getError("lastName")}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Middle Name Field */}
-        <TextField>
-          <Label>Middle Name:</Label>
-          <Input
-            placeholder="Enter your middle name"
-            onChangeText={(value) => updateField("middleName", value)}
-          />
-        </TextField>
-
-        {/* Suffix Name Field */}
-        <DropdownField
-          label="Suffix Name:"
-          bottomSheetLabel="Select your suffix name"
-          placeholder="No suffix"
-          options={SUFFIXES}
-          value={profileForm.suffixName}
-          onSelect={(value) => updateField("suffixName", value)}
-        />
-
-        {/* Gender Field */}
-        <View onLayout={(event) => { fieldPositions.current.gender = event.nativeEvent.layout.y; }}>
-          <DropdownField
-            label="Gender:"
-            bottomSheetLabel="Select your gender"
-            placeholder="Select your gender"
-            options={GENDERS}
-            value={profileForm.gender}
-            onSelect={(value) => updateField("gender", value)}
-            required
-            error={getError("gender")}
-          />
-        </View>
-
-        {/* Date of Birth Field */}
-        <View onLayout={(event) => { fieldPositions.current.birthDate = event.nativeEvent.layout.y; }}>
-          <DateField
-            label="Date of Birth:"
-            placeholder="Select your date of birth"
-            required
-            value={profileForm.birthDate ? new Date(profileForm.birthDate) : null}
-            onChange={(date) => {
-              const formattedDate = date.toISOString().split("T")[0];
-              updateField("birthDate", formattedDate);
-            }}
-            error={getError("birthDate")}
-          />
-        </View>
-
-        {/* Mobile Number Field */}
-        <View onLayout={(event) => { fieldPositions.current.mobileNumber = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!mobileValidation.errorMessage}>
-            <Label>Mobile Number:</Label>
-            <Input
-              placeholder="Enter your mobile number"
-              keyboardType="phone-pad"
-              maxLength={13}
-              value={mobileNumber}
-              onChangeText={(value) => {
-                onMobileChange(value);
-              }}
-            />
-            {mobileValidation.errorMessage && (
-              <FieldError>{mobileValidation.errorMessage}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        <Separator />
-
-        {/*
-          ===== Address Information Section =====
-        */}
-        <Text className="text-xl text-foreground font-nunitoBold mt-3">
-          Address Information
-        </Text>
-
-        {/* Province Field */}
-        <View onLayout={(event) => { fieldPositions.current.province = event.nativeEvent.layout.y; }}>
-          <DropdownField
-            label="Province:"
-            bottomSheetLabel="Select your province"
-            placeholder="Select your province"
-            options={PROVINCES}
-            value={profileForm.province}
-            onSelect={handleProvinceChange}
-            enableSearch
-            searchPlaceholder="Search provinces..."
-            required
-            error={getError("province")}
-          />
-        </View>
-
-        {/* City Field */}
-        <View onLayout={(event) => { fieldPositions.current.city = event.nativeEvent.layout.y; }}>
-          <DropdownField
-            label="City:"
-            bottomSheetLabel="Select your city"
-            placeholder="Select your city"
-            options={profileForm.province ? citiesForSelectedProvince : []}
-            value={profileForm.city}
-            onSelect={handleCityChange}
-            required
-            error={getError("city")}
-            enableSearch
-            searchPlaceholder="Search cities..."
-            disabled={!profileForm.province}
-          />
-        </View>
-
-        {/* Barangay Field */}
-        <View onLayout={(event) => { fieldPositions.current.barangay = event.nativeEvent.layout.y; }}>
-          <DropdownField
-            label="Barangay:"
-            bottomSheetLabel="Select your barangay"
-            placeholder="Select your barangay"
-            options={profileForm.city ? barangaysForSelectedCity : []}
-            value={profileForm.barangay}
-            onSelect={(value) => updateField("barangay", value)}
-            required
-            error={getError("barangay")}
-            enableSearch
-            searchPlaceholder="Search barangays..."
-            disabled={!profileForm.city}
-          />
-        </View>
-
-        {/* Street Address Field */}
-        <View onLayout={(event) => { fieldPositions.current.streetAddress = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("streetAddress")}>
-            <Label>Street Address:</Label>
-            <Input
-              className="shadow-none"
-              placeholder="Enter your street address"
-              onChangeText={(value) => updateField("streetAddress", value)}
-            />
-            {getError("streetAddress") && (
-              <FieldError>{getError("streetAddress")}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Postal Code Field */}
-        <View onLayout={(event) => { fieldPositions.current.postalCode = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!postalCodeError}>
-            <Label>Postal Code:</Label>
-            <Input
-              placeholder="Enter your postal code"
-              keyboardType="numeric"
-              maxLength={4}
-              value={postalCode}
-              onChangeText={(value) => {
-                handlePostalCodeChange(value);
-              }}
-              onBlur={handlePostalCodeBlur}
-            />
-            {postalCodeError && (
-              <FieldError>{postalCodeError}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        <Separator />
-
-        {/*
-          ===== Account Security Section =====
-        */}
         <Text className="text-xl text-foreground font-nunitoBold mt-3">
           Account Security
         </Text>
 
-        {/* Password Field */}
-        <View onLayout={(event) => { fieldPositions.current.password = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("password")}>
-            <Label>Password:</Label>
-            <InputGroup>
-              <InputGroup.Input
-                placeholder="Create a password"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={(value) => {
-                  setPassword(value);
-                  updateField("password", value);
-                }}
-              />
-
-              <InputGroup.Suffix>
-                <Pressable
-                  onPress={() => setShowPassword(!showPassword)}
-                  hitSlop={20}
-                >
-                  {showPassword ? (
-                    <IconEyeOff size={20} color={colors.gray400} />
-                  ) : (
-                    <IconEye size={20} color={colors.gray400} />
-                  )}
-                </Pressable>
-              </InputGroup.Suffix>
-            </InputGroup>
-            {getError("password") && (
-              <FieldError>{getError("password")}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Confirm Password Field */}
-        <View onLayout={(event) => { fieldPositions.current.confirmPassword = event.nativeEvent.layout.y; }}>
-          <TextField isRequired isInvalid={!!getError("confirmPassword")}>
-            <Label>Confirm Password:</Label>
-            <InputGroup>
-              <InputGroup.Input
-                placeholder="Confirm your password"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={(value) => {
-                  setConfirmPassword(value);
-                  updateField("confirmPassword", value);
-                }}
-              />
-
-              <InputGroup.Suffix>
-                <Pressable
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  hitSlop={20}
-                >
-                  {showConfirmPassword ? (
-                    <IconEyeOff size={20} color={colors.gray400} />
-                  ) : (
-                    <IconEye size={20} color={colors.gray400} />
-                  )}
-                </Pressable>
-              </InputGroup.Suffix>
-            </InputGroup>
-
-            {getError("confirmPassword") && (
-              <FieldError>{getError("confirmPassword")}</FieldError>
-            )}
-          </TextField>
-        </View>
-
-        {/* Password Checker */}
-        <View className="flex-col gap-1">
-          <Text className="text-foreground font-nunitoSemiBold mb-2">
-            Your password must contain:
-          </Text>
-
-          {/* Minimum Length of 8 Char */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.minLength ? (
-              <IconCircleCheckFilled size={20} color={colors.success} />
-            ) : (
-              <IconMinus size={20} color={colors.gray300} />
-            )}
-
-            <Text className="text-foreground font-inter">At least 8 characters</Text>
-          </View>
-
-          {/* At least one lowercase letter (a–z) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasLowercase ? (
-              <IconCircleCheckFilled size={20} color={colors.success} />
-            ) : (
-              <IconMinus size={20} color={colors.gray200} />
-            )}
-
-            <Text className="text-foreground font-inter">
-              At least one lowercase letter (a–z)
-            </Text>
-          </View>
-
-          {/* At least one uppercase letter (A–Z) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasUppercase ? (
-              <IconCircleCheckFilled size={20} color={colors.success} />
-            ) : (
-              <IconMinus size={20} color={colors.gray300} />
-            )}
-
-            <Text className="text-foreground font-inter">
-              At least one uppercase letter (A–Z)
-            </Text>
-          </View>
-
-          {/* At least one number (0–9) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasNumber ? (
-              <IconCircleCheckFilled size={20} color={colors.success} />
-            ) : (
-              <IconMinus size={20} color={colors.gray300} />
-            )}
-
-            <Text className="text-foreground font-inter">
-              At least one number (0–9)
-            </Text>
-          </View>
-
-          {/* At least one special character (e.g. ! @ # $ % ^ & *) */}
-          <View className="flex-row items-center gap-2">
-            {passwordRequirements.hasSpecialChar ? (
-              <IconCircleCheckFilled size={20} color={colors.success} />
-            ) : (
-              <IconMinus size={20} color={colors.gray300} />
-            )}
-            <Text className="text-foreground font-inter">
-              at least one special character (e.g. ! @ # $ % ^ & *)
-            </Text>
-          </View>
+        <View {...form.trackPosition('password')}>
+          <NewPasswordFields
+            password={passwords.password}
+            confirmPassword={passwords.confirmPassword}
+            onPasswordChange={passwords.setPassword}
+            onConfirmPasswordChange={passwords.setConfirmPassword}
+            requirements={passwords.passwordRequirements}
+            passwordError={getPasswordError('password')}
+            confirmPasswordError={getPasswordError('confirmPassword')}
+          />
         </View>
       </View>
 
-      {/* Submit Button */}
       <View className="mt-16 mb-0">
-        <Button onPress={handleSubmit} isDisabled={loading}>
+        <Button onPress={submit} isDisabled={loading}>
           <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
           {loading && (
             <Spinner size="sm" color={colors.white} className="ml-2" />
@@ -663,10 +101,9 @@ export default function CompleteProfile() {
         </Button>
       </View>
 
-      {/* Error Dialog */}
       <ErrorDialog
         isOpen={errorDialogOpen}
-        onClose={() => setErrorDialogOpen(false)}
+        onClose={closeErrorDialog}
         message={error}
       />
     </ScreenWrapper>

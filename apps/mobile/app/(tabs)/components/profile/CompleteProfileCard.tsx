@@ -8,10 +8,12 @@ import {
 import { IconUserEdit } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
+import { finishProfileRoute } from '@/service/auth/finishProfileRoute';
+import type { Portal } from '@/service/auth/portalPreference';
 
 interface CompleteProfileCardProps {
   email: string;
-  role: string;
+  role: Portal;
   firstName: string;
   lastName: string;
 }
@@ -26,15 +28,7 @@ export default function CompleteProfileCard({
   const { colors } = useColors();
 
   const handleCompleteProfile = async () => {
-    router.push({
-      pathname: '/(auth)/auth-complete-profile',
-      params: {
-        email: email,
-        userSide: role,
-        firstName: firstName,
-        lastName: lastName
-      },
-    });
+    router.push(finishProfileRoute({ email, userSide: role, firstName, lastName }));
   }
 
   return (

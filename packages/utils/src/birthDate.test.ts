@@ -1,4 +1,4 @@
-import { calculateAge, validateBirthDate } from "./birthDate";
+import { calculateAge, fromBirthDateValue, toBirthDateValue, validateBirthDate } from "./birthDate";
 
 const isoYearsAgo = (years: number, dayOffset = 0): string => {
   const today = new Date();
@@ -29,5 +29,27 @@ describe("calculateAge", () => {
   it("counts a birthday that has not happened yet this year", () => {
     expect(calculateAge(new Date(2000, 11, 31), new Date(2020, 0, 1))).toBe(19);
     expect(calculateAge(new Date(2000, 0, 1), new Date(2020, 0, 1))).toBe(20);
+  });
+});
+
+describe("toBirthDateValue / fromBirthDateValue", () => {
+  it("keeps the local calendar day whatever the time of day", () => {
+    expect(toBirthDateValue(new Date(2000, 0, 5, 0, 30))).toBe("2000-01-05");
+    expect(toBirthDateValue(new Date(2000, 0, 5, 23, 59))).toBe("2000-01-05");
+  });
+
+  it("pads month and day", () => {
+    expect(toBirthDateValue(new Date(1999, 8, 3))).toBe("1999-09-03");
+  });
+
+  it("round-trips a stored value", () => {
+    const parsed = fromBirthDateValue("2000-01-05");
+    expect(parsed && toBirthDateValue(parsed)).toBe("2000-01-05");
+  });
+
+  it("returns null for empty or invalid values", () => {
+    expect(fromBirthDateValue("")).toBeNull();
+    expect(fromBirthDateValue(null)).toBeNull();
+    expect(fromBirthDateValue("not-a-date")).toBeNull();
   });
 });
