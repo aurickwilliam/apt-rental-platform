@@ -7,12 +7,12 @@ import {
   BrowseCardsSkeleton,
   BrowseFilterRailSkeleton,
   BrowseSectionsSkeleton,
-  MobileFilterEntrySkeleton,
+  FilterEntrySkeleton,
 } from "@/app/browse/components/BrowsePageSkeleton";
 import BrowseDiscoveryContent from "@/app/browse/components/BrowseDiscoveryContent";
 import BrowseFilters from "@/app/browse/components/BrowseFilters";
+import FilterDrawerButton from "@/app/browse/components/FilterDrawerButton";
 import BrowseShell from "@/app/browse/components/BrowseShell";
-import MobileFilterButton from "@/app/browse/components/MobileFilterButton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import {
   loadBrowseResults,
@@ -47,6 +47,8 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     return (
       <BrowseShell
         basePath={BASE_PATH}
+        // No total is loaded in discovery, so the drawer omits the count.
+        filterButton={<FilterDrawerButton basePath={BASE_PATH} />}
         fallback={
           <div className="w-full min-w-0 flex-1 rounded-lg p-0">
             <BrowseSectionsSkeleton />
@@ -72,8 +74,8 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     <BrowseShell
       basePath={BASE_PATH}
       filterButton={
-        <Suspense fallback={<MobileFilterEntrySkeleton />}>
-          <BrowseMobileFilterEntry supabase={supabase} params={params} />
+        <Suspense fallback={<FilterEntrySkeleton />}>
+          <BrowseFilterEntry supabase={supabase} params={params} />
         </Suspense>
       }
       filters={
@@ -91,7 +93,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   );
 }
 
-async function BrowseMobileFilterEntry({
+async function BrowseFilterEntry({
   supabase,
   params,
 }: {
@@ -99,7 +101,7 @@ async function BrowseMobileFilterEntry({
   params: Record<string, string>;
 }) {
   const { totalCount } = await loadBrowseResults(supabase, params);
-  return <MobileFilterButton resultCount={totalCount} basePath={BASE_PATH} />;
+  return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} />;
 }
 
 async function BrowseFilterRail({

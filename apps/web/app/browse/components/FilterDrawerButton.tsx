@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
 import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-react";
 
+import { useIsMobile } from "@/hooks/use-mobile";
+
 import { FILTER_KEYS } from "./BrowseFilters";
 
 // Drawer-only code path: the panel chunk loads when the drawer first
@@ -24,13 +26,17 @@ const FilterContainer = dynamic(() => import("./FilterContainer"), {
 });
 
 type Props = {
-  resultCount: number;
+  /** Omitted where the total isn't loaded (tenant discovery). */
+  resultCount?: number;
   basePath?: string;
 };
 
-// Self-contained mobile filter entry: compact button with active-count badge
-// plus its bottom-sheet drawer. Rendered inside the search row (md:hidden).
-export default function MobileFilterButton({ resultCount, basePath = "/browse" }: Props) {
+// Self-contained filter entry: compact button with active-count badge plus its
+// drawer (bottom sheet on phones, right-hand panel from md up). Rendered inside
+// the search row at every size; on md+ the results page also keeps its sidebar,
+// so this is the way in from discovery, where there is no sidebar.
+export default function FilterDrawerButton({ resultCount, basePath = "/browse" }: Props) {
+  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -55,7 +61,7 @@ export default function MobileFilterButton({ resultCount, basePath = "/browse" }
         variant="tertiary"
         size="lg"
         isIconOnly
-        className="relative shrink-0 md:hidden"
+        className="relative shrink-0"
         onPress={() => setIsOpen(true)}
         aria-label="Open filters"
       >
@@ -70,11 +76,19 @@ export default function MobileFilterButton({ resultCount, basePath = "/browse" }
       {isOpen && (
         <Drawer.Root state={drawerState}>
           <Drawer.Backdrop>
-            <Drawer.Content placement="bottom">
-              <Drawer.Dialog className="flex max-h-[85dvh] w-full flex-col rounded-t-2xl p-0">
-                <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
+            <Drawer.Content placement={isMobile ? "bottom" : "right"}>
+              <Drawer.Dialog
+                className={
+                  isMobile
+                    ? "flex max-h-[85dvh] w-full flex-col rounded-t-2xl p-0"
+                    : "flex h-full w-105 max-w-[90vw] flex-col p-0"
+                }
+              >
+                {isMobile ? (
+                  <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
+                ) : null}
                 <div className="flex items-center justify-between border-b border-divider px-4 py-3">
-                  <h3 className="flex items-center gap-2 text-base font-medium">
+                  <h3 className="flex items-center gap-2 font-nunito text-base font-semibold">
                     <IconAdjustmentsHorizontal size={16} />
                     Filters
                     {activeCount > 0 && (

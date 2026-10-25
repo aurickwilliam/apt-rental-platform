@@ -224,7 +224,7 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
         <section key={section.id} aria-label={section.title} className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
             <div className="min-w-0">
-              <h3 className="min-w-0 truncate text-lg font-medium">
+              <h3 className="min-w-0 truncate font-nunito text-lg font-semibold">
                 {section.title}
               </h3>
               {section.subtitle ? (

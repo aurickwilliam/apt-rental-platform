@@ -3,7 +3,7 @@ import { createClient } from "@repo/supabase/server";
 import BrowseFilters from "./components/BrowseFilters";
 import BrowseSectionsList from "./components/BrowseSectionsList";
 import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
-import MobileFilterButton from "./components/MobileFilterButton";
+import FilterDrawerButton from "./components/FilterDrawerButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
@@ -45,9 +45,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
       <Suspense>
         <SearchContainer
           filterButton={
-            !useSections ? (
-              <MobileFilterButton resultCount={totalCount} basePath="/browse" />
-            ) : undefined
+            <FilterDrawerButton resultCount={totalCount} basePath="/browse" />
           }
         />
       </Suspense>

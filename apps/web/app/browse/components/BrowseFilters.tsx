@@ -64,7 +64,7 @@ export default function BrowseFilters({
   return (
     <>
       {/* Mobile result summary — the filter button itself lives in the
-          search row (MobileFilterButton). Hidden on md+ where the sidebar
+          search row (FilterDrawerButton). Hidden on md+ where the sidebar
           takes over. */}
       <div className="md:hidden mb-3 flex items-center justify-between gap-2">
         <p className="shrink-0 text-sm text-default-500" aria-live="polite">

@@ -7,7 +7,6 @@ import { fetchDiscoverySections } from "../lib/fetch-browse-sections";
 import { buildRecommendedSection } from "../lib/fetch-recommended";
 import BrowseFilters from "./BrowseFilters";
 import BrowseSectionsList from "./BrowseSectionsList";
-import MobileFilterButton from "./MobileFilterButton";
 import RenderApartments from "./RenderApartments";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -39,14 +38,10 @@ export default async function BrowseDiscoveryContent({
   }
 
   // Empty/failed sections fall back to the filtered grid, exactly like the
-  // eager page did. The mobile filter entry lives here because the search row
-  // rendered before this fallback was known to be needed.
+  // eager page did. The search row's filter button already covers phones.
   const { apartments, page, totalCount, pageSize } = await fetchBrowseResults(supabase, {});
   return (
     <div className="flex flex-col gap-4 md:flex-row">
-      <div className="flex justify-end md:hidden">
-        <MobileFilterButton resultCount={totalCount} basePath={basePath} />
-      </div>
       <BrowseFilters resultCount={totalCount} basePath={basePath} stickyClassName="md:top-4 md:max-h-[calc(100dvh-2rem)]" />
       <div className="w-full min-w-0 flex-1 rounded-lg p-0">
         <RenderApartments

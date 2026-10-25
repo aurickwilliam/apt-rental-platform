@@ -80,7 +80,8 @@ const INITIAL_FILTERS: Filters = {
 };
 
 type Props = {
-  resultCount: number;
+  /** Omitted where the total isn't loaded (tenant discovery); the count line is then hidden. */
+  resultCount?: number;
   basePath?: string;
   onApply?: () => void;
 };
@@ -526,12 +527,12 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
 
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
-        <h3 className="text-lg font-medium">Filters</h3>
+        <h3 className="font-nunito text-lg font-semibold">Filters</h3>
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           {isPending ? (
             <Spinner size="sm" color="current" aria-label="Updating results" />
           ) : null}
-          {resultCount} results found
+          {resultCount === undefined ? null : `${resultCount} results found`}
         </p>
       </div>
 

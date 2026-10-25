@@ -22,7 +22,7 @@ test("Tenant Browse authorizes first, then streams discovery and filtered result
   // Filtered/search/paged state streams the rail, mobile entry and grid from
   // the same request-scoped result query.
   assert.match(page, /<BrowseFilterRailSkeleton stickyClassName=\{FILTER_STICKY_CLASS\} \/>/);
-  assert.match(page, /<MobileFilterEntrySkeleton \/>/);
+  assert.match(page, /<FilterEntrySkeleton \/>/);
   assert.match(page, /fallback=\{<BrowseCardsSkeleton \/>\}/);
   assert.ok(page.indexOf("async function BrowseFilterRail") > shell);
   assert.ok(page.indexOf("async function BrowseGridContent") > shell);
