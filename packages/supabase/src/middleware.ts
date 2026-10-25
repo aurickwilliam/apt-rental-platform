@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./types";
 import { isPendingOnboarding } from "./pending-onboarding";
+import { PORTAL_COOKIE, portalDestination } from "./portal-preference";
 import {
   isBackgroundRequest,
   isRecoveryPath,
@@ -40,8 +41,9 @@ function redirectWithCookies(
   pathname: string,
 ): NextResponse {
   const url = request.nextUrl.clone();
-  url.pathname = pathname;
-  url.search = "";
+  const [path, search = ""] = pathname.split("?");
+  url.pathname = path;
+  url.search = search;
   const response = NextResponse.redirect(url);
   from.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
   return response;
@@ -171,6 +173,40 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (recovery.action === "allow") return supabaseResponse;
+
+  // Resolve the exact homepage before the public layout can stream. Reuse the
+  // validated user/client above; other public pages intentionally stay public.
+  if (pathname === "/" && user && !userError) {
+    const { data: profile, error: profileError } = await supabase.from("users")
+      .select("roles, account_status, mobile_number, is_suspended")
+      .eq("user_id", user.id).maybeSingle();
+
+    let destination: string | null = null;
+    if (profileError) console.warn("Could not resolve homepage profile", { code: profileError.code });
+    if (!profileError && profile) {
+      if (profile.is_suspended) destination = "/suspended";
+      else if (isPendingOnboarding(profile)) destination = "/sign-up?from=google-new";
+      else destination = portalDestination(profile.roles ?? [], request.cookies.get(PORTAL_COOKIE)?.value ?? null);
+    } else {
+      // Restrictive RLS hides suspended profiles. Only a successful status read
+      // and a genuinely absent row may send an account to profile setup.
+      const { data: suspension, error: suspensionError } = await supabase.rpc("get_my_suspension_status");
+      if (suspensionError) console.warn("Could not resolve homepage account status", { code: suspensionError.code });
+      const suspended = (suspension as { suspended?: boolean } | null)?.suspended;
+      if (!suspensionError && suspended === true) {
+        destination = "/suspended";
+      } else if (!suspensionError && suspended === false && !profileError && !profile) {
+        destination = "/sign-up?from=profile-missing";
+      }
+    }
+    if (destination) {
+      const response = redirectWithCookies(request, supabaseResponse, destination);
+      response.headers.set("Cache-Control", "private, no-store");
+      return response;
+    }
+    // Unknown/error state: do not invent a portal or bounce through sign-in.
+    // The homepage's server guard remains a defensive fallback.
+  }
 
   // Pages that anyone can access without logging in
   const publicRoutes = [

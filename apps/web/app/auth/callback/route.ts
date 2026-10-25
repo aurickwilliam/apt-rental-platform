@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
-import { isPendingOnboarding } from "@repo/supabase";
-import { PORTAL_COOKIE } from "@/lib/portal-preference";
+import { isPendingOnboarding } from "@repo/supabase/pending-onboarding";
+import { PORTAL_COOKIE, preferredPortal, portalDestination } from "@/lib/portal-preference";
 
 interface UserRolesProfile {
   mobile_number: string | null;
@@ -31,8 +32,10 @@ function getAppOrigin(request: Request): string {
 function getSafeNext(searchParams: URLSearchParams): string {
   const raw = searchParams.get("next") ?? "/";
   // Internal paths only: never protocol-relative or absolute URLs.
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) return "/";
-  return raw;
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://") || /[\\\u0000-\u0020\u007f]/.test(raw)) return "/";
+  const url = new URL(raw, "https://apt.invalid");
+  if (url.origin !== "https://apt.invalid") return "/";
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 // Lands in the chosen portal and remembers it (portal cookie).
@@ -51,7 +54,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const appOrigin = getAppOrigin(request);
   const code = searchParams.get("code");
-  const next = getSafeNext(searchParams);
+  let next = getSafeNext(searchParams);
   const requestedRole = searchParams.get("role");
 
   const role =
@@ -66,11 +69,17 @@ export async function GET(request: Request) {
     if (!error) {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+      if (userError || !user) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${appOrigin}/sign-in?error=auth_callback_error`);
+      }
       const isOAuth = user?.app_metadata?.provider === "google";
       let profileRole: string | null = null;
       let selectedPortal: "tenant" | "landlord" | null = null;
 
+      let defaultDestination: string | null = null;
       if (user) {
         // Suspended accounts authenticate but cannot read their profile (RLS).
         const { data: suspension } = await supabase.rpc("get_my_suspension_status");
@@ -90,6 +99,8 @@ export async function GET(request: Request) {
           return NextResponse.redirect(`${appOrigin}/sign-in?error=auth_callback_error`);
         }
         const isAdmin = profile.roles.includes("admin");
+        const nextPortal = /^\/(tenant|landlord|admin)(?:\/|$)/.exec(new URL(next, appOrigin).pathname)?.[1];
+        if (nextPortal && !profile.roles.includes(nextPortal)) next = "/";
         profileRole = isAdmin ? "admin" : null;
         const isInitialGoogleOnboarding =
           isOAuth && !isAdmin && isPendingOnboarding(profile);
@@ -147,13 +158,27 @@ export async function GET(request: Request) {
             `${appOrigin}/complete-profile${profileRole ? `?role=${profileRole}` : ""}`,
           );
         }
+
+        // Returning consumers should not visit the public homepage just to
+        // select a portal. A role/cookie is a preference only, never a grant.
+        if (!isAdmin) {
+          selectedPortal = preferredPortal(
+            profile.roles,
+            selectedPortal ?? (await cookies()).get(PORTAL_COOKIE)?.value ?? null,
+          );
+        }
+        defaultDestination = portalDestination(profile.roles, selectedPortal);
       }
 
       if (profileRole === "admin") {
         return NextResponse.redirect(`${appOrigin}/admin/dashboard`);
       }
 
-      const destination = `${appOrigin}${next}`;
+      if (next === "/" && !defaultDestination) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${appOrigin}/sign-in?error=auth_callback_error`);
+      }
+      const destination = `${appOrigin}${next === "/" ? defaultDestination : next}`;
       const response = NextResponse.redirect(destination);
       if (selectedPortal) {
         response.cookies.set(PORTAL_COOKIE, selectedPortal, {
