@@ -5,6 +5,7 @@ import {
   Keyboard,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ScrollViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -19,6 +20,17 @@ import {
 
 // Space kept between the focused input and the top of the keyboard.
 const KEYBOARD_BOTTOM_OFFSET = 50;
+
+// FlatList can use the same keyboard handling as forms without nesting scroll views.
+export function renderKeyboardAwareListScrollView(props: ScrollViewProps) {
+  return (
+    <KeyboardAwareScrollView
+      {...props}
+      bottomOffset={KEYBOARD_BOTTOM_OFFSET}
+      disableScrollOnKeyboardHide
+    />
+  );
+}
 
 // Ref to a scrollable ScreenWrapper: a ScrollView (scrollTo, scrollToEnd, ...).
 // Screens import this instead of the keyboard library.
