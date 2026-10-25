@@ -9,21 +9,23 @@ import {
   Button,
   Separator,
   Spinner,
-  DatePicker,
-  DateField,
-  Calendar,
 } from "@heroui/react";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { completeProfile } from "../../actions/complete-profile";
 import { validateBirthDate } from "@/lib/birth-date";
-import { GENDERS, PROVINCES } from "@repo/constants";
+import { GENDERS } from "@repo/constants";
+import RegistrationAddressFields from "../../components/RegistrationAddressFields";
+import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
+import { resolveRegistrationAddress, validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
 
 type Props = {
   email: string;
   firstName: string;
   lastName: string;
   role: "tenant" | "landlord";
+  initialAddress?: Partial<RegistrationAddress>;
+  initialBirthDate?: string;
 };
 
 export default function CompleteProfileForm({
@@ -31,20 +33,32 @@ export default function CompleteProfileForm({
   firstName,
   lastName,
   role,
+  initialAddress,
+  initialBirthDate,
 }: Props) {
   const [state, action, isPending] = useActionState(completeProfile, {});
-  const [postalCode, setPostalCode] = useState("");
+  const [address, setAddress] = useState(() => resolveRegistrationAddress(initialAddress));
+  const [addressSubmitted, setAddressSubmitted] = useState(() =>
+    !!initialAddress && (["province", "city", "barangay"] as const).some(field =>
+      !!initialAddress[field] && !resolveRegistrationAddress(initialAddress)[field]));
   const [mobileNumber, setMobileNumber] = useState("");
   const [birthDateError, setBirthDateError] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState(initialBirthDate ?? "");
+  const birthDateRef = useRef<HTMLDivElement>(null);
+  // A server error belongs to the submitted date, not a subsequently edited one.
+  const fieldError = birthDateError ?? (state.birthDate === birthDate ? state.birthDateError : null);
+  const serverAddressMatches = state.address && (Object.keys(address) as (keyof RegistrationAddress)[])
+    .every(field => state.address?.[field] === address[field]);
+  const addressErrors = { ...(serverAddressMatches ? state.addressErrors : {}), ...(addressSubmitted ? validateRegistrationAddress(address) : {}) };
 
   // Instant client-side feedback using the same shared validator the
   // server enforces; the server remains the real gate.
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const error = validateBirthDate(
-      new FormData(e.currentTarget).get("birth_date") as string | null,
-    );
+    const error = validateBirthDate(birthDate);
     setBirthDateError(error);
-    if (error) e.preventDefault();
+    setAddressSubmitted(true);
+    if (error || Object.keys(validateRegistrationAddress(address)).length) e.preventDefault();
+    if (error) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
   };
 
   return (
@@ -106,62 +120,8 @@ export default function CompleteProfileForm({
             <Input inputMode="numeric" className="bg-card! text-foreground!" placeholder="Enter your mobile number" />
           </TextField>
 
-          <DatePicker name="birth_date" isRequired>
-            <Label>Birth Date</Label>
-            <DateField.Group fullWidth className="border border-grey-300">
-              <DateField.Input>
-                {(segment) => (
-                  <DateField.Segment
-                    segment={segment}
-                    className="data-[placeholder=true]:text-foreground/40 text-foreground"
-                  />
-                )}
-              </DateField.Input>
-              <DateField.Suffix>
-                <DatePicker.Trigger>
-                  <DatePicker.TriggerIndicator className="text-grey-500" />
-                </DatePicker.Trigger>
-              </DateField.Suffix>
-            </DateField.Group>
-
-            <DatePicker.Popover>
-              <Calendar aria-label="Birth Date">
-                <Calendar.Header>
-                  <Calendar.YearPickerTrigger>
-                    <Calendar.YearPickerTriggerHeading />
-                    <Calendar.YearPickerTriggerIndicator className="text-grey-500" />
-                  </Calendar.YearPickerTrigger>
-                  
-                  <Calendar.NavButton slot="previous" className="text-grey-500" />
-                  <Calendar.NavButton slot="next" className="text-grey-500" />
-                </Calendar.Header>
-                <Calendar.Grid>
-                  <Calendar.GridHeader>
-                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                  </Calendar.GridHeader>
-                  <Calendar.GridBody>
-                    {(date) => (
-                      <Calendar.Cell
-                        date={date}
-                        className="data-selected:bg-primary data-selected:text-white"
-                      />
-                    )}
-                  </Calendar.GridBody>
-                </Calendar.Grid>
-
-                <Calendar.YearPickerGrid>
-                  <Calendar.YearPickerGridBody>
-                    {(yearProps) => (
-                      <Calendar.YearPickerCell
-                        year={yearProps.year}
-                        className="data-selected:bg-primary data-selected:text-white"
-                      />
-                    )}
-                  </Calendar.YearPickerGridBody>
-                </Calendar.YearPickerGrid>
-              </Calendar>
-            </DatePicker.Popover>
-          </DatePicker>
+          <RegistrationBirthDateField name="birth_date" value={birthDate} error={fieldError} inputRef={birthDateRef} isDisabled={isPending}
+            onChange={value => { setBirthDate(value); setBirthDateError(null); }} />
         </div>
       </section>
 
@@ -173,60 +133,14 @@ export default function CompleteProfileForm({
           Address Information
         </h2>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <TextField name="street_address" isRequired fullWidth>
-            <Label>Street Address</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your street address" />
-          </TextField>
-
-          <TextField name="barangay" isRequired fullWidth>
-            <Label>Barangay</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your barangay" />
-          </TextField>
-
-          <TextField name="city" isRequired fullWidth>
-            <Label>City</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your city" />
-          </TextField>
-
-          <Select name="province" isRequired fullWidth placeholder="Select your province">
-            <Label>Province</Label>
-            <Select.Trigger className="bg-card! text-foreground!">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {PROVINCES.map((province) => (
-                  <ListBox.Item key={province} id={province} textValue={province}>
-                    {province}
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <TextField
-            name="postal_code"
-            isRequired
-            fullWidth
-            value={postalCode}
-            onChange={(val) => setPostalCode(val.replace(/\D/g, "").slice(0, 4))}
-          >
-            <Label>Postal Code</Label>
-            <Input
-              className="bg-card! text-foreground!"
-              placeholder="Enter your postal code"
-              inputMode="numeric"
-              maxLength={4}
-            />
-          </TextField>
-        </div>
+        <RegistrationAddressFields value={address} onChange={setAddress} errors={addressErrors} isDisabled={isPending}
+          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+          names={{ province: "province", city: "city", barangay: "barangay", streetAddress: "street_address", postalCode: "postal_code" }} />
       </section>
 
-      {(birthDateError ?? state?.error) && (
+      {state?.error && (
         <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
-          <p className="text-center text-sm text-danger">{birthDateError ?? state?.error}</p>
+          <p className="text-center text-sm text-danger">{state.error}</p>
         </div>
       )}
 
