@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react-native";
-import { Text, View } from "react-native";
+import { Text, View, type ScrollViewProps } from "react-native";
 
-import ScreenWrapper from "./ScreenWrapper";
+import ScreenWrapper, { renderKeyboardAwareListScrollView } from "./ScreenWrapper";
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
@@ -76,4 +76,26 @@ it("defaults to the screen background, allows grouping, and preserves explicit o
   );
   expect(container().props.className).toBe("");
   expect(container().props.style).toMatchObject({ backgroundColor: "#376BF5" });
+});
+
+it("gives lists keyboard clearance without resetting their position on keyboard dismissal", () => {
+  const onScroll = jest.fn();
+  const onLayout = jest.fn();
+  const children = <Text>Visit requests</Text>;
+  const props: ScrollViewProps = {
+    onScroll,
+    onLayout,
+    children,
+    keyboardShouldPersistTaps: "handled",
+    contentContainerStyle: { paddingTop: 16 },
+  };
+
+  const scrollView = renderKeyboardAwareListScrollView(props);
+
+  expect(scrollView.props).toMatchObject({
+    ...props,
+    bottomOffset: 50,
+    disableScrollOnKeyboardHide: true,
+  });
+  expect(scrollView.props.children).toBe(children);
 });

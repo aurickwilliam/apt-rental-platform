@@ -164,6 +164,8 @@ The web create-listing flow uses Nunito for step/section headings, field labels,
 
 ## 5. Spacing System
 
+Mobile landlord Visit Requests keeps the calendar above the approved-request search. Focusing search scrolls its heading and field toward the top of the list; keyboard-aware scrolling keeps the field clear of the keyboard with the shared 50pt clearance. Dismissing the keyboard does not explicitly restore the previous scroll position. The calendar, filters and request actions remain unchanged; this behavior is mobile-only.
+
 Tailwind v4 default scale (4px base). No custom spacing tokens declared.
 
 | Context | Value |

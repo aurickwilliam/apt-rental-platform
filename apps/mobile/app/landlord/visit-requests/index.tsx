@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 
@@ -6,7 +6,7 @@ import { IconChevronDown, IconChevronUp } from '@tabler/icons-react-native';
 
 import { Card, SearchField } from "heroui-native";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper, { renderKeyboardAwareListScrollView } from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestCalendar from "./components/VisitRequestCalendar";
@@ -101,6 +101,16 @@ function PastToggle({
 
 export default function VisitRequests() {
   const router = useRouter();
+  const listRef = useRef<FlatList<GroupedItem>>(null);
+  const searchSectionOffset = useRef(0);
+
+  const handleSearchFocus = useCallback(() => {
+    // Keep the section heading and search near the top, leaving room for results.
+    listRef.current?.scrollToOffset({
+      offset: searchSectionOffset.current,
+      animated: true,
+    });
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -208,6 +218,8 @@ export default function VisitRequests() {
       scrollable={false}
     >
       <FlatList
+        ref={listRef}
+        renderScrollComponent={renderKeyboardAwareListScrollView}
         data={groupedItems}
         keyExtractor={(item, index) =>
           item.type === "item" ? item.data.id : `${item.type}-${index}`
@@ -242,7 +254,12 @@ export default function VisitRequests() {
                 </Card.Body>
               </Card>
 
-            <View className="gap-3 mb-3">
+            <View
+              className="gap-3 mb-3"
+              onLayout={(event) => {
+                searchSectionOffset.current = event.nativeEvent.layout.y;
+              }}
+            >
               <View className="flex-row items-center justify-between">
                 <Text className="text-foreground text-base font-nunitoSemiBold">
                   Approved Visit Requests
@@ -257,7 +274,10 @@ export default function VisitRequests() {
               <SearchField value={searchQuery} onChange={setSearchQuery}>
                 <SearchField.Group>
                   <SearchField.SearchIcon />
-                  <SearchField.Input placeholder="Search tenant or apartment..." />
+                  <SearchField.Input
+                    placeholder="Search tenant or apartment..."
+                    onFocus={handleSearchFocus}
+                  />
                   <SearchField.ClearButton />
                 </SearchField.Group>
               </SearchField>
