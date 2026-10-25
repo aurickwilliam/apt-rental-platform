@@ -32,7 +32,7 @@ function render({ navItems, collapsed = false, mobile = false }) {
     "next/navigation": { usePathname: () => "/landlord/dashboard", useRouter: () => ({ push: () => {}, prefetch: () => {} }), useSearchParams: () => new URLSearchParams() },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
-    "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
+    "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: () => {} }) },
@@ -79,11 +79,14 @@ test("items without a section render as one group with no labels or separators",
   assert.equal(navLinks(all).length, flat.length);
 });
 
-test("mobile menu renders one section per group, split by separators", () => {
+test("mobile drawer renders one group per section, split by separators, then the account group", () => {
   const all = render({ navItems: sectioned, mobile: true });
-  const sections = all.filter(node => node.type === "Dropdown.Section").map(node => node.props["aria-label"]);
-  assert.deepEqual(sections.slice(0, 3), ["Overview", "Rentals", "Finance"]);
-  assert.equal(all.filter(node => node.type === "Dropdown.Item" && sectioned.some(item => item.href === node.props.id)).length, sectioned.length);
+  const groups = all.filter(node => node.props?.role === "group").map(node => node.props["aria-label"]);
+  assert.deepEqual(groups, ["Overview", "Rentals", "Finance", "Account"]);
+  assert.equal(all.filter(node => node.type === "Separator").length >= 3, true);
+  const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
+  const rows = all.filter(node => node.type === "button" && sectioned.some(item => item.label === labelOf(node)));
+  assert.equal(rows.length, sectioned.length);
 });
 
 function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pushed = [] }) {
@@ -110,10 +113,14 @@ test("Notifications tab opens the drawer through the shared query param", () => 
   assert.deepEqual(pushed, ["/landlord/dashboard?tab=1&notifications=open#top"]);
 });
 
-test("Notifications tab shows an unread dot, never a count, and a label-only collapsed rail", () => {
+test("Notifications tab shows a red count badge capped at 9+ and a label-only collapsed rail", () => {
+  const badge = item => [item.props.children].flat(Infinity).find(child => /bg-danger/.test(child?.props?.className ?? ""));
   const unread = renderNotificationsItem({ entry: "sidebar", unreadCount: 4 });
-  assert.equal(unread.props["aria-label"], "Notifications, Unread activity");
-  assert.equal([unread.props.children].flat(Infinity).filter(child => /size-2 rounded-full/.test(child?.props?.className ?? "")).length, 1);
+  assert.equal(unread.props["aria-label"], "Notifications, 4 unread");
+  assert.equal(badge(unread).props.children, 4);
+  assert.equal(badge(renderNotificationsItem({ entry: "sidebar", unreadCount: 12 })).props.children, "9+");
+  assert.equal([unread.props.children].flat(Infinity).some(child => /size-2 rounded-full/.test(child?.props?.className ?? "")), false);
+  assert.equal(badge(renderNotificationsItem({ entry: "sidebar", unreadCount: 0 })), undefined);
   const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
   assert.equal(collapsed.props.title, "Notifications");
   assert.equal([collapsed.props.children].flat(Infinity).some(child => child?.type === "span" && child.props.children === "Notifications"), false);

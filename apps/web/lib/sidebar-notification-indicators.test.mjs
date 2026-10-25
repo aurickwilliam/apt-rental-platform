@@ -30,6 +30,7 @@ const nodes = element => {
   const children = typeof element.type === "function" ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 };
+const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
 const dots = element => nodes(element).filter(n => n.type === "span" && n.props.className?.includes("size-2 rounded-full"));
 const row = (screen, title, type, data = {}) => ({
   id: title, title, type, data: { screen, ...(screen === "chat" ? { recipientPortal: "tenant" } : {}), ...data }, is_read: false,
@@ -56,6 +57,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => String(key) }),
     "@heroui/react": {
       Button: "Button", Label: "Label", Separator: "Separator",
+      Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options,
       Dropdown: { Item: "Dropdown.Item", Section: "Dropdown.Section", Menu: "Dropdown.Menu", Popover: "Dropdown.Popover" },
     },
     "@/hooks/use-notifications": { useNotifications: () => ({
@@ -71,9 +73,11 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     ? component.MobileSidebarNavigation({ navItems: nav, activePortal: portal, iconSet: "tabler", profileHref: `/${portal}/profile`, favoritesHref })
     : component.AppSidebar({ navItems: nav, activePortal: portal, userName: "User", userRole: portal, collapsible: true, iconSet: "tabler", favoritesHref });
   const all = nodes(tree);
-  const links = all.filter(n => mobile
-    ? n.type === "Dropdown.Item" && n.props.id?.startsWith(`/${portal}/`)
-    : n.type === "Link" && nav.some(item => item.href === n.props.href));
+  // Drawer rows are buttons keyed by label; expose each with its href as `id`.
+  const hrefForRow = n => nav.find(item => item.label === labelOf(n))?.href;
+  const links = mobile
+    ? all.filter(n => n.type === "button" && hrefForRow(n)).map(n => ({ ...n, props: { ...n.props, id: hrefForRow(n) } }))
+    : all.filter(n => n.type === "Link" && nav.some(item => item.href === n.props.href));
   return { links, all, navigation, prefetched, writes: () => writes };
 }
 
@@ -116,7 +120,7 @@ test("mobile web uses the same section dots without acknowledging navigation", (
   assert.equal(dots(link).length, 1);
   assert.match(dots(link)[0].props.className, /bg-primary/);
   assert.equal(link.props["aria-label"], "Messages, Unread activity");
-  result.all.find(n => n.type === "Dropdown.Menu").props.onAction("/tenant/messages");
+  link.props.onClick();
   assert.deepEqual(result.navigation, ["/tenant/messages"]);
   assert.equal(result.writes(), 0);
 });
@@ -154,8 +158,7 @@ test("landlord route prefetch and unread indicators coexist on expanded and coll
 
 test("opening landlord mobile navigation prefetches main's routes and Profit & planning without reading notifications", () => {
   const result = sidebar({ portal: "landlord", mobile: true, rows: [row("verification", "Apartment verification approved", "system", { apartmentId: "apt" })] });
-  const dropdown = result.all.find(node => typeof node.props.onOpenChange === "function");
-  dropdown.props.onOpenChange(true);
+  result.all.find(node => node.type === "Drawer.Root").props.state.onOpenChange(true);
   assert.deepEqual(result.prefetched, ["/landlord/profile", "/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments", "/landlord/analytics"]);
   const properties = result.links.find(link => link.props.id === "/landlord/properties");
   assert.equal(dots(properties).length, 1);
@@ -181,17 +184,27 @@ test("Favorites follows Profile, navigates and prefetches in desktop and small-s
   for (const mobile of [false, true]) {
     for (const collapsed of [false, true]) {
       const result = sidebar({ mobile, collapsed });
-      const items = result.all.filter(node => node.type === "Dropdown.Item");
-      const profileIndex = items.findIndex(node => node.props.id === "profile");
-      const favorites = items[profileIndex + 1];
-      assert.equal(favorites.props.id, "favorites");
-      assert.equal(favorites.props.textValue, "Favorites");
-      assert.equal(favorites.props["aria-current"], undefined);
-      assert.equal(nodes(favorites).some(node => node.type === "IconHeart"), true);
+      if (mobile) {
+        const rows = result.all.filter(node => node.type === "button");
+        const favorites = rows[rows.findIndex(node => labelOf(node) === "Profile") + 1];
+        assert.equal(labelOf(favorites), "Favorites");
+        assert.equal(favorites.props["aria-current"], undefined);
+        assert.equal(nodes(favorites).some(node => node.type === "IconHeart"), true);
+        favorites.props.onClick();
+        result.all.find(node => node.type === "Drawer.Root").props.state.onOpenChange(true);
+      } else {
+        const items = result.all.filter(node => node.type === "Dropdown.Item");
+        const profileIndex = items.findIndex(node => node.props.id === "profile");
+        const favorites = items[profileIndex + 1];
+        assert.equal(favorites.props.id, "favorites");
+        assert.equal(favorites.props.textValue, "Favorites");
+        assert.equal(favorites.props["aria-current"], undefined);
+        assert.equal(nodes(favorites).some(node => node.type === "IconHeart"), true);
+        result.all.find(node => node.type === "Dropdown.Menu").props.onAction("favorites");
+        result.all.find(node => typeof node.props.onOpenChange === "function").props.onOpenChange(true);
+      }
       assert.equal(result.links.some(node => (node.props.href ?? node.props.id) === "/tenant/favorites"), false);
-      result.all.find(node => node.type === "Dropdown.Menu").props.onAction("favorites");
       assert.deepEqual(result.navigation, ["/tenant/favorites"]);
-      result.all.find(node => typeof node.props.onOpenChange === "function").props.onOpenChange(true);
       assert.ok(result.prefetched.includes("/tenant/favorites"));
       assert.equal(result.writes(), 0);
     }
@@ -202,12 +215,15 @@ test("Favorites has an accessible active state in either theme without appearing
   for (const mobile of [false, true]) {
     for (const dark of [false, true]) {
       const result = sidebar({ mobile, dark, pathname: "/tenant/favorites" });
-      const favorites = result.all.find(node => node.type === "Dropdown.Item" && node.props.id === "favorites");
+      const favorites = mobile
+        ? result.all.find(node => node.type === "button" && labelOf(node) === "Favorites")
+        : result.all.find(node => node.type === "Dropdown.Item" && node.props.id === "favorites");
       assert.equal(favorites.props["aria-current"], "page");
-      assert.match(favorites.props.className, /bg-primary\/10 text-primary/);
+      assert.match(favorites.props.className, /bg-primary\/10 .*text-primary/);
     }
     for (const portal of ["landlord", "admin"]) {
-      assert.equal(sidebar({ mobile, portal }).all.some(node => node.props.id === "favorites"), false);
+      const { all } = sidebar({ mobile, portal });
+      assert.equal(all.some(node => node.props.id === "favorites" || (node.type === "button" && labelOf(node) === "Favorites")), false);
     }
   }
 });

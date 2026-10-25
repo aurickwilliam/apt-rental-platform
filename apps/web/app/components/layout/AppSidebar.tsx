@@ -793,6 +793,7 @@ function MobileSidebarMenu({
   const pathname = usePathname();
   const navGroups = useMemo(() => groupNavItems(navItems), [navItems]);
   const router = useRouter();
+  const { pendingHref, navigate } = usePendingNavigation();
   const { notifications, unreadCount } = useNotifications(activePortal ?? null);
   const activity = useMemo(
     () => getUnreadSidebarActivity(notifications, activePortal ?? null),
@@ -818,14 +819,20 @@ function MobileSidebarMenu({
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 
-  // Links prefetch on their own; only the account actions need a nudge.
+  // Rows are buttons, not Links, so routes are warmed explicitly when the
+  // drawer opens: the account pages and only the items that opted in.
   const handleMobileMenuOpenChange = useCallback(
     (value: boolean) => {
       setMobileMenuOpen(value);
       if (value && profileHref) router.prefetch(profileHref);
       if (value && favoritesHref) router.prefetch(favoritesHref);
+      if (value) {
+        navItems.forEach(({ href, prefetchOnIntent }) => {
+          if (prefetchOnIntent) router.prefetch(href);
+        });
+      }
     },
-    [router, profileHref, favoritesHref],
+    [router, profileHref, favoritesHref, navItems],
   );
   const drawerState = useOverlayState({
     isOpen: isMobileMenuOpen,
@@ -845,6 +852,13 @@ function MobileSidebarMenu({
   // Same helper the sidebar dropdown uses, so both menus stay in step.
   const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
+  // Closes the drawer and navigates inside a transition, so the top bar can
+  // show pending feedback while the route loads.
+  const go = (href: string) => {
+    closeMobileMenu();
+    navigate(href);
+  };
+
   const iconFor = (icon: string) =>
     iconSet === "tabler" ? (ADMIN_ICON_MAP[icon] ?? IconSearch) : (ICON_MAP[icon] ?? Search);
   const profileActive = profileHref ? isActive(pathname, profileHref) : false;
@@ -859,10 +873,23 @@ function MobileSidebarMenu({
           aria-label={buttonLabel}
           aria-haspopup="dialog"
           aria-expanded={isMobileMenuOpen}
+          aria-busy={pendingHref !== null || undefined}
           onPress={() => handleMobileMenuOpenChange(true)}
         >
-          <IconMenu2 size={22} aria-hidden="true" />
+          {pendingHref ? (
+            <>
+              <Spinner size="sm" color="current" aria-hidden="true" />
+              <span className="sr-only">Opening…</span>
+            </>
+          ) : (
+            <IconMenu2 size={22} aria-hidden="true" />
+          )}
         </Button>
+        {pendingHref ? (
+          <span role="status" className="sr-only">
+            Opening {pendingHref.split("/").at(-1)}…
+          </span>
+        ) : null}
         <Link href={navItems[0]?.href ?? "/"} className="flex shrink-0 items-center">
           <Image
             src="/logo/logo-name-transparent.svg"
@@ -924,10 +951,10 @@ function MobileSidebarMenu({
                       const active = isActive(pathname, href);
                       const hasActivity = !!activityKey && activity.has(activityKey);
                       return (
-                        <Link
+                        <button
                           key={href}
-                          href={href}
-                          onClick={closeMobileMenu}
+                          type="button"
+                          onClick={() => go(href)}
                           aria-current={active ? "page" : undefined}
                           aria-label={hasActivity ? `${label}, Unread activity` : undefined}
                           className={`relative pr-7 ${drawerRowClass(active)}`}
@@ -935,7 +962,7 @@ function MobileSidebarMenu({
                           <Icon size={20} aria-hidden="true" />
                           {label}
                           {hasActivity ? <UnreadActivityDot /> : null}
-                        </Link>
+                        </button>
                       );
                     })}
                   </div>
@@ -945,36 +972,33 @@ function MobileSidebarMenu({
 
                 <div role="group" aria-label="Account" className="flex flex-col gap-1">
                   {profileHref ? (
-                    <Link
-                      href={profileHref}
-                      onClick={closeMobileMenu}
+                    <button
+                      type="button"
+                      onClick={() => go(profileHref)}
                       aria-current={profileActive ? "page" : undefined}
                       className={drawerRowClass(profileActive)}
                     >
                       <IconUser size={20} aria-hidden="true" />
                       Profile
-                    </Link>
+                    </button>
                   ) : null}
                   {favoritesHref ? (
-                    <Link
-                      href={favoritesHref}
-                      onClick={closeMobileMenu}
+                    <button
+                      type="button"
+                      onClick={() => go(favoritesHref)}
                       aria-current={favoritesActive ? "page" : undefined}
                       className={drawerRowClass(favoritesActive)}
                     >
                       <IconHeart size={20} aria-hidden="true" />
                       Favorites
-                    </Link>
+                    </button>
                   ) : null}
 
                   {switchTargets.map((target) => (
                     <button
                       key={target.href}
                       type="button"
-                      onClick={() => {
-                        closeMobileMenu();
-                        router.push(target.href);
-                      }}
+                      onClick={() => go(target.href)}
                       className={drawerRowClass(false)}
                     >
                       <IconArrowsExchange size={20} aria-hidden="true" />
