@@ -10,7 +10,8 @@
     "./server": "./src/server.ts",
     "./middleware": "./src/middleware.ts",
     "./password-recovery": "./src/password-recovery.ts",
-    "./pending-onboarding": "./src/pending-onboarding.ts"
+    "./pending-onboarding": "./src/pending-onboarding.ts",
+    "./portal-preference": "./src/portal-preference.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
