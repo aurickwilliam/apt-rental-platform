@@ -1,14 +1,17 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import { validateForm } from "../sign-up-form/utils";
+import { validateSignUpForm } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
 import type { Database } from "@repo/supabase";
 import { SUFFIXES, validatePHMobile } from "@repo/constants";
+import { getBirthDateDatabaseError } from "@/lib/birth-date";
 
 export interface SignUpFormState {
   error: string | null;
   success: boolean;
+  birthDateError?: string;
+  birthDate?: string;
 }
 
 export async function signUp(
@@ -34,9 +37,10 @@ export async function signUp(
       confirmPassword: formData.get("confirmPassword") as string,
     };
 
-    const validationError = validateForm(mapped);
+    const validationError = validateSignUpForm(mapped);
+    if (validationError?.field === "birthDate") return { error: null, success: false, birthDateError: validationError.message, birthDate: mapped.birthDate ?? "" };
     if (validationError) {
-      return { error: validationError, success: false };
+      return { error: validationError.message, success: false };
     }
 
     const userId = formData.get("userId") as string;
@@ -84,6 +88,8 @@ export async function signUp(
     const { error: insertError } = await supabase.from("users").insert(profileInsert);
 
     if (insertError) {
+      const birthDateError = getBirthDateDatabaseError(insertError);
+      if (birthDateError) return { error: null, success: false, birthDateError, birthDate: mapped.birthDate };
       if (insertError.code === "23505") {
         return {
           error: "An account with this email already exists. Please sign in instead.",

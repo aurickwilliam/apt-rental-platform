@@ -70,7 +70,7 @@ describe("useProfileDetailsForm", () => {
 
     act(() => result.current.setField("birthDate", "2999-01-01"));
 
-    expect(result.current.getError("birthDate")).toBe("Date of birth cannot be in the future");
+    expect(result.current.getError("birthDate")).toBe("Birth date cannot be in the future.");
   });
 
   it("scrolls to the first invalid field, in screen order", () => {

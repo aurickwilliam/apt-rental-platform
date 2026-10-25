@@ -13,6 +13,12 @@ interface UserRolesProfile {
   email: string | null;
   roles: string[];
   account_status: string;
+  province: string | null;
+  city: string | null;
+  barangay: string | null;
+  street_address: string | null;
+  postal_code: number | null;
+  birth_date: string | null;
 }
 
 type CompleteProfilePageProps = {
@@ -42,7 +48,7 @@ export default async function CompleteProfilePage({
   // If already complete, skip this page
   const { data: profileData } = await supabase
     .from("users")
-    .select("mobile_number, first_name, last_name, email, roles, account_status")
+    .select("mobile_number, first_name, last_name, email, roles, account_status, province, city, barangay, street_address, postal_code, birth_date")
     .eq("user_id", user.id)
     .maybeSingle();
   const profile = profileData as unknown as UserRolesProfile | null;
@@ -87,10 +93,14 @@ export default async function CompleteProfilePage({
 
         {/* Form */}
         <CompleteProfileForm
+          key={user.id}
           email={profile?.email ?? user.email ?? ""}
           firstName={profile?.first_name ?? ""}
           lastName={profile?.last_name ?? ""}
           role={effectiveRole}
+          initialBirthDate={profile?.birth_date ?? ""}
+          initialAddress={{ province: profile?.province ?? "", city: profile?.city ?? "", barangay: profile?.barangay ?? "",
+            streetAddress: profile?.street_address ?? "", postalCode: profile?.postal_code == null ? "" : String(profile.postal_code) }}
         />
       </div>
     </div>

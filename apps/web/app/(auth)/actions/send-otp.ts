@@ -2,8 +2,18 @@
 
 import { createClient } from "@repo/supabase/server";
 import { getEmailCodeRequestError } from "@repo/utils";
+import { validateBirthDate } from "@/lib/birth-date";
 
-export async function sendEmailOtp(email: string, password: string, firstName: string, lastName: string) {
+interface SendEmailOtpResult {
+  error?: string;
+  success?: boolean;
+  birthDateError?: string;
+  birthDate?: string;
+}
+
+export async function sendEmailOtp(email: string, password: string, firstName: string, lastName: string, birthDate: string): Promise<SendEmailOtpResult> {
+  const birthDateError = validateBirthDate(birthDate);
+  if (birthDateError) return { birthDateError, birthDate: birthDate ?? "" };
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signUp({

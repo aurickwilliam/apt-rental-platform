@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Link from "next/link";
 import {
   Form,
   Button,
   Input,
   Select,
-  DatePicker,
   useOverlayState,
   TextField, 
   Label,
   ListBox,
-  DateField,
-  Calendar,
-  FieldError,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
@@ -25,18 +22,16 @@ import SuccessModal from "./SuccessModal";
 import ErrorModal from "./ErrorModal";
 
 import { useOtpFlow } from "../hooks/useOtpFlow";
-import { validateForm } from "../utils";
+import { validateSignUpForm } from "../utils";
 import { SignUpFormData } from "../types";
+import RegistrationAddressFields from "../../components/RegistrationAddressFields";
+import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
+import { validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
 
 import {
-  PROVINCES,
   GENDERS,
   SUFFIXES,
-  getCitiesByProvince,
-  getBarangaysByCity,
   getPasswordRequirements,
-  isZipPlausibleForCity,
-  type Province,
 } from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
 
@@ -60,6 +55,10 @@ export default function SignUpForm() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [addressSubmitted, setAddressSubmitted] = useState(false);
+  const [birthDateError, setBirthDateError] = useState<{ message: string; value: string } | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const birthDateRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<SignUpFormData>({
     email,
@@ -89,48 +88,32 @@ export default function SignUpForm() {
     if (error) setError(null);
   };
 
-  const handleProvinceChange = (province: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      stateProvince: province,
-      city: "",
-      barangay: "",
-    }));
-    if (error) setError(null);
+  const address: RegistrationAddress = {
+    province: formData.stateProvince, city: formData.city, barangay: formData.barangay,
+    streetAddress: formData.streetAddress, postalCode: formData.postalCode === undefined ? "" : String(formData.postalCode),
   };
+  const addressErrors = validateRegistrationAddress(address);
 
-  const handleCityChange = (city: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      city,
-      barangay: "",
-    }));
-    if (error) setError(null);
+  const showBirthDateError = (message: string, value: string, verified = false) => {
+    setBirthDateError({ message, value });
+    if (verified) setEmailVerified(true);
+    onClose();
+    requestAnimationFrame(() => birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus());
   };
-
-  const cities = formData.stateProvince
-    ? getCitiesByProvince(formData.stateProvince as Province)
-    : [];
-  const barangays = getBarangaysByCity(formData.city);
-
-  // Live feedback once all four digits are in and a city is chosen.
-  const postalCodeText = formData.postalCode !== undefined ? String(formData.postalCode) : "";
-  const postalCodeError =
-    formData.city &&
-    postalCodeText.length === 4 &&
-    !isZipPlausibleForCity(formData.city, formData.stateProvince, postalCodeText)
-      ? `Enter a valid postal code for ${formData.city}.`
-      : null;
-
-  const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen });
+  const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen, onBirthDateError: showBirthDateError });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setAddressSubmitted(true);
+    const validationError = validateSignUpForm(formData);
+    const birthError = validationError?.field === "birthDate" ? validationError.message : null;
+    setBirthDateError(birthError ? { message: birthError, value: formData.birthDate } : null);
+    if (birthError) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
+    if (birthError || Object.keys(addressErrors).length) return;
 
-    const validationError = validateForm(formData);
     if (validationError) {
-      showError(validationError);
+      showError(validationError.message);
       return;
     }
 
@@ -141,7 +124,12 @@ export default function SignUpForm() {
         formData.password,
         formData.firstName,
         formData.lastName,
+        formData.birthDate,
       );
+      if (result.birthDateError) {
+        showBirthDateError(result.birthDateError, result.birthDate ?? formData.birthDate);
+        return;
+      }
       if (result.error) {
         showError(result.error);
         return;
@@ -285,217 +273,23 @@ export default function SignUpForm() {
             <Input className="bg-card! text-foreground!" placeholder="Enter your mobile number" inputMode="numeric" />
           </TextField>
 
-          <DatePicker
-            name="birthDate"
-            isRequired
-            isDisabled={loading}
-            onChange={(value) => {
-              setFormData((prev) => ({
-                ...prev,
-                birthDate: value ? String(value) : "",
-              }));
-              if (error) setError(null);
-            }}
-          >
-            <Label>Birth Date</Label>
-            <DateField.Group fullWidth className="border border-grey-300">
-              <DateField.Input>
-                {(segment) => (
-                  <DateField.Segment
-                    segment={segment}
-                    className="data-[placeholder=true]:text-foreground/40 text-foreground"
-                  />
-                )}
-              </DateField.Input>
-              <DateField.Suffix>
-                <DatePicker.Trigger>
-                  <DatePicker.TriggerIndicator className="text-grey-500" />
-                </DatePicker.Trigger>
-              </DateField.Suffix>
-            </DateField.Group>
-
-            <DatePicker.Popover>
-              <Calendar aria-label="Birth Date">
-                <Calendar.Header>
-                  <Calendar.YearPickerTrigger>
-                    <Calendar.YearPickerTriggerHeading />
-                    <Calendar.YearPickerTriggerIndicator className="text-grey-500" />
-                  </Calendar.YearPickerTrigger>
-
-                  <Calendar.NavButton slot="previous" className="text-grey-500" />
-                  <Calendar.NavButton slot="next" className="text-grey-500" />
-                </Calendar.Header>
-                <Calendar.Grid>
-                  <Calendar.GridHeader>
-                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                  </Calendar.GridHeader>
-                  <Calendar.GridBody>
-                    {(date) => (
-                      <Calendar.Cell
-                        date={date}
-                        className="data-selected:bg-primary data-selected:text-white"
-                      />
-                    )}
-                  </Calendar.GridBody>
-                </Calendar.Grid>
-
-                <Calendar.YearPickerGrid>
-                  <Calendar.YearPickerGridBody>
-                    {(yearProps) => (
-                      <Calendar.YearPickerCell
-                        year={yearProps.year}
-                        className="data-selected:bg-primary data-selected:text-white"
-                      />
-                    )}
-                  </Calendar.YearPickerGridBody>
-                </Calendar.YearPickerGrid>
-              </Calendar>
-            </DatePicker.Popover>
-          </DatePicker>
+          <RegistrationBirthDateField name="birthDate" value={formData.birthDate} inputRef={birthDateRef} isDisabled={loading}
+            error={birthDateError?.value === formData.birthDate ? birthDateError.message : null}
+            onChange={value => { handleChange("birthDate")(value); setBirthDateError(null); }} />
         </div>
+        {emailVerified ? <p className="text-sm text-muted-foreground">Your email is verified. <Link href="/sign-in" className="text-brand underline">Sign in</Link> to finish setting up your profile.</p> : null}
 
         {/* Address Information */}
         <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
           Address Information
         </h2>
 
-        <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-          <Select
-            isRequired
-            placeholder="Select your state/province"
-            name="stateProvince"
-            className="w-full"
-            value={formData.stateProvince || null}
-            onChange={(key) => handleProvinceChange(key ? String(key) : "")}
-            isDisabled={loading}
-          >
-            <Label>State/Province</Label>
-            <Select.Trigger className="bg-card! text-foreground!">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {PROVINCES.map((option) => (
-                  <ListBox.Item
-                    key={option}
-                    id={option}
-                    textValue={option}
-                    className={OPTION_CLASS}
-                  >
-                    {option}
-                    <ListBox.ItemIndicator className="text-primary" />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <Select
-            isRequired
-            placeholder={formData.stateProvince ? "Select your city" : "Select a province first"}
-            name="city"
-            className="w-full"
-            value={formData.city || null}
-            onChange={(key) => handleCityChange(key ? String(key) : "")}
-            isDisabled={loading || !formData.stateProvince}
-          >
-            <Label>City</Label>
-            <Select.Trigger className="bg-card! text-foreground!">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {cities.map((option) => (
-                  <ListBox.Item
-                    key={option}
-                    id={option}
-                    textValue={option}
-                    className={OPTION_CLASS}
-                  >
-                    {option}
-                    <ListBox.ItemIndicator className="text-primary" />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <Select
-            isRequired
-            placeholder={formData.city ? "Select your barangay" : "Select a city first"}
-            name="barangay"
-            className="w-full"
-            value={formData.barangay || null}
-            onChange={(key) => handleChange("barangay")(key ? String(key) : "")}
-            isDisabled={loading || !formData.city}
-          >
-            <Label>Barangay</Label>
-            <Select.Trigger className="bg-card! text-foreground!">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox className="max-h-64 overflow-y-auto">
-                {barangays.map((option) => (
-                  <ListBox.Item
-                    key={option}
-                    id={option}
-                    textValue={option}
-                    className={OPTION_CLASS}
-                  >
-                    {option}
-                    <ListBox.ItemIndicator className="text-primary" />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <TextField
-            isRequired
-            name="streetAddress"
-            type="text"
-            value={formData.streetAddress}
-            onChange={handleChange("streetAddress")}
-            isDisabled={loading}
-          >
-            <Label>Street Address</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your street address" />
-          </TextField>
-
-          <TextField
-            isRequired
-            name="postalCode"
-            isInvalid={!!postalCodeError}
-            value={postalCodeText}
-            onChange={(val) => {
-              const digits = val.replace(/\D/g, "").slice(0, 4);
-              setFormData((prev) => ({
-                ...prev,
-                postalCode: digits ? Number(digits) : undefined,
-              }));
-              if (error) setError(null);
-            }}
-            validate={(val) => {
-              if (!val) return "Postal code is required.";
-              if (!/^\d{4}$/.test(val)) return "Enter a valid 4-digit postal code.";
-              const num = Number(val);
-              if (num < 1000 || num > 9999) return "Postal code must be between 1000 and 9999.";
-              return true;
-            }}
-            isDisabled={loading}
-          >
-            <Label>Postal Code</Label>
-            <Input
-              className="bg-card! text-foreground!"
-              placeholder="Enter your postal code"
-              inputMode="numeric"
-            />
-            <FieldError>{postalCodeError}</FieldError>
-          </TextField>
-        </div>
+        <RegistrationAddressFields value={address} errors={addressSubmitted ? addressErrors : undefined} isDisabled={loading}
+          onChange={value => {
+            setFormData(prev => ({ ...prev, stateProvince: value.province, city: value.city, barangay: value.barangay,
+              streetAddress: value.streetAddress, postalCode: value.postalCode ? Number(value.postalCode) : undefined }));
+            if (error) setError(null);
+          }} />
 
         {/* Password */}
         <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">

@@ -2,6 +2,7 @@
 
 import { useActionState, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import NextLink from 'next/link';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
 import { useAuth } from './AuthContext';
@@ -16,10 +17,16 @@ const initialState: SignInFormState = {
   error: null,
 };
 
+type SignUpEmailError = {
+  kind: 'required' | 'registered';
+  email: string;
+};
+
 export default function AuthForm({ next }: { next?: string }) {
   const { type, role, email, setEmail } = useAuth();
   const router = useRouter();
   const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [signUpEmailError, setSignUpEmailError] = useState<SignUpEmailError | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
   const [state, formAction, isPending] = useActionState(signIn, initialState);
@@ -33,6 +40,7 @@ export default function AuthForm({ next }: { next?: string }) {
     (value: string) => {
       setEmail(value);
       clearSignUpError();
+      setSignUpEmailError(null);
     },
     [setEmail, clearSignUpError],
   );
@@ -44,41 +52,50 @@ export default function AuthForm({ next }: { next?: string }) {
 
       e.preventDefault();
       setSignUpError(null);
+      setSignUpEmailError(null);
 
       const data = Object.fromEntries(new FormData(e.currentTarget));
       const rawEmail = (data.email as string | undefined)?.trim() ?? '';
 
       if (!rawEmail) {
-        setSignUpError('Please enter your email.');
+        setSignUpEmailError({ kind: 'required', email: rawEmail });
         return;
       }
 
       setCheckingEmail(true);
 
-      const { exists, error } = await checkEmailAvailability(rawEmail);
+      try {
+        const { exists, error } = await checkEmailAvailability(rawEmail);
 
-      setCheckingEmail(false);
+        if (error) {
+          setSignUpError(error);
+          return;
+        }
 
-      if (error) {
-        setSignUpError(error);
-        return;
+        if (exists) {
+          // A conflict is not a role grant: existing accounts must sign in
+          // and add any other role through their profile.
+          setSignUpEmailError({ kind: 'registered', email: rawEmail });
+          return;
+        }
+
+        const emailValue = encodeURIComponent(rawEmail);
+        router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
+      } catch {
+        console.error('Could not check signup email availability');
+        setSignUpError('Could not validate your email right now. Please try again.');
+      } finally {
+        setCheckingEmail(false);
       }
-
-      if (exists) {
-        // Never grant a role without authentication: point them at sign-in;
-        // adding a portal to an existing account happens from the profile.
-        setSignUpError('This email is already registered. Please sign in, then add the role from your profile.');
-        return;
-      }
-
-      const emailValue = encodeURIComponent(rawEmail);
-      router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
     },
     [type, role, router],
   );
 
   const busy = isPending || checkingEmail;
-  const visibleError = state.error ?? signUpError;
+  const visibleError = type === 'sign-in' ? state.error : signUpError;
+  const emailError = type === 'sign-up' && signUpEmailError?.email === email.trim()
+    ? signUpEmailError
+    : null;
 
   return (
     <div>
@@ -142,12 +159,13 @@ export default function AuthForm({ next }: { next?: string }) {
           value={email}
           onChange={handleEmailChange}
           isDisabled={busy}
+          isInvalid={emailError ? true : undefined}
         >
           <Label>Email</Label>
 
           <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
 
-          <FieldError>
+          <FieldError className="text-xs">
             {({ validationDetails }) => {
               if (validationDetails.valueMissing) {
                 return "Email is required";
@@ -155,6 +173,22 @@ export default function AuthForm({ next }: { next?: string }) {
 
               if (validationDetails.typeMismatch) {
                 return "Enter a valid email";
+              }
+
+              if (emailError?.kind === 'required') return "Email is required";
+
+              if (emailError?.kind === 'registered') {
+                return (
+                  <>
+                    <span className="block">This email is already registered.</span>
+                    <span className="mt-1 block text-muted-foreground">
+                      <NextLink href="/sign-in" className="text-xs text-brand underline">
+                        Sign in
+                      </NextLink>{' '}
+                      to your existing account to add another role.
+                    </span>
+                  </>
+                );
               }
 
               return null;

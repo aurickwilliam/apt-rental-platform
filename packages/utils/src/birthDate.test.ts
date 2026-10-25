@@ -1,27 +1,37 @@
-import { calculateAge, fromBirthDateValue, toBirthDateValue, validateBirthDate } from "./birthDate";
-
-const isoYearsAgo = (years: number, dayOffset = 0): string => {
-  const today = new Date();
-  const date = new Date(today.getFullYear() - years, today.getMonth(), today.getDate() + dayOffset);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-};
+import { BIRTH_DATE_ERRORS, calculateAge, fromBirthDateValue, getBirthDateRange, getManilaDate, toBirthDateValue, validateBirthDate } from "./birthDate";
 
 describe("validateBirthDate", () => {
-  it("accepts exactly 18 and exactly 120", () => {
-    expect(validateBirthDate(isoYearsAgo(18))).toBeNull();
-    expect(validateBirthDate(isoYearsAgo(120))).toBeNull();
+  const now = new Date("2026-10-25T04:00:00Z");
+  it("accepts exactly 18 and exactly 110 and rejects one day outside either bound", () => {
+    expect(validateBirthDate("2008-10-25", now)).toBeNull();
+    expect(validateBirthDate("1916-10-25", now)).toBeNull();
+    expect(validateBirthDate("2008-10-26", now)).toBe(BIRTH_DATE_ERRORS.underage);
+    expect(validateBirthDate("1916-10-24", now)).toBe(BIRTH_DATE_ERRORS.invalid);
   });
 
   it("rejects someone turning 18 tomorrow", () => {
-    expect(validateBirthDate(isoYearsAgo(18, 1))).toBe("You must be at least 18 years old");
+    expect(validateBirthDate("2008-10-26", now)).toBe(BIRTH_DATE_ERRORS.underage);
   });
 
-  it("rejects future, over-120 and empty or malformed dates", () => {
-    expect(validateBirthDate(isoYearsAgo(-1))).toBe("Date of birth cannot be in the future");
-    expect(validateBirthDate(isoYearsAgo(121))).toBe("Please enter a valid date of birth");
-    expect(validateBirthDate("")).toBe("Please enter a valid date of birth");
-    expect(validateBirthDate("not-a-date")).toBe("Please enter a valid date of birth");
+  it("rejects future, over-110 and empty or malformed dates", () => {
+    expect(validateBirthDate("2026-10-26", now)).toBe(BIRTH_DATE_ERRORS.future);
+    expect(validateBirthDate("1915-10-25", now)).toBe(BIRTH_DATE_ERRORS.invalid);
+    expect(validateBirthDate("", now)).toBe(BIRTH_DATE_ERRORS.required);
+    expect(validateBirthDate("not-a-date", now)).toBe(BIRTH_DATE_ERRORS.invalid);
+  });
+
+  it("rejects impossible calendar dates instead of accepting Date's rollover", () => {
+    for (const value of ["2000-02-31", "2001-02-29", "2000-04-31", "2000-13-01", "2000-1-01"]) {
+      expect(validateBirthDate(value, now)).toBe(BIRTH_DATE_ERRORS.invalid);
+    }
+    expect(validateBirthDate("2000-02-29", now)).toBeNull();
+  });
+  it("changes the range at Manila midnight and clamps leap-day anniversaries", () => {
+    expect(getManilaDate(new Date("2026-10-24T15:59:59Z"))).toBe("2026-10-24");
+    expect(getManilaDate(new Date("2026-10-24T16:00:00Z"))).toBe("2026-10-25");
+    expect(getBirthDateRange("2024-02-29")).toEqual({ earliest: "1914-02-28", latest: "2006-02-28" });
+    expect(validateBirthDate("2008-02-29", new Date("2026-02-28T12:00:00+08:00"))).toBe(BIRTH_DATE_ERRORS.underage);
+    expect(validateBirthDate("2008-02-29", new Date("2026-03-01T12:00:00+08:00"))).toBeNull();
   });
 });
 

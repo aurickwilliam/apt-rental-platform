@@ -21,6 +21,7 @@ interface UseOtpFlowOptions {
   role: string;
   showError: (msg: string) => void;
   onSuccessOpen: () => void;
+  onBirthDateError: (message: string, value: string, verified?: boolean) => void;
 }
 
 export function useOtpFlow({
@@ -28,6 +29,7 @@ export function useOtpFlow({
   role,
   showError,
   onSuccessOpen,
+  onBirthDateError,
 }: UseOtpFlowOptions) {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -44,13 +46,13 @@ export function useOtpFlow({
   // Keeps handlers stable while still reading the latest values when fired.
   // Mirrored in an effect (not during render) to satisfy
   // react-hooks/set-state-in-effect / no-ref-write-in-render.
-  const latest = useRef({ formData, role, showError, onSuccessOpen });
+  const latest = useRef({ formData, role, showError, onSuccessOpen, onBirthDateError });
   const otpRef = useRef(otp);
 
   useEffect(() => {
-    latest.current = { formData, role, showError, onSuccessOpen };
+    latest.current = { formData, role, showError, onSuccessOpen, onBirthDateError };
     otpRef.current = otp;
-  }, [formData, role, showError, onSuccessOpen, otp]);
+  }, [formData, role, showError, onSuccessOpen, onBirthDateError, otp]);
 
   const handleResendOtp = useCallback(async () => {
     const { formData: data } = latest.current;
@@ -62,7 +64,12 @@ export function useOtpFlow({
         data.password,
         data.firstName,
         data.lastName,
+        data.birthDate,
       );
+      if (result.birthDateError) {
+        latest.current.onBirthDateError(result.birthDateError, result.birthDate ?? data.birthDate);
+        return;
+      }
       if (result.error) {
         setOtpError(result.error);
         return;
@@ -116,7 +123,13 @@ export function useOtpFlow({
 
       const result = await signUp({ error: null, success: false }, fd);
 
-      if (result.error) {
+      if (result.birthDateError) {
+        // Preserve cleanup of a verified but profile-less session, without
+        // sending this known field failure to the generic ErrorModal.
+        await supabase.auth.signOut();
+        latest.current.onBirthDateError(result.birthDateError, result.birthDate ?? data.birthDate, true);
+        onClose();
+      } else if (result.error) {
         // The email is already confirmed, so the session is live without a
         // profile. End it: signing in again continues at "finish your
         // profile" instead of leaving a half-signed-in browser behind.
