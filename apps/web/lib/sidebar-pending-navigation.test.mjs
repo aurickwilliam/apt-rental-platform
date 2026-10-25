@@ -36,7 +36,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
     "next/navigation": { usePathname: () => pathname, useRouter: () => ({ push: href => pushes.push(href), prefetch: () => {} }), useSearchParams: () => new URLSearchParams() },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
-    "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
+    "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 2 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set(["messages"]) },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref, navigate: href => { pushes.push(href); pendingHref = href; } }) },
@@ -96,15 +96,16 @@ test("switching destinations, cancellation and failure clear old link feedback w
 
 test("mobile menu/keyboard actions retain pathname semantics and expose visible pending feedback without disabling navigation", () => {
   const h = harness({ mobile: true });
-  const menu = h.render().find(node => node.type === "Dropdown.Menu");
-  menu.props.onAction("/tenant/messages");
+  const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
+  const messages = tree => tree.find(node => node.type === "button" && labelOf(node) === "Messages");
+  messages(h.render()).props.onClick();
   assert.deepEqual(h.pushes, ["/tenant/messages"]);
   const pending = h.render();
   const button = pending.find(node => node.type === "Button" && node.props["aria-label"] === "Open navigation");
   assert.equal(button.props["aria-busy"], true);
   assert.equal(button.props.isDisabled, undefined);
   assert.ok(JSON.stringify(button).includes("Opening…"));
-  assert.equal(pending.find(node => node.type === "Dropdown.Item" && node.props.id === "/tenant/messages").props["aria-current"], undefined);
+  assert.equal(messages(pending).props["aria-current"], undefined);
   h.commit("/tenant/messages");
   assert.equal(h.render().find(node => node.type === "Button" && node.props["aria-label"] === "Open navigation").props["aria-busy"], undefined);
 });

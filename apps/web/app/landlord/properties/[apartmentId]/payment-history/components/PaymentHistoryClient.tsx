@@ -142,7 +142,7 @@ function PaymentHistoryContent({
         <div className="space-y-6">
           {grouped.map(([year, payments]) => (
             <section key={year} className="space-y-3">
-              <div className="sticky top-0 z-10 bg-background py-2">
+              <div className="sticky top-14 md:top-0 z-10 bg-background py-2">
                 {year === currentYear ? (
                   <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
                     <span className="text-sm font-nunito font-semibold text-primary">This Year</span>

@@ -16,7 +16,7 @@ function load(file, extra = {}) {
       Suspense: "Suspense", useState: value => [value, () => {}],
       useCallback: callback => callback, useMemo: compute => compute(), useEffect: () => {}, useSyncExternalStore: () => false,
     },
-    "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Chip: "Chip", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator" },
+    "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Chip: "Chip", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
@@ -409,11 +409,12 @@ test("sidebar selection follows the route in either direction, not a click-only 
 test("opening mobile menu warms only opted-in routes; selection uses client navigation", () => {
   const harness = sidebarHarness();
   const elements = nodes(harness.MobileSidebarNavigation({ navItems, activePortal: "landlord", userRoles: ["landlord"] }));
-  const dropdown = elements.find(node => node.type === Dropdown);
-  dropdown.props.onOpenChange(false);
+  const drawer = elements.find(node => node.type === "Drawer.Root");
+  drawer.props.state.onOpenChange(false);
   assert.deepEqual(harness.prefetched, []);
-  dropdown.props.onOpenChange(true);
+  drawer.props.state.onOpenChange(true);
   assert.deepEqual(harness.prefetched, ["/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
-  elements.find(node => node.type === "Dropdown.Menu").props.onAction("/landlord/properties");
+  const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
+  elements.find(node => node.type === "button" && labelOf(node) === "My Properties").props.onClick();
   assert.deepEqual(harness.pushed, ["/landlord/properties"]);
 });

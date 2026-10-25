@@ -35,11 +35,12 @@ import {
   IconTool,
   IconUsers,
   IconUser,
+  IconX,
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Button, Dropdown, Label, Separator, Spinner } from "@heroui/react";
-import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar, IconMenu2 as Menu, IconBell as Bell } from "@tabler/icons-react";
+import { Button, Drawer, Dropdown, Label, Separator, Spinner, useOverlayState } from "@heroui/react";
+import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar } from "@tabler/icons-react";
 
 import { signOut } from "@/service/signOutService";
 import { usePendingNavigation } from "@/hooks/use-pending-navigation";
@@ -218,7 +219,7 @@ export type SwitchTarget = { href: string; label: string };
  * both, or neither) get an entry per held consumer portal, and any consumer
  * portal gets a way back to /admin.
  *
- * Shared by the desktop sidebar dropdown and the mobile FAB menu so the two
+ * Shared by the desktop sidebar dropdown and the mobile drawer so the two
  * cannot drift apart.
  */
 export function getSwitchTargets(
@@ -764,36 +765,20 @@ type MobileSidebarNavigationProps = {
   favoritesHref?: string;
 };
 
-// `useSearchParams` (for the Settings row) opts a subtree into client-side
-// rendering, so it must sit behind a Suspense boundary or prerendering any
-// portal page fails with "useSearchParams() should be wrapped in a suspense
-// boundary". Callers render this wrapper; the work happens in the inner
-// component.
-function MobileNotificationsItem({
-  unreadCount,
-  iconSet,
-}: {
-  unreadCount: number;
-  iconSet?: "lucide" | "tabler";
-}) {
-  return (
-    <Dropdown.Item id="notifications" textValue="Notifications">
-      <Label className="flex w-full items-center gap-2">
-        {iconSet === "tabler" ? (
-          <IconBell size={18} aria-hidden="true" />
-        ) : (
-          <Bell size={18} aria-hidden="true" />
-        )}
-        Notifications
-        {unreadCount > 0 && (
-          <span className="ml-auto flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </Label>
-    </Dropdown.Item>
-  );
+const DRAWER_ROW_CLASS =
+  "flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-nunito text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary";
+
+function drawerRowClass(active: boolean) {
+  return `${DRAWER_ROW_CLASS} ${
+    active
+      ? "bg-primary/10 font-semibold text-primary"
+      : "text-foreground hover:bg-primary/5 hover:text-primary"
+  }`;
 }
+
+// Below `md` the sidebar is gone: a sticky top bar holds the hamburger, and
+// the whole portal navigation (pages, account, theme, log out) lives in a
+// left drawer. Rendered inside the portal's content column, before `main`.
 function MobileSidebarMenu({
   navItems,
   iconSet,
@@ -828,13 +813,14 @@ function MobileSidebarMenu({
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   }, [resolvedTheme, setTheme]);
 
-  // This FAB is `md:hidden`, so an open menu would be orphaned once the
+  // The top bar is `md:hidden`, so an open drawer would be orphaned once the
   // window reaches md and the sidebar takes over.
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
 
-  // Unlike desktop Links, menu actions don't automatically prefetch routes.
+  // Rows are buttons, not Links, so routes are warmed explicitly when the
+  // drawer opens: the account pages and only the items that opted in.
   const handleMobileMenuOpenChange = useCallback(
     (value: boolean) => {
       setMobileMenuOpen(value);
@@ -848,22 +834,17 @@ function MobileSidebarMenu({
     },
     [router, profileHref, favoritesHref, navItems],
   );
-  useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+  const drawerState = useOverlayState({
+    isOpen: isMobileMenuOpen,
+    onOpenChange: handleMobileMenuOpenChange,
+  });
 
-  // Settings and theme were only reachable from the desktop sidebar, so
-  // they are offered here too — this menu is the sole navigation on phones.
-  const openSettings = () => {
+  // Settings and notifications open through shared query params (the overlays
+  // mounted by the portal layout render them), so the drawer closes first.
+  const openOverlay = (param: string, value: string) => {
+    closeMobileMenu();
     const params = new URLSearchParams(searchParams.toString());
-    params.set("settings", SETTINGS_QUERY_VALUE);
-    const query = params.toString();
-    window.history.pushState(null, "", `${pathname}${query ? `?${query}` : ""}`);
-  };
-
-  // Opens the notifications drawer through the shared query param (same
-  // pattern as Settings); the overlay mounted by the portal layout renders it.
-  const openNotifications = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("notifications", NOTIFICATIONS_QUERY_VALUE);
+    params.set(param, value);
     const query = params.toString();
     window.history.pushState(null, "", `${pathname}${query ? `?${query}` : ""}`);
   };
@@ -871,206 +852,246 @@ function MobileSidebarMenu({
   // Same helper the sidebar dropdown uses, so both menus stay in step.
   const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
 
-  // On the tenant apartment detail page the fixed price bar docks to the
-  // screen bottom, so the pill floats above it instead of overlapping it.
-  const isApartmentDetail =
-    activePortal === "tenant" && /^\/tenant\/browse\/[^/]+\/?$/.test(pathname);
+  // Closes the drawer and navigates inside a transition, so the top bar can
+  // show pending feedback while the route loads.
+  const go = (href: string) => {
+    closeMobileMenu();
+    navigate(href);
+  };
+
+  const iconFor = (icon: string) =>
+    iconSet === "tabler" ? (ADMIN_ICON_MAP[icon] ?? IconSearch) : (ICON_MAP[icon] ?? Search);
+  const profileActive = profileHref ? isActive(pathname, profileHref) : false;
+  const favoritesActive = favoritesHref ? isActive(pathname, favoritesHref) : false;
 
   return (
-    <nav
-      aria-label={navLabel}
-      className={`fixed left-4 z-40 md:hidden ${isApartmentDetail ? "bottom-24" : "bottom-4"}`}
-    >
-      <Dropdown isOpen={isMobileMenuOpen} onOpenChange={handleMobileMenuOpenChange}>
+    <>
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-divider bg-background/70 px-3 backdrop-blur-md backdrop-saturate-150 md:hidden">
         <Button
-          variant="primary"
-          className="rounded-full shadow-sm"
+          isIconOnly
+          variant="ghost"
           aria-label={buttonLabel}
+          aria-haspopup="dialog"
+          aria-expanded={isMobileMenuOpen}
           aria-busy={pendingHref !== null || undefined}
+          onPress={() => handleMobileMenuOpenChange(true)}
         >
-          {pendingHref ? <Spinner size="sm" color="current" aria-hidden="true" /> : iconSet === "tabler" ? (
-            <IconMenu2 size={18} aria-hidden="true" />
+          {pendingHref ? (
+            <>
+              <Spinner size="sm" color="current" aria-hidden="true" />
+              <span className="sr-only">Opening…</span>
+            </>
           ) : (
-            <Menu size={18} aria-hidden="true" />
-          )}{" "}
-          {pendingHref ? "Opening…" : "Menu"}
+            <IconMenu2 size={22} aria-hidden="true" />
+          )}
         </Button>
-        {pendingHref ? <span role="status" className="sr-only">Opening {pendingHref.split("/").at(-1)}…</span> : null}
-        {/* Capped to the viewport so the longest portal list (admin) scrolls
-            instead of running off short or landscape screens. */}
-        <Dropdown.Popover
-          placement="top start"
-          className="max-h-[calc(100dvh-6rem)] min-w-60 overflow-y-auto font-nunito"
-        >
-          <Dropdown.Menu
-            aria-label={menuLabel}
-            onAction={(key) => {
-              if (key === "settings") openSettings();
-              if (key === "notifications") openNotifications();
-              // The switch is pointer-events-none, so the row tap is what
-              // actually toggles the theme (mirrors the sidebar footer).
-              if (key === "theme") toggleTheme();
-              if (key === "logout") signOut();
-              const target = switchTargets.find((item) => `switch:${item.href}` === key);
-              if (target) router.push(target.href);
-              if (key === "profile" && profileHref) router.push(profileHref);
-              if (key === "favorites" && favoritesHref) router.push(favoritesHref);
-              const navItem = navItems.find((item) => item.href === key);
-              if (navItem) navigate(navItem.href);
-            }}
-          >
-            {navGroups.map((group, groupIndex) => (
-              <Fragment key={group.section ?? "pages"}>
-                {groupIndex > 0 ? <Separator /> : null}
-                <Dropdown.Section aria-label={group.section ?? menuLabel}>
-              {group.items.map(({ href, label, icon, activityKey }) => {
-                const Icon =
-                  iconSet === "tabler"
-                    ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
-                    : (ICON_MAP[icon] ?? Search);
-                const active = isActive(pathname, href);
-                const hasActivity = !!activityKey && activity.has(activityKey);
-                return (
-                  <Dropdown.Item
-                    key={href}
-                    id={href}
-                    textValue={label}
-                    aria-label={hasActivity ? `${label}, Unread activity` : undefined}
-                    aria-current={active ? "page" : undefined}
-                    className={active ? "bg-primary/10 text-primary" : undefined}
+        {pendingHref ? (
+          <span role="status" className="sr-only">
+            Opening {pendingHref.split("/").at(-1)}…
+          </span>
+        ) : null}
+        <Link href={navItems[0]?.href ?? "/"} className="flex shrink-0 items-center">
+          <Image
+            src="/logo/logo-name-transparent.svg"
+            alt="APT Logo"
+            width={90}
+            height={32}
+            className="h-8 w-auto object-contain"
+            priority
+          />
+        </Link>
+      </header>
+
+      <Drawer.Root state={drawerState}>
+        <Drawer.Backdrop>
+          <Drawer.Content placement="left">
+            <Drawer.Dialog
+              aria-label={menuLabel}
+              className="flex h-full w-[calc(100vw-3rem)] max-w-xs flex-col rounded-r-3xl p-0 font-nunito"
+            >
+              <div className="flex items-center justify-between gap-2 border-b border-divider px-4 py-3">
+                <Link
+                  href={navItems[0]?.href ?? "/"}
+                  onClick={closeMobileMenu}
+                  className="flex shrink-0 items-center"
+                >
+                  <Image
+                    src="/logo/logo-name-transparent.svg"
+                    alt="APT Logo"
+                    width={104}
+                    height={37}
+                    className="h-9 w-auto object-contain"
+                  />
+                </Link>
+                <Button
+                  isIconOnly
+                  variant="ghost"
+                  size="sm"
+                  onPress={closeMobileMenu}
+                  aria-label="Close navigation"
+                >
+                  <IconX size={18} aria-hidden="true" />
+                </Button>
+              </div>
+
+              <nav
+                aria-label={navLabel}
+                className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 py-3"
+              >
+                {navGroups.map((group, groupIndex) => (
+                  <div
+                    key={group.section ?? "pages"}
+                    role={group.section ? "group" : undefined}
+                    aria-label={group.section}
+                    className="flex flex-col gap-1"
                   >
-                    <Label
-                      className={`relative flex w-full items-center gap-2 pr-7 ${active ? "font-semibold text-primary" : ""}`}
+                    {groupIndex > 0 ? <Separator className="my-1.5" /> : null}
+                    {group.items.map(({ href, label, icon, activityKey }) => {
+                      const Icon = iconFor(icon);
+                      const active = isActive(pathname, href);
+                      const hasActivity = !!activityKey && activity.has(activityKey);
+                      return (
+                        <button
+                          key={href}
+                          type="button"
+                          onClick={() => go(href)}
+                          aria-current={active ? "page" : undefined}
+                          aria-label={hasActivity ? `${label}, Unread activity` : undefined}
+                          className={`relative pr-7 ${drawerRowClass(active)}`}
+                        >
+                          <Icon size={20} aria-hidden="true" />
+                          {label}
+                          {hasActivity ? <UnreadActivityDot /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+
+                <Separator className="my-1.5" />
+
+                <div role="group" aria-label="Account" className="flex flex-col gap-1">
+                  {profileHref ? (
+                    <button
+                      type="button"
+                      onClick={() => go(profileHref)}
+                      aria-current={profileActive ? "page" : undefined}
+                      className={drawerRowClass(profileActive)}
                     >
-                      <Icon size={18} aria-hidden="true" />
-                      {label}
-                      {hasActivity ? <UnreadActivityDot /> : null}
-                    </Label>
-                  </Dropdown.Item>
-                );
-              })}
-                </Dropdown.Section>
-              </Fragment>
-            ))}
+                      <IconUser size={20} aria-hidden="true" />
+                      Profile
+                    </button>
+                  ) : null}
+                  {favoritesHref ? (
+                    <button
+                      type="button"
+                      onClick={() => go(favoritesHref)}
+                      aria-current={favoritesActive ? "page" : undefined}
+                      className={drawerRowClass(favoritesActive)}
+                    >
+                      <IconHeart size={20} aria-hidden="true" />
+                      Favorites
+                    </button>
+                  ) : null}
 
-            <Separator />
+                  {switchTargets.map((target) => (
+                    <button
+                      key={target.href}
+                      type="button"
+                      onClick={() => go(target.href)}
+                      className={drawerRowClass(false)}
+                    >
+                      <IconArrowsExchange size={20} aria-hidden="true" />
+                      {target.label}
+                    </button>
+                  ))}
 
-            <Dropdown.Section aria-label="Account">
-              {profileHref ? (
-                <Dropdown.Item
-                  id="profile"
-                  textValue="Profile"
-                  aria-current={isActive(pathname, profileHref) ? "page" : undefined}
-                  className={isActive(pathname, profileHref) ? "bg-primary/10 text-primary" : undefined}
-                >
-                  <Label
-                    className={`flex items-center gap-2 ${isActive(pathname, profileHref) ? "font-semibold text-primary" : ""}`}
+                  <button
+                    type="button"
+                    onClick={() => openOverlay("settings", SETTINGS_QUERY_VALUE)}
+                    className={drawerRowClass(false)}
                   >
-                    {iconSet === "tabler" ? (
-                      <IconUser size={18} aria-hidden="true" />
-                    ) : (
-                      <UserRound size={18} aria-hidden="true" />
-                    )}
-                    Profile
-                  </Label>
-                </Dropdown.Item>
-              ) : null}
-              {favoritesHref ? (
-                <Dropdown.Item
-                  id="favorites"
-                  textValue="Favorites"
-                  aria-current={isActive(pathname, favoritesHref) ? "page" : undefined}
-                  className={isActive(pathname, favoritesHref) ? "bg-primary/10 text-primary" : undefined}
-                >
-                  <Label className={`flex items-center gap-2 ${isActive(pathname, favoritesHref) ? "font-semibold text-primary" : ""}`}>
-                    <IconHeart size={18} aria-hidden="true" />
-                    Favorites
-                  </Label>
-                </Dropdown.Item>
-              ) : null}
+                    <IconSettings size={20} aria-hidden="true" />
+                    Settings
+                  </button>
 
-              {switchTargets.map((target) => (
-                <Dropdown.Item
-                  key={target.href}
-                  id={`switch:${target.href}`}
-                  textValue={target.label}
-                >
-                  <Label className="flex items-center gap-2">
-                    {iconSet === "tabler" ? (
-                      <IconArrowsExchange size={18} aria-hidden="true" />
-                    ) : (
-                      <ArrowLeftRight size={18} aria-hidden="true" />
-                    )}
-                    {target.label}
-                  </Label>
-                </Dropdown.Item>
-              ))}
-
-              <Dropdown.Item id="settings" textValue="Settings">
-                <Label className="flex items-center gap-2">
-                  {iconSet === "tabler" ? (
-                    <IconSettings size={18} aria-hidden="true" />
-                  ) : (
-                    <Settings size={18} aria-hidden="true" />
+                  {(activePortal === "tenant" ||
+                    activePortal === "landlord" ||
+                    activePortal === "admin") && (
+                    <button
+                      type="button"
+                      onClick={() => openOverlay("notifications", NOTIFICATIONS_QUERY_VALUE)}
+                      className={drawerRowClass(false)}
+                    >
+                      <IconBell size={20} aria-hidden="true" />
+                      Notifications
+                      {unreadCount > 0 && (
+                        <span className="ml-auto flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
                   )}
-                  Settings
-                </Label>
-              </Dropdown.Item>
 
-              {(activePortal === "tenant" ||
-                activePortal === "landlord" ||
-                activePortal === "admin") && (
-                <MobileNotificationsItem unreadCount={unreadCount} iconSet={iconSet} />
-              )}
-
-              <Dropdown.Item id="theme" textValue="Dark Mode">
-                <Label className="flex w-full items-center gap-2">
-                  {iconSet === "tabler" ? (
-                    isDark ? (
-                      <IconMoon size={18} aria-hidden="true" />
+                  {/* The switch is pointer-events-none, so the row tap is what
+                      actually toggles the theme (mirrors the sidebar footer). */}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isDark}
+                    disabled={!themeMounted}
+                    onClick={toggleTheme}
+                    className={drawerRowClass(false)}
+                  >
+                    {isDark ? (
+                      <IconMoon size={20} aria-hidden="true" />
                     ) : (
-                      <IconSun size={18} aria-hidden="true" />
-                    )
-                  ) : isDark ? (
-                    <Moon size={18} aria-hidden="true" />
-                  ) : (
-                    <Sun size={18} aria-hidden="true" />
-                  )}
-                  Dark Mode
-                  <span className="ml-auto pointer-events-none flex items-center">
-                    <ToggleSwitch
-                      isSelected={isDark}
-                      onValueChange={toggleTheme}
-                      disabled={!themeMounted}
-                      aria-label="Toggle dark mode"
-                    />
-                  </span>
-                </Label>
-              </Dropdown.Item>
-            </Dropdown.Section>
+                      <IconSun size={20} aria-hidden="true" />
+                    )}
+                    Dark Mode
+                    <span className="pointer-events-none ml-auto flex items-center">
+                      <ToggleSwitch
+                        isSelected={isDark}
+                        onValueChange={toggleTheme}
+                        disabled={!themeMounted}
+                        aria-label="Toggle dark mode"
+                      />
+                    </span>
+                  </button>
+                </div>
+              </nav>
 
-            <Separator />
-
-            <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
-              <Label className="flex items-center gap-2">
-                {iconSet === "tabler" ? (
-                  <IconLogout size={18} aria-hidden="true" />
-                ) : (
-                  <LogOut size={18} aria-hidden="true" />
-                )}
-                Log Out
-              </Label>
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
-    </nav>
+              <div className="border-t border-divider px-3 py-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobileMenu();
+                    signOut();
+                  }}
+                  className={`${DRAWER_ROW_CLASS} text-danger hover:bg-danger/10`}
+                >
+                  <IconLogout size={20} aria-hidden="true" />
+                  Log Out
+                </button>
+              </div>
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer.Root>
+    </>
   );
 }
 
+// `useSearchParams` (for the Settings row) opts a subtree into client-side
+// rendering, so it must sit behind a Suspense boundary or prerendering any
+// portal page fails with "useSearchParams() should be wrapped in a suspense
+// boundary". Callers render this wrapper; the work happens in the inner
+// component.
 export function MobileSidebarNavigation(props: MobileSidebarNavigationProps) {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={<div aria-hidden="true" className="sticky top-0 z-40 h-14 shrink-0 border-b border-divider bg-background md:hidden" />}
+    >
       <MobileSidebarMenu {...props} />
     </Suspense>
   );

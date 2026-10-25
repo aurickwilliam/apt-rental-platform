@@ -15,7 +15,7 @@ export default function CreateApartmentSkeleton() {
         <Skeleton className="h-10 w-28 rounded-full" />
       </div>
 
-      <div className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4">
+      <div className="sticky top-14 md:top-0 z-30 bg-background border-b border-border px-6 py-4">
         <div>
           <div className="flex items-center">
             {Array.from({ length: 5 }, (_, i) => (

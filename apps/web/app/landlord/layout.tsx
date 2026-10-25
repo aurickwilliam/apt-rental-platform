@@ -74,19 +74,19 @@ export default async function DashboardLayout({
         collapsible
       />
       <div className="flex min-w-0 flex-1 flex-col">
+        <MobileSidebarNavigation
+          navItems={navItems}
+          profileHref="/landlord/profile"
+          iconSet="tabler"
+          navLabel="Landlord navigation"
+          menuLabel="Landlord pages"
+          buttonLabel="Open landlord navigation"
+          userRoles={userRoles}
+          activePortal="landlord"
+        />
         <DraggableNotificationBell activePortal="landlord" />
-        <main className="flex min-h-0 flex-1 flex-col bg-background pb-20 md:pb-0">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col bg-background">{children}</main>
       </div>
-      <MobileSidebarNavigation
-        navItems={navItems}
-        profileHref="/landlord/profile"
-        iconSet="tabler"
-        navLabel="Landlord navigation"
-        menuLabel="Landlord pages"
-        buttonLabel="Open landlord navigation"
-        userRoles={userRoles}
-        activePortal="landlord"
-      />
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="landlord" />
       </Suspense>

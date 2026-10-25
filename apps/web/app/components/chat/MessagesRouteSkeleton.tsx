@@ -13,7 +13,7 @@ export default function MessagesRouteSkeleton() {
     <div
       aria-busy="true"
       aria-label="Loading messages"
-      className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh"
+      className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh"
     >
       <div className="flex w-full min-h-0 flex-col border-r border-border bg-card lg:w-80 lg:shrink-0 xl:w-88">
         <div className="border-b border-border px-5 py-4">

@@ -25,7 +25,7 @@ function SectionHeader({ year, currentYear }: { year: string; currentYear: strin
   const isThisYear = year === currentYear;
   if (isThisYear) {
     return (
-      <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
+      <div className="sticky top-14 md:top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
         <div className="inline-flex rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 px-3 py-1.5">
           <span className="text-sm font-nunito font-semibold text-primary">This Year</span>
         </div>
@@ -33,7 +33,7 @@ function SectionHeader({ year, currentYear }: { year: string; currentYear: strin
     );
   }
   return (
-    <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
+    <div className="sticky top-14 md:top-0 z-10 bg-zinc-50 dark:bg-zinc-950 py-2">
       <span className="text-sm font-nunito font-semibold text-primary/60">{year}</span>
     </div>
   );

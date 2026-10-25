@@ -157,8 +157,8 @@ export default function MessagesClient({
     // is pinned to the viewport. Without a definite height the whole column
     // outgrows the screen, `flex-1` resolves against unbounded height, and
     // the window becomes the scroller — dragging the header and composer off
-    // screen. `pb-20`/`md:pb-0` on the portal `main` is mirrored here.
-    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
+    // screen. The 3.5rem mobile top bar in the portal layout is subtracted here.
+    <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full overflow-hidden bg-card md:h-dvh">
       <ContactSidebar
         myLandlord={myLandlordView}
         pastInquiries={pastInquiriesInbox}
