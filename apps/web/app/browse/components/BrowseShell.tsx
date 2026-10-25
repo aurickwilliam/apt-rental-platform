@@ -5,10 +5,8 @@ import SearchContainer from "./SearchContainer";
 
 interface BrowseShellProps {
   basePath?: string;
-  /** Mobile filter entry rendered beside the search pill (results grid only). */
+  /** Filter entry rendered beside the search pill. */
   filterButton?: ReactNode;
-  /** Filter sidebar; omitted in discovery mode, where there is no filter panel. */
-  filters?: ReactNode;
   /** Placeholder shown while `children` streams in. */
   fallback: ReactNode;
   children: ReactNode;
@@ -31,7 +29,6 @@ interface BrowseShellProps {
 export default function BrowseShell({
   basePath = "/browse",
   filterButton,
-  filters,
   fallback,
   children,
   fullWidth = false,
@@ -42,7 +39,6 @@ export default function BrowseShell({
         <SearchContainer basePath={basePath} filterButton={filterButton} />
       </Suspense>
       <div className={BROWSE_BODY_CLASS}>
-        {filters}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense fallback={fallback}>{children}</Suspense>
         </div>

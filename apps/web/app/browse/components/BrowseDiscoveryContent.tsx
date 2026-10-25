@@ -5,7 +5,7 @@ import type { TenantPreferences } from "@/lib/tenant-preferences";
 import { fetchBrowseResults } from "../lib/fetch-browse-results";
 import { fetchDiscoverySections } from "../lib/fetch-browse-sections";
 import { buildRecommendedSection } from "../lib/fetch-recommended";
-import BrowseFilters from "./BrowseFilters";
+import BrowseResultsBar from "./BrowseResultsBar";
 import BrowseSectionsList from "./BrowseSectionsList";
 import RenderApartments from "./RenderApartments";
 
@@ -38,20 +38,18 @@ export default async function BrowseDiscoveryContent({
   }
 
   // Empty/failed sections fall back to the filtered grid, exactly like the
-  // eager page did. The search row's filter button already covers phones.
+  // eager page did. Filters stay reachable through the search row's filter button.
   const { apartments, page, totalCount, pageSize } = await fetchBrowseResults(supabase, {});
   return (
-    <div className="flex flex-col gap-4 md:flex-row">
-      <BrowseFilters resultCount={totalCount} basePath={basePath} stickyClassName="md:top-4 md:max-h-[calc(100dvh-2rem)]" />
-      <div className="w-full min-w-0 flex-1 rounded-lg p-0">
-        <RenderApartments
-          apartment={apartments}
-          page={page}
-          totalCount={totalCount}
-          pageSize={pageSize}
-          basePath={basePath}
-        />
-      </div>
-    </div>
+    <>
+      <BrowseResultsBar resultCount={totalCount} basePath={basePath} />
+      <RenderApartments
+        apartment={apartments}
+        page={page}
+        totalCount={totalCount}
+        pageSize={pageSize}
+        basePath={basePath}
+      />
+    </>
   );
 }

@@ -3,26 +3,19 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
+import { Button, Drawer, useOverlayState } from "@heroui/react";
 import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { FILTER_KEYS } from "./BrowseFilters";
+import { FILTER_KEYS } from "../lib/browse-params";
+import { FilterPanelSkeleton } from "./BrowsePageSkeleton";
 
 // Drawer-only code path: the panel chunk loads when the drawer first
 // opens, keeping it out of Browse's first download.
 const FilterContainer = dynamic(() => import("./FilterContainer"), {
   ssr: true,
-  loading: () => (
-    <div aria-hidden="true" className="flex flex-col gap-2 p-1">
-      <Skeleton className="h-10 w-full rounded-full" />
-      <Skeleton className="h-5 w-28 rounded-md" />
-      <Skeleton className="h-4 w-full rounded-md" />
-      <Skeleton className="h-4 w-5/6 rounded-md" />
-      <Skeleton className="h-9 w-full rounded-lg" />
-    </div>
-  ),
+  loading: () => <FilterPanelSkeleton />,
 });
 
 type Props = {
@@ -33,8 +26,7 @@ type Props = {
 
 // Self-contained filter entry: compact button with active-count badge plus its
 // drawer (bottom sheet on phones, right-hand panel from md up). Rendered inside
-// the search row at every size; on md+ the results page also keeps its sidebar,
-// so this is the way in from discovery, where there is no sidebar.
+// the search row at every size; it is the only way to the filters.
 export default function FilterDrawerButton({ resultCount, basePath = "/browse" }: Props) {
   const isMobile = useIsMobile();
   const searchParams = useSearchParams();

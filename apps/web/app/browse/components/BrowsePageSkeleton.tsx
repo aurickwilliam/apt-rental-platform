@@ -2,6 +2,7 @@ import { Skeleton } from "@heroui/react";
 
 import {
   BROWSE_BODY_CLASS,
+  BROWSE_GRID_CLASS,
   BROWSE_HERO_CLASS,
   BROWSE_SEARCH_ROW_CLASS,
   browseFrameClass,
@@ -39,7 +40,7 @@ export function BrowseCardsSkeleton({ count = 8 }: { count?: number }) {
     <div
       aria-label="Loading apartments"
       role="status"
-      className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
+      className={BROWSE_GRID_CLASS}
     >
       {Array.from({ length: count }, (_, i) => (
         <CardSkeleton key={i} index={i} />
@@ -77,7 +78,7 @@ export function BrowseSectionsSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-// Filter sidebar placeholder; also the fallback while the filter chunk loads.
+// Filter panel placeholder, shown in the drawer while the filter chunk loads.
 // Follows the loaded panel: action buttons, "Filters" heading with result
 // count, the verified toggle, then option groups split by separators.
 export function FilterPanelSkeleton() {
@@ -132,25 +133,6 @@ export function FilterPanelSkeleton() {
   );
 }
 
-// Streamed fallback for the filter rail: keeps the sidebar width and the
-// mobile result-count row stable until the shared result query settles.
-export function BrowseFilterRailSkeleton({
-  stickyClassName = "md:top-20 md:max-h-[calc(100dvh-6rem)]",
-}: {
-  stickyClassName?: string;
-}) {
-  return (
-    <>
-      <div className="md:hidden mb-3 flex items-center justify-between gap-2" aria-hidden="true">
-        <Skeleton className="h-5 w-28 rounded-md" />
-      </div>
-      <aside className={`hidden md:block md:w-64 lg:w-72 xl:w-80 shrink-0 self-start md:sticky md:overflow-y-auto ${stickyClassName}`}>
-        <FilterPanelSkeleton />
-      </aside>
-    </>
-  );
-}
-
 // The filter entry sits in the search row at every size. This placeholder keeps
 // the row geometry until it is ready, without claiming a result count.
 // Translucent white so it reads on the primary hero it sits in.
@@ -174,27 +156,33 @@ function BrowseHeroSkeleton({ withFilterEntry = false }: { withFilterEntry?: boo
   );
 }
 
-// Same sticky offset the tenant page gives its loaded rail (no top navbar).
-const TENANT_STICKY_CLASS = "md:top-4 md:max-h-[calc(100dvh-2rem)]";
-
 interface BrowsePageSkeletonProps {
   /** Tenant portal: fill the width beside the sidebar instead of the capped, centered public frame. */
   fullWidth?: boolean;
 }
 
-// Loading state for a searched / filtered / paged browse: the results page
-// shows the filter sidebar and a flat grid, not curated section rows.
+// Results area of a searched / filtered / paged browse: the results bar's count
+// line, then the flat grid. Filters live in the drawer, so there is no rail.
+export function BrowseResultsGridSkeleton() {
+  return (
+    <>
+      <div aria-hidden="true" className="mb-3 flex h-8 items-center">
+        <Skeleton className="h-5 w-24 rounded-md" />
+      </div>
+      <BrowseCardsSkeleton />
+    </>
+  );
+}
+
+// Loading state for a searched / filtered / paged browse.
 export function BrowseResultsPageSkeleton({ fullWidth = false }: BrowsePageSkeletonProps) {
   return (
     <div className={browseFrameClass(fullWidth)} aria-busy="true">
       <BrowseHeroSkeleton withFilterEntry />
 
       <div className={BROWSE_BODY_CLASS}>
-        <BrowseFilterRailSkeleton
-          stickyClassName={fullWidth ? TENANT_STICKY_CLASS : undefined}
-        />
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
-          <BrowseCardsSkeleton />
+          <BrowseResultsGridSkeleton />
         </div>
       </div>
     </div>

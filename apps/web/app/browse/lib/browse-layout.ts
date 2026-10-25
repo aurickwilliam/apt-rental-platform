@@ -20,3 +20,9 @@ export const BROWSE_SEARCH_ROW_CLASS =
 
 // Results area under the hero: optional filter rail beside the content.
 export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";
+
+// Apartment results grid, shared by the loaded grid and its skeleton so the
+// columns match. Denser than the old 4-column cap: the cards are tall (square
+// photo), so wide screens get 5 and 6 columns instead of ever-larger cards.
+export const BROWSE_GRID_CLASS =
+  "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";

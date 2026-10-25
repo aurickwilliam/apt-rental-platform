@@ -4,13 +4,12 @@ import { requirePortalViewer } from "@/lib/server-identity";
 import { createClient } from "@repo/supabase/server";
 
 import {
-  BrowseCardsSkeleton,
-  BrowseFilterRailSkeleton,
+  BrowseResultsGridSkeleton,
   BrowseSectionsSkeleton,
   FilterEntrySkeleton,
 } from "@/app/browse/components/BrowsePageSkeleton";
 import BrowseDiscoveryContent from "@/app/browse/components/BrowseDiscoveryContent";
-import BrowseFilters from "@/app/browse/components/BrowseFilters";
+import BrowseResultsBar from "@/app/browse/components/BrowseResultsBar";
 import FilterDrawerButton from "@/app/browse/components/FilterDrawerButton";
 import BrowseShell from "@/app/browse/components/BrowseShell";
 import RenderApartments from "@/app/browse/components/RenderApartments";
@@ -28,7 +27,6 @@ type PageProps = {
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 const BASE_PATH = "/tenant/browse";
-const FILTER_STICKY_CLASS = "md:top-4 md:max-h-[calc(100dvh-2rem)]";
 
 // Per-request by nature: `searchParams` drives filtering, sorting, and paging.
 // See the note in app/browse/page.tsx.
@@ -67,8 +65,8 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     );
   }
 
-  // Filtered/search/paged state: the rail, mobile filter entry and grid all
-  // need the same result count. React's request-scoped cache lets each stream
+  // Filtered/search/paged state: the filter entry and grid both need the same
+  // result count. React's request-scoped cache lets each stream
   // independently while the shared query runs once.
   return (
     <BrowseShell
@@ -78,14 +76,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
           <BrowseFilterEntry supabase={supabase} params={params} />
         </Suspense>
       }
-      filters={
-        <Suspense
-          fallback={<BrowseFilterRailSkeleton stickyClassName={FILTER_STICKY_CLASS} />}
-        >
-          <BrowseFilterRail supabase={supabase} params={params} />
-        </Suspense>
-      }
-      fallback={<BrowseCardsSkeleton />}
+      fallback={<BrowseResultsGridSkeleton />}
       fullWidth
     >
       <BrowseGridContent supabase={supabase} params={params} />
@@ -104,23 +95,6 @@ async function BrowseFilterEntry({
   return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} />;
 }
 
-async function BrowseFilterRail({
-  supabase,
-  params,
-}: {
-  supabase: ServerSupabaseClient;
-  params: Record<string, string>;
-}) {
-  const { totalCount } = await loadBrowseResults(supabase, params);
-  return (
-    <BrowseFilters
-      resultCount={totalCount}
-      basePath={BASE_PATH}
-      stickyClassName={FILTER_STICKY_CLASS}
-    />
-  );
-}
-
 async function BrowseGridContent({
   supabase,
   params,
@@ -130,12 +104,15 @@ async function BrowseGridContent({
 }) {
   const results: BrowseResults = await loadBrowseResults(supabase, params);
   return (
-    <RenderApartments
-      apartment={results.apartments}
-      page={results.page}
-      totalCount={results.totalCount}
-      pageSize={results.pageSize}
-      basePath={BASE_PATH}
-    />
+    <>
+      <BrowseResultsBar resultCount={results.totalCount} basePath={BASE_PATH} />
+      <RenderApartments
+        apartment={results.apartments}
+        page={results.page}
+        totalCount={results.totalCount}
+        pageSize={results.pageSize}
+        basePath={BASE_PATH}
+      />
+    </>
   );
 }
