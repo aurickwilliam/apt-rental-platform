@@ -6,6 +6,7 @@ import { useState } from "react";
 import { supabase } from "@repo/supabase";
 import { needsProfileOnboarding, splitFullName } from "@repo/utils";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { getAuthBrowserOptions } from "@/service/auth/authBrowser";
 import { finishProfileRoute } from "@/service/auth/finishProfileRoute";
 import {
   choosePortal,
@@ -167,6 +168,7 @@ export function useGoogleAuth() {
       const result = await WebBrowser.openAuthSessionAsync(
         data.url,
         redirectTo,
+        await getAuthBrowserOptions(),
       );
 
       // Check the result of the browser session
