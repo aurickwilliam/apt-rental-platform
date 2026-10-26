@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { MAP_HEIGHT_PUBLIC } from "../lib/browse-layout";
+import { MAP_LAYOUT_PUBLIC } from "../lib/browse-layout";
 import MapSearchClient from "./components/MapSearchClient";
 import MapSearchSkeleton from "./components/MapSearchSkeleton";
 
@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 export default function BrowseMapPage() {
   return (
-    <Suspense fallback={<MapSearchSkeleton heightClassName={MAP_HEIGHT_PUBLIC} />}>
-      <MapSearchClient basePath="/browse" heightClassName={MAP_HEIGHT_PUBLIC} />
+    <Suspense fallback={<MapSearchSkeleton layout={MAP_LAYOUT_PUBLIC} />}>
+      <MapSearchClient basePath="/browse" layout={MAP_LAYOUT_PUBLIC} />
     </Suspense>
   );
 }

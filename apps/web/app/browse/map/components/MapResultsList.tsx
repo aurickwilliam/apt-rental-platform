@@ -55,7 +55,7 @@ const ResultCard = memo(function ResultCard({
   return (
     <div
       ref={(element) => registerRef(apartment.id, element)}
-      className={`min-w-0 rounded-xl transition-shadow ${active ? "ring-2 ring-primary" : ""}`}
+      className={`min-w-0 scroll-mt-28 rounded-xl transition-shadow ${active ? "ring-2 ring-primary" : ""}`}
       onMouseEnter={() => onHover(apartment.id)}
       onMouseLeave={() => onHover(null)}
     >

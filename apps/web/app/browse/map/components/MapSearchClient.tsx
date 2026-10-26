@@ -15,6 +15,7 @@ import { useFavoriteActions } from "@/hooks/use-favorite-actions";
 
 import FilterDrawerButton from "../../components/FilterDrawerButton";
 import SearchContainer from "../../components/SearchContainer";
+import type { MapSearchLayout } from "../../lib/browse-layout";
 import { fetchApartmentsInBounds, type MapResults } from "../../lib/fetch-map-results";
 import {
   DEFAULT_MAP_BBOX,
@@ -40,10 +41,10 @@ interface MapSearchClientProps {
   /** Where listings live: `/browse` (public) or `/tenant/browse`. */
   basePath: string;
   /** Desktop height of the split view (the page itself doesn't scroll). */
-  heightClassName: string;
+  layout: MapSearchLayout;
 }
 
-export default function MapSearchClient({ basePath, heightClassName }: MapSearchClientProps) {
+export default function MapSearchClient({ basePath, layout }: MapSearchClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mapPath = `${basePath}/map`;
@@ -156,8 +157,10 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
   const filterCount = initialLoading ? undefined : visibleApartments.length;
 
   return (
-    <div className="w-full px-4 py-4 sm:px-6">
-      <div className="mb-4 flex items-center gap-2">
+    <div className="w-full px-4 pb-4 sm:px-6">
+      <div
+        className={`z-20 -mx-4 flex items-center gap-2 bg-background px-4 py-4 sm:-mx-6 sm:px-6 lg:sticky ${layout.barTop}`}
+      >
         <Button
           variant="tertiary"
           size="lg"
@@ -183,15 +186,11 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
       </div>
 
       <div
-        className={`grid min-h-0 gap-4 ${
-          expanded ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
-        } ${heightClassName}`}
+        className={`grid gap-4 ${expanded ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"}`}
       >
         <section
           aria-label="Apartments in the map area"
-          className={`min-h-0 min-w-0 lg:overflow-y-auto lg:pr-1 ${phonePane === "map" ? "hidden" : ""} ${
-            expanded ? "lg:hidden" : "lg:block"
-          }`}
+          className={`min-w-0 ${phonePane === "map" ? "hidden" : ""} ${expanded ? "lg:hidden" : "lg:block"}`}
         >
           <MapResultsList
             apartments={visibleApartments}
@@ -212,7 +211,9 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
 
         <section
           aria-label="Map"
-          className={`min-h-0 min-w-0 h-[calc(100dvh-14rem)] lg:h-auto ${phonePane === "list" ? "hidden lg:block" : ""}`}
+          className={`min-w-0 h-[calc(100dvh-14rem)] lg:sticky lg:self-start ${layout.mapSticky} ${
+            phonePane === "list" ? "hidden lg:block" : ""
+          }`}
         >
           <BrowseMap
             initialView={initialView}
