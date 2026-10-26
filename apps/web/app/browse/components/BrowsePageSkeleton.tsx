@@ -79,55 +79,52 @@ export function BrowseSectionsSkeleton({ count = 3 }: { count?: number }) {
 }
 
 // Filter panel placeholder, shown in the drawer while the filter chunk loads.
-// Follows the loaded panel: action buttons, "Filters" heading with result
-// count, the verified toggle, then option groups split by separators.
+// Follows the loaded panel: option groups split by separators in a scroll
+// area, with the Search / Clear actions pinned below.
 export function FilterPanelSkeleton() {
   return (
-    <div aria-hidden="true" className="w-full rounded-xl border bg-surface p-4">
-      <div className="mb-5 flex flex-col items-stretch gap-2 xl:flex-row xl:gap-3">
-        <Skeleton className="h-10 w-full rounded-full" />
-        <Skeleton className="h-10 w-full rounded-full xl:w-24 xl:shrink-0" />
+    <div aria-hidden="true" className="flex min-h-0 flex-1 flex-col">
+      <div className="flex-1 overflow-hidden px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-32 rounded-md" />
+          <Skeleton className="h-5 w-9 rounded-full" />
+        </div>
+
+        <hr className="my-5 border-divider" />
+
+        <Skeleton className="mb-3 h-4 w-16 rounded-md" />
+        <div className="flex flex-col gap-3">
+          {["w-28", "w-20", "w-24", "w-32"].map((width, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="size-4 shrink-0 rounded" />
+              <Skeleton className={`h-4 ${width} rounded-md`} />
+            </div>
+          ))}
+        </div>
+
+        <Skeleton className="mb-3 mt-6 h-4 w-20 rounded-md" />
+        <div className="flex flex-wrap gap-2">
+          {["w-16", "w-24", "w-20", "w-14", "w-24"].map((width, i) => (
+            <Skeleton key={i} className={`h-8 ${width} rounded-full`} />
+          ))}
+        </div>
+
+        <hr className="my-5 border-divider" />
+
+        <Skeleton className="mb-3 h-4 w-16 rounded-md" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+
+        <Skeleton className="mb-3 mt-6 h-4 w-20 rounded-md" />
+        <div className="flex gap-2">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} className="h-9 flex-1 rounded-lg" />
+          ))}
+        </div>
       </div>
 
-      <div className="mb-5 flex items-center justify-between">
-        <Skeleton className="h-6 w-16 rounded-md" />
-        <Skeleton className="h-4 w-20 rounded-md" />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-4 w-32 rounded-md" />
-        <Skeleton className="h-5 w-9 rounded-full" />
-      </div>
-
-      <hr className="my-5 border-divider" />
-
-      <Skeleton className="mb-3 h-4 w-16 rounded-md" />
-      <div className="flex flex-col gap-3">
-        {["w-28", "w-20", "w-24", "w-32"].map((width, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Skeleton className="size-4 shrink-0 rounded" />
-            <Skeleton className={`h-4 ${width} rounded-md`} />
-          </div>
-        ))}
-      </div>
-
-      <Skeleton className="mb-3 mt-6 h-4 w-20 rounded-md" />
-      <div className="flex flex-wrap gap-2">
-        {["w-16", "w-24", "w-20", "w-14", "w-24"].map((width, i) => (
-          <Skeleton key={i} className={`h-8 ${width} rounded-full`} />
-        ))}
-      </div>
-
-      <hr className="my-5 border-divider" />
-
-      <Skeleton className="mb-3 h-4 w-16 rounded-md" />
-      <Skeleton className="h-10 w-full rounded-lg" />
-
-      <Skeleton className="mb-3 mt-6 h-4 w-20 rounded-md" />
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton key={i} className="h-9 flex-1 rounded-lg" />
-        ))}
+      <div className="flex shrink-0 gap-2 border-t border-divider px-4 py-3">
+        <Skeleton className="h-10 min-w-0 flex-1 rounded-full" />
+        <Skeleton className="h-10 w-24 shrink-0 rounded-full" />
       </div>
     </div>
   );

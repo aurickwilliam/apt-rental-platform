@@ -80,15 +80,22 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse" }
                   <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
                 ) : null}
                 <div className="flex items-center justify-between border-b border-divider px-4 py-3">
-                  <h3 className="flex items-center gap-2 font-nunito text-base font-semibold">
-                    <IconAdjustmentsHorizontal size={16} />
-                    Filters
-                    {activeCount > 0 && (
-                      <span className="min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
-                        {activeCount}
-                      </span>
+                  <div className="flex min-w-0 items-baseline gap-3">
+                    <h3 className="flex items-center gap-2 font-nunito text-base font-semibold">
+                      <IconAdjustmentsHorizontal size={16} />
+                      Filters
+                      {activeCount > 0 && (
+                        <span className="min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
+                          {activeCount}
+                        </span>
+                      )}
+                    </h3>
+                    {resultCount === undefined ? null : (
+                      <p className="truncate text-sm text-muted-foreground" aria-live="polite">
+                        {resultCount} results found
+                      </p>
                     )}
-                  </h3>
+                  </div>
                   <Button
                     isIconOnly
                     variant="ghost"
@@ -99,12 +106,10 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse" }
                     <IconX size={16} />
                   </Button>
                 </div>
-                <Drawer.Body className="flex-1 overflow-y-auto p-3">
-                  <FilterContainer
-                    resultCount={resultCount}
-                    basePath={basePath}
-                    onApply={close}
-                  />
+                {/* mx-0!: Drawer.Body carries a -3px side margin for focus rings, which
+                    would push the pinned footer past the drawer's edges. */}
+                <Drawer.Body className="mx-0! flex min-h-0 flex-1 flex-col overflow-hidden p-0">
+                  <FilterContainer basePath={basePath} onApply={close} />
                 </Drawer.Body>
               </Drawer.Dialog>
             </Drawer.Content>
