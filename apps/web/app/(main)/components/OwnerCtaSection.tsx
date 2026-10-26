@@ -10,7 +10,7 @@ export default function OwnerCtaSection() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground">For property owners</p>
           <h2 id="owner-cta-title" className="mt-4 font-nunito text-2xl font-bold tracking-tight text-foreground">Have a property to rent out?</h2>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-foreground/75">
+          <p className="mt-4 max-w-xl text-base leading-7 text-foreground/75">
             List your property and manage rental applications and tenant communication with APT.
           </p>
         </div>

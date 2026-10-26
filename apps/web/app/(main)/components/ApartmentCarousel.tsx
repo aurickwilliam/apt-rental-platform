@@ -39,7 +39,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
           <h2 className="font-nunito text-2xl font-bold md:text-3xl">
             Apartments Tenants Love
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Verified homes our tenants rate highest.
           </p>
         </div>

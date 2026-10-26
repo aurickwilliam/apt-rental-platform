@@ -19,7 +19,7 @@ export default function ProductShowcase({ number, label, title, paragraphs, imag
         <h3 className="mt-6 font-nunito text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           {title}
         </h3>
-        <div className="mt-6 space-y-7 text-base leading-7 text-foreground/75">
+        <div className="mt-6 space-y-6 text-lg leading-8 text-foreground/75">
           {paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
         </div>
       </div>

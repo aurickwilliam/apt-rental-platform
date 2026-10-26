@@ -7,7 +7,7 @@ export default function ProductShowcaseSection() {
         <h2 id="thriving-title" className="font-nunito text-3xl font-bold tracking-tight text-foreground">
           From finding to thriving.
         </h2>
-        <p className="mt-4 text-base leading-7 text-foreground/75">
+        <p className="mt-4 text-lg leading-8 text-foreground/75">
           Discover apartments, apply for your next home, and manage everything in one place with APT.
         </p>
       </div>

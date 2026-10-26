@@ -17,7 +17,7 @@ export default function HeroSection() {
           <br />
           Feel at home.
         </h1>
-        <p className="mt-7 max-w-md text-base leading-7 text-foreground/75">
+        <p className="mt-7 max-w-lg text-lg leading-8 text-foreground/75">
           Discover apartments, connect with property owners, and manage your rental journey in one place.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
@@ -26,7 +26,7 @@ export default function HeroSection() {
             <AppDownloadAction variant="outline" hideWhenUnavailable />
           </Suspense>
         </div>
-        <p className="mt-5 flex items-center gap-2 text-xs leading-5 text-foreground/75">
+        <p className="mt-5 flex items-center gap-2 text-sm leading-6 text-foreground/75">
           <IconRosetteDiscountCheck size={16} aria-hidden="true" className="shrink-0 text-secondary-foreground" />
           Verified listings in Caloocan, Malabon, Navotas, and Valenzuela
         </p>

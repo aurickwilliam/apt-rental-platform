@@ -13,7 +13,7 @@ export default function RentalStepsSection() {
       <h2 id="rental-steps-title" className="mt-4 font-nunito text-3xl font-bold tracking-tight text-foreground">
         How renting works on <span className="text-brand">APT.</span>
       </h2>
-      <p className="mt-3 text-base leading-7 text-foreground/75">A clear path from browsing apartments to managing your rental.</p>
+      <p className="mt-3 text-lg leading-8 text-foreground/75">A clear path from browsing apartments to managing your rental.</p>
       <ol className="mt-10 grid gap-6 md:grid-cols-3">
         {STEPS.map(step => (
           <li key={step.number}>
@@ -21,7 +21,7 @@ export default function RentalStepsSection() {
               <Card.Content>
                 <span aria-hidden="true" className="text-xs font-semibold text-secondary-foreground">{step.number}</span>
                 <h3 className="mt-6 font-nunito text-xl font-bold text-foreground">{step.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-foreground/75">{step.description}</p>
+                <p className="mt-3 text-base leading-7 text-foreground/75">{step.description}</p>
               </Card.Content>
             </Card>
           </li>

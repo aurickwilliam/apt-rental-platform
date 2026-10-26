@@ -13,7 +13,7 @@ export default function AppSection() {
         <h2 id="mobile-title" className="mt-5 font-nunito text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           A simpler way to stay connected.
         </h2>
-        <p className="mt-5 max-w-md text-base leading-7 text-foreground/75">
+        <p className="mt-5 max-w-lg text-lg leading-8 text-foreground/75">
           Your rental conversations, records, and important updates can stay within reach while you are on the go.
         </p>
         <div className="mt-10">
@@ -21,7 +21,7 @@ export default function AppSection() {
             <AppDownloadAction />
           </Suspense>
         </div>
-        <p className="mt-4 text-xs leading-5 text-foreground/75">Continue using APT on the web today.</p>
+        <p className="mt-4 text-sm leading-6 text-foreground/75">Continue using APT on the web today.</p>
       </div>
       <MobileAppPreview />
     </section>
