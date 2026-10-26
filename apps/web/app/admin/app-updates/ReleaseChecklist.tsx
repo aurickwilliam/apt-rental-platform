@@ -81,6 +81,10 @@ export default function ReleaseChecklist({ latestVersion, apkUrl }: ReleaseCheck
           </li>
         ))}
       </ol>
+      <p className="mt-4 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+        Only JavaScript changed (no new native package, permission or SDK)? Skip the build and upload, and ship it over the air
+        with <code>pnpm --filter mobile ota &quot;What changed&quot;</code> instead. Users get it without installing a new APK.
+      </p>
     </section>
   );
 }
