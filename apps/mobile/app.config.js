@@ -72,10 +72,19 @@ module.exports = {
   expo: {
     name: 'APT',
     slug: 'mobile',
-    version: '1.1.1',
+    version: '1.2.0',
     orientation: 'portrait',
     icon: './assets/images/logo.png',
     scheme: 'mobile',
+    // Over-the-air updates (EAS Update). The fingerprint is a hash of the native
+    // parts of the app, so an update only reaches builds it can run on; anything
+    // native needs a new APK (see docs/app-updates.md).
+    runtimeVersion: { policy: 'fingerprint' },
+    updates: {
+      url: 'https://u.expo.dev/77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb',
+      checkAutomatically: 'ON_LOAD',
+      fallbackToCacheTimeout: 0,
+    },
     userInterfaceStyle: 'automatic',
     ios: {
       bundleIdentifier: 'com.aurickwilliam.apt',

@@ -15,3 +15,15 @@ jest.mock('uniwind', () => ({
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
+
+// expo-updates is native: tests get a disabled (development-style) stand-in.
+jest.mock('expo-updates', () => ({
+  isEnabled: false,
+  isEmbeddedLaunch: true,
+  updateId: null,
+  channel: null,
+  useUpdates: jest.fn(() => ({ isUpdatePending: false, isUpdateAvailable: false })),
+  checkForUpdateAsync: jest.fn(),
+  fetchUpdateAsync: jest.fn(),
+  reloadAsync: jest.fn(),
+}));

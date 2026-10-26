@@ -5,6 +5,7 @@ import {
   Linking,
 } from "react-native";
 import { Image } from "expo-image";
+import * as Updates from "expo-updates";
 
 import { IconBrandGithub, IconGlobe, IconMail, IconBrandFacebook, IconBrandInstagram } from '@tabler/icons-react-native';
 
@@ -12,10 +13,19 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
 import { useColors } from "@/hooks/useTheme";
+import { getInstalledAppVersion } from "@/service/appRelease/appReleaseService";
+import { describeRunningBuild } from "@/service/appRelease/otaUpdateService";
 
 import { Separator } from "heroui-native";
 
-const APP_VERSION = "1.0.0";
+// The version baked into this build; it was a stale hard-coded "1.0.0".
+const APP_VERSION = getInstalledAppVersion() ?? "Unknown";
+const RUNNING_BUILD = describeRunningBuild({
+  isEnabled: Updates.isEnabled,
+  isEmbeddedLaunch: Updates.isEmbeddedLaunch,
+  updateId: Updates.updateId,
+  channel: Updates.channel,
+});
 
 const developers = [
   { id: 1, name: "Aurick William E. Lorenzo", role: "Full Stack Developer" },
@@ -86,6 +96,9 @@ export default function AboutScreen() {
             Version {APP_VERSION}
           </Text>
         </View>
+        {RUNNING_BUILD ? (
+          <Text className="mt-2 text-xs text-muted">{RUNNING_BUILD}</Text>
+        ) : null}
       </View>
 
       {/* Divider */}
