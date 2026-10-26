@@ -21,6 +21,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
       "pnpm": "10.25.0"
     }
   },
