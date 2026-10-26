@@ -2,6 +2,9 @@ import { View, Text } from "react-native";
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
+import { useTranslation } from "@/hooks/i18n/useTranslation";
+
+
 const sections = [
   {
     id: 1,
@@ -60,9 +63,11 @@ const sections = [
 ];
 
 export default function TermsScreen() {
+  const { t } = useTranslation();
+
   return (
     <ScreenWrapper
-      header={<StandardHeader title="Terms and Conditions" />}
+      header={<StandardHeader title={t("settings.mobile.terms")} />}
       scrollable
       className="p-5"
     >

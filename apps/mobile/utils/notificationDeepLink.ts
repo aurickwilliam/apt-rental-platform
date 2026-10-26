@@ -1,5 +1,7 @@
 import type { Href } from "expo-router";
 
+import { translate, type LanguageCode } from "@repo/i18n";
+
 export interface NotificationData {
   screen?: string;
   apartmentId?: string;
@@ -34,13 +36,14 @@ export interface WebOnlyNotificationNotice {
  */
 export function getWebOnlyNotificationNotice(
   data: unknown,
+  language: LanguageCode = "en",
 ): WebOnlyNotificationNotice | null {
   if (!data || typeof data !== "object") return null;
 
   if ((data as NotificationData).screen === "passportReview") {
     return {
-      label: "Review on the web",
-      description: "Passport documents are reviewed in the admin portal on the web.",
+      label: translate(language, "notifications.mobile.webOnlyLabel"),
+      description: translate(language, "notifications.mobile.webOnlyBody"),
     };
   }
   return null;

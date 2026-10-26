@@ -3,6 +3,9 @@ import { View, Text } from "react-native";
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
+import { useTranslation } from "@/hooks/i18n/useTranslation";
+
+
 const faqs = [
   {
     id: 1,
@@ -43,9 +46,11 @@ const faqs = [
 ];
 
 export default function FAQScreen() {
+  const { t } = useTranslation();
+
   return (
     <ScreenWrapper
-      header={<StandardHeader title="Frequently Asked Questions" />}
+      header={<StandardHeader title={t("settings.help.faq")} />}
       scrollable
       className="p-5"
     >

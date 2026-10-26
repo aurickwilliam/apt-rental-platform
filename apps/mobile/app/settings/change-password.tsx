@@ -16,13 +16,11 @@ import { useTranslation } from "@/hooks/i18n";
 import { changePassword } from "@/service/auth/passwordChangeService";
 import { getPasswordChangeErrorField, PasswordError, passwordErrorMessage } from "@repo/utils";
 
-const GENERIC_ERROR = "Something went wrong. Please try again.";
-
 export default function ChangePassword() {
   const router = useRouter();
   const { toast } = useToast();
   const { colors } = useColors();
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -52,20 +50,21 @@ export default function ChangePassword() {
 
   const getCurrentPasswordError = (): string | undefined => {
     if (currentPasswordError) return currentPasswordError;
-    if (submitted && !currentPassword) return "Please enter your current password.";
+    if (submitted && !currentPassword) return t("auth.changePassword.currentRequired");
     return undefined;
   };
 
   const getNewPasswordError = (): string | undefined => {
     if (newPasswordError) return newPasswordError;
     if (submitted && !isPasswordValid) {
-      return "Password does not meet the requirements or password does not match";
+      return t("auth.changePassword.requirements");
     }
     return undefined;
   };
 
   const getConfirmPasswordError = (): string | undefined => {
-    if (submitted && confirmPassword && password !== confirmPassword) return "Passwords do not match";
+    if (submitted && confirmPassword && password !== confirmPassword)
+      return t("auth.changePassword.mismatch");
     return undefined;
   };
 
@@ -87,15 +86,15 @@ export default function ChangePassword() {
       setConfirmPassword("");
       toast.show({
         variant: "success",
-        label: "Password updated",
-        description: "Other devices were signed out.",
+        label: t("auth.changePassword.toastTitle"),
+        description: t("auth.changePassword.toastBody"),
       });
       router.back();
     } catch (err) {
       if (!(err instanceof PasswordError)) {
         // Log the type only: an unexpected message could echo a password.
         console.error("Password change failed:", err instanceof Error ? err.name : typeof err);
-        setError(GENERIC_ERROR);
+        setError(t("authMobile.errorGeneric"));
       } else {
         // Shown under its field, or in the error dialog for anything else.
         const field = getPasswordChangeErrorField(err.reason);
@@ -112,7 +111,7 @@ export default function ChangePassword() {
   return (
     <ScreenWrapper
       scrollable
-      header={<StandardHeader title="Change Password" />}
+      header={<StandardHeader title={t("auth.changePassword.title")} />}
       footer={
         <View className="p-5">
           <Button
@@ -120,7 +119,11 @@ export default function ChangePassword() {
             isDisabled={!isPasswordValid || saving}
             className="w-full"
           >
-            <Button.Label>{saving ? "Updating..." : "Update Password"}</Button.Label>
+            <Button.Label>
+              {saving
+                ? t("auth.changePassword.updating")
+                : t("auth.changePassword.action")}
+            </Button.Label>
             {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
           </Button>
         </View>
@@ -128,14 +131,13 @@ export default function ChangePassword() {
       className="p-5"
     >
       <Text className="text-base text-foreground font-inter">
-        Enter your current password, then choose a new one. You’ll stay signed
-        in here, and any other devices will be signed out.
+        {t("auth.changePassword.description")}
       </Text>
 
       <View className="flex gap-3 mt-5">
         <PasswordField
-          label="Current Password:"
-          placeholder="Enter your current password"
+          label={t("authMobile.currentPasswordLabel")}
+          placeholder={t("auth.changePassword.currentPlaceholder")}
           value={currentPassword}
           onChangeText={handleCurrentPasswordChange}
           error={getCurrentPasswordError()}
@@ -151,7 +153,7 @@ export default function ChangePassword() {
           passwordError={getNewPasswordError()}
           confirmPasswordError={getConfirmPasswordError()}
           isDisabled={saving}
-          passwordLabel="New Password:"
+          passwordLabel={t("authMobile.newPasswordLabel")}
         />
       </View>
 

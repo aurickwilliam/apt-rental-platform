@@ -31,6 +31,7 @@ import {
 import { supabase } from "@repo/supabase";
 
 import { useGoogleAuth } from "hooks/auth";
+import { useTranslation } from "hooks/i18n";
 import { clearQueryClient } from "@/utils/queryClient";
 import { useColors } from "hooks/useTheme";
 import { usePortalStore } from "@/stores/usePortalStore";
@@ -39,7 +40,7 @@ import { hasMobilePortalRole, portalHome } from "@/service/auth/portalPreference
 import {
   buildSuspendedMessage,
   getMySuspensionStatus,
-  SUSPENDED_TITLE,
+  suspendedTitle,
 } from "@/service/auth/suspensionService";
 
 import { profileMissingRoute } from "@/service/auth/profileMissingService";
@@ -49,6 +50,7 @@ import { isValidEmail } from "@repo/utils";
 export default function SignIn() {
   const router = useRouter();
   const { colors } = useColors();
+  const { language, t } = useTranslation();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -103,15 +105,15 @@ export default function SignIn() {
     let isValid = true;
 
     if (!email.trim()) {
-      setEmailError("Please enter your email address.");
+      setEmailError(t("authMobile.signIn.emailRequired"));
       isValid = false;
     } else if (!isValidEmail(email)) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(t("authMobile.emailInvalid"));
       isValid = false;
     }
 
     if (!password.trim()) {
-      setPasswordError("Please enter your password.");
+      setPasswordError(t("authMobile.signIn.passwordRequired"));
       isValid = false;
     }
 
@@ -133,7 +135,7 @@ export default function SignIn() {
       // Check if there is an error during sign-in and handle it
       if (signInError) {
         if (signInError.message === "Invalid login credentials") {
-          setError("Invalid email or password. Please try again.");
+          setError(t("authMobile.signIn.invalidCredentials"));
         } else if (signInError.message === "Email not confirmed") {
           // Sign-up was left before the email code was entered: send a fresh
           // code and let the person confirm it here. A throttled resend still
@@ -144,7 +146,7 @@ export default function SignIn() {
             params: { email: email.trim().toLowerCase(), mode: "confirm" },
           });
         } else if (signInError.message.includes("rate limit")) {
-          setError("Too many sign-in attempts. Please try again later.");
+          setError(t("authMobile.signIn.rateLimited"));
         } else {
           setError(signInError.message);
         }
@@ -156,8 +158,8 @@ export default function SignIn() {
       const suspension = await getMySuspensionStatus();
       if (suspension.suspended) {
         await supabase.auth.signOut();
-        setErrorTitle(SUSPENDED_TITLE);
-        setError(buildSuspendedMessage(suspension.reason));
+        setErrorTitle(suspendedTitle(language));
+        setError(buildSuspendedMessage(suspension.reason, language));
         return;
       }
 
@@ -177,7 +179,7 @@ export default function SignIn() {
       }
 
       if (profileError || !userProfile) {
-        setError("Could not load your profile. Please try again.");
+        setError(t("authMobile.signIn.profileLoadFailed"));
         await supabase.auth.signOut();
         return;
       }
@@ -186,8 +188,8 @@ export default function SignIn() {
       if (!hasMobilePortalRole(heldRoles)) {
         setError(
           heldRoles.includes("admin")
-            ? "Admin accounts are available on the web portal only."
-            : "No tenant or landlord account found for this profile.",
+            ? t("authMobile.signIn.adminWebOnly")
+            : t("authMobile.signIn.noPortal"),
         );
         await supabase.auth.signOut(); // clear the session since we're blocking access
         return;
@@ -196,16 +198,14 @@ export default function SignIn() {
       // A returning account resumes its last authorized portal.
       const portal = await usePortalStore.getState().restore(authData.user!.id, heldRoles);
       if (!portal) {
-        setError("No tenant or landlord account found for this profile.");
+        setError(t("authMobile.signIn.noPortal"));
         await supabase.auth.signOut();
         return;
       }
       router.replace(portalHome(portal));
     } catch (err) {
       await supabase.auth.signOut();
-      setError(
-        "An unexpected error occurred. Please check your connection and try again.",
-      );
+      setError(t("authMobile.signIn.unexpected"));
       console.error("Sign-in error:", err);
     } finally {
       setLoading(false);
@@ -231,11 +231,11 @@ export default function SignIn() {
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
         <Text className="text-4xl text-foreground font-nunitoBold">
-          Welcome Back!
+          {t("auth.signIn.title")}
         </Text>
 
         <Text className="text-base text-muted font-nunitoSemiBold">
-          Log in to continue your apartment journey.
+          {t("auth.signIn.description")}
         </Text>
       </View>
 
@@ -245,9 +245,9 @@ export default function SignIn() {
             isRequired
             isInvalid={!!emailError}
         >
-          <Label>Email Address:</Label>
+          <Label>{t("authMobile.emailLabel")}</Label>
           <Input
-            placeholder="Enter your email"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChangeText={handleEmailTextChange}
             keyboardType="email-address"
@@ -264,11 +264,11 @@ export default function SignIn() {
           isRequired
           isInvalid={!!passwordError}
         >
-          <Label>Password:</Label>
+          <Label>{t("authMobile.passwordLabel")}</Label>
 
           <InputGroup>
             <InputGroup.Input
-              placeholder="Enter your password"
+              placeholder={t("auth.passwordPlaceholder")}
               value={password}
               onChangeText={handlePasswordTextChange}
               secureTextEntry={!showPassword}
@@ -304,7 +304,7 @@ export default function SignIn() {
         className="mt-3 self-start p-0"
       >
         <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-          Forgot Password?
+          {t("authMobile.forgotPassword")}
         </LinkButton.Label>
       </LinkButton>
 
@@ -315,7 +315,7 @@ export default function SignIn() {
           isDisabled={loading}
         >
           <Button.Label className="font-nunitoSemiBold">
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? t("auth.signingIn") : t("auth.signIn.action")}
           </Button.Label>
 
           {loading && (
@@ -329,7 +329,7 @@ export default function SignIn() {
       </View>
 
       {/* Divider */}
-      <AuthDivider middleText="or sign in with" />
+      <AuthDivider middleText={t("auth.orSignInWith")} />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
@@ -337,7 +337,7 @@ export default function SignIn() {
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
           imageSource={IMAGES.googleLogo}
-          label="Continue with Google"
+          label={t("authMobile.continueWithGoogle")}
         />
       </View>
 
@@ -347,7 +347,7 @@ export default function SignIn() {
       <View className="mb-8 mt-10 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-foreground font-inter">
-            New here?
+            {t("authMobile.newHere")}
           </Text>
 
           <LinkButton
@@ -355,7 +355,7 @@ export default function SignIn() {
             className="p-0"
           >
             <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-              Sign Up
+              {t("auth.signUp.action")}
             </LinkButton.Label>
           </LinkButton>
         </View>
@@ -371,10 +371,16 @@ export default function SignIn() {
           useSuspensionStore.getState().clear();
         }}
         title={
-          suspensionNotice ? SUSPENDED_TITLE : googleError ? googleErrorTitle : errorTitle
+          suspensionNotice
+            ? suspendedTitle(language)
+            : googleError
+              ? googleErrorTitle
+              : errorTitle
         }
         message={
-          suspensionNotice ? buildSuspendedMessage(suspensionNotice.reason) : googleError || error
+          suspensionNotice
+            ? buildSuspendedMessage(suspensionNotice.reason, language)
+            : googleError || error
         }
       />
     </ScreenWrapper>

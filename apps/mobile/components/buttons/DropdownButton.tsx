@@ -19,6 +19,8 @@ interface DropdownButtonProps<T extends string> {
   align?: "start" | "center" | "end";
   /** Tints the selected option soft blue and its check mark brand blue. */
   highlightSelected?: boolean;
+  /** Display text for a stored value; defaults to the value itself. */
+  optionLabel?: (value: T) => string;
   buttonClassName?: string;
   textClassName?: string;
 }
@@ -43,19 +45,23 @@ export default function DropdownButton<T extends string>({
   width = 200,
   align = "end",
   highlightSelected = false,
+  optionLabel,
   buttonClassName,
   textClassName,
 }: DropdownButtonProps<T>) {
   const { colors } = useColors();
   const selectedKeys = multi ? new Set<string>(values ?? []) : value ? new Set([value]) : new Set<string>();
+  const labelOf = (option: T) => optionLabel?.(option) ?? option;
 
   const defaultButtonClassName =
     "bg-surface-secondary px-3 py-1.5 rounded-xl flex-row items-center justify-start self-start gap-1.5 border border-border";
   const defaultTextClassName = "text-foreground text-sm font-inter";
 
   const displayText = multi
-    ? formatMultiDisplay((values ?? []) as string[], placeholder)
-    : value ?? placeholder;
+    ? formatMultiDisplay((values ?? []).map((option) => labelOf(option)), placeholder)
+    : value
+      ? labelOf(value)
+      : placeholder;
 
   return (
     <Menu>
@@ -111,7 +117,7 @@ export default function DropdownButton<T extends string>({
                   <Menu.ItemIndicator
                     iconProps={highlightSelected ? { color: colors.primary } : undefined}
                   />
-                  <Menu.ItemTitle>{option}</Menu.ItemTitle>
+                  <Menu.ItemTitle>{labelOf(option)}</Menu.ItemTitle>
                 </Menu.Item>
               );
             })}

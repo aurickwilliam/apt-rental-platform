@@ -13,9 +13,11 @@ import {
   Switch,
 } from "heroui-native";
 import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import { PET_KEYS, VEHICLE_KEYS, enumLabel } from "@repo/i18n";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import DropdownButton from "components/buttons/DropdownButton";
+import { useTranslation } from "@/hooks/i18n/useTranslation";
 import { useRentalPreferencesForm } from "@/hooks/preferences/useRentalPreferencesForm";
 import { useColors } from "@/hooks/useTheme";
 import {
@@ -39,6 +41,7 @@ export default function RentalPreferences() {
   const router = useRouter();
   const { toast } = useToast();
   const { colors } = useColors();
+  const { language, t } = useTranslation();
   const {
     profile,
     selectedCities,
@@ -100,16 +103,20 @@ export default function RentalPreferences() {
 
   const handleSave = async () => {
     if (!profile?.user_id) {
-      toast.show({ variant: "danger", label: "Not signed in" });
+      toast.show({ variant: "danger", label: t("settings.mobile.rental.toast.notSignedIn") });
       return;
     }
     try {
       await save();
-      toast.show({ variant: "success", label: "Preferences saved" });
+      toast.show({ variant: "success", label: t("settings.mobile.rental.toast.saved") });
       router.back();
     } catch (err: any) {
       console.error("Failed to save preferences", err);
-      toast.show({ variant: "danger", label: "Couldn't save", description: err?.message ?? "Try again." });
+      toast.show({
+        variant: "danger",
+        label: t("settings.mobile.rental.toast.saveFailed"),
+        description: err?.message ?? t("settings.mobile.rental.toast.tryAgain"),
+      });
     }
   };
 
@@ -119,16 +126,20 @@ export default function RentalPreferences() {
   };
 
   return (
-    <ScreenWrapper scrollable bottomPadding={32} header={<StandardHeader title="Rental Preferences" />} className="p-5 gap-5">
+    <ScreenWrapper scrollable bottomPadding={32} header={<StandardHeader title={t("settings.rental.title")} />} className="p-5 gap-5">
       {/* Location */}
       <View className="gap-3">
         <View className="flex-row items-center gap-2">
           <IconMapPin size={18} color={colors.textPrimary} />
-          <Text className="text-foreground text-base font-inter">Location</Text>
+          <Text className="text-foreground text-base font-inter">
+            {t("settings.rental.location")}
+          </Text>
         </View>
         <ListGroup className="shadow-none border border-border">
           <View className="p-4 gap-3">
-            <Text className="text-foreground text-sm font-inter">Preferred cities</Text>
+            <Text className="text-foreground text-sm font-inter">
+              {t("settings.mobile.rental.preferredCities")}
+            </Text>
             <DropdownButton
               multi
               values={cityValues}
@@ -136,8 +147,8 @@ export default function RentalPreferences() {
               value={null}
               onSelect={() => {}}
               onToggle={handleCityToggle}
-              placeholder="All CAMANAVA"
-              label="Select cities"
+              placeholder={t("settings.mobile.rental.allCamanava")}
+              label={t("settings.mobile.rental.selectCities")}
               width={280}
               buttonClassName="bg-surface border border-border px-3 py-2.5 rounded-xl flex-row items-center justify-between w-full gap-2"
               textClassName="text-foreground text-sm font-inter flex-1"
@@ -150,12 +161,18 @@ export default function RentalPreferences() {
       <View className="gap-3">
         <View className="flex-row items-center gap-2">
           <IconCoin size={18} color={colors.textPrimary} />
-          <Text className="text-foreground text-base font-inter">Budget</Text>
+          <Text className="text-foreground text-base font-inter">
+            {t("settings.rental.budget")}
+          </Text>
         </View>
         <ListGroup className="shadow-none border border-border">
           <View className="p-4 gap-3">
-            <Text className="text-foreground text-sm font-inter">Monthly budget</Text>
-            <Text className="text-muted text-xs font-inter">Used to rank listings. Max stays ₱100,000.</Text>
+            <Text className="text-foreground text-sm font-inter">
+              {t("settings.mobile.rental.monthlyBudget")}
+            </Text>
+            <Text className="text-muted text-xs font-inter">
+              {t("settings.mobile.rental.budgetNote")}
+            </Text>
             <Text className="text-primary text-2xl font-nunitoBold text-center">₱ {budgetMin.toLocaleString()} — ₱ {budgetMax.toLocaleString()}</Text>
             <Slider value={[budgetMin, budgetMax]} onChange={handleBudgetChange as any} minValue={5_000} maxValue={100_000} step={1_000}>
               <Slider.Track>
@@ -181,7 +198,9 @@ export default function RentalPreferences() {
       <View className="gap-3">
         <View className="flex-row items-center gap-2">
           <IconHome size={18} color={colors.textPrimary} />
-          <Text className="text-foreground text-base font-inter">Home</Text>
+          <Text className="text-foreground text-base font-inter">
+            {t("settings.rental.home")}
+          </Text>
         </View>
         <ListGroup className="shadow-none border border-border">
           <ListGroup.Item disabled>
@@ -189,15 +208,17 @@ export default function RentalPreferences() {
               <IconBed size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Bedrooms</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.rental.bedrooms")}
+              </ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <DropdownButton
                 value={bedroomCount}
                 options={[...BEDROOM_OPTIONS]}
                 onSelect={(v) => setBedroomCount(v)}
-                placeholder="Select"
-                label="Bedrooms"
+                placeholder={t("settings.mobile.rental.select")}
+                label={t("settings.rental.bedrooms")}
                 width={200}
               />
             </ListGroup.ItemSuffix>
@@ -210,15 +231,17 @@ export default function RentalPreferences() {
               <IconUsersGroup size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Household size</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.rental.householdSize")}
+              </ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <DropdownButton
                 value={householdSize}
                 options={[...FAMILY_OPTIONS]}
                 onSelect={(v) => setHouseholdSize(v)}
-                placeholder="Select"
-                label="Household size"
+                placeholder={t("settings.mobile.rental.select")}
+                label={t("settings.rental.householdSize")}
                 width={240}
               />
             </ListGroup.ItemSuffix>
@@ -231,7 +254,9 @@ export default function RentalPreferences() {
               <IconParking size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Need parking?</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.mobile.rental.needParking")}
+              </ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <Switch isSelected={hasParking} onSelectedChange={setHasParking} />
@@ -243,15 +268,17 @@ export default function RentalPreferences() {
               <Separator className="mx-4" />
               <ListGroup.Item disabled>
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className="font-inter">Parking spots</ListGroup.ItemTitle>
+                  <ListGroup.ItemTitle className="font-inter">
+                    {t("settings.mobile.rental.parkingSpots")}
+                  </ListGroup.ItemTitle>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>
                   <DropdownButton
                     value={String(noOfParkingSpots)}
                     options={[...NO_PARKING_OPTIONS]}
                     onSelect={(v) => setNoOfParkingSpots(Number(v))}
-                    placeholder="Select"
-                    label="Parking spots"
+                    placeholder={t("settings.mobile.rental.select")}
+                    label={t("settings.mobile.rental.parkingSpots")}
                     width={160}
                   />
                 </ListGroup.ItemSuffix>
@@ -261,8 +288,12 @@ export default function RentalPreferences() {
 
               <ListGroup.Item disabled>
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className="font-inter">Vehicles</ListGroup.ItemTitle>
-                  <ListGroup.ItemDescription className="text-xs font-inter">Multi-select</ListGroup.ItemDescription>
+                  <ListGroup.ItemTitle className="font-inter">
+                    {t("settings.rental.vehicles")}
+                  </ListGroup.ItemTitle>
+                  <ListGroup.ItemDescription className="text-xs font-inter">
+                    {t("settings.mobile.rental.multiSelect")}
+                  </ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>
                   <DropdownButton
@@ -272,8 +303,11 @@ export default function RentalPreferences() {
                     value={null}
                     onSelect={() => {}}
                     onToggle={toggleVehicle}
-                    placeholder="Select"
-                    label="Vehicles"
+                    placeholder={t("settings.mobile.rental.select")}
+                    label={t("settings.rental.vehicles")}
+                    optionLabel={(value) =>
+                      enumLabel(language, VEHICLE_KEYS, value)
+                    }
                     width={200}
                   />
                 </ListGroup.ItemSuffix>
@@ -287,7 +321,9 @@ export default function RentalPreferences() {
       <View className="gap-3">
         <View className="flex-row items-center gap-2">
           <IconUser size={18} color={colors.textPrimary} />
-          <Text className="text-foreground text-base font-inter">Lifestyle</Text>
+          <Text className="text-foreground text-base font-inter">
+            {t("settings.rental.lifestyle")}
+          </Text>
         </View>
         <ListGroup className="shadow-none border border-border">
           <ListGroup.Item disabled>
@@ -295,7 +331,9 @@ export default function RentalPreferences() {
               <IconPaw size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Have pets?</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.mobile.rental.havePets")}
+              </ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <Switch isSelected={hasPets} onSelectedChange={setHasPets} />
@@ -307,15 +345,20 @@ export default function RentalPreferences() {
               <Separator className="mx-4" />
               <ListGroup.Item disabled>
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className="font-inter">What kind of pet?</ListGroup.ItemTitle>
+                  <ListGroup.ItemTitle className="font-inter">
+                    {t("settings.mobile.rental.petKindQuestion")}
+                  </ListGroup.ItemTitle>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>
                   <DropdownButton
                     value={kindOfPets || null}
                     options={[...PETS] as string[]}
                     onSelect={(v) => setKindOfPets(v)}
-                    placeholder="Select"
-                    label="Pet kind"
+                    placeholder={t("settings.mobile.rental.select")}
+                    label={t("settings.mobile.rental.petKind")}
+                    optionLabel={(value) =>
+                      enumLabel(language, PET_KEYS, value)
+                    }
                     width={220}
                   />
                 </ListGroup.ItemSuffix>
@@ -326,9 +369,15 @@ export default function RentalPreferences() {
                   <Separator className="mx-4" />
                   <View className="p-4">
                     <TextField isRequired>
-                      <Label>Please specify</Label>
-                      <Input placeholder="Type kind" value={nameOfPets || ""} onChangeText={setNameOfPets} />
-                      <Description className="font-inter">e.g., Poodle, Siamese</Description>
+                      <Label>{t("settings.rental.petOther")}</Label>
+                      <Input
+                        placeholder={t("settings.mobile.rental.typeKind")}
+                        value={nameOfPets || ""}
+                        onChangeText={setNameOfPets}
+                      />
+                      <Description className="font-inter">
+                        {t("settings.rental.petOther.placeholder")}
+                      </Description>
                     </TextField>
                   </View>
                 </>
@@ -343,8 +392,12 @@ export default function RentalPreferences() {
               <IconSmoking size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Anyone a smoker?</ListGroup.ItemTitle>
-              <ListGroup.ItemDescription className="text-xs font-inter">Helps match non-smoking listings</ListGroup.ItemDescription>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.mobile.rental.smokerQuestion")}
+              </ListGroup.ItemTitle>
+              <ListGroup.ItemDescription className="text-xs font-inter">
+                {t("settings.mobile.rental.smokerNote")}
+              </ListGroup.ItemDescription>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <Switch isSelected={hasSmoker} onSelectedChange={setHasSmoker} />
@@ -358,8 +411,12 @@ export default function RentalPreferences() {
               <IconAccessible size={20} color={colors.textPrimary} />
             </ListGroup.ItemPrefix>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle className="font-inter">Accessibility needs?</ListGroup.ItemTitle>
-              <ListGroup.ItemDescription className="text-xs font-inter">Prioritize wheelchair-friendly</ListGroup.ItemDescription>
+              <ListGroup.ItemTitle className="font-inter">
+                {t("settings.mobile.rental.accessibilityQuestion")}
+              </ListGroup.ItemTitle>
+              <ListGroup.ItemDescription className="text-xs font-inter">
+                {t("settings.mobile.rental.accessibilityNote")}
+              </ListGroup.ItemDescription>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <Switch isSelected={hasDisability} onSelectedChange={setHasDisability} />
@@ -372,9 +429,15 @@ export default function RentalPreferences() {
       {isDirty && (
         <View className="gap-3 mt-2">
           <Button onPress={handleSave} isDisabled={isSaving}>
-            <Button.Label>{isSaving ? "Saving..." : "Save changes"}</Button.Label>
+            <Button.Label>
+              {isSaving
+                ? t("settings.mobile.rental.saving")
+                : t("settings.mobile.rental.save")}
+            </Button.Label>
           </Button>
-          <Text className="text-muted text-xs font-inter text-center">Changes personalize your search instantly after saving.</Text>
+          <Text className="text-muted text-xs font-inter text-center">
+            {t("settings.mobile.rental.saveNote")}
+          </Text>
         </View>
       )}
     </ScreenWrapper>

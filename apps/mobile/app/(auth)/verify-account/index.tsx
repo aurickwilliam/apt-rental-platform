@@ -7,8 +7,11 @@ import { Button } from 'heroui-native'
 
 import { IMAGES } from 'constants/images'
 
+import { useTranslation } from '@/hooks/i18n'
+
 export default function Index() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <ScreenWrapper
@@ -22,17 +25,17 @@ export default function Index() {
 
         <View className='flex mt-5 gap-3'>
           <Text className='text-lg font-nunitoBold text-center text-foreground'>
-            Help us keep our community safe.
+            {t("authMobile.verify.introTitle")}
           </Text>
 
           <Text className='text-bas text-foreground font-inter text-center'>
-             Upload a valid ID and take a quick selfie to verify your identity and unlock all features.
+            {t("authMobile.verify.introBody")}
           </Text>
         </View>
       </View>
 
       <Button onPress={() => router.push('/(auth)/verify-account/select-id')}>
-        <Button.Label>Continue Verification</Button.Label>
+        <Button.Label>{t("authMobile.verify.continue")}</Button.Label>
       </Button>
 
       <Button
@@ -40,7 +43,7 @@ export default function Index() {
         className="mt-3"
         onPress={() => router.push('/(auth)/verify-account/scan-session')}
       >
-        <Button.Label>Scan a QR Code Instead</Button.Label>
+        <Button.Label>{t("authMobile.verify.scanInstead")}</Button.Label>
       </Button>
     </ScreenWrapper>
   )

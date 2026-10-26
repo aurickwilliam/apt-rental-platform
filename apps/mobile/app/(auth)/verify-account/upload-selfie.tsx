@@ -14,10 +14,12 @@ import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
 import { getCaptureProgress } from './utils/gating'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function UploadSelfie() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
@@ -61,7 +63,7 @@ export default function UploadSelfie() {
           onPress={() => router.push('/(auth)/verify-account/review')}
           className='mx-5'
         >
-          <Button.Label>Review & Submit</Button.Label>
+          <Button.Label>{t("authMobile.verify.reviewAndSubmit")}</Button.Label>
         </Button>
       }
     >
@@ -73,7 +75,11 @@ export default function UploadSelfie() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={3} totalSteps={5} stepName="Take a Selfie" />
+      <StepProgress
+        currentStep={3}
+        totalSteps={5}
+        stepName={t("authMobile.verify.selfie.step")}
+      />
 
       <View className='flex-1 items-center justify-center'>
         {selfie !== null ? (
@@ -91,7 +97,7 @@ export default function UploadSelfie() {
         )}
 
         <Text className='text-foreground text-muted font-inter text-center mt-5 mx-20'>
-          Ensure good lighting and remove any face coverings for a clear photo.
+          {t("authMobile.verify.selfie.hint")}
         </Text>
 
         <Button
@@ -100,7 +106,9 @@ export default function UploadSelfie() {
           onPress={handleCaptureSelfie}
         >
           <Button.Label>
-            {selfie !== null ? 'Retake Selfie' : 'Capture Selfie'}
+            {selfie !== null
+              ? t("authMobile.verify.selfie.retake")
+              : t("authMobile.verify.selfie.capture")}
           </Button.Label>
         </Button>
       </View>

@@ -48,4 +48,12 @@ export const common: Record<keyof typeof enCommon, string> = {
   "common.noResults": "Walang nahanap.",
   "common.comingSoon": "Malapit na",
   "common.error": "May nangyaring mali.",
+  "common.skip": "Laktawan",
+  "common.submit": "Isumite",
+  "common.saving": "Sini-save...",
+  "common.pleaseWait": "Maghintay lang...",
+  "common.selectValue": "Pumili ng value",
+  "common.searchPlaceholder": "Maghanap...",
+  "common.noResultsFound": "Walang nahanap",
+  "common.noOptions": "Walang available na option",
 };

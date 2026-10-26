@@ -11,6 +11,7 @@ import {
   IconUserFilled,
 } from '@tabler/icons-react-native';
 
+import { useTranslation } from 'hooks/i18n';
 import { useColors } from 'hooks/useTheme';
 
 import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
@@ -18,25 +19,25 @@ import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
 const LANDLORD_TABS: CustomTabConfig[] = [
   {
     name: 'dashboard',
-    label: 'Dashboard',
+    labelKey: 'nav.dashboard',
     icon: IconLayoutGrid,
     iconFilled: IconLayoutGridFilled,
   },
   {
     name: 'units',
-    label: 'Units',
+    labelKey: 'nav.units',
     icon: IconBuilding,
     iconFilled: IconBuilding,
   },
   {
     name: 'chat',
-    label: 'Chat',
+    labelKey: 'nav.chat',
     icon: IconMessageCircle,
     iconFilled: IconMessageCircleFilled,
   },
   {
     name: 'profile',
-    label: 'Profile',
+    labelKey: 'nav.profile',
     icon: IconUser,
     iconFilled: IconUserFilled,
   },
@@ -44,6 +45,7 @@ const LANDLORD_TABS: CustomTabConfig[] = [
 
 export default function LandlordTabLayout() {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   if (Platform.OS === 'android') {
     return (
@@ -72,7 +74,7 @@ export default function LandlordTabLayout() {
       labelStyle={{ color: colors.primary }}
     >
       <NativeTabs.Trigger name="dashboard">
-        <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.dashboard")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' }}
           md="dashboard"
@@ -80,7 +82,7 @@ export default function LandlordTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="units">
-        <NativeTabs.Trigger.Label>Units</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.units")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'building.2', selected: 'building.2.fill' }}
           md="apartment"
@@ -88,7 +90,7 @@ export default function LandlordTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="chat">
-        <NativeTabs.Trigger.Label>Chat</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.chat")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'message', selected: 'message.fill' }}
           md="chat_bubble"
@@ -96,7 +98,7 @@ export default function LandlordTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.profile")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'person', selected: 'person.fill' }}
           md="person"

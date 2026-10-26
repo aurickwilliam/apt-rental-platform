@@ -8,9 +8,11 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 import { Button } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useTranslation } from "@/hooks/i18n";
 
 export default function StepThree() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { bedroomCount, setBedroomCount } = usePersonalizationStore();
 
@@ -29,12 +31,11 @@ export default function StepThree() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              How many bedrooms are you looking for?
+              {t("authMobile.personalization.bedroomsQuestion")}
             </Text>
 
             <Text className="text-foreground text-base font-inter">
-              Select the number of bedrooms you prefer so we can filter properties
-              that fit your needs.
+              {t("authMobile.personalization.bedroomsBody")}
             </Text>
           </View>
 
@@ -54,7 +55,7 @@ export default function StepThree() {
         {/* Next Button */}
         <Button onPress={handleNext}>
           <Button.Label>
-            {bedroomCount != null ? "Next" : "Skip"}
+            {bedroomCount != null ? t("common.next") : t("common.skip")}
           </Button.Label>
         </Button>
       </View>

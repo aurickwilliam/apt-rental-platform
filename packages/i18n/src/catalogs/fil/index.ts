@@ -1,5 +1,6 @@
 import type { TranslationKey } from "../en";
 import { auth } from "./auth";
+import { authMobile } from "./authMobile";
 import { common } from "./common";
 import { enums } from "./enums";
 import { errors } from "./errors";
@@ -19,6 +20,7 @@ export const fil: Record<TranslationKey, string> = {
   ...nav,
   ...settings,
   ...auth,
+  ...authMobile,
   ...languages,
   ...validation,
   ...errors,

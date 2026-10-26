@@ -2,6 +2,9 @@ import { View, Text } from "react-native";
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
+import { useTranslation } from "@/hooks/i18n/useTranslation";
+
+
 const sections = [
   {
     id: 1,
@@ -66,9 +69,11 @@ const sections = [
 ];
 
 export default function PrivacyPolicyScreen() {
+  const { t } = useTranslation();
+
   return (
     <ScreenWrapper
-      header={<StandardHeader title="Privacy Policy" />}
+      header={<StandardHeader title={t("settings.help.privacy")} />}
       scrollable
       className="p-5"
     >

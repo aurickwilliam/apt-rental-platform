@@ -16,6 +16,7 @@ import { cropPhotoToFrame, mapGuidedRectToImageCrop } from './utils/cropToFrame'
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence, getNextCaptureStep, SELFIE_STEP } from './constants/captureSequences'
+import { useTranslation } from '@/hooks/i18n'
 
 type ScreenState = 'preview' | 'reviewing'
 
@@ -37,6 +38,7 @@ interface CapturedPhoto {
 export default function LiveCapture() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
   const { idType, stepId } = useLocalSearchParams<{ idType: string; stepId: string }>();
 
   const setCaptureResult = useVerificationStore((state) => state.setCaptureResult);
@@ -136,11 +138,13 @@ export default function LiveCapture() {
       }
       setScreenState('reviewing');
     } catch (err) {
-      setCameraError(err instanceof Error ? err.message : 'Failed to capture photo.');
+      setCameraError(
+        err instanceof Error ? err.message : t("authMobile.verify.capture.failed"),
+      );
     } finally {
       isCapturingRef.current = false;
     }
-  }, [cameraReady, captureStep, previewSize, stepId, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError]);
+  }, [cameraReady, captureStep, previewSize, stepId, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError, t]);
 
   const handleManualCapture = useCallback(() => {
     void capturePhoto();
@@ -190,7 +194,7 @@ export default function LiveCapture() {
     }
   }, [permissionState, requestPermission]);
 
-  const stepLabel = captureStep?.label ?? 'ID';
+  const stepLabel = captureStep ? t(captureStep.labelKey) : 'ID';
   const stepNotFound = captureStep == null;
 
   return (
@@ -209,7 +213,7 @@ export default function LiveCapture() {
 
       {permissionState === 'granted' && !cameraError && stepNotFound && (
         <CameraErrorView
-          message="The capture step could not be found."
+          message={t("authMobile.verify.capture.stepMissing")}
           onRetry={router.back}
         />
       )}
@@ -250,8 +254,8 @@ export default function LiveCapture() {
           <View className="absolute top-24 left-0 right-0 items-center px-5">
             <Text className="text-white text-sm font-nunitoSemiBold text-center">
               {stepId === SELFIE_STEP.id
-                ? `${stepLabel}: position your face within the frame`
-                : `${stepLabel}: position the ID within the frame`}
+                ? t("authMobile.verify.capture.faceHint", { label: stepLabel })
+                : t("authMobile.verify.capture.idHint", { label: stepLabel })}
             </Text>
           </View>
 
@@ -260,7 +264,7 @@ export default function LiveCapture() {
           <View className="absolute bottom-12 left-0 right-0 items-center">
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Capture photo"
+              accessibilityLabel={t("authMobile.verify.capture.captureAction")}
               onPress={handleManualCapture}
               className="size-16 rounded-full bg-white border-4 border-gray-300"
             />
@@ -280,54 +284,64 @@ export default function LiveCapture() {
 }
 
 function PermissionDeniedView({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
       <Text className="text-foreground text-base font-nunitoSemiBold text-center">
-        Camera access is required to capture a photo of your ID.
+        {t("authMobile.verify.capture.permissionTitle")}
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">
-        Please enable camera access for APT in your device settings to continue.
+        {t("authMobile.verify.capture.permissionBody")}
       </Text>
       <Button onPress={onOpenSettings}>
-        <Button.Label>Open Settings</Button.Label>
+        <Button.Label>{t("authMobile.verify.scan.openSettings")}</Button.Label>
       </Button>
     </View>
   )
 }
 
 function PermissionRestrictedView() {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
       <Text className="text-foreground text-base font-nunitoSemiBold text-center">
-        Camera access is blocked by device policy.
+        {t("authMobile.verify.capture.blockedTitle")}
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">
-        Your device&apos;s settings prevent APT from accessing the camera. Please contact your device administrator.
+        {t("authMobile.verify.capture.blockedBody")}
       </Text>
     </View>
   )
 }
 
 function CameraErrorView({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 items-center justify-center gap-4 px-8 bg-background">
       <Text className="text-foreground text-base font-nunitoSemiBold text-center">
-        The camera couldn&apos;t start.
+        {t("authMobile.verify.capture.cameraFailed")}
       </Text>
       <Text className="text-gray-500 text-sm font-inter text-center">{message}</Text>
       <Button onPress={onRetry}>
-        <Button.Label>Retry</Button.Label>
+        <Button.Label>{t("common.retry")}</Button.Label>
       </Button>
     </View>
   )
 }
 
 function CaptureHint({ isSelfie }: { isSelfie: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <View className="absolute bottom-32 left-0 right-0 items-center">
       <View className="bg-black/50 rounded-full px-4 py-2">
         <Text className="text-white text-xs font-nunitoSemiBold">
-          {isSelfie ? 'Fit your face inside the circle' : 'Fit the entire ID inside the frame'}
+          {isSelfie
+            ? t("authMobile.verify.capture.fitFace")
+            : t("authMobile.verify.capture.fitId")}
         </Text>
       </View>
     </View>
@@ -343,6 +357,8 @@ function CaptureReview({
   onRetake: () => void
   onUsePhoto: () => void
 }) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 bg-black">
       <Image
@@ -353,10 +369,10 @@ function CaptureReview({
 
       <View className="absolute bottom-12 left-0 right-0 flex-row justify-center gap-4 px-5">
         <Button variant="secondary" className="flex-1" onPress={onRetake}>
-          <Button.Label>Retake</Button.Label>
+          <Button.Label>{t("authMobile.verify.capture.retake")}</Button.Label>
         </Button>
         <Button className="flex-1" onPress={onUsePhoto}>
-          <Button.Label>Use Photo</Button.Label>
+          <Button.Label>{t("authMobile.verify.capture.usePhoto")}</Button.Label>
         </Button>
       </View>
     </View>

@@ -8,9 +8,11 @@ import ComingSoonChip from 'components/display/ComingSoonChip'
 import { ListGroup, Separator, BottomSheet } from 'heroui-native'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 
-import { ALLOW_FILIPINO, APP_LANGUAGES, type LanguageCode } from '@repo/i18n'
+import { ALLOW_FILIPINO, APP_LANGUAGES } from '@repo/i18n'
 
 import { useTranslation } from '@/hooks/i18n/useTranslation'
+
+type LanguageOption = (typeof APP_LANGUAGES)[number]
 
 export default function LanguageAndRegion() {
   const { language, setLanguage, t } = useTranslation()
@@ -89,9 +91,9 @@ export default function LanguageAndRegion() {
             contentContainerClassName='h-full'
           >
             <BottomSheetFlatList
-              data={[...APP_LANGUAGES]}
-              keyExtractor={(item: { code: LanguageCode }) => item.code}
-              renderItem={({ item }: { item: { code: LanguageCode; label: string } }) => (
+              data={[...APP_LANGUAGES] as LanguageOption[]}
+              keyExtractor={(item) => item.code}
+              renderItem={({ item }) => (
                 <Pressable
                   className={`p-4 rounded-2xl mb-2 ${item.code === language ? 'bg-accent/10' : 'bg-surface'}`}
                   onPress={() => {

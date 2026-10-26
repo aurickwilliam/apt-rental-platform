@@ -7,8 +7,11 @@ import { IMAGES} from '../../../constants/images'
 
 import { Button } from 'heroui-native';
 
+import { useTranslation } from '@/hooks/i18n';
+
 export default function Updated() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <ScreenWrapper 
@@ -23,11 +26,11 @@ export default function Updated() {
 
         <View>
           <Text className='text-accent text-2xl font-nunitoBold text-center'>
-            Password Updated
+            {t("auth.changePassword.successTitle")}
           </Text>
 
           <Text className='text-foreground text-base font-inter mt-2 text-center'>
-            Great! Your new password is ready to use.
+            {t("authMobile.recovery.updatedBody")}
           </Text>
         </View>
       </View>
@@ -37,7 +40,7 @@ export default function Updated() {
         router.dismissTo('/sign-in');
       }}>
         <Button.Label>
-          Back to Sign In
+          {t("auth.backToSignIn")}
         </Button.Label>
       </Button>
     </ScreenWrapper>

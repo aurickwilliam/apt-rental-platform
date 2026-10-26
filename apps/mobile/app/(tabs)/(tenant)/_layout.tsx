@@ -11,6 +11,7 @@ import {
   IconUserFilled
 } from "@tabler/icons-react-native";
 
+import { useTranslation } from "hooks/i18n";
 import { useColors } from "hooks/useTheme";
 
 import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
@@ -18,25 +19,25 @@ import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
 const TENANT_TABS: CustomTabConfig[] = [
   {
     name: 'rentals',
-    label: 'Rentals',
+    labelKey: 'nav.rentals',
     icon: IconBed,
     iconFilled: IconBedFilled
   },
   {
     name: 'search',
-    label: 'Search',
+    labelKey: 'nav.search',
     icon: IconSearch,
     iconFilled: IconSearch
   },
   {
     name: 'chat',
-    label: 'Chat',
+    labelKey: 'nav.chat',
     icon: IconMessageCircle,
     iconFilled: IconMessageCircle
   },
   {
     name: 'profile',
-    label: 'Profile',
+    labelKey: 'nav.profile',
     icon: IconUser,
     iconFilled: IconUserFilled
   },
@@ -44,6 +45,7 @@ const TENANT_TABS: CustomTabConfig[] = [
 
 export default function TenantTabLayout() {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   if (Platform.OS === 'android') {
     return (
@@ -72,7 +74,7 @@ export default function TenantTabLayout() {
       labelStyle={{ color: colors.primary }}
     >
       <NativeTabs.Trigger name="rentals">
-        <NativeTabs.Trigger.Label>Rentals</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.rentals")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "bed.double", selected: "bed.double.fill" }}
           md="bed"
@@ -80,7 +82,7 @@ export default function TenantTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="search">
-        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.search")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "magnifyingglass", selected: "magnifyingglass" }}
           md="search"
@@ -88,7 +90,7 @@ export default function TenantTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="chat">
-        <NativeTabs.Trigger.Label>Chat</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.chat")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "message", selected: "message.fill" }}
           md="chat_bubble"
@@ -96,7 +98,7 @@ export default function TenantTabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("nav.profile")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "person", selected: "person.fill" }}
           md="person"

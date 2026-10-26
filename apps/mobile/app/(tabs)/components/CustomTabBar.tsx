@@ -2,6 +2,9 @@ import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 
+import type { TranslationKey } from '@repo/i18n';
+
+import { useTranslation } from 'hooks/i18n';
 import { useColors } from 'hooks/useTheme';
 
 export type TablerIconComponent = React.ComponentType<{
@@ -12,7 +15,7 @@ export type TablerIconComponent = React.ComponentType<{
 
 export type CustomTabConfig = {
   name: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: TablerIconComponent;
   iconFilled: TablerIconComponent;
 };
@@ -89,6 +92,8 @@ type TabItemsProps = {
 };
 
 function TabItems({ state, navigation, tabs, colors, isDark }: TabItemsProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       className="flex-1 flex-row items-center rounded-full border p-1 gap-3"
@@ -146,7 +151,7 @@ function TabItems({ state, navigation, tabs, colors, isDark }: TabItemsProps) {
                 className="font-nunitoSemiBold text-[10px]"
                 style={{ color: isFocused ? colors.primary : colors.gray300 }}
               >
-                {config.label}
+                {t(config.labelKey)}
               </Text>
             </View>
           </Pressable>

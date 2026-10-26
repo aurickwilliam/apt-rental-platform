@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "expo-router";
 import { useToast } from "heroui-native";
 
 import { useCurrentUser } from "@/hooks/auth";
+import { useTranslation } from "@/hooks/i18n";
 import { showNotificationToast } from "@/components/display/NotificationToast";
 import { shouldSuppressChatToast } from "@/hooks/notifications/notificationSuppression";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
@@ -29,6 +30,7 @@ import type { NotificationData } from "@/utils/notificationDeepLink";
  * APNs) is unavailable.
  */
 export function useInAppNotificationBanner() {
+  const { language } = useTranslation();
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -66,6 +68,11 @@ export function useInAppNotificationBanner() {
     preferencesRef.current = preferences;
   }, [preferences]);
 
+  const languageRef = useRef(language);
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
+
   // Subscribe only once preferences are loaded; per-type gating is still
   // enforced inside the handler for pref changes while subscribed.
   const subscribedUserId = preferencesLoading || !role ? null : userId;
@@ -94,7 +101,10 @@ export function useInAppNotificationBanner() {
         onOpen: () => {
           void markNotificationRead(row.id);
           const href = buildNotificationDeepLink(row.data, userId, roleRef.current);
-          const webOnlyNotice = getWebOnlyNotificationNotice(row.data);
+          const webOnlyNotice = getWebOnlyNotificationNotice(
+            row.data,
+            languageRef.current,
+          );
           if (href) {
             routerRef.current.push(href);
           } else if (webOnlyNotice) {

@@ -8,9 +8,11 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 import { Button } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useTranslation } from "@/hooks/i18n";
 
 export default function StepFour() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { householdSize, setHouseholdSize } = usePersonalizationStore();
 
@@ -35,11 +37,11 @@ export default function StepFour() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              Can you share with us your family information?
+              {t("authMobile.personalization.familyQuestion")}
             </Text>
 
             <Text className="text-foreground text-base font-inter">
-              Help us personalize listings that fit your household.
+              {t("authMobile.personalization.familyBody")}
             </Text>
           </View>
 
@@ -59,7 +61,7 @@ export default function StepFour() {
         {/* Next Button */}
         <Button onPress={handleNext}>
           <Button.Label>
-            {householdSize !== null ? "Next" : "Skip"}
+            {householdSize !== null ? t("common.next") : t("common.skip")}
           </Button.Label>
         </Button>
       </View>

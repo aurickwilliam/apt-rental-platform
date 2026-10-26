@@ -16,12 +16,12 @@ import { useVerificationStore } from '@/stores/useVerificationStore'
 import { computeCanContinue, getCaptureProgress } from './utils/gating'
 import { getCaptureSequence, type CaptureStepConfig } from './constants/captureSequences'
 import type { IdCaptureResult } from '@/stores/useVerificationStore'
-
-const AUTHENTICITY_DECLARATION = 'I confirm that the submitted ID is authentic, valid, and belongs to me.'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function UploadId() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
@@ -77,7 +77,7 @@ export default function UploadId() {
         <View className='mx-5 gap-3'>
           {progress.isComplete && (
             <Button variant="secondary" onPress={handleRetakeIdPhotos}>
-              <Button.Label>Retake ID Photos</Button.Label>
+              <Button.Label>{t("authMobile.verify.uploadId.retake")}</Button.Label>
             </Button>
           )}
 
@@ -85,7 +85,7 @@ export default function UploadId() {
             isDisabled={!canContinue}
             onPress={() => router.push('/(auth)/verify-account/selfie-prep')}
           >
-            <Button.Label>Continue to Selfie</Button.Label>
+            <Button.Label>{t("authMobile.verify.uploadId.continue")}</Button.Label>
           </Button>
         </View>
       }
@@ -98,7 +98,11 @@ export default function UploadId() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={2} totalSteps={5} stepName="Upload Your ID" />
+      <StepProgress
+        currentStep={2}
+        totalSteps={5}
+        stepName={t("authMobile.verify.uploadId.step")}
+      />
 
       <View className='flex gap-1'>
         <Text className='text-2xl text-accent font-nunitoMedium'>
@@ -106,8 +110,8 @@ export default function UploadId() {
         </Text>
         <Text className='text-base text-gray-500 font-inter'>
           {progress.isComplete
-            ? 'Review your captured ID photos before continuing.'
-            : 'Opening your camera for the next required ID photo.'}
+            ? t("authMobile.verify.uploadId.reviewHint")
+            : t("authMobile.verify.uploadId.openingCamera")}
         </Text>
       </View>
 
@@ -135,7 +139,7 @@ export default function UploadId() {
 
               <Label>
                 <Label.Text>
-                  {AUTHENTICITY_DECLARATION}
+                  {t("authMobile.verify.uploadId.declaration")}
                 </Label.Text>
               </Label>
             </ControlField>
@@ -170,13 +174,14 @@ interface CaptureStepSummaryProps {
 
 function CaptureStepSummary({ step, result, onPress }: CaptureStepSummaryProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
   const [loadFailed, setLoadFailed] = useState(false);
 
   return (
     <View className='gap-2'>
       <View className='flex-row items-center gap-2'>
         <Text className='text-base font-nunitoSemiBold text-foreground'>
-          {step.label}:
+          {t(step.labelKey)}:
         </Text>
         <IconCheck size={18} color={colors.primary} />
       </View>
@@ -184,13 +189,15 @@ function CaptureStepSummary({ step, result, onPress }: CaptureStepSummaryProps) 
       {loadFailed ? (
         <View className='w-full h-48 rounded-2xl border border-border items-center justify-center p-4'>
           <Text className='text-sm text-gray-500 font-inter text-center'>
-            Photo couldn&apos;t load. Please use Retake ID Photos below.
+            {t("authMobile.verify.uploadId.photoLoadFailed")}
           </Text>
         </View>
       ) : (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`View ${step.label} ID photo fullscreen`}
+          accessibilityLabel={t("authMobile.verify.uploadId.viewFullscreen", {
+            label: t(step.labelKey),
+          })}
           onPress={onPress}
           className='w-full rounded-2xl border border-border overflow-hidden'
         >
@@ -198,7 +205,9 @@ function CaptureStepSummary({ step, result, onPress }: CaptureStepSummaryProps) 
             source={{ uri: result.uri }}
             style={{ width: '100%', height: 192 }}
             contentFit="cover"
-            accessibilityLabel={`${step.label} ID photo`}
+            accessibilityLabel={t("authMobile.verify.uploadId.photoLabel", {
+              label: t(step.labelKey),
+            })}
             onError={() => setLoadFailed(true)}
           />
         </Pressable>

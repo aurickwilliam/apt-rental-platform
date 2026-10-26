@@ -1,35 +1,37 @@
 import { ImageSource } from 'expo-image';
 
+import type { TranslationKey } from '@repo/i18n';
+
 interface Slide {
   id: number;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
   imagePath: ImageSource;
 }
 
 export const SLIDES: Slide[] = [
   {
     id: 1,
-    title: 'Welcome!',
-    description: 'Find your perfect apartment in just a few taps.',
+    titleKey: 'authMobile.onboarding.slide1.title',
+    descriptionKey: 'authMobile.onboarding.slide1.description',
     imagePath: require("../../assets/images/onboarding/onboarding-welcome-1.png"),
   },
   {
     id: 2,
-    title: 'Explore Rentals',
-    description: 'Browse apartments by location, price, and amenities.',
+    titleKey: 'authMobile.onboarding.slide2.title',
+    descriptionKey: 'authMobile.onboarding.slide2.description',
     imagePath: require("../../assets/images/onboarding/onboarding-explore-2.png"),
   },
   {
     id: 3,
-    title: 'Secure & Easy Transactions',
-    description: 'Pay rent securely and chat directly with landlords.',
+    titleKey: 'authMobile.onboarding.slide3.title',
+    descriptionKey: 'authMobile.onboarding.slide3.description',
     imagePath: require("../../assets/images/onboarding/onboarding-transactions-3.png"),
   },
   {
     id: 4,
-    title: 'Verified Listings',
-    description: 'All listings are verified to ensure trust and safety.',
+    titleKey: 'authMobile.onboarding.slide4.title',
+    descriptionKey: 'authMobile.onboarding.slide4.description',
     imagePath: require("../../assets/images/onboarding/onboarding-verified-4.png"),
   },
 ];

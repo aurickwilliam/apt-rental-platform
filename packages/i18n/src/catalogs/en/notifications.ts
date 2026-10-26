@@ -32,4 +32,18 @@ export const notifications = {
   "notifications.bell.aria": "Notifications",
   "notifications.bell.ariaUnread": "Notifications, {count} unread",
   "notifications.bell.dragHint": "Drag to move.",
+
+  // Mobile notification feed.
+  "notifications.mobile.title": "Notification",
+  "notifications.mobile.caughtUpTitle": "You're all caught up",
+  "notifications.mobile.caughtUpBody":
+    "No unread notifications. New messages, payments and updates will show up here.",
+  "notifications.mobile.emptyTitle": "No notifications yet",
+  "notifications.mobile.emptyBody":
+    "When something happens with your messages, payments or listings, you'll see it here.",
+  "notifications.mobile.viewAll": "View all notifications",
+  "notifications.mobile.view": "View",
+  "notifications.mobile.webOnlyLabel": "Review on the web",
+  "notifications.mobile.webOnlyBody":
+    "Passport documents are reviewed in the admin portal on the web.",
 } as const;

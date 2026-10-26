@@ -8,6 +8,7 @@ import DropdownField from "components/inputs/DropdownField";
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import { PET_KEYS, VEHICLE_KEYS, enumLabel } from "@repo/i18n";
 
 import { supabase } from "@repo/supabase";
 import { useProfile } from "hooks/auth";
@@ -27,9 +28,11 @@ import {
 } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useTranslation } from "@/hooks/i18n";
 
 export default function StepFive() {
   const router = useRouter();
+  const { language, t } = useTranslation();
 
   const personalization = usePersonalizationStore();
   const {
@@ -84,8 +87,8 @@ export default function StepFive() {
         console.error("Failed to save preferences:", error);
         toast.show({
           variant: "danger",
-          label: "Couldn't save your preferences",
-          description: "Please try again.",
+          label: t("authMobile.personalization.saveFailed"),
+          description: t("authMobile.personalization.tryAgain"),
         });
         return;
       }
@@ -97,8 +100,8 @@ export default function StepFive() {
       console.error("Unexpected error saving preferences:", err);
       toast.show({
         variant: "danger",
-        label: "Something went wrong",
-        description: "Check your connection and try again.",
+        label: t("authMobile.somethingWentWrong"),
+        description: t("authMobile.personalization.networkBody"),
       });
     } finally {
       setIsSaving(false);
@@ -114,11 +117,10 @@ export default function StepFive() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              What is your rental preferences?
+              {t("authMobile.personalization.preferencesQuestion")}
             </Text>
             <Text className="text-foreground text-base font-inter">
-              Fill-up the form and select the appropriate response to curate the
-              properties that will fit for you.
+              {t("authMobile.personalization.preferencesBody")}
             </Text>
           </View>
 
@@ -126,7 +128,7 @@ export default function StepFive() {
           <View className="flex gap-5">
             <View className="flex gap-3">
               <Text className="text-foreground text-base font-nunitoSemiBold">
-                Do you have any pets?
+                {t("authMobile.personalization.hasPetsQuestion")}
               </Text>
 
               <RadioGroup
@@ -140,7 +142,7 @@ export default function StepFive() {
                   <Radio>
                     <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
-                  <Label>Yes</Label>
+                  <Label>{t("common.yes")}</Label>
                 </RadioGroup.Item>
                 <RadioGroup.Item
                   value="no"
@@ -149,32 +151,35 @@ export default function StepFive() {
                   <Radio>
                     <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
-                  <Label>No</Label>
+                  <Label>{t("common.no")}</Label>
                 </RadioGroup.Item>
               </RadioGroup>
             </View>
 
             {hasPets && (
               <DropdownField
-                label="If yes, what kind of pet do you have?"
-                bottomSheetLabel="Select your Pet"
-                placeholder="Select the kind of pets you have"
+                label={t("authMobile.personalization.petsQuestion")}
+                bottomSheetLabel={t("authMobile.personalization.petSheet")}
+                placeholder={t("authMobile.personalization.petPlaceholder")}
                 options={PETS}
                 onSelect={(value) => setKindOfPets(value ?? "")}
                 value={kindOfPets}
+                optionLabel={(value) => enumLabel(language, PET_KEYS, value)}
                 required
               />
             )}
 
             {hasPets && kindOfPets === "Other" && (
               <TextField isRequired>
-                <Label>Please specify the kind of pet you have</Label>
+                <Label>{t("authMobile.personalization.petSpecify")}</Label>
                 <Input
-                  placeholder="Type the kind of pet you have"
+                  placeholder={t("authMobile.personalization.petType")}
                   value={nameOfPets || ""}
                   onChangeText={(value) => setNameOfPets(value)}
                 />
-                <Description>e.g., Poodle, Siamese</Description>
+                <Description>
+                  {t("settings.rental.petOther.placeholder")}
+                </Description>
               </TextField>
             )}
           </View>
@@ -185,7 +190,7 @@ export default function StepFive() {
           <View className="flex gap-5">
             <View className="flex gap-3">
               <Text className="text-foreground text-lg font-nunitoSemiBold">
-                Do you need a parking space?
+                {t("authMobile.personalization.hasParkingQuestion")}
               </Text>
 
               <RadioGroup
@@ -199,7 +204,7 @@ export default function StepFive() {
                   <Radio>
                     <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
-                  <Label>Yes</Label>
+                  <Label>{t("common.yes")}</Label>
                 </RadioGroup.Item>
                 <RadioGroup.Item
                   value="no"
@@ -208,16 +213,16 @@ export default function StepFive() {
                   <Radio>
                     <Radio.Indicator className="border border-border shadow-none rounded-full" />
                   </Radio>
-                  <Label>No</Label>
+                  <Label>{t("common.no")}</Label>
                 </RadioGroup.Item>
               </RadioGroup>
             </View>
 
             {hasParking && (
               <DropdownField
-                label="If yes, how many cars or motorcycles do you have?"
-                bottomSheetLabel="Select your Parking"
-                placeholder="Select the number of parking you need"
+                label={t("authMobile.personalization.parkingQuestion")}
+                bottomSheetLabel={t("authMobile.personalization.parkingSheet")}
+                placeholder={t("authMobile.personalization.parkingPlaceholder")}
                 options={NO_PARKING_OPTIONS}
                 onSelect={(value) =>
                   setNoOfParkingSpots(value ? Number(value) : 1)
@@ -230,7 +235,7 @@ export default function StepFive() {
             {hasParking && noOfParkingSpots > 0 && (
               <View className="flex gap-3">
                 <Text className="text-foreground text-base font-nunitoSemiBold">
-                  Select the kinds of vehicles you have:
+                  {t("authMobile.personalization.vehiclesQuestion")}
                 </Text>
 
                 {VEHICLE_OPTIONS.map((vehicle) => (
@@ -243,7 +248,9 @@ export default function StepFive() {
                       <Checkbox className="border border-border shadow-none" />
                     </ControlField.Indicator>
 
-                    <Label>{vehicle}</Label>
+                    <Label>
+                      {enumLabel(language, VEHICLE_KEYS, vehicle)}
+                    </Label>
                   </ControlField>
                 ))}
               </View>
@@ -255,7 +262,7 @@ export default function StepFive() {
           {/* Smoker */}
           <View className="flex gap-3">
             <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Is anyone in your household a smoker?
+              {t("authMobile.personalization.smokerQuestion")}
             </Text>
 
             <RadioGroup
@@ -269,7 +276,7 @@ export default function StepFive() {
                 <Radio>
                   <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
-                <Label>Yes</Label>
+                <Label>{t("common.yes")}</Label>
               </RadioGroup.Item>
               <RadioGroup.Item
                 value="no"
@@ -278,7 +285,7 @@ export default function StepFive() {
                 <Radio>
                   <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
-                <Label>No</Label>
+                <Label>{t("common.no")}</Label>
               </RadioGroup.Item>
             </RadioGroup>
           </View>
@@ -288,7 +295,7 @@ export default function StepFive() {
           {/* Disability */}
           <View className="flex gap-3">
             <Text className="text-foreground text-lg font-nunitoSemiBold">
-              Do you have any household members with a disability?
+              {t("authMobile.personalization.disabilityQuestion")}
             </Text>
 
             <RadioGroup
@@ -302,7 +309,7 @@ export default function StepFive() {
                 <Radio>
                   <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
-                <Label>Yes</Label>
+                <Label>{t("common.yes")}</Label>
               </RadioGroup.Item>
               <RadioGroup.Item
                 value="no"
@@ -311,7 +318,7 @@ export default function StepFive() {
                 <Radio>
                   <Radio.Indicator className="border border-border shadow-none rounded-full" />
                 </Radio>
-                <Label>No</Label>
+                <Label>{t("common.no")}</Label>
               </RadioGroup.Item>
             </RadioGroup>
           </View>
@@ -320,7 +327,9 @@ export default function StepFive() {
         {/* Next Button */}
         <Button onPress={handleNext} isDisabled={isSaving}>
           <Button.Label>
-            {isSaving ? "Saving..." : "Let's find your place!"}
+            {isSaving
+              ? t("common.saving")
+              : t("authMobile.personalization.finish")}
           </Button.Label>
         </Button>
       </View>

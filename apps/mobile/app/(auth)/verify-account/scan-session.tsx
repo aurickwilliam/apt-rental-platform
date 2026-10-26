@@ -16,6 +16,7 @@ import {
 } from '@/service/verification/verificationService'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { useColors } from '@/hooks/useTheme'
+import { useTranslation } from '@/hooks/i18n'
 
 /**
  * Scan_Session_Screen — claims a desktop QR verification session
@@ -28,6 +29,7 @@ import { useColors } from '@/hooks/useTheme'
 export default function ScanSession() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
   const { state: permissionState, requestPermission, openSettings } =
     useCameraPermission();
   const setSessionClaim = useVerificationStore((state) => state.setSessionClaim);
@@ -45,9 +47,7 @@ export default function ScanSession() {
 
       const token = extractSessionToken(value);
       if (!token) {
-        setErrorMessage(
-          'This QR code is not an APT verification code. Please scan the code shown on your computer.',
-        );
+        setErrorMessage(t("authMobile.verify.scan.wrongCode"));
         handledRef.current = false;
         return;
       }
@@ -63,14 +63,14 @@ export default function ScanSession() {
         router.push('/(auth)/verify-account/select-id');
       } catch (err) {
         setErrorMessage(
-          err instanceof Error ? err.message : 'Could not claim this code.',
+          err instanceof Error ? err.message : t("authMobile.verify.scan.claimFailed"),
         );
         handledRef.current = false;
       } finally {
         setIsClaiming(false);
       }
     },
-    [isClaiming, router, setSessionClaim],
+    [isClaiming, router, setSessionClaim, t],
   );
 
   return (
@@ -85,11 +85,10 @@ export default function ScanSession() {
 
       <View className="flex gap-1">
         <Text className="text-2xl text-accent font-nunitoMedium">
-          Scan your code
+          {t("authMobile.verify.scan.title")}
         </Text>
         <Text className="text-sm text-gray-500 font-inter">
-          Point your camera at the QR code on your computer to continue
-          verification here.
+          {t("authMobile.verify.scan.body")}
         </Text>
       </View>
 
@@ -104,12 +103,12 @@ export default function ScanSession() {
         ) : (
           <View className="flex-1 items-center justify-center gap-3 p-6">
             <Text className="text-base font-nunitoSemiBold text-foreground text-center">
-              Camera access needed
+              {t("authMobile.verify.scan.cameraNeeded")}
             </Text>
             <Text className="text-sm text-gray-500 font-inter text-center">
               {permissionState === 'restricted'
-                ? 'Camera access is restricted on this device, so the code cannot be scanned.'
-                : 'Allow camera access to scan the verification QR code from your computer.'}
+                ? t("authMobile.verify.scan.restricted")
+                : t("authMobile.verify.scan.denied")}
             </Text>
             {permissionState !== 'restricted' && (
               <Button
@@ -119,7 +118,9 @@ export default function ScanSession() {
                 }
               >
                 <Button.Label>
-                  {permissionState === 'denied' ? 'Open Settings' : 'Allow Camera'}
+                  {permissionState === 'denied'
+                    ? t("authMobile.verify.scan.openSettings")
+                    : t("authMobile.verify.scan.allowCamera")}
                 </Button.Label>
               </Button>
             )}
@@ -129,7 +130,7 @@ export default function ScanSession() {
 
       {isClaiming && (
         <Text className="mt-4 text-sm text-gray-500 font-inter text-center">
-          Checking your code…
+          {t("authMobile.verify.scan.checking")}
         </Text>
       )}
 
@@ -137,7 +138,7 @@ export default function ScanSession() {
         isOpen={errorMessage !== null}
         onClose={() => setErrorMessage(null)}
         message={errorMessage ?? ''}
-        title="Could Not Use This Code"
+        title={t("authMobile.verify.scan.errorTitle")}
       />
     </ScreenWrapper>
   )

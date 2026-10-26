@@ -11,13 +11,18 @@ import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
+import type { TranslationKey } from '@repo/i18n';
+
+import { useTranslation } from '@/hooks/i18n';
+
 import type { NotificationFilter } from '@/app/(notification)/components/NotificationList';
 
 interface NotificationScreenProps {
-  title: string;
+  titleKey: TranslationKey;
 }
 
-export default function NotificationScreen({ title }: NotificationScreenProps) {
+export default function NotificationScreen({ titleKey }: NotificationScreenProps) {
+  const { t } = useTranslation();
   const [filterType, setFilterType] = useState<NotificationFilter>('all');
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
@@ -31,7 +36,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
       scrollable
       className='p-5'
       header={
-        <StandardHeader title={title}/>
+        <StandardHeader title={t(titleKey)}/>
       }
       refreshing={refreshing}
       onRefresh={onRefresh}
@@ -51,7 +56,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
           {unreadCount > 0 && (
             <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
               <Text className="text-primary font-nunitoSemiBold text-sm">
-                Mark all read
+                {t("notifications.markAllVisible")}
               </Text>
             </TouchableOpacity>
           )}

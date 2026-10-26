@@ -49,4 +49,12 @@ export const common = {
   "common.noResults": "No results found.",
   "common.comingSoon": "Coming soon",
   "common.error": "Something went wrong.",
+  "common.skip": "Skip",
+  "common.submit": "Submit",
+  "common.saving": "Saving...",
+  "common.pleaseWait": "Please wait...",
+  "common.selectValue": "Select a value",
+  "common.searchPlaceholder": "Search...",
+  "common.noResultsFound": "No results found",
+  "common.noOptions": "No options available",
 } as const;

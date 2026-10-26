@@ -1,4 +1,5 @@
 import { auth } from "./auth";
+import { authMobile } from "./authMobile";
 import { common } from "./common";
 import { enums } from "./enums";
 import { errors } from "./errors";
@@ -17,6 +18,7 @@ export const en = {
   ...nav,
   ...settings,
   ...auth,
+  ...authMobile,
   ...languages,
   ...validation,
   ...errors,

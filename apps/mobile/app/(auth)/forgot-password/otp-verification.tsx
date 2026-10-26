@@ -33,12 +33,11 @@ import {
 
 // Errors shown under the code input; anything else opens the error dialog.
 const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);
-const GENERIC_ERROR = "Something went wrong. Please try again.";
 
 export default function RecoveryCodeVerification() {
   const router = useRouter();
   const { colors } = useColors();
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
 
   const email = usePasswordRecoveryStore((state) => state.email);
   const resetRecovery = usePasswordRecoveryStore((state) => state.reset);
@@ -71,7 +70,11 @@ export default function RecoveryCodeVerification() {
       setCodeError(passwordErrorMessage(language, err.reason));
       return;
     }
-    setError(err instanceof PasswordError ? passwordErrorMessage(language, err.reason) : GENERIC_ERROR);
+    setError(
+      err instanceof PasswordError
+        ? passwordErrorMessage(language, err.reason)
+        : t("authMobile.errorGeneric"),
+    );
   };
 
   const handleVerify = async (value: string = code) => {
@@ -107,7 +110,7 @@ export default function RecoveryCodeVerification() {
     try {
       await requestPasswordRecovery(email);
       clearCode();
-      setResendNotice("A new code is on its way. Check your inbox.");
+      setResendNotice(t("auth.recovery.newCodeSent"));
     } catch (err) {
       showError(err);
     } finally {
@@ -128,16 +131,17 @@ export default function RecoveryCodeVerification() {
         <View className="flex-1 justify-center gap-3">
           <IconBrandGoogle size={48} color={colors.primary} />
           <Text className="text-foreground text-2xl font-nunitoBold">
-            This account uses Google
+            {t("auth.recovery.googleTitle")}
           </Text>
           <Text className="text-foreground text-base font-inter">
-            {email} signs in with Google, so it doesn’t have a password to
-            reset. Go back and use Continue with Google instead.
+            {email} {t("auth.recovery.googleAfter")}
           </Text>
         </View>
 
         <Button onPress={handleBackToSignIn}>
-          <Button.Label className="font-nunitoSemiBold">Back to Sign In</Button.Label>
+          <Button.Label className="font-nunitoSemiBold">
+            {t("auth.backToSignIn")}
+          </Button.Label>
         </Button>
       </ScreenWrapper>
     );
@@ -150,7 +154,7 @@ export default function RecoveryCodeVerification() {
           variant="ghost"
           className="-ml-2"
           onPress={router.back}
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("authMobile.goBack")}
         >
           <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
@@ -158,18 +162,18 @@ export default function RecoveryCodeVerification() {
 
       <View className="flex gap-3 mt-5">
         <Text className="text-foreground text-2xl font-nunitoBold">
-          Check your email
+          {t("auth.recovery.codeTitle")}
         </Text>
 
         <Text className="text-base text-foreground font-inter">
-          If an account exists for{" "}
-          <Text className="font-interSemiBold">{email}</Text>, we’ve sent a
-          6-digit code to it. Enter the code below to reset your password.
+          {t("authMobile.recovery.codeBefore")}{" "}
+          <Text className="font-interSemiBold">{email}</Text>
+          {t("authMobile.recovery.codeAfter")}
         </Text>
 
         <LinkButton onPress={router.back} className="self-start p-0">
           <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-            Wrong email? Change it
+            {t("auth.wrongEmail")}
           </LinkButton.Label>
         </LinkButton>
       </View>
@@ -201,10 +205,12 @@ export default function RecoveryCodeVerification() {
       </View>
 
       <View className="flex-row items-center">
-        <Text className="text-muted text-base">Didn&apos;t get the code? </Text>
+        <Text className="text-muted text-base">
+          {t("authMobile.otp.didntGetCode")}{" "}
+        </Text>
         {countdown > 0 ? (
           <Text className="text-accent text-base font-nunitoSemiBold">
-            Resend in {countdown}s
+            {t("auth.otp.resendIn", { seconds: String(countdown) })}
           </Text>
         ) : (
           <Pressable
@@ -215,7 +221,7 @@ export default function RecoveryCodeVerification() {
             hitSlop={10}
           >
             <Text className="text-accent text-base font-nunitoSemiBold">
-              {resending ? "Sending..." : "Resend"}
+              {resending ? t("auth.otp.sending") : t("auth.otp.resend")}
             </Text>
           </Pressable>
         )}
@@ -229,7 +235,7 @@ export default function RecoveryCodeVerification() {
         className="mt-8"
       >
         <Button.Label className="font-nunitoSemiBold">
-          {verifying ? "Verifying..." : "Verify Code"}
+          {verifying ? t("auth.otp.verifying") : t("auth.otp.verifyCode")}
         </Button.Label>
         {verifying && <Spinner size="sm" color={colors.white} className="ml-2" />}
       </Button>

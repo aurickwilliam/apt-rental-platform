@@ -15,6 +15,7 @@ import { isPortal } from '@/service/auth/portalPreference';
 import { firstParam } from '@/utils/routeParams';
 
 import { useColors } from 'hooks/useTheme';
+import { useTranslation } from 'hooks/i18n';
 
 import {
   CloseButton,
@@ -27,6 +28,7 @@ import {
 // the shared details it asks for the password.
 export default function CompleteProfile() {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const params = useLocalSearchParams();
   const email = firstParam(params.email) ?? '';
@@ -47,15 +49,16 @@ export default function CompleteProfile() {
     if (!form.submitted) return undefined;
 
     if (field === 'password') {
-      if (!passwords.password) return 'This field is required';
+      if (!passwords.password) return t("auth.changePassword.required");
       if (!passwords.isPasswordValid) {
-        return 'Password does not meet the requirements or password does not match';
+        return t("auth.changePassword.requirements");
       }
       return undefined;
     }
 
-    if (!passwords.confirmPassword) return 'This field is required';
-    if (passwords.password !== passwords.confirmPassword) return 'Passwords do not match';
+    if (!passwords.confirmPassword) return t("auth.changePassword.required");
+    if (passwords.password !== passwords.confirmPassword)
+      return t("auth.changePassword.mismatch");
     return undefined;
   };
 
@@ -67,7 +70,10 @@ export default function CompleteProfile() {
       />
 
       <Text className="text-2xl text-foreground font-nunitoBold my-5">
-        Complete Your {role === "landlord" ? "Landlord " : "Tenant"} Profile
+        {t("authMobile.completeProfile.title", {
+          role:
+            role === "landlord" ? t("auth.role.landlord") : t("auth.role.tenant"),
+        })}
       </Text>
 
       <View className="flex gap-4">
@@ -76,7 +82,7 @@ export default function CompleteProfile() {
         <Separator />
 
         <Text className="text-xl text-foreground font-nunitoBold mt-3">
-          Account Security
+          {t("authMobile.completeProfile.accountSecurity")}
         </Text>
 
         <View {...form.trackPosition('password')}>
@@ -94,7 +100,9 @@ export default function CompleteProfile() {
 
       <View className="mt-16 mb-0">
         <Button onPress={submit} isDisabled={loading}>
-          <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
+          <Button.Label>
+            {loading ? t("common.pleaseWait") : t("common.submit")}
+          </Button.Label>
           {loading && (
             <Spinner size="sm" color={colors.white} className="ml-2" />
           )}

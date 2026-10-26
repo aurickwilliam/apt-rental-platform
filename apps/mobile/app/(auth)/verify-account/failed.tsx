@@ -8,10 +8,12 @@ import { Button } from 'heroui-native'
 import { IconShieldX } from '@tabler/icons-react-native'
 
 import { useColors } from '@/hooks/useTheme'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function Failed() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const { reason: rawReason } = useLocalSearchParams<{ reason?: string }>();
 
@@ -30,12 +32,14 @@ export default function Failed() {
 
         <View className='flex gap-2'>
           <Text className='text-3xl text-danger font-nunitoBold text-center'>
-            Verification Failed
+            {t("authMobile.verify.failedTitle")}
           </Text>
 
           <Text className='text-foreground text-base font-inter text-center mx-10'>
-            We couldn&apos;t verify your identity with the documents provided.
-            {reason ? ` Reason: ${reason}` : ' Please try again with a clearer photo or a different ID.'}
+            {t("authMobile.verify.failedBody")}
+            {reason
+              ? ` ${t("authMobile.verify.failedReason", { reason })}`
+              : ` ${t("authMobile.verify.failedRetry")}`}
           </Text>
         </View>
       </View>
@@ -45,14 +49,14 @@ export default function Failed() {
           variant="primary"
           onPress={() => router.replace('/(auth)/verify-account')}
         >
-          <Button.Label>Re-Apply for Verification</Button.Label>
+          <Button.Label>{t("authMobile.verify.reapply")}</Button.Label>
         </Button>
 
         <Button
           variant="outline"
           onPress={() => router.replace('/(tabs)/(tenant)/profile')}
         >
-          <Button.Label>Back to Profile</Button.Label>
+          <Button.Label>{t("authMobile.verify.backToProfile")}</Button.Label>
         </Button>
       </View>
     </ScreenWrapper>

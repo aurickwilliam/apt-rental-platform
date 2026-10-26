@@ -13,6 +13,7 @@ import ErrorDialog from "@/components/display/ErrorDialog";
 import { IMAGES } from "constants/images";
 
 import { useGoogleAuth } from "hooks/auth";
+import { useTranslation } from "hooks/i18n";
 import { useColors } from "hooks/useTheme";
 
 import { supabase } from "@repo/supabase"
@@ -35,6 +36,7 @@ export default function SignUp() {
   const { userType } = useLocalSearchParams<{ userType: string }>();
 
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState<string>("");
   const [checkingEmail, setCheckingEmail] = useState<boolean>(false);
@@ -71,12 +73,12 @@ export default function SignUp() {
 
     // Check for basic validation of email
     if (!email.trim()) {
-      setEmailError("Email address is required.");
+      setEmailError(t("authMobile.signUp.emailRequired"));
       return;
     }
 
     if (!isValidEmail(email)) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(t("authMobile.emailInvalid"));
       return;
     }
 
@@ -91,13 +93,13 @@ export default function SignUp() {
 
       // Display Error if there's an issue with the query
       if (error) {
-        setServerError("Something went wrong. Please try again.");
+        setServerError(t("authMobile.errorGeneric"));
         return;
       }
 
       // If the email is already registered, show an error
       if (registered === true) {
-        setServerError("This email is already registered. Please sign in instead.");
+        setServerError(t("authMobile.signUp.emailRegistered"));
         return;
       }
 
@@ -112,7 +114,7 @@ export default function SignUp() {
       });
 
     } catch {
-      setServerError("Something went wrong. Please try again.");
+      setServerError(t("authMobile.errorGeneric"));
     } finally {
       setCheckingEmail(false);
     }
@@ -137,13 +139,13 @@ export default function SignUp() {
       {/* Title at the top */}
       <View className="flex gap-2 mt-5">
         <Text className="text-3xl text-foreground font-nunitoBold">
-          Create Your Account
+          {t("authMobile.signUp.title")}
         </Text>
 
         <Text className="text-base text-muted font-nunitoSemiBold">
           {userSide === "tenant"
-            ? "Join as tenant to start renting."
-            : "Join us and start listing your properties in minutes."}
+            ? t("auth.signUp.description.tenant")
+            : t("auth.signUp.description.landlord")}
         </Text>
       </View>
 
@@ -162,10 +164,10 @@ export default function SignUp() {
           isRequired
           isInvalid={!!emailError}
         >
-          <Label>Email Address:</Label>
+          <Label>{t("authMobile.emailLabel")}</Label>
           <Input
             keyboardType="email-address"
-            placeholder="Enter your email"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChangeText={handleEmailTextChange}
           />
@@ -183,7 +185,7 @@ export default function SignUp() {
           isDisabled={checkingEmail}
         >
           <Button.Label className="font-nunitoSemiBold">
-            {checkingEmail ? "Please wait..." : "Continue"}
+            {checkingEmail ? t("common.pleaseWait") : t("common.continue")}
           </Button.Label>
           {checkingEmail && (
             <Spinner
@@ -196,7 +198,7 @@ export default function SignUp() {
       </View>
 
       {/* Divider */}
-      <AuthDivider middleText="or sign up with" />
+      <AuthDivider middleText={t("auth.orSignUpWith")} />
 
       {/* Third-party sign-in options */}
       <View className="flex-row justify-center items-center gap-4 mt-2">
@@ -204,7 +206,7 @@ export default function SignUp() {
           onPress={handleGoogleSignIn}
           isDisabled={googleLoading}
           imageSource={IMAGES.googleLogo}
-          label="Continue with Google"
+          label={t("authMobile.continueWithGoogle")}
         />
       </View>
 
@@ -214,7 +216,7 @@ export default function SignUp() {
       <View className="mb-8 flex items-center gap-2">
         <View className="flex-row items-center justify-center gap-1">
           <Text className="text-foreground font-inter">
-            Already have an account?
+            {t("auth.alreadyHaveAccount")}
           </Text>
 
           <LinkButton
@@ -222,7 +224,7 @@ export default function SignUp() {
             className="p-0"
           >
             <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-              Sign In
+              {t("auth.signIn.action")}
             </LinkButton.Label>
           </LinkButton>
         </View>
@@ -235,7 +237,7 @@ export default function SignUp() {
           setServerError("");
           resetGoogleError();
         }}
-        message={googleError || serverError || "Something went wrong. Please try again."}
+        message={googleError || serverError || t("authMobile.errorGeneric")}
       />
     </ScreenWrapper>
   );

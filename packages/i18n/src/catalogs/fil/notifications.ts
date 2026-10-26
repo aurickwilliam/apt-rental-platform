@@ -32,4 +32,17 @@ export const notifications: Record<keyof typeof enNotifications, string> = {
   "notifications.bell.aria": "Mga Notification",
   "notifications.bell.ariaUnread": "Mga Notification, {count} hindi pa nabasa",
   "notifications.bell.dragHint": "I-drag para ilipat.",
+
+  "notifications.mobile.title": "Notification",
+  "notifications.mobile.caughtUpTitle": "Wala kang hindi pa nabasa",
+  "notifications.mobile.caughtUpBody":
+    "Walang hindi pa nabasang notification. Dito lalabas ang mga bagong mensahe, bayad, at update.",
+  "notifications.mobile.emptyTitle": "Wala pang notification",
+  "notifications.mobile.emptyBody":
+    "Kapag may nangyari sa mga mensahe, bayad, o listing mo, dito mo makikita.",
+  "notifications.mobile.viewAll": "Tingnan lahat ng notification",
+  "notifications.mobile.view": "Tingnan",
+  "notifications.mobile.webOnlyLabel": "I-review sa web",
+  "notifications.mobile.webOnlyBody":
+    "Ang mga passport document ay nire-review sa admin portal sa web.",
 };

@@ -12,6 +12,7 @@ import { IconBrandGithub, IconGlobe, IconMail, IconBrandFacebook, IconBrandInsta
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
+import { useTranslation } from "@/hooks/i18n/useTranslation";
 import { useColors } from "@/hooks/useTheme";
 import { getInstalledAppVersion } from "@/service/appRelease/appReleaseService";
 import { describeRunningBuild } from "@/service/appRelease/otaUpdateService";
@@ -69,6 +70,7 @@ const socials = [
 
 export default function AboutScreen() {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const handleLink = (url: string) => {
     Linking.openURL(url);
@@ -76,7 +78,7 @@ export default function AboutScreen() {
 
   return (
     <ScreenWrapper
-      header={<StandardHeader title="About Us" />}
+      header={<StandardHeader title={t("settings.help.about")} />}
       scrollable
       className="px-5"
     >
@@ -93,7 +95,7 @@ export default function AboutScreen() {
         </Text>
         <View className="mt-3 px-3 py-1 rounded-full bg-primary/10">
           <Text className="text-accent text-xs font-nunitoSemiBold">
-            Version {APP_VERSION}
+            {t("settings.mobile.version", { version: APP_VERSION })}
           </Text>
         </View>
         {RUNNING_BUILD ? (
@@ -107,7 +109,7 @@ export default function AboutScreen() {
       {/* Description */}
       <View className="mb-6">
         <Text className="text-sm font-nunitoSemiBold text-foreground mb-2">
-          About the App
+          {t("settings.mobile.about.app")}
         </Text>
         <Text className="text-sm text-muted leading-6">
           APT is a property rental platform designed for the Philippine
@@ -123,7 +125,7 @@ export default function AboutScreen() {
       {/* Meet the Team */}
       <View className="mb-6">
         <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
-          Meet the Team
+          {t("settings.mobile.about.team")}
         </Text>
         <View className="gap-3">
           {developers.map((dev) => (
@@ -153,7 +155,7 @@ export default function AboutScreen() {
       {/* Social Links */}
       <View className="mb-6">
         <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
-          Connect with Us
+          {t("settings.mobile.about.connect")}
         </Text>
         <View className="gap-2">
           {socials.map((social) => {
@@ -180,13 +182,15 @@ export default function AboutScreen() {
       {/* STI Branding */}
       <View className="items-center">
         <Text className="text-xs text-muted text-center leading-5">
-          Developed as a capstone project at
+          {t("settings.mobile.about.capstone")}
         </Text>
         <Text className="text-xs font-nunitoSemiBold text-muted text-center">
           STI College Caloocan
         </Text>
         <Text className="text-xs text-muted text-center mt-1">
-          © {new Date().getFullYear()} APT. All rights reserved.
+          {t("settings.mobile.about.rights", {
+            year: String(new Date().getFullYear()),
+          })}
         </Text>
       </View>
     </ScreenWrapper>

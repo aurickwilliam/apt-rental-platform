@@ -15,7 +15,6 @@ import { useTranslation } from "@/hooks/i18n";
 import { getEmailChangeAccount, requestEmailChange } from "@/service/auth/emailChangeService";
 import { EmailChangeError, emailChangeErrorMessage, getEmailChangeErrorField, isValidEmail } from "@repo/utils";
 
-const GENERIC_ERROR = "Something went wrong. Please try again.";
 const VERIFY_CURRENT_PATH = "/settings/change-email/verify-current";
 
 // Settings → Change Email, page 1: new address + current password. Codes are
@@ -24,7 +23,7 @@ const VERIFY_CURRENT_PATH = "/settings/change-email/verify-current";
 export default function ChangeEmail() {
   const router = useRouter();
   const { colors } = useColors();
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
 
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [currentEmail, setCurrentEmail] = useState("");
@@ -56,7 +55,7 @@ export default function ChangeEmail() {
           setError(
             err instanceof EmailChangeError
               ? emailChangeErrorMessage(language, err.reason)
-              : GENERIC_ERROR,
+              : t("authMobile.errorGeneric"),
           );
         }
       } finally {
@@ -66,18 +65,20 @@ export default function ChangeEmail() {
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, t]);
 
   const getNewEmailError = (): string | undefined => {
     if (newEmailError) return newEmailError;
-    if (submitted && !newEmail.trim()) return "Please enter a new email address.";
-    if (submitted && !isValidEmail(newEmail.trim())) return "Enter a valid email address.";
+    if (submitted && !newEmail.trim()) return t("auth.changeEmail.newEmailRequired");
+    if (submitted && !isValidEmail(newEmail.trim()))
+      return t("authMobile.changeEmail.invalidEmail");
     return undefined;
   };
 
   const getCurrentPasswordError = (): string | undefined => {
     if (currentPasswordError) return currentPasswordError;
-    if (submitted && !currentPassword) return "Please enter your current password.";
+    if (submitted && !currentPassword)
+      return t("auth.changePassword.currentRequired");
     return undefined;
   };
 
@@ -102,7 +103,7 @@ export default function ChangeEmail() {
     } catch (err) {
       if (!(err instanceof EmailChangeError)) {
         console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
-        setError(GENERIC_ERROR);
+        setError(t("authMobile.errorGeneric"));
       } else {
         const field = getEmailChangeErrorField(err.reason);
         const message = emailChangeErrorMessage(language, err.reason);
@@ -118,11 +119,15 @@ export default function ChangeEmail() {
   return (
     <ScreenWrapper
       scrollable
-      header={<StandardHeader title="Change Email" />}
+      header={<StandardHeader title={t("auth.changeEmail.title")} />}
       footer={
         <View className="p-5">
           <Button onPress={handleRequest} isDisabled={saving || loadingAccount} className="w-full">
-            <Button.Label>{saving ? "Sending codes..." : "Send Verification Codes"}</Button.Label>
+            <Button.Label>
+              {saving
+                ? t("authMobile.changeEmail.sendingCodes")
+                : t("auth.changeEmail.sendCodes")}
+            </Button.Label>
             {saving && <Spinner size="sm" color={colors.white} className="ml-2" />}
           </Button>
         </View>
@@ -130,8 +135,7 @@ export default function ChangeEmail() {
       className="p-5"
     >
       <Text className="text-base text-foreground font-inter">
-        Enter a new email and your current password. We’ll send a 6-digit code to both your
-        current and new inboxes. Your current email stays active until both codes are confirmed.
+        {t("auth.changeEmail.description")}
       </Text>
 
       {loadingAccount ? (
@@ -139,14 +143,14 @@ export default function ChangeEmail() {
       ) : (
         <View className="flex gap-4 mt-5">
           <TextField isDisabled>
-            <Label>Current Email:</Label>
+            <Label>{t("authMobile.currentEmailLabel")}</Label>
             <Input value={currentEmail} editable={false} autoCapitalize="none" />
           </TextField>
 
           <TextField isRequired isInvalid={!!getNewEmailError()} isDisabled={saving}>
-            <Label>New Email:</Label>
+            <Label>{t("authMobile.newEmailLabel")}</Label>
             <Input
-              placeholder="Enter your new email"
+              placeholder={t("auth.changeEmail.newEmailPlaceholder")}
               value={newEmail}
               onChangeText={(value) => {
                 setNewEmail(value);
@@ -163,8 +167,8 @@ export default function ChangeEmail() {
           </TextField>
 
           <PasswordField
-            label="Current Password:"
-            placeholder="Enter your current password"
+            label={t("authMobile.currentPasswordLabel")}
+            placeholder={t("auth.changePassword.currentPlaceholder")}
             value={currentPassword}
             onChangeText={(value) => {
               setCurrentPassword(value);

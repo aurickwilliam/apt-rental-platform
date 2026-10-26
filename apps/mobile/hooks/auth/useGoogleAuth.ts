@@ -18,11 +18,13 @@ import {
   buildSuspendedMessage,
   getMySuspensionStatus,
   getOAuthRedirectError,
-  SUSPENDED_TITLE,
+  suspendedTitle,
 } from "@/service/auth/suspensionService";
+import { useTranslation } from "@/hooks/i18n";
 
 export function useGoogleAuth() {
   const router = useRouter();
+  const { language, t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +40,7 @@ export function useGoogleAuth() {
       // This means the authentication failed or was cancelled before completion
       if (!code) {
         const { description } = getOAuthRedirectError(url);
-        setError(description ?? "Authentication failed. No code returned.");
+        setError(description ?? t("authMobile.google.noCode"));
         setLoading(false);
         return;
       }
@@ -49,7 +51,7 @@ export function useGoogleAuth() {
 
       // Show error if the code exchange fails for any reason
       if (exchangeError || !data.session) {
-        setError("Failed to establish session.");
+        setError(t("authMobile.google.exchangeFailed"));
         setLoading(false);
         return;
       }
@@ -59,8 +61,8 @@ export function useGoogleAuth() {
       const suspension = await getMySuspensionStatus();
       if (suspension.suspended) {
         await supabase.auth.signOut();
-        setErrorTitle(SUSPENDED_TITLE);
-        setError(buildSuspendedMessage(suspension.reason));
+        setErrorTitle(suspendedTitle(language));
+        setError(buildSuspendedMessage(suspension.reason, language));
         setLoading(false);
         return;
       }
@@ -76,7 +78,7 @@ export function useGoogleAuth() {
       // Show error if we can't load the user's profile for any reason 
       if (profileError || !profile) {
         await supabase.auth.signOut();
-        setError("Could not load your profile.");
+        setError(t("authMobile.google.profileLoadFailed"));
         setLoading(false);
         return;
       }
@@ -86,8 +88,8 @@ export function useGoogleAuth() {
         await supabase.auth.signOut();
         setError(
           heldRoles.includes("admin")
-            ? "Admin accounts are available on the web portal only."
-            : "No supported mobile role found.",
+            ? t("authMobile.signIn.adminWebOnly")
+            : t("authMobile.google.noMobileRole"),
         );
         setLoading(false);
         return;
@@ -111,14 +113,14 @@ export function useGoogleAuth() {
       const portal = await usePortalStore.getState().restore(userId, heldRoles);
       if (!portal) {
         await supabase.auth.signOut();
-        setError("No supported mobile role found.");
+        setError(t("authMobile.google.noMobileRole"));
         return;
       }
       router.replace(portalHome(portal));
 
     } catch (err) {
       await supabase.auth.signOut();
-      setError("Unexpected error occurred.");
+      setError(t("authMobile.google.unexpected"));
       setLoading(false);
 
       console.error("handleUrl error:", err);
@@ -159,7 +161,7 @@ export function useGoogleAuth() {
       // If there's an error or no URL, clean up the listener and show an error
       if (oauthError || !data.url) {
         subscription.remove();
-        setError("Failed to initiate Google sign-in. Please try again.");
+        setError(t("authMobile.google.startFailed"));
         setLoading(false);
         return;
       }
@@ -198,14 +200,14 @@ export function useGoogleAuth() {
           handled = true;
           subscription.remove();
 
-          setError("Sign-in was not completed. Please try again.");
+          setError(t("authMobile.google.incomplete"));
           setLoading(false);
         }
       }
 
     } catch (err) {
       // Handle any unexpected errors during the sign-in process
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("authMobile.google.unexpectedRetry"));
       setLoading(false);
 
       console.error("signInWithGoogle error:", err);

@@ -13,6 +13,7 @@ import { useRegistrationStore } from "@/stores/useRegistrationStore";
 import { supabase } from "@repo/supabase";
 
 import { useColors } from "hooks/useTheme";
+import { useTranslation } from "hooks/i18n";
 
 import ErrorDialog from "@/components/display/ErrorDialog";
 
@@ -29,6 +30,7 @@ export default function VerifyMobile() {
   const router = useRouter();
 
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export default function VerifyMobile() {
         params: { email: data.email },
       });
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.message || t("authMobile.somethingWentWrong"));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);
@@ -92,12 +94,12 @@ export default function VerifyMobile() {
 
           {/* Title */}
           <Text className="text-2xl text-foreground font-nunitoBold my-5">
-            Enter Your Mobile Number
+            {t("authMobile.verifyMobile.title")}
           </Text>
 
           {/* Mobile Number Field */}
           <TextField isRequired isInvalid={!!validation.errorMessage}>
-            <Label>Mobile Number:</Label>
+            <Label>{t("authMobile.mobileLabel")}</Label>
             <Input
               placeholder="09XXXXXXXXX"
               value={mobileNumber}
@@ -113,7 +115,7 @@ export default function VerifyMobile() {
         {/* Verify Button */}
         <Button onPress={handleAndVerifyMobile} isDisabled={loading}>
           <Button.Label>
-            {loading ? "Please wait..." : "Continue"}
+            {loading ? t("common.pleaseWait") : t("common.continue")}
           </Button.Label>
         </Button>
       </View>
