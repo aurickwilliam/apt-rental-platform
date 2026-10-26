@@ -4,6 +4,45 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Public marketing controls: scoped properties beat HeroUI's unlayered rules. */
+.landing-cta {
+  border-radius: 9999px;
+  min-height: 2.75rem;
+  padding-inline: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.public-navbar .public-menu-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+@media (min-width: 768px) {
+  .public-navbar .public-menu-toggle {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .landing-responsive-cta {
+    width: 100%;
+  }
+}
+.public-navbar .public-nav-link {
+  border-radius: 0.25rem;
+  transition: color 150ms ease;
+}
+.public-navbar .public-nav-link:hover {
+  color: var(--secondary-foreground);
+}
+.public-navbar .public-nav-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-navbar .public-nav-link {
+    transition: none;
+  }
+}
+
 /* Registration-only: HeroUI's invalid-border variable is not supplied by the
    current theme. Use APT's danger role without changing other date pickers. */
 .registration-birth-date [data-slot="date-input-group"][data-invalid="true"] {

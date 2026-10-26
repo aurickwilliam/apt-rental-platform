@@ -48,6 +48,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
           <Button
             variant="outline"
             isIconOnly
+            aria-label="Previous apartments"
             onPress={() => api?.scrollPrev()}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -55,6 +56,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
           <Button
             variant="outline"
             isIconOnly
+            aria-label="Next apartments"
             onPress={() => api?.scrollNext()}
           >
             <ChevronRight className="w-4 h-4" />

@@ -14,7 +14,7 @@ function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "next/navigation": { usePathname: () => pathname, useRouter: () => ({ push: (href) => pushes.push(href) }), useSearchParams: () => new URLSearchParams() },
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
-    "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label" },
+    "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label", buttonVariants: ({ className = "" }) => className },
     "@tabler/icons-react": {},
     "@/hooks/use-hydrated": { useHydrated: () => true },
     "./ThemeToggle": { default: "ThemeToggle" },
