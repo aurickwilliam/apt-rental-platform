@@ -8,6 +8,7 @@ import {
   type AppReleaseField,
   type AppReleaseInput,
 } from "@repo/utils";
+import ProfileSaveSuccessDialog from "@/app/components/profile/ProfileSaveSuccessDialog";
 import { publishAppRelease } from "../actions/app-release";
 
 interface CurrentRelease extends AppReleaseInput {
@@ -34,12 +35,13 @@ export default function AppReleaseForm({ current }: AppReleaseFormProps) {
   });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<AppReleaseField, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [published, setPublished] = useState(false);
+  // The version stays set while the dialog fades out, so its text never blanks.
+  const [publishedVersion, setPublishedVersion] = useState("");
+  const [isPublishedOpen, setIsPublishedOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const update = (field: AppReleaseField) => (value: string) => {
     setValues((previous) => ({ ...previous, [field]: value }));
-    setPublished(false);
   };
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -47,7 +49,6 @@ export default function AppReleaseForm({ current }: AppReleaseFormProps) {
     const errors = validateAppRelease(values);
     setFieldErrors(errors);
     setFormError(null);
-    setPublished(false);
     if (Object.keys(errors).length > 0) return;
 
     const formData = new FormData();
@@ -57,7 +58,10 @@ export default function AppReleaseForm({ current }: AppReleaseFormProps) {
         const result = await publishAppRelease(formData);
         if (result.fieldErrors) setFieldErrors(result.fieldErrors);
         else if (result.error) setFormError(result.error);
-        else setPublished(true);
+        else {
+          setPublishedVersion(values.latestVersion);
+          setIsPublishedOpen(true);
+        }
       } catch (error) {
         console.error("Publishing the app release failed", error);
         setFormError("The release could not be published. Refresh and try again.");
@@ -139,13 +143,19 @@ export default function AppReleaseForm({ current }: AppReleaseFormProps) {
       </TextField>
 
       {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
-      {published && <p role="status" className="text-sm text-success">Published. Apps pick it up the next time they open.</p>}
 
       <div className="flex justify-end">
         <Button type="submit" variant="primary" isDisabled={pending} className="cursor-pointer">
           {pending ? "Publishing…" : "Publish release"}
         </Button>
       </div>
+      <ProfileSaveSuccessDialog
+        isOpen={isPublishedOpen}
+        onClose={() => setIsPublishedOpen(false)}
+        title="Release published"
+        message={`APT ${publishedVersion} is now the latest Android version. Installed apps pick it up the next time they open.`}
+        actionLabel="Done"
+      />
     </form>
   );
 }
