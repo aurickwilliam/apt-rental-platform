@@ -9,10 +9,10 @@ APT ships to Android as an APK outside the Play Store, so installed apps learn a
   - below `min_version` → full-screen **Update required** (blocks the app);
   - below `latest_version` → dismissible dialog; "Maybe later" is remembered per device for that version only;
   - otherwise nothing. A failed check or unreadable version never blocks anyone.
-- The Update button opens `apk_url` (https only) in the browser; the user installs over the existing app. Android asks once to allow installs from the browser.
+- The Update button opens the site's `/download` permalink when `EXPO_PUBLIC_WEB_URL` is set (so the file downloads from the site without landing on GitHub), otherwise `apk_url` (https only), in the browser; the user installs over the existing app. Android asks once to allow installs from the browser.
 
 ## Website download button
-The landing page's APT Mobile section links to `/download` (`apps/web/app/(main)/download/route.ts`), which redirects to the `apk_url` of the `android` row (https only, `lib/android-apk-url.ts`). Publishing a new link in Admin → App updates updates the button with no web deploy; until a link is published the section shows "Android coming soon" and `/download` returns 404.
+The landing page's APT Mobile section links to `/download` (`apps/web/app/(main)/download/route.ts`), which streams the `apk_url` file of the `android` row as an attachment, so visitors download it from the site without landing on GitHub (https only, `lib/android-apk-url.ts`; redirects are followed server-side under the public-https rule in `lib/app-release-link.ts`, and if the server cannot reach the file it falls back to redirecting to the link). Publishing a new link in Admin → App updates updates the button with no web deploy; until a link is published the section shows "Android coming soon" and `/download` returns 404.
 
 ## Releasing a new build
 1. Bump `version` in `apps/mobile/app.config.js` (`major.minor.patch`). EAS raises the Android `versionCode` automatically (`autoIncrement`, remote versioning).

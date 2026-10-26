@@ -35,10 +35,26 @@ export async function fetchAppRelease(): Promise<AppRelease | null> {
   };
 }
 
-/** Opens the APK link in the browser; Android then offers to install it over the current app. */
+const WEB_DOWNLOAD_PATH = "/download";
+
+/**
+ * The site's own `/download` permalink when `EXPO_PUBLIC_WEB_URL` is set (it
+ * streams the published APK, so the browser never lands on the file host's
+ * page); otherwise the published APK link itself.
+ */
+export function getAppDownloadUrl(
+  apkUrl: string,
+  webBaseUrl: string | undefined = process.env.EXPO_PUBLIC_WEB_URL,
+): string {
+  const base = webBaseUrl?.trim().replace(/\/+$/, "");
+  const permalink = base ? `${base}${WEB_DOWNLOAD_PATH}` : null;
+  return permalink && isSecureDownloadUrl(permalink) ? permalink : apkUrl;
+}
+
+/** Opens the download in the browser; Android then offers to install it over the current app. */
 export async function openAppDownload(apkUrl: string): Promise<void> {
   if (!isSecureDownloadUrl(apkUrl)) throw new Error("The update link is not secure.");
-  await Linking.openURL(apkUrl);
+  await Linking.openURL(getAppDownloadUrl(apkUrl));
 }
 
 /** Per-device only: "Maybe later" hides one version's prompt, never a newer one. */

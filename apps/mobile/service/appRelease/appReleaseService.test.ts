@@ -1,5 +1,5 @@
 import { Linking } from "react-native";
-import { fetchAppRelease, openAppDownload } from "./appReleaseService";
+import { fetchAppRelease, getAppDownloadUrl, openAppDownload } from "./appReleaseService";
 
 const mockMaybeSingle = jest.fn();
 const mockEq = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
@@ -47,6 +47,17 @@ describe("fetchAppRelease", () => {
     const failure = new Error("network");
     mockMaybeSingle.mockResolvedValue({ data: null, error: failure });
     await expect(fetchAppRelease()).rejects.toBe(failure);
+  });
+});
+
+describe("getAppDownloadUrl", () => {
+  it("prefers the site's download permalink when the web address is set", () => {
+    expect(getAppDownloadUrl(row.apk_url, "https://apt.example.com/")).toBe("https://apt.example.com/download");
+  });
+
+  it("falls back to the published link without a secure web address", () => {
+    expect(getAppDownloadUrl(row.apk_url, undefined)).toBe(row.apk_url);
+    expect(getAppDownloadUrl(row.apk_url, "http://apt.example.com")).toBe(row.apk_url);
   });
 });
 
