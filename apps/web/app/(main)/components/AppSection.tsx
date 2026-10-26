@@ -1,14 +1,14 @@
 import { Suspense } from "react";
+import Image from "next/image";
 
 import { Skeleton } from "@heroui/react";
 
 import AppDownloadAction from "./AppDownloadAction";
-import MobileAppPreview from "./MobileAppPreview";
 
 export default function AppSection() {
   return (
-    <section aria-labelledby="mobile-title" className="mb-16 grid items-center gap-10 rounded-2xl bg-secondary p-6 sm:mb-24 sm:p-10 md:grid-cols-[1fr_auto] md:gap-16">
-      <div>
+    <section aria-labelledby="mobile-title" className="mb-16 grid overflow-hidden rounded-2xl bg-secondary sm:mb-24 md:grid-cols-[1fr_auto]">
+      <div className="p-6 sm:p-10 md:self-center md:py-14 lg:pl-14">
         <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground">APT Mobile</p>
         <h2 id="mobile-title" className="mt-5 font-nunito text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           A simpler way to stay connected.
@@ -21,9 +21,16 @@ export default function AppSection() {
             <AppDownloadAction />
           </Suspense>
         </div>
-        <p className="mt-4 text-sm leading-6 text-foreground/75">Continue using APT on the web today.</p>
       </div>
-      <MobileAppPreview />
+      {/* The phone is cropped at its bottom edge, so it sits flush with the card and the card clips it. */}
+      <Image
+        src="/landing/app-mobile-my-rental.png"
+        alt="APT mobile app showing the monthly rent, due date and Pay Now button for a rented apartment"
+        width={990}
+        height={1165}
+        sizes="(min-width: 1024px) 416px, (min-width: 640px) 320px, 288px"
+        className="mx-auto mt-2 h-auto w-72 self-end sm:w-80 md:mr-12 md:mt-12 lg:mr-16 lg:w-[26rem]"
+      />
     </section>
   );
 }

@@ -204,10 +204,12 @@ test("the published APK link is read for android and only https links count", as
   assert.equal(await fetchAndroidApkUrl(apkClient({ data: null, error: new Error("boom") }).client), null);
 });
 
-test("APT Mobile keeps a labeled sample illustration", () => {
-  const preview = load("(main)/components/MobileAppPreview.tsx")();
-  assert.match(preview.props["aria-label"], /Sample/);
-  assert.match(text(preview), /Sample interface/);
+test("APT Mobile shows the real My Rental screen as a large phone image", () => {
+  const image = nodes(load("(main)/components/AppSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })()).find(node => node.type === "Image");
+  assert.equal(image.props.src, "/landing/app-mobile-my-rental.png");
+  assert.equal(image.props.width, 990);
+  assert.equal(image.props.height, 1165);
+  assert(image.props.alt.length > 20 && !image.props.preload);
 });
 
 function navbarHarness({ open = false, signedIn = false } = {}) {
