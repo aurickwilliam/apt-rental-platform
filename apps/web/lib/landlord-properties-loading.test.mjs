@@ -265,6 +265,7 @@ test("Property reviews link prefetches on pointer and keyboard intent", () => {
 test("Shared rating breakdown keeps its default layout while supporting a stacked landlord summary", () => {
   const { default: Breakdown } = load("browse/[apartmentId]/components/RatingBreakdown.tsx", {
     "@heroui/react": { Meter: compound("Meter", ["Track", "Fill"]) },
+    "@/app/components/display/StarRating": { default: "StarRating" },
   });
   const props = { overallRate: 4, totalReviews: 1, no5Star: 0, no4Star: 1, no3Star: 0, no2Star: 0, no1Star: 0 };
   assert.ok(Breakdown(props).props.className.includes("sm:flex-row"));
