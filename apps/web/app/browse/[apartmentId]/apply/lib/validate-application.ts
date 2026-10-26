@@ -1,5 +1,6 @@
 import { isValidEmail } from "@repo/utils";
 import {
+  validatePHMobile as validatePHMobileNumber,
   REQUIRES_COMPANY_NAME_TYPES,
   REQUIRES_OCCUPATION_TYPES,
   requiresProofOfIncome,
@@ -8,18 +9,11 @@ import {
 
 import type { ApplicationErrors, ApplicationForm } from "../types";
 
+// Optional field: blank passes, anything typed follows the shared rule.
 export function validatePHMobile(input: string): { isValid: boolean; errorMessage?: string } {
-  const trimmed = input.trim();
-  if (!trimmed) return { isValid: true };
-  const digits = trimmed.replace(/[\s\-().]/g, "");
-  let normalized = digits;
-  if (/^\+639\d{9}$/.test(digits)) normalized = "0" + digits.slice(3);
-  else if (/^639\d{9}$/.test(digits)) normalized = "0" + digits.slice(2);
-  else if (/^9\d{9}$/.test(digits)) normalized = "0" + digits;
-  if (!/^09\d{9}$/.test(normalized)) {
-    return { isValid: false, errorMessage: "Invalid format. Use 09XXXXXXXXX." };
-  }
-  return { isValid: true };
+  if (!input.trim()) return { isValid: true };
+  const { isValid, errorMessage } = validatePHMobileNumber(input);
+  return { isValid, errorMessage: errorMessage ?? undefined };
 }
 
 export function employmentRules(employmentType: string) {

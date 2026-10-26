@@ -72,7 +72,7 @@ describe("useEditProfile", () => {
     expect(result.current.fields.postal_code).toBe("3000");
   });
 
-  it.each(["09", "+631234567890", "08171234567"])("rejects invalid mobile number %s", async (phone) => {
+  it.each(["09", "+631234567890", "08001234567"])("rejects invalid mobile number %s", async (phone) => {
     const { result } = setup();
     act(() => result.current.changeMobile(phone));
     let firstError: string | null = null;

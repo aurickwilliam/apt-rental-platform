@@ -182,7 +182,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           }}
         >
           <Label>Previous Landlord Contact</Label>
-          <Input placeholder="09XXXXXXXXX" className={INPUT_CLASS} />
+          <Input placeholder="09XX XXX XXXX" className={INPUT_CLASS} />
           <FieldError>{errors.prevLandlordContact}</FieldError>
         </TextField>
       </div>
