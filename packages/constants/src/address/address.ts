@@ -260,15 +260,37 @@ export function isCamanavaCity(city: string): city is CamanavaCity {
   return (CAMANAVA_CITIES as readonly string[]).includes(city);
 }
 
-// PHPost ZIP code ranges for each CAMANAVA city.
-export const CAMANAVA_ZIP_RANGES: Record<CamanavaCity, { min: number; max: number }> = {
+// PHLPost issues Metro Manila ZIP codes in one contiguous block per city, and
+// the first code of a block is that city's central post office. Source: the
+// PHLPost ZIP code locator, checked against every NCR code it has published.
+export const METRO_MANILA_ZIP_RANGES: Record<string, { min: number; max: number }> = {
+  Manila: { min: 1000, max: 1018 },
+  "Quezon City": { min: 1100, max: 1128 },
+  Makati: { min: 1200, max: 1235 },
+  Pasay: { min: 1300, max: 1309 },
   Caloocan: { min: 1400, max: 1428 },
+  Valenzuela: { min: 1440, max: 1448 },
   Malabon: { min: 1470, max: 1480 },
   Navotas: { min: 1485, max: 1490 },
-  Valenzuela: { min: 1440, max: 1448 },
+  "San Juan": { min: 1500, max: 1504 },
+  Mandaluyong: { min: 1550, max: 1556 },
+  Pasig: { min: 1600, max: 1612 },
+  Taguig: { min: 1630, max: 1639 },
+  Parañaque: { min: 1700, max: 1720 },
+  "Las Piñas": { min: 1740, max: 1752 },
+  Muntinlupa: { min: 1770, max: 1781 },
+  Marikina: { min: 1800, max: 1812 },
 };
 
-/** True when `zip` is a 4-digit ZIP code inside the city's PHPost range. */
+// ZIP code range for each CAMANAVA city.
+export const CAMANAVA_ZIP_RANGES: Record<CamanavaCity, { min: number; max: number }> = {
+  Caloocan: METRO_MANILA_ZIP_RANGES.Caloocan,
+  Malabon: METRO_MANILA_ZIP_RANGES.Malabon,
+  Navotas: METRO_MANILA_ZIP_RANGES.Navotas,
+  Valenzuela: METRO_MANILA_ZIP_RANGES.Valenzuela,
+};
+
+/** True when `zip` is a 4-digit ZIP code inside the city's PHLPost block. */
 export function isCamanavaZipForCity(city: string, zip: string): boolean {
   if (!isCamanavaCity(city) || !/^\d{4}$/.test(zip)) return false;
   const value = Number(zip);

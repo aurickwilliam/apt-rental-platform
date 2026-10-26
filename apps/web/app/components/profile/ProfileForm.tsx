@@ -539,7 +539,7 @@ export default function ProfileForm({
     if (next === city) return;
     setCity(next);
     setBarangay("");
-    setPostalCode(next ? (getPostalCode(next) ?? "") : "");
+    setPostalCode(next ? (getPostalCode(next, province) ?? "") : "");
     revalidateIfShown("city", next);
     for (const key of ["barangay", "postal_code"] as const) {
       setFieldError(key, "");
