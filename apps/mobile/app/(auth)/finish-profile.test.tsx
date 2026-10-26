@@ -10,7 +10,7 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ replace: jest.fn() }),
   useNavigation: () => ({ dispatch: jest.fn() }),
 }));
-jest.mock("@react-navigation/native", () => ({ usePreventRemove: jest.fn() }));
+jest.mock("expo-router/react-navigation", () => ({ usePreventRemove: jest.fn() }));
 jest.mock("heroui-native", () => jest.requireActual("../../tests/support/heroUINativeStub"));
 jest.mock("components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual<typeof import("react-native")>("react-native");
