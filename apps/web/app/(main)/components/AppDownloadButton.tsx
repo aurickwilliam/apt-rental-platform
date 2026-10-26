@@ -1,8 +1,8 @@
-import Link from "next/link";
-
-import { buttonVariants } from "@heroui/react";
+import StatusChip from "@/app/components/display/StatusChip";
 
 import { IconBrandAndroid } from "@tabler/icons-react";
+
+import LandingCta from "./LandingCta";
 
 interface AppDownloadButtonProps {
   /** False until an APK link is published; the button is then replaced by a note. */
@@ -18,16 +18,16 @@ export default function AppDownloadButton({ isAvailable, variant = "primary", hi
     if (hideWhenUnavailable) return null;
 
     return (
-      <p className="inline-flex rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-foreground">
+      <StatusChip tone="neutral" size="lg">
         Android coming soon
-      </p>
+      </StatusChip>
     );
   }
 
   return (
-    <Link href="/download" prefetch={false} className={buttonVariants({ variant, className: "landing-cta landing-responsive-cta" })}>
+    <LandingCta href="/download" variant={variant} isExternalRedirect>
       <IconBrandAndroid size={18} aria-hidden="true" />
       Download for Android
-    </Link>
+    </LandingCta>
   );
 }

@@ -1,14 +1,11 @@
-import Link from "next/link";
-
-import { buttonVariants } from "@heroui/react";
-
 import { IconArrowUpRight } from "@tabler/icons-react";
 
-// HeroUI's exported styles keep navigation a single native Next anchor.
+import LandingCta from "./LandingCta";
+
 export default function StartBrowsingBtn() {
   return (
-    <Link href="/browse" className={buttonVariants({ variant: "primary", className: "landing-cta landing-responsive-cta" })}>
+    <LandingCta href="/browse">
       Explore apartments <IconArrowUpRight size={16} aria-hidden="true" />
-    </Link>
+    </LandingCta>
   );
 }

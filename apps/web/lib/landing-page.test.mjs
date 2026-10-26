@@ -10,7 +10,7 @@ function loadModule(file, overrides = {}, globals = {}) {
   const jsx = (type, props) => ({ type, props });
   const dependencies = {
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Button: "Button", buttonVariants: ({ className = "" }) => className, Skeleton: "Skeleton", Dropdown: Object.assign("Dropdown", { Popover: "Popover", Menu: "Menu", Item: "Item" }), Label: "Label" },
+    "@heroui/react": { Button: "Button", buttonVariants: ({ className = "" }) => className, Skeleton: "Skeleton", Card: Object.assign("Card", { Content: "CardContent" }), Dropdown: Object.assign("Dropdown", { Popover: "Popover", Menu: "Menu", Item: "Item" }), Label: "Label" },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => name }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
@@ -112,13 +112,30 @@ test("hero uses the original image, two desktop columns, and a single blue perio
   assert.equal(boundary.props.children.props.hideWhenUnavailable, true);
 });
 
-test("marketing CTAs render single links to the existing destinations", () => {
+test("marketing CTAs use the shared HeroUI landing button with the existing destinations", () => {
   const browse = load("(main)/components/StartBrowsingBtn.tsx")();
-  assert.equal(browse.type, "Link");
+  assert.equal(browse.type, "LandingCta");
   assert.equal(browse.props.href, "/browse");
   assert.match(text(browse), /Explore apartments/);
-  const owner = nodes(load("(main)/components/OwnerCtaSection.tsx")()).find(node => node.type === "Link");
+  const owner = nodes(load("(main)/components/OwnerCtaSection.tsx")()).find(node => node.type === "LandingCta");
   assert.equal(owner.props.href, "/forowners");
+});
+
+test("landing button is a HeroUI Button that navigates with the router or a full page load", () => {
+  const pushed = [];
+  const assigned = [];
+  const LandingCta = load("(main)/components/LandingCta.tsx", { "next/navigation": { useRouter: () => ({ push: href => pushed.push(href) }) } }, { window: { location: { assign: href => assigned.push(href) } } });
+  const internal = LandingCta({ href: "/browse", children: "Go" });
+  assert.equal(internal.type, "Button");
+  assert.equal(internal.props.variant, "primary");
+  assert.match(internal.props.className, /landing-cta landing-responsive-cta/);
+  internal.props.onPress();
+  assert.deepEqual(pushed, ["/browse"]);
+  const download = LandingCta({ href: "/download", variant: "outline", isExternalRedirect: true, children: "Get" });
+  assert.equal(download.props.variant, "outline");
+  download.props.onPress();
+  assert.deepEqual(assigned, ["/download"]);
+  assert.deepEqual(pushed, ["/browse"]);
 });
 
 test("product rows show one apartment photo each, on alternating sides", () => {
@@ -157,13 +174,13 @@ test("APT Mobile streams the Android download action behind a skeleton", () => {
 test("download button links to the permalink only when an APK is published", () => {
   const Button = load("(main)/components/AppDownloadButton.tsx");
   const available = Button({ isAvailable: true });
-  assert.equal(available.type, "Link");
+  assert.equal(available.type, "LandingCta");
   assert.equal(available.props.href, "/download");
-  assert.equal(available.props.prefetch, false);
+  assert.equal(available.props.isExternalRedirect, true);
   assert.match(text(available), /Download for Android/);
   const unavailable = Button({ isAvailable: false });
   assert.match(text(unavailable), /Android coming soon/);
-  assert(!nodes(unavailable).some(node => ["Link", "Button"].includes(node.type)));
+  assert(!nodes(unavailable).some(node => node.type === "LandingCta"));
   assert.equal(Button({ isAvailable: false, hideWhenUnavailable: true }), null);
 });
 
