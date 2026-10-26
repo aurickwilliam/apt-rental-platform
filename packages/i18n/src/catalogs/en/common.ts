@@ -39,6 +39,7 @@ export const common = {
   "common.language": "Language",
   "common.region": "Region",
   "common.theme": "Theme",
+  "common.toggleTheme": "Toggle theme",
   "common.status": "Status",
   "common.date": "Date",
   "common.time": "Time",
@@ -46,5 +47,6 @@ export const common = {
   "common.total": "Total",
   "common.reference": "Reference",
   "common.noResults": "No results found.",
+  "common.comingSoon": "Coming soon",
   "common.error": "Something went wrong.",
 } as const;

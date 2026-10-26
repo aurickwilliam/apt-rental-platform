@@ -14,4 +14,22 @@ export const notifications: Record<keyof typeof enNotifications, string> = {
   "notifications.group.sentOne": "Nagpadala sa iyo ng 1 mensahe",
   "notifications.group.sentOther": "Nagpadala sa iyo ng {count} mensahe",
   "notifications.group.latest": "Pinakabago: {preview}",
+
+  // Drawer chrome and floating bell.
+  "notifications.close": "Isara ang mga notification",
+  "notifications.filter.unread": "Hindi pa nabasa",
+  "notifications.markAllVisible": "Markahan lahat bilang nabasa",
+  "notifications.opening": "Binubuksan ang mga notification…",
+  "notifications.loading": "Naglo-load ng mga notification",
+  "notifications.caughtUp": "Wala kang hindi pa nabasa.",
+  "notifications.resetBellPosition": "I-reset ang posisyon ng bell",
+  "notifications.expandFrom": "Palawakin ang mga mensahe mula kay {name}",
+  "notifications.collapseFrom": "Isara ang mga mensahe mula kay {name}",
+  "notifications.messagesFrom": "Mga mensahe mula kay {name}",
+  "notifications.bell.title": "Mga Notification",
+  "notifications.bell.titleHint":
+    "Mga Notification. I-drag para ilipat. I-double-click para i-reset ang posisyon.",
+  "notifications.bell.aria": "Mga Notification",
+  "notifications.bell.ariaUnread": "Mga Notification, {count} hindi pa nabasa",
+  "notifications.bell.dragHint": "I-drag para ilipat.",
 };

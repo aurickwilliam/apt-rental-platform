@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
+import { useTranslation } from '@/app/components/i18n/LocaleProvider';
 import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
@@ -23,6 +24,7 @@ type SignUpEmailError = {
 };
 
 export default function AuthForm({ next }: { next?: string }) {
+  const { t } = useTranslation();
   const { type, role, email, setEmail } = useAuth();
   const router = useRouter();
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -83,12 +85,12 @@ export default function AuthForm({ next }: { next?: string }) {
         router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
       } catch {
         console.error('Could not check signup email availability');
-        setSignUpError('Could not validate your email right now. Please try again.');
+        setSignUpError(t('auth.error.emailCheck'));
       } finally {
         setCheckingEmail(false);
       }
     },
-    [type, role, router],
+    [type, role, router, t],
   );
 
   const busy = isPending || checkingEmail;
@@ -108,7 +110,7 @@ export default function AuthForm({ next }: { next?: string }) {
               onPress={confirmEmail.open}
               className="mt-1 cursor-pointer text-sm font-medium text-primary"
             >
-              Send me a new code
+              {t('auth.resendConfirmation')}
             </Link>
           )}
         </div>
@@ -134,7 +136,7 @@ export default function AuthForm({ next }: { next?: string }) {
             confirmEmail.cancel();
             close();
           }}
-          verifyLabel="Verify Email"
+          verifyLabel={t("auth.signIn.verifyEmail")}
           locked={confirmEmail.otpLocked}
         />
       )}
@@ -161,31 +163,31 @@ export default function AuthForm({ next }: { next?: string }) {
           isDisabled={busy}
           isInvalid={emailError ? true : undefined}
         >
-          <Label>Email</Label>
+          <Label>{t("auth.email")}</Label>
 
-          <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
+          <Input placeholder={t("auth.emailPlaceholder")} className="bg-card! text-foreground!" />
 
           <FieldError className="text-xs">
             {({ validationDetails }) => {
               if (validationDetails.valueMissing) {
-                return "Email is required";
+                return t("auth.error.emailRequired");
               }
 
               if (validationDetails.typeMismatch) {
-                return "Enter a valid email";
+                return t("auth.error.invalidEmail");
               }
 
-              if (emailError?.kind === 'required') return "Email is required";
+              if (emailError?.kind === 'required') return t("auth.error.emailRequired");
 
               if (emailError?.kind === 'registered') {
                 return (
                   <>
-                    <span className="block">This email is already registered.</span>
+                    <span className="block">{t("auth.error.emailRegistered")}</span>
                     <span className="mt-1 block text-muted-foreground">
                       <NextLink href="/sign-in" className="text-xs text-brand underline">
-                        Sign in
+                        {t("auth.signIn.inline")}
                       </NextLink>{' '}
-                      to your existing account to add another role.
+                      {t("auth.error.emailRegisteredHint")}
                     </span>
                   </>
                 );
@@ -201,17 +203,17 @@ export default function AuthForm({ next }: { next?: string }) {
             <>
               <PasswordField
                 name="password"
-                label="Password"
+                label={t("auth.password")}
                 isRequired
-                errorMessage="Please enter your password"
-                placeholder='Enter your password'
+                errorMessage={t("auth.error.passwordRequired")}
+                placeholder={t("auth.passwordPlaceholder")}
               />
 
               <Link
                 href="/forgot-password"
                 className="text-sm text-right text-brand underline"
               >
-                Forgot Password?
+                {t("auth.forgotPassword")}
               </Link>
             </>
           )
@@ -225,8 +227,8 @@ export default function AuthForm({ next }: { next?: string }) {
           isDisabled={busy}
         >
           {busy
-            ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
-            : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
+            ? (type === 'sign-up' ? t('auth.checkingEmail') : t('auth.signingIn'))
+            : (type === 'sign-up' ? t('auth.signUp.action') : t('auth.signIn.action'))
           }
         </Button>
       </Form>

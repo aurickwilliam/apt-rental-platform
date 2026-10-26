@@ -5,6 +5,7 @@ import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import NextLink from "next/link.js";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import { compile, deferred, hookRuntime } from "./test-support/hook-runtime.mjs";
 
 const conflictMessage = "This email is already registered.";
@@ -31,6 +32,14 @@ function harness(options = {}) {
     "react/jsx-runtime": options.realUI ? { jsx, jsxs, Fragment } : { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: "Fragment" },
     "next/navigation": { useRouter: () => router },
     "next/link": { default: options.realUI ? NextLink : "NextLink" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        pending: false,
+        setLanguage: () => {},
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
     "./AuthContext": { useAuth: () => context },
     "../actions/sign-in": { signIn: () => {} },
@@ -194,6 +203,7 @@ test("server duplicate detection still normalizes once, trusts only an explicit 
 
 test("the existing auth footer remains a separate sign-in link", () => {
   const source = readFileSync(new URL("../app/(auth)/components/BottomLinks.tsx", import.meta.url), "utf8");
-  assert.match(source, /Already have an account/);
+  assert.equal(translate("en", "auth.alreadyHaveAccount"), "Already have an account?");
+  assert.match(source, /auth\.alreadyHaveAccount/);
   assert.match(source, /\/sign-in/);
 });

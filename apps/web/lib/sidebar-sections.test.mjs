@@ -3,6 +3,17 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
+
 
 const jsx = (type, props) => ({ type, props });
 function compile(file, modules, globals = {}) {
@@ -14,12 +25,12 @@ function compile(file, modules, globals = {}) {
 }
 
 const sectioned = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", section: "Overview" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", section: "Rentals" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", section: "Rentals" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", section: "Finance" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", sectionKey: "nav.section.overview" },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", sectionKey: "nav.section.finance" },
 ];
-const flat = sectioned.map(item => ({ href: item.href, label: item.label, icon: item.icon }));
+const flat = sectioned.map(item => ({ href: item.href, labelKey: item.labelKey, icon: item.icon }));
 
 function render({ navItems, collapsed = false, mobile = false }) {
   const sidebar = compile("../app/components/layout/AppSidebar.tsx", {
@@ -33,6 +44,7 @@ function render({ navItems, collapsed = false, mobile = false }) {
     "next-themes": { useTheme: () => ({ resolvedTheme: "light" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: () => {} }) },
@@ -85,13 +97,14 @@ test("mobile drawer renders one group per section, split by separators, then the
   assert.deepEqual(groups, ["Overview", "Rentals", "Finance", "Account"]);
   assert.equal(all.filter(node => node.type === "Separator").length >= 3, true);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  const rows = all.filter(node => node.type === "button" && sectioned.some(item => item.label === labelOf(node)));
+  const rows = all.filter(node => node.type === "button" && sectioned.some(item => translate("en", item.labelKey) === labelOf(node)));
   assert.equal(rows.length, sectioned.length);
 });
 
 function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pushed = [] }) {
   const item = compile("../app/components/layout/SidebarNotificationsItem.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@/app/components/i18n/LocaleProvider": locale,
     "@tabler/icons-react": { IconBell: "IconBell" },
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry, drawerSide: "right" } }) },

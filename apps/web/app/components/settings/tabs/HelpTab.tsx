@@ -5,40 +5,19 @@ import Link from "next/link";
 import { IconAlertCircle, IconChevronDown, IconChevronUp, IconExternalLink, IconHelpCircle } from "@tabler/icons-react";
 import { Accordion, AccordionBody, AccordionIndicator, AccordionItem, AccordionPanel, AccordionTrigger } from "@heroui/react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import SettingsRow from "../SettingsRow";
 import ComingSoonChip from "../ComingSoonChip";
 
-const faqs = [
-  {
-    id: 1,
-    question: "How do I pay my rent?",
-    answer: "You can pay your rent through the app by going to Rentals > Pay Rent and selecting your preferred payment method (GCash, Maya, or card).",
-  },
-  {
-    id: 2,
-    question: "How do I submit a maintenance request?",
-    answer: "Go to your Rentals page and click 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
-  },
-  {
-    id: 3,
-    question: "How do I view my lease agreement?",
-    answer: "Go to your Rentals page and click 'View Lease'. You can view and download your lease agreement from there.",
-  },
-  {
-    id: 4,
-    question: "How do I contact my landlord?",
-    answer: "You can message your landlord directly through the Chat page or by clicking 'Chat Landlord' in your Rentals quick actions.",
-  },
-  {
-    id: 5,
-    question: "How do I list my property?",
-    answer: "As a landlord, go to the Units page and click the '+' button to add a new apartment listing. Fill in the required details across the steps.",
-  },
-  {
-    id: 6,
-    question: "How do I verify my account?",
-    answer: "Go to your Profile page and click on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
-  },
+const FAQ_KEYS: { id: number; questionKey: TranslationKey; answerKey: TranslationKey }[] = [
+  { id: 1, questionKey: "settings.help.faq.1.question", answerKey: "settings.help.faq.1.answer" },
+  { id: 2, questionKey: "settings.help.faq.2.question", answerKey: "settings.help.faq.2.answer" },
+  { id: 3, questionKey: "settings.help.faq.3.question", answerKey: "settings.help.faq.3.answer" },
+  { id: 4, questionKey: "settings.help.faq.4.question", answerKey: "settings.help.faq.4.answer" },
+  { id: 5, questionKey: "settings.help.faq.5.question", answerKey: "settings.help.faq.5.answer" },
+  { id: 6, questionKey: "settings.help.faq.6.question", answerKey: "settings.help.faq.6.answer" },
 ];
 
 const linkClassName =
@@ -49,24 +28,25 @@ export default function HelpTab({
 }: {
   isAdmin?: boolean;
 }) {
+  const { t } = useTranslation();
   const [faqsOpen, setFaqsOpen] = useState(false);
   const ExpandIcon = faqsOpen ? IconChevronUp : IconChevronDown;
 
   return (
     <>
       <h2 className="font-nunito text-lg font-bold text-primary">
-        Help &amp; Support
+        {t("settings.help.title")}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {isAdmin
-          ? "Read our policies and learn more about APT."
-          : "Find answers and read our policies."}
+          ? t("settings.help.admin.description")
+          : t("settings.help.description")}
       </p>
       {!isAdmin ? (
         <div className="mt-3 divide-y divide-border">
           <SettingsRow
             icon={<IconAlertCircle size={18} />}
-            title="Report a Problem"
+            title={t("settings.help.reportProblem")}
             disabled
             suffix={<ComingSoonChip />}
           />
@@ -77,7 +57,7 @@ export default function HelpTab({
           <div className="rounded-xl border border-border overflow-hidden">
             <SettingsRow
               icon={<IconHelpCircle size={18} />}
-              title="Frequently Asked Questions"
+              title={t("settings.help.faq")}
               onClick={() => setFaqsOpen((v) => !v)}
               hideChevron
               expanded={faqsOpen}
@@ -89,17 +69,17 @@ export default function HelpTab({
           </div>
           {faqsOpen ? (
             <Accordion id="settings-faq-list" className="mt-3 flex flex-col gap-3">
-            {faqs.map((faq) => (
+            {FAQ_KEYS.map((faq) => (
               <AccordionItem key={faq.id} id={String(faq.id)} className="rounded-lg bg-muted/30 px-2 overflow-hidden">
                 <AccordionTrigger className="w-full flex items-center justify-between p-4 text-left font-nunito font-semibold text-base text-foreground">
                   <span className="pr-4">
-                    {faq.question}
+                    {t(faq.questionKey)}
                   </span>
                   <AccordionIndicator className="text-muted-foreground flex-shrink-0" />
                 </AccordionTrigger>
                 <AccordionPanel>
                   <AccordionBody className="px-4 pb-4">
-                    <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{t(faq.answerKey)}</p>
                   </AccordionBody>
                 </AccordionPanel>
               </AccordionItem>
@@ -113,27 +93,27 @@ export default function HelpTab({
           href="/tos"
           className={linkClassName}
         >
-          {isAdmin ? "Terms and conditions" : "Terms of Service"}
+          {isAdmin ? t("settings.help.terms.admin") : t("settings.help.terms")}
         </Link>
         <Link
           href="/pap"
           className={linkClassName}
         >
-          Privacy Policy
+          {t("settings.help.privacy")}
         </Link>
         {isAdmin ? (
           <Link
             href="/cookies"
             className={linkClassName}
           >
-            Cookie policy
+            {t("settings.help.cookies")}
           </Link>
         ) : (
           <Link
             href="/about"
             className={linkClassName}
           >
-            About Us
+            {t("settings.help.about")}
           </Link>
         )}
       </div>
@@ -142,7 +122,7 @@ export default function HelpTab({
           href="/about"
           className="mt-4 inline-block text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          Learn more about APT{" "}
+          {t("settings.help.learnMore")}{" "}
           <IconExternalLink
             size={16}
             className="ml-1 inline"

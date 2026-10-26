@@ -1,4 +1,9 @@
 import Image from "next/image";
+
+import { translate } from "@repo/i18n";
+
+import { getServerLocale } from "@/lib/i18n/locale";
+
 import AuthWrapper from "../components/AuthWrapper";
 
 type SignInPageProps = {
@@ -21,6 +26,7 @@ function safeVerifyNext(value: string | undefined): string | undefined {
 
 export default async function SignIn({ searchParams }: SignInPageProps) {
   const { error, role, next } = await searchParams;
+  const language = await getServerLocale();
   const resumeTo = safeVerifyNext(next);
 
   // Surfaced by app/auth/callback when a complete Google profile signs in
@@ -28,8 +34,8 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
   const portalError =
     error === "wrong_portal"
       ? role === "landlord"
-        ? "This account is not registered as a landlord."
-        : "This account is not registered as a tenant."
+        ? translate(language, "auth.error.wrongPortalLandlord")
+        : translate(language, "auth.error.wrongPortalTenant")
       : null;
 
   return (

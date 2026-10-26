@@ -15,23 +15,23 @@ import RecoveryHeader from "./RecoveryHeader";
 // ends the session re-renders this page, and a redirect there would race the
 // action's own navigation.
 export default function RecoverySessionEnded() {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
 
   return (
     <div className="flex flex-1 flex-col">
       <RecoveryHeader
-        title="Reset session ended"
+        title={t("auth.recovery.sessionEndedTitle")}
         description={passwordErrorMessage(language, "session_expired")}
       />
 
       <Link href={RECOVERY_START_PATH} className="mt-[clamp(1.5rem,4vh,2rem)]">
         <Button size="lg" className="w-full cursor-pointer">
-          Request a new code
+          {t("auth.recovery.requestNewCode")}
         </Button>
       </Link>
       <Link href="/sign-in" className="mt-3">
         <Button size="lg" variant="ghost" className="w-full cursor-pointer">
-          Back to Sign In
+          {t("auth.backToSignIn")}
         </Button>
       </Link>
     </div>

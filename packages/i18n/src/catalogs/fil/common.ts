@@ -38,6 +38,7 @@ export const common: Record<keyof typeof enCommon, string> = {
   "common.language": "Wika",
   "common.region": "Rehiyon",
   "common.theme": "Tema",
+  "common.toggleTheme": "I-toggle ang tema",
   "common.status": "Status",
   "common.date": "Petsa",
   "common.time": "Oras",
@@ -45,5 +46,6 @@ export const common: Record<keyof typeof enCommon, string> = {
   "common.total": "Kabuuan",
   "common.reference": "Reference",
   "common.noResults": "Walang nahanap.",
+  "common.comingSoon": "Malapit na",
   "common.error": "May nangyaring mali.",
 };

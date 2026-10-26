@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 // Role-picker Continue button for pending-onboarding users (placeholder
 // tenant row, already authenticated via Google). Runs the existing
@@ -15,6 +16,7 @@ import { useAuth } from "./AuthContext";
 // there is no placeholder for the RPC to update; the role travels in the URL
 // and complete-profile creates the profile with it.
 export default function RolePickerContinue({ skipRoleStep = false }: { skipRoleStep?: boolean }) {
+  const { t } = useTranslation();
   const { role } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -41,7 +43,8 @@ export default function RolePickerContinue({ skipRoleStep = false }: { skipRoleS
     window.location.href = `/complete-profile?role=${role}`;
   };
 
-  const targetLabel = role === "landlord" ? "Landlord" : "Tenant";
+  const targetLabel =
+    role === "landlord" ? t("auth.role.landlord") : t("auth.role.tenant");
 
   return (
     <div className="flex flex-col gap-3 mt-5">
@@ -60,10 +63,10 @@ export default function RolePickerContinue({ skipRoleStep = false }: { skipRoleS
         {isPending ? (
           <>
             <Spinner size="sm" />
-            Setting up {targetLabel.toLowerCase()} access...
+            {t("auth.settingUpAccess", { role: targetLabel.toLowerCase() })}
           </>
         ) : (
-          `Continue as ${targetLabel}`
+          t("auth.continueAs", { role: targetLabel })
         )}
       </Button>
     </div>

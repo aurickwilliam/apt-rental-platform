@@ -1,3 +1,5 @@
+import { LOCALE_TAGS, translate, type LanguageCode } from "@repo/i18n";
+
 /** Fields shared by the web/mobile notification feeds. Read state is not a sort key. */
 export interface ChronologicalNotification {
   id: string;
@@ -49,6 +51,7 @@ function startOfLocalDay(date: Date): Date {
 export function groupNotificationsByLocalDate<T extends ChronologicalNotification>(
   notifications: readonly T[],
   now = new Date(),
+  language: LanguageCode = "en",
 ): NotificationDateGroup<T>[] {
   const today = startOfLocalDay(now);
   const yesterday = new Date(today);
@@ -64,10 +67,10 @@ export function groupNotificationsByLocalDate<T extends ChronologicalNotificatio
         key: `${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}`,
         dayStart,
         label: dayStart === today.getTime()
-          ? "Today"
+          ? translate(language, "common.today")
           : dayStart === yesterday.getTime()
-            ? "Yesterday"
-            : day.toLocaleDateString(undefined, {
+            ? translate(language, "common.yesterday")
+            : day.toLocaleDateString(LOCALE_TAGS[language], {
                 month: "short",
                 day: "numeric",
                 year: day.getFullYear() === today.getFullYear() ? undefined : "numeric",

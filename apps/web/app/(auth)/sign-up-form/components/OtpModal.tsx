@@ -1,6 +1,9 @@
+"use client";
+
 import { Modal, Button, Link as HeroLink } from "@heroui/react";
 import { IconMail as Mail } from "@tabler/icons-react";
 import CodeInput from "@/app/components/inputs/CodeInput";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface OtpModalProps {
   isOpen: boolean;
@@ -35,9 +38,11 @@ export default function OtpModal({
   onResend,
   onVerify,
   onCancel,
-  verifyLabel = "Verify & Create Account",
+  verifyLabel,
   locked = false,
 }: OtpModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal>
       <Modal.Backdrop
@@ -52,7 +57,9 @@ export default function OtpModal({
             {({ close }) => (
               <>
                 <Modal.Header>
-                  <Modal.Heading className="font-nunito font-bold">Verify Your Email Address</Modal.Heading>
+                  <Modal.Heading className="font-nunito font-bold">
+                    {t("auth.otp.verifyTitle")}
+                  </Modal.Heading>
                 </Modal.Header>
 
                 <Modal.Body className="flex flex-col items-center gap-4 py-4">
@@ -61,8 +68,7 @@ export default function OtpModal({
                   </div>
 
                   <p className="text-center text-sm text-foreground">
-                    We sent a 6-digit verification code to{" "}
-                    <span className="font-semibold text-foreground">{email}</span>.
+                    {t("auth.otp.sentTo", { email })}
                   </p>
 
                   <div className="flex w-full justify-center">
@@ -81,10 +87,10 @@ export default function OtpModal({
 
                   {/* HeroUI Link without href: an action styled as a link (mobile's LinkButton). */}
                   <div className="flex items-center gap-2 text-sm text-foreground">
-                    <span>Didn&apos;t receive a code?</span>
+                    <span>{t("auth.otp.didntReceive")}</span>
                     {resendCooldown > 0 ? (
                       <span className="font-medium text-primary">
-                        Resend in {formatCooldown(resendCooldown)}
+                        {t("auth.otp.resendIn", { seconds: formatCooldown(resendCooldown) })}
                       </span>
                     ) : (
                       <HeroLink
@@ -92,7 +98,7 @@ export default function OtpModal({
                         isDisabled={resendLoading}
                         className="cursor-pointer font-medium text-primary"
                       >
-                        {resendLoading ? "Sending..." : "Resend Code"}
+                        {resendLoading ? t("auth.otp.sending") : t("auth.otp.resendCode")}
                       </HeroLink>
                     )}
                   </div>
@@ -107,7 +113,7 @@ export default function OtpModal({
                     isPending={loading}
                     onPress={() => onVerify(close)}
                   >
-                    {verifyLabel}
+                    {verifyLabel ?? t("auth.otp.verifyCreateAccount")}
                   </Button>
                   <Button
                     variant="ghost"
@@ -116,7 +122,7 @@ export default function OtpModal({
                     isDisabled={loading}
                     onPress={() => onCancel(close)}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </Modal.Footer>
               </>

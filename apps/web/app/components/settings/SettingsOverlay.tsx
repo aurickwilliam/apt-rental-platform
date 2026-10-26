@@ -4,8 +4,20 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
+/** Spoken placeholder while the Settings chunk loads. */
+function OpeningSettings() {
+  const { t } = useTranslation();
+  return (
+    <span role="status" className="sr-only">
+      {t("settings.opening")}
+    </span>
+  );
+}
+
 const SettingsModal = dynamic(() => import("./SettingsModal"), {
-  loading: () => <span role="status" className="sr-only">Opening settings…</span>,
+  loading: () => <OpeningSettings />,
 });
 const ChangePasswordModal = dynamic(() => import("./ChangePasswordModal"));
 const ChangeEmailModal = dynamic(() => import("./ChangeEmailModal"));

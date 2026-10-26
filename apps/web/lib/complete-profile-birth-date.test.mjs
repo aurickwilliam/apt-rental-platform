@@ -5,10 +5,20 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
+import { GENDER_KEYS, enumLabel, translate } from "../../../packages/i18n/src/index.ts";
 import { PH_MOBILE_PREFIXES } from "../../../packages/constants/src/user/ph-mobile-prefixes.ts";
 import * as birthRules from "./birth-date.ts";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
 import { addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 const NOW = new Date("2026-10-25T04:00:00Z");
 const rules = { ...birthRules, getManilaDate: () => "2026-10-25", validateBirthDate: value => birthRules.validateBirthDate(value, NOW) };
@@ -36,6 +46,7 @@ function fieldHarness(initial = "", native = false, environment = {}) {
     react: { ...runtime.react, useSyncExternalStore: (listener, snapshot) => { subscribe = listener; return snapshot(); } },
     "react/jsx-runtime": native ? { jsx, jsxs } : virtualJsx, "@heroui/react": native ? HeroUI : ui,
     "@internationalized/date": { parseDate }, "@/lib/birth-date": rules,
+    "@/app/components/i18n/LocaleProvider": locale,
   }, environment).default;
   const render = () => runtime.render(() => component({ name: "birthDate", value, error, onChange: next => { value = next; error = null; changes++; } }));
   return { render, changes: () => changes, value: () => value,
@@ -150,6 +161,8 @@ function formHarness(kind, role, options = {}) {
     "react/jsx-runtime": virtualJsx,
     "@heroui/react": { ...ui, useOverlayState: () => { const [isOpen, set] = runtime.react.useState(false); return { isOpen, open: () => set(true), close: () => set(false) }; } },
     "@repo/constants": constants, "@/lib/birth-date": rules, "@/lib/registration-address": addressRules,
+    "@repo/i18n": { GENDER_KEYS, enumLabel, translate },
+    "@/app/components/i18n/LocaleProvider": locale,
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: fieldComponent },
     "../../actions/complete-profile": { completeProfile() {} },
@@ -157,6 +170,7 @@ function formHarness(kind, role, options = {}) {
     "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: opts => { otpOptions = opts; return { startCooldown() {} }; } }, "../utils": { validateSignUpForm },
+    "@/app/components/i18n/LocaleProvider": locale,
     "../../actions/send-otp": { sendEmailOtp: async (...args) => { sent.push(args); return options.sendResult ?? { success: true }; } },
   };
   const component = compile(complete ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx" : "app/(auth)/sign-up-form/components/SignUpForm.tsx", dependencies, { requestAnimationFrame: callback => callback() }).default;
@@ -248,6 +262,9 @@ function actionHarness(kind, options = {}) {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
     "@repo/constants": constants, "@/lib/birth-date": rules, "@/lib/registration-address": addressRules,
+    "@repo/i18n": { GENDER_KEYS, enumLabel, translate },
+    "@/app/components/i18n/LocaleProvider": locale,
+    "@/lib/i18n/locale": { getServerLocale: async () => "en" },
     "../sign-up-form/utils": { validateSignUpForm }, "@repo/utils": { getEmailCodeRequestError: message => message },
   }, { process: { env: { NODE_ENV: "test" } } });
   return { actions, writes, auth };
@@ -316,6 +333,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
       "@repo/utils": { getOtpAttemptError: () => "wrong code" },
       "../../actions/sign-up": { signUp: async () => kind === "birth" ? { birthDateError: errors.invalid, birthDate: adult, error: null, success: false } : kind === "general" ? { error: "Network failure", success: false } : { error: null, success: true } },
       "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
+      "@/app/components/i18n/LocaleProvider": locale,
     }, { FormData });
     const hook = runtime.render(() => otpFlow.useOtpFlow({ formData: { ...validAddress, birthDate: adult, email: "test@example.com", postalCode: 1485 }, role: "tenant", showError: message => generic.push(message), onSuccessOpen: () => successes.push(true), onBirthDateError: (...args) => fieldErrors.push(args) }));
     runtime.flush(); await hook.handleVerifyOtp(() => closed.push(true));

@@ -12,6 +12,10 @@ import {
 } from "@heroui/react";
 
 import { useActionState, useRef, useState } from "react";
+
+import { GENDER_KEYS, enumLabel } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { completeProfile } from "../../actions/complete-profile";
 import { validateBirthDate } from "@/lib/birth-date";
 import { GENDERS } from "@repo/constants";
@@ -36,6 +40,7 @@ export default function CompleteProfileForm({
   initialAddress,
   initialBirthDate,
 }: Props) {
+  const { language, t } = useTranslation();
   const [state, action, isPending] = useActionState(completeProfile, {});
   const [address, setAddress] = useState(() => resolveRegistrationAddress(initialAddress));
   const [addressSubmitted, setAddressSubmitted] = useState(() =>
@@ -68,32 +73,46 @@ export default function CompleteProfileForm({
       {/* Personal Information */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif text-foreground">
-          Personal Information
+          {t("auth.form.personalInfo")}
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <TextField name="email" isReadOnly defaultValue={email} fullWidth>
-            <Label>Email</Label>
+            <Label>{t("auth.email")}</Label>
             <Input className="bg-card! text-foreground!" />
           </TextField>
 
           <TextField name="first_name" isRequired defaultValue={firstName} fullWidth>
-            <Label>First Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your first name" />
+            <Label>{t("auth.form.firstName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.firstNamePlaceholder")}
+            />
           </TextField>
 
           <TextField name="last_name" isRequired defaultValue={lastName} fullWidth>
-            <Label>Last Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your last name" />
+            <Label>{t("auth.form.lastName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.lastNamePlaceholder")}
+            />
           </TextField>
 
           <TextField name="middle_name" fullWidth>
-            <Label>Middle Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
+            <Label>{t("auth.form.middleName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.middleNamePlaceholder")}
+            />
           </TextField>
 
-          <Select name="gender" isRequired fullWidth placeholder="Select your gender">
-            <Label>Gender</Label>
+          <Select
+            name="gender"
+            isRequired
+            fullWidth
+            placeholder={t("auth.form.genderPlaceholder")}
+          >
+            <Label>{t("auth.form.gender")}</Label>
             <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
@@ -101,8 +120,12 @@ export default function CompleteProfileForm({
             <Select.Popover>
               <ListBox>
                 {GENDERS.map((gender) => (
-                  <ListBox.Item key={gender} id={gender} textValue={gender}>
-                    {gender}
+                  <ListBox.Item
+                    key={gender}
+                    id={gender}
+                    textValue={enumLabel(language, GENDER_KEYS, gender)}
+                  >
+                    {enumLabel(language, GENDER_KEYS, gender)}
                   </ListBox.Item>
                 ))}
               </ListBox>
@@ -116,8 +139,12 @@ export default function CompleteProfileForm({
             value={mobileNumber}
             onChange={(val) => setMobileNumber(val.replace(/\D/g, "").slice(0, 11))}
           >
-            <Label>Mobile Number</Label>
-            <Input inputMode="numeric" className="bg-card! text-foreground!" placeholder="Enter your mobile number" />
+            <Label>{t("auth.form.mobile")}</Label>
+            <Input
+              inputMode="numeric"
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.mobilePlaceholder")}
+            />
           </TextField>
 
           <RegistrationBirthDateField name="birth_date" value={birthDate} error={fieldError} inputRef={birthDateRef} isDisabled={isPending}
@@ -130,7 +157,7 @@ export default function CompleteProfileForm({
       {/* Address Information */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif text-foreground">
-          Address Information
+          {t("auth.form.addressInfo")}
         </h2>
 
         <RegistrationAddressFields value={address} onChange={setAddress} errors={addressErrors} isDisabled={isPending}
@@ -154,10 +181,10 @@ export default function CompleteProfileForm({
         {isPending ? (
           <>
             <Spinner size="sm" />
-            Completing Profile...
+            {t("auth.form.completingProfile")}
           </>
         ) : (
-          "Complete Profile"
+          t("auth.form.completeProfile")
         )}
       </Button>
     </form>

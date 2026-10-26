@@ -3,6 +3,16 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 const compound = (name, parts) => Object.assign(() => {}, Object.fromEntries(parts.map(part => [part, `${name}.${part}`])));
 const Table = compound("Table", ["ScrollContainer", "Content", "Header", "Column", "Body", "Row", "Cell"]);
@@ -18,6 +28,7 @@ function load(file, extra = {}) {
     },
     "@heroui/react": { Skeleton: "Skeleton", Card: compound("Card", ["Content"]), Chip: "Chip", Table, Dropdown, Button: "Button", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+    "@/app/components/i18n/LocaleProvider": locale,
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
@@ -358,12 +369,12 @@ test("Edit Property uses a wider scoped dialog and equal-width footer actions", 
 });
 
 const navItems = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", prefetchOnIntent: true },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", prefetchOnIntent: true },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", prefetchOnIntent: true },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", prefetchOnIntent: true },
-  { href: "/landlord/messages", label: "Messages", icon: "Messages" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", prefetchOnIntent: true },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", prefetchOnIntent: true },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", prefetchOnIntent: true },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", prefetchOnIntent: true },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", prefetchOnIntent: true },
+  { href: "/landlord/messages", labelKey: "nav.messages", icon: "Messages" },
 ];
 
 function sidebarHarness(pathname = "/landlord/dashboard") {

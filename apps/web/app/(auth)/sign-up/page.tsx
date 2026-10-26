@@ -1,7 +1,12 @@
 import Image from "next/image";
-import AuthWrapper from "../components/AuthWrapper";
+
+import { translate } from "@repo/i18n";
 import { createClient } from "@repo/supabase/server";
 import { isPendingOnboarding } from "@repo/supabase";
+
+import { getServerLocale } from "@/lib/i18n/locale";
+
+import AuthWrapper from "../components/AuthWrapper";
 
 interface SignUpPageProps {
   searchParams: Promise<{ role?: string; from?: string; error?: string }>;
@@ -9,6 +14,7 @@ interface SignUpPageProps {
 
 export default async function SignUp({ searchParams }: SignUpPageProps) {
   const { role, from, error } = await searchParams;
+  const language = await getServerLocale();
   const initialRole = role === 'landlord' ? 'landlord' : 'tenant';
   // First-time Google arrivals from sign-in (no profile yet) get a
   // contextual welcome banner; normal visits never set this param.
@@ -20,7 +26,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
   // out in the callback so this page stays reachable).
   const portalError =
     error === "grant_failed"
-      ? "We couldn't add that role to your account. Please sign in and try adding it from your profile."
+      ? translate(language, "auth.error.grantFailed")
       : null;
 
   // Pending-onboarding users arrive here authenticated with a placeholder

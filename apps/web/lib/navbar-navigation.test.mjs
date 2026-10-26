@@ -3,7 +3,17 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import { PORTAL_COOKIE, preferredPortal } from "./portal-preference.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
   const pushes = [];
@@ -16,6 +26,7 @@ function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
     "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label" },
     "@tabler/icons-react": {},
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-hydrated": { useHydrated: () => true },
     "./ThemeToggle": { default: "ThemeToggle" },
     "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },

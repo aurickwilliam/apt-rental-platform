@@ -130,6 +130,14 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
         return notificationGroups.groupNotificationFeed(notifications);
       },
     },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        pending: false,
+        setLanguage: () => {},
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     "@/hooks/use-notifications": hook,
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
     "@/lib/notification-fab-position": {},
@@ -141,6 +149,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   }).default;
   const groupRow = load("../app/components/notifications/NotificationGroupRow.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@repo/i18n": { translate },
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconChevronDown: "IconChevronDown", IconMessageCircle: "IconMessageCircle" },
     "@repo/utils": { ...notificationGroups, getRelativeTime: () => "Just now" },

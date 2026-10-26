@@ -6,6 +6,7 @@ import AuthForm from "./AuthForm";
 import RolePickerContinue from "./RolePickerContinue";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LanguageToggle from "@/app/components/i18n/LanguageToggle";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
@@ -28,10 +29,11 @@ interface AuthWrapperProps {
 
 function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePickerMode, next }: { portalError?: string | null; showWelcomeNotice?: boolean; profileMissing?: boolean; rolePickerMode?: boolean; next?: string }) {
   const { type, role, setRole } = useAuth();
+  const { t } = useTranslation();
 
   const description = type === 'sign-up'
-    ? role === 'tenant' ? "Join as tenant to start renting." : "Join us and start listing your properties in minutes."
-    : "Log in to continue your apartment journey.";
+    ? role === 'tenant' ? t("auth.signUp.description.tenant") : t("auth.signUp.description.landlord")
+    : t("auth.signIn.description");
 
   return (
     // Outer: no horizontal padding (the page supplies fluid padding) and no
@@ -43,7 +45,7 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
           {/* Back Button: anchor outside the button so every click
               navigates (a link nested inside a button swallows clicks
               that land on the button padding). */}
-          <Link href="/" aria-label="Back to home">
+          <Link href="/" aria-label={t("auth.backToHome")}>
             <Button
               isIconOnly
               variant="ghost"
@@ -59,7 +61,7 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
             from 320px phones to 4K desktops without a breakpoint ladder. */}
         <div className="mt-[clamp(0.75rem,2vh,1.25rem)]">
           <h1 className="font-nunito font-semibold text-[clamp(1.75rem,5vw,2.5rem)] leading-tight text-foreground">
-            {type === 'sign-up' ? 'Join Us!' : 'Welcome Back!'}
+            {type === 'sign-up' ? t("auth.signUp.title") : t("auth.signIn.title")}
           </h1>
           <h3 className="mt-[clamp(0.5rem,1.5vh,0.75rem)] text-base text-foreground">
             {description}
@@ -76,11 +78,10 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
             </Alert.Indicator>
             <Alert.Content className="gap-1">
               <Alert.Title className="font-poppinsSemiBold text-foreground!">
-                Welcome!
+                {t("auth.welcome.title")}
               </Alert.Title>
               <Alert.Description className="text-sm text-foreground/80!">
-                Looks like this is your first time here — pick a role below
-                to get your account set up.
+                {t("auth.welcome.body")}
               </Alert.Description>
             </Alert.Content>
           </Alert>
@@ -93,11 +94,10 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
             </Alert.Indicator>
             <Alert.Content className="gap-1">
               <Alert.Title className="font-poppinsSemiBold text-foreground!">
-                Finish setting up your account
+                {t("auth.welcome.finishTitle")}
               </Alert.Title>
               <Alert.Description className="text-sm text-foreground/80!">
-                Your email is verified, but your profile was not saved. Pick
-                a role below and re-enter your details to continue.
+                {t("auth.welcome.finishBody")}
               </Alert.Description>
             </Alert.Content>
           </Alert>
@@ -113,14 +113,14 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
           >
             <Tabs.ListContainer>
               <Tabs.List
-                aria-label="Select role"
+                aria-label={t("auth.selectRole")}
                 className="*:text-foreground"
               >
                 {/* Tenant Tab */}
                 <Tabs.Tab id="tenant" className="data-[selected=true]:text-primary">
                   <span className="flex items-center gap-1.5">
                     <UserRoundKey size={15} />
-                    Tenant
+                    {t("auth.role.tenant")}
                   </span>
                   <Tabs.Indicator />
                 </Tabs.Tab>
@@ -130,7 +130,7 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
                   <Tabs.Separator />
                   <span className="flex items-center gap-1.5">
                     <Building size={15} />
-                    Landlord
+                    {t("auth.role.landlord")}
                   </span>
                   <Tabs.Indicator />
                 </Tabs.Tab>
@@ -159,7 +159,9 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
             {/* Divider */}
             <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex items-center gap-3">
               <Separator className="flex-1" />
-              <p className="text-sm text-gray-400 whitespace-nowrap">or sign {type === "sign-in" ? "in" : "up"} with</p>
+              <p className="text-sm text-gray-400 whitespace-nowrap">
+                {type === "sign-in" ? t("auth.orSignInWith") : t("auth.orSignUpWith")}
+              </p>
               <Separator className="flex-1" />
             </div>
 

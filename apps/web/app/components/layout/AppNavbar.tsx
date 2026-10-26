@@ -8,19 +8,22 @@ import { useState, useEffect } from "react";
 import { Dropdown, Button, Label } from "@heroui/react";
 import { IconMenu2 as Menu, IconX as X } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
 import { useHydrated } from "@/hooks/use-hydrated";
 
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "@/app/components/i18n/LanguageToggle";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/service/signOutService";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
-const NAV_LINKS = [
-  { label: "For Owners", href: "/forowners" },
-  { label: "Browse", href: "/browse" },
+const NAV_LINKS: { labelKey: TranslationKey; href: string }[] = [
+  { labelKey: "nav.forOwners", href: "/forowners" },
+  { labelKey: "nav.browse", href: "/browse" },
 ];
 
 const getInitials = (value: string) => {
@@ -31,6 +34,7 @@ const getInitials = (value: string) => {
 };
 
 export default function AppNavbar() {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const mounted = useHydrated();
 
@@ -96,7 +100,7 @@ export default function AppNavbar() {
             <button
               className="sm:hidden shrink-0 p-2 rounded-md text-foreground"
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             >
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -114,9 +118,9 @@ export default function AppNavbar() {
 
           {/* Center: nav links (desktop) */}
           <nav className="hidden sm:flex items-center gap-8">
-            {NAV_LINKS.map(({ label, href }) => (
+            {NAV_LINKS.map(({ labelKey, href }) => (
               <Link
-                key={label}
+                key={labelKey}
                 href={href}
                 className={
                   pathname === href
@@ -124,7 +128,7 @@ export default function AppNavbar() {
                     : "text-foreground font-medium"
                 }
               >
-                {label}
+                {t(labelKey)}
               </Link>
             ))}
           </nav>
@@ -159,17 +163,17 @@ export default function AppNavbar() {
                       if (key === "logout")    signOut();
                     }}
                   >
-                    <Dropdown.Item id="profile" textValue="Profile">
-                      <Label>Profile</Label>
+                    <Dropdown.Item id="profile" textValue={t("nav.profile")}>
+                      <Label>{t("nav.profile")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="dashboard" textValue="Dashboard">
-                      <Label>Dashboard</Label>
+                    <Dropdown.Item id="dashboard" textValue={t("nav.dashboard")}>
+                      <Label>{t("nav.dashboard")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="settings" textValue="Settings">
-                      <Label>Settings</Label>
+                    <Dropdown.Item id="settings" textValue={t("nav.settings")}>
+                      <Label>{t("nav.settings")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="logout" textValue="Log Out" variant="danger">
-                      <Label>Log Out</Label>
+                    <Dropdown.Item id="logout" textValue={t("nav.logOut")} variant="danger">
+                      <Label>{t("nav.logOut")}</Label>
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown.Popover>
@@ -178,13 +182,13 @@ export default function AppNavbar() {
               <>
                 <Link href="/sign-in">
                   <Button variant="ghost">
-                    Sign In
+                    {t("nav.signIn")}
                   </Button>
                 </Link>
 
                 <Link href="/sign-up">
                   <Button>
-                    Sign Up
+                    {t("nav.signUp")}
                   </Button>
                 </Link>
               </>
@@ -199,9 +203,9 @@ export default function AppNavbar() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="sm:hidden border-t border-divider bg-background px-4 py-4 flex flex-col gap-4">
-          {NAV_LINKS.map(({ label, href }) => (
+          {NAV_LINKS.map(({ labelKey, href }) => (
             <Link
-              key={label}
+              key={labelKey}
               href={href}
               className={
                 pathname === href
@@ -210,7 +214,7 @@ export default function AppNavbar() {
               }
               onClick={() => setIsMenuOpen(false)}
             >
-              {label}
+              {t(labelKey)}
             </Link>
           ))}
 
@@ -218,20 +222,20 @@ export default function AppNavbar() {
 
           {!loading && user ? (
             <div className="flex flex-col gap-4">
-              <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
-              <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+              <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>{t("nav.profile")}</Link>
+              <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>{t("nav.dashboard")}</Link>
               <button
                 type="button"
                 className="text-foreground font-medium text-left"
                 onClick={() => { openSettings(); setIsMenuOpen(false); }}
               >
-                Settings
+                {t("nav.settings")}
               </button>
               <button
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
                 className="text-danger font-medium text-left"
               >
-                Log Out
+                {t("nav.logOut")}
               </button>
             </div>
           ) : !loading ? (
@@ -246,7 +250,7 @@ export default function AppNavbar() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Button variant="outline" className="w-full rounded-full">
-                    Sign In
+                    {t("nav.signIn")}
                   </Button>
                 </Link>
                 <Link
@@ -255,7 +259,7 @@ export default function AppNavbar() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Button variant="primary" className="w-full rounded-full">
-                    Sign Up
+                    {t("nav.signUp")}
                   </Button>
                 </Link>
               </div>

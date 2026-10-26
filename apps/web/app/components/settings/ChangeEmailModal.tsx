@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button, Form, Input, Modal, TextField, Label, toast, Link as HeroLink, Skeleton } from "@heroui/react";
 import { IconMail, IconShieldCheck } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
 import {
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
@@ -32,26 +34,27 @@ const FORM_ID = "change-email-form";
 type Step = "request" | EmailChangeInbox | "success";
 
 // One code step per inbox, laid out like the password-recovery code step.
-const CODE_STEPS: Record<EmailChangeInbox, { label: string; title: string; body: string }> = {
+const CODE_STEPS: Record<
+  EmailChangeInbox,
+  { labelKey: TranslationKey; titleKey: TranslationKey; bodyKey: TranslationKey }
+> = {
   current: {
-    label: "Step 1 of 2",
-    title: "Check your current email",
-    body: "Enter it below to confirm this change is really you.",
+    labelKey: "auth.changeEmail.step1of2",
+    titleKey: "auth.changeEmail.step1.title",
+    bodyKey: "auth.changeEmail.step1.body",
   },
   new: {
-    label: "Step 2 of 2",
-    title: "Check your new email",
-    body: "Enter it below to confirm you can receive email there.",
+    labelKey: "auth.changeEmail.step2of2",
+    titleKey: "auth.changeEmail.step2.title",
+    bodyKey: "auth.changeEmail.step2.body",
   },
 };
 
-const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
-
 // Shaped like the request form (current email, new email, password) while the
 // current address is read from Auth.
-function ChangeEmailFormSkeleton() {
+function ChangeEmailFormSkeleton({ label }: { label: string }) {
   return (
-    <div className="mt-4 flex flex-col gap-4" aria-busy="true" aria-label="Loading your account">
+    <div className="mt-4 flex flex-col gap-4" aria-busy="true" aria-label={label}>
       {[0, 1, 2].map((field) => (
         <div key={field} className="flex flex-col gap-2">
           <Skeleton className="h-4 w-28 rounded-lg bg-skeleton!" />
@@ -76,7 +79,7 @@ interface ChangeEmailModalProps {
 // state and are cleared on close.
 export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailModalProps) {
   const router = useRouter();
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -130,12 +133,14 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
 
 
   const newEmailError = (() => {
-    if (submitted && !newEmail.trim()) return "Please enter a new email address.";
+    if (submitted && !newEmail.trim()) return t("auth.changeEmail.newEmailRequired");
     return serverNewEmailError;
   })();
 
   const currentPasswordError = (() => {
-    if (submitted && !currentPassword) return "Please enter your current password.";
+    if (submitted && !currentPassword) {
+      return t("auth.changePassword.currentRequired");
+    }
     return serverCurrentPasswordError;
   })();
 
@@ -228,7 +233,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
         if (result.completed) {
           setSignOutWarning(result.signOutFailed ?? false);
           setProfileSyncWarning(result.profileSyncFailed ?? false);
-          toast.success("Email updated");
+          toast.success(t("auth.changeEmail.toast"));
           setStep("success");
           // Server-rendered pages (navbar, profile) show the new address.
           router.refresh();
@@ -241,11 +246,11 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
         // The new inbox is confirmed but the current one isn't yet (e.g. a
         // resumed change): confirm it now.
         setStep("current");
-        setCodeNotice("Your new email is confirmed. Now enter the code from your current email.");
+        setCodeNotice(t("auth.changeEmail.newConfirmed"));
       } catch (err) {
         setCode("");
         console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
-        setError(UNEXPECTED_ERROR);
+        setError(t("common.error"));
       }
     });
   };
@@ -270,13 +275,15 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
       setStep("current");
       setCodeNotice(
         step === "new"
-          ? "New codes sent to both inboxes. Enter the code from your current email first."
-          : "New codes are on their way to both inboxes.",
+          ? t("auth.changeEmail.resendFromCurrent")
+          : t("auth.changeEmail.resendBoth"),
       );
     });
   };
 
   const codeStep = step === "current" || step === "new" ? CODE_STEPS[step] : null;
+  const codeStepLabel = codeStep ? t(codeStep.labelKey) : "";
+  const codeStepTitle = codeStep ? t(codeStep.titleKey) : "";
   const inboxEmail = step === "current" ? currentEmail : newEmail;
 
   return (
@@ -287,7 +294,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
         <Modal.Container placement="center" size="lg" scroll="inside">
           <Modal.Dialog className="w-full max-w-xl!">
             <Modal.CloseTrigger
-              aria-label="Close change email"
+              aria-label={t("auth.changeEmail.close")}
               className="cursor-pointer text-foreground"
             />
             {step === "success" ? (
@@ -297,16 +304,16 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                     <IconShieldCheck size={64} className="text-primary" aria-hidden="true" />
                   </div>
                   <Modal.Heading className="mt-5 font-nunito text-2xl font-bold text-foreground">
-                    Email Updated
+                    {t("auth.changeEmail.successTitle")}
                   </Modal.Heading>
                   <p className="mt-2 text-base text-muted-foreground">
-                    Great! Your new email is ready to use. You’re still signed
-                    in here{signOutWarning ? ", but other devices may still be signed in." : ", and any other devices were signed out."}{" "}
-                    We’ve also emailed you a confirmation.
+                    {signOutWarning
+                      ? t("auth.changeEmail.successBodyOthersMayRemain")
+                      : t("auth.changeEmail.successBodyOthersSignedOut")}
                   </p>
                   {profileSyncWarning && (
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Your profile may show your old email for a little while.
+                      {t("auth.changeEmail.profileSyncWarning")}
                     </p>
                   )}
                 </Modal.Body>
@@ -316,7 +323,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                     className="w-full cursor-pointer"
                     onPress={() => handleOpenChange(false)}
                   >
-                    Done
+                    {t("common.done")}
                   </Button>
                 </Modal.Footer>
               </>
@@ -325,15 +332,17 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                 <Modal.Header>
                   {codeStep ? (
                     <div className="flex flex-col gap-2">
-                      <p className="text-sm font-semibold text-muted-foreground">{codeStep.label}</p>
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        {codeStepLabel}
+                      </p>
                       <Modal.Heading className="font-nunito text-2xl font-bold text-primary">
-                        {codeStep.title}
+                        {codeStepTitle}
                       </Modal.Heading>
                     </div>
                   ) : (
                     <Modal.Heading className="flex items-center font-nunito text-2xl font-bold text-primary">
                       <IconMail size={24} className="mr-2" aria-hidden="true" />
-                      Change Email
+                      {t("auth.changeEmail.title")}
                     </Modal.Heading>
                   )}
                 </Modal.Header>
@@ -342,8 +351,8 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                   {codeStep ? (
                     <>
                       <p className="text-base text-foreground">
-                        We sent a 6-digit code to <span className="font-semibold">{inboxEmail}</span>.{" "}
-                        {codeStep.body}
+                        {t("auth.changeEmail.sentTo", { email: inboxEmail })}{" "}
+                        {codeStep ? t(codeStep.bodyKey) : null}
                       </p>
 
                       {/* Only the new address can be wrong: step 1 is the account's own
@@ -354,20 +363,22 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                           isDisabled={verifying}
                           className="mt-2 cursor-pointer text-primary"
                         >
-                          Wrong email? Change it
+                          {t("auth.wrongEmail")}
                         </HeroLink>
                       )}
                     </>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Enter a new email and your current password. We’ll send a 6-digit code to both your current and new inboxes. Your current email stays active until both codes are confirmed.
+                      {t("auth.changeEmail.description")}
                     </p>
                   )}
 
                   {error && <ErrorBanner message={error} />}
 
                   {loadingAccount ? (
-                    <ChangeEmailFormSkeleton />
+                    <ChangeEmailFormSkeleton
+                      label={t("auth.changeEmail.loadingAccount")}
+                    />
                   ) : step === "request" ? (
                     <Form
                       id={FORM_ID}
@@ -376,7 +387,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       onSubmit={handleRequest}
                     >
                       <TextField isDisabled>
-                        <Label>Current Email</Label>
+                        <Label>{t("auth.changeEmail.currentEmail")}</Label>
                         <Input value={currentEmail} readOnly />
                       </TextField>
 
@@ -390,10 +401,10 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                           if (serverNewEmailError) setServerNewEmailError(null);
                         }}
                       >
-                        <Label>New Email</Label>
+                        <Label>{t("auth.changeEmail.newEmail")}</Label>
                         <Input
                           name="newEmail"
-                          placeholder="Enter your new email"
+                          placeholder={t("auth.changeEmail.newEmailPlaceholder")}
                           autoComplete="email"
                         />
                         {!!newEmailError && <p className="text-sm text-danger">{newEmailError}</p>}
@@ -401,9 +412,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
 
                       <PasswordField
                         isRequired
-                        label="Current Password"
+                        label={t("auth.changePassword.currentLabel")}
                         name="currentPassword"
-                        placeholder="Enter your current password"
+                        placeholder={t("auth.changePassword.currentPlaceholder")}
                         autoComplete="current-password"
                         value={currentPassword}
                         onChange={(value) => {
@@ -421,7 +432,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       <CodeInput
                         // Remount per step so focus lands on the fresh input.
                         key={step}
-                        aria-label={`${codeStep?.title ?? "Email"} 6-digit code`}
+                        aria-label={t("auth.changeEmail.codeAria", {
+                          title: codeStepTitle || t("auth.changeEmail.title"),
+                        })}
                         value={code}
                         onChange={(value) => {
                           setCode(value);
@@ -449,16 +462,20 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       )}
 
                       <div className="flex items-center gap-2 text-sm text-foreground">
-                        <span>Didn&apos;t receive a code?</span>
+                        <span>{t("auth.otp.didntReceive")}</span>
                         {secondsLeft > 0 ? (
-                          <span className="font-medium text-primary">Resend in {secondsLeft}s</span>
+                          <span className="font-medium text-primary">
+                            {t("auth.otp.resendIn", { seconds: secondsLeft })}
+                          </span>
                         ) : (
                           <HeroLink
                             onPress={handleResend}
                             isDisabled={resending || verifying}
                             className="cursor-pointer text-primary"
                           >
-                            {resending ? "Sending..." : "Resend"}
+                            {resending
+                              ? t("auth.otp.sending")
+                              : t("auth.otp.resend")}
                           </HeroLink>
                         )}
                       </div>
@@ -472,7 +489,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                           if (step === "current" || step === "new") handleVerify(step);
                         }}
                       >
-                        {verifying ? "Verifying..." : "Verify Code"}
+                        {verifying
+                          ? t("auth.otp.verifying")
+                          : t("auth.otp.verifyCode")}
                       </Button>
                     </div>
                   )}
@@ -486,7 +505,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       isDisabled={saving}
                       onPress={() => handleOpenChange(false)}
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                     <Button
                       className="flex-1 cursor-pointer"
@@ -495,7 +514,9 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
                       isPending={saving}
                       isDisabled={saving || loadingAccount}
                     >
-                      {saving ? "Sending..." : "Send Verification Codes"}
+                      {saving
+                        ? t("auth.otp.sending")
+                        : t("auth.changeEmail.sendCodes")}
                     </Button>
                   </Modal.Footer>
                 )}

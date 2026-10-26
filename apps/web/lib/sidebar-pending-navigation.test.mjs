@@ -3,6 +3,17 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
+
 
 const jsx = (type, props) => ({ type, props });
 function compile(file, modules, globals = {}) {
@@ -13,9 +24,9 @@ function compile(file, modules, globals = {}) {
   return exports;
 }
 const nav = [
-  { href: "/tenant/my-rental", label: "My Rental", icon: "Home", activityKey: "rental" },
-  { href: "/tenant/favorites", label: "Favorites", icon: "Heart" },
-  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages" },
+  { href: "/tenant/my-rental", labelKey: "nav.myRental", icon: "Home", activityKey: "rental" },
+  { href: "/tenant/favorites", labelKey: "nav.favorites", icon: "Heart" },
+  { href: "/tenant/messages", labelKey: "nav.messages", icon: "MessageCircle", activityKey: "messages" },
 ];
 function harness({ collapsed = false, mobile = false } = {}) {
   let pathname = "/tenant/my-rental";
@@ -24,6 +35,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
   const pushes = [];
   const pending = compile("../app/components/layout/SidebarLinkPending.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@/app/components/i18n/LocaleProvider": locale,
     "next/link": { useLinkStatus: () => ({ pending: pendingHref === linkContext }) },
   });
   const sidebar = compile("../app/components/layout/AppSidebar.tsx", {
@@ -37,6 +49,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
     "next-themes": { useTheme: () => ({ resolvedTheme: "light" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 2 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set(["messages"]) },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref, navigate: href => { pushes.push(href); pendingHref = href; } }) },
@@ -101,13 +114,13 @@ test("mobile menu/keyboard actions retain pathname semantics and expose visible 
   messages(h.render()).props.onClick();
   assert.deepEqual(h.pushes, ["/tenant/messages"]);
   const pending = h.render();
-  const button = pending.find(node => node.type === "Button" && node.props["aria-label"] === "Open navigation");
+  const button = pending.find(node => node.type === "Button" && node.props["aria-label"] === "Open tenant navigation");
   assert.equal(button.props["aria-busy"], true);
   assert.equal(button.props.isDisabled, undefined);
-  assert.ok(JSON.stringify(button).includes("Opening…"));
+  assert.ok(JSON.stringify(button).includes("Opening page"));
   assert.equal(messages(pending).props["aria-current"], undefined);
   h.commit("/tenant/messages");
-  assert.equal(h.render().find(node => node.type === "Button" && node.props["aria-label"] === "Open navigation").props["aria-busy"], undefined);
+  assert.equal(h.render().find(node => node.type === "Button" && node.props["aria-label"] === "Open tenant navigation").props["aria-busy"], undefined);
 });
 
 test("dropdown pending navigation delegates its lifetime to React transitions, not a timer or permanent selected state", () => {

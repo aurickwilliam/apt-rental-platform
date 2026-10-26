@@ -1,4 +1,9 @@
 import Image from "next/image";
+
+import { translate } from "@repo/i18n";
+
+import { getServerLocale } from "@/lib/i18n/locale";
+
 import BackBtn from "./components/BackBtn";
 import SignUpForm from "./components/SignUpForm";
 import AuthProviderWrapper from "./components/AuthProviderWrapper";
@@ -11,8 +16,13 @@ export default async function SignUpFormPage({
   searchParams,
 }: SignUpFormPageProps) {
   const { role, email } = await searchParams;
+  const language = await getServerLocale();
   const initialRole = role === "landlord" ? "landlord" : "tenant";
   const initialEmail = email ?? "";
+  const roleLabel = translate(
+    language,
+    initialRole === "landlord" ? "auth.role.landlord" : "auth.role.tenant",
+  );
 
   return (
     <AuthProviderWrapper initialRole={initialRole} initialEmail={initialEmail}>
@@ -40,11 +50,10 @@ export default async function SignUpFormPage({
             {/* Title Description */}
             <div className="mt-[clamp(1.5rem,5vh,2.5rem)]">
               <h1 className="text-[clamp(1.5rem,4vw,1.875rem)] font-bold font-nunito text-foreground">
-                Complete the{" "}
-                {initialRole === "landlord" ? "Landlord" : "Tenant"} Form
+                {translate(language, "auth.signUpForm.title", { role: roleLabel })}
               </h1>
               <p className="mt-2 text-foreground">
-                Join us and start your apartment rental journey today!
+                {translate(language, "auth.signUpForm.description")}
               </p>
             </div>
 

@@ -10,6 +10,7 @@ import {
   type MessageGroupUnit,
 } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
@@ -56,6 +57,7 @@ export default function NotificationDrawer({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { language, t } = useTranslation();
   const { preferences: displayPreferences } = useNotificationDisplayPreferences();
   const side = displayPreferences.drawerSide;
   const [filter, setFilter] = useState<Filter>("all");
@@ -112,8 +114,8 @@ export default function NotificationDrawer({
     () => 0,
   );
   const groups = useMemo(
-    () => groupNotificationsByLocalDate(shown, new Date(localDay)),
-    [shown, localDay],
+    () => groupNotificationsByLocalDate(shown, new Date(localDay), language),
+    [shown, localDay, language],
   );
 
   const toggleGroup = (key: string) => {
@@ -159,13 +161,13 @@ export default function NotificationDrawer({
       <Drawer.Backdrop>
         <Drawer.Content placement={side}>
           <Drawer.Dialog
-            aria-label="Notifications"
+            aria-label={t("notifications.title")}
             className={`apt-notifications-drawer flex h-full w-[calc(100vw-2rem)] max-w-sm flex-col p-0 ${side === "left" ? "rounded-r-3xl" : "rounded-l-3xl"}`}
           >
             <div className="flex items-center gap-2 border-b border-divider px-4 py-3">
               <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-foreground">
                 <IconBell size={20} className="text-primary" aria-hidden="true" />
-                Notifications
+                {t("notifications.title")}
                 {unreadCount > 0 && (
                   <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -178,7 +180,7 @@ export default function NotificationDrawer({
                 variant="ghost"
                 size="sm"
                 onPress={onClose}
-                aria-label="Close notifications"
+                aria-label={t("notifications.close")}
                 className="ml-auto"
               >
                 <IconX size={16} aria-hidden="true" />
@@ -198,7 +200,9 @@ export default function NotificationDrawer({
                       : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
                   }`}
                 >
-                  {value === "all" ? "All" : "Unread"}
+                  {value === "all"
+                    ? t("common.all")
+                    : t("notifications.filter.unread")}
                 </button>
               ))}
               {unreadCount > 0 && (
@@ -207,14 +211,17 @@ export default function NotificationDrawer({
                   onClick={() => void markVisibleRead()}
                   className="ml-auto cursor-pointer font-nunito text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
                 >
-                  Mark all read
+                  {t("notifications.markAllVisible")}
                 </button>
               )}
             </div>
 
             <Drawer.Body className="min-h-0 flex-1 overflow-y-auto p-3">
               {loading ? (
-                <div className="flex flex-col gap-2" aria-label="Loading notifications">
+                <div
+                  className="flex flex-col gap-2"
+                  aria-label={t("notifications.loading")}
+                >
                   {Array.from({ length: 4 }).map((_, i) => (
                     <Skeleton key={i} className="h-16 w-full rounded-2xl" />
                   ))}
@@ -226,8 +233,8 @@ export default function NotificationDrawer({
               ) : shown.length === 0 ? (
                 <p className="mt-10 px-4 text-center font-inter text-sm text-muted-foreground">
                   {filter === "unread"
-                    ? "You're all caught up."
-                    : "No notifications yet."}
+                    ? t("notifications.caughtUp")
+                    : t("notifications.empty")}
                 </p>
               ) : (
                 groups.map((group) => (
@@ -241,12 +248,14 @@ export default function NotificationDrawer({
                           <NotificationRow
                             key={unit.id}
                             notification={unit.notification}
+                            language={language}
                             onOpen={() => openNotification(unit.notification)}
                           />
                         ) : (
                           <NotificationGroupRow
                             key={unit.key}
                             unit={unit}
+                            language={language}
                             expanded={expandedGroups.has(unit.key)}
                             onToggle={() => toggleGroup(unit.key)}
                             onOpenGroup={() => openGroup(unit)}
@@ -266,7 +275,7 @@ export default function NotificationDrawer({
                   onClick={resetBellPosition}
                   className="cursor-pointer font-nunito text-xs font-semibold text-muted-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
                 >
-                  Reset bell position
+                  {t("notifications.resetBellPosition")}
                 </button>
               </div>
             ) : null}

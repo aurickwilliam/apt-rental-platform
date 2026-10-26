@@ -12,6 +12,9 @@ import {
 } from "@tabler/icons-react";
 import { AlertDialog, Button, Modal } from "@heroui/react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useUser } from "@/hooks/use-user";
 import { useRentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import GeneralTab from "./tabs/GeneralTab";
@@ -23,13 +26,17 @@ import RentalPreferencesTab from "./tabs/RentalPreferencesTab";
 type TabId = "general" | "security" | "notifications" | "help" | "rental";
 
 const TAB_META = [
-  { id: "general", label: "General", icon: IconSun },
-  { id: "security", label: "Security", icon: IconShieldLock },
-  { id: "notifications", label: "Notifications", icon: IconBell },
-  { id: "help", label: "Help & Support", icon: IconHelpCircle },
-] as const;
+  { id: "general", labelKey: "settings.general", icon: IconSun },
+  { id: "security", labelKey: "settings.security", icon: IconShieldLock },
+  { id: "notifications", labelKey: "settings.notifications", icon: IconBell },
+  { id: "help", labelKey: "settings.help", icon: IconHelpCircle },
+] as const satisfies readonly { id: TabId; labelKey: TranslationKey; icon: typeof IconSun }[];
 
-const RENTAL_TAB = { id: "rental", label: "Rental Preferences", icon: IconHome } as const;
+const RENTAL_TAB = {
+  id: "rental",
+  labelKey: "settings.rentalPreferences",
+  icon: IconHome,
+} as const satisfies { id: TabId; labelKey: TranslationKey; icon: typeof IconHome };
 
 export default function SettingsModal({
   open,
@@ -60,6 +67,7 @@ export default function SettingsModal({
   onChangePassword: () => void;
   onChangeEmail: () => void;
 }) {
+  const { t } = useTranslation();
   const { profile, loading: profileLoading } = useUser();
   const pathname = usePathname();
   const roles = profileLoading ? (initialRoles ?? []) : (profile?.roles ?? []);
@@ -96,7 +104,7 @@ export default function SettingsModal({
   const visibleTabs = canShowRental
     ? [TAB_META[0], RENTAL_TAB, ...TAB_META.slice(1)]
     : TAB_META;
-  const activeId: TabId = visibleTabs.some((t) => t.id === tab) ? tab : "general";
+  const activeId: TabId = visibleTabs.some((item) => item.id === tab) ? tab : "general";
 
   // Whether roles are still resolving without server-known seeds: reserve
   // the second slot (where the tenant-only tab lands) so it never pops
@@ -143,7 +151,7 @@ export default function SettingsModal({
         >
           <Modal.Dialog className="h-[calc(100dvh-2rem)] w-full max-w-5xl! overflow-hidden rounded-3xl bg-card p-0 md:h-[85dvh]">
             <Modal.CloseTrigger
-              aria-label="Close settings"
+              aria-label={t("settings.close")}
               className="text-foreground"
             />
             <Modal.Header className="shrink-0 border-b border-border px-5 py-4 pr-12">
@@ -153,16 +161,16 @@ export default function SettingsModal({
                   className="mr-2 inline"
                   aria-hidden="true"
                 />
-                Settings
+                {t("settings.title")}
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body className="mt-0! min-h-0 overflow-hidden! p-0">
               <div className="flex h-full min-h-0 flex-col md:flex-row">
                 <nav
-                  aria-label="Settings sections"
+                  aria-label={t("settings.sections")}
                   className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-b-0"
                 >
-                  {visibleTabs.map(({ id, label, icon: Icon }, index) => {
+                  {visibleTabs.map(({ id, labelKey, icon: Icon }, index) => {
                     return (
                       <Fragment key={id}>
                         <button
@@ -172,7 +180,7 @@ export default function SettingsModal({
                           className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeId === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}
                         >
                           <Icon size={18} aria-hidden="true" />
-                          {label}
+                          {t(labelKey)}
                         </button>
                         {/* Placeholder occupies the second slot (right after
                           General) while roles resolve. */}
@@ -190,7 +198,10 @@ export default function SettingsModal({
                 </nav>
                 <section
                   key={activeId}
-                  aria-label={visibleTabs.find(({ id }) => id === activeId)?.label}
+                  aria-label={t(
+                    visibleTabs.find(({ id }) => id === activeId)?.labelKey ??
+                      "settings.general",
+                  )}
                   className="mr-1.5 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
@@ -220,20 +231,19 @@ export default function SettingsModal({
           <AlertDialog.Container placement="center" size="sm">
             <AlertDialog.Dialog>
               <AlertDialog.Header>
-                <AlertDialog.Heading>Discard changes?</AlertDialog.Heading>
+                <AlertDialog.Heading>{t("settings.discard.title")}</AlertDialog.Heading>
               </AlertDialog.Header>
               <AlertDialog.Body>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  You have unsaved rental preferences. Your changes will be
-                  lost if you leave without saving.
+                  {t("settings.discard.body")}
                 </p>
               </AlertDialog.Body>
               <AlertDialog.Footer>
                 <Button type="button" variant="outline" onPress={keepEditing}>
-                  Keep editing
+                  {t("settings.discard.keepEditing")}
                 </Button>
                 <Button type="button" variant="primary" onPress={discardAndClose}>
-                  Discard changes
+                  {t("settings.discard.confirm")}
                 </Button>
               </AlertDialog.Footer>
             </AlertDialog.Dialog>

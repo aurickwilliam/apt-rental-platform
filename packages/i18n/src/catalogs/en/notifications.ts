@@ -14,4 +14,22 @@ export const notifications = {
   "notifications.group.sentOne": "Sent you 1 message",
   "notifications.group.sentOther": "Sent you {count} messages",
   "notifications.group.latest": "Latest: {preview}",
+
+  // Drawer chrome and floating bell.
+  "notifications.close": "Close notifications",
+  "notifications.filter.unread": "Unread",
+  "notifications.markAllVisible": "Mark all read",
+  "notifications.opening": "Opening notifications…",
+  "notifications.loading": "Loading notifications",
+  "notifications.caughtUp": "You're all caught up.",
+  "notifications.resetBellPosition": "Reset bell position",
+  "notifications.expandFrom": "Expand messages from {name}",
+  "notifications.collapseFrom": "Collapse messages from {name}",
+  "notifications.messagesFrom": "Messages from {name}",
+  "notifications.bell.title": "Notifications",
+  "notifications.bell.titleHint":
+    "Notifications. Drag to move. Double-click to reset position.",
+  "notifications.bell.aria": "Notifications",
+  "notifications.bell.ariaUnread": "Notifications, {count} unread",
+  "notifications.bell.dragHint": "Drag to move.",
 } as const;

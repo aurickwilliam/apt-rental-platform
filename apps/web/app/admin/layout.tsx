@@ -1,19 +1,21 @@
 import { Suspense } from "react";
+import { translate } from "@repo/i18n";
 import { AppSidebar, MobileSidebarNavigation } from "@/app/components/layout/AppSidebar";
 import SettingsOverlay from "@/app/components/settings/SettingsOverlay";
 import NotificationsOverlay from "@/app/components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "@/app/components/notifications/DraggableNotificationBell";
+import { getServerLocale } from "@/lib/i18n/locale";
 import { requireAdmin } from "./_lib/require-admin";
 
 const ADMIN_NAV = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/admin/users", label: "Users", icon: "Users" },
-  { href: "/admin/apartments", label: "Apartments", icon: "Building2" },
-  { href: "/admin/verification", label: "Verification", icon: "ShieldCheck", activityKey: "verification" },
-  { href: "/admin/reports", label: "Reports", icon: "Flag" },
-  { href: "/admin/activity", label: "Activity", icon: "History" },
-  { href: "/admin/analytics", label: "Analytics", icon: "ChartBar" },
-  { href: "/admin/app-updates", label: "App updates", icon: "DeviceMobile" },
+  { href: "/admin/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
+  { href: "/admin/users", labelKey: "nav.users", icon: "Users" },
+  { href: "/admin/apartments", labelKey: "nav.apartments", icon: "Building2" },
+  { href: "/admin/verification", labelKey: "nav.verification", icon: "ShieldCheck", activityKey: "verification" },
+  { href: "/admin/reports", labelKey: "nav.reports", icon: "Flag" },
+  { href: "/admin/activity", labelKey: "nav.activity", icon: "History" },
+  { href: "/admin/analytics", labelKey: "nav.analyticsAdmin", icon: "ChartBar" },
+  { href: "/admin/app-updates", labelKey: "nav.appUpdates", icon: "DeviceMobile" },
 ] as const;
 
 export default async function AdminLayout({
@@ -21,18 +23,19 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await requireAdmin();
+  const [profile, language] = await Promise.all([requireAdmin(), getServerLocale()]);
+  const adminRole = translate(language, "nav.role.administrator");
   const userName =
     `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
     profile.email ||
-    "Administrator";
+    adminRole;
 
   return (
     <div className="flex min-h-screen bg-background [--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]">
       <AppSidebar
         navItems={[...ADMIN_NAV]}
         userName={userName}
-        userRole="Administrator"
+        userRole={adminRole}
         userAvatarUrl={profile.avatar_url}
         userRoles={profile.roles}
         activePortal="admin"
@@ -46,9 +49,6 @@ export default async function AdminLayout({
           navItems={[...ADMIN_NAV]}
           profileHref="/admin/profile"
           iconSet="tabler"
-          navLabel="Admin navigation"
-          menuLabel="Admin pages"
-          buttonLabel="Open admin navigation"
           userRoles={profile.roles}
           activePortal="admin"
         />

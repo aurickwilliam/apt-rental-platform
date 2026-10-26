@@ -85,7 +85,7 @@ test("local midnight and year boundaries re-label groups by calendar date", () =
 test("local calendar labels work east/west of UTC and through DST changes", () => {
   const moduleUrl = new URL("../../../packages/utils/src/notificationOrder.ts", import.meta.url).href;
   for (const TZ of ["Asia/Manila", "America/Los_Angeles", "America/New_York", "UTC"]) {
-    execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", `
+    execFileSync(process.execPath, ["--experimental-strip-types", "--import", "./lib/test-support/register-ts-resolve.mjs", "--input-type=module", "-e", `
       import assert from 'node:assert/strict';
       import { groupNotificationsByLocalDate } from ${JSON.stringify(moduleUrl)};
       for (const now of [new Date(2026, 9, 18, 0, 0, 1), new Date(2026, 2, 9, 0, 0, 1), new Date(2026, 10, 2, 0, 0, 1)]) {

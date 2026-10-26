@@ -4,10 +4,21 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { ActivePortal } from "@/lib/notification-audience";
 
+/** Spoken placeholder while the drawer's chunk loads. */
+function OpeningNotifications() {
+  const { t } = useTranslation();
+  return (
+    <span role="status" className="sr-only">
+      {t("notifications.opening")}
+    </span>
+  );
+}
+
 const NotificationDrawer = dynamic(() => import("./NotificationDrawer"), {
-  loading: () => <span role="status" className="sr-only">Opening notifications…</span>,
+  loading: () => <OpeningNotifications />,
 });
 
 export const NOTIFICATIONS_QUERY_VALUE = "open";

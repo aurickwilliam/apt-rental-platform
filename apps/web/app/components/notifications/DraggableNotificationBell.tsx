@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { IconBell } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -112,6 +113,7 @@ export default function DraggableNotificationBell({
 }: {
   activePortal: ActivePortal;
 }) {
+  const { t } = useTranslation();
   const { unreadCount } = useNotifications(activePortal);
   const { preferences: displayPreferences } = useNotificationDisplayPreferences();
 
@@ -341,6 +343,14 @@ export default function DraggableNotificationBell({
   // bell rests inside the messages header and never starts a drag.
   const top = livePos !== null ? livePos.y : resting.topPx;
   const left = livePos !== null ? livePos.x : resting.leftPx;
+  const bellTitle = resting.docked
+    ? t("notifications.bell.title")
+    : t("notifications.bell.titleHint");
+  const bellLabel = `${
+    unreadCount > 0
+      ? t("notifications.bell.ariaUnread", { count: unreadCount })
+      : t("notifications.bell.aria")
+  }.${resting.docked ? "" : ` ${t("notifications.bell.dragHint")}`}`;
   const interactionClasses = resting.docked
     ? "cursor-pointer hover:bg-primary/5 hover:text-primary active:bg-primary/10"
     : dragging
@@ -358,17 +368,9 @@ export default function DraggableNotificationBell({
       onLostPointerCapture={onLostPointerCapture}
       onClick={onClick}
       onDoubleClick={resting.docked ? undefined : resetPlacement}
-      title={
-        resting.docked
-          ? "Notifications"
-          : "Notifications. Drag to move. Double-click to reset position."
-      }
+      title={bellTitle}
       aria-haspopup="dialog"
-      aria-label={
-        unreadCount > 0
-          ? `Notifications, ${unreadCount} unread.${resting.docked ? "" : " Drag to move."}`
-          : `Notifications.${resting.docked ? "" : " Drag to move."}`
-      }
+      aria-label={bellLabel}
       style={{ top, left }}
       className={`fixed z-40 hidden min-h-11 min-w-11 select-none items-center justify-center rounded-full border border-border bg-card/95 text-foreground/70 shadow-sm backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:flex ${resting.docked ? "" : "touch-none"} ${interactionClasses} motion-safe:transition-[top,left] motion-safe:duration-200 ${livePos !== null ? "motion-safe:transition-none" : ""}`}
     >

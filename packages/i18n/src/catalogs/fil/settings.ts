@@ -1,6 +1,7 @@
 import type { settings as enSettings } from "../en/settings";
 
 export const settings: Record<keyof typeof enSettings, string> = {
+  "settings.opening": "Binubuksan ang settings…",
   "settings.title": "Settings",
   "settings.close": "Isara ang settings",
   "settings.sections": "Mga seksyon ng settings",
@@ -31,4 +32,164 @@ export const settings: Record<keyof typeof enSettings, string> = {
   "settings.languageSwitch.toEnglish": "Lumipat sa English",
   "settings.mobile.languageRegion": "Wika at Rehiyon",
   "settings.mobile.selectLanguage": "Piliin ang Wika",
+
+  // Unsaved-changes guard
+  "settings.discard.title": "Itapon ang mga pagbabago?",
+  "settings.discard.body":
+    "May hindi pa naka-save na rental preferences ka. Mawawala ang mga pagbabago mo kapag umalis ka nang hindi nag-save.",
+  "settings.discard.keepEditing": "Magpatuloy sa pag-edit",
+  "settings.discard.confirm": "Itapon ang mga pagbabago",
+
+  // Security tab
+  "settings.security.title": "Seguridad",
+  "settings.security.description": "Pamahalaan ang credentials ng account mo.",
+  "settings.security.admin.title": "Seguridad at privacy",
+  "settings.security.admin.description": "Tingnan kung paano hinahawakan ang impormasyon mo.",
+  "settings.security.changePassword": "Palitan ang Password",
+  "settings.security.changeEmail": "Palitan ang Email",
+  "settings.security.googleOnly": "Naka-sign in gamit ang Google",
+  "settings.security.credentialsTitle": "Password at email",
+  "settings.security.credentialsBody":
+    "Hindi pa available dito ang pagpalit ng account credentials.",
+  "settings.security.privacyPolicy": "Privacy policy",
+  "settings.security.twoStep.title": "Two-step login",
+  "settings.security.twoStep.description":
+    "Kailangan ng code mula sa authenticator app kapag nag-sign in ka.",
+  "settings.security.twoStep.loadError": "Hindi ma-load ang two-step login.",
+  "settings.security.twoStep.removeError": "Hindi ma-remove ang device na iyon. Subukan ulit.",
+  "settings.security.twoStep.remove": "Remove",
+  "settings.security.twoStep.on": "On",
+  "settings.security.twoStep.off": "Off",
+  "settings.security.twoStep.authenticator": "Authenticator app",
+  "settings.security.twoStep.setUp": "I-set up ang authenticator app",
+  "settings.security.twoStep.addBackup": "Magdagdag ng backup device",
+  "settings.security.twoStep.addBackup.description":
+    "Kahit alin sa dalawang device ang pwedeng mag-sign in sa iyo kapag nawala ang isa.",
+  "settings.security.twoStep.enterCode": "Maglagay ng code para pamahalaan ang mga device",
+
+  // Notifications tab
+  "settings.notifications.title": "Mga Notification",
+  "settings.notifications.description": "Pamahalaan kung paano ka makakatanggap ng updates.",
+  "settings.notifications.admin.description":
+    "Pamahalaan ang delivery ng admin verification alerts at iba pang updates.",
+  "settings.notifications.loading": "Naglo-load ng notifications",
+  "settings.notifications.verification": "Verification alerts",
+  "settings.notifications.verification.description":
+    "Payagan ang delivery ng system alerts para sa bagong account at apartment verification submissions.",
+  "settings.notifications.verification.note":
+    "Kinokontrol nito ang mobile banner at push delivery kung available. Lalabas pa rin ang verification submissions sa admin queue.",
+  "settings.notifications.general": "Pangkalahatan",
+  "settings.notifications.types": "Mga Uri ng Notification",
+  "settings.notifications.types.note":
+    "Shared ang per-type toggles sa dalawang channel, kaya mahalaga lang ito kapag may naka-on na master.",
+  "settings.notifications.reset": "I-reset sa Defaults",
+  "settings.notifications.inApp.title": "In-App Notifications",
+  "settings.notifications.inApp.description":
+    "Magpakita ng banner notifications habang gumagamit ng app",
+  "settings.notifications.push.title": "Push Notifications",
+  "settings.notifications.push.description":
+    "Makatanggap ng alerts sa device mo kapag sarado ang app",
+  "settings.notifications.chatToasts.title": "Message Toasts sa Chat",
+  "settings.notifications.chatToasts.description":
+    "Magpakita ng banner para sa mga bagong message sa chat na binubuksan mo",
+  "settings.notifications.type.payment": "Mga Bayad",
+  "settings.notifications.type.message": "Mga Mensahe",
+  "settings.notifications.type.maintenance": "Maintenance",
+  "settings.notifications.type.apartment": "Mga Apartment",
+  "settings.notifications.type.system": "System",
+  "settings.notifications.updateFailed": "Hindi na-update",
+  "settings.notifications.retry": "Subukan ulit.",
+  "settings.notifications.resetDone": "Na-reset sa defaults",
+  "settings.notifications.resetFailed": "Hindi ma-reset",
+
+  // Notification display (per browser)
+  "settings.notifications.display": "Display",
+  "settings.notifications.display.description":
+    "Para sa browser na ito. Sa phone, nasa navigation menu pa rin ang notifications.",
+  "settings.notifications.entry.title": "Buksan ang notifications mula sa",
+  "settings.notifications.entry.description":
+    "Draggable bell sa page, o tab sa sidebar.",
+  "settings.notifications.entry.bell": "Floating bell",
+  "settings.notifications.entry.sidebar": "Sidebar tab",
+  "settings.notifications.drawer.title": "Posisyon ng drawer",
+  "settings.notifications.drawer.description":
+    "Kung saang side bubukas ang notifications drawer.",
+  "settings.notifications.drawer.right": "Kanan",
+  "settings.notifications.drawer.left": "Kaliwa",
+
+  // Help & support tab
+  "settings.help.title": "Tulong at Suporta",
+  "settings.help.description": "Hanapin ang mga sagot at basahin ang policies namin.",
+  "settings.help.admin.description": "Basahin ang policies namin at alamin pa ang tungkol sa APT.",
+  "settings.help.reportProblem": "I-report ang Problema",
+  "settings.help.faq": "Mga Madalas Itanong",
+  "settings.help.faq.1.question": "Paano ako magbabayad ng rent?",
+  "settings.help.faq.1.answer":
+    "Pwede kang magbayad ng rent sa app sa pamamagitan ng pagpunta sa Rentals > Pay Rent at pagpili ng payment method (GCash, Maya, o card).",
+  "settings.help.faq.2.question": "Paano ako magsusumite ng maintenance request?",
+  "settings.help.faq.2.answer":
+    "Pumunta sa Rentals page mo at i-click ang 'Request Maintenance'. Ilagay ang detalye ng problema at i-submit. Ma-no-notify ang landlord mo.",
+  "settings.help.faq.3.question": "Paano ko makikita ang lease agreement ko?",
+  "settings.help.faq.3.answer":
+    "Pumunta sa Rentals page mo at i-click ang 'View Lease'. Pwede mong tingnan at i-download ang lease agreement mo doon.",
+  "settings.help.faq.4.question": "Paano ko makokontak ang landlord ko?",
+  "settings.help.faq.4.answer":
+    "Pwede mong i-message ang landlord mo diretso sa Chat page o sa pag-click ng 'Chat Landlord' sa Rentals quick actions mo.",
+  "settings.help.faq.5.question": "Paano ako maglilista ng property ko?",
+  "settings.help.faq.5.answer":
+    "Bilang landlord, pumunta sa Units page at i-click ang '+' button para magdagdag ng bagong apartment listing. Punan ang mga kinakailangang detalye sa bawat step.",
+  "settings.help.faq.6.question": "Paano ko i-verify ang account ko?",
+  "settings.help.faq.6.answer":
+    "Pumunta sa Profile page mo at i-click ang 'Verify Account'. Kailangan mong mag-upload ng valid na government-issued ID at selfie.",
+  "settings.help.terms": "Terms of Service",
+  "settings.help.terms.admin": "Terms and conditions",
+  "settings.help.privacy": "Privacy Policy",
+  "settings.help.cookies": "Cookie policy",
+  "settings.help.about": "Tungkol sa Amin",
+  "settings.help.learnMore": "Alamin pa ang tungkol sa APT",
+
+  // Rental preferences tab
+  "settings.rental.title": "Mga Preperensya sa Renta",
+  "settings.rental.description":
+    "Pamahalaan ang mahalaga sa susunod mong tahanan. Mag-aapply ang mga pagbabago sa recommendations mo pagkatapos i-save.",
+  "settings.rental.location": "Lokasyon",
+  "settings.rental.location.anywhere":
+    "Kahit saan sa CAMANAVA. Pumili ng cities para paliitin.",
+  "settings.rental.location.selected": "Mga gustong city.",
+  "settings.rental.budget": "Budget",
+  "settings.rental.home": "Tahanan",
+  "settings.rental.bedrooms": "Mga Kwarto",
+  "settings.rental.household": "Sambahayan",
+  "settings.rental.householdSize": "Laki ng sambahayan",
+  "settings.rental.noPreference": "Walang preference",
+  "settings.rental.parking": "Paradahan",
+  "settings.rental.parking.aria": "Kailangan mo ba ng parking space?",
+  "settings.rental.spots": "Mga Slot",
+  "settings.rental.spots.aria": "Ilang parking spots ang kailangan",
+  "settings.rental.vehicles": "Mga Sasakyan",
+  "settings.rental.lifestyle": "Pamumuhay",
+  "settings.rental.pets": "Mga Alaga",
+  "settings.rental.pets.aria": "May alaga ka ba?",
+  "settings.rental.petType": "Uri ng alaga",
+  "settings.rental.petKind.aria": "Anong klaseng alaga",
+  "settings.rental.petOther": "Pakilarawan",
+  "settings.rental.petOther.placeholder": "hal., Poodle, Siamese",
+  "settings.rental.smoking": "Paninigarilyo",
+  "settings.rental.smoking.note": "Mas priority ang non-smoking listings.",
+  "settings.rental.smoking.aria": "May naninigarilyo ba sa sambahayan mo?",
+  "settings.rental.accessibility": "Accessibility",
+  "settings.rental.accessibility.note": "Bigyang priority ang wheelchair-friendly listings.",
+  "settings.rental.accessibility.aria": "May accessibility needs ka ba?",
+  "settings.rental.save": "I-save ang mga Pagbabago",
+  "settings.rental.saving": "Nagse-save…",
+
+  // Budget range field (shared with onboarding)
+  "settings.budget.minimum": "Minimum na monthly rent",
+  "settings.budget.maximum": "Maximum na monthly rent",
+  "settings.budget.minimum.aria": "Minimum na monthly rent sa pesos",
+  "settings.budget.maximum.aria": "Maximum na monthly rent sa pesos",
+  "settings.budget.invalid": "Maglagay ng valid na peso amount.",
+  "settings.budget.preset": "Budget preset",
+  "settings.budget.custom": "Custom range",
+  "settings.budget.options": "Mga opsyon sa budget range",
 };

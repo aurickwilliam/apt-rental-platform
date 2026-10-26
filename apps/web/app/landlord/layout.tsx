@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { translate } from "@repo/i18n";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
@@ -7,19 +8,20 @@ import { getServerIdentity } from "@/lib/server-identity";
 
 import { canManageLandlordFinances } from "@/lib/landlord-finance-access";
 import { canViewPassport } from "@/lib/passport-access";
+import { getServerLocale } from "@/lib/i18n/locale";
 
 const PASSPORT_HREF = "/landlord/passport";
 const ANALYTICS_HREF = "/landlord/analytics";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true, section: "Overview" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/messages", label: "Messages", icon: "Messages", activityKey: "messages", section: "Rentals" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, section: "Finance" },
-  { href: ANALYTICS_HREF, label: "Profit & planning", icon: "ChartBar", prefetchOnIntent: true, section: "Finance" },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport", section: "Verification" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", prefetchOnIntent: true, sectionKey: "nav.section.overview" },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/messages", labelKey: "nav.messages", icon: "Messages", activityKey: "messages", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: ANALYTICS_HREF, labelKey: "nav.analytics", icon: "ChartBar", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: PASSPORT_HREF, labelKey: "nav.passport", icon: "ShieldCheck", activityKey: "passport", sectionKey: "nav.section.verification" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -27,8 +29,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let userName = "Landlord";
-  const userRole = "Landlord";
+  const language = await getServerLocale();
+  const landlordRole = translate(language, "nav.role.landlord");
+  let userName = landlordRole;
+  const userRole = landlordRole;
   let userRoles: string[] = ["landlord"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
@@ -78,9 +82,6 @@ export default async function DashboardLayout({
           navItems={navItems}
           profileHref="/landlord/profile"
           iconSet="tabler"
-          navLabel="Landlord navigation"
-          menuLabel="Landlord pages"
-          buttonLabel="Open landlord navigation"
           userRoles={userRoles}
           activePortal="landlord"
         />

@@ -17,7 +17,6 @@ import PasswordField from "@/app/components/inputs/PasswordField";
 const FORM_ID = "change-password-form";
 
 type Step = "form" | "success";
-const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -30,7 +29,7 @@ interface ChangePasswordModalProps {
 // confirmation (like forgot-password's "Password Updated" page). Passwords
 // live only in this component's state and are cleared on success or close.
 export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePasswordModalProps) {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const {
     password,
     setPassword,
@@ -57,21 +56,23 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
   }
 
   const currentPasswordError = (() => {
-    if (submitted && !currentPassword) return "Please enter your current password.";
+    if (submitted && !currentPassword) return t("auth.changePassword.currentRequired");
     return serverCurrentPasswordError;
   })();
 
   const newPasswordError = (() => {
-    if (submitted && !password.trim()) return "This field is required";
+    if (submitted && !password.trim()) return t("auth.changePassword.required");
     if (submitted && !isPasswordValid) {
-      return "Password does not meet the requirements or password does not match";
+      return t("auth.changePassword.requirements");
     }
     return serverNewPasswordError;
   })();
 
   const confirmPasswordError = (() => {
-    if (submitted && !confirmPassword.trim()) return "This field is required";
-    if (submitted && password !== confirmPassword) return "Passwords do not match";
+    if (submitted && !confirmPassword.trim()) return t("auth.changePassword.required");
+    if (submitted && password !== confirmPassword) {
+      return t("auth.changePassword.mismatch");
+    }
     return null;
   })();
 
@@ -115,8 +116,8 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
       try {
         const { error: reason } = await changePassword(currentPassword, password);
         if (!reason) {
-          toast.success("Password updated", {
-            description: "Other devices were signed out.",
+          toast.success(t("auth.changePassword.toastTitle"), {
+            description: t("auth.changePassword.toastBody"),
             indicator: <IconShieldCheck size={20} aria-hidden="true" />,
           });
           reset();
@@ -132,7 +133,7 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
       } catch (err) {
         // Log the type only: an unexpected message could echo a password.
         console.error("Password change failed:", err instanceof Error ? err.name : typeof err);
-        setError(UNEXPECTED_ERROR);
+        setError(t("common.error"));
       }
     });
   };
@@ -144,7 +145,7 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
           {/* Wider than HeroUI's lg (32rem); a plain max-w-* loses the cascade (see SettingsModal). */}
           <Modal.Dialog className="w-full max-w-xl!">
             <Modal.CloseTrigger
-              aria-label="Close change password"
+              aria-label={t("auth.changePassword.close")}
               className="cursor-pointer text-foreground"
             />
             {step === "success" ? (
@@ -154,12 +155,10 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                     <IconShieldCheck size={40} className="text-primary" aria-hidden="true" />
                   </div>
                   <Modal.Heading className="mt-5 font-nunito text-2xl font-bold text-foreground">
-                    Password Updated
+                    {t("auth.changePassword.successTitle")}
                   </Modal.Heading>
                   <p className="mt-2 text-base text-muted-foreground">
-                    Great! Your new password is ready to use. You’re still signed
-                    in here, and any other devices were signed out. We’ve also
-                    emailed you a confirmation.
+                    {t("auth.changePassword.successBody")}
                   </p>
                 </Modal.Body>
                 <Modal.Footer>
@@ -169,7 +168,7 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                     className="w-full cursor-pointer"
                     onPress={() => handleOpenChange(false)}
                   >
-                    Done
+                    {t("common.done")}
                   </Button>
                 </Modal.Footer>
               </>
@@ -178,14 +177,13 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                 <Modal.Header>
                   <Modal.Heading className="flex items-center font-nunito text-2xl font-bold text-primary">
                     <IconKey size={24} className="mr-2" aria-hidden="true" />
-                    Change Password
+                    {t("auth.changePassword.title")}
                   </Modal.Heading>
                 </Modal.Header>
 
                 <Modal.Body>
                   <p className="text-sm text-muted-foreground">
-                    Enter your current password, then choose a new one. You’ll stay
-                    signed in here, and any other devices will be signed out.
+                    {t("auth.changePassword.description")}
                   </p>
 
                   {error && <ErrorBanner message={error} />}
@@ -198,9 +196,9 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                   >
                     <PasswordField
                       isRequired
-                      label="Current Password"
+                      label={t("auth.changePassword.currentLabel")}
                       name="currentPassword"
-                      placeholder="Enter your current password"
+                      placeholder={t("auth.changePassword.currentPlaceholder")}
                       autoComplete="current-password"
                       value={currentPassword}
                       onChange={handleCurrentPasswordChange}
@@ -230,7 +228,7 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                     isDisabled={saving}
                     onPress={() => handleOpenChange(false)}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                   <Button
                     className="flex-1 cursor-pointer"
@@ -239,7 +237,9 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
                     isPending={saving}
                     isDisabled={saving}
                   >
-                    {saving ? "Updating..." : "Update Password"}
+                    {saving
+                      ? t("auth.changePassword.updating")
+                      : t("auth.changePassword.action")}
                   </Button>
                 </Modal.Footer>
               </>

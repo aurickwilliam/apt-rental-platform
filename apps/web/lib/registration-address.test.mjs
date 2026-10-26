@@ -5,9 +5,19 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
 import { PH_MOBILE_PREFIXES } from "../../../packages/constants/src/user/ph-mobile-prefixes.ts";
+import { GENDER_KEYS, enumLabel, translate } from "../../../packages/i18n/src/index.ts";
 import { validateBirthDate } from "./birth-date.ts";
 import { addressConstants, addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 const { EMPTY_REGISTRATION_ADDRESS: empty, changeRegistrationAddress: change, resolveRegistrationAddress: resolve, validateRegistrationAddress: validate } = addressRules;
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -25,6 +35,7 @@ const ui = {
 const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [] };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
   "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "@/app/components/i18n/LocaleProvider": locale,
 }).default;
 
 function fieldHarness(initial = empty) {
@@ -130,6 +141,7 @@ test("shared fields preserve ordered two-column desktop / stacked mobile layout 
 test("installed HeroUI provides input error association and disabled dependent selectors", () => {
   const nativeFields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
     "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "@/app/components/i18n/LocaleProvider": locale,
   }).default;
   const html = renderToStaticMarkup(nativeFields({ value: empty, onChange() {}, errors: validate(empty) }));
   assert.match(html, /aria-invalid="true"/);
@@ -144,6 +156,8 @@ function formHarness(kind, role, initialAddress = undefined) {
   const shared = {
     react: { ...runtime.react, useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
+    "@repo/i18n": { GENDER_KEYS, enumLabel, translate },
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
@@ -283,6 +297,8 @@ test("Complete Profile loads only the caller's saved address and keys the draft 
       "@repo/supabase/server": { createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: account } } }) }, from: () => q }) },
       "@/lib/portal-preference": { preferredPortal: () => "tenant" }, "./components/CompleteProfileForm": { default: "CompleteProfileForm" },
       "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
+      "@/lib/i18n/locale": { getServerLocale: async () => "en" },
+      "@repo/i18n": { translate },
     }).default;
     const form = nodes(await page({ searchParams: Promise.resolve({ role: "tenant" }) })).find(node => node.type === "CompleteProfileForm");
     assert.deepEqual(plain(form.props.initialAddress), validAddress);

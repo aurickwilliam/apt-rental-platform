@@ -5,6 +5,8 @@ import { TextField, Label, InputGroup, FieldError, Button } from "@heroui/react"
 
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface PasswordFieldProps {
   label: string;
   name: string;
@@ -25,14 +27,15 @@ export default function PasswordField({
   name,
   value,
   onChange,
-  errorMessage = "Please enter a valid password",
+  errorMessage,
   isRequired = false,
   isInvalid,
   isDisabled,
   autoComplete,
-  placeholder = "Enter your password",
+  placeholder,
   className,
 }: PasswordFieldProps) {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -49,7 +52,7 @@ export default function PasswordField({
 
       <InputGroup className="rounded-xl border border-input bg-card transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
         <InputGroup.Input
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("auth.passwordPlaceholder")}
           autoComplete={autoComplete}
           type={isVisible ? "text" : "password"}
         />
@@ -60,7 +63,9 @@ export default function PasswordField({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setIsVisible((v) => !v)}
             className="text-muted focus:outline-none cursor-pointer placeholder:text-gray-400"
-            aria-label={isVisible ? "Hide password" : "Show password"}
+            aria-label={
+              isVisible ? t("auth.hidePassword") : t("auth.showPassword")
+            }
             size="sm"
             variant="ghost"
           >
@@ -72,7 +77,7 @@ export default function PasswordField({
         </InputGroup.Suffix>
       </InputGroup>
 
-      <FieldError>{errorMessage}</FieldError>
+      <FieldError>{errorMessage ?? t("auth.error.invalidPassword")}</FieldError>
     </TextField>
   );
 }

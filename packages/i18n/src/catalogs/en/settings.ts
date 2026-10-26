@@ -1,5 +1,6 @@
 /** Settings modal, its tabs and the General tab's grouped rows. */
 export const settings = {
+  "settings.opening": "Opening settings…",
   "settings.title": "Settings",
   "settings.close": "Close settings",
   "settings.sections": "Settings sections",
@@ -30,4 +31,165 @@ export const settings = {
   "settings.languageSwitch.toEnglish": "Switch to English",
   "settings.mobile.languageRegion": "Language & Region",
   "settings.mobile.selectLanguage": "Select Language",
+
+  // Unsaved-changes guard
+  "settings.discard.title": "Discard changes?",
+  "settings.discard.body":
+    "You have unsaved rental preferences. Your changes will be lost if you leave without saving.",
+  "settings.discard.keepEditing": "Keep editing",
+  "settings.discard.confirm": "Discard changes",
+
+  // Security tab
+  "settings.security.title": "Security",
+  "settings.security.description": "Manage your account credentials.",
+  "settings.security.admin.title": "Security & privacy",
+  "settings.security.admin.description": "Review how your information is handled.",
+  "settings.security.changePassword": "Change Password",
+  "settings.security.changeEmail": "Change Email",
+  "settings.security.googleOnly": "Signed in with Google",
+  "settings.security.credentialsTitle": "Password and email",
+  "settings.security.credentialsBody":
+    "Account credential changes are not available here yet.",
+  "settings.security.privacyPolicy": "Privacy policy",
+  "settings.security.twoStep.title": "Two-step login",
+  "settings.security.twoStep.description":
+    "Require a code from an authenticator app when you sign in.",
+  "settings.security.twoStep.loadError": "Could not load two-step login.",
+  "settings.security.twoStep.removeError":
+    "Could not remove that device. Please try again.",
+  "settings.security.twoStep.remove": "Remove",
+  "settings.security.twoStep.on": "On",
+  "settings.security.twoStep.off": "Off",
+  "settings.security.twoStep.authenticator": "Authenticator app",
+  "settings.security.twoStep.setUp": "Set up authenticator app",
+  "settings.security.twoStep.addBackup": "Add a backup device",
+  "settings.security.twoStep.addBackup.description":
+    "Either device can sign you in if one is lost.",
+  "settings.security.twoStep.enterCode": "Enter a code to manage devices",
+
+  // Notifications tab
+  "settings.notifications.title": "Notifications",
+  "settings.notifications.description": "Manage how you receive updates.",
+  "settings.notifications.admin.description":
+    "Manage delivery of administrator verification alerts and other updates.",
+  "settings.notifications.loading": "Loading notifications",
+  "settings.notifications.verification": "Verification alerts",
+  "settings.notifications.verification.description":
+    "Allow delivery of system alerts for new account and apartment verification submissions.",
+  "settings.notifications.verification.note":
+    "This controls mobile banner and push delivery where available. Verification submissions still appear in the admin queue.",
+  "settings.notifications.general": "General",
+  "settings.notifications.types": "Notification Types",
+  "settings.notifications.types.note":
+    "Per-type toggles are shared by both channels, so they only matter when at least one master is on.",
+  "settings.notifications.reset": "Reset to Defaults",
+  "settings.notifications.inApp.title": "In-App Notifications",
+  "settings.notifications.inApp.description":
+    "Show banner notifications while using the app",
+  "settings.notifications.push.title": "Push Notifications",
+  "settings.notifications.push.description":
+    "Receive alerts on your device when the app is closed",
+  "settings.notifications.chatToasts.title": "Message Toasts in Chat",
+  "settings.notifications.chatToasts.description":
+    "Show a banner for new messages in the chat you are viewing",
+  "settings.notifications.type.payment": "Payments",
+  "settings.notifications.type.message": "Messages",
+  "settings.notifications.type.maintenance": "Maintenance",
+  "settings.notifications.type.apartment": "Apartments",
+  "settings.notifications.type.system": "System",
+  "settings.notifications.updateFailed": "Failed to update",
+  "settings.notifications.retry": "Try again.",
+  "settings.notifications.resetDone": "Reset to defaults",
+  "settings.notifications.resetFailed": "Couldn't reset",
+
+  // Notification display (per browser)
+  "settings.notifications.display": "Display",
+  "settings.notifications.display.description":
+    "Applies to this browser. On phones, notifications stay in the navigation menu.",
+  "settings.notifications.entry.title": "Open notifications from",
+  "settings.notifications.entry.description":
+    "A draggable bell on the page, or a tab in the sidebar.",
+  "settings.notifications.entry.bell": "Floating bell",
+  "settings.notifications.entry.sidebar": "Sidebar tab",
+  "settings.notifications.drawer.title": "Drawer position",
+  "settings.notifications.drawer.description":
+    "Which side the notifications drawer opens from.",
+  "settings.notifications.drawer.right": "Right",
+  "settings.notifications.drawer.left": "Left",
+
+  // Help & support tab
+  "settings.help.title": "Help & Support",
+  "settings.help.description": "Find answers and read our policies.",
+  "settings.help.admin.description": "Read our policies and learn more about APT.",
+  "settings.help.reportProblem": "Report a Problem",
+  "settings.help.faq": "Frequently Asked Questions",
+  "settings.help.faq.1.question": "How do I pay my rent?",
+  "settings.help.faq.1.answer":
+    "You can pay your rent through the app by going to Rentals > Pay Rent and selecting your preferred payment method (GCash, Maya, or card).",
+  "settings.help.faq.2.question": "How do I submit a maintenance request?",
+  "settings.help.faq.2.answer":
+    "Go to your Rentals page and click 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
+  "settings.help.faq.3.question": "How do I view my lease agreement?",
+  "settings.help.faq.3.answer":
+    "Go to your Rentals page and click 'View Lease'. You can view and download your lease agreement from there.",
+  "settings.help.faq.4.question": "How do I contact my landlord?",
+  "settings.help.faq.4.answer":
+    "You can message your landlord directly through the Chat page or by clicking 'Chat Landlord' in your Rentals quick actions.",
+  "settings.help.faq.5.question": "How do I list my property?",
+  "settings.help.faq.5.answer":
+    "As a landlord, go to the Units page and click the '+' button to add a new apartment listing. Fill in the required details across the steps.",
+  "settings.help.faq.6.question": "How do I verify my account?",
+  "settings.help.faq.6.answer":
+    "Go to your Profile page and click on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
+  "settings.help.terms": "Terms of Service",
+  "settings.help.terms.admin": "Terms and conditions",
+  "settings.help.privacy": "Privacy Policy",
+  "settings.help.cookies": "Cookie policy",
+  "settings.help.about": "About Us",
+  "settings.help.learnMore": "Learn more about APT",
+
+  // Rental preferences tab
+  "settings.rental.title": "Rental Preferences",
+  "settings.rental.description":
+    "Manage what matters most in your next home. Changes apply to your recommendations after saving.",
+  "settings.rental.location": "Location",
+  "settings.rental.location.anywhere":
+    "Anywhere in CAMANAVA. Select cities to narrow it down.",
+  "settings.rental.location.selected": "Preferred cities.",
+  "settings.rental.budget": "Budget",
+  "settings.rental.home": "Home",
+  "settings.rental.bedrooms": "Bedrooms",
+  "settings.rental.household": "Household",
+  "settings.rental.householdSize": "Household size",
+  "settings.rental.noPreference": "No preference",
+  "settings.rental.parking": "Parking",
+  "settings.rental.parking.aria": "Do you need a parking space?",
+  "settings.rental.spots": "Spots",
+  "settings.rental.spots.aria": "Parking spots needed",
+  "settings.rental.vehicles": "Vehicles",
+  "settings.rental.lifestyle": "Lifestyle",
+  "settings.rental.pets": "Pets",
+  "settings.rental.pets.aria": "Do you have any pets?",
+  "settings.rental.petType": "Pet type",
+  "settings.rental.petKind.aria": "Kind of pet",
+  "settings.rental.petOther": "Please specify",
+  "settings.rental.petOther.placeholder": "e.g., Poodle, Siamese",
+  "settings.rental.smoking": "Smoking",
+  "settings.rental.smoking.note": "Prioritizes non-smoking listings.",
+  "settings.rental.smoking.aria": "Is anyone in your household a smoker?",
+  "settings.rental.accessibility": "Accessibility",
+  "settings.rental.accessibility.note": "Prioritize wheelchair-friendly listings.",
+  "settings.rental.accessibility.aria": "Do you have accessibility needs?",
+  "settings.rental.save": "Save Changes",
+  "settings.rental.saving": "Saving…",
+
+  // Budget range field (shared with onboarding)
+  "settings.budget.minimum": "Minimum monthly rent",
+  "settings.budget.maximum": "Maximum monthly rent",
+  "settings.budget.minimum.aria": "Minimum monthly rent in pesos",
+  "settings.budget.maximum.aria": "Maximum monthly rent in pesos",
+  "settings.budget.invalid": "Enter a valid peso amount.",
+  "settings.budget.preset": "Budget preset",
+  "settings.budget.custom": "Custom range",
+  "settings.budget.options": "Budget range options",
 } as const;

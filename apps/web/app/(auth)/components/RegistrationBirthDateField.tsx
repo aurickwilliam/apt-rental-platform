@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore, type Ref } from "react";
 import { Calendar, DateField, DatePicker, FieldError, Label } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { getBirthDateRange, getManilaDate, validateBirthDate } from "@/lib/birth-date";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -36,6 +37,7 @@ interface RegistrationBirthDateFieldProps {
 }
 
 export default function RegistrationBirthDateField({ name, value, onChange, error, isDisabled, inputRef }: RegistrationBirthDateFieldProps) {
+  const { t } = useTranslation();
   const today = useSyncExternalStore(subscribeManilaDay, getManilaDate, getManilaDate);
   const { earliest, latest } = getBirthDateRange(today);
   const minValue = parseDate(earliest);
@@ -48,11 +50,11 @@ export default function RegistrationBirthDateField({ name, value, onChange, erro
   const fieldError = error ?? (value || (blurred && !focused && !open) ? validateBirthDate(value) : null);
 
   return (
-    <DatePicker name={name} aria-label="Birth Date" className="registration-birth-date" isRequired isDisabled={isDisabled} validationBehavior="aria"
+    <DatePicker name={name} aria-label={t("auth.form.birthDateAria")} className="registration-birth-date" isRequired isDisabled={isDisabled} validationBehavior="aria"
       value={parsed} minValue={minValue} maxValue={maxValue} placeholderValue={maxValue}
       isInvalid={!!fieldError} onChange={date => onChange(date ? String(date) : "")}
       onOpenChange={setOpen} onFocusChange={isFocused => { setFocused(isFocused); if (!isFocused) setBlurred(true); }}>
-      <Label>Birth Date</Label>
+      <Label>{t("auth.form.birthDate")}</Label>
       <DateField.Group ref={inputRef} fullWidth className="border border-grey-300">
         <DateField.Input>
           {segment => <DateField.Segment segment={segment} className="data-[placeholder=true]:text-foreground/40 text-foreground" />}
@@ -61,12 +63,16 @@ export default function RegistrationBirthDateField({ name, value, onChange, erro
           <DatePicker.Trigger><DatePicker.TriggerIndicator className="text-grey-500" /></DatePicker.Trigger>
         </DateField.Suffix>
       </DateField.Group>
-      {value && !parsed ? <span className="text-xs text-muted-foreground">Entered birth date: {value}</span> : null}
+      {value && !parsed ? (
+        <span className="text-xs text-muted-foreground">
+          {t("auth.form.birthDateEntered", { value })}
+        </span>
+      ) : null}
       <span aria-live="polite" aria-atomic="true" className={fieldError ? undefined : "sr-only"}>
         <FieldError className="text-xs">{fieldError}</FieldError>
       </span>
       <DatePicker.Popover>
-        <Calendar aria-label="Birth Date" minValue={minValue} maxValue={maxValue}
+        <Calendar aria-label={t("auth.form.birthDateAria")} minValue={minValue} maxValue={maxValue}
           defaultFocusedValue={parsed && value >= earliest && value <= latest ? parsed : maxValue}>
           <Calendar.Header>
             <Calendar.YearPickerTrigger>

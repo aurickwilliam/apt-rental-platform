@@ -1,5 +1,6 @@
 import type { usePasswordValidation } from "@repo/hooks";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import PasswordField from "./PasswordField";
 import PasswordRequirementList from "./PasswordRequirementList";
 
@@ -30,15 +31,17 @@ export default function NewPasswordFields({
   passwordError,
   confirmPasswordError,
   isDisabled = false,
-  passwordLabel = "New Password",
+  passwordLabel,
 }: NewPasswordFieldsProps) {
+  const { t } = useTranslation();
+
   return (
     <>
       <PasswordField
         isRequired
-        label={passwordLabel}
+        label={passwordLabel ?? t("auth.newPasswordLabel")}
         name="password"
-        placeholder="Enter your new password"
+        placeholder={t("auth.newPasswordPlaceholder")}
         autoComplete="new-password"
         value={password}
         onChange={onPasswordChange}
@@ -49,9 +52,9 @@ export default function NewPasswordFields({
 
       <PasswordField
         isRequired
-        label="Confirm Password"
+        label={t("auth.confirmPasswordLabel")}
         name="confirmPassword"
-        placeholder="Confirm your new password"
+        placeholder={t("auth.confirmPasswordPlaceholder")}
         autoComplete="new-password"
         value={confirmPassword}
         onChange={onConfirmPasswordChange}

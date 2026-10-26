@@ -16,7 +16,6 @@ import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import RecoveryHeader from "../../forgot-password/components/RecoveryHeader";
 
 const CODE_LENGTH = 6;
-const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
 interface PendingEnrollment {
   factorId: string;
@@ -32,7 +31,7 @@ interface TwoStepLoginClientProps {
 }
 
 export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientProps) {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const [enrollment, setEnrollment] = useState<PendingEnrollment | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +60,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
       });
       if (enrollError || !data) {
         console.error("Two-step enrolment failed", enrollError);
-        setError(UNEXPECTED_ERROR);
+        setError(t("common.error"));
         return;
       }
       setEnrollment({
@@ -71,7 +70,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
       });
     } catch (err) {
       console.error("Two-step enrolment failed", err);
-      setError(UNEXPECTED_ERROR);
+      setError(t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -107,7 +106,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
         const remaining = attempts.recordWrongCode();
         setError(
           remaining <= 0
-            ? "Too many incorrect codes. Sign out and try again later."
+            ? t("auth.twoStep.tooManyCodes")
             : otpAttemptErrorMessage(language, remaining),
         );
         return;
@@ -116,18 +115,20 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
       window.location.assign(ADMIN_HOME);
     } catch (err) {
       console.error("Two-step verification failed", err);
-      setError(UNEXPECTED_ERROR);
+      setError(t("common.error"));
     } finally {
       setBusy(false);
     }
   };
 
-  const title = enrolling ? "Set up two-step login" : "Two-step login";
+  const title = enrolling
+    ? t("auth.twoStep.enrollTitle")
+    : t("auth.twoStep.challengeTitle");
   const description = enrolling
     ? adding
-      ? "Add a backup authenticator app. Either device can sign you in."
-      : "Admin accounts need a code from an authenticator app each time you sign in."
-    : "Enter the 6-digit code from your authenticator app.";
+      ? t("auth.twoStep.enrollBackupBody")
+      : t("auth.twoStep.enrollBody")
+    : t("auth.twoStep.challengeBody");
 
   return (
     <>
@@ -145,27 +146,24 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
             isDisabled={busy}
             onPress={startEnrollment}
           >
-            {adding ? "Add backup device" : "Set up authenticator app"}
+            {adding ? t("auth.twoStep.addBackup") : t("auth.twoStep.setUp")}
           </Button>
         )}
 
         {enrolling && enrollment && (
           <div className="flex flex-col items-center gap-3 text-center">
-            <p className="text-sm text-foreground">
-              Scan this QR code with an authenticator app such as Google
-              Authenticator, Microsoft Authenticator or Authy, then enter the code it shows.
-            </p>
+            <p className="text-sm text-foreground">{t("auth.twoStep.scan")}</p>
             {/* The QR is a data URI from Auth, so next/image optimisation does not apply. */}
             <Image
               src={enrollment.qrCode}
-              alt="QR code for your authenticator app"
+              alt={t("auth.twoStep.qrAlt")}
               width={176}
               height={176}
               unoptimized
               className="rounded-lg border border-border bg-white p-2"
             />
             <p className="text-xs text-default-500">
-              Can&apos;t scan? Enter this key instead:{" "}
+              {t("auth.twoStep.cantScan")}{" "}
               <span className="select-all break-all font-mono text-foreground">
                 {enrollment.secret}
               </span>
@@ -183,7 +181,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
               isInvalid={!!error}
               isDisabled={busy || locked}
               autoFocus
-              aria-label="6-digit authenticator code"
+              aria-label={t("auth.twoStep.codeAria")}
             />
             <Button
               variant="primary"
@@ -193,19 +191,19 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
               isDisabled={busy || locked || code.length !== CODE_LENGTH}
               onPress={() => verify(code)}
             >
-              {enrolling ? "Verify and turn on" : "Verify"}
+              {enrolling ? t("auth.twoStep.verifyAndTurnOn") : t("auth.twoStep.verify")}
             </Button>
           </>
         )}
 
         {adding ? (
           <Button variant="ghost" size="lg" className="w-full" onPress={() => window.location.assign(ADMIN_HOME)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
         ) : (
           <form action={signOut}>
             <Button variant="ghost" size="lg" className="w-full" type="submit">
-              Sign out
+              {t("auth.twoStep.signOut")}
             </Button>
           </form>
         )}

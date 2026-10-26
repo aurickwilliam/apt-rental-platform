@@ -3,7 +3,19 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import * as audience from "./notification-audience.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
+
+
 
 const jsx = (type, props) => ({ type, props });
 function compile(file, modules, suffix = "") {
@@ -60,6 +72,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
       Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options,
       Dropdown: { Item: "Dropdown.Item", Section: "Dropdown.Section", Menu: "Dropdown.Menu", Popover: "Dropdown.Popover" },
     },
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-notifications": { useNotifications: () => ({
       notifications: rows, unreadCount: rows.filter(n => !n.is_read).length,
       markOneRead: () => writes++, markVisibleRead: () => writes++,
@@ -74,7 +87,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     : component.AppSidebar({ navItems: nav, activePortal: portal, userName: "User", userRole: portal, collapsible: true, iconSet: "tabler", favoritesHref });
   const all = nodes(tree);
   // Drawer rows are buttons keyed by label; expose each with its href as `id`.
-  const hrefForRow = n => nav.find(item => item.label === labelOf(n))?.href;
+  const hrefForRow = n => nav.find(item => translate("en", item.labelKey) === labelOf(n))?.href;
   const links = mobile
     ? all.filter(n => n.type === "button" && hrefForRow(n)).map(n => ({ ...n, props: { ...n.props, id: hrefForRow(n) } }))
     : all.filter(n => n.type === "Link" && nav.some(item => item.href === n.props.href));
@@ -170,6 +183,8 @@ test("tenant layout offers Favorites through both account menus instead of the p
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "../components/layout/AppSidebar": { AppSidebar: "AppSidebar", MobileSidebarNavigation: "MobileSidebarNavigation" },
     "@/lib/passport-access": { canViewPassport: () => true },
+    "@/lib/i18n/locale": { getServerLocale: async () => "en" },
+    "@repo/i18n": { translate },
   });
   const tree = await layout.default({ children: null });
   const menus = nodes(tree).filter(node => ["AppSidebar", "MobileSidebarNavigation"].includes(node.type));
