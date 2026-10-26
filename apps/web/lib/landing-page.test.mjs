@@ -230,8 +230,8 @@ test("public navbar labels, destinations, theme and mobile menu stay available",
   const { tree, stateChanges } = navbarHarness({ open: true });
   const all = nodes(tree);
   assert.equal(tree.type, "header");
-  assert.deepEqual(all.filter(node => node.type === "Link" && ["Apartments", "For owners"].includes(text(node))).map(node => [text(node), node.props.href]), [
-    ["Apartments", "/browse"], ["For owners", "/forowners"], ["Apartments", "/browse"], ["For owners", "/forowners"],
+  assert.deepEqual(all.filter(node => node.type === "Link" && ["Browse Apartments", "For owners"].includes(text(node))).map(node => [text(node), node.props.href]), [
+    ["Browse Apartments", "/browse"], ["For owners", "/forowners"], ["Browse Apartments", "/browse"], ["For owners", "/forowners"],
   ]);
   const signUp = all.filter(node => node.type === "Link" && text(node).includes("Get started"));
   assert.equal(signUp.length, 2);

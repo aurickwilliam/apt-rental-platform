@@ -18,7 +18,7 @@ import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay"
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
 const NAV_LINKS = [
-  { label: "Apartments", href: "/browse" },
+  { label: "Browse Apartments", href: "/browse" },
   { label: "For owners", href: "/forowners" },
 ];
 
@@ -85,7 +85,7 @@ export default function AppNavbar() {
 
   return (
     <header className="public-navbar sticky top-0 z-40 w-full min-w-0 border-b border-divider bg-background/95 backdrop-blur-md">
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="flex min-h-20 items-center justify-between gap-3">
 
           {/* Left: hamburger + logo */}
