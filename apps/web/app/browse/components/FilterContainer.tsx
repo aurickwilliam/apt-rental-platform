@@ -391,6 +391,41 @@ const SizeSection = memo(function SizeSection({
   );
 });
 
+// Toggle chip for the multi-select groups. Picked: soft blue with APT blue text
+// and ring; resting: neutral, with a transparent border so toggling never
+// shifts the layout. Keyboard-operable like the checkboxes beside it.
+function FilterChip({
+  label,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Chip
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      variant="secondary"
+      onClick={onToggle}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onToggle();
+      }}
+      className={`cursor-pointer border focus-visible:outline-2 focus-visible:outline-primary ${
+        selected
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-transparent"
+      }`}
+    >
+      {label}
+    </Chip>
+  );
+}
+
 export default function FilterContainer({ basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
@@ -530,10 +565,10 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
           className="flex flex-col"
         >
           {LOCATIONS.map((option) => (
-            <Checkbox key={option} value={option}>
+            <Checkbox key={option} value={option} className="group">
               <Checkbox.Content>
-                <Checkbox.Control>
-                  <Checkbox.Indicator />
+                <Checkbox.Control className="size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                  <Checkbox.Indicator className="[&_svg]:text-white!" />
                 </Checkbox.Control>
                 {option}
               </Checkbox.Content>
@@ -550,15 +585,12 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
           {APARTMENT_TYPES.map((type) => {
             const selected = filters.aptTypes.includes(type);
             return (
-              <Chip
+              <FilterChip
                 key={type}
-                variant={selected ? "primary" : "secondary"}
-                color={selected ? "accent" : "default"}
-                onClick={() => toggleArray("aptTypes", type)}
-                className="cursor-pointer"
-              >
-                {type}
-              </Chip>
+                label={type}
+                selected={selected}
+                onToggle={() => toggleArray("aptTypes", type)}
+              />
             );
           })}
         </div>
@@ -567,7 +599,9 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
 
         {/* Sort By */}
         <p className="text-sm font-medium mb-2">Sort By</p>
+        {/* Shares the checkout radios' look: outlined ring, APT blue fill when picked. */}
         <RadioGroup
+          className="payment-method-radios gap-3"
           name="sort"
           value={filters.sortBy}
           onChange={(val) => updateFilter("sortBy", val)}
@@ -643,15 +677,12 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
           {FURNISHED_TYPES.map((option) => {
             const selected = filters.furnishing.includes(option);
             return (
-              <Chip
+              <FilterChip
                 key={option}
-                variant={selected ? "primary" : "secondary"}
-                color={selected ? "accent" : "default"}
-                onClick={() => toggleArray("furnishing", option)}
-                className="cursor-pointer"
-              >
-                {option}
-              </Chip>
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("furnishing", option)}
+              />
             );
           })}
         </div>
@@ -662,15 +693,12 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
           {FLOOR_LEVELS.map((option) => {
             const selected = filters.floorLevel.includes(option);
             return (
-              <Chip
+              <FilterChip
                 key={option}
-                variant={selected ? "primary" : "secondary"}
-                color={selected ? "accent" : "default"}
-                onClick={() => toggleArray("floorLevel", option)}
-                className="cursor-pointer"
-              >
-                {option}
-              </Chip>
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("floorLevel", option)}
+              />
             );
           })}
         </div>
@@ -681,15 +709,12 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
           {LEASE_DURATIONS.map((option) => {
             const selected = filters.leaseDuration.includes(option);
             return (
-              <Chip
+              <FilterChip
                 key={option}
-                variant={selected ? "primary" : "secondary"}
-                color={selected ? "accent" : "default"}
-                onClick={() => toggleArray("leaseDuration", option)}
-                className="cursor-pointer"
-              >
-                {option}
-              </Chip>
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("leaseDuration", option)}
+              />
             );
           })}
         </div>

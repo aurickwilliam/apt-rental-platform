@@ -74,13 +74,13 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
                 filtered.map((perk) => (
                   <Checkbox
                     key={perk.id}
-                    className="w-full"
+                    className="group w-full"
                     isSelected={selected.includes(perk.id)}
                     onChange={() => toggle(perk.id)}
                   >
                     <Checkbox.Content>
-                      <Checkbox.Control className="shadow-none border-2">
-                        <Checkbox.Indicator />
+                      <Checkbox.Control className="size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                        <Checkbox.Indicator className="[&_svg]:text-white!" />
                       </Checkbox.Control>
                       <span className="flex items-center gap-2">
                         <perk.icon size={14} className="text-muted-foreground shrink-0" />
