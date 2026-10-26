@@ -95,6 +95,9 @@ const ATTACHMENT_OPTIONS = [
 ] as const;
 
 const THUMB_SIZE = 64;
+// The "+" button (size-12) is the only thing that gives the input row its height;
+// it unmounts once there is text, so the row and the paste wrapper keep this floor.
+const INPUT_ROW_MIN_HEIGHT = 48;
 
 export default function ChatBox({
   chatValue,
@@ -250,7 +253,7 @@ export default function ChatBox({
         </ScrollView>
       )}
 
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2" style={{ minHeight: INPUT_ROW_MIN_HEIGHT }}>
         {!hasText && (
           <Menu>
             <Menu.Trigger asChild>
@@ -278,7 +281,7 @@ export default function ChatBox({
 
         {/* The keyboard's own Paste button (cursor menu) lands here: the wrapper
             intercepts image pastes natively, while text pastes insert as usual. */}
-        <TextInputWrapper style={{ flex: 1 }} onPaste={handlePaste}>
+        <TextInputWrapper style={{ flex: 1, minHeight: INPUT_ROW_MIN_HEIGHT }} onPaste={handlePaste}>
           <TextField
             isDisabled={isDisabled}
             className="flex-1"
