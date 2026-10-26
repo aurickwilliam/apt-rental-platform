@@ -31,11 +31,11 @@ interface PinOverlay extends GoogleOverlayView {
 
 // Price pills are plain HTML overlays instead of Google markers: no Cloud Map
 // ID is needed, and the pills pick up the app's surface tokens in light and
-// dark mode. Resting is a white pill; hovered or selected inverts to dark.
+// dark mode. Resting is a surface pill; hovered or selected turns APT blue.
 const PILL_BASE =
   "absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer select-none whitespace-nowrap rounded-full border px-2.5 py-1 font-nunito text-sm font-semibold shadow-md transition-transform duration-150";
 const PILL_REST = "border-border bg-surface text-foreground hover:scale-105";
-const PILL_ACTIVE = "scale-110 border-foreground bg-foreground text-background";
+const PILL_ACTIVE = "scale-110 border-primary bg-primary text-primary-foreground";
 
 let pinClass: (new (pin: MapPin, handlers: RefObject<PinHandlers>) => PinOverlay) | null = null;
 

@@ -9,7 +9,9 @@ import { IconList, IconMap2 } from "@tabler/icons-react";
 import { bboxContains, expandBBox, filterPinsToVisible, type BBox } from "@repo/utils";
 import { createClient } from "@repo/supabase/browser";
 
+import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useFavoriteActions } from "@/hooks/use-favorite-actions";
 
 import FilterDrawerButton from "../../components/FilterDrawerButton";
 import SearchContainer from "../../components/SearchContainer";
@@ -60,6 +62,14 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
   // Phones show one pane at a time; the map first, like the mobile app.
   const [phonePane, setPhonePane] = useState<"map" | "list">("map");
   const lastViewRef = useRef<MapView | null>(null);
+  const { isFavorite, activeFavoriteId, onToggleFavorite, isAuthModalOpen, setIsAuthModalOpen } =
+    useFavoriteActions();
+  const toggleFavorite = useCallback(
+    (id: string) => {
+      void onToggleFavorite(id);
+    },
+    [onToggleFavorite],
+  );
 
   const mapUnavailable = !HAS_MAP_KEY || loadFailed;
   const activeVisible = visible ?? (mapUnavailable ? DEFAULT_MAP_BBOX : null);
@@ -176,6 +186,9 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
             selectedId={selectedId}
             hoveredId={hoveredId}
             onHover={setHoveredId}
+            isFavorite={isFavorite}
+            activeFavoriteId={activeFavoriteId}
+            onToggleFavorite={toggleFavorite}
             basePath={basePath}
           />
         </section>
@@ -193,17 +206,29 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
             onHover={setHoveredId}
             onViewportChange={handleViewportChange}
             onUnavailable={() => setLoadFailed(true)}
-          >
-            {selected ? (
-              <MapPreviewCard
-                apartment={selected}
-                onOpen={() => router.push(`${basePath}/${selected.id}`)}
-                onClose={() => setSelectedId(null)}
-              />
-            ) : null}
-          </BrowseMap>
+            popupAnchor={selected ? { id: selected.id, lat: selected.latitude, lng: selected.longitude } : null}
+            popup={
+              selected ? (
+                <MapPreviewCard
+                  apartment={selected}
+                  isFavorite={isFavorite(selected.id)}
+                  isFavoriteLoading={activeFavoriteId === selected.id}
+                  onToggleFavorite={() => toggleFavorite(selected.id)}
+                  onOpen={() => router.push(`${basePath}/${selected.id}`)}
+                  onClose={() => setSelectedId(null)}
+                />
+              ) : null
+            }
+          />
         </section>
       </div>
+
+      <AuthPromptModal
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        title="Sign in to save favorites"
+        description="Create an account to save apartments and access them anytime."
+      />
 
       <Button
         size="lg"

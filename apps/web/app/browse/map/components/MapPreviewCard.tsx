@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 
-import { Button, Card } from "@heroui/react";
-import { IconShieldCheckFilled, IconStarFilled, IconX } from "@tabler/icons-react";
+import { Button, Spinner } from "@heroui/react";
+import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled, IconX } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 
@@ -13,13 +13,23 @@ import type { MapApartment } from "../../lib/fetch-map-results";
 
 interface MapPreviewCardProps {
   apartment: MapApartment;
+  isFavorite: boolean;
+  isFavoriteLoading: boolean;
+  onToggleFavorite: () => void;
   onOpen: () => void;
   onClose: () => void;
 }
 
-// Floating card over the map for the selected pin, like the web counterpart of
-// mobile's bottom preview sheet: photo, name, area, rent and rating.
-export default function MapPreviewCard({ apartment, onOpen, onClose }: MapPreviewCardProps) {
+// Card that opens beside a selected pin (Airbnb-style): photo with the heart and
+// close buttons on it, then name, area, specs, rent and rating.
+export default function MapPreviewCard({
+  apartment,
+  isFavorite,
+  isFavoriteLoading,
+  onToggleFavorite,
+  onOpen,
+  onClose,
+}: MapPreviewCardProps) {
   const specs = [
     apartment.bedrooms != null ? `${apartment.bedrooms} bed` : null,
     apartment.bathrooms != null ? `${apartment.bathrooms} bath` : null,
@@ -27,52 +37,80 @@ export default function MapPreviewCard({ apartment, onOpen, onClose }: MapPrevie
   ].filter(Boolean);
 
   return (
-    <div className="absolute inset-x-3 bottom-3 z-10 mx-auto max-w-sm">
-      <Card className="relative cursor-pointer flex-row gap-0 overflow-hidden rounded-2xl p-0 shadow-xl">
+    <div className="w-72 overflow-hidden rounded-2xl bg-surface text-foreground shadow-2xl ring-1 ring-black/5">
+      <div className="relative">
         <button
           type="button"
           onClick={onOpen}
           aria-label={`View ${apartment.name}`}
-          className="flex min-w-0 flex-1 cursor-pointer items-stretch text-left focus-visible:outline-2 focus-visible:outline-primary"
+          className="block aspect-[4/3] w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
         >
-          <div className="relative w-28 shrink-0 self-stretch">
-            <Image
-              src={apartment.image}
-              alt=""
-              fill
-              sizes="112px"
-              unoptimized={!canOptimizePublicApartmentImage(apartment.image)}
-              className="object-cover"
-            />
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5 p-3 pr-10">
-            <p className="truncate font-nunito text-[15px] font-semibold">{apartment.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{apartment.location}</p>
-            {specs.length > 0 ? <p className="truncate text-xs text-muted-foreground">{specs.join(" · ")}</p> : null}
-            <div className="mt-1 flex items-center justify-between gap-2">
-              <p className="text-[15px] font-medium text-primary">{formatPesoDisplay(apartment.price)}</p>
-              <div className="flex items-center gap-1 text-sm">
-                {apartment.isVerified ? (
-                  <IconShieldCheckFilled size={16} className="text-green-500" aria-label="Verified" />
-                ) : null}
-                <IconStarFilled size={16} className="text-yellow-400" />
-                {apartment.rating === 0 ? "-" : apartment.rating}
-              </div>
-            </div>
-          </div>
+          <Image
+            src={apartment.image}
+            alt=""
+            width={400}
+            height={300}
+            unoptimized={!canOptimizePublicApartmentImage(apartment.image)}
+            className="size-full object-cover"
+          />
         </button>
 
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="sm"
-          onPress={onClose}
-          aria-label="Close preview"
-          className="absolute top-1.5 right-1.5 cursor-pointer"
-        >
-          <IconX size={16} />
-        </Button>
-      </Card>
+        {apartment.isVerified ? (
+          <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-600">
+            <IconShieldCheckFilled size={14} />
+            Verified
+          </span>
+        ) : null}
+
+        <div className="absolute top-2 right-2 flex gap-2">
+          <Button
+            isIconOnly
+            variant="ghost"
+            size="sm"
+            className="cursor-pointer bg-white/90 shadow-sm"
+            aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+            isPending={isFavoriteLoading}
+            onPress={onToggleFavorite}
+          >
+            {({ isPending }) =>
+              isPending ? (
+                <Spinner color="current" size="sm" />
+              ) : isFavorite ? (
+                <IconHeartFilled size={18} className="text-red-500" />
+              ) : (
+                <IconHeart size={18} className="text-grey-500" />
+              )
+            }
+          </Button>
+          <Button
+            isIconOnly
+            variant="ghost"
+            size="sm"
+            className="cursor-pointer bg-white/90 shadow-sm"
+            aria-label="Close preview"
+            onPress={onClose}
+          >
+            <IconX size={18} className="text-grey-500" />
+          </Button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className="block w-full cursor-pointer p-3 text-left focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 truncate font-nunito text-[15px] font-semibold">{apartment.name}</p>
+          <span className="flex shrink-0 items-center gap-1 text-sm">
+            <IconStarFilled size={16} className="text-yellow-400" />
+            {apartment.rating === 0 ? "-" : apartment.rating}
+          </span>
+        </div>
+        <p className="truncate text-sm text-muted-foreground">{apartment.location}</p>
+        {specs.length > 0 ? <p className="truncate text-sm text-muted-foreground">{specs.join(" · ")}</p> : null}
+        <p className="mt-1.5 text-[15px] font-medium text-primary">{formatPesoDisplay(apartment.price)}</p>
+      </button>
     </div>
   );
 }

@@ -7,9 +7,7 @@ import { Button, Spinner } from "@heroui/react";
 import { IconMapPin } from "@tabler/icons-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
-import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
-import { useFavoriteActions } from "@/hooks/use-favorite-actions";
 
 import { MAP_LIST_GRID_CLASS } from "../../lib/browse-layout";
 import { MAP_RESULT_LIMIT, type MapApartment } from "../../lib/fetch-map-results";
@@ -28,6 +26,10 @@ interface MapResultsListProps {
   selectedId: string | null;
   hoveredId: string | null;
   onHover: (id: string | null) => void;
+  /** Favorites state and toggle, owned by the page so the map's preview card shares them. */
+  isFavorite: (id: string) => boolean;
+  activeFavoriteId: string | null;
+  onToggleFavorite: (id: string) => void;
   basePath: string;
 }
 
@@ -84,11 +86,12 @@ export default function MapResultsList({
   selectedId,
   hoveredId,
   onHover,
+  isFavorite,
+  activeFavoriteId,
+  onToggleFavorite,
   basePath,
 }: MapResultsListProps) {
   const router = useRouter();
-  const { isFavorite, activeFavoriteId, onToggleFavorite, isAuthModalOpen, setIsAuthModalOpen } =
-    useFavoriteActions();
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
 
   const registerRef = (id: string, element: HTMLDivElement | null) => {
@@ -158,13 +161,6 @@ export default function MapResultsList({
           Showing the first {MAP_RESULT_LIMIT}. Zoom in to see the rest.
         </p>
       ) : null}
-
-      <AuthPromptModal
-        isOpen={isAuthModalOpen}
-        onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
-      />
     </div>
   );
 }

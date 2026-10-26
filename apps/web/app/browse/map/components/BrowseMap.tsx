@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import { Button, toast } from "@heroui/react";
 import { IconCurrentLocation } from "@tabler/icons-react";
@@ -11,6 +12,7 @@ import { getGoogleMaps, loadGoogleMaps, type GoogleMapInstance } from "@/lib/goo
 
 import type { MapView } from "../../lib/map-view";
 import { useMapPins, type MapPin } from "./useMapPins";
+import { useMapPopup } from "./useMapPopup";
 
 /** Wait for the camera to settle before reporting it, so a drag is one search, not hundreds. */
 const IDLE_DEBOUNCE_MS = 350;
@@ -27,9 +29,14 @@ interface BrowseMapProps {
   onViewportChange: (visible: BBox, view: MapView) => void;
   /** The map failed to load; the page falls back to listing the default area. (A missing key is detected by the page.) */
   onUnavailable: () => void;
-  /** Floating UI over the map, e.g. the selected listing's preview card. */
-  children?: ReactNode;
+  /** Where the popup opens: a point on the map, above its pin. `id` restarts it for a new listing. */
+  popupAnchor?: { id: string; lat: number; lng: number } | null;
+  /** The popup content, e.g. the selected listing's preview card. */
+  popup?: ReactNode;
 }
+
+/** Breathing room kept between an opened popup and the map's edges. */
+const POPUP_EDGE_PADDING_PX = 16;
 
 type Status = "loading" | "ready" | "missing-key" | "error";
 
@@ -42,7 +49,8 @@ export default function BrowseMap({
   onHover,
   onViewportChange,
   onUnavailable,
-  children,
+  popupAnchor = null,
+  popup,
 }: BrowseMapProps) {
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -59,7 +67,25 @@ export default function BrowseMap({
   });
 
   useMapPins({ map, pins, selectedId, hoveredId, onSelect: (id) => onSelect(id), onHover });
+  const popupElement = useMapPopup(map, popupAnchor, popupAnchor?.id ?? null);
 
+  // A popup opened near an edge would be cut off: pan the map just enough to
+  // bring all of it into view.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!map || !popupElement || !container) return;
+    const frame = requestAnimationFrame(() => {
+      const bounds = container.getBoundingClientRect();
+      const card = popupElement.getBoundingClientRect();
+      if (card.width === 0) return;
+      const pad = POPUP_EDGE_PADDING_PX;
+      const shiftX = Math.max(0, bounds.left + pad - card.left) - Math.max(0, card.right - (bounds.right - pad));
+      const shiftY = Math.max(0, bounds.top + pad - card.top) - Math.max(0, card.bottom - (bounds.bottom - pad));
+      // The content must move by (shiftX, shiftY), which is the map center moving the other way.
+      if (shiftX !== 0 || shiftY !== 0) map.panBy(-shiftX, -shiftY);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [map, popupElement]);
   useEffect(() => {
     if (!apiKey || !resolvedTheme) return;
 
@@ -196,7 +222,7 @@ export default function BrowseMap({
         <IconCurrentLocation size={20} />
       </Button>
 
-      {children}
+      {popupElement && popup ? createPortal(popup, popupElement) : null}
     </div>
   );
 }

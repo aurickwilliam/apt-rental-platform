@@ -34,6 +34,8 @@ export interface GoogleMapProjection {
 
 export interface GoogleMapPanes {
   overlayMouseTarget: HTMLElement;
+  /** Topmost pane, above the pins: for popups anchored to a point. */
+  floatPane: HTMLElement;
 }
 
 export interface GoogleOverlayView {
@@ -47,6 +49,8 @@ export interface GoogleMapInstance {
   addListener(eventName: string, handler: (e: GoogleMapMouseEvent) => void): void;
   setCenter(position: GoogleLatLngLiteral): void;
   panTo(position: GoogleLatLngLiteral): void;
+  /** Moves the center by a pixel distance (positive x/y move the center right/down). */
+  panBy(x: number, y: number): void;
   setZoom(zoom: number): void;
   getCenter(): GoogleLatLng | undefined;
   getZoom(): number | undefined;
