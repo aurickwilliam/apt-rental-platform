@@ -41,7 +41,7 @@ export default function SidebarNotificationsItem({
           onClick={openDrawer}
           aria-haspopup="dialog"
           aria-label={hasUnread ? `Notifications, ${unreadCount} unread` : collapsed ? "Notifications" : undefined}
-          className={`button--bare group relative flex min-h-11 w-full cursor-pointer items-center rounded-xl text-sm font-semibold text-sidebar-foreground/70 transition-all hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"}`}
+          className={`button--bare group relative flex min-h-11 w-full cursor-pointer items-center rounded-xl text-sm font-semibold text-sidebar-foreground/70 transition-all hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "justify-start gap-3 py-2.5 pl-3 pr-7"}`}
         >
           <IconBell
             size={collapsed ? 22 : 20}
