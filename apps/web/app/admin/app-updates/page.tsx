@@ -2,8 +2,11 @@ import { IconDeviceMobile } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
 import { APP_RELEASE_PLATFORM } from "@repo/utils";
 import { requireAdmin } from "../_lib/require-admin";
+import LiveReleaseCard from "./LiveReleaseCard";
 import PublishReleaseModal from "./PublishReleaseModal";
+import ReleaseChecklist from "./ReleaseChecklist";
 import ReleaseHistory, { type ReleaseHistoryEntry } from "./ReleaseHistory";
+import UserPreviewCard from "./UserPreviewCard";
 
 export const dynamic = "force-dynamic";
 const HISTORY_LIMIT = 50;
@@ -79,7 +82,37 @@ export default async function AppUpdatesPage() {
           The current release could not be loaded, so the form starts empty. Refresh to try again.
         </p>
       )}
-      <ReleaseHistory entries={history} error={Boolean(historyError)} />
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+        <ReleaseHistory entries={history} error={Boolean(historyError)} />
+        <div className="space-y-5">
+          <LiveReleaseCard
+            release={
+              release
+                ? {
+                    latestVersion: release.latest_version,
+                    minVersion: release.min_version,
+                    apkUrl: release.apk_url,
+                    // The newest history entry is the live release.
+                    publishedAt: history[0]?.publishedAt ?? null,
+                    publishedBy: history[0]?.publishedBy ?? null,
+                  }
+                : null
+            }
+          />
+          <UserPreviewCard
+            release={
+              release
+                ? {
+                    latestVersion: release.latest_version,
+                    minVersion: release.min_version,
+                    releaseNotes: release.release_notes,
+                  }
+                : null
+            }
+          />
+          <ReleaseChecklist latestVersion={release?.latest_version ?? null} apkUrl={release?.apk_url ?? null} />
+        </div>
+      </div>
     </div>
   );
 }

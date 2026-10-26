@@ -82,7 +82,7 @@ export default function PublishReleaseModal({ current }: PublishReleaseModalProp
             <Modal.Dialog>
               <Modal.CloseTrigger isDisabled={pending} />
               <Modal.Header>
-                <Modal.Heading className="font-medium text-2xl">Publish a release</Modal.Heading>
+                <Modal.Heading className="font-nunito text-2xl font-bold text-primary">Publish a release</Modal.Heading>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Android apps check this on launch. Saving replaces the live release for everyone.
                 </p>
@@ -149,11 +149,12 @@ export default function PublishReleaseModal({ current }: PublishReleaseModalProp
 
                   {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
                 </Modal.Body>
-                <Modal.Footer>
-                  <Button type="button" variant="secondary" onPress={() => setIsFormOpen(false)} isDisabled={pending}>
+                <Modal.Footer className="grid grid-cols-2 gap-3">
+                  <Button type="button" variant="secondary" onPress={() => setIsFormOpen(false)} isDisabled={pending} className="w-full">
                     Cancel
                   </Button>
-                  <Button type="submit" variant="primary" isDisabled={pending}>
+                  <Button type="submit" variant="primary" isDisabled={pending} className="w-full">
+                    <IconRocket size={18} aria-hidden="true" />
                     {pending ? "Publishing…" : "Publish release"}
                   </Button>
                 </Modal.Footer>

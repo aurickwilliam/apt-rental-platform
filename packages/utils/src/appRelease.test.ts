@@ -3,6 +3,7 @@ import {
   getAppUpdateStatus,
   isSecureDownloadUrl,
   parseAppVersion,
+  suggestNextAppVersion,
   validateAppRelease,
 } from './appRelease';
 
@@ -96,5 +97,17 @@ describe('validateAppRelease', () => {
 
   it('caps the release notes', () => {
     expect(validateAppRelease({ ...valid, releaseNotes: 'x'.repeat(1001) }).releaseNotes).toBeDefined();
+  });
+});
+
+describe('suggestNextAppVersion', () => {
+  it('raises the patch number', () => {
+    expect(suggestNextAppVersion('1.1.0')).toBe('1.1.1');
+    expect(suggestNextAppVersion('2.0.9')).toBe('2.0.10');
+  });
+
+  it('returns null when the version cannot be read', () => {
+    expect(suggestNextAppVersion('1.1')).toBeNull();
+    expect(suggestNextAppVersion(null)).toBeNull();
   });
 });
