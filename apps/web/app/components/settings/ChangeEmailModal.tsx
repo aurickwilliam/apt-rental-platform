@@ -9,7 +9,7 @@ import { IconMail, IconShieldCheck } from "@tabler/icons-react";
 import {
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
-  EmailChangeError,
+  emailChangeErrorMessage,
   getEmailChangeErrorField,
   type EmailChangeErrorReason,
   type EmailChangeInbox,
@@ -22,6 +22,7 @@ import {
   verifyEmailChangeCode,
 } from "@/app/(auth)/actions/change-email";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import CodeInput from "@/app/components/inputs/CodeInput";
 import PasswordField from "@/app/components/inputs/PasswordField";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -75,6 +76,7 @@ interface ChangeEmailModalProps {
 // state and are cleared on close.
 export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailModalProps) {
   const router = useRouter();
+  const { language } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -115,7 +117,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
       if (cancelled) return;
       if (account.error) {
         setLoadingAccount(false);
-        setError(new EmailChangeError(account.error).message);
+        setError(emailChangeErrorMessage(language, account.error));
         return;
       }
       setCurrentEmail(account.email ?? "");
@@ -124,7 +126,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
     return () => {
       cancelled = true;
     };
-  }, [isOpen]);
+  }, [isOpen, language]);
 
 
   const newEmailError = (() => {
@@ -174,7 +176,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
 
   const showFlowError = (reason: EmailChangeErrorReason) => {
     if (reason === "no_pending_change") startOver();
-    setError(new EmailChangeError(reason).message);
+    setError(emailChangeErrorMessage(language, reason));
   };
 
   const handleRequest = (event: React.FormEvent<HTMLFormElement>) => {
@@ -198,7 +200,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
         return;
       }
 
-      const message = new EmailChangeError(result.error).message;
+      const message = emailChangeErrorMessage(language, result.error);
       const field = getEmailChangeErrorField(result.error);
       if (field === "new") setServerNewEmailError(message);
       else if (field === "current") setServerCurrentPasswordError(message);
@@ -217,7 +219,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
         setCode("");
         if (result.error) {
           if (getEmailChangeErrorField(result.error) === "code") {
-            setCodeError(new EmailChangeError(result.error).message);
+            setCodeError(emailChangeErrorMessage(language, result.error));
           } else {
             showFlowError(result.error);
           }
@@ -260,7 +262,7 @@ export default function ChangeEmailModal({ isOpen, onOpenChange }: ChangeEmailMo
       // Restart the cooldown either way: after a rate limit the server wants a wait too.
       restart();
       if (reason) {
-        if (getEmailChangeErrorField(reason) === "code") setCodeError(new EmailChangeError(reason).message);
+        if (getEmailChangeErrorField(reason) === "code") setCodeError(emailChangeErrorMessage(language, reason));
         else showFlowError(reason);
         return;
       }

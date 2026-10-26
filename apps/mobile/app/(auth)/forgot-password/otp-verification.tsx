@@ -18,6 +18,7 @@ import { IconBrandGoogle, IconChevronLeft } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
+import { useTranslation } from "@/hooks/i18n";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
   requestPasswordRecovery,
@@ -25,6 +26,7 @@ import {
 } from "@/service/auth/passwordRecoveryService";
 import {
   PasswordError,
+  passwordErrorMessage,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
 } from "@repo/utils";
@@ -36,6 +38,7 @@ const GENERIC_ERROR = "Something went wrong. Please try again.";
 export default function RecoveryCodeVerification() {
   const router = useRouter();
   const { colors } = useColors();
+  const { language } = useTranslation();
 
   const email = usePasswordRecoveryStore((state) => state.email);
   const resetRecovery = usePasswordRecoveryStore((state) => state.reset);
@@ -65,10 +68,10 @@ export default function RecoveryCodeVerification() {
 
   const showError = (err: unknown) => {
     if (err instanceof PasswordError && INLINE_CODE_ERRORS.has(err.reason)) {
-      setCodeError(err.message);
+      setCodeError(passwordErrorMessage(language, err.reason));
       return;
     }
-    setError(err instanceof PasswordError ? err.message : GENERIC_ERROR);
+    setError(err instanceof PasswordError ? passwordErrorMessage(language, err.reason) : GENERIC_ERROR);
   };
 
   const handleVerify = async (value: string = code) => {

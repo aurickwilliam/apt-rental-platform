@@ -10,6 +10,7 @@ import { Button, Spinner } from 'heroui-native';
 
 import { usePasswordValidation } from '@repo/hooks';
 import { useColors } from '@/hooks/useTheme';
+import { useTranslation } from '@/hooks/i18n';
 import { usePasswordRecoveryStore } from '@/stores/usePasswordRecoveryStore';
 import { clearQueryClient } from '@/utils/queryClient';
 import {
@@ -17,7 +18,7 @@ import {
   hasActiveRecoverySession,
   updateRecoveredPassword,
 } from '@/service/auth/passwordRecoveryService';
-import { PasswordError } from "@repo/utils";
+import { PasswordError, passwordErrorMessage } from "@repo/utils";
 
 
 type SessionCheck = 'checking' | 'valid' | 'invalid';
@@ -30,6 +31,7 @@ export default function ResetPassword() {
   const router = useRouter();
   const navigation = useNavigation();
   const { colors } = useColors();
+  const { language } = useTranslation();
   const resetRecovery = usePasswordRecoveryStore((state) => state.reset);
 
   const [submitted, setSubmitted] = useState<boolean>(false);
@@ -165,13 +167,13 @@ export default function ResetPassword() {
         console.error('Password reset failed:', err instanceof Error ? err.name : typeof err);
         setError(GENERIC_ERROR);
       } else if (INLINE_PASSWORD_ERRORS.has(err.reason)) {
-        setServerPasswordError(err.message);
+        setServerPasswordError(passwordErrorMessage(language, err.reason));
       } else if (err.reason === 'session_expired') {
         // Restart only after the message is read (see handleErrorClose).
         setRestartAfterError(true);
-        setError(err.message);
+        setError(passwordErrorMessage(language, err.reason));
       } else {
-        setError(err.message);
+        setError(passwordErrorMessage(language, err.reason));
       }
     } finally {
       setSaving(false);

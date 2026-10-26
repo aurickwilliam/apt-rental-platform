@@ -20,13 +20,14 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import { RECOVERY_RESET_PATH } from "@repo/supabase/password-recovery";
 import {
   isValidEmail,
-  PasswordError,
+  passwordErrorMessage,
   type PasswordErrorReason,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import CodeInput from "@/app/components/inputs/CodeInput";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -40,10 +41,6 @@ type Step = "email" | "code" | "google_only";
 // Errors shown under the code input; anything else shows the error banner.
 const INLINE_CODE_ERRORS = new Set<PasswordErrorReason>(["invalid_or_expired_code", "rate_limited"]);
 const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
-
-function messageFor(reason: PasswordErrorReason): string {
-  return new PasswordError(reason).message;
-}
 
 function BackToSignIn() {
   return (
@@ -60,6 +57,8 @@ function BackToSignIn() {
 // component's state: never in the URL, storage or a shared context.
 export default function ForgotPasswordClient() {
   const router = useRouter();
+  const { language } = useTranslation();
+  const messageFor = (reason: PasswordErrorReason) => passwordErrorMessage(language, reason);
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");

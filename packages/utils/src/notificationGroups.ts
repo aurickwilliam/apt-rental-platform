@@ -27,6 +27,8 @@
  * Counts describe the loaded feed and are never presented as exhaustive.
  */
 
+import { translate, type LanguageCode } from "@repo/i18n";
+
 import { sortNotificationsNewestFirst } from "./notificationOrder";
 
 /** Gap between consecutive messages that keeps one rolling group open. */
@@ -193,8 +195,10 @@ export function groupNotificationFeed<T extends GroupableNotification>(
 }
 
 /** Summary line shared by the group row and its accessible name. */
-export function formatMessageGroupCount(count: number): string {
-  return `Sent you ${count} ${count === 1 ? "message" : "messages"}`;
+export function formatMessageGroupCount(count: number, language: LanguageCode = "en"): string {
+  return count === 1
+    ? translate(language, "notifications.group.sentOne")
+    : translate(language, "notifications.group.sentOther", { count });
 }
 
 export interface NotificationGroupLabelParts {
@@ -208,16 +212,14 @@ export interface NotificationGroupLabelParts {
  * Accessible name for a group summary: the row is one button, so its label
  * spells out the sender, count, latest preview and unread state.
  */
-export function composeNotificationGroupLabel({
-  senderName,
-  count,
-  latest,
-  isUnread,
-}: NotificationGroupLabelParts): string {
-  const parts: string[] = [senderName, formatMessageGroupCount(count)];
+export function composeNotificationGroupLabel(
+  { senderName, count, latest, isUnread }: NotificationGroupLabelParts,
+  language: LanguageCode = "en",
+): string {
+  const parts: string[] = [senderName, formatMessageGroupCount(count, language)];
 
-  if (latest) parts.push(`Latest: ${latest}`);
-  if (isUnread) parts.push("unread");
+  if (latest) parts.push(translate(language, "notifications.group.latest", { preview: latest }));
+  if (isUnread) parts.push(translate(language, "notifications.unreadLabel"));
 
   return parts.join(", ");
 }

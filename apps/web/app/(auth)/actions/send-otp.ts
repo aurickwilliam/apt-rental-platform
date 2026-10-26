@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import { getEmailCodeRequestError } from "@repo/utils";
+import { emailCodeRequestErrorMessage } from "@repo/utils";
+import { getServerLocale } from "@/lib/i18n/locale";
 import { validateBirthDate } from "@/lib/birth-date";
 
 interface SendEmailOtpResult {
@@ -27,6 +28,8 @@ export async function sendEmailOtp(email: string, password: string, firstName: s
     },
   });
 
-  if (error) return { error: getEmailCodeRequestError(error.message) };
+  if (error) {
+    return { error: emailCodeRequestErrorMessage(await getServerLocale(), error.message) };
+  }
   return { success: true };
 }

@@ -16,14 +16,15 @@ import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMis
 
 import {
   MAX_OTP_ATTEMPTS,
-  getEmailCodeRequestError,
-  getOtpAttemptError,
+  emailCodeRequestErrorMessage,
+  otpAttemptErrorMessage,
   getProfileSubmitError,
   parseResendWaitSeconds,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
 import { useCountdown } from 'hooks/auth'
+import { useTranslation } from 'hooks/i18n'
 
 import {
   CloseButton,
@@ -43,6 +44,7 @@ export default function OTPVerification() {
   const isConfirmMode = (Array.isArray(mode) ? mode[0] : mode) === 'confirm'
 
   const { colors } = useColors();
+  const { language } = useTranslation();
 
   const { data, reset } = useRegistrationStore()
   const [loading, setLoading] = useState(false)
@@ -90,7 +92,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(getEmailCodeRequestError(resendError.message))
+        setError(emailCodeRequestErrorMessage(language, resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -189,7 +191,7 @@ export default function OTPVerification() {
         clearOtp()
 
         if (remaining <= 0) setOtpLocked(true)
-        setOtpError(getOtpAttemptError(remaining))
+        setOtpError(otpAttemptErrorMessage(language, remaining))
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile

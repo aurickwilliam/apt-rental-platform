@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 import { sortNotificationsNewestFirst } from "../../../packages/utils/src/notificationOrder.ts";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 
 // The module under test imports @repo/utils for its sort; transpile it the
 // same way the drawer harness transpiles TSX and hand it the real helper.
@@ -32,6 +33,7 @@ const {
   groupNotificationFeed,
 } = load(`${"../../../packages/utils/src/"}notificationGroups.ts`, {
   "./notificationOrder": { sortNotificationsNewestFirst },
+  "@repo/i18n": { translate },
 });
 
 const SECOND = 1_000;

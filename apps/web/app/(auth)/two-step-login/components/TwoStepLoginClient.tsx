@@ -5,8 +5,9 @@ import Image from "next/image";
 import { Button } from "@heroui/react";
 
 import { createClient } from "@repo/supabase/browser";
-import { getOtpAttemptError } from "@repo/utils";
+import { otpAttemptErrorMessage } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import CodeInput from "@/app/components/inputs/CodeInput";
 import { ADMIN_HOME, qrCodeImageSrc } from "@/lib/admin-mfa";
@@ -31,6 +32,7 @@ interface TwoStepLoginClientProps {
 }
 
 export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientProps) {
+  const { language } = useTranslation();
   const [enrollment, setEnrollment] = useState<PendingEnrollment | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +108,7 @@ export default function TwoStepLoginClient({ step, adding }: TwoStepLoginClientP
         setError(
           remaining <= 0
             ? "Too many incorrect codes. Sign out and try again later."
-            : getOtpAttemptError(remaining),
+            : otpAttemptErrorMessage(language, remaining),
         );
         return;
       }

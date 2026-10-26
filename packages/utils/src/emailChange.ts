@@ -1,6 +1,7 @@
 import { type AuthIdentityUser, hasEmailPasswordIdentity } from "./authIdentity";
 import { describeAuthError, type AuthErrorLike } from "./passwordErrors";
 import { isValidEmail } from "./validateEmail";
+import { translate, type LanguageCode, type TranslationKey } from "@repo/i18n";
 
 // Change email while signed in, shared by mobile (emailChangeService) and web
 // (the change-email server actions), each passing its own Supabase auth.
@@ -30,30 +31,41 @@ export type EmailChangeErrorReason =
   | "network"
   | "unknown";
 
-const EMAIL_CHANGE_ERROR_MESSAGES: Record<EmailChangeErrorReason, string> = {
-  invalid_email: "Enter a valid email address.",
-  same_email: "Enter a different email address from your current one.",
-  not_eligible: "Only email and password accounts can change their email.",
-  wrong_current_password: "Your current password is incorrect.",
-  invalid_or_expired_code:
-    "That code is incorrect or has expired. Check the code or request a new one.",
-  rate_limited: "Too many attempts. Please wait a minute before trying again.",
-  session_expired: "Your session has expired. Please sign in again.",
-  reauthentication_required: "For your security, please sign in again before changing your email.",
+const EMAIL_CHANGE_ERROR_KEYS: Record<EmailChangeErrorReason, TranslationKey> = {
+  invalid_email: "validation.email.invalid",
+  same_email: "auth.error.sameEmail",
+  not_eligible: "auth.error.notEligible",
+  wrong_current_password: "auth.error.wrongCurrentPassword",
+  invalid_or_expired_code: "auth.error.invalidOrExpiredCode",
+  rate_limited: "auth.error.rateLimited",
+  session_expired: "auth.error.sessionExpiredGeneric",
+  reauthentication_required: "auth.error.reauthenticationEmail",
   // Generic on purpose: never reveal whether an address is registered.
-  email_unavailable: "This email address can't be used. Try a different one.",
-  suspended: "Your account is suspended and can't change its email.",
-  no_pending_change:
-    "This email change is no longer waiting for confirmation. Start again with your new email.",
-  network: "Can't connect right now. Check your internet connection and try again.",
-  unknown: "Something went wrong. Please try again.",
+  email_unavailable: "auth.error.emailUnavailable",
+  suspended: "auth.error.suspended",
+  no_pending_change: "auth.error.noPendingChange",
+  network: "auth.error.network",
+  unknown: "errors.generic",
 };
+
+export function emailChangeErrorKey(reason: EmailChangeErrorReason): TranslationKey {
+  return EMAIL_CHANGE_ERROR_KEYS[reason];
+}
+
+/** User-facing copy for an email-change failure, in the active language. */
+export function emailChangeErrorMessage(
+  language: LanguageCode,
+  reason: EmailChangeErrorReason,
+): string {
+  return translate(language, EMAIL_CHANGE_ERROR_KEYS[reason]);
+}
 
 export class EmailChangeError extends Error {
   readonly reason: EmailChangeErrorReason;
 
   constructor(reason: EmailChangeErrorReason) {
-    super(EMAIL_CHANGE_ERROR_MESSAGES[reason]);
+    // Developer-facing only: UI copy comes from `emailChangeErrorMessage`.
+    super(reason);
     this.name = "EmailChangeError";
     this.reason = reason;
   }

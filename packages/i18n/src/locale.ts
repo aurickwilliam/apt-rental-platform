@@ -1,4 +1,4 @@
-import { APP_LANGUAGES, type LanguageCode } from "@repo/constants";
+import { APP_LANGUAGES, type LanguageCode } from "@repo/constants/languages";
 
 /** Cookie (web) / AsyncStorage (mobile) key holding the explicit choice. */
 export const LOCALE_STORAGE_KEY = "apt-locale";

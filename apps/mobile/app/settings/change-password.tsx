@@ -12,8 +12,9 @@ import NewPasswordFields from "@/components/inputs/NewPasswordFields";
 
 import { usePasswordValidation } from "@repo/hooks";
 import { useColors } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/i18n";
 import { changePassword } from "@/service/auth/passwordChangeService";
-import { getPasswordChangeErrorField, PasswordError } from "@repo/utils";
+import { getPasswordChangeErrorField, PasswordError, passwordErrorMessage } from "@repo/utils";
 
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 
@@ -21,6 +22,7 @@ export default function ChangePassword() {
   const router = useRouter();
   const { toast } = useToast();
   const { colors } = useColors();
+  const { language } = useTranslation();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -97,9 +99,10 @@ export default function ChangePassword() {
       } else {
         // Shown under its field, or in the error dialog for anything else.
         const field = getPasswordChangeErrorField(err.reason);
-        if (field === "current") setCurrentPasswordError(err.message);
-        else if (field === "new") setNewPasswordError(err.message);
-        else setError(err.message);
+        const message = passwordErrorMessage(language, err.reason);
+        if (field === "current") setCurrentPasswordError(message);
+        else if (field === "new") setNewPasswordError(message);
+        else setError(message);
       }
     } finally {
       setSaving(false);

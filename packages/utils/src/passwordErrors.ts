@@ -1,5 +1,8 @@
 // Supabase Auth errors from the password flows (forgot-password recovery and
-// change-password), mapped to safe, user-facing messages.
+// change-password), mapped to reason codes. The user-facing prose lives in
+// `@repo/i18n`; callers render it with `passwordErrorMessage(language, reason)`.
+
+import { translate, type LanguageCode, type TranslationKey } from "@repo/i18n";
 
 export type PasswordErrorReason =
   | "invalid_email"
@@ -13,27 +16,39 @@ export type PasswordErrorReason =
   | "network"
   | "unknown";
 
-const PASSWORD_ERROR_MESSAGES: Record<PasswordErrorReason, string> = {
-  invalid_email: "Enter a valid email address.",
-  invalid_or_expired_code:
-    "That code is incorrect or has expired. Check the code or request a new one.",
-  wrong_current_password: "Your current password is incorrect.",
-  rate_limited: "Too many attempts. Please wait a minute before trying again.",
-  same_password: "Your new password must be different from your current password.",
-  weak_password: "This password is too weak. Please choose a stronger password.",
+const PASSWORD_ERROR_KEYS: Record<PasswordErrorReason, TranslationKey> = {
+  invalid_email: "validation.email.invalid",
+  invalid_or_expired_code: "auth.error.invalidOrExpiredCode",
+  wrong_current_password: "auth.error.wrongCurrentPassword",
+  rate_limited: "auth.error.rateLimited",
+  same_password: "auth.error.samePassword",
+  weak_password: "auth.error.weakPassword",
   // Only the recovery session expires mid-flow, so the wording is recovery's.
-  session_expired: "Your reset session has expired. Please request a new code.",
-  reauthentication_required:
-    "For your security, please sign in again before changing your password.",
-  network: "Can't connect right now. Check your internet connection and try again.",
-  unknown: "Something went wrong. Please try again.",
+  session_expired: "auth.error.sessionExpired",
+  reauthentication_required: "auth.error.reauthenticationRequired",
+  network: "auth.error.network",
+  unknown: "errors.generic",
 };
+
+export function passwordErrorKey(reason: PasswordErrorReason): TranslationKey {
+  return PASSWORD_ERROR_KEYS[reason];
+}
+
+/** User-facing copy for a password-flow failure, in the active language. */
+export function passwordErrorMessage(
+  language: LanguageCode,
+  reason: PasswordErrorReason,
+): string {
+  return translate(language, PASSWORD_ERROR_KEYS[reason]);
+}
 
 export class PasswordError extends Error {
   readonly reason: PasswordErrorReason;
 
   constructor(reason: PasswordErrorReason) {
-    super(PASSWORD_ERROR_MESSAGES[reason]);
+    // Developer-facing only: UI copy comes from `passwordErrorMessage`, so the
+    // message never carries English prose that could leak into a Filipino UI.
+    super(reason);
     this.name = "PasswordError";
     this.reason = reason;
   }

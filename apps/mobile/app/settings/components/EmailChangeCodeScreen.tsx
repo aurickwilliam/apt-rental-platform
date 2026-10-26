@@ -11,6 +11,7 @@ import CodeInput from "@/components/inputs/CodeInput";
 
 import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
+import { useTranslation } from "@/hooks/i18n";
 import {
   getEmailChangeAccount,
   resendEmailChangeCodes,
@@ -21,6 +22,7 @@ import {
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   EmailChangeError,
+  emailChangeErrorMessage,
   getEmailChangeErrorField,
   type EmailChangeInbox,
 } from "@repo/utils";
@@ -55,6 +57,7 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
   const router = useRouter();
   const { colors } = useColors();
   const { toast } = useToast();
+  const { language } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [currentEmail, setCurrentEmail] = useState("");
@@ -96,15 +99,15 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
       return;
     }
     if (err.reason === "no_pending_change") {
-      toast.show({ variant: "danger", label: err.message });
+      toast.show({ variant: "danger", label: emailChangeErrorMessage(language, err.reason) });
       startOver();
       return;
     }
     if (getEmailChangeErrorField(err.reason) === "code") {
-      setCodeError(err.message);
+      setCodeError(emailChangeErrorMessage(language, err.reason));
       return;
     }
-    setError(err.message);
+    setError(emailChangeErrorMessage(language, err.reason));
   };
 
   useEffect(() => {

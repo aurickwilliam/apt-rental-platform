@@ -11,8 +11,9 @@ import PasswordField from "@/components/inputs/PasswordField";
 import ChangeEmailFormSkeleton from "../components/ChangeEmailFormSkeleton";
 
 import { useColors } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/i18n";
 import { getEmailChangeAccount, requestEmailChange } from "@/service/auth/emailChangeService";
-import { EmailChangeError, getEmailChangeErrorField, isValidEmail } from "@repo/utils";
+import { EmailChangeError, emailChangeErrorMessage, getEmailChangeErrorField, isValidEmail } from "@repo/utils";
 
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 const VERIFY_CURRENT_PATH = "/settings/change-email/verify-current";
@@ -23,6 +24,7 @@ const VERIFY_CURRENT_PATH = "/settings/change-email/verify-current";
 export default function ChangeEmail() {
   const router = useRouter();
   const { colors } = useColors();
+  const { language } = useTranslation();
 
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [currentEmail, setCurrentEmail] = useState("");
@@ -51,7 +53,11 @@ export default function ChangeEmail() {
         setCurrentEmail(account.email);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof EmailChangeError ? err.message : GENERIC_ERROR);
+          setError(
+            err instanceof EmailChangeError
+              ? emailChangeErrorMessage(language, err.reason)
+              : GENERIC_ERROR,
+          );
         }
       } finally {
         if (!cancelled) setLoadingAccount(false);
@@ -60,7 +66,7 @@ export default function ChangeEmail() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [language]);
 
   const getNewEmailError = (): string | undefined => {
     if (newEmailError) return newEmailError;
@@ -99,9 +105,10 @@ export default function ChangeEmail() {
         setError(GENERIC_ERROR);
       } else {
         const field = getEmailChangeErrorField(err.reason);
-        if (field === "new") setNewEmailError(err.message);
-        else if (field === "current") setCurrentPasswordError(err.message);
-        else setError(err.message);
+        const message = emailChangeErrorMessage(language, err.reason);
+        if (field === "new") setNewEmailError(message);
+        else if (field === "current") setCurrentPasswordError(message);
+        else setError(message);
       }
     } finally {
       setSaving(false);

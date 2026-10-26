@@ -1,4 +1,4 @@
-export { APP_LANGUAGES, type LanguageCode } from "@repo/constants";
+export { APP_LANGUAGES, type LanguageCode } from "@repo/constants/languages";
 
 export { en, type TranslationKey } from "./catalogs/en";
 export { fil } from "./catalogs/fil";

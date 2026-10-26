@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import type { usePasswordValidation } from "@repo/hooks";
-import { getEmailCodeRequestError, joinFullName } from "@repo/utils";
+import { emailCodeRequestErrorMessage, joinFullName } from "@repo/utils";
 
+import { useTranslation } from "@/hooks/i18n";
 import { requestSignUpCode } from "@/service/auth/signUpService";
 import type { Portal } from "@/service/auth/portalPreference";
 import { useRegistrationStore } from "@/stores/useRegistrationStore";
@@ -22,6 +23,7 @@ interface UseSignUpProfileOptions {
 // and continue to code verification, where the profile row is written.
 export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUpProfileOptions) {
   const router = useRouter();
+  const { language } = useTranslation();
   const { setData, reset } = useRegistrationStore();
 
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
 
       router.push({ pathname: "/(auth)/otp-verification", params: { email } });
     } catch (err) {
-      setError(getEmailCodeRequestError(err instanceof Error ? err.message : undefined));
+      setError(emailCodeRequestErrorMessage(language, err instanceof Error ? err.message : undefined));
       setErrorDialogOpen(true);
     } finally {
       setLoading(false);

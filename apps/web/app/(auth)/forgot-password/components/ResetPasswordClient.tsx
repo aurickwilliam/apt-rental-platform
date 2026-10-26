@@ -8,9 +8,10 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { usePasswordValidation } from "@repo/hooks";
 import { RECOVERY_START_PATH } from "@repo/supabase/password-recovery";
-import { PasswordError, type PasswordErrorReason } from "@repo/utils";
+import { passwordErrorMessage, type PasswordErrorReason } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import NewPasswordFields from "@/app/components/inputs/NewPasswordFields";
 import {
   cancelPasswordRecovery,
@@ -31,6 +32,7 @@ const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 // handles the redirect instead of it being shown as an error.
 export default function ResetPasswordClient() {
   const router = useRouter();
+  const { language } = useTranslation();
   const {
     password,
     setPassword,
@@ -109,7 +111,7 @@ export default function ResetPasswordClient() {
       try {
         // Success redirects to the success page; only failures return.
         const { error: reason } = await updateRecoveredPassword(password);
-        const message = new PasswordError(reason).message;
+        const message = passwordErrorMessage(language, reason);
         if (INLINE_PASSWORD_ERRORS.has(reason)) {
           setServerPasswordError(message);
         } else if (reason === "session_expired") {

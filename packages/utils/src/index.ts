@@ -14,7 +14,7 @@ export * from './landlordFinance';
 export * from './landlordPayments';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
-export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
+export { parseResendWaitSeconds, emailCodeRequestErrorMessage, otpAttemptErrorMessage, MAX_OTP_ATTEMPTS } from './otpErrors';
 export {
   MINIMUM_AGE,
   MAXIMUM_AGE,
@@ -128,6 +128,8 @@ export {
   toPasswordErrorReason,
   describeAuthError,
   toPasswordError,
+  passwordErrorKey,
+  passwordErrorMessage,
 } from './passwordErrors';
 export { type AuthIdentityUser, hasEmailPasswordIdentity } from './authIdentity';
 export {
@@ -147,6 +149,8 @@ export {
   EmailChangeError,
   toEmailChangeErrorReason,
   toEmailChangeError,
+  emailChangeErrorKey,
+  emailChangeErrorMessage,
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   isEmailChangeCodeFormat,

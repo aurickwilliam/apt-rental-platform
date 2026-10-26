@@ -6,10 +6,11 @@ import { Button, Form, Modal, toast } from "@heroui/react";
 import { IconKey, IconShieldCheck } from "@tabler/icons-react";
 
 import { usePasswordValidation } from "@repo/hooks";
-import { getPasswordChangeErrorField, PasswordError } from "@repo/utils";
+import { getPasswordChangeErrorField, passwordErrorMessage } from "@repo/utils";
 
 import { changePassword } from "@/app/(auth)/actions/change-password";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import NewPasswordFields from "@/app/components/inputs/NewPasswordFields";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
@@ -29,6 +30,7 @@ interface ChangePasswordModalProps {
 // confirmation (like forgot-password's "Password Updated" page). Passwords
 // live only in this component's state and are cleared on success or close.
 export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePasswordModalProps) {
+  const { language } = useTranslation();
   const {
     password,
     setPassword,
@@ -122,7 +124,7 @@ export default function ChangePasswordModal({ isOpen, onOpenChange }: ChangePass
           return;
         }
 
-        const message = new PasswordError(reason).message;
+        const message = passwordErrorMessage(language, reason);
         const field = getPasswordChangeErrorField(reason);
         if (field === "current") setServerCurrentPasswordError(message);
         else if (field === "new") setServerNewPasswordError(message);

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test lib/*.test.mjs"
+    "test": "node --experimental-strip-types --import ./lib/test-support/register-ts-resolve.mjs --test lib/*.test.mjs"
   },
   "dependencies": {
     "@heroui/react": "3.2.6",

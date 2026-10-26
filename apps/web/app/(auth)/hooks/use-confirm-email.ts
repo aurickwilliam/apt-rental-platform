@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { emailCodeRequestErrorMessage, otpAttemptErrorMessage, parseResendWaitSeconds } from "@repo/utils";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
 
@@ -16,6 +17,7 @@ const FINISH_PROFILE_PATH = "/sign-up?from=profile-missing";
 // session, and the missing profile is then finished like any interrupted
 // sign-up. No form data is kept anywhere, so nothing is lost by refreshing.
 export function useConfirmEmail(email: string) {
+  const { language } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function useConfirmEmail(email: string) {
         // A throttled resend means a code was sent moments ago and still works.
         const waitSeconds = parseResendWaitSeconds(error.message);
         if (waitSeconds !== null) start(waitSeconds);
-        else setOtpError(getEmailCodeRequestError(error.message));
+        else setOtpError(emailCodeRequestErrorMessage(language, error.message));
         return;
       }
       setOtp("");
@@ -47,7 +49,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setResendLoading(false);
     }
-  }, [email, start, attempts]);
+  }, [email, start, attempts, language]);
 
   const open = useCallback(() => {
     setIsOpen(true);
@@ -64,7 +66,7 @@ export function useConfirmEmail(email: string) {
         type: "signup",
       });
       if (error || !data.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        setOtpError(otpAttemptErrorMessage(language, attempts.recordWrongCode()));
         setOtp("");
         return;
       }
@@ -75,7 +77,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setLoading(false);
     }
-  }, [email, otp, attempts]);
+  }, [email, otp, attempts, language]);
 
   const cancel = useCallback(() => {
     setIsOpen(false);

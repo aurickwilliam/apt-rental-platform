@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { getOtpAttemptError } from "@repo/utils";
+import { otpAttemptErrorMessage } from "@repo/utils";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
@@ -31,6 +32,7 @@ export function useOtpFlow({
   onSuccessOpen,
   onBirthDateError,
 }: UseOtpFlowOptions) {
+  const { language } = useTranslation();
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
@@ -97,7 +99,7 @@ export function useOtpFlow({
       });
 
       if (otpError || !session.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        setOtpError(otpAttemptErrorMessage(language, attempts.recordWrongCode()));
         setOtp("");
         return;
       }
@@ -148,7 +150,7 @@ export function useOtpFlow({
     } finally {
       setLoading(false);
     }
-  }, [attempts]);
+  }, [attempts, language]);
 
   const handleCancelOtp = useCallback(async (onClose: () => void) => {
     await supabase.auth.signOut();

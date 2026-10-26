@@ -8,6 +8,7 @@ import {
   groupNotificationsByLocalDate,
   sortNotificationsNewestFirst,
 } from "../../../packages/utils/src/notificationOrder.ts";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import * as audience from "./notification-audience.ts";
 import * as conversationContacts from "./conversation-contacts.ts";
 import { EMPTY_NOTIFICATION_FEED, NotificationFeedStore } from "./notification-feed-store.ts";
@@ -88,6 +89,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   };
   const notificationGroups = load("../../../packages/utils/src/notificationGroups.ts", {
     "./notificationOrder": { sortNotificationsNewestFirst },
+    "@repo/i18n": { translate },
   });
   const chatAudience = load("./chat-notification-audience.ts", { "./notification-audience": audience });
   const resolvedRows = () => ownershipRecords === null ? serverRows

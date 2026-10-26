@@ -18,9 +18,10 @@ import {
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
-import { isValidEmail, PasswordError } from "@repo/utils";
+import { isValidEmail, PasswordError, passwordErrorMessage } from "@repo/utils";
 
 import { useColors } from "hooks/useTheme";
+import { useTranslation } from "hooks/i18n";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
   requestPasswordRecovery,
@@ -29,6 +30,7 @@ import {
 export default function ForgotPassword() {
   const router = useRouter();
   const { colors } = useColors();
+  const { language } = useTranslation();
 
   const savedEmail = usePasswordRecoveryStore((state) => state.email);
   const setRecoveryEmail = usePasswordRecoveryStore((state) => state.setEmail);
@@ -72,9 +74,13 @@ export default function ForgotPassword() {
       router.push("/forgot-password/otp-verification");
     } catch (err) {
       if (err instanceof PasswordError && err.reason === "invalid_email") {
-        setEmailError(err.message);
+        setEmailError(passwordErrorMessage(language, err.reason));
       } else {
-        setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
+        setError(
+          err instanceof PasswordError
+            ? passwordErrorMessage(language, err.reason)
+            : "Something went wrong. Please try again.",
+        );
       }
     } finally {
       setLoading(false);
