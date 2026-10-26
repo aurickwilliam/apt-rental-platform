@@ -220,3 +220,16 @@ export {
   formatPricePill,
   filterPinsToVisible,
 } from './mapSearch';
+export {
+  type AppUpdateStatus,
+  type AppReleaseInput,
+  type AppReleaseField,
+  APP_RELEASE_PLATFORM,
+  APP_RELEASE_NOTES_MAX_LENGTH,
+  APP_RELEASE_URL_MAX_LENGTH,
+  parseAppVersion,
+  compareAppVersions,
+  isSecureDownloadUrl,
+  getAppUpdateStatus,
+  validateAppRelease,
+} from './appRelease';

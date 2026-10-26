@@ -13,6 +13,7 @@ const ADMIN_NAV = [
   { href: "/admin/reports", label: "Reports", icon: "Flag" },
   { href: "/admin/activity", label: "Activity", icon: "History" },
   { href: "/admin/analytics", label: "Analytics", icon: "ChartBar" },
+  { href: "/admin/app-updates", label: "App updates", icon: "DeviceMobile" },
 ] as const;
 
 export default async function AdminLayout({

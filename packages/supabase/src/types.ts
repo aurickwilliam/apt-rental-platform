@@ -301,6 +301,44 @@ export type Database = {
           },
         ]
       }
+      app_releases: {
+        Row: {
+          apk_url: string
+          latest_version: string
+          min_version: string
+          platform: string
+          release_notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          apk_url: string
+          latest_version: string
+          min_version: string
+          platform: string
+          release_notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          apk_url?: string
+          latest_version?: string
+          min_version?: string
+          platform?: string
+          release_notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_releases_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat: {
         Row: {
           attachment_name: string | null
@@ -1665,6 +1703,16 @@ export type Database = {
     Functions: {
       acknowledge_signed_lease: {
         Args: { p_tenancy_id: string }
+        Returns: undefined
+      }
+      admin_publish_app_release: {
+        Args: {
+          p_apk_url: string
+          p_latest_version: string
+          p_min_version: string
+          p_platform: string
+          p_release_notes: string
+        }
         Returns: undefined
       }
       admin_resolve_user_report: {
