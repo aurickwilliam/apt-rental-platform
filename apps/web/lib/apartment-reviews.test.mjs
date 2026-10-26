@@ -93,18 +93,31 @@ for (const view of ["ApartmentReviewsPreview", "ApartmentRatingsView"]) {
     const component = load(`../app/browse/[apartmentId]/components/${view}.tsx`, {
       "react/jsx-runtime": { jsx, jsxs: jsx },
       react: { useEffect() {}, useState: initial => [initial, () => {}] },
-      "next/navigation": { useRouter: () => ({ push() {} }), useParams: () => ({ apartmentId: "apartment-a" }) },
+      "next/link": defaultModule("Link"),
+      "next/navigation": {
+        useRouter: () => ({ push() {} }),
+        useParams: () => ({ apartmentId: "apartment-a" }),
+        usePathname: () => "/browse/apartment-a",
+      },
       "next/image": defaultModule("Image"),
       "@heroui/react": {
         Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }),
         Chip: {}, Dropdown: {}, Label: "Label", Separator: "Separator",
         useOverlayState: () => ({ isOpen: false, setOpen() {} }),
       },
-      "@tabler/icons-react": {},
+      "@tabler/icons-react": {
+        IconArrowLeft: "IconArrowLeft",
+        IconChevronDown: "IconChevronDown",
+        IconLock: "IconLock",
+        IconMessage: "IconMessage",
+        IconStar: "IconStar",
+      },
       "./ReviewCard": defaultModule("ReviewCard"),
       "./BackBtn": defaultModule("BackBtn"),
       "./RateApartmentModal": defaultModule("RateApartmentModal"),
       "./RatingBreakdown": defaultModule("RatingBreakdown"),
+      "./RatingsListingCard": defaultModule("RatingsListingCard"),
+      "./RatingsPageSkeleton": defaultModule("RatingsPageSkeleton"),
       "@/app/components/display/StatusChip": defaultModule("StatusChip"),
       "@/app/components/display/ErrorBanner": defaultModule("ErrorBanner"),
       "@/lib/status-tone": { statusToneFor() {} },
@@ -126,3 +139,22 @@ for (const view of ["ApartmentReviewsPreview", "ApartmentRatingsView"]) {
     assert.match(JSON.stringify(walk(empty)), /No reviews yet/);
   });
 }
+
+test("ratings page uses the bounded shell, identity rail and single-column feed", () => {
+  const source = readFileSync(
+    new URL("../app/browse/[apartmentId]/components/ApartmentRatingsView.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(source, /max-w-7xl/);
+  assert.match(source, /usePathname/);
+  assert.match(source, /href=\{listingHref\}/);
+  assert.doesNotMatch(source, /router\.back/);
+  assert.doesNotMatch(source, /columns-(?:1|2|3)/);
+  assert.doesNotMatch(source, /Duration of Stay/);
+  assert.doesNotMatch(source, /fetchReviewTenancy/);
+  assert.match(source, /layout="stacked"/);
+  assert.match(source, /lg:grid-cols-\[20rem_minmax\(0,1fr\)\]/);
+  assert.match(source, /<RatingsListingCard/);
+  assert.match(source, /flex min-w-0 flex-col gap-3/);
+});
