@@ -1,13 +1,12 @@
 import { Suspense, type ReactNode } from "react";
 
+import { BROWSE_BODY_CLASS, browseFrameClass } from "../lib/browse-layout";
 import SearchContainer from "./SearchContainer";
 
 interface BrowseShellProps {
   basePath?: string;
-  /** Mobile filter entry rendered beside the search pill (results grid only). */
+  /** Filter entry rendered beside the search pill. */
   filterButton?: ReactNode;
-  /** Filter sidebar; omitted in discovery mode, where there is no filter panel. */
-  filters?: ReactNode;
   /** Placeholder shown while `children` streams in. */
   fallback: ReactNode;
   children: ReactNode;
@@ -30,20 +29,16 @@ interface BrowseShellProps {
 export default function BrowseShell({
   basePath = "/browse",
   filterButton,
-  filters,
   fallback,
   children,
   fullWidth = false,
 }: BrowseShellProps) {
   return (
-    <div
-      className={`px-4 sm:px-6 py-4 overflow-x-clip ${fullWidth ? "w-full" : "max-w-7xl mx-auto"}`}
-    >
+    <div className={browseFrameClass(fullWidth)}>
       <Suspense>
         <SearchContainer basePath={basePath} filterButton={filterButton} />
       </Suspense>
-      <div className="mt-4 flex flex-col md:flex-row gap-4">
-        {filters}
+      <div className={BROWSE_BODY_CLASS}>
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense fallback={fallback}>{children}</Suspense>
         </div>

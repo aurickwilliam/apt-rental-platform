@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { createClient } from "@repo/supabase/server";
-import BrowseFilters from "./components/BrowseFilters";
+import BrowseResultsBar from "./components/BrowseResultsBar";
 import BrowseSectionsList from "./components/BrowseSectionsList";
 import { BrowseCardsSkeleton, BrowseSectionsSkeleton } from "./components/BrowsePageSkeleton";
-import MobileFilterButton from "./components/MobileFilterButton";
+import FilterDrawerButton from "./components/FilterDrawerButton";
 import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
@@ -39,26 +39,16 @@ export default async function BrowsePage({ searchParams }: PageProps) {
 
   return (
     // overflow-x-clip keeps any inner min-content overflow (e.g. third-party
-    // control internals) from widening the page. Unlike hidden it does not
-    // create a scroll container, so the sticky filter sidebar keeps working.
+    // control internals) from widening the page.
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
         <SearchContainer
           filterButton={
-            !useSections ? (
-              <MobileFilterButton resultCount={totalCount} basePath="/browse" />
-            ) : undefined
+            <FilterDrawerButton resultCount={totalCount} basePath="/browse" />
           }
         />
       </Suspense>
       <div className="mt-4 flex flex-col md:flex-row gap-4">
-        {/* Filters only exist outside discovery mode: text search, See All,
-            or any filter switches to the grid, which brings this panel. */}
-        {!useSections && (
-          <Suspense>
-            <BrowseFilters resultCount={totalCount} />
-          </Suspense>
-        )}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense
             fallback={
@@ -68,12 +58,17 @@ export default async function BrowsePage({ searchParams }: PageProps) {
             {useSections ? (
               <BrowseSectionsList sections={sections} />
             ) : (
-              <RenderApartments
-                apartment={mapped}
-                page={page}
-                totalCount={totalCount}
-                pageSize={pageSize}
-              />
+              <>
+                <Suspense>
+                  <BrowseResultsBar resultCount={totalCount} />
+                </Suspense>
+                <RenderApartments
+                  apartment={mapped}
+                  page={page}
+                  totalCount={totalCount}
+                  pageSize={pageSize}
+                />
+              </>
             )}
           </Suspense>
         </div>

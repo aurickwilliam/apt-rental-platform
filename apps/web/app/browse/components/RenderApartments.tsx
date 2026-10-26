@@ -9,6 +9,7 @@ import { Pagination, toast } from "@heroui/react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
+import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
   previewPosition,
@@ -76,6 +77,7 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
           onToggleFavorite(apt.id);
         }}
         onPress={() => onPressApartment(apt.id)}
+        sizes="(max-width: 1024px) 50vw, (max-width: 1280px) 25vw, 20vw"
         priority={priority}
       />
     </div>
@@ -178,7 +180,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           <p className="text-sm">Try adjusting your filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className={BROWSE_GRID_CLASS}>
           {apartment.map((apt, i) => (
             <ApartmentGridItem
               key={apt.id}

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
 import { IconSearch } from "@tabler/icons-react";
 
+import { BROWSE_HERO_CLASS, BROWSE_SEARCH_ROW_CLASS } from "../lib/browse-layout";
+
 export default function SearchContainer({
   basePath = "/browse",
   filterButton,
@@ -49,7 +51,7 @@ export default function SearchContainer({
   return (
     // Below md the hero banner is hidden entirely (mirrors the mobile app,
     // which opens straight into search). md+ keeps the banner.
-    <div className="w-full min-w-0 md:min-h-52 bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-3 md:px-4 py-3 md:py-10 md:text-center">
+    <div className={BROWSE_HERO_CLASS}>
       <h2 className="hidden md:block w-full text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight text-balance">
         Find your Perfect Apartment!
       </h2>
@@ -60,7 +62,7 @@ export default function SearchContainer({
       {/* Search bar: pill + filter right on mobile (filter entry is
           mobile-only, md:hidden); centered pill on desktop. The in-pill
           magnifier is the search trigger (plus Enter); no separate button. */}
-      <div className="flex flex-row items-center gap-2 w-full max-w-xl mt-2 mx-auto min-w-0">
+      <div className={BROWSE_SEARCH_ROW_CLASS}>
         <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
           <InputGroup.Prefix>
             {isPending ? (

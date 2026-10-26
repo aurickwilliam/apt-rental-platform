@@ -3,7 +3,7 @@
  *
  * The trigger floats at a viewport edge, so panels that hug the same edge
  * (messages composer, conversation header, contact list, payment footer,
- * browse filter rail) can end up underneath it. Those controls opt in with
+ * browse controls) can end up underneath it. Those controls opt in with
  * `data-fab-clearance`; the FAB measures them and this module returns the
  * nearest edge slot that keeps a margin from every marked control — the
  * saved edge when it has room, the opposite edge when it does not, and the

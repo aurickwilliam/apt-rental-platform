@@ -13,7 +13,6 @@ import {
   RadioGroup,
   Radio,
   Label,
-  Spinner,
   Switch,
   ToggleButtonGroup,
   ToggleButton,
@@ -80,7 +79,6 @@ const INITIAL_FILTERS: Filters = {
 };
 
 type Props = {
-  resultCount: number;
   basePath?: string;
   onApply?: () => void;
 };
@@ -393,7 +391,42 @@ const SizeSection = memo(function SizeSection({
   );
 });
 
-export default function FilterContainer({ resultCount, basePath = "/browse", onApply }: Props)
+// Toggle chip for the multi-select groups. Picked: soft blue with APT blue text
+// and ring; resting: neutral, with a transparent border so toggling never
+// shifts the layout. Keyboard-operable like the checkboxes beside it.
+function FilterChip({
+  label,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Chip
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      variant="secondary"
+      onClick={onToggle}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onToggle();
+      }}
+      className={`cursor-pointer border focus-visible:outline-2 focus-visible:outline-primary ${
+        selected
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-transparent"
+      }`}
+    >
+      {label}
+    </Chip>
+  );
+}
+
+export default function FilterContainer({ basePath = "/browse", onApply }: Props)
 {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -503,235 +536,215 @@ export default function FilterContainer({ resultCount, basePath = "/browse", onA
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramsSignature]);
 
+  // Scrolling options above, actions pinned below. The parent drawer body is a
+  // flex column, so only the options scroll.
   return (
-    <div className="bg-surface rounded-xl p-4 border w-full text-foreground">
-      <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 items-stretch xl:items-center justify-center mb-5">
-        {/* Search Button */}
-        <Button
-          className="w-full"
-          onPress={handleApply}
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {/* Verification */}
+        <Switch
+          isSelected={filters.verifiedOnly}
+          onChange={(val) => updateFilter("verifiedOnly", val)}
         >
+          <Switch.Content className="flex w-full items-center justify-between">
+            <Label>Verified listings only</Label>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
+
+        <Separator className="my-5" />
+
+        {/* Location */}
+        <p className="text-sm font-medium mb-2">Location</p>
+        <CheckboxGroup
+          name="locations"
+          value={filters.locations}
+          onChange={(val) => updateFilter("locations", val)}
+          className="flex flex-col"
+        >
+          {LOCATIONS.map((option) => (
+            <Checkbox key={option} value={option} className="group">
+              <Checkbox.Content>
+                <Checkbox.Control className="size-5 shrink-0 border border-border shadow-none! before:bg-primary! group-data-[selected=true]:border-primary! group-data-[selected=true]:bg-primary!">
+                  <Checkbox.Indicator className="[&_svg]:text-white!" />
+                </Checkbox.Control>
+                {option}
+              </Checkbox.Content>
+            </Checkbox>
+          ))}
+        </CheckboxGroup>
+
+        {/* Budget */}
+        <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
+
+        {/* Unit Type */}
+        <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
+        <div className="flex flex-wrap gap-2">
+          {APARTMENT_TYPES.map((type) => {
+            const selected = filters.aptTypes.includes(type);
+            return (
+              <FilterChip
+                key={type}
+                label={type}
+                selected={selected}
+                onToggle={() => toggleArray("aptTypes", type)}
+              />
+            );
+          })}
+        </div>
+
+        <Separator className="my-5" />
+
+        {/* Sort By */}
+        <p className="text-sm font-medium mb-2">Sort By</p>
+        {/* Shares the checkout radios' look: outlined ring, APT blue fill when picked. */}
+        <RadioGroup
+          className="payment-method-radios gap-3"
+          name="sort"
+          value={filters.sortBy}
+          onChange={(val) => updateFilter("sortBy", val)}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <Radio key={opt.value} value={opt.value}>
+              <Radio.Content>
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                {opt.label}
+              </Radio.Content>
+            </Radio>
+          ))}
+        </RadioGroup>
+
+        {/* Bedrooms */}
+        <p className="text-sm font-medium mb-2 mt-6">Bedrooms</p>
+        <ToggleButtonGroup
+          selectionMode="single"
+          selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
+          onSelectionChange={(keys) => {
+            const selected = [...keys][0];
+            updateFilter("bedroom", selected ? String(selected) : "Any");
+          }}
+          fullWidth
+          className="w-full"
+        >
+          {BEDROOM_OPTIONS.map((option, index) => (
+            <ToggleButton 
+              key={option} 
+              id={option} 
+              className="flex-1 min-w-0"
+            >
+              {index !== 0 && <ToggleButtonGroup.Separator />}
+              {option}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+
+        {/* Bathrooms */}
+        <p className="text-sm font-medium mt-6 mb-2">Bathrooms</p>
+        <ToggleButtonGroup
+          selectionMode="single"
+          selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
+          onSelectionChange={(keys) => {
+            const selected = [...keys][0];
+            updateFilter("bathroom", selected ? String(selected) : "Any");
+          }}
+          fullWidth
+          className="w-full"
+        >
+          {BATHROOM_OPTIONS.map((option, index) => (
+            <ToggleButton 
+              key={option} 
+              id={option} 
+              className="flex-1 min-w-0"
+            >
+              {index !== 0 && <ToggleButtonGroup.Separator />}
+              {option}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+
+        {/* Size Range */}
+        <SizeSection sizeRange={filters.sizeRange} onSizeChange={handleSizeChange} />
+
+        <Separator className="my-5" />
+
+        {/* Furnishing */}
+        <p className="text-sm font-medium mb-2">Furnishing</p>
+        <div className="flex flex-wrap gap-2">
+          {FURNISHED_TYPES.map((option) => {
+            const selected = filters.furnishing.includes(option);
+            return (
+              <FilterChip
+                key={option}
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("furnishing", option)}
+              />
+            );
+          })}
+        </div>
+
+        {/* Floor Level */}
+        <p className="text-sm font-medium mt-6 mb-2">Floor Level</p>
+        <div className="flex flex-wrap gap-2">
+          {FLOOR_LEVELS.map((option) => {
+            const selected = filters.floorLevel.includes(option);
+            return (
+              <FilterChip
+                key={option}
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("floorLevel", option)}
+              />
+            );
+          })}
+        </div>
+
+        {/* Lease Duration */}
+        <p className="text-sm font-medium mt-6 mb-2">Lease Duration</p>
+        <div className="flex flex-wrap gap-2">
+          {LEASE_DURATIONS.map((option) => {
+            const selected = filters.leaseDuration.includes(option);
+            return (
+              <FilterChip
+                key={option}
+                label={option}
+                selected={selected}
+                onToggle={() => toggleArray("leaseDuration", option)}
+              />
+            );
+          })}
+        </div>
+
+        <Separator className="my-5" />
+
+        {/* Amenities */}
+        <p className="text-sm font-medium mb-2">Amenities</p>
+        <AmenitiesSelect
+          amenities={Object.values(PERKS)}
+          selected={filters.amenities}
+          onChange={(val) => updateFilter("amenities", val)}
+        />
+      </div>
+
+      <div className="flex shrink-0 gap-2 border-t border-divider bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Button className="min-w-0 flex-1" onPress={handleApply}>
           <IconSearch size={20} />
           Search Apartment
         </Button>
 
         <Button
           variant="tertiary"
-          className="w-full xl:w-auto shrink-0"
+          className="shrink-0"
+          isPending={isPending}
           onPress={handleClear}
         >
           Clear All
         </Button>
       </div>
-
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h3 className="text-lg font-medium">Filters</h3>
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          {isPending ? (
-            <Spinner size="sm" color="current" aria-label="Updating results" />
-          ) : null}
-          {resultCount} results found
-        </p>
-      </div>
-
-      {/* Verification */}
-      <Switch
-        isSelected={filters.verifiedOnly}
-        onChange={(val) => updateFilter("verifiedOnly", val)}
-      >
-        <Switch.Content className="flex w-full items-center justify-between">
-          <Label>Verified listings only</Label>
-          <Switch.Control>
-            <Switch.Thumb />
-          </Switch.Control>
-        </Switch.Content>
-      </Switch>
-
-      <Separator className="my-5" />
-
-      {/* Location */}
-      <p className="text-sm font-medium mb-2">Location</p>
-      <CheckboxGroup
-        name="locations"
-        value={filters.locations}
-        onChange={(val) => updateFilter("locations", val)}
-        className="flex flex-col"
-      >
-        {LOCATIONS.map((option) => (
-          <Checkbox key={option} value={option}>
-            <Checkbox.Content>
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              {option}
-            </Checkbox.Content>
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
-
-      {/* Budget */}
-      <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
-
-      {/* Unit Type */}
-      <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
-      <div className="flex flex-wrap gap-2">
-        {APARTMENT_TYPES.map((type) => {
-          const selected = filters.aptTypes.includes(type);
-          return (
-            <Chip
-              key={type}
-              variant={selected ? "primary" : "secondary"}
-              color={selected ? "accent" : "default"}
-              onClick={() => toggleArray("aptTypes", type)}
-              className="cursor-pointer"
-            >
-              {type}
-            </Chip>
-          );
-        })}
-      </div>
-
-      <Separator className="my-5" />
-
-      {/* Sort By */}
-      <p className="text-sm font-medium mb-2">Sort By</p>
-      <RadioGroup
-        name="sort"
-        value={filters.sortBy}
-        onChange={(val) => updateFilter("sortBy", val)}
-      >
-        {SORT_OPTIONS.map((opt) => (
-          <Radio key={opt.value} value={opt.value}>
-            <Radio.Content>
-              <Radio.Control>
-                <Radio.Indicator />
-              </Radio.Control>
-              {opt.label}
-            </Radio.Content>
-          </Radio>
-        ))}
-      </RadioGroup>
-
-      {/* Bedrooms */}
-      <p className="text-sm font-medium mb-2 mt-6">Bedrooms</p>
-      <ToggleButtonGroup
-        selectionMode="single"
-        selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
-        onSelectionChange={(keys) => {
-          const selected = [...keys][0];
-          updateFilter("bedroom", selected ? String(selected) : "Any");
-        }}
-        fullWidth
-        className="w-full"
-      >
-        {BEDROOM_OPTIONS.map((option, index) => (
-          <ToggleButton 
-            key={option} 
-            id={option} 
-            className="flex-1 min-w-0"
-          >
-            {index !== 0 && <ToggleButtonGroup.Separator />}
-            {option}
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
-
-      {/* Bathrooms */}
-      <p className="text-sm font-medium mt-6 mb-2">Bathrooms</p>
-      <ToggleButtonGroup
-        selectionMode="single"
-        selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
-        onSelectionChange={(keys) => {
-          const selected = [...keys][0];
-          updateFilter("bathroom", selected ? String(selected) : "Any");
-        }}
-        fullWidth
-        className="w-full"
-      >
-        {BATHROOM_OPTIONS.map((option, index) => (
-          <ToggleButton 
-            key={option} 
-            id={option} 
-            className="flex-1 min-w-0"
-          >
-            {index !== 0 && <ToggleButtonGroup.Separator />}
-            {option}
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
-
-      {/* Size Range */}
-      <SizeSection sizeRange={filters.sizeRange} onSizeChange={handleSizeChange} />
-
-      <Separator className="my-5" />
-
-      {/* Furnishing */}
-      <p className="text-sm font-medium mb-2">Furnishing</p>
-      <div className="flex flex-wrap gap-2">
-        {FURNISHED_TYPES.map((option) => {
-          const selected = filters.furnishing.includes(option);
-          return (
-            <Chip
-              key={option}
-              variant={selected ? "primary" : "secondary"}
-              color={selected ? "accent" : "default"}
-              onClick={() => toggleArray("furnishing", option)}
-              className="cursor-pointer"
-            >
-              {option}
-            </Chip>
-          );
-        })}
-      </div>
-
-      {/* Floor Level */}
-      <p className="text-sm font-medium mt-6 mb-2">Floor Level</p>
-      <div className="flex flex-wrap gap-2">
-        {FLOOR_LEVELS.map((option) => {
-          const selected = filters.floorLevel.includes(option);
-          return (
-            <Chip
-              key={option}
-              variant={selected ? "primary" : "secondary"}
-              color={selected ? "accent" : "default"}
-              onClick={() => toggleArray("floorLevel", option)}
-              className="cursor-pointer"
-            >
-              {option}
-            </Chip>
-          );
-        })}
-      </div>
-
-      {/* Lease Duration */}
-      <p className="text-sm font-medium mt-6 mb-2">Lease Duration</p>
-      <div className="flex flex-wrap gap-2">
-        {LEASE_DURATIONS.map((option) => {
-          const selected = filters.leaseDuration.includes(option);
-          return (
-            <Chip
-              key={option}
-              variant={selected ? "primary" : "secondary"}
-              color={selected ? "accent" : "default"}
-              onClick={() => toggleArray("leaseDuration", option)}
-              className="cursor-pointer"
-            >
-              {option}
-            </Chip>
-          );
-        })}
-      </div>
-
-      <Separator className="my-5" />
-
-      {/* Amenities */}
-      <p className="text-sm font-medium mb-2">Amenities</p>
-      <AmenitiesSelect
-        amenities={Object.values(PERKS)}
-        selected={filters.amenities}
-        onChange={(val) => updateFilter("amenities", val)}
-      />
     </div>
   );
 }

@@ -68,6 +68,7 @@ test("public and tenant search share HeroUI colors without changing field geomet
         InputGroup: { Prefix: "InputGroup.Prefix", Input: "InputGroup.Input" },
       },
       "@tabler/icons-react": { IconSearch: "IconSearch" },
+      "../lib/browse-layout": compile("app/browse/lib/browse-layout.ts", {}),
     });
     const filterButton = jsx("ExistingFilterButton", {});
     const tree = nodes(Search({ basePath, filterButton }));

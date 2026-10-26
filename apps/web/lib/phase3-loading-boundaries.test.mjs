@@ -19,14 +19,12 @@ test("Tenant Browse authorizes first, then streams discovery and filtered result
   assert.match(page, /<BrowseSectionsSkeleton \/>/);
   assert.match(source("app/browse/components/BrowseDiscoveryContent.tsx"), /await fetchDiscoverySections\(supabase, basePath\)/);
 
-  // Filtered/search/paged state streams the rail, mobile entry and grid from
-  // the same request-scoped result query.
-  assert.match(page, /<BrowseFilterRailSkeleton stickyClassName=\{FILTER_STICKY_CLASS\} \/>/);
-  assert.match(page, /<MobileFilterEntrySkeleton \/>/);
-  assert.match(page, /fallback=\{<BrowseCardsSkeleton \/>\}/);
-  assert.ok(page.indexOf("async function BrowseFilterRail") > shell);
+  // Filtered/search/paged state streams the filter entry and grid from the
+  // same request-scoped result query.
+  assert.match(page, /<FilterEntrySkeleton \/>/);
+  assert.match(page, /fallback=\{<BrowseResultsGridSkeleton \/>\}/);
   assert.ok(page.indexOf("async function BrowseGridContent") > shell);
-  assert.equal((page.match(/loadBrowseResults\(supabase, params\)/g) ?? []).length, 3);
+  assert.equal((page.match(/loadBrowseResults\(supabase, params\)/g) ?? []).length, 2);
   assert.match(source("app/browse/lib/fetch-browse-results.ts"), /export const loadBrowseResults = cache\(fetchBrowseResults\);/);
 });
 
