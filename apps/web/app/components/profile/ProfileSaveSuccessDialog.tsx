@@ -29,7 +29,7 @@ export default function ProfileSaveSuccessDialog({
         <Modal.Container placement="center" size="sm">
           <Modal.Dialog className="rounded-2xl">
             <Modal.CloseTrigger
-              aria-label="Back to profile"
+              aria-label={actionLabel}
               className="top-4 right-4 z-10 size-8 rounded-full bg-muted text-foreground hover:bg-muted-foreground/20 focus-visible:outline-2 focus-visible:outline-primary"
             />
             <Modal.Header className="pr-12">
