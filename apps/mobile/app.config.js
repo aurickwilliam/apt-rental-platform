@@ -72,7 +72,7 @@ module.exports = {
   expo: {
     name: 'APT',
     slug: 'mobile',
-    version: '1.1.0',
+    version: '1.1.1',
     orientation: 'portrait',
     icon: './assets/images/logo.png',
     scheme: 'mobile',
