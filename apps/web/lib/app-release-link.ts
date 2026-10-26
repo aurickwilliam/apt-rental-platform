@@ -59,10 +59,16 @@ export async function checkDownloadLink(
   return { state: "unreachable" };
 }
 
+/** A web page (or other text) is never an APK: the link points at a release page, not the file. */
+function isTextResponse(response: Response): boolean {
+  const type = response.headers.get("content-type")?.toLowerCase() ?? "";
+  return type.startsWith("text/") || type.includes("html") || type.includes("json");
+}
+
 /**
  * Opens the file behind a published link for streaming to a visitor. Follows
  * redirects hop by hop under the same public-https rule as the link check;
- * null when the file cannot be reached.
+ * null when the file cannot be reached or the link serves a web page instead.
  */
 export async function openDownloadStream(
   link: string,
@@ -83,7 +89,12 @@ export async function openDownloadStream(
         current = location ? parseCheckableUrl(new URL(location, current).toString()) : null;
         continue;
       }
-      return response.ok && response.body ? response : null;
+      if (!response.ok || !response.body) return null;
+      if (isTextResponse(response)) {
+        await response.body.cancel();
+        return null;
+      }
+      return response;
     } catch {
       return null;
     }

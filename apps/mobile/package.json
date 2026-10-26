@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "ota": "eas update --channel production --environment production --message"
+    "ota": "eas update --channel production --platform android --environment production --message"
   },
   "dependencies": {
     "@expo/dom-webview": "^57.0.1",
