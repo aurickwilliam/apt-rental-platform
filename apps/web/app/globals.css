@@ -702,6 +702,11 @@
     @apply flex min-h-11 w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
   }
 
+  /* Button labels are Nunito on web too (DESIGN.md §9, mobile `.button__label`). */
+  .button {
+    font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  }
+
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
