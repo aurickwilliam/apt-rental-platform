@@ -1,56 +1,33 @@
-"use client";
-
 import Link from "next/link";
 
-import { Button } from "@heroui/react";
-
-import StatusChip from "@/app/components/display/StatusChip";
+import { buttonVariants } from "@heroui/react";
 
 import { IconBrandAndroid } from "@tabler/icons-react";
 
 interface AppDownloadButtonProps {
-  /**
-   * When false the APK hasn't been published yet: the button stays visible but
-   * disabled, with the neutral chip used elsewhere for unavailable actions.
-   */
+  /** False until an APK link is published; the button is then replaced by a note. */
   isAvailable: boolean;
-  /** Primary inside the app section; the hero uses outline. */
   variant?: "outline" | "primary";
+  /** Render nothing, instead of the note, while no APK is published. */
+  hideWhenUnavailable?: boolean;
 }
 
-/**
- * Points at the `/download` route so the published APK URL can change without
- * touching this component. Availability comes from `NEXT_PUBLIC_APT_APK_URL`
- * (read in the page); the moment it is set, the chip disappears and the link
- * starts working — no code change.
- */
-export default function AppDownloadButton({
-  isAvailable,
-  variant = "outline",
-}: AppDownloadButtonProps) {
+/** Points at the `/download` permalink, which redirects to the published APK. */
+export default function AppDownloadButton({ isAvailable, variant = "primary", hideWhenUnavailable = false }: AppDownloadButtonProps) {
   if (!isAvailable) {
-    return (
-      <div className="inline-flex flex-wrap items-center gap-2">
-        <Button variant={variant} isDisabled>
-          <IconBrandAndroid size={18} />
-          Download for Android
-        </Button>
+    if (hideWhenUnavailable) return null;
 
-        <StatusChip tone="neutral" size="sm" className="px-2 py-0.5">
-          <span className="font-nunito text-[11px] font-semibold">
-            Coming soon
-          </span>
-        </StatusChip>
-      </div>
+    return (
+      <p className="inline-flex rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-foreground">
+        Android coming soon
+      </p>
     );
   }
 
   return (
-    <Link href="/download" prefetch={false} className="inline-flex">
-      <Button variant={variant}>
-        <IconBrandAndroid size={18} />
-        Download for Android
-      </Button>
+    <Link href="/download" prefetch={false} className={buttonVariants({ variant, className: "landing-cta landing-responsive-cta" })}>
+      <IconBrandAndroid size={18} aria-hidden="true" />
+      Download for Android
     </Link>
   );
 }

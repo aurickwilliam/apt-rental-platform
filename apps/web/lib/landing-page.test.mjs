@@ -6,7 +6,7 @@ import ts from "typescript";
 import { rankTenantLovedApartments } from "./tenant-loved-apartments.ts";
 import { preferredPortal } from "../../../packages/supabase/src/portal-preference.ts";
 
-function load(file, overrides = {}, globals = {}) {
+function loadModule(file, overrides = {}, globals = {}) {
   const jsx = (type, props) => ({ type, props });
   const dependencies = {
     "react/jsx-runtime": { jsx, jsxs: jsx },
@@ -22,7 +22,11 @@ function load(file, overrides = {}, globals = {}) {
   }).outputText;
   const context = { exports: {}, console, require: name => dependencies[name] ?? { default: name.split("/").at(-1) }, ...globals };
   vm.runInNewContext(compiled, context);
-  return context.exports.default;
+  return context.exports;
+}
+
+function load(...args) {
+  return loadModule(...args).default;
 }
 
 function nodes(element) {
@@ -75,7 +79,6 @@ test("landing keeps the verified, available, bounded query and real carousel dat
   assert.equal(carousel.props.apartment[0].rating, 4.5);
   assert.equal(carousel.props.apartment[0].image, "https://example.test/cover.webp");
   assert.deepEqual(all.filter(node => typeof node.type === "string" && /Section$/.test(node.type)).map(node => node.type), ["HeroSection", "ProductShowcaseSection", "RentalStepsSection", "OwnerCtaSection", "AppSection"]);
-  assert(!all.some(node => "apkAvailable" in (node.props ?? {})));
 });
 
 for (const [roles, destination] of [
@@ -92,7 +95,7 @@ for (const [roles, destination] of [
 }
 
 test("hero uses the original image, two desktop columns, and a single blue period", () => {
-  const tree = load("(main)/components/HeroSection.tsx")();
+  const tree = load("(main)/components/HeroSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })();
   const all = nodes(tree);
   assert.match(tree.props.className, /lg:grid-cols-2/);
   assert.equal(text(all.find(node => node.type === "h1")), "Find your place.Feel at home.");
@@ -102,7 +105,11 @@ test("hero uses the original image, two desktop columns, and a single blue perio
   assert.equal(image.props.width, 1824);
   assert.equal(image.props.height, 1704);
   assert.equal(image.props.preload, true);
-  assert(!text(tree).includes("Download"));
+  assert.match(text(tree), /Verified listings in Caloocan, Malabon, Navotas, and Valenzuela/);
+  const boundary = all.find(node => node.type === "Suspense");
+  assert.equal(boundary.props.children.type, "AppDownloadAction");
+  assert.equal(boundary.props.children.props.variant, "outline");
+  assert.equal(boundary.props.children.props.hideWhenUnavailable, true);
 });
 
 test("marketing CTAs render single links to the existing destinations", () => {
@@ -125,14 +132,54 @@ test("product rows reuse the approved originals without adding fake screenshots"
   }
 });
 
-test("renting steps are ordered and Android remains coming soon without a download action", () => {
+test("renting steps are ordered", () => {
   const steps = nodes(load("(main)/components/RentalStepsSection.tsx")());
   assert.equal(steps.filter(node => node.type === "ol").length, 1);
   assert.equal(steps.filter(node => node.type === "li").length, 3);
   assert.deepEqual(steps.filter(node => node.type === "h3").map(text), ["Discover", "Apply", "Settle in"]);
-  const mobile = load("(main)/components/AppSection.tsx")();
-  assert.match(text(mobile), /Android coming soon/);
-  assert(!nodes(mobile).some(node => ["Button", "Link", "AppDownloadButton"].includes(node.type)));
+});
+
+test("APT Mobile streams the Android download action behind a skeleton", () => {
+  const mobile = nodes(load("(main)/components/AppSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })());
+  const boundary = mobile.find(node => node.type === "Suspense");
+  assert.equal(boundary.props.fallback.type, "Skeleton");
+  assert.equal(boundary.props.children.type, "AppDownloadAction");
+});
+
+test("download button links to the permalink only when an APK is published", () => {
+  const Button = load("(main)/components/AppDownloadButton.tsx");
+  const available = Button({ isAvailable: true });
+  assert.equal(available.type, "Link");
+  assert.equal(available.props.href, "/download");
+  assert.equal(available.props.prefetch, false);
+  assert.match(text(available), /Download for Android/);
+  const unavailable = Button({ isAvailable: false });
+  assert.match(text(unavailable), /Android coming soon/);
+  assert(!nodes(unavailable).some(node => ["Link", "Button"].includes(node.type)));
+  assert.equal(Button({ isAvailable: false, hideWhenUnavailable: true }), null);
+});
+
+function apkClient(result) {
+  const calls = [];
+  const query = {};
+  for (const method of ["select", "eq"]) query[method] = (...args) => { calls.push([method, ...args]); return query; };
+  query.maybeSingle = async () => result;
+  return { calls, client: { from: table => { calls.push(["from", table]); return query; } } };
+}
+
+test("the published APK link is read for android and only https links count", async () => {
+  const { fetchAndroidApkUrl } = loadModule("../lib/android-apk-url.ts", {
+    "@repo/utils": { APP_RELEASE_PLATFORM: "android", isSecureDownloadUrl: value => value.startsWith("https://") },
+  });
+  const published = apkClient({ data: { apk_url: " https://github.com/o/r/releases/latest/download/apt.apk " }, error: null });
+  assert.equal(await fetchAndroidApkUrl(published.client), "https://github.com/o/r/releases/latest/download/apt.apk");
+  assert(published.calls.some(call => JSON.stringify(call) === JSON.stringify(["eq", "platform", "android"])));
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: { apk_url: "http://example.com/apt.apk" }, error: null }).client), null);
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: null, error: null }).client), null);
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: null, error: new Error("boom") }).client), null);
+});
+
+test("APT Mobile keeps a labeled sample illustration", () => {
   const preview = load("(main)/components/MobileAppPreview.tsx")();
   assert.match(preview.props["aria-label"], /Sample/);
   assert.match(text(preview), /Sample interface/);

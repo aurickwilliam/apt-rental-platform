@@ -1,5 +1,11 @@
+import { Suspense } from "react";
 import Image from "next/image";
 
+import { Skeleton } from "@heroui/react";
+
+import { IconRosetteDiscountCheck } from "@tabler/icons-react";
+
+import AppDownloadAction from "./AppDownloadAction";
 import StartBrowsingBtn from "./StartBrowsingBtn";
 
 export default function HeroSection() {
@@ -14,9 +20,16 @@ export default function HeroSection() {
         <p className="mt-7 max-w-md text-base leading-7 text-foreground/75">
           Discover apartments, connect with property owners, and manage your rental journey in one place.
         </p>
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
           <StartBrowsingBtn />
+          <Suspense fallback={<Skeleton className="h-11 w-full rounded-full bg-skeleton! motion-reduce:after:hidden sm:w-52" />}>
+            <AppDownloadAction variant="outline" hideWhenUnavailable />
+          </Suspense>
         </div>
+        <p className="mt-5 flex items-center gap-2 text-xs leading-5 text-foreground/75">
+          <IconRosetteDiscountCheck size={16} aria-hidden="true" className="shrink-0 text-secondary-foreground" />
+          Verified listings in Caloocan, Malabon, Navotas, and Valenzuela
+        </p>
       </div>
       <Image
         src="/landing/hero-living-room.png"
