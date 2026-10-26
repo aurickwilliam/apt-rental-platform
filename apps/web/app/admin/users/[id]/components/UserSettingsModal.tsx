@@ -158,15 +158,15 @@ export default function UserSettingsModal({
                     {tabs.map(({ id, label, icon: Icon }) => {
                       const selected = activeTab === id;
                       return (
-                        <button
+                        <Button
+                          variant="ghost"
                           key={id}
                           id={`user-settings-tab-${id}`}
-                          type="button"
-                          role="tab"
+                          {...{ role: "tab" }}
                           aria-selected={selected}
                           aria-controls={`user-settings-panel-${id}`}
                           onClick={() => setActiveTab(id)}
-                          className={`flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                          className={`button--bare flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                             selected
                               ? "bg-primary text-primary-foreground"
                               : "text-muted-foreground hover:bg-background hover:text-foreground"
@@ -174,7 +174,7 @@ export default function UserSettingsModal({
                         >
                           <Icon size={18} aria-hidden="true" />
                           {label}
-                        </button>
+                        </Button>
                       );
                     })}
                   </nav>

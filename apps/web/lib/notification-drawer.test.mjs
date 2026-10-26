@@ -577,8 +577,8 @@ test("the group row renders a compact summary, expands in place, and keeps contr
       onOpenGroup: () => { opens++; },
     });
     const collapsed = feed.elements(collapsedElement);
-    const summary = collapsed.find(n => n.type === "button");
-    const chevron = collapsed.find(n => n.type === "Button");
+    const summary = collapsed.find(n => n.type === "Button" && n.props.className?.includes("button--bare"));
+    const chevron = collapsed.find(n => n.type === "Button" && !n.props.className?.includes("button--bare"));
     const disclosureVisual = collapsed.find(n => n.type === "span" && n.props?.className === "notification-group-disclosure-visual");
     assert.ok(disclosureVisual, "the chevron paints inside a smaller visual surface");
     assert.ok(feed.nodes(disclosureVisual).some(n => n.type === "IconChevronDown"));
@@ -592,8 +592,7 @@ test("the group row renders a compact summary, expands in place, and keeps contr
       "MAHARTT Navales, Sent you 3 messages, Latest: message chat-3, unread, Just now",
       "the summary spells out sender, count, preview and unread state",
     );
-    assert.equal(summary.props.type, "button", "the summary is a native keyboard control");
-    assert.equal(chevron.props.type, "button");
+    assert.equal(summary.type, "Button", "the summary is a HeroUI keyboard control");
     assert.equal(chevron.props["aria-expanded"], false);
     assert.equal(chevron.props["aria-controls"], "notification-group-members-chat-1");
     assert.ok(chevron.props["aria-label"], "the icon-only chevron needs an accessible name");
@@ -619,9 +618,9 @@ test("the group row renders a compact summary, expands in place, and keeps contr
       "members render newest first",
     );
     assert.equal(expanded.find(n => n.type === "ul").props.id, "notification-group-members-chat-1");
-    assert.equal(expanded.find(n => n.type === "Button").props["aria-expanded"], true);
+    assert.equal(expanded.find(n => n.type === "Button" && !n.props.className?.includes("button--bare")).props["aria-expanded"], true);
     assert.equal(
-      expanded.find(n => n.type === "button").props["aria-label"],
+      expanded.find(n => n.type === "Button" && n.props.className?.includes("button--bare")).props["aria-label"],
       "MAHARTT Navales, Sent you 3 messages, unread, Just now",
       "expanded summary drops the duplicated latest preview",
     );

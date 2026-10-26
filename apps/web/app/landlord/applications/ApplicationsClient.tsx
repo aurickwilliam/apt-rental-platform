@@ -184,7 +184,7 @@ function ApplicationsContent({ initial }: { initial?: PresentationSeed<LandlordA
             </div>
             <div className="grid gap-3 md:hidden">
               {filtered.map((app) => (
-                <button key={app.id} type="button" onClick={() => openDetail(app.id)} onMouseEnter={() => router.prefetch(`/landlord/applications/${app.id}`)} onFocus={() => router.prefetch(`/landlord/applications/${app.id}`)} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left focus-visible:outline-2 focus-visible:outline-primary">
+                <Button variant="ghost" key={app.id} onClick={() => openDetail(app.id)} onMouseEnter={() => router.prefetch(`/landlord/applications/${app.id}`)} onFocus={() => router.prefetch(`/landlord/applications/${app.id}`)} className="button--bare flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left focus-visible:outline-2 focus-visible:outline-primary">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <UserAvatar src={app.tenant_avatar_url} initials={getInitials(app.tenant_name)} alt={app.tenant_name} size="md" className="shrink-0" />
@@ -201,7 +201,7 @@ function ApplicationsContent({ initial }: { initial?: PresentationSeed<LandlordA
                   </div>
                   <p className="flex items-center gap-2 text-xs text-muted-foreground"><Calendar size={14} aria-hidden="true" />Submitted {formatDate(app.created_at, "medium")}</p>
                   <p className="text-xs text-muted-foreground">Move-in: {formatDate(app.move_in_date, "medium")}</p>
-                </button>
+                </Button>
               ))}
             </div>
           </>

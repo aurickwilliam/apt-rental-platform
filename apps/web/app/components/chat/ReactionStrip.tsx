@@ -1,6 +1,7 @@
 "use client";
 
 import { QUICK_REACTIONS } from "./reactionEmojis";
+import { Button } from "@heroui/react";
 
 interface ReactionStripProps {
   /** The current user's reaction, if any (tinted) */
@@ -18,18 +19,18 @@ export default function ReactionStrip({ myReaction, onSelect }: ReactionStripPro
   return (
     <div className="flex items-center gap-0.5" role="group" aria-label="Quick reactions">
       {QUICK_REACTIONS.map((emoji) => (
-        <button
+        <Button
+          variant="ghost"
           key={emoji}
-          type="button"
           onClick={() => onSelect?.(emoji)}
           aria-label={`React with ${emoji}`}
           aria-pressed={myReaction === emoji}
-          className={`flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+          className={`button--bare flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
             myReaction === emoji ? "bg-primary/15" : ""
           }`}
         >
           <span className="text-2xl leading-8">{emoji}</span>
-        </button>
+        </Button>
       ))}
     </div>
   );

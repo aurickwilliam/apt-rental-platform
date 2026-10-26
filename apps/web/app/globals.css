@@ -669,6 +669,34 @@
 }
 
 @layer components {
+  /* Layout-only HeroUI Button: keeps the look of the raw <button> it replaced
+     (icon buttons, rows, tiles). Drops the pill box, fill and press scale;
+     the call site's utilities (later layer) set size, shape and colors. Kept
+     first in this layer with a single class so later component classes such as
+     `.notification-feed-row` still override it. */
+  .button--bare {
+    @apply h-auto min-h-0 w-auto gap-0 rounded-none p-0 whitespace-normal;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+    --button-bg: transparent;
+    --button-bg-hover: transparent;
+    --button-bg-pressed: transparent;
+  }
+
+  .button--bare:active,
+  .button--bare[data-pressed="true"] {
+    transform: none;
+  }
+
+  /* HeroUI sizes button icons itself; bare buttons keep the icon's own size. */
+  .button--bare svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    width: revert-layer;
+    height: revert-layer;
+    margin: revert-layer;
+  }
+
   .notification-feed-row {
     @apply flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
@@ -700,6 +728,11 @@
 
   .notification-feed-member {
     @apply flex min-h-11 w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
+  }
+
+  /* Button labels are Nunito on web too (DESIGN.md §9, mobile `.button__label`). */
+  .button {
+    font-family: var(--font-nunito), ui-sans-serif, sans-serif;
   }
 
   .button--primary {

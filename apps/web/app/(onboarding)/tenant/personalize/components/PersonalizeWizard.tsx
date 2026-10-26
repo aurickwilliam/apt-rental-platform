@@ -61,11 +61,11 @@ function OptionCard({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-pressed={selected}
       onClick={onPress}
-      className={`flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`button--bare flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         selected
           ? "border-primary bg-primary/10"
           : "border-border bg-card hover:border-primary/40"
@@ -85,7 +85,7 @@ function OptionCard({
       >
         <IconCheck size={13} />
       </span>
-    </button>
+    </Button>
   );
 }
 

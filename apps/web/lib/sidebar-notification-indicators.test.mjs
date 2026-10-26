@@ -76,7 +76,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
   // Drawer rows are buttons keyed by label; expose each with its href as `id`.
   const hrefForRow = n => nav.find(item => item.label === labelOf(n))?.href;
   const links = mobile
-    ? all.filter(n => n.type === "button" && hrefForRow(n)).map(n => ({ ...n, props: { ...n.props, id: hrefForRow(n) } }))
+    ? all.filter(n => n.type === "Button" && n.props.className?.includes("button--bare") && hrefForRow(n)).map(n => ({ ...n, props: { ...n.props, id: hrefForRow(n) } }))
     : all.filter(n => n.type === "Link" && nav.some(item => item.href === n.props.href));
   return { links, all, navigation, prefetched, writes: () => writes };
 }
@@ -185,7 +185,7 @@ test("Favorites follows Profile, navigates and prefetches in desktop and small-s
     for (const collapsed of [false, true]) {
       const result = sidebar({ mobile, collapsed });
       if (mobile) {
-        const rows = result.all.filter(node => node.type === "button");
+        const rows = result.all.filter(node => node.type === "Button" && node.props.className?.includes("button--bare"));
         const favorites = rows[rows.findIndex(node => labelOf(node) === "Profile") + 1];
         assert.equal(labelOf(favorites), "Favorites");
         assert.equal(favorites.props["aria-current"], undefined);
@@ -216,14 +216,14 @@ test("Favorites has an accessible active state in either theme without appearing
     for (const dark of [false, true]) {
       const result = sidebar({ mobile, dark, pathname: "/tenant/favorites" });
       const favorites = mobile
-        ? result.all.find(node => node.type === "button" && labelOf(node) === "Favorites")
+        ? result.all.find(node => node.type === "Button" && node.props.className?.includes("button--bare") && labelOf(node) === "Favorites")
         : result.all.find(node => node.type === "Dropdown.Item" && node.props.id === "favorites");
       assert.equal(favorites.props["aria-current"], "page");
       assert.match(favorites.props.className, /bg-primary\/10 .*text-primary/);
     }
     for (const portal of ["landlord", "admin"]) {
       const { all } = sidebar({ mobile, portal });
-      assert.equal(all.some(node => node.props.id === "favorites" || (node.type === "button" && labelOf(node) === "Favorites")), false);
+      assert.equal(all.some(node => node.props.id === "favorites" || (node.type === "Button" && node.props.className?.includes("button--bare") && labelOf(node) === "Favorites")), false);
     }
   }
 });

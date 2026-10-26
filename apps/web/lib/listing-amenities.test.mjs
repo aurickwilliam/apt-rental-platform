@@ -47,7 +47,7 @@ test("amenities search, selected tags, removal, conflicts and rules dialog", () 
     return context.exports.default({ formData, errors: {}, updateForm: updates => { formData = { ...formData, ...updates }; } });
   };
   const all = () => nodes(render());
-  const available = () => all().filter(node => node.type === "button");
+  const available = () => all().filter(node => node.type === "Button" && node.props.className?.includes("button--bare"));
   const tags = () => all().filter(node => node.type === "Tag").map(node => node.props.id);
   assert.deepEqual(tags(), ["kitchen", "furniture"], "retired selections remain visible/removable");
   for (const tag of all().filter(node => node.type === "Tag")) {

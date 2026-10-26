@@ -2,7 +2,7 @@
 
 import { useImperativeHandle, useState, forwardRef } from "react";
 import type { ReactNode } from "react";
-import { InputGroup, Label } from "@heroui/react";
+import { InputGroup, Label, Button } from "@heroui/react";
 import { IconCheck } from "@tabler/icons-react";
 
 import {
@@ -31,11 +31,11 @@ export function PreferenceOptionCard({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-pressed={selected}
       onClick={onPress}
-      className={`flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`button--bare flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         selected
           ? "border-primary bg-primary/10"
           : "border-border bg-card hover:border-primary/40"
@@ -55,7 +55,7 @@ export function PreferenceOptionCard({
       >
         <IconCheck size={13} />
       </span>
-    </button>
+    </Button>
   );
 }
 

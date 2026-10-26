@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Card } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import { IconPhoto } from "@tabler/icons-react";
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 
@@ -44,14 +44,14 @@ export default function VerificationDocuments({
             <div key={label} className="min-w-0">
               <p className="mb-2 text-sm font-semibold">{label}</p>
               {url ? (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => openImage(label)}
                   aria-label={`Enlarge ${label}`}
-                  className="relative block h-44 w-full cursor-zoom-in overflow-hidden rounded-xl border border-border bg-muted focus-visible:outline-2 focus-visible:outline-primary"
+                  className="button--bare relative block h-44 w-full cursor-zoom-in overflow-hidden rounded-xl border border-border bg-muted focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <Image src={url} alt={label} fill unoptimized className="object-contain" />
-                </button>
+                </Button>
               ) : (
                 <div className="flex h-44 items-center justify-center rounded-xl border border-border bg-muted p-3 text-center text-sm text-muted-foreground">
                   {label} unavailable
