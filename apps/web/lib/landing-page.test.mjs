@@ -121,15 +121,23 @@ test("marketing CTAs render single links to the existing destinations", () => {
   assert.equal(owner.props.href, "/forowners");
 });
 
-test("product rows reuse the approved originals without adding fake screenshots", () => {
+test("product rows show one apartment photo each, on alternating sides", () => {
   const Showcase = load("(main)/components/ProductShowcase.tsx");
   for (const reversed of [false, true]) {
-    const tree = Showcase({ number: "01", label: "Discover", title: "Title", paragraphs: ["Body"], reversed });
+    const image = { src: "/landing/showcase-modern-apartments.jpg", alt: "Modern brick apartment building with balconies" };
+    const tree = Showcase({ number: "01", label: "Discover", title: "Title", paragraphs: ["Body"], image, reversed });
     const images = nodes(tree).filter(node => node.type === "Image");
-    assert.deepEqual(images.map(node => node.props.src), ["/landing/showcase-discover-web.png", "/landing/showcase-discover-phone.png"]);
-    assert(images.every(node => node.props.alt.length > 20 && !node.props.preload));
+    assert.equal(images.length, 1);
+    assert.equal(images[0].props.src, image.src);
+    assert(images[0].props.alt.length > 20 && images[0].props.fill && !images[0].props.preload);
     assert.match(tree.props.className, /lg:grid-cols-2/);
   }
+});
+
+test("both showcase rows use different apartment photos", () => {
+  const rows = nodes(load("(main)/components/ProductShowcaseSection.tsx", { "./ProductShowcase": { default: "ProductShowcase" } })()).filter(node => node.type === "ProductShowcase");
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows.map(row => row.props.image.src), ["/landing/showcase-modern-apartments.jpg", "/landing/showcase-townhouse-apartments.jpg"]);
 });
 
 test("renting steps are ordered", () => {

@@ -36,7 +36,7 @@ export default function HeroSection() {
         alt="Bright apartment living room with a cream sofa, wooden coffee table, and large windows"
         width={1824}
         height={1704}
-        sizes="(min-width: 1024px) 464px, (min-width: 640px) 928px, calc(100vw - 48px)"
+        sizes="(min-width: 1280px) 600px, (min-width: 1024px) calc(50vw - 72px), (min-width: 640px) 928px, calc(100vw - 48px)"
         preload
         className="aspect-[4/3] w-full rounded-2xl object-cover lg:aspect-[76/71]"
       />

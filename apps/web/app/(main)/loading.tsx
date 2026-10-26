@@ -9,7 +9,7 @@ export default function MainLoading() {
   return (
     <div className="min-h-screen" aria-busy="true" aria-label="Loading">
       <p role="status" className="sr-only">Loading APT…</p>
-      <div aria-hidden="true" className="mx-auto max-w-5xl px-6">
+      <div aria-hidden="true" className="mx-auto max-w-7xl px-6">
         <div className="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2 lg:gap-12 lg:py-24">
           <div>
             <Sk className="h-10 w-full max-w-sm rounded-xl sm:h-14" />

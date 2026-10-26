@@ -20,6 +20,7 @@ export default function ProductShowcaseSection() {
             "Explore available apartments, compare your options, and connect with property owners in one convenient place.",
             "Submit applications and keep important rental documents organized, whether you are on the web or on your phone.",
           ]}
+          image={{ src: "/landing/showcase-modern-apartments.jpg", alt: "Modern brick apartment building with glass windows and balconies in warm sunlight" }}
         />
         <ProductShowcase
           number="02"
@@ -29,6 +30,7 @@ export default function ProductShowcaseSection() {
             "Keep rental conversations, payment records, and requests organized in one place.",
             "Manage the details of renting with less back-and-forth, from your desktop or mobile device.",
           ]}
+          image={{ src: "/landing/showcase-townhouse-apartments.jpg", alt: "Row of three-storey apartment townhouses with balconies and ground-floor entrances" }}
           reversed
         />
       </div>

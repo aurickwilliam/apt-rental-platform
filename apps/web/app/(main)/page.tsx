@@ -74,7 +74,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-5xl px-6">
+      <main className="mx-auto max-w-7xl px-6">
         <HeroSection />
         <section className="pb-8 sm:pb-12">
           <ApartmentCarousel apartment={mapped} />
