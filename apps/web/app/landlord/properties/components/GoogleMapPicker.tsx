@@ -3,100 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 
+import {
+  getGoogleMaps,
+  loadGoogleMaps,
+  type GoogleLatLngLiteral,
+  type GoogleMapInstance,
+  type GoogleMapMouseEvent,
+  type GoogleMarkerInstance,
+} from "@/lib/google-maps-loader";
+
 const DEFAULT_CENTER = { lat: 14.665, lng: 120.967 };
-const SCRIPT_ID = "google-maps-js";
-
-interface GoogleLatLngLiteral {
-  lat: number;
-  lng: number;
-}
-
-interface GoogleLatLng {
-  lat(): number;
-  lng(): number;
-}
-
-interface GoogleMapMouseEvent {
-  latLng: GoogleLatLng | null;
-}
-
-interface GoogleMapInstance {
-  addListener(eventName: string, handler: (e: GoogleMapMouseEvent) => void): void;
-  setCenter(position: GoogleLatLngLiteral): void;
-  getCenter(): GoogleLatLng | undefined;
-  getZoom(): number | undefined;
-}
 
 interface MapView {
   center: GoogleLatLngLiteral;
   zoom: number;
-}
-
-interface GoogleMarkerInstance {
-  addListener(eventName: string, handler: () => void): void;
-  setPosition(position: GoogleLatLngLiteral): void;
-  setMap(map: GoogleMapInstance | null): void;
-  getPosition(): GoogleLatLng | null;
-}
-
-interface GoogleMapsNamespace {
-  Map: new (
-    element: HTMLElement,
-    options: {
-      center: GoogleLatLngLiteral;
-      zoom: number;
-      mapTypeId?: string;
-      colorScheme: "DARK" | "LIGHT";
-      mapTypeControl?: boolean;
-      streetViewControl?: boolean;
-      fullscreenControl?: boolean;
-    },
-  ) => GoogleMapInstance;
-  Marker: new (options: {
-    position: GoogleLatLngLiteral;
-    map: GoogleMapInstance;
-    draggable?: boolean;
-  }) => GoogleMarkerInstance;
-  event: {
-    clearInstanceListeners(instance: unknown): void;
-    trigger(instance: unknown, eventName: string): void;
-  };
-}
-
-function getGoogleMaps(): GoogleMapsNamespace | null {
-  const w = window as unknown as { google?: { maps?: GoogleMapsNamespace } };
-  return w.google?.maps ?? null;
-}
-
-let loadPromise: Promise<void> | null = null;
-
-function loadGoogleMaps(apiKey: string): Promise<void> {
-  const existing = getGoogleMaps();
-  if (existing) return Promise.resolve();
-  if (loadPromise) return loadPromise;
-
-  loadPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (getGoogleMaps()) {
-        resolve();
-      } else {
-        loadPromise = null;
-        reject(new Error("Google Maps failed to initialize."));
-      }
-    };
-    script.onerror = () => {
-      loadPromise = null;
-      reject(new Error("Google Maps script failed to load."));
-    };
-    document.head.appendChild(script);
-  });
-
-  return loadPromise;
 }
 
 interface Props {

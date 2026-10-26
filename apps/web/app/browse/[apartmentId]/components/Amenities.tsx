@@ -14,7 +14,7 @@ export default function Amenities({ apartmentPerks, headingIcon }: AmenitiesProp
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="flex items-center gap-2 text-lg font-medium">
+        <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold">
           {headingIcon}
           Amenities
         </h3>

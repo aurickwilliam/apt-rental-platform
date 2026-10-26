@@ -26,7 +26,7 @@ export default function RatingSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-medium">Ratings & Reviews</h3>
+        <h3 className="font-nunito text-lg font-semibold">Ratings & Reviews</h3>
 
         <Button
           size="sm"

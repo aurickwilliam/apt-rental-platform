@@ -69,7 +69,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
   return (
     <Card className={`border border-border shadow-none ${className}`}>
       <Card.Content className="flex flex-col items-start gap-2">
-        <h3 className="text-lg font-medium">Lease Agreement</h3>
+        <h3 className="font-nunito text-lg font-semibold">Lease Agreement</h3>
 
         {hasLease ? (
           <>

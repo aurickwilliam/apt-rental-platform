@@ -81,6 +81,12 @@ const INITIAL_FILTERS: Filters = {
 type Props = {
   basePath?: string;
   onApply?: () => void;
+  /**
+   * Replaces the URL when a search or filter is applied. Defaults to a router
+   * replace; the map search passes an in-place history update, because a router
+   * navigation remounts the page and would throw away the map and its results.
+   */
+  navigate?: (href: string) => void;
 };
 
 function readFiltersFromParams(
@@ -426,11 +432,15 @@ function FilterChip({
   );
 }
 
-export default function FilterContainer({ basePath = "/browse", onApply }: Props)
+export default function FilterContainer({ basePath = "/browse", onApply, navigate }: Props)
 {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const replaceUrl = useCallback(
+    (href: string) => (navigate ? navigate(href) : router.replace(href)),
+    [navigate, router],
+  );
 
   const [filters, setFilters] = useState<Filters>(() =>
     readFiltersFromParams(searchParams),
@@ -459,10 +469,10 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
       const query = serializeFilters(next, searchParamsRef.current.get("search"));
       lastPushedRef.current = query;
       startTransition(() => {
-        router.replace(query ? `${basePath}?${query}` : basePath);
+        replaceUrl(query ? `${basePath}?${query}` : basePath);
       });
     },
-    [basePath, router],
+    [basePath, replaceUrl],
   );
 
   // Applies a new filter state instantly to the UI only — no fetching.
@@ -519,9 +529,9 @@ export default function FilterContainer({ basePath = "/browse", onApply }: Props
     // Clear All also drops the text search so results are fully unfiltered.
     lastPushedRef.current = "";
     startTransition(() => {
-      router.replace(basePath);
+      replaceUrl(basePath);
     });
-  }, [basePath, router]);
+  }, [basePath, replaceUrl]);
 
   // Stay in sync when the URL changes elsewhere (browser back/forward,
   // text search). Echoes of this panel's own pushes are ignored so local

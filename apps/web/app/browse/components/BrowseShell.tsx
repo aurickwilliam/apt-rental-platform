@@ -36,7 +36,7 @@ export default function BrowseShell({
   return (
     <div className={browseFrameClass(fullWidth)}>
       <Suspense>
-        <SearchContainer basePath={basePath} filterButton={filterButton} />
+        <SearchContainer basePath={basePath} filterButton={filterButton} mapHref={`${basePath}/map`} />
       </Suspense>
       <div className={BROWSE_BODY_CLASS}>
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
