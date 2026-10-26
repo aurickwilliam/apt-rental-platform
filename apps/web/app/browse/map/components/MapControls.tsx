@@ -10,8 +10,11 @@ import {
 } from "@tabler/icons-react";
 
 interface MapControlsProps {
-  expanded: boolean;
-  onToggleExpand: () => void;
+  /** Omit to hide the expand button. */
+  onToggleExpand?: () => void;
+  expanded?: boolean;
+  /** Show the expand button on every screen size (it is desktop-only by default). */
+  expandOnPhones?: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onLocate: () => void;
@@ -22,25 +25,27 @@ const HALF = "size-10 min-w-10 cursor-pointer rounded-none bg-surface text-foreg
 
 // The map's own controls, replacing Google's defaults (Airbnb-style): an expand
 // button, a zoom pill and a locate-me button, stacked at the top right.
-export default function MapControls({ expanded, onToggleExpand, onZoomIn, onZoomOut, onLocate }: MapControlsProps) {
+export default function MapControls({ expanded = false, onToggleExpand, expandOnPhones = false, onZoomIn, onZoomOut, onLocate }: MapControlsProps) {
   return (
     <div
       data-fab-clearance="browse-map-controls"
       className="absolute top-3 right-3 z-10 flex flex-col items-center gap-2"
     >
-      {/* Phones already show the map on its own, so expanding is desktop-only. */}
-      <div className="hidden lg:block">
-        <Button
-          isIconOnly
-          variant="ghost"
-          className={CIRCLE}
-          onPress={onToggleExpand}
-          aria-label={expanded ? "Show the list again" : "Expand the map"}
-          aria-pressed={expanded}
-        >
-          {expanded ? <IconArrowsDiagonalMinimize2 size={18} /> : <IconArrowsDiagonal size={18} />}
-        </Button>
-      </div>
+      {onToggleExpand ? (
+        // Phones already show the map on its own, so expanding is desktop-only by default.
+        <div className={expandOnPhones ? undefined : "hidden lg:block"}>
+          <Button
+            isIconOnly
+            variant="ghost"
+            className={CIRCLE}
+            onPress={onToggleExpand}
+            aria-label={expanded ? "Show the list again" : "Expand the map"}
+            aria-pressed={expanded}
+          >
+            {expanded ? <IconArrowsDiagonalMinimize2 size={18} /> : <IconArrowsDiagonal size={18} />}
+          </Button>
+        </div>
+      ) : null}
 
       <div role="group" aria-label="Zoom" className="flex flex-col overflow-hidden rounded-full bg-surface shadow-lg">
         <Button isIconOnly variant="ghost" className={HALF} onPress={onZoomIn} aria-label="Zoom in">
