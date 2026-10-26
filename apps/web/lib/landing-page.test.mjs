@@ -6,11 +6,11 @@ import ts from "typescript";
 import { rankTenantLovedApartments } from "./tenant-loved-apartments.ts";
 import { preferredPortal } from "../../../packages/supabase/src/portal-preference.ts";
 
-function load(file, overrides = {}, globals = {}) {
+function loadModule(file, overrides = {}, globals = {}) {
   const jsx = (type, props) => ({ type, props });
   const dependencies = {
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Button: "Button", buttonVariants: ({ className = "" }) => className, Skeleton: "Skeleton", Dropdown: Object.assign("Dropdown", { Popover: "Popover", Menu: "Menu", Item: "Item" }), Label: "Label" },
+    "@heroui/react": { Button: "Button", buttonVariants: ({ className = "" }) => className, Skeleton: "Skeleton", Card: Object.assign("Card", { Content: "CardContent" }), Dropdown: Object.assign("Dropdown", { Popover: "Popover", Menu: "Menu", Item: "Item" }), Label: "Label" },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => name }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
@@ -22,7 +22,11 @@ function load(file, overrides = {}, globals = {}) {
   }).outputText;
   const context = { exports: {}, console, require: name => dependencies[name] ?? { default: name.split("/").at(-1) }, ...globals };
   vm.runInNewContext(compiled, context);
-  return context.exports.default;
+  return context.exports;
+}
+
+function load(...args) {
+  return loadModule(...args).default;
 }
 
 function nodes(element) {
@@ -75,7 +79,6 @@ test("landing keeps the verified, available, bounded query and real carousel dat
   assert.equal(carousel.props.apartment[0].rating, 4.5);
   assert.equal(carousel.props.apartment[0].image, "https://example.test/cover.webp");
   assert.deepEqual(all.filter(node => typeof node.type === "string" && /Section$/.test(node.type)).map(node => node.type), ["HeroSection", "ProductShowcaseSection", "RentalStepsSection", "OwnerCtaSection", "AppSection"]);
-  assert(!all.some(node => "apkAvailable" in (node.props ?? {})));
 });
 
 for (const [roles, destination] of [
@@ -92,7 +95,7 @@ for (const [roles, destination] of [
 }
 
 test("hero uses the original image, two desktop columns, and a single blue period", () => {
-  const tree = load("(main)/components/HeroSection.tsx")();
+  const tree = load("(main)/components/HeroSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })();
   const all = nodes(tree);
   assert.match(tree.props.className, /lg:grid-cols-2/);
   assert.equal(text(all.find(node => node.type === "h1")), "Find your place.Feel at home.");
@@ -102,40 +105,111 @@ test("hero uses the original image, two desktop columns, and a single blue perio
   assert.equal(image.props.width, 1824);
   assert.equal(image.props.height, 1704);
   assert.equal(image.props.preload, true);
-  assert(!text(tree).includes("Download"));
+  assert.match(text(tree), /Verified listings in Caloocan, Malabon, Navotas, and Valenzuela/);
+  const boundary = all.find(node => node.type === "Suspense");
+  assert.equal(boundary.props.children.type, "AppDownloadAction");
+  assert.equal(boundary.props.children.props.variant, "outline");
+  assert.equal(boundary.props.children.props.hideWhenUnavailable, true);
 });
 
-test("marketing CTAs render single links to the existing destinations", () => {
+test("marketing CTAs use the shared HeroUI landing button with the existing destinations", () => {
   const browse = load("(main)/components/StartBrowsingBtn.tsx")();
-  assert.equal(browse.type, "Link");
+  assert.equal(browse.type, "LandingCta");
   assert.equal(browse.props.href, "/browse");
   assert.match(text(browse), /Explore apartments/);
-  const owner = nodes(load("(main)/components/OwnerCtaSection.tsx")()).find(node => node.type === "Link");
+  const owner = nodes(load("(main)/components/OwnerCtaSection.tsx")()).find(node => node.type === "LandingCta");
   assert.equal(owner.props.href, "/forowners");
 });
 
-test("product rows reuse the approved originals without adding fake screenshots", () => {
+test("landing button is a HeroUI Button that navigates with the router or a full page load", () => {
+  const pushed = [];
+  const assigned = [];
+  const LandingCta = load("(main)/components/LandingCta.tsx", { "next/navigation": { useRouter: () => ({ push: href => pushed.push(href) }) } }, { window: { location: { assign: href => assigned.push(href) } } });
+  const internal = LandingCta({ href: "/browse", children: "Go" });
+  assert.equal(internal.type, "Button");
+  assert.equal(internal.props.variant, "primary");
+  assert.match(internal.props.className, /landing-cta landing-responsive-cta/);
+  internal.props.onPress();
+  assert.deepEqual(pushed, ["/browse"]);
+  const download = LandingCta({ href: "/download", variant: "outline", isExternalRedirect: true, children: "Get" });
+  assert.equal(download.props.variant, "outline");
+  download.props.onPress();
+  assert.deepEqual(assigned, ["/download"]);
+  assert.deepEqual(pushed, ["/browse"]);
+});
+
+test("product rows show one apartment photo each, on alternating sides", () => {
   const Showcase = load("(main)/components/ProductShowcase.tsx");
   for (const reversed of [false, true]) {
-    const tree = Showcase({ number: "01", label: "Discover", title: "Title", paragraphs: ["Body"], reversed });
+    const image = { src: "/landing/showcase-modern-apartments.jpg", alt: "Modern brick apartment building with balconies" };
+    const tree = Showcase({ number: "01", label: "Discover", title: "Title", paragraphs: ["Body"], image, reversed });
     const images = nodes(tree).filter(node => node.type === "Image");
-    assert.deepEqual(images.map(node => node.props.src), ["/landing/showcase-discover-web.png", "/landing/showcase-discover-phone.png"]);
-    assert(images.every(node => node.props.alt.length > 20 && !node.props.preload));
+    assert.equal(images.length, 1);
+    assert.equal(images[0].props.src, image.src);
+    assert(images[0].props.alt.length > 20 && images[0].props.fill && !images[0].props.preload);
     assert.match(tree.props.className, /lg:grid-cols-2/);
   }
 });
 
-test("renting steps are ordered and Android remains coming soon without a download action", () => {
+test("both showcase rows use different apartment photos", () => {
+  const rows = nodes(load("(main)/components/ProductShowcaseSection.tsx", { "./ProductShowcase": { default: "ProductShowcase" } })()).filter(node => node.type === "ProductShowcase");
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows.map(row => row.props.image.src), ["/landing/showcase-modern-apartments.jpg", "/landing/showcase-townhouse-apartments.jpg"]);
+});
+
+test("renting steps are ordered", () => {
   const steps = nodes(load("(main)/components/RentalStepsSection.tsx")());
   assert.equal(steps.filter(node => node.type === "ol").length, 1);
   assert.equal(steps.filter(node => node.type === "li").length, 3);
   assert.deepEqual(steps.filter(node => node.type === "h3").map(text), ["Discover", "Apply", "Settle in"]);
-  const mobile = load("(main)/components/AppSection.tsx")();
-  assert.match(text(mobile), /Android coming soon/);
-  assert(!nodes(mobile).some(node => ["Button", "Link", "AppDownloadButton"].includes(node.type)));
-  const preview = load("(main)/components/MobileAppPreview.tsx")();
-  assert.match(preview.props["aria-label"], /Sample/);
-  assert.match(text(preview), /Sample interface/);
+});
+
+test("APT Mobile streams the Android download action behind a skeleton", () => {
+  const mobile = nodes(load("(main)/components/AppSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })());
+  const boundary = mobile.find(node => node.type === "Suspense");
+  assert.equal(boundary.props.fallback.type, "Skeleton");
+  assert.equal(boundary.props.children.type, "AppDownloadAction");
+});
+
+test("download button links to the permalink only when an APK is published", () => {
+  const Button = load("(main)/components/AppDownloadButton.tsx");
+  const available = Button({ isAvailable: true });
+  assert.equal(available.type, "LandingCta");
+  assert.equal(available.props.href, "/download");
+  assert.equal(available.props.isExternalRedirect, true);
+  assert.match(text(available), /Download for Android/);
+  const unavailable = Button({ isAvailable: false });
+  assert.match(text(unavailable), /Android coming soon/);
+  assert(!nodes(unavailable).some(node => node.type === "LandingCta"));
+  assert.equal(Button({ isAvailable: false, hideWhenUnavailable: true }), null);
+});
+
+function apkClient(result) {
+  const calls = [];
+  const query = {};
+  for (const method of ["select", "eq"]) query[method] = (...args) => { calls.push([method, ...args]); return query; };
+  query.maybeSingle = async () => result;
+  return { calls, client: { from: table => { calls.push(["from", table]); return query; } } };
+}
+
+test("the published APK link is read for android and only https links count", async () => {
+  const { fetchAndroidApkUrl } = loadModule("../lib/android-apk-url.ts", {
+    "@repo/utils": { APP_RELEASE_PLATFORM: "android", isSecureDownloadUrl: value => value.startsWith("https://") },
+  });
+  const published = apkClient({ data: { apk_url: " https://github.com/o/r/releases/latest/download/apt.apk " }, error: null });
+  assert.equal(await fetchAndroidApkUrl(published.client), "https://github.com/o/r/releases/latest/download/apt.apk");
+  assert(published.calls.some(call => JSON.stringify(call) === JSON.stringify(["eq", "platform", "android"])));
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: { apk_url: "http://example.com/apt.apk" }, error: null }).client), null);
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: null, error: null }).client), null);
+  assert.equal(await fetchAndroidApkUrl(apkClient({ data: null, error: new Error("boom") }).client), null);
+});
+
+test("APT Mobile shows the real My Rental screen as a large phone image", () => {
+  const image = nodes(load("(main)/components/AppSection.tsx", { "react": { Suspense: "Suspense" }, "./AppDownloadAction": { default: "AppDownloadAction" } })()).find(node => node.type === "Image");
+  assert.equal(image.props.src, "/landing/app-mobile-my-rental.png");
+  assert.equal(image.props.width, 990);
+  assert.equal(image.props.height, 1165);
+  assert(image.props.alt.length > 20 && !image.props.preload);
 });
 
 function navbarHarness({ open = false, signedIn = false } = {}) {
@@ -158,8 +232,8 @@ test("public navbar labels, destinations, theme and mobile menu stay available",
   const { tree, stateChanges } = navbarHarness({ open: true });
   const all = nodes(tree);
   assert.equal(tree.type, "header");
-  assert.deepEqual(all.filter(node => node.type === "Link" && ["Apartments", "For owners"].includes(text(node))).map(node => [text(node), node.props.href]), [
-    ["Apartments", "/browse"], ["For owners", "/forowners"], ["Apartments", "/browse"], ["For owners", "/forowners"],
+  assert.deepEqual(all.filter(node => node.type === "Link" && ["Browse Apartments", "For owners"].includes(text(node))).map(node => [text(node), node.props.href]), [
+    ["Browse Apartments", "/browse"], ["For owners", "/forowners"], ["Browse Apartments", "/browse"], ["For owners", "/forowners"],
   ]);
   const signUp = all.filter(node => node.type === "Link" && text(node).includes("Get started"));
   assert.equal(signUp.length, 2);

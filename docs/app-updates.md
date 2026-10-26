@@ -11,6 +11,9 @@ APT ships to Android as an APK outside the Play Store, so installed apps learn a
   - otherwise nothing. A failed check or unreadable version never blocks anyone.
 - The Update button opens `apk_url` (https only) in the browser; the user installs over the existing app. Android asks once to allow installs from the browser.
 
+## Website download button
+The landing page's APT Mobile section links to `/download` (`apps/web/app/(main)/download/route.ts`), which redirects to the `apk_url` of the `android` row (https only, `lib/android-apk-url.ts`). Publishing a new link in Admin → App updates updates the button with no web deploy; until a link is published the section shows "Android coming soon" and `/download` returns 404.
+
 ## Releasing a new build
 1. Bump `version` in `apps/mobile/app.config.js` (`major.minor.patch`). EAS raises the Android `versionCode` automatically (`autoIncrement`, remote versioning).
 2. `eas build --platform android --profile production` (the profile builds an APK, not an AAB).
