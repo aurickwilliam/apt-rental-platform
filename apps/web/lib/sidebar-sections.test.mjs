@@ -119,6 +119,16 @@ test("Notifications tab opens the drawer through the shared query param", () => 
   assert.deepEqual(pushed, ["/landlord/dashboard?tab=1&notifications=open#top"]);
 });
 
+test("Notifications tab starts at the sidebar's left edge like the nav links", () => {
+  const expanded = renderNotificationsItem({ entry: "sidebar" });
+  // HeroUI's `.button` base centers its content; the expanded row must opt
+  // back into the nav links' flex-start alignment.
+  assert.match(expanded.props.className, /\bjustify-start\b/);
+  assert.doesNotMatch(expanded.props.className, /\bjustify-center\b/);
+  const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
+  assert.match(collapsed.props.className, /\bjustify-center\b/);
+});
+
 test("Notifications tab shows a red count badge capped at 9+ and a label-only collapsed rail", () => {
   const badge = item => [item.props.children].flat(Infinity).find(child => /bg-danger/.test(child?.props?.className ?? ""));
   const unread = renderNotificationsItem({ entry: "sidebar", unreadCount: 4 });
