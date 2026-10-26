@@ -150,18 +150,18 @@ export default function Step4Description({ formData, updateForm, errors }: Props
             visiblePerks.map((perk) => {
               const Icon = perk.icon;
               return (
-              <button
+              <Button
+                variant="ghost"
                 key={perk.id}
-                type="button"
                 onClick={() => toggleAmenity(perk.id)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer text-left border-border bg-card hover:border-primary/50 text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+                className="button--bare flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer text-left border-border bg-card hover:border-primary/50 text-foreground focus-visible:outline-2 focus-visible:outline-primary"
               >
                 <Icon
                   size={18}
                   className="shrink-0 text-primary"
                 />
                 <span className="text-sm font-medium leading-tight">{perk.name}</span>
-              </button>
+              </Button>
               );
             })
           )}

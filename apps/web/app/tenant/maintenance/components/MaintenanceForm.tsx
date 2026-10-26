@@ -297,14 +297,14 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
             className="hidden"
             onChange={(e) => addFiles(e.target.files)}
           />
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 font-inter text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            className="button--bare w-full rounded-xl border border-dashed border-border bg-muted py-8 flex items-center justify-center gap-2 font-inter text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <UploadCloud size={18} />
             Add photos
-          </button>
+          </Button>
 
           {files.length > 0 && (
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -315,14 +315,14 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
                 >
                   <ImageIcon size={14} className="text-muted-foreground shrink-0" />
                   <span className="max-w-[140px] truncate">{file.name}</span>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
                     onClick={() => removeFile(idx)}
                     aria-label={`Remove ${file.name}`}
-                    className="text-muted-foreground hover:text-red-600 transition-colors"
+                    className="button--bare text-muted-foreground hover:text-red-600 transition-colors"
                   >
                     <X size={14} />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

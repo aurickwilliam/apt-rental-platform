@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@repo/supabase/server";
-import { GENDERS } from "@repo/constants";
+import { GENDERS, validatePHMobile } from "@repo/constants";
 
 export type UpdateProfileState = {
   error?: string;
@@ -46,8 +46,9 @@ export async function updateProfile(
 
   if (!GENDERS.includes(gender)) return { error: "Invalid gender." };
 
-  if (!/^09\d{9}$/.test(mobileNumber)) {
-    return { error: "Mobile number must be 11 digits starting with 09." };
+  const mobile = validatePHMobile(mobileNumber);
+  if (!mobile.formattedNumber) {
+    return { error: mobile.errorMessage ?? "Enter a valid mobile number." };
   }
 
   if (!/^\d{4}$/.test(postalCodeRaw)) {
@@ -62,7 +63,7 @@ export async function updateProfile(
     .from("users")
     .update({
       gender,
-      mobile_number: mobileNumber,
+      mobile_number: mobile.formattedNumber,
       street_address: streetAddress,
       barangay,
       city,

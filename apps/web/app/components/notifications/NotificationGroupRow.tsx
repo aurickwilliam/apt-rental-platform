@@ -49,11 +49,11 @@ export default function NotificationGroupRow({
   return (
     <div className="flex flex-col">
       <div className="relative">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onOpenGroup}
           aria-label={`${accessibleLabel}, ${timestamp}`}
-          className="notification-feed-row"
+          className="button--bare notification-feed-row"
         >
           <span
             aria-hidden="true"
@@ -76,7 +76,7 @@ export default function NotificationGroupRow({
             </time>
           </span>
           <span aria-hidden="true" className={`absolute right-3 top-2.5 size-1.5 rounded-full ${unit.hasUnread ? "bg-primary" : "bg-transparent"}`} />
-        </button>
+        </Button>
         <Button
           type="button"
           isIconOnly

@@ -260,16 +260,16 @@ export default function PassportClient({
                     layout={layout}
                   />
                 ))}
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => openAdd()}
-                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`button--bare flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary focus-visible:outline-2 focus-visible:outline-primary ${
                     layout === "grid" ? "min-h-48 flex-col" : "py-4"
                   }`}
                 >
                   <IconPlus size={24} aria-hidden="true" />
                   Add document
-                </button>
+                </Button>
               </div>
             )}
           </section>

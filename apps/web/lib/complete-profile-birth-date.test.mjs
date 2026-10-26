@@ -5,7 +5,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
-import { PH_MOBILE_PREFIXES } from "../../../packages/constants/src/user/ph-mobile-prefixes.ts";
 import * as birthRules from "./birth-date.ts";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
 import { addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
@@ -23,8 +22,8 @@ const ui = {
   DatePicker: parts("DatePicker", ["Trigger", "TriggerIndicator", "Popover"]), DateField: parts("DateField", ["Group", "Input", "Suffix", "Segment"]),
   Calendar: parts("Calendar", ["Header", "YearPickerTrigger", "YearPickerTriggerHeading", "YearPickerTriggerIndicator", "NavButton", "Grid", "GridHeader", "GridBody", "HeaderCell", "Cell", "YearPickerGrid", "YearPickerGridBody", "YearPickerCell"]),
 };
-const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts", { "./ph-mobile-prefixes": { PH_MOBILE_PREFIXES } });
-const constants = { GENDERS, SUFFIXES: [], validatePHMobile, meetsPasswordPolicy: () => true, getPasswordRequirements: () => [], PASSWORD_POLICY_MESSAGE: "password error" };
+const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts");
+const constants = { GENDERS, SUFFIXES: [], validatePHMobile, sanitizePHMobileInput: value => value, meetsPasswordPolicy: () => true, getPasswordRequirements: () => [], PASSWORD_POLICY_MESSAGE: "password error" };
 const { validateSignUpForm } = compile("app/(auth)/sign-up-form/utils.ts", {
   "@/lib/birth-date": rules, "@/lib/registration-address": addressRules, "@repo/constants": constants,
 });

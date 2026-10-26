@@ -51,15 +51,15 @@ export default function AddDocumentModal({
             {!isUploading ? <Modal.CloseTrigger className="text-card-foreground" /> : null}
             <Modal.Header className="flex flex-col items-start gap-1">
               {docType ? (
-                <button
-                  type="button"
-                  disabled={isUploading}
+                <Button
+                  variant="ghost"
+                  isDisabled={isUploading}
                   onClick={() => onSelectType(null)}
-                  className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="button--bare inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <IconArrowLeft size={16} aria-hidden="true" />
                   Document types
-                </button>
+                </Button>
               ) : null}
               <Modal.Heading className="font-nunito text-2xl font-bold text-card-foreground">
                 {docType ?? "Add a document"}

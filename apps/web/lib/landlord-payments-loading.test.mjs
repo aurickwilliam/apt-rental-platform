@@ -171,7 +171,7 @@ test("All apartments adds the unit to rows and Needs attention; one unit does no
   const opened = [];
   const card = all.find(node => node.type.name === "NeedsAttentionCard").type({ payments: [other], showUnit: true, onOpen: (payment) => opened.push(payment.id) });
   assert.ok(text(card).includes("Unit B"));
-  nodes(card).find(node => node.type === "button").props.onClick();
+  nodes(card).find(node => node.type === "Button" && node.props.className?.includes("button--bare")).props.onClick();
   assert.deepEqual(opened, ["cash-b"]);
   const single = nodes(load("page.tsx", { states: ["all", "all", "newest", "unit-a"], units, payments: { payments: [newer], loading: false } }).default());
   assert.equal(single.find(node => node.type.name === "PaymentsTable").props.showUnit, false);
@@ -244,7 +244,7 @@ test("summary figures follow the selected year and Needs attention ignores every
   const attention = filtered.find(node => node.type.name === "NeedsAttentionCard");
   assert.deepEqual([...attention.props.payments.map(payment => payment.id)], ["cash"]);
   const opened = [];
-  const rows = nodes(attention.type({ ...attention.props, onOpen: (payment) => opened.push(payment.id) })).filter(node => node.type === "button");
+  const rows = nodes(attention.type({ ...attention.props, onOpen: (payment) => opened.push(payment.id) })).filter(node => node.type === "Button" && node.props.className?.includes("button--bare"));
   rows.forEach(row => row.props.onClick());
   assert.deepEqual(opened, ["cash"]);
 });

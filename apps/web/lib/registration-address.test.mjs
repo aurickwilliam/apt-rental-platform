@@ -4,7 +4,6 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
-import { PH_MOBILE_PREFIXES } from "../../../packages/constants/src/user/ph-mobile-prefixes.ts";
 import { validateBirthDate } from "./birth-date.ts";
 import { addressConstants, addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
@@ -195,7 +194,7 @@ test("Complete Profile seeds valid saved values once and marks unsafe legacy loc
   assert.equal(unknown.addressNode().props.value.streetAddress, validAddress.streetAddress);
 });
 
-const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts", { "./ph-mobile-prefixes": { PH_MOBILE_PREFIXES } });
+const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts");
 const serverConstants = { ...constants, validatePHMobile };
 const year = new Date().getFullYear() - 25;
 function submission(address = validAddress, role = "tenant") {

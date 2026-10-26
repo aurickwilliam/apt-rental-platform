@@ -181,16 +181,16 @@ export default function PassportDocumentDetailClient({
               {sides.length > 1 ? (
                 <p className="font-nunito text-base font-semibold text-card-foreground">{side.label}</p>
               ) : null}
-              <button
-                type="button"
-                disabled={!side.url}
+              <Button
+                variant="ghost"
+                isDisabled={!side.url}
                 onClick={() => openSide(side)}
                 aria-label={
                   side.isImage
                     ? `Enlarge ${document.doc_type} ${side.label.toLowerCase()}`
                     : `Open ${document.doc_type} file`
                 }
-                className="relative flex aspect-[4/3] max-h-[70vh] w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted enabled:cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
+                className="button--bare relative flex aspect-[4/3] max-h-[70vh] w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted enabled:cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
               >
                 {side.url ? (
                   <PassportDocumentThumbnail
@@ -212,7 +212,7 @@ export default function PassportDocumentDetailClient({
                     Open file <IconExternalLink size={14} aria-hidden="true" />
                   </span>
                 ) : null}
-              </button>
+              </Button>
             </div>
           ))}
         </section>

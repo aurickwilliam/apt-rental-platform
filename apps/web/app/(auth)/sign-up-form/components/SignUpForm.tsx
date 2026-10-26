@@ -32,6 +32,7 @@ import {
   GENDERS,
   SUFFIXES,
   getPasswordRequirements,
+  sanitizePHMobileInput,
 } from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
 
@@ -264,13 +265,12 @@ export default function SignUpForm() {
             type="tel"
             value={formData.mobileNumber}
             onChange={(val) => {
-              const digits = val.replace(/\D/g, "").slice(0, 11);
-              handleChange("mobileNumber")(digits);
+              handleChange("mobileNumber")(sanitizePHMobileInput(val));
             }}
             isDisabled={loading}
           >
             <Label>Mobile Number</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your mobile number" inputMode="numeric" />
+            <Input className="bg-card! text-foreground!" placeholder="09XX XXX XXXX or +63 9XX XXX XXXX" inputMode="tel" />
           </TextField>
 
           <RegistrationBirthDateField name="birthDate" value={formData.birthDate} inputRef={birthDateRef} isDisabled={loading}

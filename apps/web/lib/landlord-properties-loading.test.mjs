@@ -416,6 +416,6 @@ test("opening mobile menu warms only opted-in routes; selection uses client navi
   drawer.props.state.onOpenChange(true);
   assert.deepEqual(harness.prefetched, ["/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  elements.find(node => node.type === "button" && labelOf(node) === "My Properties").props.onClick();
+  elements.find(node => node.type === "Button" && node.props.className?.includes("button--bare") && labelOf(node) === "My Properties").props.onClick();
   assert.deepEqual(harness.pushed, ["/landlord/properties"]);
 });

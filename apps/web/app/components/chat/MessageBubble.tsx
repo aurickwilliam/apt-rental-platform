@@ -145,8 +145,8 @@ export default function MessageBubble({
           </p>
         </div>
       ) : message.replyTo ? (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           aria-label="Jump to original message"
           onClick={(event) => {
             event.stopPropagation();
@@ -157,7 +157,7 @@ export default function MessageBubble({
           }}
           onDoubleClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
-          className={`mb-1 max-w-full cursor-pointer select-text text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px] ${
+          className={`button--bare mb-1 max-w-full cursor-pointer select-text text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:max-w-[260px] ${
             quotedImage ? "overflow-hidden rounded-[24px] p-0" : "rounded-2xl bg-muted px-3 py-2 hover:bg-primary/10"
           }`}
         >
@@ -200,7 +200,7 @@ export default function MessageBubble({
               </span>
             </span>
           )}
-        </button>
+        </Button>
       ) : null}
 
       <div className="flex min-w-0 max-w-full flex-col items-end" data-message-with-reactions>
@@ -384,10 +384,10 @@ function AttachmentBody({
           // Signed URL with a 60-minute TTL. `next/image` would cache the
           // optimized copy past expiry and then re-fetch a dead URL, so this
           // follows the plain-`<img>` convention used for private storage.
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             aria-label="View image"
-            disabled={message.isPending}
+            isDisabled={message.isPending}
             onClick={(event) => {
               // Like mobile's single tap: wait out the double-click window so a
               // double click reacts with a heart instead of also opening the viewer.
@@ -395,7 +395,7 @@ function AttachmentBody({
               if (event.detail >= 2) return;
               openTimer.current = setTimeout(() => onOpenImage?.(url), IMAGE_OPEN_DELAY_MS);
             }}
-            className="block cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
+            className="button--bare block cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -404,7 +404,7 @@ function AttachmentBody({
               loading="lazy"
               className="max-h-80 w-auto max-w-[min(20rem,100%)] object-contain"
             />
-          </button>
+          </Button>
         )}
       </span>
     </span>
@@ -435,17 +435,17 @@ function ReactionBadges({
       {[...byEmoji.entries()].map(([emoji, count]) => {
         const mine = reactions.some((r) => r.is_mine && r.emoji === emoji);
         return (
-          <button
+          <Button
+            variant="ghost"
             key={emoji}
-            type="button"
             onClick={() => onToggle(messageId, emoji)}
             aria-label={`${emoji}, ${count} ${count === 1 ? "reaction" : "reactions"}${mine ? ", including yours" : ""}`}
             aria-pressed={mine}
-            className={`flex h-6 cursor-pointer items-center justify-center gap-1 rounded-full border border-border bg-muted text-xs leading-none transition-colors hover:bg-muted-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-6 shrink-0 p-0" : "min-w-6 px-1"}`}
+            className={`button--bare flex h-6 cursor-pointer items-center justify-center gap-1 rounded-full border border-border bg-muted text-xs leading-none transition-colors hover:bg-muted-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${count === 1 ? "w-6 shrink-0 p-0" : "min-w-6 px-1"}`}
           >
             <span>{emoji}</span>
             {count > 1 && <span className="pr-0.5 text-[10px] text-muted-foreground">{count}</span>}
-          </button>
+          </Button>
         );
       })}
     </div>
