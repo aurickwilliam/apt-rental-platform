@@ -4,6 +4,7 @@ import Image from "next/image";
 import { createClient } from "@repo/supabase/server";
 import { preferredPortal } from "@/lib/portal-preference";
 
+import LanguageToggle from "@/app/components/i18n/LanguageToggle";
 import CompleteProfileForm from "./components/CompleteProfileForm";
 
 interface UserRolesProfile {
@@ -77,8 +78,9 @@ export default async function CompleteProfilePage({
     <div className="min-h-screen w-full bg-card">
       <div className="mx-auto w-full max-w-4xl px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,4vh,2rem)]">
         {/* Header */}
-        <div className="mb-[clamp(1.5rem,4vh,2rem)] flex flex-col gap-4">
+        <div className="mb-[clamp(1.5rem,4vh,2rem)] flex items-center justify-between gap-4">
           <Image src="/logo/logo.svg" alt="APT Logo" width={75} height={75} />
+          <LanguageToggle />
         </div>
 
         {/* Title */}

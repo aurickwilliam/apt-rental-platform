@@ -571,16 +571,30 @@ Patterns:
 
 ### `@repo/utils`
 
-- **Exports**: `formatPesoDisplay`, `handlePesoChange`, `formatAddress`, `formatFullName`, `formatDate`, `formatTime`, `getRelativeTime`, `getInitials`, `isValidEmail`, auth error helpers, card validation (`validateCardInfo`, Luhn, expiry).
-- **Deps**: none.
+- **Exports**: `formatPesoDisplay`, `handlePesoChange`, `formatAddress`, `formatFullName`, `formatDate`, `formatTime`, `getRelativeTime`, `getInitials`, `isValidEmail`, auth error helpers, card validation (`validateCardInfo`, Luhn, expiry). `formatDate` and `getRelativeTime` accept an optional trailing `LanguageCode` and delegate to `@repo/i18n`.
+- **Deps**: `@repo/i18n` (locale formatting); none for the rest.
 - **When to use**: pure formatting/validation shared by both apps.
 - **When NOT to use**: anything stateful or React-bound (that's `@repo/hooks` or app hooks).
+
+### `@repo/i18n`
+
+- **Exports**: `translate` and `TranslationKey` (the key set of the English catalog), the merged `en` / `fil` catalogs, `resolveLocale` / `parseLanguageTag` / `parseAcceptLanguage` / `detectDeviceLanguage` / `isLanguageCode`, `ALLOW_FILIPINO` / `LOCALE_COOKIE` / `LOCALE_STORAGE_KEY`, locale-aware `formatDate` / `formatClockTime` / `getRelativeTime` / `getMonthNames`, month and relative-time vocabulary, and display-only enum maps (`FURNISHED_TYPE_KEYS`, …, `enumLabel`).
+- **Deps**: `@repo/constants` (`APP_LANGUAGES`). Pure TypeScript — no React, no Supabase.
+- **When to use**: any user-facing string, locale date/time, or display label for a stored enum on either platform.
+- **When NOT to use**: database values, guard messages, auth emails or push bodies — those stay as authored.
 
 ### `@repo/hooks`
 
 - **Exports**: `usePasswordValidation`, `usePHMobileValidation`, `usePHPostalCode`.
 - **Deps**: React (peer), `@repo/constants`.
 - **When to use**: mobile forms (signup, edit profile). Web declares the dependency but **never imports it** (debt D6) — validation on web lives in `sign-up-form/utils.ts` and `complete-profile.ts`.
+
+### Locale plumbing
+
+- **Web**: `apps/web/lib/i18n/locale.ts` resolves the request locale (`apt-locale` cookie → `Accept-Language` → English) inside `React.cache`. The async root layout (`app/layout.tsx`) sets `<html lang>` and seeds `app/components/i18n/LocaleProvider`. `app/(auth)/actions/locale.ts` writes the cookie (one year, `path=/`, `sameSite=lax`, guarded by `ALLOW_FILIPINO`); the provider switches optimistically and `router.refresh()` re-renders the server tree. There is no `[locale]` route segment — reading the cookie in the root layout makes every route dynamic, which is the accepted cost of a correct first paint. `LanguageToggle` is icon-only in the public navbar and auth rows, and a labeled row in the mobile navbar menu.
+- **Mobile**: `stores/useI18nStore.ts` persists only the explicit choice (AsyncStorage `apt-language`, `language: null` until chosen) and exposes a hydration flag; `hooks/i18n/useTranslation.ts` resolves `stored → device → English` and returns `{ language, setLanguage, t }`. `app/_layout.tsx` gates the first frame on theme **and** language hydration. There is no native dependency: the device locale comes from `Intl.DateTimeFormat().resolvedOptions().locale`.
+- **Rollout flag**: `ALLOW_FILIPINO` gates resolution and every switcher together. While `false`, resolution is always English, the toggles render nothing, the web General tab hides its Language & region group, and the mobile Settings row stays disabled. One flip enables detection and switching.
+- **Display-only labels**: `*_KEYS` map stored English enum values to catalog keys; `enumLabel` leaves unknown values unchanged. `enums.test.ts` asserts coverage for every option in `@repo/constants`, so adding a value without a label fails CI.
 
 ---
 
@@ -589,7 +603,7 @@ Patterns:
 | Owner | What it holds | Notes |
 |---|---|---|
 | **Local state** (`useState` + custom hooks) | Everything not listed below — the default | Hooks expose `{ data, loading, error, refetch }`; `useFocusEffect` refetch pattern |
-| **Zustand (mobile only)** | Multi-step form-flow state | `stores/use{Registration,ApartmentForm,ApplicationForm,Personalization}Store.ts` + persisted `useThemeStore` (AsyncStorage, key `apt-theme`) |
+| **Zustand (mobile only)** | Multi-step form-flow state | `stores/use{Registration,ApartmentForm,ApplicationForm,Personalization}Store.ts` + persisted per-device preferences `useThemeStore` (AsyncStorage, key `apt-theme`) and `useI18nStore` (key `apt-language`, `null` until an explicit language is chosen) |
 | **Supabase** | All server data | Source of truth; fetched directly in hooks/services, never mirrored in stores |
 | **URL state (web)** | Browse filters/search/pagination | `searchParams` → server page re-queries (`SearchContainer`, `FilterContainer`, `RenderApartments`) |
 | **Context (web)** | Auth-form state only | `AuthContext` is scoped to `(auth)` pages; **no global session context** (see §4.3) |
@@ -808,11 +822,15 @@ flowchart LR
     WEB --> U[@repo/utils]
     WEB --> S[@repo/supabase]
     WEB -.declared, unused.-> H[@repo/hooks]
+    WEB --> I[@repo/i18n]
     MOB[apps/mobile] --> C
     MOB --> U
     MOB --> S
     MOB --> H
+    MOB --> I
     H --> C
+    U --> I
+    I --> C
     S --> SUP[@supabase/*]
 ```
 

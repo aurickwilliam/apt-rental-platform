@@ -1,0 +1,22 @@
+/** Auth screens, shared by the web `(auth)` group and mobile `(auth)` stack. */
+export const auth = {
+  "auth.backToHome": "Back to home",
+  "auth.signIn.title": "Welcome Back!",
+  "auth.signIn.description": "Log in to continue your apartment journey.",
+  "auth.signUp.title": "Join Us!",
+  "auth.signUp.description.tenant": "Join as tenant to start renting.",
+  "auth.signUp.description.landlord": "Join us and start listing your properties in minutes.",
+  "auth.orSignInWith": "or sign in with",
+  "auth.orSignUpWith": "or sign up with",
+  "auth.selectRole": "Select role",
+  "auth.role.tenant": "Tenant",
+  "auth.role.landlord": "Landlord",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.confirmPassword": "Confirm password",
+  "auth.currentPassword": "Current password",
+  "auth.newPassword": "New password",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.signIn.action": "Sign In",
+  "auth.signUp.action": "Sign Up",
+} as const;

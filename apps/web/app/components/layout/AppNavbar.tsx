@@ -11,6 +11,7 @@ import { IconMenu2 as Menu, IconX as X } from "@tabler/icons-react";
 import { useHydrated } from "@/hooks/use-hydrated";
 
 import ThemeToggle from "./ThemeToggle";
+import LanguageToggle from "@/app/components/i18n/LanguageToggle";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/service/signOutService";
@@ -189,6 +190,7 @@ export default function AppNavbar() {
               </>
             )}
 
+            <LanguageToggle />
             <ThemeToggle />
           </div>
         </div>
@@ -261,6 +263,7 @@ export default function AppNavbar() {
           ) : null}
 
           <div className="h-px bg-divider" />
+          <LanguageToggle variant="menu" />
           <ThemeToggle />
         </div>
       )}

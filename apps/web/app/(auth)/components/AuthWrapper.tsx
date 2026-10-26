@@ -5,6 +5,7 @@ import ThirdPartySignIn from "./ThirdPartySignIn";
 import AuthForm from "./AuthForm";
 import RolePickerContinue from "./RolePickerContinue";
 import { AuthProvider, useAuth } from "./AuthContext";
+import LanguageToggle from "@/app/components/i18n/LanguageToggle";
 
 import { Separator, Button, Tabs, Alert } from "@heroui/react";
 
@@ -51,6 +52,7 @@ function AuthContent({ portalError, showWelcomeNotice, profileMissing, rolePicke
               <ArrowLeft size={20} />
             </Button>
           </Link>
+          <LanguageToggle />
         </div>
 
         {/* Headline scales with viewport width so it stays proportionate

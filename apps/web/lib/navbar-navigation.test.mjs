@@ -18,6 +18,7 @@ function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
     "@tabler/icons-react": {},
     "@/hooks/use-hydrated": { useHydrated: () => true },
     "./ThemeToggle": { default: "ThemeToggle" },
+    "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     "@/app/components/profile/UserAvatar": { default: "UserAvatar" },
     "@/hooks/use-user": { useUser: () => ({ user: roles ? { id: "auth-a", email: "test@example.com" } : null, profile: roles ? { roles } : null, loading: false }) },
     "@/service/signOutService": { signOut: () => {} },

@@ -1,0 +1,28 @@
+import type { nav as enNav } from "../en/nav";
+
+export const nav: Record<keyof typeof enNav, string> = {
+  "nav.home": "Home",
+  "nav.browse": "Mag-browse",
+  "nav.myRental": "Aking Renta",
+  "nav.maintenance": "Maintenance",
+  "nav.passport": "APT Passport",
+  "nav.messages": "Mga Mensahe",
+  "nav.favorites": "Mga Paborito",
+  "nav.dashboard": "Dashboard",
+  "nav.properties": "Aking mga Property",
+  "nav.applications": "Mga Application",
+  "nav.payments": "Mga Bayad",
+  "nav.analytics": "Kita at plano",
+  "nav.profile": "Profile",
+  "nav.settings": "Settings",
+  "nav.logOut": "Mag-log out",
+  "nav.notifications": "Mga Notification",
+  "nav.signIn": "Mag-sign in",
+  "nav.signUp": "Mag-sign up",
+  "nav.users": "Mga User",
+  "nav.verification": "Beripikasyon",
+  "nav.reports": "Mga Report",
+  "nav.appUpdates": "Mga update ng app",
+  "nav.openMenu": "Buksan ang menu",
+  "nav.closeMenu": "Isara ang menu",
+};

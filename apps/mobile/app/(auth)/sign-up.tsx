@@ -7,6 +7,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
 import RoleTab from "./components/RoleTab";
 import AuthButton from "./components/AuthButton";
+import AuthLanguageToggle from "./components/AuthLanguageToggle";
 import ErrorDialog from "@/components/display/ErrorDialog";
 
 import { IMAGES } from "constants/images";
@@ -119,13 +120,18 @@ export default function SignUp() {
 
   return (
     <ScreenWrapper className="p-5">
-      {/* Logo at the top */}
-      <View className="w-32 h-32 mx-auto">
-        <Image
-          source={IMAGES.logo}
-          style={{ width: "100%", height: "100%" }}
-          contentFit="contain"
-        />
+      {/* Logo with the language switch in the top-right */}
+      <View className="relative">
+        <View className="w-32 h-32 mx-auto">
+          <Image
+            source={IMAGES.logo}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="contain"
+          />
+        </View>
+        <View className="absolute right-0 top-0">
+          <AuthLanguageToggle />
+        </View>
       </View>
 
       {/* Title at the top */}

@@ -481,6 +481,12 @@ Sidebar unread activity uses a solid 8px dot, never a numbered section badge: `b
   - Tenant Quick Actions customization: five fixed slots preview the dashboard's 48px icon tiles with captions underneath (shared `QuickActionContent`); empty slots use matching dashed placeholders. Top-left red minus buttons on soft danger backgrounds remove shortcuts. Available actions use a scrolling three-column icon/caption grid without descriptions; unavailable-action explanations remain accessible. The sheet dynamically fits the remaining grid content up to 85% of screen height; the grid scrolls when capped, keeping selected slots and footer visible. Long-press drag or tap an action then a slot to place/move it; selected actions swap on occupied targets. HeroUI Native buttons and sheet, Gesture Handler/Reanimated drag preview, accent-highlighted valid targets. Reset edits the draft; Save commits; dismissal discards unsaved edits. Empty slots are never rendered on the home screen.
 - **Legacy RN `Modal`** ⚠ (fade, `rgba(0,0,0,0.3)` backdrop): MoveInCost, DateField iOS picker, video — migrate when touched
 
+### Settings → General (web) ✅
+
+Language and appearance share one scrollable tab, split into two category groups separated by an uppercase 12px Nunito semibold heading in `text-muted-foreground` (`px-4`, `mt-5`, cards `mt-2 divide-y divide-border`). **Language & region** holds the working Language `SettingsSelect` (English / Filipino, no flags, `IconLanguage`) and a disabled Region row ending in `ComingSoonChip` — an intentional stub owned by a future feature, never a dead-looking select. **Appearance** keeps Theme (sun/desktop/moon icon follows the active choice) and Reduce motion unchanged. While `ALLOW_FILIPINO` is false the whole language group is not rendered, so nothing suggests an unavailable choice. The standalone Language & Region tab is gone; the admin `UserSettingsModal` is unaffected.
+
+Mobile keeps its own Language & Region screen: one Language row that opens the language sheet (active option tinted `bg-accent/10`), then the same disabled Region row with `ComingSoonChip` and no region sheet. There is no restart note — switching applies immediately.
+
 ---
 
 ## 15. Feedback
@@ -580,9 +586,9 @@ No breakpoints; `useWindowDimensions` math (grid card = `(width − 32 − 8) / 
 
 ## 19. Platform Consistency Rules
 
-**Always consistent (identical tokens):** colors; typography (Inter/Nunito roles); icon glyphs and size tiers; semantic meaning (success/warning/danger; verified = `#22C55E` shield); card anatomy & hierarchy; status chip and empty-state structure; component behavior (buttons, inputs, validation, dialogs).
+**Always consistent (identical tokens):** colors; typography (Inter/Nunito roles); icon glyphs and size tiers; semantic meaning (success/warning/danger; verified = `#22C55E` shield); card anatomy & hierarchy; status chip and empty-state structure; component behavior (buttons, inputs, validation, dialogs); language names and the disabled Region treatment.
 
-**Platform-specific by design (do not force parity):** navigation (navbar+sidebar vs tabs+stack); bottom sheets (mobile gestures) vs modals/drawers (web); safe areas/system bars/keyboard; hover (web-only) vs press feedback (mobile-only); web density (tables, multi-column) vs mobile single-column.
+**Platform-specific by design (do not force parity):** navigation (navbar+sidebar vs tabs+stack); bottom sheets (mobile gestures) vs modals/drawers (web); safe areas/system bars/keyboard; hover (web-only) vs press feedback (mobile-only); web density (tables, multi-column) vs mobile single-column; language entry points (web navbar/auth icon plus Settings; mobile Settings screen plus auth icon).
 
 ---
 

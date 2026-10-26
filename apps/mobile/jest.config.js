@@ -10,6 +10,7 @@ module.exports = {
   // Shared pure logic is tested here because CI only runs the mobile suite.
   roots: [
     '<rootDir>',
+    '<rootDir>/../../packages/i18n',
     '<rootDir>/../../packages/passport',
     '<rootDir>/../../packages/utils',
   ],

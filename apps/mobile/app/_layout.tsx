@@ -24,6 +24,7 @@ import { View } from "react-native";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
 import { usePortalStore } from "@/stores/usePortalStore";
+import { useI18nHydrationStore } from "@/stores/useI18nStore";
 import { clearQueryClient } from "@/utils/queryClient";
 import { getSplashBackground } from "@/utils/splashBackground";
 import {
@@ -68,6 +69,9 @@ export default function RootLayout() {
   const backgroundColor = useThemeColor("background");
   // Applies the saved appearance (incl. System); false until it has loaded
   const themeReady = useThemeSync();
+  // The saved language choice is device-local like the theme; hold the first
+  // frame until it is known so the UI never flashes the wrong language.
+  const languageReady = useI18nHydrationStore((state) => state.hydrated);
   // True once navigation has left the "/" boot screen (index) — the
   // redirect to the role-based home has committed and the destination
   // screen is mounted and rendering.
@@ -105,14 +109,14 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Keep the splash up until fonts are ready, the saved theme is applied AND
-  // the boot redirect has committed (root navigation left "/"), so the "/"
-  // spinner is never visible
+  // Keep the splash up until fonts are ready, the saved theme and language are
+  // applied AND the boot redirect has committed (root navigation left "/"), so
+  // the "/" spinner is never visible
   useEffect(() => {
-    if ((fontsLoaded || fontError) && themeReady && navigatedAway) {
+    if ((fontsLoaded || fontError) && themeReady && languageReady && navigatedAway) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, themeReady, navigatedAway, router]);
+  }, [fontsLoaded, fontError, themeReady, languageReady, navigatedAway, router]);
 
   // Fallback: never leave the splash up forever (e.g. deep-link cold starts
   // that bypass the index boot route)
@@ -121,9 +125,9 @@ export default function RootLayout() {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Hold the tree until the saved theme has loaded; the splash covers the one
-  // render in which the layout effect applies it
-  if ((!fontsLoaded && !fontError) || !themeReady) {
+  // Hold the tree until the saved theme and language have loaded; the splash
+  // covers the one render in which the layout effect applies the theme
+  if ((!fontsLoaded && !fontError) || !themeReady || !languageReady) {
     return null;
   }
 

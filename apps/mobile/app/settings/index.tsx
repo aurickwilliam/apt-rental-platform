@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import ComingSoonChip from 'components/display/ComingSoonChip'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
@@ -14,6 +15,8 @@ import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth'
+
+import { ALLOW_FILIPINO } from '@repo/i18n'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -37,10 +40,6 @@ function StatusChip({ label }: { label: string }) {
       <Chip.Label className="text-[11px] font-nunitoSemiBold text-muted">{label}</Chip.Label>
     </Chip>
   );
-}
-
-function ComingSoonChip() {
-  return <StatusChip label="Coming soon" />;
 }
 
 export default function Index() {
@@ -131,8 +130,16 @@ export default function Index() {
         {
           icon: IconGlobe,
           title: 'Language & Region',
-          disabled: true,
-          suffix: <ComingSoonChip />,
+          // The screen exists and is store-backed; the switch itself stays
+          // gated until the core surfaces are translated. Flip the flag to
+          // enable this row and the switchers together.
+          disabled: !ALLOW_FILIPINO,
+          onPress: ALLOW_FILIPINO ? () => router.push('/settings/language-region') : undefined,
+          suffix: ALLOW_FILIPINO ? (
+            <IconChevronRight size={16} color={colors.gray500} />
+          ) : (
+            <ComingSoonChip />
+          ),
         },
         {
           icon: IconBell,

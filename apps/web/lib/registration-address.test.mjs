@@ -282,6 +282,7 @@ test("Complete Profile loads only the caller's saved address and keys the draft 
       "next/navigation": { redirect: () => assert.fail("incomplete account must retain onboarding") }, "next/image": { default: "Image" },
       "@repo/supabase/server": { createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: account } } }) }, from: () => q }) },
       "@/lib/portal-preference": { preferredPortal: () => "tenant" }, "./components/CompleteProfileForm": { default: "CompleteProfileForm" },
+      "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     }).default;
     const form = nodes(await page({ searchParams: Promise.resolve({ role: "tenant" }) })).find(node => node.type === "CompleteProfileForm");
     assert.deepEqual(plain(form.props.initialAddress), validAddress);

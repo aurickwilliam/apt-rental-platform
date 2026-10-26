@@ -5,8 +5,10 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./birth-date": "./src/birthDate.ts"
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/i18n": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

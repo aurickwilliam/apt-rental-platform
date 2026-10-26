@@ -3,18 +3,22 @@ import { View, Text, Pressable } from 'react-native'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import ComingSoonChip from 'components/display/ComingSoonChip'
 
 import { ListGroup, Separator, BottomSheet } from 'heroui-native'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 
-import { LANGUAGES, REGIONS } from '@repo/constants'
+import { ALLOW_FILIPINO, APP_LANGUAGES, type LanguageCode } from '@repo/i18n'
+
+import { useTranslation } from '@/hooks/i18n/useTranslation'
 
 export default function LanguageAndRegion() {
-  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].label)
-  const [selectedRegion, setSelectedRegion] = useState(REGIONS[0])
-
+  const { language, setLanguage, t } = useTranslation()
   const [languageSheetOpen, setLanguageSheetOpen] = useState(false)
-  const [regionSheetOpen, setRegionSheetOpen] = useState(false)
+
+  // English / Filipino read the same in every language, by design.
+  const currentLabel =
+    APP_LANGUAGES.find(({ code }) => code === language)?.label ?? APP_LANGUAGES[0].label
 
   const renderSheetHeader = (label: string) => (
     <View>
@@ -35,38 +39,40 @@ export default function LanguageAndRegion() {
   return (
     <>
       <ScreenWrapper
-        header={<StandardHeader title='Language & Region' />}
+        header={<StandardHeader title={t('settings.mobile.languageRegion')} />}
         className='p-5'
       >
         <ListGroup className="shadow-none border border-border">
-          <ListGroup.Item onPress={() => setLanguageSheetOpen(true)}>
+          {/* One language row; the sheet stays mounted and is driven by
+              `isOpen`, as every BottomSheet in this app must be. */}
+          <ListGroup.Item
+            onPress={ALLOW_FILIPINO ? () => setLanguageSheetOpen(true) : undefined}
+            disabled={!ALLOW_FILIPINO}
+          >
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle>Language</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle>{t('settings.language.title')}</ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
               <Text className='text-muted text-sm font-inter mr-1'>
-                {selectedLanguage}
+                {currentLabel}
               </Text>
             </ListGroup.ItemSuffix>
           </ListGroup.Item>
 
           <Separator className='mx-4' />
 
-          <ListGroup.Item onPress={() => setRegionSheetOpen(true)}>
+          {/* Region is an intentional disabled stub: the feature is planned
+              but not built, so it explains itself instead of pretending to
+              work. No sheet exists until that feature is designed. */}
+          <ListGroup.Item disabled>
             <ListGroup.ItemContent>
-              <ListGroup.ItemTitle>Region</ListGroup.ItemTitle>
+              <ListGroup.ItemTitle>{t('settings.region.title')}</ListGroup.ItemTitle>
             </ListGroup.ItemContent>
             <ListGroup.ItemSuffix>
-              <Text className='text-muted text-sm font-inter mr-1'>
-                {selectedRegion}
-              </Text>
+              <ComingSoonChip />
             </ListGroup.ItemSuffix>
           </ListGroup.Item>
         </ListGroup>
-
-        <Text className='text-muted text-sm font-inter mt-5'>
-          Note: Some changes may require restarting the app.
-        </Text>
       </ScreenWrapper>
 
       {/* Language Bottom Sheet */}
@@ -83,57 +89,20 @@ export default function LanguageAndRegion() {
             contentContainerClassName='h-full'
           >
             <BottomSheetFlatList
-              data={LANGUAGES.map(lang => lang.label)}
-              keyExtractor={(item: string) => item}
-              renderItem={({ item }: { item: string }) => (
+              data={[...APP_LANGUAGES]}
+              keyExtractor={(item: { code: LanguageCode }) => item.code}
+              renderItem={({ item }: { item: { code: LanguageCode; label: string } }) => (
                 <Pressable
-                  className={`p-4 rounded-2xl mb-2 ${item === selectedLanguage ? 'bg-accent/10' : 'bg-surface'}`}
+                  className={`p-4 rounded-2xl mb-2 ${item.code === language ? 'bg-accent/10' : 'bg-surface'}`}
                   onPress={() => {
-                    setSelectedLanguage(item)
+                    setLanguage(item.code)
                     setLanguageSheetOpen(false)
                   }}
                 >
-                  <Text className='text-base text-foreground text-left font-inter'>{item}</Text>
+                  <Text className='text-base text-foreground text-left font-inter'>{item.label}</Text>
                 </Pressable>
               )}
-              ListHeaderComponent={renderSheetHeader('Select Language')}
-              ListEmptyComponent={renderSheetEmpty}
-              contentContainerStyle={{
-                paddingBottom: 80,
-              }}
-            />
-          </BottomSheet.Content>
-        </BottomSheet.Portal>
-      </BottomSheet>
-
-      {/* Region Bottom Sheet */}
-      <BottomSheet
-        isOpen={regionSheetOpen}
-        onOpenChange={setRegionSheetOpen}
-      >
-        <BottomSheet.Portal>
-          <BottomSheet.Overlay />
-          <BottomSheet.Content
-            snapPoints={['50%', '75%']}
-            enableOverDrag={false}
-            enableDynamicSizing={false}
-            contentContainerClassName='h-full'
-          >
-            <BottomSheetFlatList
-              data={REGIONS}
-              keyExtractor={(item: string) => item}
-              renderItem={({ item }: { item: string }) => (
-                <Pressable
-                  className={`p-4 rounded-2xl mb-2 ${item === selectedRegion ? 'bg-accent/10' : 'bg-surface'}`}
-                  onPress={() => {
-                    setSelectedRegion(item)
-                    setRegionSheetOpen(false)
-                  }}
-                >
-                  <Text className='text-base text-foreground text-left font-inter'>{item}</Text>
-                </Pressable>
-              )}
-              ListHeaderComponent={renderSheetHeader('Select Region')}
+              ListHeaderComponent={renderSheetHeader(t('settings.mobile.selectLanguage'))}
               ListEmptyComponent={renderSheetEmpty}
               contentContainerStyle={{
                 paddingBottom: 80,
