@@ -1,3 +1,4 @@
+/* global __dirname */
 // Dynamic Expo config — reads EXPO_PUBLIC_GOOGLE_MAPS_API_KEY at prebuild time.
 // Replaces the static app.json which used a literal "${...}" placeholder that Expo never interpolates.
 
@@ -71,7 +72,7 @@ module.exports = {
   expo: {
     name: 'APT',
     slug: 'mobile',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/logo.png',
     scheme: 'mobile',
