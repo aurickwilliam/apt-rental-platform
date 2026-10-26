@@ -155,7 +155,7 @@ export default async function ApartmentDetailView({
         <div className="w-full lg:w-2/3 min-w-0">
           {/* Name and Address */}
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-medium text-primary break-words">
+            <h1 className="font-nunito text-2xl sm:text-3xl font-semibold text-primary break-words">
               {apartment.name}
             </h1>
             <h3 className="text-sm sm:text-base text-foreground/80 break-words">
@@ -226,7 +226,7 @@ export default async function ApartmentDetailView({
           <Separator className="my-6 sm:my-8" />
 
           <div>
-            <h3 className="text-lg font-medium mb-2">View on Map</h3>
+            <h3 className="font-nunito text-lg font-semibold mb-2">View on Map</h3>
             <MapLocation latitude={apartment.latitude} longitude={apartment.longitude} />
           </div>
 

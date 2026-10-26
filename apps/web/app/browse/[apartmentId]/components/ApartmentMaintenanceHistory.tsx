@@ -41,7 +41,7 @@ export default function ApartmentMaintenanceHistory({
     <div>
       <div className="flex items-center gap-2 mb-1">
         <IconTools size={20} className="text-primary" />
-        <h2 className="text-lg font-medium text-foreground">Maintenance history</h2>
+        <h2 className="font-nunito text-lg font-semibold text-foreground">Maintenance history</h2>
       </div>
       <p className="text-sm text-foreground mb-4">
         {total === 0

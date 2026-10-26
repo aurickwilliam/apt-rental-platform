@@ -14,7 +14,7 @@ export default function ExpandableDescription({ text, maxLength = 300, headingIc
 
   if (!text) return (
     <div>
-      <h3 className="flex items-center gap-2 text-lg font-medium mb-2">{headingIcon}Description</h3>
+      <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold mb-2">{headingIcon}Description</h3>
       <p className="text-foreground/80 italic">No description provided.</p>
     </div>
   );
@@ -24,7 +24,7 @@ export default function ExpandableDescription({ text, maxLength = 300, headingIc
 
   return (
     <div>
-      <h3 className="flex items-center gap-2 text-lg font-medium mb-2">{headingIcon}Description</h3>
+      <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold mb-2">{headingIcon}Description</h3>
       <p className="whitespace-pre-line text-foreground/80 leading-relaxed text-sm sm:text-base break-words">{displayText}</p>
       {shouldTruncate && (
         <Button
