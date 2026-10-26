@@ -14,7 +14,7 @@ import {
 import { useActionState, useRef, useState } from "react";
 import { completeProfile } from "../../actions/complete-profile";
 import { validateBirthDate } from "@/lib/birth-date";
-import { GENDERS } from "@repo/constants";
+import { GENDERS, sanitizePHMobileInput } from "@repo/constants";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
 import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
 import { resolveRegistrationAddress, validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
@@ -114,10 +114,10 @@ export default function CompleteProfileForm({
             isRequired
             fullWidth
             value={mobileNumber}
-            onChange={(val) => setMobileNumber(val.replace(/\D/g, "").slice(0, 11))}
+            onChange={(val) => setMobileNumber(sanitizePHMobileInput(val))}
           >
             <Label>Mobile Number</Label>
-            <Input inputMode="numeric" className="bg-card! text-foreground!" placeholder="Enter your mobile number" />
+            <Input inputMode="tel" className="bg-card! text-foreground!" placeholder="09XX XXX XXXX or +63 9XX XXX XXXX" />
           </TextField>
 
           <RegistrationBirthDateField name="birth_date" value={birthDate} error={fieldError} inputRef={birthDateRef} isDisabled={isPending}

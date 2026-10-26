@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePHMobileValidation, usePHPostalCode } from "@repo/hooks";
-import { GENDERS, getPostalCode } from "@repo/constants";
+import { GENDERS, getPostalCode, sanitizePHMobileInput } from "@repo/constants";
 import { describeAuthError } from "@repo/utils";
 
 import type { UserProfile } from "@/service/auth/currentUserService";
@@ -175,10 +175,7 @@ export function useEditProfile(initial: UserProfile) {
     },
     changeMobile: (value: string) => {
       if (busyRef.current || succeeded) return;
-      const cleaned = value.startsWith("+")
-        ? `+${value.slice(1).replace(/\D/g, "").slice(0, 12)}`
-        : value.replace(/\D/g, "").slice(0, 11);
-      mobile.onChange(cleaned);
+      mobile.onChange(sanitizePHMobileInput(value));
       clearError("mobile_number");
     },
     changePostal: (value: string) => {

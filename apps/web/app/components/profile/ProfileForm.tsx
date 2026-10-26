@@ -35,6 +35,9 @@ import {
   getBarangaysByCity,
   getCitiesByProvince,
   getPostalCode,
+  normalizePHMobile,
+  sanitizePHMobileInput,
+  validatePHMobile,
   type Province,
 } from "@repo/constants";
 import { createBrowserClient } from "@repo/supabase";
@@ -143,14 +146,6 @@ function snapshotOf(source: ProfileInitial): EditableBaseline {
   };
 }
 
-// Accept 09XXXXXXXXX or +639XXXXXXXXX; normalize to the 09 form the
-// backend validates so no server rule change is needed.
-function normalizeMobileNumber(value: string): string {
-  const trimmed = value.trim();
-  if (/^\+63\d{10}$/.test(trimmed)) return `0${trimmed.slice(3)}`;
-  return trimmed;
-}
-
 // Map a backend error string to the field it belongs to, if any.
 // The update-profile action returns a single message (no field key),
 // so match on the known message shapes; unknown errors stay generic.
@@ -244,7 +239,7 @@ export default function ProfileForm({
       } else {
         // Resync the baseline so Cancel/dirty-checks never revert to
         // pre-save data, and store the normalized mobile that was saved.
-        const savedMobile = normalizeMobileNumber(mobileNumber);
+        const savedMobile = normalizePHMobile(mobileNumber);
         setMobileNumber(savedMobile);
         setBaseline({
           gender,
@@ -393,9 +388,7 @@ export default function ProfileForm({
         return "";
       case "mobile_number": {
         if (!value) return "Mobile number is required.";
-        if (!/^09\d{9}$/.test(normalizeMobileNumber(value)))
-          return "Enter a valid PH mobile number (09XXXXXXXXX or +639XXXXXXXXX).";
-        return "";
+        return validatePHMobile(value).errorMessage ?? "";
       }
       case "street_address":
         return value ? "" : "Street address is required.";
@@ -781,16 +774,14 @@ export default function ProfileForm({
           <input
             type="hidden"
             name="mobile_number"
-            value={normalizeMobileNumber(mobileNumber)}
+            value={normalizePHMobile(mobileNumber)}
           />
           <TextField
             isRequired
             fullWidth
             value={mobileNumber}
             onChange={(val: string) => {
-              const cleaned = val.startsWith("+")
-                ? `+${val.slice(1).replace(/\D/g, "").slice(0, 12)}`
-                : val.replace(/\D/g, "").slice(0, 11);
+              const cleaned = sanitizePHMobileInput(val);
               setMobileNumber(cleaned);
               revalidateIfShown("mobile_number", cleaned);
             }}
@@ -801,7 +792,7 @@ export default function ProfileForm({
             <Input
               ref={mobileInputRef}
               inputMode="tel"
-              placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+              placeholder="09XX XXX XXXX or +63 9XX XXX XXXX"
               className="bg-card! text-foreground!"
             />
             <FieldError>{errors.mobile_number}</FieldError>

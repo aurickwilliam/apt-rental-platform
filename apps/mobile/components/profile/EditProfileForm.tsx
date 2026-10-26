@@ -179,7 +179,7 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
                 onChangeText={edit.changeMobile}
                 onBlur={() => edit.blurField("mobile_number")}
                 keyboardType="phone-pad"
-                placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                placeholder="09XX XXX XXXX or +63 9XX XXX XXXX"
                 editable={!disabled}
               />
               <FieldError>{edit.errors.mobile_number}</FieldError>

@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 
-import { PROVINCES, GENDERS, SUFFIXES } from "@repo/constants";
+import { PH_MOBILE_MAX_INPUT_LENGTH, PROVINCES, GENDERS, SUFFIXES } from "@repo/constants";
 import { fromBirthDateValue, toBirthDateValue } from "@repo/utils";
 
 import { Input, Label, TextField, FieldError, Separator } from "heroui-native";
@@ -106,7 +106,7 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
           <Input
             placeholder="Enter your mobile number"
             keyboardType="phone-pad"
-            maxLength={13}
+            maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
             value={form.mobile.value}
             onChangeText={form.mobile.onChange}
           />
