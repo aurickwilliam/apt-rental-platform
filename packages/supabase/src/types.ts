@@ -301,6 +301,47 @@ export type Database = {
           },
         ]
       }
+      app_release_history: {
+        Row: {
+          apk_url: string
+          id: string
+          latest_version: string
+          min_version: string
+          platform: string
+          published_at: string
+          published_by: string | null
+          release_notes: string | null
+        }
+        Insert: {
+          apk_url: string
+          id?: string
+          latest_version: string
+          min_version: string
+          platform: string
+          published_at?: string
+          published_by?: string | null
+          release_notes?: string | null
+        }
+        Update: {
+          apk_url?: string
+          id?: string
+          latest_version?: string
+          min_version?: string
+          platform?: string
+          published_at?: string
+          published_by?: string | null
+          release_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_release_history_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_releases: {
         Row: {
           apk_url: string

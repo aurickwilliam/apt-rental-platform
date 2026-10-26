@@ -230,6 +230,7 @@ export {
   parseAppVersion,
   compareAppVersions,
   isSecureDownloadUrl,
+  suggestNextAppVersion,
   getAppUpdateStatus,
   validateAppRelease,
 } from './appRelease';

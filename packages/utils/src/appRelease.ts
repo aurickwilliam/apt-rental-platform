@@ -32,6 +32,12 @@ export function compareAppVersions(a: string, b: string): number | null {
   return 0;
 }
 
+/** The usual next release after `version`: same major.minor, patch + 1. */
+export function suggestNextAppVersion(version: string | null | undefined): string | null {
+  const parts = parseAppVersion(version);
+  return parts ? `${parts[0]}.${parts[1]}.${parts[2] + 1}` : null;
+}
+
 /** Only an https link is ever opened on a user's device. */
 export function isSecureDownloadUrl(value: string | null | undefined): boolean {
   const url = (value ?? '').trim();
