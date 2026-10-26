@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
-import { Button, toast } from "@heroui/react";
-import { IconCurrentLocation } from "@tabler/icons-react";
+import { toast } from "@heroui/react";
 
 import type { BBox } from "@repo/utils";
 
 import { getGoogleMaps, loadGoogleMaps, type GoogleMapInstance } from "@/lib/google-maps-loader";
 
 import type { MapView } from "../../lib/map-view";
+import MapControls from "./MapControls";
 import { useMapPins, type MapPin } from "./useMapPins";
 import { useMapPopup } from "./useMapPopup";
 
@@ -29,6 +29,9 @@ interface BrowseMapProps {
   onViewportChange: (visible: BBox, view: MapView) => void;
   /** The map failed to load; the page falls back to listing the default area. (A missing key is detected by the page.) */
   onUnavailable: () => void;
+  /** Whether the map fills the whole split view (list hidden); the page owns the layout. */
+  expanded: boolean;
+  onToggleExpand: () => void;
   /** Where the popup opens: a point on the map, above its pin. `id` restarts it for a new listing. */
   popupAnchor?: { id: string; lat: number; lng: number } | null;
   /** The popup content, e.g. the selected listing's preview card. */
@@ -49,6 +52,8 @@ export default function BrowseMap({
   onHover,
   onViewportChange,
   onUnavailable,
+  expanded,
+  onToggleExpand,
   popupAnchor = null,
   popup,
 }: BrowseMapProps) {
@@ -111,9 +116,8 @@ export default function BrowseMap({
           zoom: start.zoom,
           mapTypeId: "roadmap",
           colorScheme: resolvedTheme === "dark" ? "DARK" : "LIGHT",
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
+          // Google's default controls are replaced by MapControls.
+          disableDefaultUI: true,
           clickableIcons: false,
           // The map owns its column, so the wheel should zoom it directly.
           gestureHandling: "greedy",
@@ -176,6 +180,10 @@ export default function BrowseMap({
     return () => observer.disconnect();
   }, [map]);
 
+  const zoomBy = (step: number) => {
+    if (map) map.setZoom((map.getZoom() ?? initialViewRef.current.zoom) + step);
+  };
+
   const locateMe = () => {
     if (!map || !navigator.geolocation) {
       toast.warning("Your browser can't share your location");
@@ -210,17 +218,13 @@ export default function BrowseMap({
       ) : null}
       <div ref={containerRef} className="size-full" />
 
-      <Button
-        isIconOnly
-        variant="tertiary"
-        size="lg"
-        onPress={locateMe}
-        aria-label="Center the map on my location"
-        data-fab-clearance="browse-map-controls"
-        className="absolute top-3 right-3 cursor-pointer shadow-lg"
-      >
-        <IconCurrentLocation size={20} />
-      </Button>
+      <MapControls
+        expanded={expanded}
+        onToggleExpand={onToggleExpand}
+        onZoomIn={() => zoomBy(1)}
+        onZoomOut={() => zoomBy(-1)}
+        onLocate={locateMe}
+      />
 
       {popupElement && popup ? createPortal(popup, popupElement) : null}
     </div>

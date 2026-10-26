@@ -74,6 +74,8 @@ export interface GoogleMapOptions {
   fullscreenControl?: boolean;
   gestureHandling?: "cooperative" | "greedy" | "none" | "auto";
   clickableIcons?: boolean;
+  /** Drops every default control (zoom, camera, map type, street view, fullscreen). */
+  disableDefaultUI?: boolean;
 }
 
 export interface GoogleMapsNamespace {

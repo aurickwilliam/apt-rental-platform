@@ -61,6 +61,8 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   // Phones show one pane at a time; the map first, like the mobile app.
   const [phonePane, setPhonePane] = useState<"map" | "list">("map");
+  // Desktop only: the map takes the whole split view (Airbnb's expand button).
+  const [expanded, setExpanded] = useState(false);
   const lastViewRef = useRef<MapView | null>(null);
   const { isFavorite, activeFavoriteId, onToggleFavorite, isAuthModalOpen, setIsAuthModalOpen } =
     useFavoriteActions();
@@ -118,6 +120,15 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
     window.history.replaceState(null, "", url);
   }, [hasCameraParams, filtersKey]);
 
+  useEffect(() => {
+    if (!expanded) return;
+    const collapseOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", collapseOnEscape);
+    return () => window.removeEventListener("keydown", collapseOnEscape);
+  }, [expanded]);
+
   const visibleApartments = useMemo(
     () => (activeVisible ? filterPinsToVisible(data.apartments, activeVisible, { keepSelected: false }) : []),
     [data.apartments, activeVisible],
@@ -171,10 +182,16 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
         </div>
       </div>
 
-      <div className={`grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] ${heightClassName}`}>
+      <div
+        className={`grid min-h-0 gap-4 ${
+          expanded ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+        } ${heightClassName}`}
+      >
         <section
           aria-label="Apartments in the map area"
-          className={`min-h-0 min-w-0 lg:overflow-y-auto lg:pr-1 ${phonePane === "map" ? "hidden lg:block" : ""}`}
+          className={`min-h-0 min-w-0 lg:overflow-y-auto lg:pr-1 ${phonePane === "map" ? "hidden" : ""} ${
+            expanded ? "lg:hidden" : "lg:block"
+          }`}
         >
           <MapResultsList
             apartments={visibleApartments}
@@ -206,6 +223,8 @@ export default function MapSearchClient({ basePath, heightClassName }: MapSearch
             onHover={setHoveredId}
             onViewportChange={handleViewportChange}
             onUnavailable={() => setLoadFailed(true)}
+            expanded={expanded}
+            onToggleExpand={() => setExpanded((current) => !current)}
             popupAnchor={selected ? { id: selected.id, lat: selected.latitude, lng: selected.longitude } : null}
             popup={
               selected ? (

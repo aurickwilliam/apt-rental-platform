@@ -71,6 +71,15 @@ test("both map routes exist with their own loading boundary; the tenant route au
   assert.ok(tenant.indexOf('requirePortalViewer("tenant")') < tenant.indexOf("<MapSearchClient"));
 });
 
+test("map pages are per-request and the map draws its own controls instead of Google's", () => {
+  // A static page here fails the production build (useSearchParams needs a request).
+  for (const page of ["app/browse/map/page.tsx", "app/tenant/browse/map/page.tsx"]) {
+    assert.match(source(page), /export const dynamic = "force-dynamic"/);
+  }
+  assert.match(source("app/browse/map/components/BrowseMap.tsx"), /disableDefaultUI: true/);
+  assert.match(source("app/browse/map/components/BrowseMap.tsx"), /<MapControls/);
+});
+
 test("search and filter changes on the map update the URL in place instead of remounting the page", () => {
   const client = source("app/browse/map/components/MapSearchClient.tsx");
   assert.match(client, /navigate=\{replaceUrl\}/);
