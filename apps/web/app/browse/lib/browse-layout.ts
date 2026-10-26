@@ -26,3 +26,13 @@ export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";
 // photo), so wide screens get 5 and 6 columns instead of ever-larger cards.
 export const BROWSE_GRID_CLASS =
   "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
+
+// Card grid inside the map search's list column (half the width on desktop).
+export const MAP_LIST_GRID_CLASS =
+  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-2 2xl:grid-cols-3";
+
+// Desktop height of the map search's split view (the page itself doesn't
+// scroll; the list column does): viewport minus the search row and padding,
+// and for the public route the h-16 navbar too.
+export const MAP_HEIGHT_PUBLIC = "lg:h-[calc(100dvh-10.5rem)]";
+export const MAP_HEIGHT_TENANT = "lg:h-[calc(100dvh-6.5rem)]";

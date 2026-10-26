@@ -22,12 +22,14 @@ type Props = {
   /** Omitted where the total isn't loaded (tenant discovery). */
   resultCount?: number;
   basePath?: string;
+  /** Passed to the filter panel; see FilterContainer. */
+  navigate?: (href: string) => void;
 };
 
 // Self-contained filter entry: compact button with active-count badge plus its
 // drawer (bottom sheet on phones, right-hand panel from md up). Rendered inside
 // the search row at every size; it is the only way to the filters.
-export default function FilterDrawerButton({ resultCount, basePath = "/browse" }: Props) {
+export default function FilterDrawerButton({ resultCount, basePath = "/browse", navigate }: Props) {
   const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -109,7 +111,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse" }
                 {/* mx-0!: Drawer.Body carries a -3px side margin for focus rings, which
                     would push the pinned footer past the drawer's edges. */}
                 <Drawer.Body className="mx-0! flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-                  <FilterContainer basePath={basePath} onApply={close} />
+                  <FilterContainer basePath={basePath} onApply={close} navigate={navigate} />
                 </Drawer.Body>
               </Drawer.Dialog>
             </Drawer.Content>

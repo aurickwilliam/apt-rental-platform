@@ -35,12 +35,12 @@ function CardSkeleton({ index = 0 }: { index?: number }) {
   );
 }
 
-export function BrowseCardsSkeleton({ count = 8 }: { count?: number }) {
+export function BrowseCardsSkeleton({ count = 8, className = BROWSE_GRID_CLASS }: { count?: number; className?: string }) {
   return (
     <div
       aria-label="Loading apartments"
       role="status"
-      className={BROWSE_GRID_CLASS}
+      className={className}
     >
       {Array.from({ length: count }, (_, i) => (
         <CardSkeleton key={i} index={i} />

@@ -9,6 +9,11 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 
+const loaderCompiled = ts.transpileModule(
+  readFileSync(new URL("./google-maps-loader.ts", import.meta.url), "utf8"),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS } },
+).outputText;
+
 test("map follows resolved Appearance while retaining camera and latest pin in Map view only", async () => {
   const slots = [];
   const pendingEffects = [];
@@ -65,10 +70,14 @@ test("map follows resolved Appearance while retaining camera and latest pin in M
     },
     event: { clearInstanceListeners: instance => cleared.push(instance), trigger() {} },
   };
+  // The loader is real code reading the same stubbed `window.google`.
+  const loaderExports = {};
+  vm.runInNewContext(loaderCompiled, { exports: loaderExports, window: { google: { maps: google } } });
   const modules = {
     react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "next-themes": { useTheme: () => ({ resolvedTheme: theme }) },
+    "@/lib/google-maps-loader": loaderExports,
   };
   const context = {
     exports: {},

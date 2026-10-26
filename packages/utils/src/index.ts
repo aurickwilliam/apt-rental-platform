@@ -213,3 +213,10 @@ export {
   composeNotificationRowLabel,
   getNotificationRowPresentation,
 } from './notificationRow';
+export {
+  type BBox,
+  expandBBox,
+  bboxContains,
+  formatPricePill,
+  filterPinsToVisible,
+} from './mapSearch';

@@ -16,6 +16,7 @@ test("occupied and maintenance units cannot start an application from details", 
 // or loading Next's server-only Supabase client into the node:test runner.
 for (const [path, expectedStatusFilter] of [
   ["../app/browse/lib/fetch-browse-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
+  ["../app/browse/lib/fetch-map-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/browse/lib/fetch-browse-sections.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/(main)/page.tsx", /\.eq\("status", "available"\)/],
   ["../app/browse/[apartmentId]/components/ApartmentDetailView.tsx", /\.in\("status", \["available", "unverified"\]\)/],

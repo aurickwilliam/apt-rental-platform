@@ -43,6 +43,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 overflow-x-clip">
       <Suspense>
         <SearchContainer
+          mapHref="/browse/map"
           filterButton={
             <FilterDrawerButton resultCount={totalCount} basePath="/browse" />
           }
