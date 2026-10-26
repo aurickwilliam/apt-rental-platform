@@ -91,8 +91,7 @@ export function useEditProfile(initial: UserProfile) {
       clearError("postal_code");
     } else if (field === "city") {
       setForm((previous) => ({ ...previous, barangay: "" }));
-      const code = getPostalCode(value);
-      postal.setValue(code != null ? String(code) : "");
+      postal.setValue(getPostalCode(value, form.province) ?? "");
       clearError("barangay");
       clearError("postal_code");
     }

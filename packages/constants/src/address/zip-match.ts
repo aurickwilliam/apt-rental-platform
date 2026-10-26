@@ -1,24 +1,37 @@
-import { isCamanavaCity, isCamanavaZipForCity } from "./address";
-import { PH_ZIP_DATABASE } from "./ph-zip-constants";
-import { getPostalCode } from "./postal-codes";
+import { METRO_MANILA_ZIP_RANGES } from "./address";
+import { PH_CITY_ZIPS } from "./ph-city-zips";
 
+const ZIP_PATTERN = /^\d{4}$/;
 
 /**
- * Checks a 4-digit ZIP against a city/province pair. CAMANAVA cities use their
- * PHPost range; other cities accept the ZIPs we hold for that city. A city with
- * no ZIP data only gets the format check, since we cannot prove it wrong.
+ * Checks a 4-digit ZIP against a city/province pair. Metro Manila cities accept
+ * their PHLPost block; other cities accept the ZIPs PHLPost lists for them. A
+ * city with no ZIP data only gets the format check, since we cannot prove it
+ * wrong.
  */
 export function isZipPlausibleForCity(city: string, province: string, zip: string): boolean {
-  if (!/^\d{4}$/.test(zip)) return false;
-  if (province === "Metro Manila" && isCamanavaCity(city)) {
-    return isCamanavaZipForCity(city, zip);
+  if (!ZIP_PATTERN.test(zip)) return false;
+  if (province === "Metro Manila") {
+    const range = METRO_MANILA_ZIP_RANGES[city];
+    if (range) return Number(zip) >= range.min && Number(zip) <= range.max;
   }
-  const known = new Set<string>(
-    PH_ZIP_DATABASE.filter(
-      (entry) => entry.province === province && entry.city.split(/[,/]/).some((part) => part.replace(/\s*\(.*\)/, "").trim() === city),
-    ).map((entry) => entry.zip),
-  );
-  const fallback = getPostalCode(city);
-  if (fallback) known.add(fallback);
-  return known.size === 0 || known.has(zip);
+  const known = PH_CITY_ZIPS[province]?.[city];
+  return !known || known.includes(zip);
+}
+
+/**
+ * The central post office ZIP of a city (the first of its codes), used to
+ * prefill an address. Without a province, a city name shared by several
+ * provinces (San Fernando, Santa Cruz) returns null rather than a guess.
+ */
+export function getPostalCode(city: string, province?: string): string | null {
+  const primaryZips = (province ? [province] : [...Object.keys(PH_CITY_ZIPS), "Metro Manila"])
+    .map((name) => primaryZip(city, name))
+    .filter((zip): zip is string => zip !== null);
+  return primaryZips.length === 1 ? primaryZips[0] : null;
+}
+
+function primaryZip(city: string, province: string): string | null {
+  if (province === "Metro Manila" && METRO_MANILA_ZIP_RANGES[city]) return String(METRO_MANILA_ZIP_RANGES[city].min);
+  return PH_CITY_ZIPS[province]?.[city]?.[0] ?? null;
 }
