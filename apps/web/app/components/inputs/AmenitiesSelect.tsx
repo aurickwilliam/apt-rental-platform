@@ -109,13 +109,13 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
               >
                 {Icon ? <Icon size={12} className="shrink-0" /> : null}
                 {getLabel(id)}
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => toggle(id)}
-                  className="cursor-pointer flex items-center justify-center size-3.5 rounded-full bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 transition-colors"
+                  className="button--bare cursor-pointer flex items-center justify-center size-3.5 rounded-full bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 transition-colors"
                 >
                   <X size={9} strokeWidth={2.5} />
-                </button>
+                </Button>
               </Chip>
             );
           })}

@@ -4,6 +4,7 @@ import { DOCUMENT_TYPES, isReviewEligibleDocType } from "@repo/constants";
 import { getDocumentTypeDescription } from "@repo/passport";
 
 import { DocumentTypeIcon } from "./documentTypeIcons";
+import { Button } from "@heroui/react";
 
 interface DocumentTypePickerProps {
   onSelect: (docType: string) => void;
@@ -21,11 +22,11 @@ export default function DocumentTypePicker({ onSelect }: DocumentTypePickerProps
 
       <div className="grid gap-3 sm:grid-cols-2">
         {DOCUMENT_TYPES.map((docType) => (
-          <button
+          <Button
+            variant="ghost"
             key={docType}
-            type="button"
             onClick={() => onSelect(docType)}
-            className="relative flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+            className="button--bare relative flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
           >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
               <DocumentTypeIcon docType={docType} size={20} />
@@ -40,7 +41,7 @@ export default function DocumentTypePicker({ onSelect }: DocumentTypePickerProps
                 <span className="sr-only">Can be verified</span>
               </span>
             ) : null}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

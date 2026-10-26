@@ -130,13 +130,13 @@ function VisitRequestsContent({ initial }: { initial?: PresentationSeed<Landlord
               )}
             </h2>
             {pendingCount > 4 && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
                 onClick={() => router.push("/landlord/visit-requests/pending")}
-                className="text-xs font-medium text-primary hover:underline"
+                className="button--bare text-xs font-medium text-primary hover:underline"
               >
                 View all
-              </button>
+              </Button>
             )}
           </div>
           {pendingPreview.length === 0 ? (
@@ -153,13 +153,13 @@ function VisitRequestsContent({ initial }: { initial?: PresentationSeed<Landlord
                 />
               ))}
               {pendingCount > 0 && pendingCount <= 4 && (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => router.push("/landlord/visit-requests/pending")}
-                  className="text-xs font-medium text-primary hover:underline self-center"
+                  className="button--bare text-xs font-medium text-primary hover:underline self-center"
                 >
                   View all pending
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -214,11 +214,11 @@ function VisitRequestsContent({ initial }: { initial?: PresentationSeed<Landlord
         <div className="flex flex-col gap-4">
           {groups.map(({ group, requests }) =>
             group === "Past" && !isPastExpanded ? (
-              <button
+              <Button
+                variant="ghost"
                 key={group}
-                type="button"
                 onClick={() => setIsPastExpanded(true)}
-                className="flex items-center justify-between py-2"
+                className="button--bare flex items-center justify-between py-2"
               >
                 <span className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-card-foreground">Past</span>
@@ -227,22 +227,22 @@ function VisitRequestsContent({ initial }: { initial?: PresentationSeed<Landlord
                   </span>
                 </span>
                 <ChevronDown size={20} className="text-muted-foreground" />
-              </button>
+              </Button>
             ) : (
               <div key={group} className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                   {group === "Past" ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
                       onClick={() => setIsPastExpanded(false)}
-                      className="flex items-center gap-2"
+                      className="button--bare flex items-center gap-2"
                     >
                       <span className="text-sm font-semibold text-card-foreground">Past</span>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                         {requests.length}
                       </span>
                       <ChevronUp size={20} className="text-muted-foreground" />
-                    </button>
+                    </Button>
                   ) : (
                     <>
                       <span className="text-sm font-semibold text-card-foreground">{group}</span>

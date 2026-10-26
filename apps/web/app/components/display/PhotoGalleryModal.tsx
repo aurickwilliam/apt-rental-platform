@@ -90,13 +90,13 @@ export default function PhotoGalleryModal({
                      aria-label={`Choose a ${name.toLowerCase()} image`}
                   >
                     {photos.map((photo, index) => (
-                      <button
+                      <Button
+                        variant="ghost"
                         key={`${photo.url}-${index}`}
-                        type="button"
                         onClick={() => onActiveIndexChange(index)}
                          aria-label={labels?.[index] ?? `Photo ${index + 1}`}
                         aria-pressed={index === activeIndex}
-                        className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 focus-visible:outline-2 focus-visible:outline-primary ${index === activeIndex ? "border-primary" : "border-transparent"}`}
+                        className={`button--bare relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 focus-visible:outline-2 focus-visible:outline-primary ${index === activeIndex ? "border-primary" : "border-transparent"}`}
                       >
                         <Image
                           src={photo.thumbnailUrl ?? photo.url}
@@ -105,7 +105,7 @@ export default function PhotoGalleryModal({
                           sizes="96px"
                           className="object-cover"
                         />
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </>

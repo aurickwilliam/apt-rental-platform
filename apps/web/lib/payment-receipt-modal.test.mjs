@@ -160,7 +160,7 @@ const receiptDataModule = () => compile("../lib/receiptData.ts", { ...formatters
 function loadReceipt() {
   const react = { useState: initial => [initial, () => {}], useRef: initial => ({ current: initial }), useEffect() {} };
   const deps = {
-    ...runtime, react, "@tabler/icons-react": icons, ...formatters,
+    ...runtime, react, "@heroui/react": { Button: "Button" }, "@tabler/icons-react": icons, ...formatters,
     "@/app/components/display/PaymentMethodChip": { default: "PaymentMethodChip" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/tenant/payment/components/ZigzagEdge": { default: "ZigzagEdge" },
@@ -205,7 +205,7 @@ test("missing tenant or unit show a dash and the copy control is labelled", () =
   const { module } = loadReceipt();
   const tree = module.default({ payment: payment({ tenant_name: null, apartment_name: null }), footer: null });
   assert.ok(text(tree).includes("—"));
-  assert.ok(nodes(tree).some(node => node.type === "button" && node.props["aria-label"] === "Copy reference"));
+  assert.ok(nodes(tree).some(node => node.type === "Button" && node.props["aria-label"] === "Copy reference"));
 });
 
 test("the receipt data is plain text with landlord wording, a filename and a total only when there is a breakdown", () => {

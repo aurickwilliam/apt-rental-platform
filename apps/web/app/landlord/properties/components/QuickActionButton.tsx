@@ -2,6 +2,7 @@
 
 import type { Icon as LucideIcon } from "@tabler/icons-react";
 import { IconChevronRight as ChevronRight } from "@tabler/icons-react";
+import { Button } from "@heroui/react";
 
 interface QuickActionButtonProps {
   title: string;
@@ -23,10 +24,10 @@ export default function QuickActionButton({
   badgeCount,
 }: QuickActionButtonProps) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onPress}
-      className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-4 py-3 text-left transition-colors hover:bg-muted/60"
+      className="button--bare flex flex-1 items-center gap-3 rounded-2xl bg-card px-4 py-3 text-left transition-colors hover:bg-muted/60"
     >
       <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted">
         <Icon size={22} className="text-muted-foreground" strokeWidth={2} />
@@ -43,6 +44,6 @@ export default function QuickActionButton({
         <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
       </span>
       <ChevronRight size={16} className="shrink-0 text-muted-foreground" />
-    </button>
+    </Button>
   );
 }

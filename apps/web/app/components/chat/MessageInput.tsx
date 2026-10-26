@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
-import { Button, TextArea } from "@heroui/react";
+import { Button, TextArea, Tooltip } from "@heroui/react";
 import {
   IconMoodSmile,
   IconPhoto,
@@ -346,14 +346,14 @@ export default function MessageInput({
               {replySnippet(replyTarget)}
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={onClearReply}
             aria-label="Cancel reply"
-            className="ml-2 shrink-0 cursor-pointer rounded-full p-1 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="button--bare ml-2 shrink-0 cursor-pointer rounded-full p-1 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <IconX size={16} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -388,14 +388,14 @@ export default function MessageInput({
                   className="size-full object-cover"
                 />
               )}
-              <button
-                type="button"
+              <Button
+                variant="ghost"
                 onClick={() => removeStaged(item.id)}
                 aria-label={`Remove ${item.file.name}`}
-                className="absolute right-0.5 top-0.5 flex size-5 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="button--bare absolute right-0.5 top-0.5 flex size-5 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <IconX size={12} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -420,17 +420,17 @@ export default function MessageInput({
           onPaste={handlePaste}
           className="apt-message-composer-field flex min-w-0 flex-1 items-end"
         >
-          <button
+          <Button
+            variant="ghost"
             ref={emojiButtonRef}
-            type="button"
-            className={iconButtonClass}
+            className={`button--bare ${iconButtonClass}`}
             onMouseDown={preventFocusSteal}
             onClick={toggleEmojiPanel}
             aria-label="Insert emoji"
             aria-expanded={isEmojiOpen}
           >
             <IconMoodSmile size={24} aria-hidden="true" />
-          </button>
+          </Button>
           <TextArea
             ref={inputRef}
             value={value}
@@ -458,26 +458,32 @@ export default function MessageInput({
             </Button>
           ) : (
             <>
-              <button
-                type="button"
-                className={iconButtonClass}
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="Attach photos, videos or documents"
-                title="Attach images, videos, PDF or DOCX · Up to 25 MB per file"
-              >
-                <IconPhoto size={26} aria-hidden="true" />
-              </button>
-              <button
+              <Tooltip>
+                <Tooltip.Trigger>
+                  <Button
+                    variant="ghost"
+                    className={`button--bare ${iconButtonClass}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Attach photos, videos or documents"
+                  >
+                    <IconPhoto size={26} aria-hidden="true" />
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>
+                  Attach images, videos, PDF or DOCX · Up to 25 MB per file
+                </Tooltip.Content>
+              </Tooltip>
+              <Button
+                variant="ghost"
                 ref={gifButtonRef}
-                type="button"
-                className={iconButtonClass}
+                className={`button--bare ${iconButtonClass}`}
                 onClick={() => setIsGiphyOpen((open) => !open)}
                 aria-label="Send a GIF"
                 aria-haspopup="dialog"
                 aria-expanded={isGiphyOpen}
               >
                 <IconGif size={26} aria-hidden="true" />
-              </button>
+              </Button>
             </>
           )}
         </div>

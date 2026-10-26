@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Input } from "@heroui/react";
+import { Input, Button, Tooltip } from "@heroui/react";
 import {
   IconMoodSmile,
   IconSearch,
@@ -117,15 +117,15 @@ export default function EmojiInsertPanel({
           aria-label="Search emoji"
           className="flex-1"
         />
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onMouseDown={(e) => e.preventDefault()}
           onClick={onClose}
           aria-label="Close emoji picker"
-          className="flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="button--bare flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <IconX size={16} aria-hidden="true" />
-        </button>
+        </Button>
       </div>
 
       <div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -196,17 +196,20 @@ export default function EmojiInsertPanel({
           aria-hidden="true"
         />
         {categoryIcons.map((category) => (
-          <button
-            key={category.label}
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => jumpToCategory(category.label)}
-            aria-label={`Jump to ${category.label}`}
-            title={category.label}
-            className="flex size-7 shrink-0 items-center justify-center rounded-full text-lg leading-none transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {category.icon}
-          </button>
+          <Tooltip key={category.label}>
+            <Tooltip.Trigger>
+              <Button
+                variant="ghost"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => jumpToCategory(category.label)}
+                aria-label={`Jump to ${category.label}`}
+                className="button--bare flex size-7 shrink-0 items-center justify-center rounded-full text-lg leading-none transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {category.icon}
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{category.label}</Tooltip.Content>
+          </Tooltip>
         ))}
       </div>
     </div>
@@ -221,17 +224,17 @@ function EmojiButton({
   onSelect: (emoji: string) => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       // Keeps the caret in the composer: without this, picking an emoji blurs
       // the input, which on a mobile browser also collapses the keyboard, so
       // picking a second emoji would lose the insertion point.
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => onSelect(emoji)}
       aria-label={`Insert ${emoji}`}
-      className="rounded-lg p-1 text-2xl leading-7 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="button--bare rounded-lg p-1 text-2xl leading-7 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {emoji}
-    </button>
+    </Button>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { IconCalendar as Calendar, IconClock as Clock } from "@tabler/icons-react";
 import { formatDate, formatFullName, formatTime, getInitials } from "@repo/utils";
@@ -24,7 +24,7 @@ export default function VisitRequestCard({ request, onPress, useResolvedSchedule
   const scheduleTime = useResolvedSchedule ? request.resolved_visit_time : request.time;
 
   return (
-    <button type="button" onClick={onPress} className="block w-full text-left">
+    <Button variant="ghost" onClick={onPress} className="button--bare block w-full text-left">
       <Card className="border border-border bg-card text-card-foreground shadow-none rounded-2xl hover:border-primary/30 transition-colors">
         <Card.Content className="p-4 flex flex-col gap-3">
           <div className="flex items-center gap-3">
@@ -54,6 +54,6 @@ export default function VisitRequestCard({ request, onPress, useResolvedSchedule
           </div>
         </Card.Content>
       </Card>
-    </button>
+    </Button>
   );
 }

@@ -128,11 +128,11 @@ export default function SignedLeaseModal({
                   onChange={handleFileChange}
                   aria-label={isReplacing ? "Choose a replacement signed lease file" : "Choose a signed lease file"}
                 />
-                <button
-                  type="button"
-                  disabled={uploading}
+                <Button
+                  variant="ghost"
+                  isDisabled={uploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`button--bare flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                     fileError
                       ? "border-danger text-danger"
                       : "border-border text-muted-foreground hover:border-primary hover:bg-accent"
@@ -152,17 +152,17 @@ export default function SignedLeaseModal({
                       Choose a file
                     </>
                   )}
-                </button>
+                </Button>
                 {file ? (
                   <div className="flex justify-end">
-                    <button
-                      type="button"
-                      disabled={uploading}
+                    <Button
+                      variant="ghost"
+                      isDisabled={uploading}
                       onClick={reset}
-                      className="cursor-pointer text-xs font-medium text-danger hover:underline"
+                      className="button--bare cursor-pointer text-xs font-medium text-danger hover:underline"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 ) : null}
                 {fileError ? <p className="text-xs text-danger">{fileError}</p> : null}

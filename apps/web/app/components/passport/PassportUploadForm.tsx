@@ -110,12 +110,12 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
               onChange={handleFileChange}
               aria-label={`Choose your ${docType} file`}
             />
-            <button
-              type="button"
-              disabled={isUploading}
+            <Button
+              variant="ghost"
+              isDisabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
               aria-label={file ? `Replace ${file.name}` : "Choose a file"}
-              className={`relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
+              className={`button--bare relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                 fileError
                   ? "border-danger text-danger"
                   : file
@@ -145,23 +145,23 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
                   Choose a file
                 </>
               )}
-            </button>
+            </Button>
             {file ? (
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span className="truncate">
                   {file.name} · {(file.size / 1024).toFixed(1)} KB
                 </span>
-                <button
-                  type="button"
-                  disabled={isUploading}
+                <Button
+                  variant="ghost"
+                  isDisabled={isUploading}
                   onClick={() => {
                     setFile(null);
                     setPreviewUrl(null);
                   }}
-                  className="shrink-0 cursor-pointer font-medium text-danger hover:underline"
+                  className="button--bare shrink-0 cursor-pointer font-medium text-danger hover:underline"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             ) : null}
             {fileError ? <p className="text-xs text-danger">{fileError}</p> : null}
