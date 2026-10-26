@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 import ApartmentCarousel from "./components/ApartmentCarousel";
 import AppSection from "./components/AppSection";
 import HeroSection from "./components/HeroSection";
-import HowItWorksSection from "./components/HowItWorksSection";
-import WhyUsSection from "./components/WhyUsSection";
+import ProductShowcaseSection from "./components/ProductShowcaseSection";
+import RentalStepsSection from "./components/RentalStepsSection";
+import OwnerCtaSection from "./components/OwnerCtaSection";
 
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 import { rankTenantLovedApartments } from "@/lib/tenant-loved-apartments";
@@ -71,38 +72,18 @@ export default async function Home() {
     image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
   }));
 
-  // Android APK download availability. To publish the app:
-  //   1. Apply the app-downloads bucket migration
-  //      (supabase/migrations/20261020100000_create_app_downloads_bucket.sql)
-  //      and upload the APK to that bucket (dashboard upload; the bucket is
-  //      public read, writes stay operator-only).
-  //   2. Set NEXT_PUBLIC_APT_APK_URL to the file's public URL in
-  //      apps/web/.env.local (and the host's env settings), e.g.
-  //      https://<project-ref>.supabase.co/storage/v1/object/public/app-downloads/APT-latest.apk
-  //      then restart/redeploy.
-  //   3. Until then the buttons render disabled with a "Coming soon" chip and
-  //      /download answers 404; no code change is needed to enable them.
-  const apkAvailable = Boolean(process.env.NEXT_PUBLIC_APT_APK_URL?.trim());
-
   return (
     <div className="min-h-screen">
-      <main className="mx-auto flex max-w-7xl flex-col px-4 pt-4">
-        {/* Intro */}
-        <HeroSection apkAvailable={apkAvailable} />
-
-        {/* Why Us */}
-        <WhyUsSection />
-
-        {/* Featured Apartments */}
-        <section className="md:mt-16">
+      <main className="mx-auto max-w-5xl px-6">
+        <HeroSection />
+        <section className="pb-8 sm:pb-12">
           <ApartmentCarousel apartment={mapped} />
         </section>
 
-        {/* How it Works */}
-        <HowItWorksSection />
-
-        {/* Get the App */}
-        <AppSection apkAvailable={apkAvailable} />
+        <ProductShowcaseSection />
+        <RentalStepsSection />
+        <OwnerCtaSection />
+        <AppSection />
       </main>
     </div>
   );
