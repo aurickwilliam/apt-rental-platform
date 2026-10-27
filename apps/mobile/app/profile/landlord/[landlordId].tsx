@@ -30,6 +30,7 @@ import {
   IconCalendarMonth,
   IconBuildingSkyscraper,
   IconStar,
+  IconStarFilled,
 } from '@tabler/icons-react-native';
 
 export default function PublicLandlordProfile() {
@@ -133,18 +134,16 @@ export default function PublicLandlordProfile() {
               label: 'Properties',
               value: String(stats.totalProperties),
               icon: IconBuildingSkyscraper,
-              iconColor: colors.primary,
             },
             {
               label: 'Average Rating',
               value: `${stats.averageRating}/5`,
-              valueColor: 'text-accent',
+              icon: IconStarFilled,
             },
             {
               label: 'Member Since',
               value: memberSinceYear,
               icon: IconCalendarMonth,
-              iconColor: colors.textPrimary,
             },
           ]}
         />
