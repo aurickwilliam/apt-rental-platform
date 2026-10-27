@@ -9,8 +9,8 @@ import {
   type GoogleLatLngLiteral,
   type GoogleMapInstance,
   type GoogleMapMouseEvent,
-  type GoogleMarkerInstance,
 } from "@/lib/google-maps-loader";
+import { createMapPickerPin, type MapPickerPin } from "@/lib/map-picker-pin";
 import { centerMapOnUser } from "@/lib/map-locate";
 import MapControls from "@/app/browse/map/components/MapControls";
 
@@ -57,7 +57,7 @@ export default function GoogleMapPicker({
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
-  const markerRef = useRef<GoogleMarkerInstance | null>(null);
+  const pinRef = useRef<MapPickerPin | null>(null);
   const onPickRef = useRef(onPick);
   const coordinatesRef = useRef({ latitude, longitude });
   const savedViewRef = useRef<MapView | null>(null);
@@ -114,19 +114,13 @@ export default function GoogleMapPicker({
         });
 
         if (coords.latitude != null && coords.longitude != null) {
-          const marker = new maps.Marker({
+          const pin = createMapPickerPin(maps, {
             position: { lat: coords.latitude, lng: coords.longitude },
-            map,
             draggable: !readOnly,
+            onDragEnd: ({ lat, lng }) => onPickRef.current?.(lat, lng),
           });
-          if (!readOnly) {
-            marker.addListener("dragend", () => {
-              const pos = marker.getPosition();
-              if (!pos) return;
-              onPickRef.current?.(pos.lat(), pos.lng());
-            });
-          }
-          markerRef.current = marker;
+          pin.setMap(map);
+          pinRef.current = pin;
         }
 
         setStatus("ready");
@@ -151,10 +145,9 @@ export default function GoogleMapPicker({
         maps?.event.clearInstanceListeners(map);
         mapRef.current = null;
       }
-      if (markerRef.current) {
-        maps?.event.clearInstanceListeners(markerRef.current);
-        markerRef.current.setMap(null);
-        markerRef.current = null;
+      if (pinRef.current) {
+        pinRef.current.setMap(null);
+        pinRef.current = null;
       }
     };
   }, [apiKey, resolvedTheme, readOnly, appControls]);
@@ -164,12 +157,11 @@ export default function GoogleMapPicker({
     const map = mapRef.current;
     if (!maps || !map || status !== "ready") return;
 
-    const marker = markerRef.current;
+    const pin = pinRef.current;
     if (latitude == null || longitude == null) {
-      if (marker) {
-        maps.event.clearInstanceListeners(marker);
-        marker.setMap(null);
-        markerRef.current = null;
+      if (pin) {
+        pin.setMap(null);
+        pinRef.current = null;
       }
       return;
     }
@@ -177,18 +169,16 @@ export default function GoogleMapPicker({
     const position: GoogleLatLngLiteral = { lat: latitude, lng: longitude };
     map.setCenter(position);
 
-    if (marker) {
-      marker.setPosition(position);
+    if (pin) {
+      pin.setPosition(position);
     } else {
-      const next = new maps.Marker({ position, map, draggable: !readOnly });
-      if (!readOnly) {
-        next.addListener("dragend", () => {
-          const pos = next.getPosition();
-          if (!pos) return;
-          onPickRef.current?.(pos.lat(), pos.lng());
-        });
-      }
-      markerRef.current = next;
+      const next = createMapPickerPin(maps, {
+        position,
+        draggable: !readOnly,
+        onDragEnd: ({ lat, lng }) => onPickRef.current?.(lat, lng),
+      });
+      next.setMap(map);
+      pinRef.current = next;
     }
   }, [latitude, longitude, readOnly, status]);
 
