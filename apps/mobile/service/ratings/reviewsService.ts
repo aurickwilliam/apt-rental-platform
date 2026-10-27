@@ -25,6 +25,8 @@ export type LandlordReview = {
   rating: number;
   review: string;
   profilePictureUrl?: string;
+  /** The landlord's apartment the reviewer rented, for the "Stayed at" line. */
+  apartmentName?: string;
   images?: string[];
 };
 
@@ -66,6 +68,7 @@ export async function fetchApartmentReviews(
 
 type LandlordReviewRow = {
   id: string;
+  apartment_id: string | null;
   rating: number;
   comment: string | null;
   created_at: string;
@@ -90,11 +93,12 @@ export async function fetchLandlordReviews(
   // reviews has no landlord_id column — resolve via the landlord's apartments.
   const { data: owned, error: ownedError } = await supabase
     .from("apartments")
-    .select("id")
+    .select("id, name")
     .eq("landlord_id", landlordId)
     .eq("is_hidden_by_admin", false);
   if (ownedError) throw ownedError;
   const apartmentIds = (owned ?? []).map((a) => a.id);
+  const apartmentNames = new Map((owned ?? []).map((a) => [a.id, a.name]));
   if (apartmentIds.length === 0) return { reviews: [], totalCount: 0 };
 
   const { data, error } = await supabase
@@ -106,6 +110,7 @@ export async function fetchLandlordReviews(
         comment,
         created_at,
         image_paths,
+        apartment_id,
         users!reviews_tenant_id_fkey (
           first_name,
           last_name,
@@ -132,6 +137,7 @@ export async function fetchLandlordReviews(
         rating: Number(row.rating),
         review: row.comment ?? "",
         profilePictureUrl: row.users?.avatar_url ?? undefined,
+        apartmentName: (row.apartment_id && apartmentNames.get(row.apartment_id)) || undefined,
         images: getReviewImageUrls(row.image_paths),
       };
     }

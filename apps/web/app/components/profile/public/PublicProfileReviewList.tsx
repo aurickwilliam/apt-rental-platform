@@ -1,3 +1,5 @@
+import { formatReviewStayLabel } from "@repo/utils";
+
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 
 import type { PublicProfileReview } from "./types";
@@ -15,14 +17,6 @@ const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Manila",
 });
 
-/** "Stayed at Mabini Residences · Jan 2024 - Mar 2025" when both facts are visible. */
-function reviewStayLabel(review: PublicProfileReview): string | undefined {
-  const parts: string[] = [];
-  if (review.apartmentName) parts.push(`Stayed at ${review.apartmentName}`);
-  if (review.stayPeriod) parts.push(review.stayPeriod);
-  return parts.length > 0 ? parts.join(" · ") : undefined;
-}
-
 // Two columns from lg; each row is as tall as its tallest card (items-start keeps shorter cards
 // at their own height instead of stretching them).
 export default function PublicProfileReviewList({ reviews, reviewCount }: PublicProfileReviewListProps) {
@@ -36,7 +30,7 @@ export default function PublicProfileReviewList({ reviews, reviewCount }: Public
             reviewerAvatar={review.reviewerAvatar}
             reviewDate={REVIEW_DATE_FORMAT.format(new Date(review.date))}
             reviewText={review.text}
-            stayPeriod={reviewStayLabel(review)}
+            stayPeriod={formatReviewStayLabel(review.apartmentName, review.stayPeriod)}
             rating={review.rating}
             images={review.images}
           />
