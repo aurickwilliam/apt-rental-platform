@@ -6,6 +6,7 @@ import { Button, Card } from "@heroui/react";
 import { IconArrowsMaximize, IconPhoto } from "@tabler/icons-react";
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import type { LandlordUnitImage } from "@/service/landlordUnitDetailService";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 interface PropertyPhotoGalleryProps {
   name: string;
@@ -30,7 +31,7 @@ export default function PropertyPhotoGallery({ name, images }: PropertyPhotoGall
             variant="ghost"
             className="property-photo-trigger relative overflow-hidden"
           >
-            <Image src={activePhoto.url} alt={`${name}, photo ${activeIndex + 1}`} fill unoptimized className="object-cover" />
+            <Image src={activePhoto.url} alt={`${name}, photo ${activeIndex + 1}`} fill sizes="(max-width: 1024px) 100vw, 66vw" unoptimized={!canOptimizePublicApartmentImage(activePhoto.url)} className="object-cover" />
             <span className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-2 text-sm text-white">
               <IconArrowsMaximize size={16} aria-hidden="true" />
               View photos · {activeIndex + 1}/{photos.length}
@@ -49,7 +50,7 @@ export default function PropertyPhotoGallery({ name, images }: PropertyPhotoGall
                     onPress={() => setSelectedId(image.id)}
                     className={`property-photo-thumbnail relative shrink-0 overflow-hidden ${index === activeIndex ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : "opacity-70 hover:opacity-100"}`}
                   >
-                    <Image src={image.url_thumb || image.url} alt="" fill unoptimized className="object-cover" />
+                    <Image src={image.url_thumb || image.url} alt="" fill sizes="96px" unoptimized={!canOptimizePublicApartmentImage(image.url_thumb || image.url)} className="object-cover" />
                   </Button>
                 ))}
               </div>

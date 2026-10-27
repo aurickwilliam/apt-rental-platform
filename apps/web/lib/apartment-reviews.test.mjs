@@ -48,6 +48,7 @@ test("review service omits anonymous tenancy joins, normalizes rows and deduplic
   };
   const service = load("../service/reviewsService.ts", {
     "@repo/supabase/browser": { createClient: () => client },
+    "@repo/constants": { PUBLIC_IMAGE_CACHE_CONTROL: "31536000" },
     "@repo/utils": { isReviewStayEligible: () => true },
     "@/lib/apartment-review-query": { apartmentReviewSelect },
   });

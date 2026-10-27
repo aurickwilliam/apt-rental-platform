@@ -1,4 +1,5 @@
 import { supabase } from '@repo/supabase'
+import { PUBLIC_IMAGE_CACHE_CONTROL } from '@repo/constants'
 import * as ImagePicker from 'expo-image-picker'
 import { buildImageTiers } from '@/utils/compressImage'
 
@@ -45,7 +46,11 @@ async function uploadBytes(uri: string, path: string): Promise<string> {
 
   const { error } = await supabase.storage
     .from('apartment-images')
-    .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+    .upload(path, blob, {
+      contentType: 'image/jpeg',
+      upsert: true,
+      cacheControl: PUBLIC_IMAGE_CACHE_CONTROL,
+    })
 
   if (error) throw new Error(`Storage upload failed: ${error.message}`)
 

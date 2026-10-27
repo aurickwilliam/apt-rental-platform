@@ -35,6 +35,7 @@ function load(file, options = {}) {
     },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams, useParams: () => ({ requestId: "request-one" }) },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next/link": { default: "Link" },
     "@heroui/react": { Skeleton: "Skeleton", Card, Table, InputGroup, Dropdown, Button: "Button", Label: "Label", Chip: "Chip", Separator: "Separator", toast: { success: () => {}, danger: () => {} }, useOverlayState: () => ({ isOpen: false, setOpen: options.setOpen ?? (() => {}) }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
