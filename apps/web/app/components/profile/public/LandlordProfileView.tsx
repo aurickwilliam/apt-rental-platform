@@ -18,7 +18,6 @@ import {
 import BackBtn from "@/app/browse/[apartmentId]/components/BackBtn";
 import RatingBreakdown from "@/app/browse/[apartmentId]/components/RatingBreakdown";
 import RatingsHeader from "@/app/browse/[apartmentId]/components/RatingsHeader";
-import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
 import StarRating from "@/app/components/display/StarRating";
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
@@ -30,10 +29,11 @@ import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
 import PublicProfileEmptyState from "./PublicProfileEmptyState";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
+import PublicProfileReviewList from "./PublicProfileReviewList";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
 import type { PublicProfileTrustItem } from "./PublicProfileTrustStrip";
-import type { LandlordProfileData, PublicProfileReview } from "./types";
+import type { LandlordProfileData } from "./types";
 
 interface LandlordProfileViewProps {
   data: LandlordProfileData;
@@ -47,23 +47,8 @@ const LISTING_GRID_CLASS = "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:gr
 // A landlord can publish many apartments; the profile shows the newest few until asked.
 const INITIAL_LISTING_LIMIT = 8;
 
-const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  timeZone: "Asia/Manila",
-});
-
 const plural = (count: number, singular: string, pluralForm = `${singular}s`) =>
   count === 1 ? singular : pluralForm;
-
-/** "Stayed at Mabini Residences · Jan 2024 - Mar 2025" when both facts are visible. */
-function reviewStayLabel(review: PublicProfileReview): string | undefined {
-  const parts: string[] = [];
-  if (review.apartmentName) parts.push(`Stayed at ${review.apartmentName}`);
-  if (review.stayPeriod) parts.push(review.stayPeriod);
-  return parts.length > 0 ? parts.join(" · ") : undefined;
-}
 
 export default function LandlordProfileView({ data, portal }: LandlordProfileViewProps) {
   const router = useRouter();
@@ -253,28 +238,7 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
               description="Reviews from tenants who rented this landlord's apartments will appear here."
             />
           ) : (
-            <>
-              <div className="flex flex-col gap-3">
-                {reviews.map((review) => (
-                  <ReviewCard
-                    key={review.id}
-                    reviewerName={review.reviewerName}
-                    reviewerAvatar={review.reviewerAvatar}
-                    reviewDate={REVIEW_DATE_FORMAT.format(new Date(review.date))}
-                    reviewText={review.text}
-                    stayPeriod={reviewStayLabel(review)}
-                    rating={review.rating}
-                    images={review.images}
-                  />
-                ))}
-              </div>
-              {reviews.length < reviewCount ? (
-                <p className="text-sm text-muted-foreground">
-                  Showing the {reviews.length} most recent{" "}
-                  {plural(reviews.length, "review")} of {reviewCount}.
-                </p>
-              ) : null}
-            </>
+            <PublicProfileReviewList reviews={reviews} reviewCount={reviewCount} />
           )}
         </section>
       </PublicProfileLayout>

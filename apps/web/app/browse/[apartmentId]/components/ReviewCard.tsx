@@ -52,8 +52,8 @@ export default function ReviewCard({
 
   return (
     <>
-    <Card className={["gap-0 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
-      <Card.Header className="flex flex-row items-center gap-3">
+    <Card className={["gap-3 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
+      <Card.Header className="flex flex-row items-start gap-3">
         <UserAvatar
           src={reviewerAvatar}
           initials={reviewerName
