@@ -1,7 +1,6 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
-import { PUBLIC_IMAGE_CACHE_CONTROL } from "@repo/constants";
 import { isReviewStayEligible } from "@repo/utils";
 import { apartmentReviewSelect } from "@/lib/apartment-review-query";
 
@@ -323,7 +322,7 @@ export async function uploadReviewImages(
 
     const { error: uploadError } = await supabase.storage
       .from(REVIEW_IMAGES_BUCKET)
-      .upload(path, blob, { contentType: "image/jpeg", cacheControl: PUBLIC_IMAGE_CACHE_CONTROL });
+      .upload(path, blob, { contentType: "image/jpeg" });
 
     if (uploadError) {
       // Roll back any images that DID upload before this one failed —

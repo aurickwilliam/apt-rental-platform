@@ -20,7 +20,6 @@ import { PERKS } from "@/app/components/inputs/perks";
 import LeaseAgreementModal from "../../../components/modals/LeaseAgreementModal";
 import EditPropertyModal from "../../../components/modals/EditPropertyModal";
 import DescriptionSection from "./DescriptionSection";
-import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 function ReadOnlyField({ label, value, icon: Icon, highlight = false }: { label: string; value?: string | number | null; icon: Icon; highlight?: boolean }) {
   return (
@@ -102,7 +101,7 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDesc
       >
         <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
           <div className="relative min-h-40 overflow-hidden rounded-xl bg-muted">
-            <Image src={property.thumbnail} alt={apartment.name} fill sizes="(max-width: 1024px) 100vw, 25vw" unoptimized={!canOptimizePublicApartmentImage(property.thumbnail)} className="object-cover" />
+            <Image src={property.thumbnail} alt={apartment.name} fill unoptimized className="object-cover" />
           </div>
           <div className="flex min-w-0 flex-col justify-between gap-4">
             <div>

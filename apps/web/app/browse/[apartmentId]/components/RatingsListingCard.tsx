@@ -8,7 +8,6 @@ import { IconArrowRight, IconHome, IconMapPin, IconUser } from "@tabler/icons-re
 
 import StatusChip from "@/app/components/display/StatusChip";
 import { statusToneFor } from "@/lib/status-tone";
-import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 interface RatingsListingCardProps {
   name: string;
@@ -42,7 +41,7 @@ export default function RatingsListingCard({
             alt={name}
             width={192}
             height={192}
-            unoptimized={!canOptimizePublicApartmentImage(coverImage ?? "")}
+            unoptimized
             className="size-full object-cover"
           />
         </div>

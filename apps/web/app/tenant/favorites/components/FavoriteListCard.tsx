@@ -10,7 +10,6 @@ import { IconBed as BedDouble, IconBath as Bath, IconMaximize as Expand, IconHea
 import { formatPesoDisplay } from "@repo/utils";
 
 import type { FavoriteApartment } from "@/service/favoritesService";
-import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 interface FavoriteListCardProps {
   apartment: FavoriteApartment;
@@ -38,7 +37,7 @@ export default function FavoriteListCard({
               src={thumbnailUrl}
               alt={apartment.name}
               fill
-              unoptimized={!canOptimizePublicApartmentImage(thumbnailUrl)}
+              unoptimized
               sizes="(max-width: 768px) 100vw, 224px"
               className="object-cover"
             />

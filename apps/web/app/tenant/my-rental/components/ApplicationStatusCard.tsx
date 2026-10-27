@@ -9,7 +9,6 @@ import { formatDate } from "@repo/utils";
 import { getApplicationStatusStyle, type ApplicationStatus } from "@/app/tenant/applications/lib/statusStyles";
 
 import StatusChip from "@/app/components/display/StatusChip";
-import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 type Props = {
   id: string;
@@ -45,7 +44,7 @@ export default function ApplicationStatusCard({
               src={thumbnailUrl}
               alt=""
               fill
-              unoptimized={!canOptimizePublicApartmentImage(thumbnailUrl)}
+              unoptimized
               sizes="(max-width: 640px) 100vw, 160px"
               className="object-cover"
             />

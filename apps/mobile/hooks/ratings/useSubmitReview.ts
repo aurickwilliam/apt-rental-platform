@@ -5,7 +5,6 @@ import * as Crypto from 'expo-crypto';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@repo/supabase';
-import { PUBLIC_IMAGE_CACHE_CONTROL } from '@repo/constants';
 import { useProfile } from '../auth/useProfile';
 import { usePortalStore } from '@/stores/usePortalStore';
 import { getReviewUnlockQueryKey } from './useReviewUnlock';
@@ -48,7 +47,6 @@ export function useSubmitReview() {
           .from(REVIEW_IMAGES_BUCKET)
           .upload(path, bytes, {
             contentType: image.mimeType ?? 'image/jpeg',
-            cacheControl: PUBLIC_IMAGE_CACHE_CONTROL,
           });
 
         if (uploadError) {

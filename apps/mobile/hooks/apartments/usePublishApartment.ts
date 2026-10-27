@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { supabase } from '@repo/supabase'
-import { PUBLIC_IMAGE_CACHE_CONTROL } from '@repo/constants'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { File } from 'expo-file-system'
@@ -16,7 +15,7 @@ async function uploadBytes(uri: string, fileName: string): Promise<string> {
 
   const { error } = await supabase.storage
     .from(APARTMENT_IMAGES_BUCKET)
-    .upload(fileName, bytes, { contentType: 'image/jpeg', cacheControl: PUBLIC_IMAGE_CACHE_CONTROL })
+    .upload(fileName, bytes, { contentType: 'image/jpeg' })
 
   if (error) throw error
 

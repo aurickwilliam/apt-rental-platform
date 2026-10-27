@@ -15,7 +15,6 @@ import {
 
 import { formatPesoDisplay } from "@repo/utils";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
-import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 interface ApartmentHoverPreviewProps {
   apartment: BrowseApartment;
@@ -56,8 +55,7 @@ export default function ApartmentHoverPreview({
             alt={apartment.name}
             width={640}
             height={360}
-            sizes="320px"
-            unoptimized={!canOptimizePublicApartmentImage(apartment.image)}
+            unoptimized
             className="h-40 w-full object-cover"
           />
           {apartment.isVerified ? (
