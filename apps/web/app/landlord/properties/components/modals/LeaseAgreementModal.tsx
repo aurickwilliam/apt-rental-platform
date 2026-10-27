@@ -8,7 +8,7 @@ import {
 
 import { IconFileUpload as FileUp, IconTrash as Trash2 } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 type Props = {
   isOpen: boolean;

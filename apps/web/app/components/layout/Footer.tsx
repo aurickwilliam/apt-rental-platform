@@ -210,7 +210,7 @@ export default function Footer() {
             src="/logo/logo-name.svg"
             alt="APT Rental Platform Logo"
             width={120}
-            height={40}
+            height={56}
           />
 
           <div>

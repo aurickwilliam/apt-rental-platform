@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card } from "@heroui/react";
 import { IconFileText } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import ProfilePhotoErrorDialog from "@/app/components/profile/ProfilePhotoErrorDialog";
 

@@ -22,6 +22,7 @@ export default function RentalHero({ name, address, imageUrl, descriptionHref }:
           src={imageUrl}
           alt={`Photo of ${name}`}
           fill
+          priority
           unoptimized={!canOptimizePublicApartmentImage(imageUrl)}
           sizes="(max-width: 1024px) 100vw, 66vw"
           className="object-cover"

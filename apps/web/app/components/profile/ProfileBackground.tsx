@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button, Spinner } from "@heroui/react";
 import { IconCamera } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import {
   compressBackgroundImage,
