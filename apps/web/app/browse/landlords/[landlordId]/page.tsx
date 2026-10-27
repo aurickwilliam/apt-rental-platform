@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import LandlordProfileView from "@/app/components/profile/public/LandlordProfileView";
+import { landlordReviewsHref } from "@/lib/public-profile";
 import { loadLandlordProfile } from "@/lib/public-profile-loaders";
 
 import { browseFrameClass } from "../../lib/browse-layout";
@@ -14,7 +15,11 @@ export default async function PublicLandlordProfilePage({
 }) {
   const { landlordId } = await params;
   const { reviews } = await searchParams;
-  const data = await loadLandlordProfile(landlordId, { allReviews: reviews === "all" });
+
+  // The old in-place "See all reviews" query now has its own page.
+  if (reviews === "all") redirect(landlordReviewsHref("public", landlordId));
+
+  const data = await loadLandlordProfile(landlordId);
   if (!data) notFound();
 
   return (

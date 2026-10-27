@@ -1,6 +1,6 @@
 import type { VerifiedPassportSlot } from "@repo/passport";
 
-import type { ReviewRatingDistribution, StayHistorySummary, UnitSummary } from "@/lib/public-profile";
+import type { ProfileReviewSort, ReviewRatingDistribution, StayHistorySummary, UnitSummary } from "@/lib/public-profile";
 
 export interface PublicProfileIdentity {
   id: string;
@@ -57,6 +57,22 @@ export interface LandlordProfileData {
   listedTotal: number;
   listings: PublicProfileListing[];
   reviews: PublicProfileReview[];
+}
+
+/** One page of a landlord's reviews, with the summary its aside repeats. */
+export interface LandlordReviewsPageData {
+  identity: PublicProfileIdentity;
+  averageRating: number | null;
+  /** Same bounded summary the profile shows, so both headline figures agree. */
+  reviewCount: number;
+  ratingDistribution: ReviewRatingDistribution;
+  reviews: PublicProfileReview[];
+  /** Exact number of review rows; drives pagination and the range line. */
+  totalCount: number;
+  /** 1-based, already clamped to the real range. */
+  page: number;
+  pageCount: number;
+  sort: ProfileReviewSort;
 }
 
 export interface PublicProfilePastStay {

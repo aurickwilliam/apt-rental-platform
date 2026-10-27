@@ -2,14 +2,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   apartmentHref,
-  canExpandProfileReviews,
+  clampProfileReviewPage,
   coveredCities,
   formatDurationMonths,
   formatStayRange,
   landlordProfileHref,
+  landlordReviewsHref,
   memberSinceYear,
+  parseProfileReviewSort,
   profileDisplayName,
   profileLocation,
+  profileReviewPageCount,
+  PROFILE_REVIEWS_PAGE_SIZE,
   stayDurationMonths,
   summarizeListingVerification,
   summarizeReviewRatings,
@@ -143,9 +147,50 @@ test("a past stay degrades when the apartment, landlord or dates are missing", (
   assert.equal(unnamed.apartmentId, "a3");
 });
 
-test("See all reviews only offers more when some are hidden and the page is still on the short list", () => {
-  assert.equal(canExpandProfileReviews(5, 12), true);
-  assert.equal(canExpandProfileReviews(5, 5), false, "everything is already shown");
-  assert.equal(canExpandProfileReviews(0, 0), false);
-  assert.equal(canExpandProfileReviews(50, 80), false, "an expanded page is already at its cap");
+test("review sort reads from the URL and falls back to newest first", () => {
+  assert.equal(parseProfileReviewSort("highest"), "highest");
+  assert.equal(parseProfileReviewSort("lowest"), "lowest");
+  assert.equal(parseProfileReviewSort("recent"), "recent");
+  assert.equal(parseProfileReviewSort("bogus"), "recent");
+  assert.equal(parseProfileReviewSort(null), "recent");
+  assert.equal(parseProfileReviewSort(undefined), "recent");
+});
+
+test("review pages cover every row and clamp out-of-range requests", () => {
+  assert.equal(profileReviewPageCount(0), 1, "an empty list still reads as page 1 of 1");
+  assert.equal(profileReviewPageCount(1), 1);
+  assert.equal(profileReviewPageCount(PROFILE_REVIEWS_PAGE_SIZE), 1);
+  assert.equal(profileReviewPageCount(PROFILE_REVIEWS_PAGE_SIZE + 1), 2);
+  assert.equal(profileReviewPageCount(41), 3);
+  assert.equal(profileReviewPageCount(-5), 1, "a negative count never asks for zero pages");
+
+  assert.equal(clampProfileReviewPage(1, 41), 1);
+  assert.equal(clampProfileReviewPage(3, 41), 3);
+  assert.equal(clampProfileReviewPage(99, 41), 3, "a hand-typed page lands on the last page");
+  assert.equal(clampProfileReviewPage(0, 41), 1);
+  assert.equal(clampProfileReviewPage(-4, 41), 1);
+  assert.equal(clampProfileReviewPage(Number.NaN, 41), 1);
+  assert.equal(clampProfileReviewPage(2.7, 41), 2);
+});
+
+test("the reviews link keeps default params out of the URL", () => {
+  assert.equal(landlordReviewsHref("public", "abc"), "/browse/landlords/abc/reviews");
+  assert.equal(landlordReviewsHref("tenant", "abc"), "/tenant/landlords/abc/reviews");
+  assert.equal(
+    landlordReviewsHref("public", "abc", { sort: "highest" }),
+    "/browse/landlords/abc/reviews?sort=highest",
+  );
+  assert.equal(
+    landlordReviewsHref("tenant", "abc", { page: 3, sort: "lowest" }),
+    "/tenant/landlords/abc/reviews?sort=lowest&page=3",
+  );
+  assert.equal(
+    landlordReviewsHref("public", "abc", { page: 1, sort: "recent" }),
+    "/browse/landlords/abc/reviews",
+    "page 1 and the default sort add no query string",
+  );
+  assert.equal(
+    landlordReviewsHref("public", "a/b", { page: 2 }),
+    "/browse/landlords/a%2Fb/reviews?page=2",
+  );
 });

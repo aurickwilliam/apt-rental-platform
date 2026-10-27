@@ -290,6 +290,24 @@ export default function PublicLandlordProfile() {
             {reviews.map((review) => (
               <RatingCard key={review.id} {...review} />
             ))}
+
+            {totalReviews > reviews.length ? (
+              <Pressable
+                onPress={() => {
+                  if (!resolvedLandlordId) return
+                  router.push({
+                    pathname: '/profile/landlord/[landlordId]/reviews',
+                    params: { landlordId: resolvedLandlordId },
+                  })
+                }}
+                hitSlop={8}
+                className="items-center py-1 mt-1"
+              >
+                <Text className="text-accent text-sm font-nunitoSemiBold">
+                  See all {totalReviews} reviews
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         )}
       </View>

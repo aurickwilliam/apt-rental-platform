@@ -22,7 +22,7 @@ import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
 import StarRating from "@/app/components/display/StarRating";
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { useUser } from "@/hooks/use-user";
-import { apartmentHref, canExpandProfileReviews, memberSinceYear } from "@/lib/public-profile";
+import { apartmentHref, landlordReviewsHref, memberSinceYear } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
@@ -59,9 +59,9 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
   const { identity, contact, listings, reviews, reviewCount, ratingDistribution } = data;
   const firstName = identity.displayName.split(" ")[0] || "Landlord";
   const viewerId = profile?.id ?? null;
-  // The page loads the newest few reviews; more are fetched by re-rendering with ?reviews=all.
-  const canExpandReviews = canExpandProfileReviews(reviews.length, reviewCount);
-  const showAllReviews = () => router.push("?reviews=all#reviews", { scroll: false });
+  // The profile shows the newest few reviews; the full, sortable list has its own page.
+  const canExpandReviews = reviews.length < reviewCount;
+  const showAllReviews = () => router.push(landlordReviewsHref(portal, identity.id));
   const isOwner = Boolean(viewerId && viewerId === identity.id);
   const canMessage = Boolean(viewerId) && !isOwner;
 
@@ -217,7 +217,11 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
 
         <section id="reviews" className="flex scroll-mt-24 flex-col gap-3">
           <div>
-            <RatingsHeader headingLevel="h2" onSeeAll={canExpandReviews ? showAllReviews : undefined} />
+            <RatingsHeader
+              headingLevel="h2"
+              onSeeAll={canExpandReviews ? showAllReviews : undefined}
+              seeAllLabel={`See all ${reviewCount} reviews`}
+            />
             <p className="-mt-3 text-sm text-muted-foreground">
               Only tenants who rented one of these apartments can leave a review.
             </p>

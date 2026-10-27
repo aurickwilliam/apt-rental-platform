@@ -9,10 +9,34 @@ export type ProfileViewerPortal = "public" | "tenant" | "landlord";
 
 /** Most listings one profile read returns; the page shows eight until expanded. */
 export const PROFILE_LISTING_LIMIT = 24;
-/** Newest reviews rendered on the page; the headline count comes from the rating summary. */
+/** Newest reviews rendered on the profile; the rest live on the reviews page. */
 export const PROFILE_REVIEW_LIMIT = 5;
-/** Reviews rendered once "See all reviews" is opened (`?reviews=all`). */
-export const PROFILE_ALL_REVIEWS_LIMIT = 50;
+/** Reviews per page on a landlord's dedicated reviews page. */
+export const PROFILE_REVIEWS_PAGE_SIZE = 20;
+
+export type ProfileReviewSort = "recent" | "highest" | "lowest";
+
+export const PROFILE_REVIEW_SORT_LABELS: Record<ProfileReviewSort, string> = {
+  recent: "Most Recent",
+  highest: "Highest Rating",
+  lowest: "Lowest Rating",
+};
+
+/** URL value → supported sort, defaulting to newest first. */
+export function parseProfileReviewSort(value: string | null | undefined): ProfileReviewSort {
+  return value === "highest" || value === "lowest" ? value : "recent";
+}
+
+/** Total pages for a review count; always at least one so "Page 1 of 1" renders. */
+export function profileReviewPageCount(totalCount: number): number {
+  return Math.max(1, Math.ceil(Math.max(0, totalCount) / PROFILE_REVIEWS_PAGE_SIZE));
+}
+
+/** Keeps a requested page inside the real range (page 0, NaN and page 99 included). */
+export function clampProfileReviewPage(page: number, totalCount: number): number {
+  if (!Number.isFinite(page)) return 1;
+  return Math.min(Math.max(1, Math.trunc(page)), profileReviewPageCount(totalCount));
+}
 
 const PORTAL_ROUTE_PREFIX: Record<ProfileViewerPortal, string> = {
   public: "/browse",
@@ -23,6 +47,20 @@ const PORTAL_ROUTE_PREFIX: Record<ProfileViewerPortal, string> = {
 /** Where a landlord's profile lives for a viewer: signed-out/public browse or the tenant portal. */
 export function landlordProfileHref(portal: "public" | "tenant", landlordId: string): string {
   return `${PORTAL_ROUTE_PREFIX[portal]}/landlords/${encodeURIComponent(landlordId)}`;
+}
+
+/** The landlord's full reviews page inside the same portal shell. */
+export function landlordReviewsHref(
+  portal: "public" | "tenant",
+  landlordId: string,
+  { page = 1, sort = "recent" }: { page?: number; sort?: ProfileReviewSort } = {},
+): string {
+  const base = `${landlordProfileHref(portal, landlordId)}/reviews`;
+  const params = new URLSearchParams();
+  if (sort !== "recent") params.set("sort", sort);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 /** A tenant profile is only viewable from the landlord portal. */
@@ -169,14 +207,6 @@ export function toPastStay(row: PastStayRow): Omit<PublicProfilePastStay, "thumb
         }
       : null,
   };
-}
-
-/**
- * Whether "See all reviews" has more to load: some reviews exist beyond those shown, and the page
- * is still on the short list (once expanded it already holds as many as the page ever loads).
- */
-export function canExpandProfileReviews(shownCount: number, totalCount: number): boolean {
-  return shownCount < totalCount && shownCount <= PROFILE_REVIEW_LIMIT;
 }
 
 /** Apartment statuses that appear in a landlord's public listing grid. */

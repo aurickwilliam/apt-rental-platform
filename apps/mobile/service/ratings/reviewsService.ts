@@ -87,21 +87,73 @@ export function getReviewImageUrls(paths: string[] | null): string[] | undefined
   );
 }
 
-export async function fetchLandlordReviews(
+export type LandlordReviewSort = 'Most Recent' | 'Highest Rating' | 'Lowest Rating'
+
+/** Review cards on the public landlord profile; the full list lives on its own screen. */
+export const LANDLORD_REVIEW_PREVIEW_LIMIT = 3
+/** Reviews loaded per page on the full landlord reviews screen. */
+export const LANDLORD_REVIEWS_PAGE_SIZE = 20
+
+export type LandlordReviewPageOptions = {
+  offset: number
+  limit: number
+  sort?: LandlordReviewSort
+}
+
+type LandlordReviewContext = {
+  apartmentIds: string[]
+  apartmentNames: Map<string, string>
+}
+
+async function fetchLandlordReviewContext(
   landlordId: string
-): Promise<LandlordReviewsResult> {
+): Promise<LandlordReviewContext> {
   // reviews has no landlord_id column — resolve via the landlord's apartments.
-  const { data: owned, error: ownedError } = await supabase
+  const { data, error } = await supabase
     .from("apartments")
     .select("id, name")
     .eq("landlord_id", landlordId)
     .eq("is_hidden_by_admin", false);
-  if (ownedError) throw ownedError;
-  const apartmentIds = (owned ?? []).map((a) => a.id);
-  const apartmentNames = new Map((owned ?? []).map((a) => [a.id, a.name]));
+  if (error) throw error;
+
+  const apartments = data ?? [];
+  return {
+    apartmentIds: apartments.map((apartment) => apartment.id),
+    apartmentNames: new Map(
+      apartments.map((apartment) => [apartment.id, apartment.name])
+    ),
+  };
+}
+
+function toLandlordReview(
+  row: LandlordReviewRow,
+  apartmentNames: ReadonlyMap<string, string>
+): LandlordReview {
+  const firstName = row.users?.first_name ?? "";
+  const lastName = row.users?.last_name ?? "";
+
+  return {
+    id: row.id,
+    name: `${firstName} ${lastName}`.trim() || "Anonymous Tenant",
+    date: row.created_at,
+    rating: Number(row.rating),
+    review: row.comment ?? "",
+    profilePictureUrl: row.users?.avatar_url ?? undefined,
+    apartmentName:
+      (row.apartment_id && apartmentNames.get(row.apartment_id)) || undefined,
+    images: getReviewImageUrls(row.image_paths),
+  };
+}
+
+export async function fetchLandlordReviewsPage(
+  landlordId: string,
+  { offset, limit, sort = 'Most Recent' }: LandlordReviewPageOptions
+): Promise<LandlordReviewsResult> {
+  const { apartmentIds, apartmentNames } =
+    await fetchLandlordReviewContext(landlordId);
   if (apartmentIds.length === 0) return { reviews: [], totalCount: 0 };
 
-  const { data, error } = await supabase
+  let reviewsQuery = supabase
     .from("reviews")
     .select(
       `
@@ -118,37 +170,43 @@ export async function fetchLandlordReviews(
         )
       `
     )
-    .in("apartment_id", apartmentIds)
-    .order("created_at", { ascending: false })
-    .limit(3);
-
-  if (error) throw error;
-
-  const mapped: LandlordReview[] = ((data ?? []) as unknown as LandlordReviewRow[]).map(
-    (row) => {
-      const firstName = row.users?.first_name ?? "";
-      const lastName = row.users?.last_name ?? "";
-      const name = `${firstName} ${lastName}`.trim() || "Anonymous Tenant";
-
-      return {
-        id: row.id,
-        name,
-        date: row.created_at,
-        rating: Number(row.rating),
-        review: row.comment ?? "",
-        profilePictureUrl: row.users?.avatar_url ?? undefined,
-        apartmentName: (row.apartment_id && apartmentNames.get(row.apartment_id)) || undefined,
-        images: getReviewImageUrls(row.image_paths),
-      };
-    }
-  );
-
-  const { count } = await supabase
-    .from("reviews")
-    .select("id", { count: "exact", head: true })
     .in("apartment_id", apartmentIds);
 
-  return { reviews: mapped, totalCount: count ?? 0 };
+  if (sort === 'Highest Rating') {
+    reviewsQuery = reviewsQuery.order("rating", { ascending: false });
+  } else if (sort === 'Lowest Rating') {
+    reviewsQuery = reviewsQuery.order("rating", { ascending: true });
+  }
+
+  const [reviewsResult, countResult] = await Promise.all([
+    reviewsQuery
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + limit - 1),
+    supabase
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .in("apartment_id", apartmentIds),
+  ]);
+
+  if (reviewsResult.error) throw reviewsResult.error;
+  if (countResult.error) throw countResult.error;
+
+  const rows = (reviewsResult.data ?? []) as unknown as LandlordReviewRow[];
+
+  return {
+    reviews: rows.map((row) => toLandlordReview(row, apartmentNames)),
+    totalCount: countResult.count ?? 0,
+  };
+}
+
+export async function fetchLandlordReviews(
+  landlordId: string
+): Promise<LandlordReviewsResult> {
+  return fetchLandlordReviewsPage(landlordId, {
+    offset: 0,
+    limit: LANDLORD_REVIEW_PREVIEW_LIMIT,
+  });
 }
 
 export interface ReviewEligibility {

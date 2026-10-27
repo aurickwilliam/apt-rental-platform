@@ -7,12 +7,14 @@ import { apartmentReviewSelect } from "@/lib/apartment-review-query";
 import {
   PROFILE_LISTING_LIMIT,
   LISTED_APARTMENT_STATUSES,
-  PROFILE_ALL_REVIEWS_LIMIT,
   PROFILE_REVIEW_LIMIT,
+  PROFILE_REVIEWS_PAGE_SIZE,
+  clampProfileReviewPage,
   coveredCities,
   formatStayRange,
   profileDisplayName,
   profileLocation,
+  profileReviewPageCount,
   stayDurationMonths,
   toPastStay,
   summarizeListingVerification,
@@ -20,9 +22,12 @@ import {
   summarizeStayHistory,
   summarizeUnits,
   type PastStayRow,
+  type ProfileReviewSort,
+  type ReviewRatingSummary,
 } from "@/lib/public-profile";
 import type {
   LandlordProfileData,
+  LandlordReviewsPageData,
   PublicProfileIdentity,
   PublicProfileListing,
   PublicProfilePastStay,
@@ -142,15 +147,21 @@ function toReview(
   };
 }
 
+interface LandlordContext {
+  supabase: ServerClient;
+  landlord: UserRow;
+  isSignedIn: boolean;
+  apartments: ApartmentRow[];
+  apartmentIds: string[];
+  apartmentNames: Map<string, string>;
+}
+
 /**
- * Landlord profile for any viewer. Signed-out visitors get the display fields and
- * listings only; contact details are read (and shown) for signed-in viewers.
+ * Identity and listings shared by the profile and its reviews page. Signed-out
+ * visitors read only the display columns; contact details come with a session.
  * Returns null when the id is not a landlord, so the route can 404.
  */
-export async function loadLandlordProfile(
-  landlordId: string,
-  { allReviews = false }: { allReviews?: boolean } = {},
-): Promise<LandlordProfileData | null> {
+async function loadLandlordContext(landlordId: string): Promise<LandlordContext | null> {
   if (!UUID_PATTERN.test(landlordId)) return null;
 
   const supabase = await createClient();
@@ -182,33 +193,63 @@ export async function loadLandlordProfile(
     .limit(MAX_PROFILE_APARTMENTS);
   const apartments = (apartmentData ?? []) as unknown as ApartmentRow[];
 
-  const apartmentIds = apartments.map((apartment) => apartment.id);
-  const apartmentNames = new Map(apartments.map((apartment) => [apartment.id, apartment.name]));
-  let reviews: PublicProfileReview[] = [];
-  let ratingSummary = summarizeReviewRatings([]);
-  if (apartmentIds.length > 0) {
-    const [reviewResult, ratingResult] = await Promise.all([
-      supabase
-        .from("reviews")
-        .select(`${apartmentReviewSelect(isSignedIn)}, apartment_id`)
-        .in("apartment_id", apartmentIds)
-        .order("created_at", { ascending: false })
-        .limit(allReviews ? PROFILE_ALL_REVIEWS_LIMIT : PROFILE_REVIEW_LIMIT),
-      // Bounded: the headline mean and the 5→1 bars come from the same ratings,
-      // so they can never disagree with each other.
-      supabase
-        .from("reviews")
-        .select("rating")
-        .in("apartment_id", apartmentIds)
-        .limit(MAX_PROFILE_REVIEW_RATINGS),
-    ]);
-    reviews = ((reviewResult.data ?? []) as unknown as ReviewRow[]).map((row) =>
-      toReview(supabase, row, apartmentNames),
-    );
-    ratingSummary = summarizeReviewRatings(
-      ((ratingResult.data ?? []) as { rating: number }[]).map((row) => Number(row.rating)),
-    );
-  }
+  return {
+    supabase,
+    landlord,
+    isSignedIn,
+    apartments,
+    apartmentIds: apartments.map((apartment) => apartment.id),
+    apartmentNames: new Map(apartments.map((apartment) => [apartment.id, apartment.name])),
+  };
+}
+
+/** Headline mean and 5→1 bars from one bounded read, so they can never disagree. */
+async function loadRatingSummary(
+  supabase: ServerClient,
+  apartmentIds: string[],
+): Promise<ReviewRatingSummary> {
+  if (apartmentIds.length === 0) return summarizeReviewRatings([]);
+
+  const { data } = await supabase
+    .from("reviews")
+    .select("rating")
+    .in("apartment_id", apartmentIds)
+    .limit(MAX_PROFILE_REVIEW_RATINGS);
+
+  return summarizeReviewRatings(((data ?? []) as { rating: number }[]).map((row) => Number(row.rating)));
+}
+
+/** Newest reviews for the profile; the full, sortable list lives on its own page. */
+async function loadProfileReviews(
+  context: LandlordContext,
+): Promise<PublicProfileReview[]> {
+  const { supabase, isSignedIn, apartmentIds, apartmentNames } = context;
+  if (apartmentIds.length === 0) return [];
+
+  const { data } = await supabase
+    .from("reviews")
+    .select(`${apartmentReviewSelect(isSignedIn)}, apartment_id`)
+    .in("apartment_id", apartmentIds)
+    .order("created_at", { ascending: false })
+    .limit(PROFILE_REVIEW_LIMIT);
+
+  return ((data ?? []) as unknown as ReviewRow[]).map((row) => toReview(supabase, row, apartmentNames));
+}
+
+/**
+ * Landlord profile for any viewer. Signed-out visitors get the display fields and
+ * listings only; contact details are read (and shown) for signed-in viewers.
+ * Returns null when the id is not a landlord, so the route can 404.
+ */
+export async function loadLandlordProfile(landlordId: string): Promise<LandlordProfileData | null> {
+  const context = await loadLandlordContext(landlordId);
+  if (!context) return null;
+
+  const { supabase, landlord, isSignedIn, apartments } = context;
+  const [reviews, ratingSummary] = await Promise.all([
+    loadProfileReviews(context),
+    loadRatingSummary(supabase, context.apartmentIds),
+  ]);
 
   const listedApartments = apartments.filter((apartment) =>
     LISTED_APARTMENT_STATUSES.includes(apartment.status),
@@ -231,6 +272,72 @@ export async function loadLandlordProfile(
     listedTotal: verification.total,
     listings: listedApartments.slice(0, PROFILE_LISTING_LIMIT).map(toListing),
     reviews,
+  };
+}
+
+/**
+ * One page of a landlord's reviews for any viewer, sorted in the database so the
+ * page count matches the rows actually shown. The page is clamped against the
+ * exact review count, so `?page=99` lands on the last page instead of an empty one.
+ */
+export async function loadLandlordReviewsPage(
+  landlordId: string,
+  { page = 1, sort = "recent" }: { page?: number; sort?: ProfileReviewSort } = {},
+): Promise<LandlordReviewsPageData | null> {
+  const context = await loadLandlordContext(landlordId);
+  if (!context) return null;
+
+  const { supabase, landlord, isSignedIn, apartmentIds, apartmentNames } = context;
+
+  let totalCount = 0;
+  let ratingSummary: ReviewRatingSummary = summarizeReviewRatings([]);
+  if (apartmentIds.length > 0) {
+    const [countResult, summary] = await Promise.all([
+      supabase
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .in("apartment_id", apartmentIds),
+      loadRatingSummary(supabase, apartmentIds),
+    ]);
+    totalCount = countResult.count ?? 0;
+    ratingSummary = summary;
+  }
+
+  const pageCount = profileReviewPageCount(totalCount);
+  const currentPage = clampProfileReviewPage(page, totalCount);
+
+  let reviews: PublicProfileReview[] = [];
+  if (totalCount > 0) {
+    const offset = (currentPage - 1) * PROFILE_REVIEWS_PAGE_SIZE;
+    let query = supabase
+      .from("reviews")
+      .select(`${apartmentReviewSelect(isSignedIn)}, apartment_id`)
+      .in("apartment_id", apartmentIds);
+
+    // Ties keep newest first, so paging never repeats or skips a row.
+    if (sort === "highest") query = query.order("rating", { ascending: false });
+    if (sort === "lowest") query = query.order("rating", { ascending: true });
+
+    const { data } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + PROFILE_REVIEWS_PAGE_SIZE - 1);
+
+    reviews = ((data ?? []) as unknown as ReviewRow[]).map((row) =>
+      toReview(supabase, row, apartmentNames),
+    );
+  }
+
+  return {
+    identity: toIdentity(landlord, "Landlord"),
+    averageRating: ratingSummary.average,
+    reviewCount: ratingSummary.count,
+    ratingDistribution: ratingSummary.distribution,
+    reviews,
+    totalCount,
+    page: currentPage,
+    pageCount,
+    sort,
   };
 }
 
