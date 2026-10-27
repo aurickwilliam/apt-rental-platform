@@ -40,7 +40,7 @@ import {
   validatePHMobile,
   type Province,
 } from "@repo/constants";
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import { updateProfile } from "@/app/(auth)/actions/update-profile";
 import {
   compressAvatarImage,

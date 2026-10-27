@@ -1,7 +1,7 @@
 import Image from "next/image";
 import AuthWrapper from "../components/AuthWrapper";
 import { createClient } from "@repo/supabase/server";
-import { isPendingOnboarding } from "@repo/supabase";
+import { isPendingOnboarding } from "@repo/supabase/pending-onboarding";
 
 interface SignUpPageProps {
   searchParams: Promise<{ role?: string; from?: string; error?: string }>;
@@ -82,7 +82,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
             src="/logo/logo-name.svg"
             alt="APT Logo"
             width={150}
-            height={100}
+            height={69}
           />
         </div>
       </aside>

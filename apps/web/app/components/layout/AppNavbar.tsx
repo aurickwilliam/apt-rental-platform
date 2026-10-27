@@ -107,7 +107,7 @@ export default function AppNavbar() {
                 src="/logo/logo-name-transparent.svg"
                 alt="APT Logo"
                 width={100}
-                height={40}
+                height={46}
                 className="max-w-[45vw] object-contain sm:max-w-none"
               />
             </Link>

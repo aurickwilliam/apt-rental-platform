@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   },
   images: {
     minimumCacheTTL: IMAGE_CACHE_SECONDS,
+    // IPv6-only networks (DNS64/NAT64) resolve hosts to 64:ff9b:: addresses, which the
+    // optimizer rejects as private. Development only; production keeps the SSRF guard.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "picsum.photos" },

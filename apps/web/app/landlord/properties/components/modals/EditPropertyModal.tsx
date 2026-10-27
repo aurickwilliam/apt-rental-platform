@@ -17,7 +17,7 @@ import {
   Separator,
 } from "@heroui/react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import {
   ADVANCE_RENT_MONTH_OPTIONS,
   MIN_MONTHLY_RENT,

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, toast } from "@heroui/react";
 import { IconClock } from "@tabler/icons-react";
 import { SECONDARY_IDS, VALID_IDS } from "@repo/constants";
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import {
   VERIFICATION_UPLOAD_ACCEPT,

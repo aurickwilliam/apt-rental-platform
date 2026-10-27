@@ -16,7 +16,8 @@ const nodes = node => !node || typeof node !== "object" ? [] : [node, ...[node.p
 // The public getImageProps export relies on Next's build-time config injection.
 // Next 16.4 prepares config before getImgProps; 16.3 prepares it inside that call.
 // Mirror the installed version's setup while exercising the app's real config.
-const imageOptions = { ...imageConfigModule.imageConfigDefault, ...compile("next.config.ts", {}).default.images };
+const loadImageConfig = NODE_ENV => compile("next.config.ts", {}, { process: { env: { NODE_ENV } } }).default.images;
+const imageOptions = { ...imageConfigModule.imageConfigDefault, ...loadImageConfig("production") };
 const imageConfig = imageConfigModule.prepareImageConfig ? imageConfigModule.prepareImageConfig(imageOptions) : imageOptions;
 const getImageProps = props => getImgProps(props, { imgConf: imageConfig, defaultLoader: imageLoaderModule.default ?? imageLoaderModule });
 
@@ -24,6 +25,11 @@ test("resized images stay cached for a month so Supabase originals are not re-pu
   const thirtyDays = 60 * 60 * 24 * 30;
   assert.equal(imageOptions.minimumCacheTTL, thirtyDays);
   assert.ok(imageOptions.minimumCacheTTL > imageConfigModule.imageConfigDefault.minimumCacheTTL);
+});
+
+test("the image optimizer only accepts NAT64/local addresses in development, never in production", () => {
+  assert.equal(loadImageConfig("development").dangerouslyAllowLocalIP, true);
+  assert.notEqual(loadImageConfig("production").dangerouslyAllowLocalIP, true);
 });
 
 test("only known public apartment rasters opt into optimization, never signed or other private buckets", () => {
@@ -138,7 +144,7 @@ test("property editor chunk loads only after selection; exact resource key, draf
     react: runtime.react, "react/jsx-runtime": jsxRuntime, "next/navigation": { useRouter: () => ({ push() {}, prefetch() {} }) },
     "next/dynamic": { default: lazy.dynamic }, "./PropertiesTable": { default: "PropertiesTable" },
     "@/app/components/display/RouteLoadingStatus": { default: "RouteLoadingStatus" },
-    "@repo/supabase": { createBrowserClient: () => { clients++; return {}; } },
+    "@repo/supabase/browser": { createClient: () => { clients++; return {}; } },
     "./modals/DeletePropertyModal": { default: "DeletePropertyModal" },
   };
   Object.defineProperty(modules, "./PropertyDetailsSheet", { enumerable: true, get: () => { imports++; return { default: "PropertyDetailsSheet" }; } });

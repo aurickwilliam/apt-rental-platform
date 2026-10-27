@@ -15,7 +15,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
