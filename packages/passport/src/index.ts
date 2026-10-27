@@ -24,3 +24,4 @@ export {
   type PassportSlotState,
 } from './selection'
 export { verifiedPassportPaths, type VerifiedPassportPathRow } from './verifiedPaths'
+export { getVerifiedPassportSlots, type VerifiedPassportSlot } from './verifiedSummary'

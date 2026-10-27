@@ -19,6 +19,7 @@ import ApplicationsSkeleton, { ApplicationsCountSkeleton, ApplicationsResultsSke
 import PresentationBoundary from "@/app/components/display/PresentationBoundary";
 import type { PresentationSeed } from "@/service/presentation-seed";
 import type { LandlordApplication } from "@/service/landlordApplicationsService";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 export type { DisplayStatus };
 
@@ -138,7 +139,7 @@ function ApplicationsContent({ initial }: { initial?: PresentationSeed<LandlordA
                           <Table.Cell>
                             <div className="flex items-center gap-3">
                               <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
-                                <Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill unoptimized className="object-cover" />
+                                <Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill sizes="48px" unoptimized={!canOptimizePublicApartmentImage(app.apartment_thumbnail_url ?? "")} className="object-cover" />
                               </div>
                               <div className="min-w-0">
                                 <p className="max-w-48 truncate text-sm font-semibold text-card-foreground" title={app.apartment_name}>{app.apartment_name}</p>
@@ -196,7 +197,7 @@ function ApplicationsContent({ initial }: { initial?: PresentationSeed<LandlordA
                     <StatusChip size="sm" tone={statusChipColor(app.status)} className="shrink-0"><span className="inline-flex items-center gap-1.5"><StatusIcon status={app.status} />{applicationStatusLabel(app.status)}</span></StatusChip>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill unoptimized className="object-cover" /></div>
+                    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill sizes="48px" unoptimized={!canOptimizePublicApartmentImage(app.apartment_thumbnail_url ?? "")} className="object-cover" /></div>
                     <div className="min-w-0"><p className="truncate text-sm font-semibold text-card-foreground">{app.apartment_name}</p><p className="text-xs text-muted-foreground">{formatPesoDisplay(app.monthly_rent)}/month · {app.apartment_city}</p></div>
                   </div>
                   <p className="flex items-center gap-2 text-xs text-muted-foreground"><Calendar size={14} aria-hidden="true" />Submitted {formatDate(app.created_at, "medium")}</p>

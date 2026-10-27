@@ -21,6 +21,7 @@ import MaintenanceSkeleton, { MaintenanceCountSkeleton, MaintenanceResultsSkelet
 import PresentationBoundary from "@/app/components/display/PresentationBoundary";
 import type { PresentationSeed } from "@/service/presentation-seed";
 import type { LandlordMaintenanceRequest } from "@/service/landlordMaintenanceService";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 function MaintenanceStatusIcon({ status }: { status: LandlordMaintenanceStatus }) {
   const Icon = status === "Resolved" ? IconCircleCheck : status === "Cancelled" ? IconX : IconClock;
@@ -133,7 +134,7 @@ function MaintenanceContent({ initial }: { initial?: PresentationSeed<LandlordMa
                             </Table.Cell>
                             <Table.Cell>
                               <div className="flex items-center gap-3">
-                                <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={request.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill unoptimized className="object-cover" /></div>
+                                <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={request.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill sizes="48px" unoptimized={!canOptimizePublicApartmentImage(request.apartment_thumbnail_url ?? "")} className="object-cover" /></div>
                                 <div className="min-w-0">
                                   <p className="max-w-44 truncate text-sm font-semibold text-card-foreground" title={request.apartment_name}>{request.apartment_name}</p>
                                   <p className="mt-1 text-xs text-muted-foreground">{request.apartment_monthly_rent != null ? `${formatPesoDisplay(request.apartment_monthly_rent)}/month` : "Rent unavailable"}</p>
@@ -171,7 +172,7 @@ function MaintenanceContent({ initial }: { initial?: PresentationSeed<LandlordMa
                 return (
                   <Button variant="ghost" key={request.id} onClick={() => openDetail(request.id)} onMouseEnter={() => warmDetail(request.id)} onFocus={() => warmDetail(request.id)} className="button--bare flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left focus-visible:outline-2 focus-visible:outline-primary">
                     <div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Hammer size={20} aria-hidden="true" /></span><div className="min-w-0"><p className="truncate font-nunito font-semibold text-card-foreground">{request.issue_title}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{request.description || "No description provided"}</p></div></div><StatusChip size="sm" tone={maintenanceStatusChipColor(request.status)} className="shrink-0">{request.status}</StatusChip></div>
-                    <div className="flex items-center gap-3"><div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={request.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill unoptimized className="object-cover" /></div><div className="min-w-0"><p className="truncate text-sm font-semibold text-card-foreground">{request.apartment_name}</p><p className="text-xs text-muted-foreground">{request.apartment_city}{request.apartment_monthly_rent != null ? ` · ${formatPesoDisplay(request.apartment_monthly_rent)}/month` : ""}</p></div></div>
+                    <div className="flex items-center gap-3"><div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted"><Image src={request.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt="" fill sizes="48px" unoptimized={!canOptimizePublicApartmentImage(request.apartment_thumbnail_url ?? "")} className="object-cover" /></div><div className="min-w-0"><p className="truncate text-sm font-semibold text-card-foreground">{request.apartment_name}</p><p className="text-xs text-muted-foreground">{request.apartment_city}{request.apartment_monthly_rent != null ? ` · ${formatPesoDisplay(request.apartment_monthly_rent)}/month` : ""}</p></div></div>
                     <div className="flex min-w-0 items-center gap-2"><UserAvatar src={request.tenant_avatar_url} initials={getInitials(request.tenant_name)} alt={request.tenant_name} size="sm" /><p className="truncate text-xs text-muted-foreground">{request.tenant_name}</p></div>
                     <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">Reported {formatDate(request.reported_at, "medium")}</span><StatusChip size="sm" tone={urgency.tone}>{urgency.label}</StatusChip></div>
                   </Button>

@@ -64,6 +64,8 @@ function harness(options = {}) {
       }) },
       "@/hooks/use-passport-verified-paths": { usePassportVerifiedPaths: () => new Set(options.verifiedPaths ?? []) },
       "@/lib/application-documents": { buildApplicationDocumentList },
+      "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
+      "@/lib/public-profile": { tenantProfileHref: id => `/landlord/tenants/${id}` },
       "../lib/application-status": { statusChipColor: () => "neutral" },
       "../lib/application-list": { applicationStatusLabel: status => status === "Applied" ? "Pending" : status },
       "./components/ApplicationDetailSection": { default: loadSection },

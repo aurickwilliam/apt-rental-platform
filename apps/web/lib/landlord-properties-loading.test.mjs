@@ -20,6 +20,7 @@ function load(file, extra = {}) {
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
     "@/service/signOutService": { signOut: () => {} },
     "./SidebarLinkPending": { default: () => null },
