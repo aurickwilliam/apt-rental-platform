@@ -3,6 +3,8 @@
  * (mobile parity: `app/profile/landlord/[landlordId]`, `app/profile/tenant/[tenantId]`).
  */
 
+import type { PublicProfilePastStay } from "@/app/components/profile/public/types";
+
 export type ProfileViewerPortal = "public" | "tenant" | "landlord";
 
 /** Most listings one profile read returns; the page shows eight until expanded. */
@@ -130,6 +132,41 @@ export function formatStayRange(leaseStart: string | null, leaseEnd: string | nu
   if (!start) return "Dates not available";
   const end = leaseEnd ? format(leaseEnd) : null;
   return `${start} - ${end ?? "Present"}`;
+}
+
+/** A tenancy row as the tenant profile reads it, with its apartment and that apartment's landlord. */
+export interface PastStayRow {
+  id: string;
+  lease_start: string | null;
+  lease_end: string | null;
+  apartments: {
+    id: string;
+    name: string;
+    barangay: string | null;
+    city: string | null;
+    is_hidden_by_admin: boolean | null;
+    landlord: { id: string; first_name: string | null; last_name: string | null } | null;
+  } | null;
+}
+
+/** Everything a past-stay card shows, minus the photo (which needs the image rows). */
+export function toPastStay(row: PastStayRow): Omit<PublicProfilePastStay, "thumbnailUrl"> {
+  const apartment = row.apartments;
+  const months = stayDurationMonths(row.lease_start, row.lease_end);
+  return {
+    id: row.id,
+    apartmentName: apartment?.name ?? "Apartment",
+    apartmentId: apartment && !apartment.is_hidden_by_admin ? apartment.id : null,
+    location: [apartment?.barangay, apartment?.city].filter(Boolean).join(", "),
+    stayPeriod: formatStayRange(row.lease_start, row.lease_end),
+    durationLabel: months === null ? null : formatDurationMonths(months),
+    landlord: apartment?.landlord
+      ? {
+          id: apartment.landlord.id,
+          name: profileDisplayName(apartment.landlord.first_name, apartment.landlord.last_name, "Landlord"),
+        }
+      : null,
+  };
 }
 
 /** Apartment statuses that appear in a landlord's public listing grid. */

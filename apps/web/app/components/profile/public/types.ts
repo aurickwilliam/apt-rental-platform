@@ -62,8 +62,13 @@ export interface LandlordProfileData {
 export interface PublicProfilePastStay {
   id: string;
   apartmentName: string;
+  /** Null when the listing is hidden or gone, so the name renders as plain text. */
+  apartmentId: string | null;
   location: string;
   stayPeriod: string;
+  /** "6 months"; null when the lease dates cannot give a length. */
+  durationLabel: string | null;
+  landlord: { id: string; name: string } | null;
   thumbnailUrl: string;
 }
 

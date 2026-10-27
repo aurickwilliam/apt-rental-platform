@@ -15,6 +15,7 @@ import {
   summarizeStayHistory,
   summarizeUnits,
   tenantProfileHref,
+  toPastStay,
 } from "./public-profile.ts";
 
 test("profile links follow the viewer's portal and encode the id", () => {
@@ -92,4 +93,51 @@ test("duration labels and history summary read naturally", () => {
   assert.equal(formatDurationMonths(27), "2 years 3 months");
   assert.deepEqual(summarizeStayHistory([6, null, 18]), { completedStays: 3, longestStayMonths: 18 });
   assert.deepEqual(summarizeStayHistory([]), { completedStays: 0, longestStayMonths: null });
+});
+
+test("a past stay carries its landlord, a duration, and links only to a visible listing", () => {
+  const row = {
+    id: "t1",
+    lease_start: "2025-09-01T00:00:00+08:00",
+    lease_end: "2026-03-01T00:00:00+08:00",
+    apartments: {
+      id: "a1",
+      name: "Punturin Family 3BR",
+      barangay: "Punturin",
+      city: "Valenzuela",
+      is_hidden_by_admin: false,
+      landlord: { id: "l1", first_name: "Maria", last_name: "Santos" },
+    },
+  };
+  const stay = toPastStay(row);
+  assert.equal(stay.apartmentId, "a1");
+  assert.equal(stay.location, "Punturin, Valenzuela");
+  assert.equal(stay.durationLabel, "6 months");
+  assert.deepEqual(stay.landlord, { id: "l1", name: "Maria Santos" });
+
+  const hidden = toPastStay({ ...row, apartments: { ...row.apartments, is_hidden_by_admin: true } });
+  assert.equal(hidden.apartmentId, null, "hidden listings render as plain text");
+  assert.equal(hidden.landlord?.id, "l1");
+});
+
+test("a past stay degrades when the apartment, landlord or dates are missing", () => {
+  const gone = toPastStay({ id: "t2", lease_start: null, lease_end: null, apartments: null });
+  assert.equal(gone.apartmentName, "Apartment");
+  assert.equal(gone.apartmentId, null);
+  assert.equal(gone.landlord, null);
+  assert.equal(gone.durationLabel, null);
+  assert.equal(gone.stayPeriod, "Dates not available");
+
+  const unnamed = toPastStay({
+    id: "t3",
+    lease_start: "2025-01-01T00:00:00+08:00",
+    lease_end: null,
+    apartments: {
+      id: "a3", name: "Unit", barangay: null, city: null, is_hidden_by_admin: null,
+      landlord: { id: "l3", first_name: null, last_name: null },
+    },
+  });
+  assert.equal(unnamed.landlord?.name, "Landlord");
+  assert.equal(unnamed.durationLabel, null, "an open lease has no length yet");
+  assert.equal(unnamed.apartmentId, "a3");
 });

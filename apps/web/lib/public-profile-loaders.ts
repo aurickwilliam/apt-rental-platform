@@ -13,10 +13,12 @@ import {
   profileDisplayName,
   profileLocation,
   stayDurationMonths,
+  toPastStay,
   summarizeListingVerification,
   summarizeReviewRatings,
   summarizeStayHistory,
   summarizeUnits,
+  type PastStayRow,
 } from "@/lib/public-profile";
 import type {
   LandlordProfileData,
@@ -271,7 +273,7 @@ export async function loadTenantProfile(
     supabase
       .from("tenancies")
       .select(
-        "id, lease_start, lease_end, apartments!tenancies_apartment_id_fkey(name, barangay, city, apartment_images(url, url_thumb, is_cover))",
+        "id, lease_start, lease_end, apartments!tenancies_apartment_id_fkey(id, name, barangay, city, is_hidden_by_admin, apartment_images(url, url_thumb, is_cover), landlord:users!apartments_landlord_id_fkey1(id, first_name, last_name))",
       )
       .eq("tenant_id", tenantId)
       .eq("status", "ended")
@@ -285,25 +287,12 @@ export async function loadTenantProfile(
       .eq("user_id", tenantId),
   ]);
 
-  const stayRows = (
-    (stayResult.data ?? []) as unknown as {
-      id: string;
-      lease_start: string | null;
-      lease_end: string | null;
-      apartments: {
-        name: string;
-        barangay: string | null;
-        city: string | null;
-        apartment_images: ImageRow[] | null;
-      } | null;
-    }[]
-  );
+  const stayRows = (stayResult.data ?? []) as unknown as (PastStayRow & {
+    apartments: { apartment_images: ImageRow[] | null } | null;
+  })[];
 
   const pastStays = stayRows.map<PublicProfilePastStay>((row) => ({
-    id: row.id,
-    apartmentName: row.apartments?.name ?? "Apartment",
-    location: [row.apartments?.barangay, row.apartments?.city].filter(Boolean).join(", "),
-    stayPeriod: formatStayRange(row.lease_start, row.lease_end),
+    ...toPastStay(row),
     thumbnailUrl: thumbnailOf(row.apartments?.apartment_images ?? null),
   }));
 

@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { IconCalendarMonth, IconHomeSearch, IconKey, IconShieldCheckFilled, IconStar } from "@tabler/icons-react";
 
 import BackBtn from "@/app/browse/[apartmentId]/components/BackBtn";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
-import { formatDurationMonths, memberSinceYear } from "@/lib/public-profile";
+import { apartmentHref, formatDurationMonths, landlordProfileHref, memberSinceYear } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileEmptyState from "./PublicProfileEmptyState";
@@ -31,6 +32,16 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
         header={<PublicProfileHeader identity={identity} role="tenant" />}
         aside={
           <>
+            <PublicProfileTagsCard
+              title="Verified on APT Passport"
+              tone="success"
+              items={data.verifiedDocuments.map((doc) => ({
+                key: doc.slot,
+                label: doc.label,
+                icon: <IconShieldCheckFilled size={14} aria-hidden="true" />,
+              }))}
+              emptyText="No verified documents to show. Documents are visible to you only while this tenant has an open application with you."
+            />
             <PublicProfileStats
               stats={[
                 {
@@ -54,17 +65,7 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                 },
               ]}
             />
-            <PublicProfileTagsCard
-              title="Verified on APT Passport"
-              tone="success"
-              items={data.verifiedDocuments.map((doc) => ({
-                key: doc.slot,
-                label: doc.label,
-                icon: <IconShieldCheckFilled size={14} aria-hidden="true" />,
-              }))}
-              emptyText="No verified documents to show. Documents are visible to you only while this tenant has an open application with you."
-            />
-            <PublicProfileContactCard contact={contact} />
+            <PublicProfileContactCard contact={contact} displayName={firstName} />
           </>
         }
       >
@@ -88,9 +89,32 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                   className="size-24 shrink-0 rounded-xl object-cover"
                 />
                 <div className="min-w-0">
-                  <p className="truncate font-nunito text-base font-semibold">{stay.apartmentName}</p>
+                  {stay.apartmentId ? (
+                    <Link
+                      href={apartmentHref("public", stay.apartmentId)}
+                      className="block cursor-pointer truncate font-nunito text-base font-semibold hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      {stay.apartmentName}
+                    </Link>
+                  ) : (
+                    <p className="truncate font-nunito text-base font-semibold">{stay.apartmentName}</p>
+                  )}
                   {stay.location ? <p className="truncate text-xs text-muted-foreground">{stay.location}</p> : null}
-                  <p className="mt-2 text-sm text-muted-foreground">{stay.stayPeriod}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {stay.stayPeriod}
+                    {stay.durationLabel ? ` · ${stay.durationLabel}` : ""}
+                  </p>
+                  {stay.landlord ? (
+                    <p className="truncate text-xs text-muted-foreground">
+                      Landlord:{" "}
+                      <Link
+                        href={landlordProfileHref("public", stay.landlord.id)}
+                        className="cursor-pointer font-semibold text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        {stay.landlord.name}
+                      </Link>
+                    </p>
+                  ) : null}
                 </div>
               </li>
             ))}
