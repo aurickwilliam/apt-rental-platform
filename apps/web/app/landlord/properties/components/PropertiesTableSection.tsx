@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import PropertiesTable from "./PropertiesTable";
 import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 import type { Property } from "./propertyTypes";
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 
 const PropertyDetailsSheet = dynamic(() => import("./PropertyDetailsSheet"), {

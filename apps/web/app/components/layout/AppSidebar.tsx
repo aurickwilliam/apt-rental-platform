@@ -423,7 +423,7 @@ export function AppSidebar({
               src="/logo/logo-name-transparent.svg"
               alt="APT Logo"
               width={118}
-              height={42}
+              height={55}
               className="object-contain"
               priority
             />
@@ -896,7 +896,7 @@ function MobileSidebarMenu({
           <Image
             src="/logo/logo-name-transparent.svg"
             alt="APT Logo"
-            width={90}
+            width={69}
             height={32}
             className="h-8 w-auto object-contain"
             priority
@@ -920,8 +920,8 @@ function MobileSidebarMenu({
                   <Image
                     src="/logo/logo-name-transparent.svg"
                     alt="APT Logo"
-                    width={104}
-                    height={37}
+                    width={78}
+                    height={36}
                     className="h-9 w-auto object-contain"
                   />
                 </Link>

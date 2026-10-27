@@ -50,7 +50,7 @@ test("local draft leases never initialize Supabase or an external document viewe
   const cleanups = [];
   const Lease = load("LeaseAgreementCard", {
     react: { useState: initial => [initial, () => {}], useRef: () => ({ current: null }), useEffect: fn => cleanups.push(fn()) },
-    "@repo/supabase": { createBrowserClient: () => assert.fail("draft lease made a backend call") },
+    "@repo/supabase/browser": { createClient: () => assert.fail("draft lease made a backend call") },
   }, {
     URL: { createObjectURL: () => "blob:local-lease", revokeObjectURL: url => revoked.push(url) },
     window: { open: url => opened.push(url) },
