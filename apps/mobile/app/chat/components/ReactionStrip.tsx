@@ -2,7 +2,7 @@ import { Text, type LayoutChangeEvent } from 'react-native';
 
 import { Button, Surface } from 'heroui-native';
 
-import { QUICK_REACTIONS } from './reactionEmojis';
+import { QUICK_REACTIONS } from '@/utils/chat/reactionEmojis';
 
 interface ReactionStripProps {
   myReaction?: string;

@@ -35,8 +35,8 @@ import {
 } from "@/hooks/passport";
 
 import DocumentPreview from "./components/DocumentPreview";
-import { isPreviewable } from "./utils/fileType";
-import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { isPreviewable } from "@/utils/documents/fileType";
+import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 import { getDocumentTypeDescription, isExpiredDate } from "@repo/passport";
 
 function DetailRow({

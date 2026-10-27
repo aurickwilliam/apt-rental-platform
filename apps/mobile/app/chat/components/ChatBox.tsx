@@ -26,7 +26,7 @@ import {
   insertAtSelection,
   useEmojiPickerSettings,
   type TextSelection,
-} from './emojiPicker';
+} from '@/utils/chat/emojiPicker';
 
 /** A locally-picked attachment sitting in the review strip, not yet sent. */
 export type StagedAsset = PickedChatAsset & { id: string; messageType: MessageType };

@@ -56,7 +56,8 @@
   --color-danger-mid: #FF4B4B;
   --color-danger-light: #FDA4AF;
 
-  /* Decorative finance category surfaces (dark values in the variant below). */
+  /* Decorative finance category surfaces. Declared in both theme variants below
+     because Uniwind requires every theme to expose the same variable set. */
   --color-finance-maintenance: #EDF3FF;
   --color-finance-furniture: #F3EEFF;
   --color-finance-turnover: #FFF0E6;
@@ -141,6 +142,21 @@
     --color-warning-light: #FFF8E1;
     --color-success-text: #166534;
     --color-warning-text: #92400E;
+
+    /* Decorative finance category surfaces — same values as the base @theme.
+       Declared in both themes because Uniwind requires every theme to expose
+       the same variable set (dark overrides live in the dark variant). */
+    --color-finance-maintenance: #EDF3FF;
+    --color-finance-furniture: #F3EEFF;
+    --color-finance-turnover: #FFF0E6;
+    --color-finance-insurance: #E8F5F3;
+    --color-finance-taxes: #F7F1E5;
+    --color-finance-utilities: #EAF6FC;
+    --color-finance-fees: #F6EDF5;
+    --color-finance-emergency: #EAF5EC;
+    --color-finance-vacancy: #FFF5DF;
+    --color-finance-other: #F0F2F5;
+    --color-finance-over-budget-text: #C4111E;
 
     /* Fields */
     --field-background: var(--white);

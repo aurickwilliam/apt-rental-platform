@@ -7,7 +7,7 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 
-import { TIMESTAMP_REVEAL_WIDTH, useTimestampReveal } from './timestampReveal';
+import { TIMESTAMP_REVEAL_WIDTH, useTimestampReveal } from '@/utils/chat/timestampReveal';
 
 interface TimestampRevealRowProps {
   isSent: boolean;

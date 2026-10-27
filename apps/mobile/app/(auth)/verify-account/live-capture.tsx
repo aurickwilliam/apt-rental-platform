@@ -11,11 +11,11 @@ import { IconChevronLeft } from '@tabler/icons-react-native'
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import GuidedFrameOverlay, { computeGuidedFrameRect } from '@/components/display/GuidedFrameOverlay'
 import { useCameraPermission } from '@/hooks/verification'
-import { cropPhotoToFrame, mapGuidedRectToImageCrop } from './utils/cropToFrame'
+import { cropPhotoToFrame, mapGuidedRectToImageCrop } from '@/utils/verification/cropToFrame'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence, getNextCaptureStep, SELFIE_STEP } from './constants/captureSequences'
+import { getCaptureSequence, getNextCaptureStep, SELFIE_STEP } from '@/constants/verification/captureSequences'
 
 type ScreenState = 'preview' | 'reviewing'
 

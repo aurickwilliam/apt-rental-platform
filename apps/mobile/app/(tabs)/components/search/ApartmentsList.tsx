@@ -20,7 +20,7 @@ import { useColors } from 'hooks/useTheme';
 import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_BOTTOM_OFFSET
-} from '@/app/(tabs)/components/CustomTabBar';
+} from '@/components/layout/CustomTabBar';
 
 type ApartmentsListProps = {
   apartments: ApartmentCardProps[];

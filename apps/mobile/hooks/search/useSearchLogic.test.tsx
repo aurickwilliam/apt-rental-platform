@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import useSearchLogic from "./useSearchLogic";
+import { useSearchLogic } from "./useSearchLogic";
 
 const mockFrom = jest.fn();
 const mockGetUser = jest.fn();

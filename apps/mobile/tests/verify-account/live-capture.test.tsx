@@ -3,9 +3,9 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import LiveCapture from '@/app/(auth)/verify-account/live-capture';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 import { useCameraPermission } from '@/hooks/verification';
-import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO, SELFIE_STEP } from '@/app/(auth)/verify-account/constants/captureSequences';
+import { CARD_ASPECT_RATIO, PASSPORT_ASPECT_RATIO, SELFIE_STEP } from '@/constants/verification/captureSequences';
 import { computeGuidedFrameRect } from '@/components/display/GuidedFrameOverlay';
-import { mapGuidedRectToImageCrop } from '@/app/(auth)/verify-account/utils/cropToFrame';
+import { mapGuidedRectToImageCrop } from '@/utils/verification/cropToFrame';
 
 jest.mock('@/hooks/useTheme', () => ({
   useColors: () => ({
