@@ -14,7 +14,7 @@ import { IconArrowBackUp } from '@tabler/icons-react-native';
 
 import { useColors } from '@/hooks/useTheme';
 
-import { useTimestampReveal } from './timestampReveal';
+import { useTimestampReveal } from '@/utils/chat/timestampReveal';
 
 /** Distance the bubble must travel before letting go starts a reply. */
 const REPLY_THRESHOLD = 56;

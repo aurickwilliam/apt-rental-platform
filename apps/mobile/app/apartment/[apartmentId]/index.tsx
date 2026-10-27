@@ -20,19 +20,18 @@ import {
   IconShare2,
 } from "@tabler/icons-react-native";
 
-import {
-  ApartmentHeroSection,
-  ApartmentDescriptionSection,
-  PerksSection,
-  MapPreviewSection,
-  RatingsSection,
-  LandlordSection,
-  LeaseAgreementSection,
-  MoveInCostFooter,
-  ApartmentSkeleton,
-  ApartmentDetailsSection,
+import ApartmentHeroSection, {
   APARTMENT_HERO_HEIGHT,
-} from "./components";
+} from "./components/sections/ApartmentHeroSection";
+import ApartmentDescriptionSection from "./components/sections/ApartmentDescriptionSection";
+import PerksSection from "./components/sections/PerksSection";
+import MapPreviewSection from "./components/sections/MapPreviewSection";
+import RatingsSection from "./components/sections/RatingsSection";
+import LandlordSection from "./components/sections/LandlordSection";
+import LeaseAgreementSection from "./components/sections/LeaseAgreementSection";
+import MoveInCostFooter from "./components/sections/MoveInCostFooterSection";
+import ApartmentSkeleton from "./components/ApartmentSkeleton";
+import ApartmentDetailsSection from "./components/sections/ApartmentDetailsSection";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";

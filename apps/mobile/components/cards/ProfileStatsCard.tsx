@@ -12,6 +12,7 @@ export type ProfileStat = {
   iconSize?: number
   icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
   iconColor?: string
+  /** Defaults to the brand blue, like the stat values on the web profile card. */
   valueColor?: string
   valueClassName?: string
 }
@@ -49,7 +50,7 @@ export default function ProfileStatsCard({ stats }: ProfileStatsCardProps) {
                 </>
               ) : (
                 <>
-                  <Text className={`text-2xl font-nunitoBold ${stat.valueColor ?? 'text-foreground'} ${stat.valueClassName ?? ''}`}>
+                  <Text className={`text-2xl font-nunitoBold ${stat.valueColor ?? 'text-primary'} ${stat.valueClassName ?? ''}`}>
                     {stat.value}
                   </Text>
 
@@ -57,7 +58,7 @@ export default function ProfileStatsCard({ stats }: ProfileStatsCardProps) {
                     {Icon && (
                       <Icon
                         size={16}
-                        color={stat.iconColor ?? colors.textPrimary}
+                        color={stat.iconColor ?? colors.gray500}
                         strokeWidth={2.5}
                       />
                     )}

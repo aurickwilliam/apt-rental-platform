@@ -272,6 +272,7 @@ export default async function ApartmentDetailView({
             landlordAvatarUrl={landlord?.avatar_url ?? ""}
             apartmentId={apartment.id}
             apartmentName={apartment.name ?? ""}
+            profilePortal={basePath === "/tenant/browse" ? "tenant" : "public"}
           />
         </div>
       </div>

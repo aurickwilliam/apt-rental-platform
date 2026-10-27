@@ -12,8 +12,8 @@ import StepProgress from '@/components/display/StepProgress'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
-import { getCaptureProgress } from './utils/gating'
+import { getCaptureSequence, SELFIE_STEP } from '@/constants/verification/captureSequences'
+import { getCaptureProgress } from '@/utils/verification/gating'
 
 export default function UploadSelfie() {
   const router = useRouter();

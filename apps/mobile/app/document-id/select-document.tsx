@@ -6,7 +6,7 @@ import { ListGroup, Separator } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
-import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 
 import { DOCUMENT_TYPES } from "@repo/constants";
 

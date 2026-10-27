@@ -1,10 +1,10 @@
 import { computeGuidedFrameRect } from '@/components/display/GuidedFrameOverlay';
-import { CARD_ASPECT_RATIO } from '@/app/(auth)/verify-account/constants/captureSequences';
+import { CARD_ASPECT_RATIO } from '@/constants/verification/captureSequences';
 import {
   cropPhotoToFrame,
   isCropRegionSane,
   mapGuidedRectToImageCrop,
-} from '@/app/(auth)/verify-account/utils/cropToFrame';
+} from '@/utils/verification/cropToFrame';
 
 const mockCropAction = jest.fn();
 const mockFlipAction = jest.fn();

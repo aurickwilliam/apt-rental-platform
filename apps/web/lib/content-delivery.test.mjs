@@ -73,8 +73,10 @@ test("installed Next Image emits responsive optimizer variants at the supported 
 test("public card and rental hero preserve source selection, geometry, null fallback and existing loading priority", () => {
   const policy = { canOptimizePublicApartmentImage: src => canOptimizePublicApartmentImage(src, origin) };
   const common = {
-    "react/jsx-runtime": jsxRuntime, "next/image": { default: "Image" }, "next/link": { default: "Link" },
+    "react/jsx-runtime": jsxRuntime, react: hookRuntime().react,
+    "next/image": { default: "Image" }, "next/link": { default: "Link" },
     "@/lib/public-apartment-image": policy,
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => String(value) },
     "@heroui/react": { Card: { Footer: "Card.Footer" }, Button: "Button" },
@@ -84,6 +86,12 @@ test("public card and rental hero preserve source selection, geometry, null fall
   const image = card.find(node => node.type === "Image");
   assert.match(image.props.src, /_thumb\.jpg$/); assert.equal(image.props.unoptimized, false); assert.equal(image.props.priority, true);
   assert.match(image.props.className, /object-cover/); assert.match(image.props.className, /aspect-square/);
+  // Listings without a resolvable photo keep the card's shape: a decorative
+  // fallback image (the card itself is labelled "View {name}").
+  assert.equal(image.props.alt, "");
+  assert.equal(typeof image.props.onError, "function");
+  const missingPhoto = nodes(Card({ thumbnailUrl: "", name: "Unit", price: 5000, rating: 0 })).find(node => node.type === "Image");
+  assert.equal(missingPhoto.props.src, "/images/house-check.png");
   const Hero = compile("app/tenant/my-rental/components/RentalHero.tsx", common).default;
   const heroImage = nodes(Hero({ name: "Unit", address: "Address", imageUrl: publicPhoto, descriptionHref: "/browse/a" })).find(node => node.type === "Image");
   assert.equal(heroImage.props.fill, true); assert.equal(heroImage.props.unoptimized, false);

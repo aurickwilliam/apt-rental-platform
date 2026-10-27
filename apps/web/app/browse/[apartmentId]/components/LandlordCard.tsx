@@ -6,6 +6,8 @@ import {
   Tooltip,
 } from "@heroui/react";
 
+import Link from "next/link";
+
 import {
   IconMessage
 } from "@tabler/icons-react";
@@ -20,6 +22,8 @@ interface LandlordCardProps {
   isMessageDisabled?: boolean;
   messageDisabledReason?: string;
   showMessageButton?: boolean;
+  /** When set, the avatar and name open the landlord's profile page. */
+  profileHref?: string;
 }
 
 const getInitials = (value: string) => {
@@ -33,6 +37,8 @@ const getInitials = (value: string) => {
   return initials || "U";
 };
 
+const IDENTITY_CLASS = "flex min-w-0 flex-1 flex-row items-center gap-4";
+
 export default function LandlordCard({
   className = "",
   name,
@@ -41,28 +47,47 @@ export default function LandlordCard({
   isMessageDisabled = false,
   messageDisabledReason = "",
   showMessageButton = true,
+  profileHref,
 }: LandlordCardProps) {
   const displayName = name.trim() || "Unknown";
   const avatarSrc = avatarUrl?.trim() || undefined;
 
-  return (
-    <Card className={`border border-border shadow-none ${className}`}>
-      <Card.Content className="flex flex-row items-center justify-between gap-4">
-        <UserAvatar
-          src={avatarSrc}
-          initials={getInitials(displayName)}
-          alt={displayName}
-          size="lg"
-        />
+  const identity = (
+    <>
+      <UserAvatar
+        src={avatarSrc}
+        initials={getInitials(displayName)}
+        alt={displayName}
+        size="lg"
+      />
 
-        <div className="flex-1">
-          <Card.Title>
-            {displayName}
-          </Card.Title>
-          <Card.Description className="text-grey-500">
-            Landlord
-          </Card.Description>
-        </div>
+      <div className="min-w-0 flex-1">
+        <Card.Title>
+          {displayName}
+        </Card.Title>
+        <Card.Description className="text-grey-500">
+          Landlord
+        </Card.Description>
+      </div>
+    </>
+  );
+
+  return (
+    <Card
+      className={`border border-border shadow-none transition-colors ${profileHref ? "hover:border-primary" : ""} ${className}`}
+    >
+      <Card.Content className="flex flex-row items-center justify-between gap-4">
+        {profileHref ? (
+          <Link
+            href={profileHref}
+            aria-label={`View ${displayName}'s profile`}
+            className={`${IDENTITY_CLASS} cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
+          >
+            {identity}
+          </Link>
+        ) : (
+          <div className={IDENTITY_CLASS}>{identity}</div>
+        )}
 
         {showMessageButton ? (
           <Tooltip isDisabled={!isMessageDisabled || !messageDisabledReason}>

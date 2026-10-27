@@ -118,7 +118,6 @@ export default function PublicTenantProfile() {
               label: 'Member Since',
               value: profile?.memberSinceYear ?? '—',
               icon: IconCalendarMonth,
-              iconColor: colors.textPrimary,
             },
             {
               label: profile?.isVerified ? 'Verified' : 'Unverified',

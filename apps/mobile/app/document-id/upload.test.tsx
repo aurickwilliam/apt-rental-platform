@@ -3,7 +3,7 @@ import { DOCUMENT_TYPES } from '@repo/constants'
 import { IconBriefcase2, IconFileCertificate } from '@tabler/icons-react-native'
 
 import Upload from './upload'
-import { getDocumentTypeIcon } from './utils/documentTypeIcons'
+import { getDocumentTypeIcon } from '@/utils/documents/documentTypeIcons'
 
 const expectedDescriptions: Record<string, string> = {
   'Proof of Income': 'Show your earnings as proof of income for rental applications.',

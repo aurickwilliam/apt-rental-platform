@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Card, FieldError, Label, Modal, TextArea, TextField, useOverlayState } from "@heroui/react";
 import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck, IconHome, IconUser, IconBriefcase, IconAdjustments, IconAddressBook, IconMessage, IconClipboardList } from "@tabler/icons-react";
+import Link from "next/link";
 import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -13,6 +14,7 @@ import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportVerifiedPaths } from "@/hooks/use-passport-verified-paths";
 import { buildApplicationDocumentList } from "@/lib/application-documents";
+import { tenantProfileHref } from "@/lib/public-profile";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import { statusChipColor } from "../lib/application-status";
 import { applicationStatusLabel } from "../lib/application-list";
@@ -138,7 +140,7 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
             <div className="flex min-w-0 flex-1 items-start gap-3">
               <UserAvatar src={app.tenant_avatar_url} initials={getInitials(app.tenant_name)} alt={app.tenant_name} size="lg" className="shrink-0" />
               <div className="min-w-0">
-                <p className="text-lg font-nunito font-bold text-card-foreground wrap-break-word">{app.tenant_name}</p>
+                <Link href={tenantProfileHref(app.tenant_id)} aria-label={`View ${app.tenant_name}'s profile`} className="inline-block cursor-pointer text-lg font-nunito font-bold text-card-foreground wrap-break-word hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{app.tenant_name}</Link>
                 <div className="mt-2 flex flex-col gap-2 text-sm text-muted-foreground">
                   <p className="flex items-start gap-2 wrap-anywhere"><Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{app.tenant_email || "Email not provided"}</p>
                   <p className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 shrink-0" aria-hidden="true" />{app.tenant_city || "Location not provided"}</p>

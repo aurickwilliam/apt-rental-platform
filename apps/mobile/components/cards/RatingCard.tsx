@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import { Avatar, Card } from 'heroui-native'
 import ImageViewing from 'react-native-image-viewing'
-import { formatDate, getInitials } from '@repo/utils'
+import { formatDate, formatReviewStayLabel, getInitials } from '@repo/utils'
 import StarRating from '../display/StarRating'
 
 interface RatingCardProps {
@@ -13,6 +13,8 @@ interface RatingCardProps {
   review: string
   profilePictureUrl?: string
   durationOfStay?: string
+  /** Apartment the reviewer rented; shown as "Stayed at …" before the stay length. */
+  apartmentName?: string
   images?: string[]
 }
 
@@ -26,6 +28,7 @@ export default function RatingCard({
   review,
   profilePictureUrl,
   durationOfStay,
+  apartmentName,
   images,
 }: RatingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -38,6 +41,7 @@ export default function RatingCard({
   const visibleThumbnails = images?.slice(0, MAX_VISIBLE_THUMBNAILS) ?? []
   const remainingCount = images ? images.length - MAX_VISIBLE_THUMBNAILS : 0
   const imageViewingSources = images?.map((uri) => ({ uri })) ?? []
+  const stayLabel = formatReviewStayLabel(apartmentName, durationOfStay)
 
   return (
     <>
@@ -130,11 +134,11 @@ export default function RatingCard({
             </View>
           )}
 
-          {/* Duration of Stay */}
-          {durationOfStay && (
+          {/* Stayed at / duration of stay */}
+          {stayLabel && (
             <View className='flex-row items-center gap-1'>
               <Text className='text-gray-500 text-xs font-inter'>
-                {durationOfStay}
+                {stayLabel}
               </Text>
             </View>
           )}

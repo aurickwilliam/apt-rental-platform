@@ -17,6 +17,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconFileUpload as FileUp, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
+import { tenantProfileHref } from "@/lib/public-profile";
 import { createClient } from "@repo/supabase/browser";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import {
@@ -369,7 +370,11 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                   <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
                     Tenant Information
                   </p>
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={tenantProfileHref(tenant.id)}
+                    aria-label={`View ${tenant.fullName}'s profile`}
+                    className="flex cursor-pointer items-center gap-3 rounded-2xl transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
                     <UserAvatar
                       src={tenant.avatarUrl}
                       initials={getInitials(tenant.fullName)}
@@ -386,7 +391,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                         {tenant.email} · {tenant.mobileNumber}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                   <div className="grid grid-cols-2 gap-2">
                     <DetailField label="Lease Start" value={formatLeaseDate(tenant.leaseStart)} />
                     <DetailField label="Lease End" value={formatLeaseDate(tenant.leaseEnd)} />

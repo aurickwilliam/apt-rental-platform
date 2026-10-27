@@ -30,6 +30,7 @@ import {
   IconCalendarMonth,
   IconBuildingSkyscraper,
   IconStar,
+  IconStarFilled,
 } from '@tabler/icons-react-native';
 
 export default function PublicLandlordProfile() {
@@ -133,18 +134,16 @@ export default function PublicLandlordProfile() {
               label: 'Properties',
               value: String(stats.totalProperties),
               icon: IconBuildingSkyscraper,
-              iconColor: colors.primary,
             },
             {
               label: 'Average Rating',
               value: `${stats.averageRating}/5`,
-              valueColor: 'text-accent',
+              icon: IconStarFilled,
             },
             {
               label: 'Member Since',
               value: memberSinceYear,
               icon: IconCalendarMonth,
-              iconColor: colors.textPrimary,
             },
           ]}
         />
@@ -291,6 +290,24 @@ export default function PublicLandlordProfile() {
             {reviews.map((review) => (
               <RatingCard key={review.id} {...review} />
             ))}
+
+            {totalReviews > reviews.length ? (
+              <Pressable
+                onPress={() => {
+                  if (!resolvedLandlordId) return
+                  router.push({
+                    pathname: '/profile/landlord/[landlordId]/reviews',
+                    params: { landlordId: resolvedLandlordId },
+                  })
+                }}
+                hitSlop={8}
+                className="items-center py-1 mt-1"
+              >
+                <Text className="text-accent text-sm font-nunitoSemiBold">
+                  See all {totalReviews} reviews
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         )}
       </View>

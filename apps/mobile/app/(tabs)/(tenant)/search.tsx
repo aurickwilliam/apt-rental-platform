@@ -10,8 +10,7 @@ import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
 import SearchSectionsList from "../components/search/SearchSectionsList";
-import useSearchLogic from "../components/search/useSearchLogic";
-import { useSearchSections } from "../components/search/useSearchSections";
+import { useSearchLogic, useSearchSections } from "@/hooks/search";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { useFavoriteToggle } from "@/hooks/favorites";
 
