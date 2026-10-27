@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Card } from "@heroui/react";
 import { IconHome as House, IconMapPin as MapPin, IconUser as User } from "@tabler/icons-react";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 type PropertyContextCardProps = {
   apartmentName?: string;
@@ -27,7 +28,7 @@ export default function PropertyContextCard({
               src={imageUrl}
               alt={`Photo of ${apartmentName}`}
               fill
-              unoptimized
+              unoptimized={!canOptimizePublicApartmentImage(imageUrl)}
               sizes="144px"
               className="object-cover"
             />

@@ -13,6 +13,7 @@ import { useLandlordApplicationActions } from "@/hooks/use-landlord-application-
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportVerifiedPaths } from "@/hooks/use-passport-verified-paths";
 import { buildApplicationDocumentList } from "@/lib/application-documents";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import { statusChipColor } from "../lib/application-status";
 import { applicationStatusLabel } from "../lib/application-list";
 import ApplicationDetailSection from "./components/ApplicationDetailSection";
@@ -123,7 +124,7 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
         <ApplicationDetailSection title="Property" subtitle="Tenant application for this property." icon={IconHome}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-40">
-              <Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt={app.apartment_name} fill unoptimized className="object-cover" />
+              <Image src={app.apartment_thumbnail_url || "/default/default-thumbnail.jpeg"} alt={app.apartment_name} fill sizes="(max-width: 640px) 100vw, 160px" unoptimized={!canOptimizePublicApartmentImage(app.apartment_thumbnail_url ?? "")} className="object-cover" />
             </div>
             <div className="min-w-0">
               <p className="text-lg font-nunito font-bold text-card-foreground wrap-break-word">{app.apartment_name}</p>

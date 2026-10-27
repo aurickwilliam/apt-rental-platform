@@ -260,6 +260,7 @@ Always prefer the smallest change that satisfies the requirement. For UI-compone
 - Prefer optimistic updates where appropriate.
 - Media uploads are **binary with client-side compression** (`compressImage.ts`) — never base64; apartment images are stored two-tier (thumb + full), thumbs render from the thumb column.
 - Lists fetch **bounded pages** with keyset cursors — never unbounded selects (chat history: 30-message pages, descending `created_at, id`, ID-deduplicating merge).
+- Public image egress is metered (Supabase Free: 5 GB cached egress per cycle): never render a public apartment photo from Supabase with a bare `unoptimized` (the browser would download the original, legacy uploads reach 3 MB) — use `unoptimized={!canOptimizePublicApartmentImage(src)}` plus a `sizes` hint so Next serves a resized copy. Uploads to a public bucket with a unique, never-overwritten path pass `cacheControl: PUBLIC_IMAGE_CACHE_CONTROL` (`@repo/constants`, one year); never use it for a path replaced in place (avatars/backgrounds on the web use a fixed path).
 - External media (GIFs) are referenced by `externalUrl` on the row — no download-then-re-upload round trips.
 
 ## State Management Rules
