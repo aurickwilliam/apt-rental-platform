@@ -46,14 +46,7 @@ export default function Index() {
 
   const apartment = data?.apartment ?? null;
   const tenancy = data?.tenancy ?? null;
-  const { openLeaseAgreement } = useLeaseAgreement({
-    onUrl: (url) =>
-      router.push({
-        pathname:
-          "/landlord/manage-apartment/[apartmentId]/description/lease-viewer",
-        params: { apartmentId: apartmentId as string, fileUrl: url },
-      }),
-  });
+  const { openLeaseAgreement } = useLeaseAgreement();
 
   const [uploading, setUploading] = useState(false);
 

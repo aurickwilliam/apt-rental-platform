@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Alert } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
 
 type UseLeaseAgreementOptions = {
@@ -30,7 +31,11 @@ export function useLeaseAgreement(options?: UseLeaseAgreementOptions) {
         if (onUrl) {
           await onUrl(signedUrl);
         } else {
-          await Linking.openURL(signedUrl);
+          // Opening the raw file URL makes Android's browser download it; the Google viewer
+          // displays PDF and DOCX in the browser instead.
+          await WebBrowser.openBrowserAsync(
+            `https://docs.google.com/viewer?url=${encodeURIComponent(signedUrl)}`,
+          );
         }
       } catch (err) {
         Alert.alert("Error", "Could not open lease agreement.");
