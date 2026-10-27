@@ -1,5 +1,5 @@
 import type { IdCaptureResult } from '@/stores/useVerificationStore';
-import type { CaptureStepConfig } from '../constants/captureSequences';
+import type { CaptureStepConfig } from '@/constants/verification/captureSequences';
 
 export interface CaptureProgress {
   steps: { step: CaptureStepConfig; result: IdCaptureResult | null }[];

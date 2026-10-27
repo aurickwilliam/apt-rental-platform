@@ -103,7 +103,7 @@ jest.mock('@/app/(tabs)/components/chat/ConversationListState', () => {
   return { __esModule: true, default: StateStub };
 });
 
-jest.mock('@/app/(tabs)/components/CustomTabBar', () => ({
+jest.mock('@/components/layout/CustomTabBar', () => ({
   FLOATING_TAB_BAR_HEIGHT: 0,
   FLOATING_TAB_BAR_BOTTOM_OFFSET: 0,
 }));

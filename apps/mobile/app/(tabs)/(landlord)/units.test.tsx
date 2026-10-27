@@ -8,7 +8,7 @@ jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
   return { __esModule: true, default: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
 });
-jest.mock("@/app/(tabs)/components/CustomTabBar", () => ({ FLOATING_TAB_BAR_HEIGHT: 0, FLOATING_TAB_BAR_BOTTOM_OFFSET: 0 }));
+jest.mock("@/components/layout/CustomTabBar", () => ({ FLOATING_TAB_BAR_HEIGHT: 0, FLOATING_TAB_BAR_BOTTOM_OFFSET: 0 }));
 jest.mock("@/app/(tabs)/components/QuickActionButton", () => {
   const { Pressable, Text } = jest.requireActual("react-native");
   return {

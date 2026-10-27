@@ -23,7 +23,7 @@ import UploadDocumentField, {
 import DateField from "@/components/inputs/DateField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import AppDialog from "@/components/display/AppDialog";
-import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 
 import { useColors } from "@/hooks/useTheme";
 import { useUploadPassportDocument } from "@/hooks/passport";

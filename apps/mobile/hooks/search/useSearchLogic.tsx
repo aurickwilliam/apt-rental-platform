@@ -27,7 +27,7 @@ type UseSearchLogicParams = {
   initialCity?: string;
 };
 
-export default function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
+export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>(initialCity ?? CITIES[0]);
   const [prevInitialCity, setPrevInitialCity] = useState(initialCity);

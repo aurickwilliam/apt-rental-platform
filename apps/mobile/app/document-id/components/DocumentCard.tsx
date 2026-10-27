@@ -12,7 +12,7 @@ import {
 
 import { useColors } from "@/hooks/useTheme";
 import { useStatusChipStyles, statusChipSurface } from "@/hooks/useStatusChipStyles";
-import { isPdfDocument, isPreviewable } from "../utils/fileType";
+import { isPdfDocument, isPreviewable } from "@/utils/documents/fileType";
 import PdfThumbnail from "@/components/display/PdfThumbnail";
 
 interface DocumentCardProps {

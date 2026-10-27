@@ -31,7 +31,7 @@ import {
 import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_BOTTOM_OFFSET,
-} from "@/app/(tabs)/components/CustomTabBar";
+} from "@/components/layout/CustomTabBar";
 
 const REQUEST_ROUTES = {
   applications: "/landlord/tenant-applications",

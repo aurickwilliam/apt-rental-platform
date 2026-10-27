@@ -27,7 +27,7 @@ import {
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
 import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 

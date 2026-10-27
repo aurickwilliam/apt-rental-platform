@@ -7,9 +7,9 @@ import {
   PullToRefreshIndicator,
 } from "components/display/PullToRefresh";
 import { useColors } from "hooks/useTheme";
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 import SearchSection, { SearchSectionSkeleton } from "./SearchSection";
-import type { SearchSection as SearchSectionType } from "./useSearchSections";
+import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
 
 type Props = {
   sections: SearchSectionType[];
