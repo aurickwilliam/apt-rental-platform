@@ -7,11 +7,14 @@ import { browseFrameClass } from "../../lib/browse-layout";
 
 export default async function PublicLandlordProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ landlordId: string }>;
+  searchParams: Promise<{ reviews?: string }>;
 }) {
   const { landlordId } = await params;
-  const data = await loadLandlordProfile(landlordId);
+  const { reviews } = await searchParams;
+  const data = await loadLandlordProfile(landlordId, { allReviews: reviews === "all" });
   if (!data) notFound();
 
   return (

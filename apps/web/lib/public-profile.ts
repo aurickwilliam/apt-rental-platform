@@ -11,6 +11,8 @@ export type ProfileViewerPortal = "public" | "tenant" | "landlord";
 export const PROFILE_LISTING_LIMIT = 24;
 /** Newest reviews rendered on the page; the headline count comes from the rating summary. */
 export const PROFILE_REVIEW_LIMIT = 5;
+/** Reviews rendered once "See all reviews" is opened (`?reviews=all`). */
+export const PROFILE_ALL_REVIEWS_LIMIT = 50;
 
 const PORTAL_ROUTE_PREFIX: Record<ProfileViewerPortal, string> = {
   public: "/browse",
@@ -167,6 +169,14 @@ export function toPastStay(row: PastStayRow): Omit<PublicProfilePastStay, "thumb
         }
       : null,
   };
+}
+
+/**
+ * Whether "See all reviews" has more to load: some reviews exist beyond those shown, and the page
+ * is still on the short list (once expanded it already holds as many as the page ever loads).
+ */
+export function canExpandProfileReviews(shownCount: number, totalCount: number): boolean {
+  return shownCount < totalCount && shownCount <= PROFILE_REVIEW_LIMIT;
 }
 
 /** Apartment statuses that appear in a landlord's public listing grid. */

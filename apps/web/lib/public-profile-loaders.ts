@@ -7,6 +7,7 @@ import { apartmentReviewSelect } from "@/lib/apartment-review-query";
 import {
   PROFILE_LISTING_LIMIT,
   LISTED_APARTMENT_STATUSES,
+  PROFILE_ALL_REVIEWS_LIMIT,
   PROFILE_REVIEW_LIMIT,
   coveredCities,
   formatStayRange,
@@ -146,7 +147,10 @@ function toReview(
  * listings only; contact details are read (and shown) for signed-in viewers.
  * Returns null when the id is not a landlord, so the route can 404.
  */
-export async function loadLandlordProfile(landlordId: string): Promise<LandlordProfileData | null> {
+export async function loadLandlordProfile(
+  landlordId: string,
+  { allReviews = false }: { allReviews?: boolean } = {},
+): Promise<LandlordProfileData | null> {
   if (!UUID_PATTERN.test(landlordId)) return null;
 
   const supabase = await createClient();
@@ -189,7 +193,7 @@ export async function loadLandlordProfile(landlordId: string): Promise<LandlordP
         .select(`${apartmentReviewSelect(isSignedIn)}, apartment_id`)
         .in("apartment_id", apartmentIds)
         .order("created_at", { ascending: false })
-        .limit(PROFILE_REVIEW_LIMIT),
+        .limit(allReviews ? PROFILE_ALL_REVIEWS_LIMIT : PROFILE_REVIEW_LIMIT),
       // Bounded: the headline mean and the 5→1 bars come from the same ratings,
       // so they can never disagree with each other.
       supabase

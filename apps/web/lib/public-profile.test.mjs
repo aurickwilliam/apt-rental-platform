@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   apartmentHref,
+  canExpandProfileReviews,
   coveredCities,
   formatDurationMonths,
   formatStayRange,
@@ -140,4 +141,11 @@ test("a past stay degrades when the apartment, landlord or dates are missing", (
   assert.equal(unnamed.landlord?.name, "Landlord");
   assert.equal(unnamed.durationLabel, null, "an open lease has no length yet");
   assert.equal(unnamed.apartmentId, "a3");
+});
+
+test("See all reviews only offers more when some are hidden and the page is still on the short list", () => {
+  assert.equal(canExpandProfileReviews(5, 12), true);
+  assert.equal(canExpandProfileReviews(5, 5), false, "everything is already shown");
+  assert.equal(canExpandProfileReviews(0, 0), false);
+  assert.equal(canExpandProfileReviews(50, 80), false, "an expanded page is already at its cap");
 });

@@ -8,13 +8,16 @@ import { browseFrameClass } from "../../../browse/lib/browse-layout";
 
 export default async function TenantLandlordProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ landlordId: string }>;
+  searchParams: Promise<{ reviews?: string }>;
 }) {
   const { landlordId } = await params;
+  const { reviews } = await searchParams;
   await requirePortalViewer("tenant");
 
-  const data = await loadLandlordProfile(landlordId);
+  const data = await loadLandlordProfile(landlordId, { allReviews: reviews === "all" });
   if (!data) notFound();
 
   return (

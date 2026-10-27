@@ -17,12 +17,13 @@ import {
 
 import BackBtn from "@/app/browse/[apartmentId]/components/BackBtn";
 import RatingBreakdown from "@/app/browse/[apartmentId]/components/RatingBreakdown";
+import RatingsHeader from "@/app/browse/[apartmentId]/components/RatingsHeader";
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
 import StarRating from "@/app/components/display/StarRating";
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { useUser } from "@/hooks/use-user";
-import { apartmentHref, memberSinceYear } from "@/lib/public-profile";
+import { apartmentHref, canExpandProfileReviews, memberSinceYear } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
@@ -73,6 +74,9 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
   const { identity, contact, listings, reviews, reviewCount, ratingDistribution } = data;
   const firstName = identity.displayName.split(" ")[0] || "Landlord";
   const viewerId = profile?.id ?? null;
+  // The page loads the newest few reviews; more are fetched by re-rendering with ?reviews=all.
+  const canExpandReviews = canExpandProfileReviews(reviews.length, reviewCount);
+  const showAllReviews = () => router.push("?reviews=all#reviews", { scroll: false });
   const isOwner = Boolean(viewerId && viewerId === identity.id);
   const canMessage = Boolean(viewerId) && !isOwner;
 
@@ -222,24 +226,24 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
           )}
         </PublicProfileSection>
 
-        <PublicProfileSection
-          id="reviews"
-          title={reviewCount > 0 ? `Tenant reviews (${reviewCount})` : "Tenant reviews"}
-          description="Only tenants who rented one of these apartments can leave a review."
-        >
+        <section id="reviews" className="flex scroll-mt-24 flex-col gap-3">
+          <div>
+            <RatingsHeader headingLevel="h2" onSeeAll={canExpandReviews ? showAllReviews : undefined} />
+            <p className="-mt-3 text-sm text-muted-foreground">
+              Only tenants who rented one of these apartments can leave a review.
+            </p>
+          </div>
+
           {reviewCount > 0 && averageRating !== null ? (
-            <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-              <RatingBreakdown
-                layout="stacked"
-                overallRate={averageRating}
-                totalReviews={reviewCount}
-                no5Star={ratingDistribution[5]}
-                no4Star={ratingDistribution[4]}
-                no3Star={ratingDistribution[3]}
-                no2Star={ratingDistribution[2]}
-                no1Star={ratingDistribution[1]}
-              />
-            </div>
+            <RatingBreakdown
+              overallRate={averageRating}
+              totalReviews={reviewCount}
+              no5Star={ratingDistribution[5]}
+              no4Star={ratingDistribution[4]}
+              no3Star={ratingDistribution[3]}
+              no2Star={ratingDistribution[2]}
+              no1Star={ratingDistribution[1]}
+            />
           ) : null}
 
           {reviews.length === 0 ? (
@@ -272,7 +276,7 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
               ) : null}
             </>
           )}
-        </PublicProfileSection>
+        </section>
       </PublicProfileLayout>
 
       {canMessage ? (
