@@ -26,6 +26,7 @@ function load(file, options = {}) {
     "react": { Suspense: "Suspense", useMemo: callback => callback(), useState: initial => [filters ? filters[stateIndex++] : initial, () => {}] },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "@heroui/react": { Skeleton: "Skeleton", Table, InputGroup, Dropdown, Button: "Button", Label: "Label", Chip: "Chip", Separator: "Separator" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatDate: value => value, formatPesoDisplay: value => `₱${value}`, getInitials: () => "T" },

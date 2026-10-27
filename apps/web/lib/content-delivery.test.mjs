@@ -20,6 +20,12 @@ const imageOptions = { ...imageConfigModule.imageConfigDefault, ...compile("next
 const imageConfig = imageConfigModule.prepareImageConfig ? imageConfigModule.prepareImageConfig(imageOptions) : imageOptions;
 const getImageProps = props => getImgProps(props, { imgConf: imageConfig, defaultLoader: imageLoaderModule.default ?? imageLoaderModule });
 
+test("resized images stay cached for a month so Supabase originals are not re-pulled every few hours", () => {
+  const thirtyDays = 60 * 60 * 24 * 30;
+  assert.equal(imageOptions.minimumCacheTTL, thirtyDays);
+  assert.ok(imageOptions.minimumCacheTTL > imageConfigModule.imageConfigDefault.minimumCacheTTL);
+});
+
 test("only known public apartment rasters opt into optimization, never signed or other private buckets", () => {
   for (const src of [publicPhoto, publicPhoto.replace(".jpg", "_thumb.webp"), "/images/apartment.jpg", "https://images.unsplash.com/photo-123?auto=format&fit=crop&w=800&q=80"]) {
     assert.equal(canOptimizePublicApartmentImage(src, origin), true, src);
