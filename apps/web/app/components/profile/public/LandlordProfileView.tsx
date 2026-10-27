@@ -127,6 +127,7 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
       </div>
 
       <PublicProfileLayout
+        hasTopNavbar={portal === "public"}
         header={<PublicProfileHeader identity={identity} role="landlord" trustItems={trustItems} />}
         aside={
           <>
