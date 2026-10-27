@@ -98,12 +98,12 @@ export default function LandlordChatPanel({
           onOpenChange={setIsAuthModalOpen}
         >
           <Modal.Container placement="center">
-            <Modal.Dialog>
+            <Modal.Dialog className="landlord-message-auth-modal">
               <Modal.CloseTrigger />
               <Modal.Header>
                 <Modal.Heading>Sign in to message</Modal.Heading>
               </Modal.Header>
-              <Modal.Body className="text-sm text-default-500">
+              <Modal.Body className="text-sm">
                 You need an account to message the landlord and keep your
                 inquiries in one place.
               </Modal.Body>
