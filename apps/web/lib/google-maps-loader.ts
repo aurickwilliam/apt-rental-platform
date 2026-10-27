@@ -30,6 +30,8 @@ export interface GoogleMapPoint {
 
 export interface GoogleMapProjection {
   fromLatLngToDivPixel(latLng: GoogleLatLng | GoogleLatLngLiteral): GoogleMapPoint | null;
+  /** Div-pixel coordinates (the overlay pane's frame) back to a point on the map. */
+  fromDivPixelToLatLng(pixel: GoogleMapPoint): GoogleLatLng;
 }
 
 export interface GoogleMapPanes {
@@ -57,13 +59,6 @@ export interface GoogleMapInstance {
   getBounds(): GoogleLatLngBounds | undefined;
 }
 
-export interface GoogleMarkerInstance {
-  addListener(eventName: string, handler: () => void): void;
-  setPosition(position: GoogleLatLngLiteral): void;
-  setMap(map: GoogleMapInstance | null): void;
-  getPosition(): GoogleLatLng | null;
-}
-
 export interface GoogleMapOptions {
   center: GoogleLatLngLiteral;
   zoom: number;
@@ -80,12 +75,8 @@ export interface GoogleMapOptions {
 
 export interface GoogleMapsNamespace {
   Map: new (element: HTMLElement, options: GoogleMapOptions) => GoogleMapInstance;
-  Marker: new (options: {
-    position: GoogleLatLngLiteral;
-    map: GoogleMapInstance;
-    draggable?: boolean;
-  }) => GoogleMarkerInstance;
   OverlayView: new () => GoogleOverlayView;
+  Point: new (x: number, y: number) => GoogleMapPoint;
   event: {
     clearInstanceListeners(instance: unknown): void;
     trigger(instance: unknown, eventName: string): void;
