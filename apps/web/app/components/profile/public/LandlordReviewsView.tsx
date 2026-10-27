@@ -84,11 +84,11 @@ export default function LandlordReviewsView({ data, portal }: LandlordReviewsVie
                       "—"
                     ) : (
                       <span className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+                        <StarRating rating={averageRating} size={16} className="flex gap-0.5" />
                         <span className="flex items-baseline gap-1">
                           {averageRating.toFixed(1)}
-                          <span className="text-sm font-normal text-muted-foreground">({reviewCount})</span>
+                          <span>({reviewCount})</span>
                         </span>
-                        <StarRating rating={averageRating} size={12} className="flex gap-0.5" />
                       </span>
                     ),
                   hint: reviewCount === 0 ? "No reviews yet" : undefined,

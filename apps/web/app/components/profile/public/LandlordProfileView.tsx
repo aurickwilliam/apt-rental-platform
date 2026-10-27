@@ -129,17 +129,17 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
                       "—"
                     ) : (
                       <span className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+                        <StarRating rating={averageRating} size={16} className="flex gap-0.5" />
                         <span className="flex items-baseline gap-1">
                           {averageRating.toFixed(1)}
                           <a
                             href="#reviews"
                             aria-label={`${reviewCount} tenant ${plural(reviewCount, "review")}`}
-                            className="text-sm font-normal text-muted-foreground underline-offset-2 hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            className="underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                           >
                             ({reviewCount})
                           </a>
                         </span>
-                        <StarRating rating={averageRating} size={12} className="flex gap-0.5" />
                       </span>
                     ),
                   hint: reviewCount === 0 ? "No reviews yet" : undefined,
