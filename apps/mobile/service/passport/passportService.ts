@@ -1,7 +1,7 @@
 import { File } from 'expo-file-system'
 
 import { supabase, type Database } from '@repo/supabase'
-import { DOCUMENT_TYPES, isReviewEligibleDocType } from '@repo/constants'
+import { PASSPORT_UPLOADABLE_DOC_TYPES, isReviewEligibleDocType } from '@repo/constants'
 import { isExpiredDate, verifiedPassportPaths, type VerifiedPassportPathRow } from '@repo/passport'
 
 export const PASSPORT_DOCUMENTS_BUCKET = 'application-documents'
@@ -72,7 +72,7 @@ export async function uploadPassportDocument({
   asset,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
-  if (!DOCUMENT_TYPES.includes(docType)) {
+  if (!PASSPORT_UPLOADABLE_DOC_TYPES.includes(docType)) {
     throw new Error('This document type is not available for Passport uploads. Choose a supported document or verify your ID through live capture and a selfie.')
   }
 

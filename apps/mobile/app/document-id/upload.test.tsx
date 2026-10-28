@@ -158,10 +158,10 @@ it('sends National IDs to canonical ID verification instead of offering file upl
   expect(mockUpload).not.toHaveBeenCalled()
 })
 
-it('does not offer Business Permit, including via a direct upload link', () => {
-  expect(DOCUMENT_TYPES).not.toContain('Business Permit')
+it('does not offer Driver Handbook, including via a direct upload link', () => {
+  expect(DOCUMENT_TYPES).not.toContain('Driver Handbook')
   expect(DOCUMENT_TYPES).not.toContain('National ID')
-  mockDocType = 'Business Permit'
+  mockDocType = 'Driver Handbook'
   render(<Upload />)
 
   expect(screen.queryByLabelText('Select test document')).toBeNull()

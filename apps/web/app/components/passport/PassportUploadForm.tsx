@@ -15,6 +15,7 @@ import { DocumentTypeIcon, isImageDocument } from "./documentTypeIcons";
 import { isPdfDocument } from "./PassportDocumentThumbnail";
 
 interface PassportUploadFormProps {
+  portal?: "tenant" | "landlord";
   docType: string;
   isUploading: boolean;
   /** Rejects with a user-facing message; the chosen file is kept for a retry. */
@@ -31,7 +32,7 @@ const LEGAL_NOTICE =
   "By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).";
 
 /** Upload step of the add-document modal; renders the modal body and footer. */
-export default function PassportUploadForm({ docType, isUploading, onSubmit, onCancel }: PassportUploadFormProps) {
+export default function PassportUploadForm({ portal = "tenant", docType, isUploading, onSubmit, onCancel }: PassportUploadFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -83,7 +84,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
             <DocumentTypeIcon docType={docType} size={20} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">{getDocumentTypeDescription(docType)}</p>
+            <p className="text-sm text-muted-foreground">{getDocumentTypeDescription(docType, portal)}</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconFileInfo size={14} aria-hidden="true" />
               JPG, PNG, WebP, or PDF, up to 5 MB

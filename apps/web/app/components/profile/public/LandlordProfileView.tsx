@@ -76,6 +76,15 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
   // badge (with its tooltip), so it is not repeated here. No invented scores.
   const trustItems: PublicProfileTrustItem[] = [];
 
+  if (data.isOwnershipVerified) {
+    trustItems.push({
+      key: "ownership",
+      label: "Verified landlord",
+      tone: "success",
+      icon: <IconShieldCheck size={14} aria-hidden="true" />,
+    });
+  }
+
   if (data.listedTotal > 0) {
     const allVerified = data.verifiedListings === data.listedTotal;
     trustItems.push({

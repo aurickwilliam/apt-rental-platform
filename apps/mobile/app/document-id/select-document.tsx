@@ -8,13 +8,16 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 
-import { DOCUMENT_TYPES } from "@repo/constants";
+import { getDocumentTypesForPortal } from "@repo/constants";
 
 import { useColors } from "@/hooks/useTheme";
+import { usePortalStore } from "@/stores/usePortalStore";
 
 export default function SelectDocument() {
   const documentType = useRef("");
   const { colors } = useColors();
+  const portal = usePortalStore((state) => state.portal);
+  const isLandlord = portal === "landlord";
 
   const router = useRouter();
 
@@ -31,12 +34,13 @@ export default function SelectDocument() {
       className="p-5"
     >
       <Text className="text-foreground text-sm font-nunitoSemiBold leading-relaxed">
-        Choose the type of document you want to add. Your files will be kept
-        securely and ready for your rental applications.
+        {isLandlord
+          ? "Choose the document that proves you own or are authorized to rent out your properties. Your files are kept securely and reviewed by our team."
+          : "Choose the type of document you want to add. Your files will be kept securely and ready for your rental applications."}
       </Text>
 
       <ListGroup className="shadow-none border border-border mt-5 rounded-3xl">
-        {DOCUMENT_TYPES.map((docType, index) => (
+        {getDocumentTypesForPortal(isLandlord ? "landlord" : "tenant").map((docType, index) => (
           <View key={docType}>
             {index > 0 && <Separator className="mx-4" />}
 

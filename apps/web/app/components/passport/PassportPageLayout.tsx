@@ -10,7 +10,7 @@ export function PassportPageShell({ children }: { children: React.ReactNode }) {
   return <div className="w-full space-y-6 px-4 py-6 sm:py-8 md:px-6">{children}</div>;
 }
 
-export function PassportPageHeader() {
+export function PassportPageHeader({ portal = "tenant" }: { portal?: "tenant" | "landlord" } = {}) {
   return (
     <div>
       <h1 className="flex items-center gap-2 font-nunito text-3xl font-bold text-primary">
@@ -20,7 +20,9 @@ export function PassportPageHeader() {
         APT Passport
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Your verified ID and supporting documents, attached automatically when you apply.
+        {portal === "landlord"
+          ? "Your verified ID and ownership documents. They show tenants you are a legitimate landlord."
+          : "Your verified ID and supporting documents, attached automatically when you apply."}
       </p>
     </div>
   );

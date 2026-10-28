@@ -2,7 +2,7 @@
 
 import { createClient } from "@repo/supabase/browser";
 import type { Database } from "@repo/supabase";
-import { DOCUMENT_TYPES, isReviewEligibleDocType } from "@repo/constants";
+import { PASSPORT_UPLOADABLE_DOC_TYPES, isReviewEligibleDocType } from "@repo/constants";
 import { isExpiredDate } from "@repo/passport";
 
 import { passportUploadContentType, validatePassportUploadFile } from "@/lib/passport-upload";
@@ -200,7 +200,7 @@ export async function uploadPassportDocument({
   file,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
-  if (!DOCUMENT_TYPES.includes(docType)) {
+  if (!PASSPORT_UPLOADABLE_DOC_TYPES.includes(docType)) {
     throw new Error(
       "This document type is not available for Passport uploads. Choose a supported document or verify your ID through live capture and a selfie.",
     );

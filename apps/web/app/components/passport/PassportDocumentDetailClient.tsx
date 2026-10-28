@@ -232,7 +232,7 @@ export default function PassportDocumentDetailClient({
             <p className="text-sm text-muted-foreground">
               {isLinkedVerification
                 ? "This ID is linked to your approved account verification and is managed automatically."
-                : getDocumentTypeDescription(document.doc_type)}
+                : getDocumentTypeDescription(document.doc_type, basePath.startsWith("/landlord") ? "landlord" : "tenant")}
             </p>
 
             <div className="space-y-3 border-t border-border pt-4">

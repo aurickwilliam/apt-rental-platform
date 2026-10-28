@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button, Modal, buttonVariants } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 
-import { DOCUMENT_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
+import { PASSPORT_GOV_ID_DOC_TYPES, PASSPORT_UPLOADABLE_DOC_TYPES, type PassportPortalRole } from "@repo/constants";
 
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
@@ -14,6 +14,7 @@ import PassportUploadForm from "./PassportUploadForm";
 
 interface AddDocumentModalProps {
   userId: string;
+  portal: PassportPortalRole;
   isOpen: boolean;
   /** Chosen type (step 2), or null for the type picker (step 1). */
   docType: string | null;
@@ -28,6 +29,7 @@ interface AddDocumentModalProps {
  */
 export default function AddDocumentModal({
   userId,
+  portal,
   isOpen,
   docType,
   onSelectType,
@@ -36,7 +38,7 @@ export default function AddDocumentModal({
 }: AddDocumentModalProps) {
   const { upload, pending } = usePassportDocumentActions(userId);
   const isUploading = pending === "upload";
-  const isUploadable = !!docType && DOCUMENT_TYPES.includes(docType);
+  const isUploadable = !!docType && PASSPORT_UPLOADABLE_DOC_TYPES.includes(docType);
   const isIdentityDoc = !!docType && PASSPORT_GOV_ID_DOC_TYPES.includes(docType);
 
   const handleOpenChange = (open: boolean) => {
@@ -68,11 +70,12 @@ export default function AddDocumentModal({
 
             {!docType ? (
               <Modal.Body>
-                <DocumentTypePicker onSelect={onSelectType} />
+                <DocumentTypePicker portal={portal} onSelect={onSelectType} />
               </Modal.Body>
             ) : isUploadable ? (
               <PassportUploadForm
                 key={docType}
+                portal={portal}
                 docType={docType}
                 isUploading={isUploading}
                 onCancel={onClose}

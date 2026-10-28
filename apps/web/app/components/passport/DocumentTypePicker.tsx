@@ -1,27 +1,31 @@
 import { IconShieldCheck } from "@tabler/icons-react";
 
-import { DOCUMENT_TYPES, isReviewEligibleDocType } from "@repo/constants";
+import { getDocumentTypesForPortal, isReviewEligibleDocType, type PassportPortalRole } from "@repo/constants";
 import { getDocumentTypeDescription } from "@repo/passport";
 
 import { DocumentTypeIcon } from "./documentTypeIcons";
 import { Button } from "@heroui/react";
 
 interface DocumentTypePickerProps {
+  portal: PassportPortalRole;
   onSelect: (docType: string) => void;
 }
 
-export default function DocumentTypePicker({ onSelect }: DocumentTypePickerProps) {
+export default function DocumentTypePicker({ portal, onSelect }: DocumentTypePickerProps) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Choose the type of document you want to add. Types with a{" "}
+        {portal === "landlord"
+          ? "Choose the document that proves you own or are authorized to rent out your properties. "
+          : "Choose the type of document you want to add. "}
+        Types with a{" "}
         <IconShieldCheck size={14} className="inline align-text-bottom text-success" aria-label="shield" /> can be sent
         for review after you add them. Your government ID is added automatically once your account
         verification is approved.
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {DOCUMENT_TYPES.map((docType) => (
+        {getDocumentTypesForPortal(portal).map((docType) => (
           <Button
             variant="ghost"
             key={docType}
@@ -33,7 +37,7 @@ export default function DocumentTypePicker({ onSelect }: DocumentTypePickerProps
             </span>
             <span className="min-w-0 pr-6">
               <span className="block font-nunito text-base font-semibold text-card-foreground">{docType}</span>
-              <span className="block text-xs text-muted-foreground">{getDocumentTypeDescription(docType)}</span>
+              <span className="block text-xs text-muted-foreground">{getDocumentTypeDescription(docType, portal)}</span>
             </span>
             {isReviewEligibleDocType(docType) ? (
               <span className="absolute top-3 right-3 text-success" title="Can be verified">

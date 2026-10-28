@@ -3,6 +3,7 @@ import "server-only";
 import { getVerifiedPassportSlots, type PassportSlotDocument } from "@repo/passport";
 import { createClient } from "@repo/supabase/server";
 
+import { fetchVerifiedLandlordIds } from "@/lib/verified-landlord";
 import { apartmentReviewSelect } from "@/lib/apartment-review-query";
 import {
   PROFILE_LISTING_LIMIT,
@@ -246,9 +247,10 @@ export async function loadLandlordProfile(landlordId: string): Promise<LandlordP
   if (!context) return null;
 
   const { supabase, landlord, isSignedIn, apartments } = context;
-  const [reviews, ratingSummary] = await Promise.all([
+  const [reviews, ratingSummary, verifiedLandlords] = await Promise.all([
     loadProfileReviews(context),
     loadRatingSummary(supabase, context.apartmentIds),
+    fetchVerifiedLandlordIds(supabase, [landlord.id]),
   ]);
 
   const listedApartments = apartments.filter((apartment) =>
@@ -268,6 +270,7 @@ export async function loadLandlordProfile(landlordId: string): Promise<LandlordP
     averageRating: ratingSummary.average,
     reviewCount: ratingSummary.count,
     ratingDistribution: ratingSummary.distribution,
+    isOwnershipVerified: verifiedLandlords.has(landlord.id),
     verifiedListings: verification.verified,
     listedTotal: verification.total,
     listings: listedApartments.slice(0, PROFILE_LISTING_LIMIT).map(toListing),

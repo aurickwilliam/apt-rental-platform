@@ -1,6 +1,9 @@
 import { View } from 'react-native';
 
 import LandlordCard from 'components/cards/LandlordCard';
+import VerifiedLandlordChip from 'components/display/VerifiedLandlordChip';
+
+import { useVerifiedLandlord } from 'hooks/profiles';
 
 import type { ApartmentDetails } from 'hooks/apartments';
 
@@ -16,6 +19,7 @@ export default function LandlordSection({
   onPress,
   onMessagePress,
 }: LandlordSectionProps) {
+  const isVerifiedLandlord = useVerifiedLandlord(landlord?.id);
   const fullName = [landlord?.first_name, landlord?.last_name]
     .filter(Boolean)
     .join(' ');
@@ -29,6 +33,11 @@ export default function LandlordSection({
         onPress={onPress}
         onMessagePress={onMessagePress}
       />
+      {isVerifiedLandlord && (
+        <View className='mt-2'>
+          <VerifiedLandlordChip />
+        </View>
+      )}
     </View>
   );
 }

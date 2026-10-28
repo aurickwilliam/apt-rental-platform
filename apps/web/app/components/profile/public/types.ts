@@ -52,6 +52,8 @@ export interface LandlordProfileData {
   averageRating: number | null;
   reviewCount: number;
   ratingDistribution: ReviewRatingDistribution;
+  /** An admin approved one of the landlord's ownership documents in APT Passport. */
+  isOwnershipVerified: boolean;
   /** Listed apartments that passed APT verification, out of `listedTotal`. */
   verifiedListings: number;
   listedTotal: number;

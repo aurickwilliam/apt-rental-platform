@@ -19,6 +19,8 @@ import {
   type PassportDocumentRow,
 } from "@/hooks/use-passport-documents";
 
+import type { PassportPortalRole } from "@repo/constants";
+
 import AddDocumentModal from "./AddDocumentModal";
 import PassportDocumentCard, {
   type PassportDocumentLayout,
@@ -34,6 +36,7 @@ interface PassportClientProps {
   basePath: string;
   /** The rental-application checklist only applies to the tenant portal. */
   showApplicationReadiness?: boolean;
+  portal?: PassportPortalRole;
 }
 
 /** `?add=1` opens the type picker; `?add=<type>` opens the upload step. */
@@ -44,6 +47,7 @@ export default function PassportClient({
   userId,
   basePath,
   showApplicationReadiness = true,
+  portal = "tenant",
 }: PassportClientProps) {
   const searchParams = useSearchParams();
   const { documents, loading, error, refresh, addDocument } =
@@ -123,7 +127,7 @@ export default function PassportClient({
 
   return (
     <PassportPageShell>
-      <PassportPageHeader />
+      <PassportPageHeader portal={portal} />
 
       {error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
@@ -229,9 +233,9 @@ export default function PassportClient({
                   No supporting documents yet
                 </p>
                 <p className="max-w-md text-sm text-muted-foreground">
-                  Add payslips, billing statements, or clearances so
-                  they&apos;re ready when you apply for an apartment. Documents
-                  are only shared with landlords you apply to.
+                  {portal === "landlord"
+                    ? "Add your tax declaration, land title, business permit or other ownership documents so tenants can trust your listings. Our team reviews them to confirm you are a legitimate landlord."
+                    : "Add payslips, billing statements, or clearances so they're ready when you apply for an apartment. Documents are only shared with landlords you apply to."}
                 </p>
                 <Button onPress={() => openAdd()}>
                   <IconPlus size={18} aria-hidden="true" />
@@ -278,6 +282,7 @@ export default function PassportClient({
 
       <AddDocumentModal
         userId={userId}
+        portal={portal}
         isOpen={isAddOpen && !loading && !error}
         docType={addDocType}
         onSelectType={selectAddType}

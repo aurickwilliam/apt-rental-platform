@@ -90,7 +90,7 @@ describe('uploadPassportDocument', () => {
     mockRemove.mockResolvedValue({ error: null });
   });
 
-  it.each(['National ID', 'National ID (PhilSys/PhilID)', 'Business Permit'])(
+  it.each(['National ID', 'National ID (PhilSys/PhilID)', 'Driver Handbook'])(
     'blocks manual uploads of %s before writing storage',
     async (docType) => {
       await expect(uploadPassportDocument({

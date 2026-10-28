@@ -13,7 +13,7 @@ import {
 
 import { IconAlertTriangle, IconFileInfo } from "@tabler/icons-react-native";
 
-import { DOCUMENT_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
+import { PASSPORT_UPLOADABLE_DOC_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -49,7 +49,7 @@ export default function Upload() {
   const { mutate: upload, isPending, error } = useUploadPassportDocument();
   const [showError, setShowError] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
-  const isUploadableDocType = DOCUMENT_TYPES.includes(resolvedDocType);
+  const isUploadableDocType = PASSPORT_UPLOADABLE_DOC_TYPES.includes(resolvedDocType);
   const isIdentityDoc = PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType);
 
   const handleAddDocument = () => {
