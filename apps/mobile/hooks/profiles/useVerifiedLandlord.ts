@@ -1,8 +1,9 @@
+import type { LandlordOwnershipDocument } from '@repo/constants'
 import { useQuery } from '@tanstack/react-query'
 
 import {
   fetchIsVerifiedLandlord,
-  fetchVerifiedLandlordDocumentTypes,
+  fetchLandlordOwnershipDocuments,
 } from '@/service/profiles/verifiedLandlordService'
 
 export const getVerifiedLandlordQueryKey = (landlordId: string | undefined) =>
@@ -17,11 +18,11 @@ export function useVerifiedLandlord(landlordId?: string | null): boolean {
   return data ?? false
 }
 
-/** Approved ownership document types for the profile card; empty while loading or on failure. */
-export function useVerifiedLandlordDocuments(landlordId?: string | null): string[] {
+/** Ownership documents for the profile card; empty while loading or on failure. */
+export function useLandlordOwnershipDocuments(landlordId?: string | null): LandlordOwnershipDocument[] {
   const { data } = useQuery({
-    queryKey: ['verified-landlord-documents', landlordId],
-    queryFn: () => fetchVerifiedLandlordDocumentTypes(landlordId as string),
+    queryKey: ['landlord-ownership-documents', landlordId],
+    queryFn: () => fetchLandlordOwnershipDocuments(landlordId as string),
     enabled: Boolean(landlordId),
   })
   return data ?? []

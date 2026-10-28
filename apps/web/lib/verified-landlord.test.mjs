@@ -35,19 +35,28 @@ test("shows no badge when the lookup fails", async () => {
   }
 });
 
-import { fetchVerifiedLandlordDocumentTypes } from "./verified-landlord.ts";
+import { fetchLandlordOwnershipDocuments } from "./verified-landlord.ts";
 
-test("lists the approved document types", async () => {
-  const client = clientReturning({ data: ["Business Permit", "Tax Declaration"], error: null });
-  assert.deepEqual(await fetchVerifiedLandlordDocumentTypes(client, "a"), ["Business Permit", "Tax Declaration"]);
+test("maps ownership documents with their verified flag", async () => {
+  const client = clientReturning({
+    data: [
+      { doc_type: "Business Permit", is_verified: true },
+      { doc_type: "Tax Declaration", is_verified: false },
+    ],
+    error: null,
+  });
+  assert.deepEqual(await fetchLandlordOwnershipDocuments(client, "a"), [
+    { docType: "Business Permit", isVerified: true },
+    { docType: "Tax Declaration", isVerified: false },
+  ]);
 });
 
-test("lists no documents when the lookup fails", async () => {
+test("lists no ownership documents when the lookup fails", async () => {
   const original = console.error;
   console.error = () => {};
   try {
     const client = clientReturning({ data: null, error: { message: "boom" } });
-    assert.deepEqual(await fetchVerifiedLandlordDocumentTypes(client, "a"), []);
+    assert.deepEqual(await fetchLandlordOwnershipDocuments(client, "a"), []);
   } finally {
     console.error = original;
   }

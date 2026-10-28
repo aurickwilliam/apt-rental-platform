@@ -1,4 +1,4 @@
-import { sortLandlordDocumentTypes } from "@repo/constants";
+import { sortLandlordOwnershipDocuments, type LandlordOwnershipDocument } from "@repo/constants";
 import { supabase } from "@repo/supabase";
 
 /**
@@ -19,17 +19,20 @@ export async function fetchIsVerifiedLandlord(landlordId: string): Promise<boole
 }
 
 /**
- * The kinds of ownership document an admin approved for this landlord, in
- * display order. Names only; the files stay private. A failed lookup lists none.
+ * The ownership documents this landlord has added, verified first, each flagged
+ * verified or not. Names and a flag only; the files stay private. A failed
+ * lookup lists none.
  */
-export async function fetchVerifiedLandlordDocumentTypes(landlordId: string): Promise<string[]> {
-  const { data, error } = await supabase.rpc("get_verified_landlord_documents", {
+export async function fetchLandlordOwnershipDocuments(landlordId: string): Promise<LandlordOwnershipDocument[]> {
+  const { data, error } = await supabase.rpc("get_landlord_ownership_documents", {
     p_landlord_id: landlordId,
   });
 
   if (error) {
-    console.error("Error fetching verified landlord documents:", error);
+    console.error("Error fetching landlord ownership documents:", error);
     return [];
   }
-  return sortLandlordDocumentTypes(data ?? []);
+  return sortLandlordOwnershipDocuments(
+    (data ?? []).map((row) => ({ docType: row.doc_type, isVerified: Boolean(row.is_verified) })),
+  );
 }

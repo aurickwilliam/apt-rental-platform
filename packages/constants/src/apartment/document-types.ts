@@ -24,13 +24,23 @@ export const LANDLORD_DOCUMENT_TYPES = [
   'NBI Clearance',
 ]
 
-/** Landlord ownership types in display order, for sorting what the database returns. */
-export function sortLandlordDocumentTypes(docTypes: readonly string[]): string[] {
+/** An ownership document on a landlord's public profile: its type and whether an admin verified it. */
+export interface LandlordOwnershipDocument {
+  docType: string
+  isVerified: boolean
+}
+
+/** Verified documents first, then the canonical landlord type order. */
+export function sortLandlordOwnershipDocuments(
+  documents: readonly LandlordOwnershipDocument[],
+): LandlordOwnershipDocument[] {
   const rank = (docType: string) => {
     const index = LANDLORD_DOCUMENT_TYPES.indexOf(docType)
     return index === -1 ? LANDLORD_DOCUMENT_TYPES.length : index
   }
-  return [...docTypes].sort((a, b) => rank(a) - rank(b))
+  return [...documents].sort(
+    (a, b) => Number(b.isVerified) - Number(a.isVerified) || rank(a.docType) - rank(b.docType),
+  )
 }
 
 /** Every type a Passport upload accepts, whichever portal it comes from. */

@@ -8,25 +8,32 @@ interface RpcClient {
 
 interface DocumentsRpcClient {
   rpc: (
-    fn: "get_verified_landlord_documents",
+    fn: "get_landlord_ownership_documents",
     args: { p_landlord_id: string },
   ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
 }
 
+export interface OwnershipDocumentRow {
+  docType: string;
+  isVerified: boolean;
+}
+
 /**
- * The kinds of ownership document an admin approved for this landlord (unsorted).
- * Names only; the files stay private. A failed lookup lists none.
+ * The ownership document types this landlord has added, each flagged verified
+ * or not (unsorted). Names and a flag only; the files stay private. A failed
+ * lookup lists none.
  */
-export async function fetchVerifiedLandlordDocumentTypes(
+export async function fetchLandlordOwnershipDocuments(
   client: DocumentsRpcClient,
   landlordId: string,
-): Promise<string[]> {
-  const { data, error } = await client.rpc("get_verified_landlord_documents", { p_landlord_id: landlordId });
+): Promise<OwnershipDocumentRow[]> {
+  const { data, error } = await client.rpc("get_landlord_ownership_documents", { p_landlord_id: landlordId });
   if (error) {
-    console.error("Verified landlord documents lookup failed:", error.message);
+    console.error("Landlord ownership documents lookup failed:", error.message);
     return [];
   }
-  return Array.isArray(data) ? (data as string[]) : [];
+  const rows = Array.isArray(data) ? (data as { doc_type: string; is_verified: boolean }[]) : [];
+  return rows.map((row) => ({ docType: row.doc_type, isVerified: Boolean(row.is_verified) }));
 }
 
 /**

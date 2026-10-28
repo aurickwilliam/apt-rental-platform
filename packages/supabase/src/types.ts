@@ -1915,9 +1915,9 @@ export type Database = {
       }
       confirm_landlord_finance_month: { Args: { p_month: string; p_apartment_id?: string }; Returns: undefined }
       get_tenancy_bill: { Args: { p_tenancy_id: string }; Returns: Json }
-      get_verified_landlord_documents: {
+      get_landlord_ownership_documents: {
         Args: { p_landlord_id: string }
-        Returns: string[]
+        Returns: { doc_type: string; is_verified: boolean }[]
       }
       get_verified_landlord_ids: {
         Args: { p_landlord_ids: string[] }

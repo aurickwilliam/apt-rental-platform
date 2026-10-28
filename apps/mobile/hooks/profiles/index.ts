@@ -1,5 +1,5 @@
 export { usePublicLandlordProfile } from './usePublicLandlordProfile'
 export type { LandlordProfileData } from './usePublicLandlordProfile'
-export { useVerifiedLandlord, useVerifiedLandlordDocuments } from './useVerifiedLandlord'
+export { useVerifiedLandlord, useLandlordOwnershipDocuments } from './useVerifiedLandlord'
 export { usePublicTenantProfile } from './usePublicTenantProfile'
 export type { PublicTenantProfile, PastApartment } from './usePublicTenantProfile'
