@@ -1,18 +1,24 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Image } from "expo-image";
 
-import { IconChevronLeft } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconMessagePlus } from "@tabler/icons-react-native";
+import { Button } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
-import { IMAGES } from "constants/images";
+
+const HEADER_HEIGHT = 56;
 
 interface AIHeaderProps {
   onBackPress?: () => void;
+  /** Starts a new conversation. Hidden until there is something to clear. */
+  onNewChat?: () => void;
+  canStartNewChat?: boolean;
 }
 
-export default function AIHeader({ onBackPress }: AIHeaderProps) {
+// Quiet header: the conversation is the focus, so it sits on the screen
+// background instead of a blue bar.
+export default function AIHeader({ onBackPress, onNewChat, canStartNewChat = false }: AIHeaderProps) {
   const { colors } = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -27,49 +33,41 @@ export default function AIHeader({ onBackPress }: AIHeaderProps) {
 
   return (
     <View
-      className="flex-row items-center justify-between bg-accent px-4"
-      style={{ paddingTop: insets.top, height: insets.top + 56 }}
+      className="flex-row items-center justify-between bg-background px-3"
+      style={{ paddingTop: insets.top, height: insets.top + HEADER_HEIGHT }}
     >
-      {/* Back button */}
-      <View className="w-10 items-start justify-center">
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleBack}
-          className="p-1 -ml-1"
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <IconChevronLeft size={24} color={colors.secondaryForeground} />
-        </TouchableOpacity>
+      <Button
+        variant="ghost"
+        isIconOnly
+        onPress={handleBack}
+        className="size-10 rounded-full"
+        accessibilityLabel="Go back"
+      >
+        <IconChevronLeft size={24} color={colors.textPrimary} />
+      </Button>
+
+      <View className="flex-1 items-center" accessibilityRole="header">
+        <Text className="text-lg text-foreground font-nunitoBold" numberOfLines={1}>
+          Ava
+        </Text>
+        <Text className="text-xs text-muted font-inter" numberOfLines={1}>
+          APT Virtual Assistant
+        </Text>
       </View>
 
-      {/* AI identity */}
-      <View className="flex-1 flex-row items-center justify-start ml-2">
-        <View
-          className="w-9 h-9 rounded-full items-center justify-center mr-3 overflow-hidden border border-white"
-          style={{ backgroundColor: "rgba(255,255,255,0.25)" }}
-          accessibilityLabel="APT AI assistant"
+      {onNewChat && canStartNewChat ? (
+        <Button
+          variant="ghost"
+          isIconOnly
+          onPress={onNewChat}
+          className="size-10 rounded-full"
+          accessibilityLabel="Start a new chat"
         >
-          <Image
-            source={IMAGES.aiIcon}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-          />
-        </View>
-
-        <View className="shrink">
-          <Text
-            className="text-base text-secondary-foreground font-nunitoSemiBold"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            Casa AI
-          </Text>
-        </View>
-      </View>
-
-      {/* Right spacer */}
-      <View className="w-10 items-end justify-center" />
+          <IconMessagePlus size={22} color={colors.textPrimary} />
+        </Button>
+      ) : (
+        <View className="size-10" />
+      )}
     </View>
   );
 }

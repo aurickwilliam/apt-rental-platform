@@ -576,6 +576,10 @@ importers:
         version: 5.9.3
 
   packages/utils:
+    dependencies:
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../constants
     devDependencies:
       typescript:
         specifier: ^5.3.3

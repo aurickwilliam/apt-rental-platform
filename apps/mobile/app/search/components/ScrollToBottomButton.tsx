@@ -45,11 +45,11 @@ export default function ScrollToBottomButton({
       ]}
     >
       <TouchableOpacity
-        className="w-10 h-10 rounded-full bg-accent items-center justify-center shadow-lg"
+        className="w-10 h-10 rounded-full bg-surface border border-border items-center justify-center"
         onPress={onPress}
         accessibilityLabel="Jump to latest messages"
       >
-        <IconArrowDown size={20} color={colors.secondaryForeground} />
+        <IconArrowDown size={20} color={colors.textPrimary} />
       </TouchableOpacity>
     </Animated.View>
   );

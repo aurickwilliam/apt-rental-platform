@@ -11,6 +11,7 @@ export default function SearchContainer({
   basePath = "/browse",
   filterButton,
   mapHref,
+  assistantButton,
   compact = false,
   navigate,
 }: {
@@ -18,6 +19,8 @@ export default function SearchContainer({
   filterButton?: React.ReactNode;
   /** Adds a Map button that opens the map search with the current filters. */
   mapHref?: string;
+  /** Entry for Ava, the APT Virtual Assistant (tenant Browse only). */
+  assistantButton?: React.ReactNode;
   /** Just the search row (no hero banner), for the map search page. */
   compact?: boolean;
   /**
@@ -138,6 +141,7 @@ export default function SearchContainer({
             <IconMap2 size={18} />
           </Button>
         ) : null}
+        {assistantButton}
       </div>
     </div>
   );
