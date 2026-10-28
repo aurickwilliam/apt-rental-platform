@@ -15,10 +15,11 @@ import RatingCard from 'components/cards/RatingCard'
 import RatingCardSkeleton from 'components/cards/RatingCardSkeleton'
 import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 import VerifiedLandlordChip from 'components/display/VerifiedLandlordChip'
+import VerifiedDocumentsCard from 'components/display/VerifiedDocumentsCard'
 
 import { Button, SkeletonGroup } from "heroui-native"
 
-import { usePublicLandlordProfile, useVerifiedLandlord } from 'hooks/profiles'
+import { usePublicLandlordProfile, useVerifiedLandlordDocuments } from 'hooks/profiles'
 import { useColors } from 'hooks/useTheme'
 import { getInquiryConversationId } from '@/service/chat/chatRoutes'
 
@@ -61,7 +62,8 @@ export default function PublicLandlordProfile() {
     loading,
     reviewsLoading,
   } = usePublicLandlordProfile(resolvedLandlordId);
-  const isVerifiedLandlord = useVerifiedLandlord(resolvedLandlordId);
+  const verifiedDocuments = useVerifiedLandlordDocuments(resolvedLandlordId);
+  const isVerifiedLandlord = verifiedDocuments.length > 0;
 
   const fullName = useMemo(() => {
     const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
@@ -156,6 +158,8 @@ export default function PublicLandlordProfile() {
           ]}
         />
       </View>
+
+      <VerifiedDocumentsCard documentTypes={verifiedDocuments} />
 
       {/* Personal Information */}
       <View className="mx-5 mt-5 bg-surface rounded-3xl border border-border shadow-none p-4 gap-4">

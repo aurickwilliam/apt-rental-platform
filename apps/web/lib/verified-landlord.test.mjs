@@ -34,3 +34,21 @@ test("shows no badge when the lookup fails", async () => {
     console.error = original;
   }
 });
+
+import { fetchVerifiedLandlordDocumentTypes } from "./verified-landlord.ts";
+
+test("lists the approved document types", async () => {
+  const client = clientReturning({ data: ["Business Permit", "Tax Declaration"], error: null });
+  assert.deepEqual(await fetchVerifiedLandlordDocumentTypes(client, "a"), ["Business Permit", "Tax Declaration"]);
+});
+
+test("lists no documents when the lookup fails", async () => {
+  const original = console.error;
+  console.error = () => {};
+  try {
+    const client = clientReturning({ data: null, error: { message: "boom" } });
+    assert.deepEqual(await fetchVerifiedLandlordDocumentTypes(client, "a"), []);
+  } finally {
+    console.error = original;
+  }
+});

@@ -10,6 +10,7 @@ import {
   IconCalendarMonth,
   IconMessage,
   IconShieldCheck,
+  IconShieldCheckFilled,
   IconStar,
   IconStarFilled,
   IconUsers,
@@ -32,6 +33,7 @@ import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
+import PublicProfileTagsCard from "./PublicProfileTagsCard";
 import type { PublicProfileTrustItem } from "./PublicProfileTrustStrip";
 import type { LandlordProfileData } from "./types";
 
@@ -165,6 +167,16 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
                   icon: <IconCalendarMonth size={20} aria-hidden="true" />,
                 },
               ]}
+            />
+            <PublicProfileTagsCard
+              title="Verified on APT Passport"
+              tone="success"
+              items={data.verifiedDocumentTypes.map((docType) => ({
+                key: docType,
+                label: docType,
+                icon: <IconShieldCheckFilled size={14} aria-hidden="true" />,
+              }))}
+              emptyText="This landlord hasn't had an ownership document verified yet."
             />
             {contact ? (
               <PublicProfileContactCard
