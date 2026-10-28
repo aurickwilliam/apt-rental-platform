@@ -86,8 +86,8 @@ export default function PassportClient({
     [documents],
   );
   const supportingDocs = useMemo(
-    () => selectSupportingDocuments(documents),
-    [documents],
+    () => selectSupportingDocuments(documents, portal),
+    [documents, portal],
   );
 
   const idEntries = useMemo(

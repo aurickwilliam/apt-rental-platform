@@ -43,6 +43,16 @@ export function sortLandlordOwnershipDocuments(
   )
 }
 
+/**
+ * Whether a supporting document belongs in a portal's wallet. Ownership types
+ * are landlord-only and everything else (including legacy types) stays in the
+ * tenant wallet; types in both lists, like NBI Clearance, appear in both.
+ */
+export function isDocumentTypeForPortal(docType: string, portal: PassportPortalRole): boolean {
+  if (portal === 'landlord') return LANDLORD_DOCUMENT_TYPES.includes(docType)
+  return DOCUMENT_TYPES.includes(docType) || !LANDLORD_DOCUMENT_TYPES.includes(docType)
+}
+
 /** Every type a Passport upload accepts, whichever portal it comes from. */
 export const PASSPORT_UPLOADABLE_DOC_TYPES: string[] = [
   ...new Set([...DOCUMENT_TYPES, ...LANDLORD_DOCUMENT_TYPES]),

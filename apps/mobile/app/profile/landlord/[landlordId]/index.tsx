@@ -159,8 +159,6 @@ export default function PublicLandlordProfile() {
         />
       </View>
 
-      <VerifiedDocumentsCard documents={ownershipDocuments} />
-
       {/* Personal Information */}
       <View className="mx-5 mt-5 bg-surface rounded-3xl border border-border shadow-none p-4 gap-4">
         <View className="flex-row items-center gap-3">
@@ -212,6 +210,9 @@ export default function PublicLandlordProfile() {
           <Button.Label>Message Landlord</Button.Label>
         </Button>
       </View>
+
+      {/* Ownership documents */}
+      <VerifiedDocumentsCard documents={ownershipDocuments} />
 
       {/* Listings */}
       <View className="mt-8">
