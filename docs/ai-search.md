@@ -1,12 +1,12 @@
 # Ava: AI chatbot search (Gemini)
 
-Ava (APT Virtual Assistant) is the tenant chatbot search on mobile (`app/search/ai-search.tsx`, opened from the sparkles button in the Explore header). Tenants describe what they want in plain English, Tagalog or Taglish. Ava replies in a friendly way and shows real listings.
+Ava (APT Virtual Assistant) is the tenant chatbot search on mobile (`app/search/ai-search.tsx`, opened from the sparkles button in the Explore header) and on the web (a right-hand drawer, `app/components/ava/`, opened from the sparkles button in the tenant Browse search row). Tenants describe what they want in plain English, Tagalog or Taglish. Ava replies in a friendly way and shows real listings.
 
 ## How it works
 
-1. `hooks/chat/useAIChat.ts` sends the conversation to the `ai-search` edge function through `service/search/aiSearchService.ts` (`askAva`).
+1. The chat hook (mobile `hooks/chat/useAIChat.ts`, web `hooks/use-ava-chat.ts`) sends the conversation to the `ai-search` edge function. Reading its answer, the keyword fallback and what Ava says are shared in `@repo/utils` `avaChat.ts` (`readAvaResponse`, `avaFallbackAnswer`, `shouldSearchForAva`, `composeAvaReply`), so both platforms behave the same.
 2. The edge function (`supabase/functions/ai-search/index.ts`) checks the caller (signed in, not suspended), counts the message against the daily allowance, and asks Gemini for JSON: a short `reply`, up to four `quickReplies` and search `filters`.
-3. The app runs every filter through `sanitizeAiFilters` (`@repo/utils` `aiSearch.ts`) and searches with `fetchAvaListings`, the normal apartments query with the same visibility guards as the search tab. RLS decides what is shown.
+3. The app runs every filter through `sanitizeAiFilters` (`@repo/utils` `aiSearch.ts`) and searches with its own client: mobile `fetchAvaListings` (same guards as the search tab), web `fetchAvaResults` (`app/browse/lib/fetch-ava-results.ts`, the same `applyBrowseFilters` / `applyBrowseSort` as Browse, so "See all results" opens exactly that search via `aiFiltersToBrowseParams`). RLS decides what is shown.
 
 Gemini never writes listings, prices or addresses, so it cannot show a listing that does not exist.
 
@@ -49,10 +49,11 @@ The edge function keeps its own copy of the allowed cities, types, furnishing va
 ## Tests
 
 - `packages/utils/src/aiSearch.test.ts`: sanitizer, keyword reader (English, Tagalog, Taglish), browse-param mapper.
+- `packages/utils/src/avaChat.test.ts`: reading answers, the fallback and reply choice.
 - `apps/mobile/hooks/chat/useAIChat.test.ts`: chat flow with the service mocked.
 - Edge function: `deno check ai-search/index.ts` from `supabase/functions`.
 
 ## Not done yet
 
-- A web version. `aiFiltersToBrowseParams` already maps Ava's filters to the web Browse params for that.
-- "See more results" that opens the full search tab with Ava's filters.
+- On mobile, "See more results" that opens the full search tab with Ava's filters (the web drawer has "See all results").
+- Ava on the public (signed-out) Browse page: the function requires a signed-in account.

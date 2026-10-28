@@ -9,8 +9,6 @@ const mockFetchAvaListings = jest.fn();
 jest.mock("@/service/search/aiSearchService", () => ({
   askAva: (...args: unknown[]) => mockAskAva(...args),
   fetchAvaListings: (...args: unknown[]) => mockFetchAvaListings(...args),
-  hasSearchableDetails: (filters: AiSearchFilters) =>
-    filters.cities.length > 0 || filters.priceMax !== null,
 }));
 
 const MALABON: AiSearchFilters = { ...EMPTY_AI_SEARCH_FILTERS, cities: ["Malabon"] };

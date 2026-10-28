@@ -1,10 +1,13 @@
 import { supabase } from "@repo/supabase";
 import { CAMANAVA_CITIES } from "@repo/constants";
 import {
-  countAiSearchFilters,
-  parseSearchKeywords,
-  sanitizeAiFilters,
+  AVA_RESULT_LIMIT,
+  avaFallbackAnswer,
+  hasAvaQuestion,
+  readAvaResponse,
   type AiSearchFilters,
+  type AvaAnswer,
+  type AvaTurn,
 } from "@repo/utils";
 
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
@@ -14,95 +17,29 @@ import {
   type ApartmentCardRow,
 } from "@/service/search/apartmentCards";
 
-// Client for the `ai-search` edge function (Ava, the chatbot search). The
-// function asks Gemini to read the conversation; this service always
-// sanitizes what comes back and searches listings itself, so RLS decides
-// which apartments appear. When Gemini is unavailable, the daily limit is
-// reached or the request fails, the last message is read with the keyword
-// parser instead, so Ava keeps searching without the model.
-
-export const AVA_RESULT_LIMIT = 5;
-
-export type AvaSource = "gemini" | "fallback" | "limit";
-
-export interface AvaTurn {
-  role: "user" | "assistant";
-  text: string;
-}
-
-export interface AvaAnswer {
-  source: AvaSource;
-  reply: string | null;
-  quickReplies: string[];
-  /** Said instead of `reply` when the search finds nothing (Gemini answers before the search). */
-  noResultsReply: string | null;
-  noResultsQuickReplies: string[];
-  filters: AiSearchFilters;
-}
+// Client for the `ai-search` edge function (Ava, the APT Virtual Assistant).
+// Reading the answer and the keyword fallback are shared with the web in
+// `@repo/utils` (`avaChat.ts`); this service only makes the calls. Listings
+// are searched here with the app's own client, so RLS decides what appears.
 
 export interface AvaListings {
   listings: ApartmentCardProps[];
   total: number;
 }
 
-interface AiSearchResponse {
-  source?: string;
-  reply?: unknown;
-  quickReplies?: unknown;
-  noResultsReply?: unknown;
-  noResultsQuickReplies?: unknown;
-  filters?: unknown;
-}
-
-const toStringList = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-
-function lastUserText(turns: AvaTurn[]): string {
-  return [...turns].reverse().find((turn) => turn.role === "user")?.text ?? "";
-}
-
-// Fallback reading: the whole conversation's user messages, so details from
-// earlier turns ("sa Malabon", then "2 bedrooms") still count.
-function parseConversation(turns: AvaTurn[]): AiSearchFilters {
-  const userText = turns
-    .filter((turn) => turn.role === "user")
-    .map((turn) => turn.text)
-    .join(". ");
-  return parseSearchKeywords(userText);
-}
-
 export async function askAva(turns: AvaTurn[]): Promise<AvaAnswer> {
-  const fallback = (source: AvaSource): AvaAnswer => ({
-    source,
-    reply: null,
-    quickReplies: [],
-    noResultsReply: null,
-    noResultsQuickReplies: [],
-    filters: parseConversation(turns),
-  });
+  if (!hasAvaQuestion(turns)) return avaFallbackAnswer(turns);
 
-  if (!lastUserText(turns)) return fallback("fallback");
-
-  const { data, error } = await supabase.functions.invoke<AiSearchResponse>("ai-search", {
+  const { data, error } = await supabase.functions.invoke("ai-search", {
     body: { messages: turns },
   });
 
   if (error || !data) {
     console.error("Ava request failed:", error?.message ?? "empty response");
-    return fallback("fallback");
+    return avaFallbackAnswer(turns);
   }
 
-  if (data.source === "limit") return fallback("limit");
-  if (data.source !== "gemini" || typeof data.reply !== "string") return fallback("fallback");
-
-  return {
-    source: "gemini",
-    reply: data.reply,
-    quickReplies: toStringList(data.quickReplies),
-    noResultsReply: typeof data.noResultsReply === "string" ? data.noResultsReply : null,
-    noResultsQuickReplies: toStringList(data.noResultsQuickReplies),
-    filters: sanitizeAiFilters(data.filters),
-  };
+  return readAvaResponse(data, turns);
 }
 
 export async function fetchAvaListings(
@@ -162,8 +99,4 @@ export async function fetchAvaListings(
 
   const rows = (data ?? []) as unknown as ApartmentCardRow[];
   return { listings: toApartmentCards(rows), total: count ?? rows.length };
-}
-
-export function hasSearchableDetails(filters: AiSearchFilters): boolean {
-  return countAiSearchFilters(filters) > 0;
 }

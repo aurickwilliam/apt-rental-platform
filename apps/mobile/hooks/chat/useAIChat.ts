@@ -1,14 +1,15 @@
 import { useCallback, useRef, useState } from "react";
 
-import { CAMANAVA_CITIES } from "@repo/constants";
+import {
+  AVA_GENERIC_ERROR,
+  AVA_LISTINGS_ERROR,
+  composeAvaReply,
+  shouldSearchForAva,
+  type AvaTurn,
+} from "@repo/utils";
 
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
-import {
-  askAva,
-  fetchAvaListings,
-  hasSearchableDetails,
-  type AvaTurn,
-} from "@/service/search/aiSearchService";
+import { askAva, fetchAvaListings } from "@/service/search/aiSearchService";
 
 export type AIChatMessage = {
   id: string;
@@ -19,17 +20,6 @@ export type AIChatMessage = {
   /** Real listings found with the filters Ava understood. */
   listings?: ApartmentCardProps[];
 };
-
-const CITY_QUICK_REPLIES = [...CAMANAVA_CITIES];
-const ASK_FOR_DETAILS =
-  "I'd love to help! Tell me the area, your monthly budget, or how many bedrooms you need.";
-const FOUND_REPLY = "Here are places that match what you told me.";
-const NO_RESULTS =
-  "I couldn't find a match yet. Try a higher budget, fewer must-haves, or another area.";
-const LOOSEN_QUICK_REPLIES = ["Any area in CAMANAVA", "Higher budget", "Any unit type"];
-const LIMIT_NOTE = "I've answered a lot today, so I'm using simple search for now.";
-const LISTINGS_ERROR = "Sorry, I couldn't load listings right now. Please try again.";
-const GENERIC_ERROR = "Sorry, I couldn't process that. Please try again.";
 
 let messageSequence = 0;
 const nextMessageId = () => `${Date.now()}-${(messageSequence += 1)}`;
@@ -82,13 +72,10 @@ export function useAIChat() {
 
       try {
         const answer = await askAva(toTurns([...messages, userMessage]));
-        const prefix = answer.source === "limit" ? `${LIMIT_NOTE} ` : "";
-        const quickReplies = answer.quickReplies.length > 0 ? answer.quickReplies : undefined;
 
-        if (!hasSearchableDetails(answer.filters)) {
-          reply(prefix + (answer.reply ?? ASK_FOR_DETAILS), {
-            quickReplies: quickReplies ?? CITY_QUICK_REPLIES,
-          });
+        if (!shouldSearchForAva(answer)) {
+          const { text: replyText, quickReplies } = composeAvaReply(answer, null);
+          reply(replyText, { quickReplies });
           return;
         }
 
@@ -97,27 +84,15 @@ export function useAIChat() {
           found = await fetchAvaListings(answer.filters);
         } catch (err) {
           console.error("Ava listings failed:", err);
-          reply(LISTINGS_ERROR);
+          reply(AVA_LISTINGS_ERROR);
           return;
         }
 
-        if (found.listings.length === 0) {
-          // Gemini wrote its main reply before the search; use its no-results
-          // reply so the message stays in the tenant's language.
-          reply(prefix + (answer.noResultsReply ?? NO_RESULTS), {
-            quickReplies:
-              answer.noResultsQuickReplies.length > 0
-                ? answer.noResultsQuickReplies
-                : LOOSEN_QUICK_REPLIES,
-            listings: [],
-          });
-          return;
-        }
-
-        reply(prefix + (answer.reply ?? FOUND_REPLY), { quickReplies, listings: found.listings });
+        const { text: replyText, quickReplies } = composeAvaReply(answer, found.listings.length);
+        reply(replyText, { quickReplies, listings: found.listings });
       } catch (err) {
         console.error("Ava chat failed:", err);
-        reply(GENERIC_ERROR);
+        reply(AVA_GENERIC_ERROR);
       } finally {
         if (isCurrentChat()) setIsLoading(false);
       }

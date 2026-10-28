@@ -259,3 +259,22 @@ export {
   parseSearchKeywords,
   aiFiltersToBrowseParams,
 } from './aiSearch';
+export {
+  AVA_RESULT_LIMIT,
+  AVA_ASK_FOR_DETAILS,
+  AVA_FOUND_REPLY,
+  AVA_NO_RESULTS,
+  AVA_LIMIT_NOTE,
+  AVA_LISTINGS_ERROR,
+  AVA_GENERIC_ERROR,
+  AVA_LOOSEN_QUICK_REPLIES,
+  type AvaSource,
+  type AvaTurn,
+  type AvaAnswer,
+  type AvaReply,
+  hasAvaQuestion,
+  avaFallbackAnswer,
+  readAvaResponse,
+  shouldSearchForAva,
+  composeAvaReply,
+} from './avaChat';
