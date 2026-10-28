@@ -12,6 +12,7 @@ import {
   buildNotificationDeepLink,
   getWebOnlyNotificationNotice,
 } from "@/utils/notificationDeepLink";
+import { isLandlordAccessBlocked } from "@repo/utils";
 import { authorizedPortal } from "@/service/auth/portalPreference";
 import { usePortalStore } from "@/stores/usePortalStore";
 
@@ -68,7 +69,10 @@ export function useInAppNotificationBanner() {
 
   // Subscribe only once preferences are loaded; per-type gating is still
   // enforced inside the handler for pref changes while subscribed.
-  const subscribedUserId = preferencesLoading || !role ? null : userId;
+  // An unverified landlord's landlord portal is closed, so it raises no toasts.
+  const landlordBlocked = role === "landlord"
+    && isLandlordAccessBlocked(currentUserQuery.data?.roles ?? [], currentUserQuery.data?.account_status);
+  const subscribedUserId = preferencesLoading || !role || landlordBlocked ? null : userId;
 
   useNotificationRealtime(subscribedUserId, {
     onInsert: (row) => {

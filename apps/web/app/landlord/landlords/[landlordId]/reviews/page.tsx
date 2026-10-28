@@ -16,7 +16,7 @@ export default async function LandlordViewingLandlordReviewsPage({
 }) {
   const { landlordId } = await params;
   const { page, sort } = await searchParams;
-  await requirePortalViewer("landlord");
+  await requirePortalViewer("landlord", true);
 
   // The loader clamps the page against the real review count.
   const data = await loadLandlordReviewsPage(landlordId, {

@@ -258,7 +258,9 @@ test("Passport guard reuses layout identity but retains every portal/status deni
         },
       };
       const identity = compile("lib/server-identity.ts", { "server-only": {}, react: { cache }, "next/navigation": navigation,
-        "@repo/supabase/server": { createClient: async () => client }, "@repo/supabase/pending-onboarding": {} });
+        "@repo/supabase/server": { createClient: async () => client }, "@repo/supabase/pending-onboarding": {},
+        "@repo/utils": compile("../../packages/utils/src/landlordAccess.ts", {}),
+        "@/lib/landlord-verification-access": compile("lib/landlord-verification-access.ts", {}) });
       const guard = compile("app/components/passport/requirePassportViewer.ts", { react: { cache }, "next/navigation": navigation, "@/lib/server-identity": identity, "@/lib/passport-access": access }).requirePassportViewer;
       await identity.getServerIdentity();
       if (scenario === "verified") {

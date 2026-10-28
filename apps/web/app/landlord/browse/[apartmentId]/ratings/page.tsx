@@ -2,7 +2,7 @@ import ApartmentRatingsView from "@/app/browse/[apartmentId]/components/Apartmen
 import { requirePortalViewer } from "@/lib/server-identity";
 
 export default async function LandlordRatingsPage() {
-  await requirePortalViewer("landlord");
+  await requirePortalViewer("landlord", true);
 
   return <ApartmentRatingsView />;
 }
