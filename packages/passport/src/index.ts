@@ -23,5 +23,6 @@ export {
   type PassportSlotDocument,
   type PassportSlotState,
 } from './selection'
+export { selectSupportingDocuments } from './supportingDocuments'
 export { verifiedPassportPaths, type VerifiedPassportPathRow } from './verifiedPaths'
 export { getVerifiedPassportSlots, type VerifiedPassportSlot } from './verifiedSummary'

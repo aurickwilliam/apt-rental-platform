@@ -10,7 +10,7 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-import { getPassportDocumentStatus } from "@repo/passport";
+import { getPassportDocumentStatus, selectSupportingDocuments } from "@repo/passport";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
@@ -86,8 +86,8 @@ export default function PassportClient({
     [documents],
   );
   const supportingDocs = useMemo(
-    () => documents.filter((doc) => doc.id !== primaryId?.id),
-    [documents, primaryId],
+    () => selectSupportingDocuments(documents),
+    [documents],
   );
 
   const idEntries = useMemo(
