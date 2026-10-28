@@ -1,7 +1,10 @@
 import { Stack } from "expo-router";
 
+import LandlordVerificationGate from "@/components/landlord/LandlordVerificationGate";
+
 export default function LandlordLayout() {
   return (
+    <LandlordVerificationGate allowTenancyScreens>
     <Stack
       screenOptions={{
         headerShown: false,
@@ -24,5 +27,6 @@ export default function LandlordLayout() {
       <Stack.Screen name="property-performance" />
       <Stack.Screen name="payments" />
     </Stack>
+    </LandlordVerificationGate>
   );
 }

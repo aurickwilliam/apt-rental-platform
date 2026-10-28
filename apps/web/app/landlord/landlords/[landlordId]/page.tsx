@@ -16,7 +16,7 @@ export default async function LandlordViewingLandlordProfilePage({
 }) {
   const { landlordId } = await params;
   const { reviews } = await searchParams;
-  await requirePortalViewer("landlord");
+  await requirePortalViewer("landlord", true);
 
   // The old in-place "See all reviews" query now has its own page.
   if (reviews === "all") redirect(landlordReviewsHref("landlord", landlordId));

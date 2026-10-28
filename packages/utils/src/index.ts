@@ -132,6 +132,13 @@ export {
 } from './passwordErrors';
 export { type AuthIdentityUser, hasEmailPasswordIdentity } from './authIdentity';
 export {
+  LANDLORD_VERIFICATION_MESSAGE,
+  type LandlordAccessState,
+  canUseLandlordFeatures,
+  getLandlordAccessState,
+  isLandlordAccessBlocked,
+} from './landlordAccess';
+export {
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
   normalizeRecoveryEmail,

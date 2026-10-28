@@ -4,6 +4,7 @@ import Units from "./units";
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock("@/components/landlord/LandlordVerificationGate", () => ({ __esModule: true, default: ({ children }: { children: React.ReactNode }) => children }));
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
   return { __esModule: true, default: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };

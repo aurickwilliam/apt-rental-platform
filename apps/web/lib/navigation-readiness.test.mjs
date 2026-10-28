@@ -9,6 +9,8 @@ const source = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const jsx = (type, props, key) => ({ type, props, key });
 const jsxRuntime = { jsx, jsxs: jsx, Fragment: "Fragment" };
 const pendingOnboarding = compile("../../packages/supabase/src/pending-onboarding.ts", {});
+const landlordAccess = compile("../../packages/utils/src/landlordAccess.ts", {});
+const landlordVerificationAccess = compile("lib/landlord-verification-access.ts", {});
 const seedLoader = compile("lib/presentation-seed-server.ts", { "server-only": {} });
 const seed = (data, resourceId) => ({ authUserId: "auth-a", profileId: "owner-a", renderedAt: "2026-10-24T00:00:00.000Z", error: null, resourceId, data });
 
@@ -41,6 +43,7 @@ function serverIdentity() {
     "server-only": {}, react: { cache }, "next/navigation": navigation,
     "@repo/supabase/server": { createClient: async () => client },
     "@repo/supabase/pending-onboarding": pendingOnboarding,
+    "@repo/utils": landlordAccess, "@/lib/landlord-verification-access": landlordVerificationAccess,
   });
   // Two-step login is off unless a test sets ADMIN_MFA_REQUIRED.
   const env = {};
@@ -120,6 +123,24 @@ test("Tenant, Landlord and Admin guards fail closed for signed-out, wrong-role, 
   h.next({ profile: { id: "owner", roles: ["landlord"], account_status: "verified" } });
   await assert.rejects(h.identity.requirePortalViewer("tenant"), /browse/);
   await assert.rejects(h.admin.requireAdmin(), /not-found/);
+});
+
+test("a landlord who is not verified is sent to the verification page before any landlord read", async () => {
+  for (const account_status of ["unverified", "pending", "rejected"]) {
+    const h = serverIdentity();
+    h.next({ profile: { id: "owner", roles: ["landlord"], account_status, mobile_number: "phone", is_suspended: false } });
+    await assert.rejects(h.identity.requirePortalViewer("landlord"), /redirect:\/landlord\/verify-required/);
+    // Public listing views and the wall itself opt in.
+    h.next({ profile: { id: "owner", roles: ["landlord"], account_status, mobile_number: "phone", is_suspended: false } });
+    assert.equal((await h.identity.requirePortalViewer("landlord", true)).profile.account_status, account_status);
+  }
+  // The landlord block never touches the tenant side of a dual-role account.
+  const dual = serverIdentity();
+  dual.next({ profile: { id: "owner", roles: ["landlord", "tenant"], account_status: "unverified", mobile_number: "phone", is_suspended: false } });
+  assert.equal((await dual.identity.requirePortalViewer("tenant")).profile.id, "owner");
+  const verified = serverIdentity();
+  verified.next({ profile: { id: "owner", roles: ["landlord"], account_status: "verified", mobile_number: "phone", is_suspended: false } });
+  assert.equal((await verified.identity.requirePortalViewer("landlord")).profile.id, "owner");
 });
 
 test("seeds carry initialized errors instead of invented empty success and remain fresh request values", async () => {

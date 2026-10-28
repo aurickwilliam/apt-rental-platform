@@ -9,7 +9,7 @@ export default async function LandlordApartmentDetailsPage({
   params: Promise<{ apartmentId: string }>;
 }) {
   const { apartmentId } = await params;
-  await requirePortalViewer("landlord");
+  await requirePortalViewer("landlord", true);
 
   return <ApartmentDetailView apartmentId={apartmentId} basePath="/landlord/browse" />;
 }
