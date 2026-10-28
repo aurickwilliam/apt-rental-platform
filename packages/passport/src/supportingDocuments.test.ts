@@ -1,10 +1,15 @@
-import { selectSupportingDocuments } from './supportingDocuments'
+import {
+  findSupportingDocumentOfType,
+  getAddedSupportingDocTypes,
+  selectSupportingDocuments,
+} from './supportingDocuments'
 
-const doc = (id: string, doc_type: string, is_primary = false, verification_id: string | null = null) => ({
+const doc = (id: string, doc_type: string, is_primary = false, verification_id: string | null = null, created_at = '2026-09-01') => ({
   id,
   doc_type,
   is_primary,
   verification_id,
+  created_at,
 })
 
 describe('selectSupportingDocuments', () => {
@@ -33,5 +38,23 @@ describe('selectSupportingDocuments', () => {
 
   it('defaults to the tenant wallet', () => {
     expect(selectSupportingDocuments(rows).map((r) => r.id)).toEqual(['pay', 'nbi', 'legacy'])
+  })
+})
+
+describe('one supporting document per type', () => {
+  const rows = [
+    doc('id1', "Driver's License", true, 'v1'),
+    doc('old', 'Payslip', false, null, '2026-08-01'),
+    doc('new', 'Payslip', false, null, '2026-09-15'),
+  ]
+
+  it('finds the newest document of a type and ignores identity rows', () => {
+    expect(findSupportingDocumentOfType(rows, 'Payslip')?.id).toBe('new')
+    expect(findSupportingDocumentOfType(rows, "Driver's License")).toBeNull()
+    expect(findSupportingDocumentOfType(rows, 'Business Permit')).toBeNull()
+  })
+
+  it('lists the added types once, without the identity document', () => {
+    expect(getAddedSupportingDocTypes(rows)).toEqual(['Payslip'])
   })
 })

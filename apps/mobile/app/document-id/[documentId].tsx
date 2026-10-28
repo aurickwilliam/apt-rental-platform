@@ -9,6 +9,7 @@ import {
   IconAlertTriangle,
   IconHourglass,
   IconId,
+  IconRefresh,
   IconShieldCheck,
   IconShieldQuestion,
   IconTrash,
@@ -203,7 +204,7 @@ export default function PassportDocumentDetail() {
       className="p-5"
       footer={
         isUnderReview && !isLinkedVerification ? (
-          <View className="px-5">
+          <View className="gap-3 px-5">
             <View
               className="rounded-2xl p-3"
               style={statusChipSurface(warning)}
@@ -218,6 +219,21 @@ export default function PassportDocumentDetail() {
                 We&apos;ll notify you once an admin has checked this document.
               </Text>
             </View>
+            <Button
+              variant="secondary"
+              accessibilityLabel="Replace document"
+              onPress={() =>
+                router.push({
+                  pathname: "/document-id/upload",
+                  params: { docType: document.doc_type, replaceId: document.id },
+                })
+              }
+            >
+              <IconRefresh size={18} color={colors.primary} />
+              <Button.Label className="font-nunitoSemiBold">
+                Replace Document
+              </Button.Label>
+            </Button>
           </View>
         ) : !isLinkedVerification ? (
           <View className="gap-3 px-5">
@@ -248,6 +264,21 @@ export default function PassportDocumentDetail() {
                 </Button.Label>
               </Button>
             ) : null}
+            <Button
+              variant="secondary"
+              accessibilityLabel="Replace document"
+              onPress={() =>
+                router.push({
+                  pathname: "/document-id/upload",
+                  params: { docType: document.doc_type, replaceId: document.id },
+                })
+              }
+            >
+              <IconRefresh size={18} color={colors.primary} />
+              <Button.Label className="font-nunitoSemiBold">
+                Replace Document
+              </Button.Label>
+            </Button>
             <Button
               variant="danger-soft"
               accessibilityLabel="Delete document"

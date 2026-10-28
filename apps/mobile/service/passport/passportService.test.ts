@@ -4,6 +4,7 @@ import {
   fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
+  replacePassportDocument,
   requestPassportDocumentReview,
   uploadPassportDocument,
   type PassportDocumentRow,
@@ -14,10 +15,12 @@ const mockUpload = jest.fn();
 const mockRemove = jest.fn();
 const mockFrom = jest.fn();
 const mockBytes = jest.fn();
+const mockRpc = jest.fn();
 
 jest.mock('@repo/supabase', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
     storage: { from: () => ({ upload: mockUpload, remove: mockRemove }) },
   },
 }));
@@ -34,6 +37,10 @@ function chainable(terminal: Record<string, jest.Mock>) {
   Object.assign(chain, terminal);
   return chain;
 }
+
+/** The wallet read the upload makes first to enforce one document per type. */
+const emptyWallet = () =>
+  chainable({ order: jest.fn().mockResolvedValue({ data: [], error: null }) });
 
 const baseRow: PassportDocumentRow = {
   id: 'doc-1',
@@ -105,7 +112,7 @@ describe('uploadPassportDocument', () => {
   );
 
   it('uploads under the passport prefix and inserts a wallet row', async () => {
-    mockFrom.mockReturnValue(
+    mockFrom.mockReturnValueOnce(emptyWallet()).mockReturnValue(
       chainable({
         select: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({ data: baseRow, error: null }),
@@ -132,7 +139,7 @@ describe('uploadPassportDocument', () => {
         single: () => Promise.resolve({ data: { ...baseRow, expires_at: '2027-10-03' }, error: null }),
       }),
     });
-    mockFrom.mockReturnValue({ insert });
+    mockFrom.mockReturnValueOnce(emptyWallet()).mockReturnValue({ insert });
 
     await uploadPassportDocument({
       userId: 'user-1',
@@ -144,8 +151,23 @@ describe('uploadPassportDocument', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ expires_at: '2027-10-03' }));
   });
 
-  it('cleans up storage when the insert fails', async () => {
+  it('refuses a second document of the same type before writing storage', async () => {
     mockFrom.mockReturnValue(
+      chainable({ order: jest.fn().mockResolvedValue({ data: [baseRow], error: null }) })
+    );
+
+    await expect(
+      uploadPassportDocument({
+        userId: 'user-1',
+        docType: 'Payslip',
+        asset: { uri: 'file:///payslip.jpg', fileName: 'payslip.jpg', mimeType: 'image/jpeg' },
+      })
+    ).rejects.toThrow('already added a Payslip');
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('cleans up storage when the insert fails', async () => {
+    mockFrom.mockReturnValueOnce(emptyWallet()).mockReturnValue(
       chainable({
         select: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({ data: null, error: { message: 'db down' } }),
@@ -161,6 +183,78 @@ describe('uploadPassportDocument', () => {
       })
     ).rejects.toThrow('db down');
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('replacePassportDocument', () => {
+  const asset = { uri: 'file:///new.pdf', fileName: 'new.pdf', mimeType: 'application/pdf' };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockBytes.mockResolvedValue(new Uint8Array([1, 2, 3]));
+    mockUpload.mockResolvedValue({ error: null });
+    mockRemove.mockResolvedValue({ error: null });
+  });
+
+  const currentRow = (extra: Record<string, unknown> = {}) =>
+    chainable({
+      maybeSingle: jest.fn().mockResolvedValue({
+        data: { doc_type: 'Payslip', storage_path: 'user-1/passport/old.jpg', is_primary: false, verification_id: null, ...extra },
+        error: null,
+      }),
+    });
+
+  it('uploads the new file, swaps it through the RPC and removes the old file', async () => {
+    mockRpc.mockResolvedValue({ data: { ...baseRow, review_status: 'unverified' }, error: null });
+    mockFrom
+      .mockReturnValueOnce(currentRow())
+      .mockReturnValueOnce(chainable({ in: jest.fn().mockResolvedValue({ data: [], error: null }) }));
+
+    const row = await replacePassportDocument({ userId: 'user-1', id: 'doc-1', asset });
+
+    expect(mockRpc).toHaveBeenCalledWith(
+      'replace_passport_document',
+      expect.objectContaining({ p_document_id: 'doc-1', p_mime_type: 'application/pdf', p_expires_at: null })
+    );
+    expect(row.review_status).toBe('unverified');
+    expect(mockRemove).toHaveBeenCalledWith(['user-1/passport/old.jpg']);
+  });
+
+  it('keeps the old file while an active application still references it', async () => {
+    mockRpc.mockResolvedValue({ data: baseRow, error: null });
+    mockFrom
+      .mockReturnValueOnce(currentRow())
+      .mockReturnValueOnce(
+        chainable({
+          in: jest.fn().mockResolvedValue({
+            data: [{ gov_id_url: null, proof_of_income_url: 'user-1/passport/old.jpg', proof_of_billing_url: null, nbi_clearance_url: null }],
+            error: null,
+          }),
+        })
+      );
+
+    await replacePassportDocument({ userId: 'user-1', id: 'doc-1', asset });
+
+    expect(mockRemove).not.toHaveBeenCalled();
+  });
+
+  it('removes the new file when the database refuses the swap', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'Document not found.' } });
+    mockFrom.mockReturnValueOnce(currentRow());
+
+    await expect(replacePassportDocument({ userId: 'user-1', id: 'doc-1', asset })).rejects.toThrow(
+      'Document not found.'
+    );
+    expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+
+  it('never replaces an identity document', async () => {
+    mockFrom.mockReturnValueOnce(currentRow({ is_primary: true }));
+
+    await expect(replacePassportDocument({ userId: 'user-1', id: 'doc-1', asset })).rejects.toThrow(
+      'cannot be replaced here'
+    );
+    expect(mockUpload).not.toHaveBeenCalled();
   });
 });
 

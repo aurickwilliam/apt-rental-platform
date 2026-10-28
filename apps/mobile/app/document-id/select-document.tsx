@@ -9,8 +9,10 @@ import StandardHeader from "@/components/layout/StandardHeader";
 import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 
 import { getDocumentTypesForPortal } from "@repo/constants";
+import { getAddedSupportingDocTypes } from "@repo/passport";
 
 import { useColors } from "@/hooks/useTheme";
+import { usePassportDocuments } from "@/hooks/passport";
 import { usePortalStore } from "@/stores/usePortalStore";
 
 export default function SelectDocument() {
@@ -18,6 +20,8 @@ export default function SelectDocument() {
   const { colors } = useColors();
   const portal = usePortalStore((state) => state.portal);
   const isLandlord = portal === "landlord";
+  const { documents } = usePassportDocuments();
+  const addedDocTypes = getAddedSupportingDocTypes(documents);
 
   const router = useRouter();
 
@@ -44,7 +48,10 @@ export default function SelectDocument() {
           <View key={docType}>
             {index > 0 && <Separator className="mx-4" />}
 
-            <ListGroup.Item onPress={() => handleDocumentTypeSelect(docType)}>
+            <ListGroup.Item
+              disabled={addedDocTypes.includes(docType)}
+              onPress={() => handleDocumentTypeSelect(docType)}
+            >
               <ListGroup.ItemPrefix>
                 <View className="size-10 rounded-xl bg-primary-light items-center justify-center">
                   {createElement(getDocumentTypeIcon(docType), {
@@ -58,6 +65,11 @@ export default function SelectDocument() {
                 <ListGroup.ItemTitle className="font-nunitoSemiBold text-base">
                   {docType}
                 </ListGroup.ItemTitle>
+                {addedDocTypes.includes(docType) ? (
+                  <ListGroup.ItemDescription className="text-xs font-inter">
+                    Already added. Open it to replace the file.
+                  </ListGroup.ItemDescription>
+                ) : null}
               </ListGroup.ItemContent>
 
               <ListGroup.ItemSuffix

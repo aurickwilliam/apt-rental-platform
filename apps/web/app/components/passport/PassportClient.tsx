@@ -10,7 +10,7 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-import { getPassportDocumentStatus, selectSupportingDocuments } from "@repo/passport";
+import { getAddedSupportingDocTypes, getPassportDocumentStatus, selectSupportingDocuments } from "@repo/passport";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
@@ -85,6 +85,7 @@ export default function PassportClient({
       null,
     [documents],
   );
+  const addedDocTypes = useMemo(() => getAddedSupportingDocTypes(documents), [documents]);
   const supportingDocs = useMemo(
     () => selectSupportingDocuments(documents, portal),
     [documents, portal],
@@ -283,6 +284,7 @@ export default function PassportClient({
       <AddDocumentModal
         userId={userId}
         portal={portal}
+        addedDocTypes={addedDocTypes}
         isOpen={isAddOpen && !loading && !error}
         docType={addDocType}
         onSelectType={selectAddType}

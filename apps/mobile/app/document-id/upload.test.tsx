@@ -16,6 +16,9 @@ const expectedDescriptions: Record<string, string> = {
 }
 
 const mockUpload = jest.fn()
+const mockReplace = jest.fn()
+let mockDocuments: Array<Record<string, unknown>> = []
+let mockReplaceId: string | undefined
 const mockRouter = { replace: jest.fn() }
 let mockDocType = 'Payslip'
 const today = new Date()
@@ -23,12 +26,14 @@ const mockYesterday = new Date(today.getFullYear(), today.getMonth(), today.getD
 const mockTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
 jest.mock('expo-router', () => ({
-  useLocalSearchParams: () => ({ docType: mockDocType }),
+  useLocalSearchParams: () => ({ docType: mockDocType, replaceId: mockReplaceId }),
   useRouter: () => mockRouter,
 }))
 
 jest.mock('@/hooks/passport', () => ({
   useUploadPassportDocument: () => ({ mutate: mockUpload, isPending: false, error: null }),
+  useReplacePassportDocument: () => ({ mutate: mockReplace, isPending: false, error: null }),
+  usePassportDocuments: () => ({ documents: mockDocuments }),
 }))
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -127,6 +132,9 @@ jest.mock('heroui-native', () => {
 
 beforeEach(() => {
   mockUpload.mockClear()
+  mockReplace.mockClear()
+  mockDocuments = []
+  mockReplaceId = undefined
   mockRouter.replace.mockClear()
   mockDocType = 'Payslip'
 })
@@ -210,4 +218,37 @@ it('submits a future expiry and allows clearing it', () => {
     expect.objectContaining({ expiresAt: null }),
     expect.any(Object),
   )
+})
+
+it('refuses to add a second document of the same type and points back to the Passport', () => {
+  mockDocType = 'Payslip'
+  mockDocuments = [
+    { id: 'doc-1', doc_type: 'Payslip', is_primary: false, verification_id: null, created_at: '2026-09-01T00:00:00.000Z' },
+  ]
+  render(<Upload />)
+
+  expect(screen.getByText('Already added')).toBeTruthy()
+  expect(screen.queryByLabelText('Select test document')).toBeNull()
+  fireEvent.press(screen.getByText('Back to Passport'))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/document-id')
+  expect(mockUpload).not.toHaveBeenCalled()
+})
+
+it('replaces the existing document instead of adding one when opened with a replaceId', () => {
+  mockDocType = 'Payslip'
+  mockReplaceId = 'doc-1'
+  mockDocuments = [
+    { id: 'doc-1', doc_type: 'Payslip', is_primary: false, verification_id: null, created_at: '2026-09-01T00:00:00.000Z' },
+  ]
+  render(<Upload />)
+
+  fireEvent.press(screen.getByLabelText('Select test document'))
+  fireEvent.press(screen.getByLabelText('Confirm information'))
+  fireEvent.press(screen.getByText('Replace Document'))
+
+  expect(mockReplace).toHaveBeenCalledWith(
+    expect.objectContaining({ id: 'doc-1' }),
+    expect.any(Object),
+  )
+  expect(mockUpload).not.toHaveBeenCalled()
 })
