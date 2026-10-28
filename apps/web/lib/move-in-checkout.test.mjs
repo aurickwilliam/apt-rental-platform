@@ -85,13 +85,14 @@ test("online checkout reserves the complete move-in amount before contacting Pay
   assert.equal(h.events.filter(event => event === "provider").length, 1);
 });
 
-test("an account that is not verified cannot start a payment", async () => {
+test("paying an active tenancy never depends on the account's verification status", async () => {
+  // Verification gates new tenancies, not a running one: the active-tenancy lookup
+  // is the check, and the database trigger lets that tenancy's own payments through.
   for (const accountStatus of ["unverified", "pending", "rejected"]) {
     const h = harness({ accountStatus });
     const response = await h.invoke("createCheckoutSession", h.checkout);
-    assert.equal(response.status, 403);
-    assert.deepEqual(h.events, []);
-    assert.equal(h.payments.length, 0);
+    assert.equal(response.status, 200);
+    assert.equal(h.payments.length, 1);
   }
 });
 

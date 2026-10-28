@@ -5,6 +5,8 @@ import { getLandlordAccessState, LANDLORD_VERIFICATION_MESSAGE } from "@repo/uti
 
 interface LandlordVerificationWallProps {
   accountStatus: string | null | undefined;
+  /** Offer the tenancy screens that stay open while a tenancy is running. */
+  hasActiveTenancy?: boolean;
 }
 
 const COPY = {
@@ -24,7 +26,7 @@ const COPY = {
  * Shown in place of every landlord tool until the account is verified. The
  * database refuses the same actions, so this is explanation, not enforcement.
  */
-export default function LandlordVerificationWall({ accountStatus }: LandlordVerificationWallProps) {
+export default function LandlordVerificationWall({ accountStatus, hasActiveTenancy = false }: LandlordVerificationWallProps) {
   const state = getLandlordAccessState(accountStatus);
   const copy = state === "pending" ? COPY.pending : COPY.unverified;
 
@@ -46,6 +48,19 @@ export default function LandlordVerificationWall({ accountStatus }: LandlordVeri
         >
           {copy.action}
         </Link>
+        {hasActiveTenancy && (
+          <div className="flex flex-col items-center gap-2 border-t border-border pt-4 text-sm text-muted-foreground">
+            <p>You can still manage your current tenancy:</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link href="/landlord/payments" className={`${buttonVariants({ variant: "secondary" })} cursor-pointer`}>
+                Payments
+              </Link>
+              <Link href="/landlord/maintenance-requests" className={`${buttonVariants({ variant: "secondary" })} cursor-pointer`}>
+                Maintenance
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

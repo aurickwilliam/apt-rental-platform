@@ -13,8 +13,25 @@ const OPEN_WHILE_UNVERIFIED = [
   "/landlord/landlords",
 ] as const;
 
-export function isLandlordRouteOpenWhileUnverified(pathname: string): boolean {
-  return OPEN_WHILE_UNVERIFIED.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+/**
+ * A landlord with a running tenancy keeps the screens that tenancy needs
+ * (confirming cash, answering maintenance); the database refuses everything
+ * that is not tied to it.
+ */
+export const LANDLORD_TENANCY_PATHS = [
+  "/landlord/payments",
+  "/landlord/maintenance-requests",
+] as const;
+
+const matchesPrefix = (pathname: string, prefix: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+
+export function isLandlordRouteOpenWhileUnverified(
+  pathname: string,
+  hasActiveTenancy = false,
+): boolean {
+  return (
+    OPEN_WHILE_UNVERIFIED.some((prefix) => matchesPrefix(pathname, prefix)) ||
+    (hasActiveTenancy && LANDLORD_TENANCY_PATHS.some((prefix) => matchesPrefix(pathname, prefix)))
   );
 }

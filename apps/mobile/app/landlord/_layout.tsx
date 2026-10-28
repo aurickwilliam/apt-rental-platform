@@ -4,7 +4,7 @@ import LandlordVerificationGate from "@/components/landlord/LandlordVerification
 
 export default function LandlordLayout() {
   return (
-    <LandlordVerificationGate>
+    <LandlordVerificationGate allowTenancyScreens>
     <Stack
       screenOptions={{
         headerShown: false,

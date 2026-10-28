@@ -4,6 +4,7 @@ import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import { getServerIdentity } from "@/lib/server-identity";
+import { hasActiveTenancyAsLandlord } from "@/lib/landlord-active-tenancy";
 
 import { canManageLandlordFinances } from "@/lib/landlord-finance-access";
 import { canViewPassport } from "@/lib/passport-access";
@@ -31,6 +32,12 @@ const UNVERIFIED_NAV = [
   { href: LANDLORD_VERIFY_REQUIRED_PATH, label: "Verify account", icon: "ShieldCheck", section: "Verification" },
 ] as const;
 
+// A running tenancy keeps the two screens it needs.
+const TENANCY_NAV = [
+  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", section: "Current tenancy" },
+  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", section: "Current tenancy" },
+] as const;
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -41,9 +48,10 @@ export default async function DashboardLayout({
   let userRoles: string[] = ["landlord"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
+  let hasActiveTenancy = false;
 
   try {
-    const { user, profile } = await getServerIdentity();
+    const { supabase, user, profile } = await getServerIdentity();
     if (user) {
       const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
       if (fullName) userName = fullName;
@@ -51,6 +59,9 @@ export default async function DashboardLayout({
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
       accountStatus = profile?.account_status ?? null;
+      if (profile && isLandlordAccessBlocked(profile.roles ?? [], accountStatus)) {
+        hasActiveTenancy = await hasActiveTenancyAsLandlord(supabase, profile.id);
+      }
     }
   } catch {
     // fallback to defaults
@@ -63,7 +74,7 @@ export default async function DashboardLayout({
   // filter checks roles and the analytics route guard enforces the rest.
   const blocked = isLandlordAccessBlocked(userRoles, accountStatus);
   const navItems = blocked
-    ? [...UNVERIFIED_NAV]
+    ? [...UNVERIFIED_NAV, ...(hasActiveTenancy ? TENANCY_NAV : [])]
     : LANDLORD_NAV.filter(
         (item) =>
           (item.href !== PASSPORT_HREF || canViewPassport(accountStatus)) &&
@@ -98,7 +109,7 @@ export default async function DashboardLayout({
         />
         <DraggableNotificationBell activePortal="landlord" />
         <main className="flex min-h-0 flex-1 flex-col bg-background">
-          <LandlordAccessGate blocked={blocked} accountStatus={accountStatus}>
+          <LandlordAccessGate blocked={blocked} accountStatus={accountStatus} hasActiveTenancy={hasActiveTenancy}>
             {children}
           </LandlordAccessGate>
         </main>

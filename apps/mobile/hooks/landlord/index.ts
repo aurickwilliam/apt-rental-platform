@@ -6,3 +6,4 @@ export {
   ALL_LANDLORD_PAYMENTS_QUERY_PREFIX,
 } from './useAllLandlordPayments';
 export { useSaveReceiptPhoto, type SaveReceiptPhotoResult } from './useSaveReceiptPhoto';
+export { useHasActiveTenancy, getHasActiveTenancyQueryKey } from './useHasActiveTenancy';

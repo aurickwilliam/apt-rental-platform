@@ -38,3 +38,13 @@ test("every landlord tool is closed", () => {
     assert.equal(isLandlordRouteOpenWhileUnverified(path), false, path);
   }
 });
+
+test("a running tenancy keeps payments and maintenance open, and nothing else", () => {
+  for (const path of ["/landlord/payments", "/landlord/payments/abc", "/landlord/maintenance-requests", "/landlord/maintenance-requests/abc"]) {
+    assert.equal(isLandlordRouteOpenWhileUnverified(path), false, path);
+    assert.equal(isLandlordRouteOpenWhileUnverified(path, true), true, path);
+  }
+  for (const path of ["/landlord/dashboard", "/landlord/properties/create", "/landlord/applications", "/landlord/messages", "/landlord/analytics", "/landlord/paymentsx"]) {
+    assert.equal(isLandlordRouteOpenWhileUnverified(path, true), false, path);
+  }
+});
