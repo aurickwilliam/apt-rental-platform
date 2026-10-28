@@ -4,17 +4,15 @@ import { IconShieldCheckFilled, IconShieldX } from "@tabler/icons-react-native";
 
 import type { LandlordOwnershipDocument } from "@repo/constants";
 
-import { useColors } from "@/hooks/useTheme";
-import { useStatusChipStyles } from "@/hooks/useStatusChipStyles";
+import { statusChipSurface, useStatusChipStyles } from "@/hooks/useStatusChipStyles";
 
 interface VerifiedDocumentsCardProps {
   documents: LandlordOwnershipDocument[];
 }
 
-/** A landlord's ownership documents, each with a verified / not verified icon before its name. */
+/** A landlord's ownership documents as chips: green when verified, neutral when not yet. */
 export default function VerifiedDocumentsCard({ documents }: VerifiedDocumentsCardProps) {
-  const { colors } = useColors();
-  const { success } = useStatusChipStyles();
+  const { success, neutral } = useStatusChipStyles();
 
   return (
     <View className="mx-5 mt-5 bg-surface rounded-3xl border border-border shadow-none p-4 gap-3">
@@ -26,23 +24,29 @@ export default function VerifiedDocumentsCard({ documents }: VerifiedDocumentsCa
           This landlord hasn&apos;t added an ownership document yet.
         </Text>
       ) : (
-        documents.map(({ docType, isVerified }) => (
-          <View
-            key={docType}
-            accessible
-            accessibilityLabel={`${docType}, ${isVerified ? "verified" : "not verified"}`}
-            className="flex-row items-center gap-3"
-          >
-            {isVerified ? (
-              <IconShieldCheckFilled size={20} color={success.textColor} />
-            ) : (
-              <IconShieldX size={20} color={colors.textPrimary} style={{ opacity: 0.5 }} />
-            )}
-            <Text className="flex-1 text-sm text-foreground font-nunitoSemiBold">
-              {docType}
-            </Text>
-          </View>
-        ))
+        <View className="flex-row flex-wrap gap-2">
+          {documents.map(({ docType, isVerified }) => {
+            const style = isVerified ? success : neutral;
+            return (
+              <View
+                key={docType}
+                accessible
+                accessibilityLabel={`${docType}, ${isVerified ? "verified" : "not verified"}`}
+                className="flex-row items-center gap-1 rounded-full px-3 py-1"
+                style={statusChipSurface(style)}
+              >
+                {isVerified ? (
+                  <IconShieldCheckFilled size={14} color={style.textColor} />
+                ) : (
+                  <IconShieldX size={14} color={style.textColor} />
+                )}
+                <Text className="font-nunitoSemiBold text-xs" style={{ color: style.textColor }}>
+                  {docType}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       )}
     </View>
   );
