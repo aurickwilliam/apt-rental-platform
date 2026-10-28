@@ -44,14 +44,14 @@ const PORTAL_ROUTE_PREFIX: Record<ProfileViewerPortal, string> = {
   landlord: "/landlord",
 };
 
-/** Where a landlord's profile lives for a viewer: signed-out/public browse or the tenant portal. */
-export function landlordProfileHref(portal: "public" | "tenant", landlordId: string): string {
+/** Where a landlord's profile lives for a viewer: public browse, the tenant portal or the landlord portal. */
+export function landlordProfileHref(portal: ProfileViewerPortal, landlordId: string): string {
   return `${PORTAL_ROUTE_PREFIX[portal]}/landlords/${encodeURIComponent(landlordId)}`;
 }
 
 /** The landlord's full reviews page inside the same portal shell. */
 export function landlordReviewsHref(
-  portal: "public" | "tenant",
+  portal: ProfileViewerPortal,
   landlordId: string,
   { page = 1, sort = "recent" }: { page?: number; sort?: ProfileReviewSort } = {},
 ): string {
@@ -69,8 +69,8 @@ export function tenantProfileHref(tenantId: string): string {
 }
 
 /** The apartment detail route that matches the portal the viewer is browsing in. */
-export function apartmentHref(portal: "public" | "tenant", apartmentId: string): string {
-  const base = portal === "tenant" ? "/tenant/browse" : "/browse";
+export function apartmentHref(portal: ProfileViewerPortal, apartmentId: string): string {
+  const base = `${PORTAL_ROUTE_PREFIX[portal]}${portal === "public" ? "" : "/browse"}`;
   return `${base}/${encodeURIComponent(apartmentId)}`;
 }
 

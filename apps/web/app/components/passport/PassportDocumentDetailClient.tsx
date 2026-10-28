@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Modal, Spinner, buttonVariants, toast, useOverlayState } from "@heroui/react";
-import { IconExternalLink, IconShieldCheck, IconTrash } from "@tabler/icons-react";
+import { IconExternalLink, IconRefresh, IconShieldCheck, IconTrash } from "@tabler/icons-react";
 
 import { isReviewEligibleDocType } from "@repo/constants";
 import { formatDate } from "@repo/utils";
@@ -13,9 +13,10 @@ import { getDocumentTypeDescription, getPassportDocumentStatus, isExpiredDate } 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
-import { usePassportDocuments } from "@/hooks/use-passport-documents";
+import { usePassportDocuments, type PassportDocumentRow } from "@/hooks/use-passport-documents";
 
 import PassportDocumentThumbnail from "./PassportDocumentThumbnail";
+import ReplaceDocumentModal from "./ReplaceDocumentModal";
 import { PassportBackLink, PassportPageShell } from "./PassportPageLayout";
 import PassportStatusChip from "./PassportStatusChip";
 import { PassportDetailSkeleton } from "./PassportSkeleton";
@@ -67,6 +68,7 @@ export default function PassportDocumentDetailClient({
   const { documents, loading, error, refresh, replaceDocument } = usePassportDocuments(userId);
   const { remove, requestReview, pending } = usePassportDocumentActions(userId);
   const confirmDelete = useOverlayState();
+  const replaceModal = useOverlayState();
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -157,6 +159,12 @@ export default function PassportDocumentDetailClient({
     }
   };
 
+  const handleReplaced = (row: PassportDocumentRow) => {
+    replaceDocument(row);
+    replaceModal.close();
+    toast.success(`${row.doc_type} replaced. It is not verified yet.`);
+  };
+
   const handleDelete = async () => {
     setDeleteError(null);
     try {
@@ -232,7 +240,7 @@ export default function PassportDocumentDetailClient({
             <p className="text-sm text-muted-foreground">
               {isLinkedVerification
                 ? "This ID is linked to your approved account verification and is managed automatically."
-                : getDocumentTypeDescription(document.doc_type)}
+                : getDocumentTypeDescription(document.doc_type, basePath.startsWith("/landlord") ? "landlord" : "tenant")}
             </p>
 
             <div className="space-y-3 border-t border-border pt-4">
@@ -264,7 +272,14 @@ export default function PassportDocumentDetailClient({
             <Notice tone="warning" title="Under admin review">
               We&apos;ll notify you once an admin has checked this document.
             </Notice>
-          ) : !isLinkedVerification ? (
+          ) : null}
+          {!isLinkedVerification ? (
+            <Button fullWidth variant="outline" isDisabled={pending !== null} onPress={replaceModal.open}>
+              <IconRefresh size={18} aria-hidden="true" />
+              Replace Document
+            </Button>
+          ) : null}
+          {!isUnderReview && !isLinkedVerification ? (
             <div className="space-y-2">
               {actionError ? (
                 <p role="alert" className="text-sm text-danger">
@@ -345,6 +360,17 @@ export default function PassportDocumentDetailClient({
           </Modal.Container>
         </Modal.Backdrop>
       </Modal>
+
+      {!isLinkedVerification ? (
+        <ReplaceDocumentModal
+          userId={userId}
+          portal={basePath.startsWith("/landlord") ? "landlord" : "tenant"}
+          document={document}
+          isOpen={replaceModal.isOpen}
+          onClose={replaceModal.close}
+          onReplaced={handleReplaced}
+        />
+      ) : null}
 
       <PhotoGalleryModal
         name={document.doc_type}

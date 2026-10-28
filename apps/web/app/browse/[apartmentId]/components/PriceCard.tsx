@@ -39,6 +39,8 @@ interface PriceCardProps {
   /** Signed-in tenant; null sends Apply Now to the apply route instead. */
   applyViewer?: ApplyStartViewer | null;
   applyApartment?: ApplyStartApartment;
+  /** Viewer who cannot apply (a landlord browsing from their portal): Apply Now stays visible but disabled. */
+  isApplyDisabled?: boolean;
 }
 
 export default function PriceCard({
@@ -52,6 +54,7 @@ export default function PriceCard({
   basePath = "/browse",
   applyViewer = null,
   applyApartment,
+  isApplyDisabled = false,
 }: PriceCardProps) {
   const router = useRouter();
   const [isApplyOpen, setIsApplyOpen] = useState(false);
@@ -59,7 +62,7 @@ export default function PriceCard({
   const isUnavailable = isApartmentUnavailable(apartmentStatus);
 
   const handleApply = () => {
-    if (isPreview || isUnavailable) return;
+    if (isPreview || isUnavailable || isApplyDisabled) return;
     if (applyViewer && applyApartment) setIsApplyOpen(true);
     else if (apartmentId) router.push(`${basePath}/${apartmentId}/apply`);
   };
@@ -123,9 +126,12 @@ export default function PriceCard({
           </Card.Content>
 
           <Card.Footer className="flex flex-col gap-2">
-            <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isPreview || isUnavailable}>
+            <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isPreview || isUnavailable || isApplyDisabled}>
               {isUnavailable ? "Not Available" : "Apply Now"}
             </Button>
+            {isApplyDisabled && !isUnavailable ? (
+              <p className="text-center text-xs text-muted-foreground">Only tenants can apply to a listing.</p>
+            ) : null}
 
             {!isPreview && apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
@@ -176,7 +182,7 @@ export default function PriceCard({
                 Move-in cost breakdown
               </Button>
             </div>
-            <Button className="flex-1 cursor-pointer" onPress={handleApply} isDisabled={isUnavailable}>
+            <Button className="flex-1 cursor-pointer" onPress={handleApply} isDisabled={isUnavailable || isApplyDisabled}>
               {isUnavailable ? "Not Available" : "Apply Now"}
             </Button>
           </div>

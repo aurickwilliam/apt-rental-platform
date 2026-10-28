@@ -4,12 +4,14 @@ import { useCallback, useState } from "react";
 
 import {
   deletePassportDocument,
+  replacePassportDocument,
   requestPassportDocumentReview,
   uploadPassportDocument,
+  type ReplacePassportDocumentInput,
   type UploadPassportDocumentInput,
 } from "@/service/passportService";
 
-type PassportAction = "upload" | "delete" | "review";
+type PassportAction = "upload" | "replace" | "delete" | "review";
 
 /**
  * Passport mutations for the signed-in user. Each action rejects with a
@@ -33,6 +35,12 @@ export function usePassportDocumentActions(userId: string) {
     [run, userId],
   );
 
+  const replace = useCallback(
+    (input: Omit<ReplacePassportDocumentInput, "userId">) =>
+      run("replace", () => replacePassportDocument({ ...input, userId })),
+    [run, userId],
+  );
+
   const remove = useCallback(
     (input: { id: string; storagePath: string }) =>
       run("delete", () => deletePassportDocument({ ...input, userId })),
@@ -44,5 +52,5 @@ export function usePassportDocumentActions(userId: string) {
     [run, userId],
   );
 
-  return { upload, remove, requestReview, pending };
+  return { upload, replace, remove, requestReview, pending };
 }

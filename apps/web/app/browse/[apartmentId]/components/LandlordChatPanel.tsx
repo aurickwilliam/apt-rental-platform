@@ -4,17 +4,19 @@ import { useState } from "react";
 
 import LandlordCard from "./LandlordCard";
 import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
-import { landlordProfileHref } from "@/lib/public-profile";
+import { landlordProfileHref, type ProfileViewerPortal } from "@/lib/public-profile";
 
 interface LandlordChatPanelProps {
   currentUserId: string | null;
   landlordId: string | null;
   landlordName: string;
   landlordAvatarUrl?: string | null;
+  /** An admin approved one of the landlord's ownership documents. */
+  isVerifiedLandlord?: boolean;
   apartmentId: string;
   apartmentName: string;
   /** Portal the apartment page renders in; decides which profile route the card opens. */
-  profilePortal?: "public" | "tenant";
+  profilePortal?: ProfileViewerPortal;
 }
 
 // Apartment-page entry point: the landlord card triggers the shared message
@@ -24,6 +26,7 @@ export default function LandlordChatPanel({
   landlordId,
   landlordName,
   landlordAvatarUrl,
+  isVerifiedLandlord = false,
   apartmentId,
   apartmentName,
   profilePortal = "public",
@@ -38,6 +41,7 @@ export default function LandlordChatPanel({
       <LandlordCard
         name={landlordName}
         avatarUrl={landlordAvatarUrl}
+        isVerified={isVerifiedLandlord}
         profileHref={landlordId ? landlordProfileHref(profilePortal, landlordId) : undefined}
         onMessagePress={() => setIsPanelOpen(true)}
         isMessageDisabled={isMissingLandlord}

@@ -4,7 +4,11 @@ import Link from "next/link";
 import { Button, Modal, buttonVariants } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 
-import { DOCUMENT_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
+import {
+  PASSPORT_GOV_ID_DOC_TYPES,
+  PASSPORT_UPLOADABLE_DOC_TYPES,
+  type PassportPortalRole,
+} from "@repo/constants";
 
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
@@ -14,6 +18,9 @@ import PassportUploadForm from "./PassportUploadForm";
 
 interface AddDocumentModalProps {
   userId: string;
+  portal: PassportPortalRole;
+  /** Supporting types already added; each type holds one document, replaced from its page. */
+  addedDocTypes: readonly string[];
   isOpen: boolean;
   /** Chosen type (step 2), or null for the type picker (step 1). */
   docType: string | null;
@@ -28,6 +35,8 @@ interface AddDocumentModalProps {
  */
 export default function AddDocumentModal({
   userId,
+  portal,
+  addedDocTypes,
   isOpen,
   docType,
   onSelectType,
@@ -36,8 +45,13 @@ export default function AddDocumentModal({
 }: AddDocumentModalProps) {
   const { upload, pending } = usePassportDocumentActions(userId);
   const isUploading = pending === "upload";
-  const isUploadable = !!docType && DOCUMENT_TYPES.includes(docType);
-  const isIdentityDoc = !!docType && PASSPORT_GOV_ID_DOC_TYPES.includes(docType);
+  const isAlreadyAdded = !!docType && addedDocTypes.includes(docType);
+  const isUploadable =
+    !!docType &&
+    !isAlreadyAdded &&
+    PASSPORT_UPLOADABLE_DOC_TYPES.includes(docType);
+  const isIdentityDoc =
+    !!docType && PASSPORT_GOV_ID_DOC_TYPES.includes(docType);
 
   const handleOpenChange = (open: boolean) => {
     if (!open && !isUploading) onClose();
@@ -45,10 +59,15 @@ export default function AddDocumentModal({
 
   return (
     <Modal isOpen={isOpen} onOpenChange={handleOpenChange}>
-      <Modal.Backdrop isDismissable={!isUploading} isKeyboardDismissDisabled={isUploading}>
+      <Modal.Backdrop
+        isDismissable={!isUploading}
+        isKeyboardDismissDisabled={isUploading}
+      >
         <Modal.Container placement="center" scroll="inside" size="lg">
           <Modal.Dialog className="w-full max-w-3xl! rounded-3xl bg-card">
-            {!isUploading ? <Modal.CloseTrigger className="text-card-foreground" /> : null}
+            {!isUploading ? (
+              <Modal.CloseTrigger className="text-card-foreground" />
+            ) : null}
             <Modal.Header className="flex flex-col items-start gap-1">
               {docType ? (
                 <Button
@@ -68,11 +87,16 @@ export default function AddDocumentModal({
 
             {!docType ? (
               <Modal.Body>
-                <DocumentTypePicker onSelect={onSelectType} />
+                <DocumentTypePicker
+                  portal={portal}
+                  addedDocTypes={addedDocTypes}
+                  onSelect={onSelectType}
+                />
               </Modal.Body>
             ) : isUploadable ? (
               <PassportUploadForm
                 key={docType}
+                portal={portal}
                 docType={docType}
                 isUploading={isUploading}
                 onCancel={onClose}
@@ -85,18 +109,25 @@ export default function AddDocumentModal({
               <>
                 <Modal.Body>
                   <p className="text-sm text-muted-foreground">
-                    {isIdentityDoc
-                      ? "Identity documents use live ID capture and a selfie in account verification. Once approved, your ID is added to your APT Passport automatically."
-                      : "This document type is not available for Passport uploads. Choose a type from the list instead."}
+                    {isAlreadyAdded
+                      ? `You already added a ${docType}. Open it from your wallet to replace the file.`
+                      : isIdentityDoc
+                        ? "Identity documents use live ID capture and a selfie in account verification. Once approved, your ID is added to your APT Passport automatically."
+                        : "This document type is not available for Passport uploads. Choose a type from the list instead."}
                   </p>
                 </Modal.Body>
                 <Modal.Footer className="flex justify-end gap-2">
                   {isIdentityDoc ? (
-                    <Link href="/verify" className={buttonVariants({ variant: "primary" })}>
+                    <Link
+                      href="/verify"
+                      className={buttonVariants({ variant: "primary" })}
+                    >
                       Go to ID verification
                     </Link>
                   ) : (
-                    <Button onPress={() => onSelectType(null)}>Choose document type</Button>
+                    <Button onPress={() => onSelectType(null)}>
+                      Choose document type
+                    </Button>
                   )}
                 </Modal.Footer>
               </>

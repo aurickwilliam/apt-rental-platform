@@ -6,9 +6,11 @@ import {
   fetchPassportDocumentsWithVerification,
   fetchPassportVerifiedPaths,
   linkApprovedVerification,
+  replacePassportDocument,
   requestPassportDocumentReview,
   uploadPassportDocument,
   type PassportDocumentRow,
+  type ReplacePassportDocumentInput,
   type UploadPassportDocumentInput,
 } from '@/service/passport/passportService'
 
@@ -50,6 +52,24 @@ export function useUploadPassportDocument() {
     mutationFn: (input: Omit<UploadPassportDocumentInput, 'userId'>) => {
       if (!userId) throw new Error('You must be signed in to add a document.')
       return uploadPassportDocument({ ...input, userId })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: getPassportDocumentsQueryKey(userId),
+        exact: true,
+      })
+    },
+  })
+}
+
+export function useReplacePassportDocument() {
+  const queryClient = useQueryClient()
+  const userId = useCurrentUserId()
+
+  return useMutation({
+    mutationFn: (input: Omit<ReplacePassportDocumentInput, 'userId'>) => {
+      if (!userId) throw new Error('You must be signed in to replace a document.')
+      return replacePassportDocument({ ...input, userId })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

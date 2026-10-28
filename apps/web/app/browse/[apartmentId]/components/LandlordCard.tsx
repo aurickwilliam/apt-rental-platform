@@ -9,9 +9,11 @@ import {
 import Link from "next/link";
 
 import {
-  IconMessage
+  IconMessage,
+  IconShieldCheck,
 } from "@tabler/icons-react";
 
+import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 
 interface LandlordCardProps {
@@ -22,6 +24,8 @@ interface LandlordCardProps {
   isMessageDisabled?: boolean;
   messageDisabledReason?: string;
   showMessageButton?: boolean;
+  /** An admin approved one of the landlord's ownership documents. */
+  isVerified?: boolean;
   /** When set, the avatar and name open the landlord's profile page. */
   profileHref?: string;
 }
@@ -47,6 +51,7 @@ export default function LandlordCard({
   isMessageDisabled = false,
   messageDisabledReason = "",
   showMessageButton = true,
+  isVerified = false,
   profileHref,
 }: LandlordCardProps) {
   const displayName = name.trim() || "Unknown";
@@ -68,6 +73,16 @@ export default function LandlordCard({
         <Card.Description className="text-grey-500">
           Landlord
         </Card.Description>
+        {isVerified ? (
+          <div className="mt-1">
+            <StatusChip size="sm" tone="success">
+              <span className="flex items-center gap-1">
+                <IconShieldCheck size={14} aria-hidden="true" />
+                Verified landlord
+              </span>
+            </StatusChip>
+          </div>
+        ) : null}
       </div>
     </>
   );

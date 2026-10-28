@@ -5,7 +5,8 @@ import type { StatusTone } from "@/lib/status-tone";
 
 interface PublicProfileTagsCardProps {
   title: string;
-  items: ReadonlyArray<{ key: string; label: string; icon?: ReactNode }>;
+  /** `tone` on an item overrides the card's tone for that chip. */
+  items: ReadonlyArray<{ key: string; label: string; icon?: ReactNode; tone?: StatusTone }>;
   tone?: StatusTone;
   /** Shown instead of the chips when there is nothing to list. */
   emptyText: string;
@@ -22,7 +23,7 @@ export default function PublicProfileTagsCard({ title, items, tone = "neutral", 
         <ul className="flex flex-wrap gap-2">
           {items.map((item) => (
             <li key={item.key}>
-              <StatusChip size="md" tone={tone}>
+              <StatusChip size="md" tone={item.tone ?? tone}>
                 <span className="flex items-center gap-1">
                   {item.icon}
                   {item.label}

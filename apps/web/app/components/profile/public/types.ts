@@ -1,3 +1,4 @@
+import type { LandlordOwnershipDocument } from "@repo/constants";
 import type { VerifiedPassportSlot } from "@repo/passport";
 
 import type { ProfileReviewSort, ReviewRatingDistribution, StayHistorySummary, UnitSummary } from "@/lib/public-profile";
@@ -52,6 +53,10 @@ export interface LandlordProfileData {
   averageRating: number | null;
   reviewCount: number;
   ratingDistribution: ReviewRatingDistribution;
+  /** An admin approved one of the landlord's ownership documents in APT Passport. */
+  isOwnershipVerified: boolean;
+  /** Ownership documents the landlord added, verified first (names and a flag only). */
+  ownershipDocuments: LandlordOwnershipDocument[];
   /** Listed apartments that passed APT verification, out of `listedTotal`. */
   verifiedListings: number;
   listedTotal: number;

@@ -79,7 +79,12 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
             {pastStays.map((stay) => (
-              <li key={stay.id} className="flex items-center gap-3 rounded-3xl border border-border bg-card p-3">
+              <li
+                key={stay.id}
+                className={`relative flex items-center gap-3 rounded-3xl border border-border bg-card p-3 transition-colors ${
+                  stay.apartmentId ? "cursor-pointer hover:border-primary" : ""
+                }`}
+              >
                 <Image
                   src={stay.thumbnailUrl}
                   alt=""
@@ -91,8 +96,8 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                 <div className="min-w-0">
                   {stay.apartmentId ? (
                     <Link
-                      href={apartmentHref("public", stay.apartmentId)}
-                      className="block cursor-pointer truncate font-nunito text-base font-semibold hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      href={apartmentHref("landlord", stay.apartmentId)}
+                      className="block cursor-pointer truncate font-nunito text-base font-semibold after:absolute after:inset-0 after:rounded-3xl after:content-[''] hover:text-primary focus-visible:outline-none after:focus-visible:outline-2 after:focus-visible:outline-offset-2 after:focus-visible:outline-primary"
                     >
                       {stay.apartmentName}
                     </Link>
@@ -108,8 +113,8 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                     <p className="truncate text-xs text-muted-foreground">
                       Landlord:{" "}
                       <Link
-                        href={landlordProfileHref("public", stay.landlord.id)}
-                        className="cursor-pointer font-semibold text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        href={landlordProfileHref("landlord", stay.landlord.id)}
+                        className="relative z-10 cursor-pointer font-semibold text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         {stay.landlord.name}
                       </Link>

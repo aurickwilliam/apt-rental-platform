@@ -10,6 +10,8 @@ import {
   IconCalendarMonth,
   IconMessage,
   IconShieldCheck,
+  IconShieldCheckFilled,
+  IconShieldX,
   IconStar,
   IconStarFilled,
   IconUsers,
@@ -22,7 +24,7 @@ import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
 import StarRating from "@/app/components/display/StarRating";
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { useUser } from "@/hooks/use-user";
-import { apartmentHref, landlordReviewsHref, memberSinceYear } from "@/lib/public-profile";
+import { apartmentHref, landlordReviewsHref, memberSinceYear, type ProfileViewerPortal } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
@@ -32,13 +34,14 @@ import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
+import PublicProfileTagsCard from "./PublicProfileTagsCard";
 import type { PublicProfileTrustItem } from "./PublicProfileTrustStrip";
 import type { LandlordProfileData } from "./types";
 
 interface LandlordProfileViewProps {
   data: LandlordProfileData;
   /** Which shell the page renders in; decides where listing cards link. */
-  portal: "public" | "tenant";
+  portal: ProfileViewerPortal;
 }
 
 // The listings share the wide column with the side card from xl, so the grid is denser than Browse's.
@@ -75,6 +78,15 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
   // and current occupancy. Identity verification already renders as the header
   // badge (with its tooltip), so it is not repeated here. No invented scores.
   const trustItems: PublicProfileTrustItem[] = [];
+
+  if (data.isOwnershipVerified) {
+    trustItems.push({
+      key: "ownership",
+      label: "Verified landlord",
+      tone: "success",
+      icon: <IconShieldCheck size={14} aria-hidden="true" />,
+    });
+  }
 
   if (data.listedTotal > 0) {
     const allVerified = data.verifiedListings === data.listedTotal;
@@ -156,6 +168,20 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
                   icon: <IconCalendarMonth size={20} aria-hidden="true" />,
                 },
               ]}
+            />
+            <PublicProfileTagsCard
+              title="Verified on APT Passport"
+              items={data.ownershipDocuments.map(({ docType, isVerified }) => ({
+                key: docType,
+                label: docType,
+                tone: isVerified ? "success" : "neutral",
+                icon: isVerified ? (
+                  <IconShieldCheckFilled size={14} aria-label="Verified" />
+                ) : (
+                  <IconShieldX size={14} aria-label="Not verified" />
+                ),
+              }))}
+              emptyText="This landlord hasn't added an ownership document yet."
             />
             {contact ? (
               <PublicProfileContactCard
