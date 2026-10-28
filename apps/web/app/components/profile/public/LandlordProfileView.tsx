@@ -24,7 +24,7 @@ import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
 import StarRating from "@/app/components/display/StarRating";
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import { useUser } from "@/hooks/use-user";
-import { apartmentHref, landlordReviewsHref, memberSinceYear } from "@/lib/public-profile";
+import { apartmentHref, landlordReviewsHref, memberSinceYear, type ProfileViewerPortal } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
@@ -41,7 +41,7 @@ import type { LandlordProfileData } from "./types";
 interface LandlordProfileViewProps {
   data: LandlordProfileData;
   /** Which shell the page renders in; decides where listing cards link. */
-  portal: "public" | "tenant";
+  portal: ProfileViewerPortal;
 }
 
 // The listings share the wide column with the side card from xl, so the grid is denser than Browse's.

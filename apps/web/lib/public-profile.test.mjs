@@ -29,6 +29,9 @@ test("profile links follow the viewer's portal and encode the id", () => {
   assert.equal(tenantProfileHref("a/b"), "/landlord/tenants/a%2Fb");
   assert.equal(apartmentHref("public", "x"), "/browse/x");
   assert.equal(apartmentHref("tenant", "x"), "/tenant/browse/x");
+  assert.equal(apartmentHref("landlord", "x"), "/landlord/browse/x");
+  assert.equal(landlordProfileHref("landlord", "abc"), "/landlord/landlords/abc");
+  assert.equal(landlordReviewsHref("landlord", "abc"), "/landlord/landlords/abc/reviews");
 });
 
 test("display name and location fall back cleanly", () => {

@@ -250,6 +250,7 @@ export default async function ApartmentDetailView({
             advancePayment={apartment.advance_rent ?? undefined}
             apartmentId={apartment.id}
             basePath={basePath}
+            isApplyDisabled={basePath === "/landlord/browse"}
             applyViewer={applyViewer}
             applyApartment={{
               id: apartment.id,
@@ -276,7 +277,7 @@ export default async function ApartmentDetailView({
             isVerifiedLandlord={Boolean(apartment.landlord_id && verifiedLandlordIds.has(apartment.landlord_id))}
             apartmentId={apartment.id}
             apartmentName={apartment.name ?? ""}
-            profilePortal={basePath === "/tenant/browse" ? "tenant" : "public"}
+            profilePortal={basePath === "/tenant/browse" ? "tenant" : basePath === "/landlord/browse" ? "landlord" : "public"}
           />
         </div>
       </div>

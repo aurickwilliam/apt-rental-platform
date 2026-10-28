@@ -96,7 +96,7 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                 <div className="min-w-0">
                   {stay.apartmentId ? (
                     <Link
-                      href={apartmentHref("public", stay.apartmentId)}
+                      href={apartmentHref("landlord", stay.apartmentId)}
                       className="block cursor-pointer truncate font-nunito text-base font-semibold after:absolute after:inset-0 after:rounded-3xl after:content-[''] hover:text-primary focus-visible:outline-none after:focus-visible:outline-2 after:focus-visible:outline-offset-2 after:focus-visible:outline-primary"
                     >
                       {stay.apartmentName}
@@ -113,7 +113,7 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                     <p className="truncate text-xs text-muted-foreground">
                       Landlord:{" "}
                       <Link
-                        href={landlordProfileHref("public", stay.landlord.id)}
+                        href={landlordProfileHref("landlord", stay.landlord.id)}
                         className="relative z-10 cursor-pointer font-semibold text-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         {stay.landlord.name}

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import LandlordCard from "./LandlordCard";
 import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
-import { landlordProfileHref } from "@/lib/public-profile";
+import { landlordProfileHref, type ProfileViewerPortal } from "@/lib/public-profile";
 
 interface LandlordChatPanelProps {
   currentUserId: string | null;
@@ -16,7 +16,7 @@ interface LandlordChatPanelProps {
   apartmentId: string;
   apartmentName: string;
   /** Portal the apartment page renders in; decides which profile route the card opens. */
-  profilePortal?: "public" | "tenant";
+  profilePortal?: ProfileViewerPortal;
 }
 
 // Apartment-page entry point: the landlord card triggers the shared message

@@ -18,6 +18,7 @@ import {
   memberSinceYear,
   parseProfileReviewSort,
   type ProfileReviewSort,
+  type ProfileViewerPortal,
 } from "@/lib/public-profile";
 
 import PublicProfileEmptyState from "./PublicProfileEmptyState";
@@ -31,7 +32,7 @@ import type { LandlordReviewsPageData } from "./types";
 interface LandlordReviewsViewProps {
   data: LandlordReviewsPageData;
   /** Which shell the page renders in; decides where the profile link goes. */
-  portal: "public" | "tenant";
+  portal: ProfileViewerPortal;
 }
 
 const SORT_OPTIONS = (Object.keys(PROFILE_REVIEW_SORT_LABELS) as ProfileReviewSort[]).map((value) => ({
