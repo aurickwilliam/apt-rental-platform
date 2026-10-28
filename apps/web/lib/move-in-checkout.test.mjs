@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(readFileSync(new URL("../../../supabase/func
 
 // Exercise the actual Edge Function handler with a fake provider/database.
 // SQL validation itself is exercised by db:billing:test, not reimplemented here.
-function harness({ real = true, rejectInsert = false, provider, rows = [] } = {}) {
+function harness({ real = true, rejectInsert = false, provider, rows = [], accountStatus = "verified" } = {}) {
   const payments = [...rows];
   const events = [];
   let handler;
@@ -24,7 +24,7 @@ function harness({ real = true, rejectInsert = false, provider, rows = [] } = {}
     insert(value) { this.insertValue = value; return this; }
     update(value) { this.updateValue = value; return this; }
     async execute() {
-      if (this.table === "users") return { data: { id: "tenant-1" }, error: null };
+      if (this.table === "users") return { data: { id: "tenant-1", account_status: accountStatus }, error: null };
       if (this.table === "tenancies") return { data: { id: "lease-1", apartment_id: "apt-1", monthly_rent: 15000, apartment: { landlord_id: "owner-1" } }, error: null };
       assert.equal(this.table, "payment");
       if (this.insertValue) {
@@ -83,6 +83,16 @@ test("online checkout reserves the complete move-in amount before contacting Pay
   const duplicate = await h.invoke("createCheckoutSession", { ...h.checkout, referenceId: "pay_second" });
   assert.equal(duplicate.status, 409);
   assert.equal(h.events.filter(event => event === "provider").length, 1);
+});
+
+test("an account that is not verified cannot start a payment", async () => {
+  for (const accountStatus of ["unverified", "pending", "rejected"]) {
+    const h = harness({ accountStatus });
+    const response = await h.invoke("createCheckoutSession", h.checkout);
+    assert.equal(response.status, 403);
+    assert.deepEqual(h.events, []);
+    assert.equal(h.payments.length, 0);
+  }
 });
 
 test("a rejected database bill cannot initiate a provider charge", async () => {

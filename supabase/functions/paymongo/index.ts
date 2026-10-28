@@ -194,6 +194,13 @@ async function resolveTenancy(req: Request, tenancyId?: string): Promise<{ tenan
   const tenantId = await resolveTenantId(req)
   if (!tenantId) throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to pay.')
 
+  // Starting a payment is a tenant-side action: only verified accounts (the
+  // payment trigger cannot see the caller here, this client is service role).
+  const { data: account } = await dbClient.from('users').select('account_status').eq('id', tenantId).maybeSingle()
+  if (account?.account_status !== 'verified') {
+    throw new PayMongoApiError(403, 'forbidden', 'Verify your account to use this feature.')
+  }
+
   let query = dbClient
     .from('tenancies')
     .select('id, apartment_id, monthly_rent, apartment:apartments (landlord_id)')

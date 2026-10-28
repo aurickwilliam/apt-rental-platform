@@ -89,24 +89,6 @@ function shouldDeliver(prefs: PreferenceRow, type: unknown): boolean {
   return prefs[type as keyof PreferenceRow] !== false
 }
 
-// An unverified landlord receives no landlord-side pushes (the in-app rows are
-// kept, so nothing is lost once the account is verified). A landlord-only
-// account is entirely landlord-side; a dual-role account is only blocked for
-// rows addressed to its landlord portal.
-async function isLandlordSideBlocked(userId: string, data: { recipientPortal?: unknown } | null): Promise<boolean> {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('roles, account_status')
-    .eq('id', userId)
-    .maybeSingle()
-
-  if (error || !user) return false
-  const roles: string[] = user.roles ?? []
-  if (!roles.includes('landlord') || user.account_status === 'verified') return false
-  if (!roles.includes('tenant') && !roles.includes('admin')) return true
-  return data?.recipientPortal === 'landlord'
-}
-
 async function deleteTokens(tokens: string[]): Promise<void> {
   if (tokens.length === 0) return
   const { error } = await supabase.from('push_tokens').delete().in('token', tokens)
@@ -122,10 +104,6 @@ Deno.serve(async (req: Request) => {
   const body = await req.json().catch(() => null)
   if (!body?.user_id || !body?.title) {
     return json({ error: 'user_id and title are required' }, 400)
-  }
-
-  if (await isLandlordSideBlocked(String(body.user_id), body.data ?? null)) {
-    return json({ skipped: true, reason: 'landlord account is not verified' })
   }
 
   const tokens = await fetchTokens(String(body.user_id))

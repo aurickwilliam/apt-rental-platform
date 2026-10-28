@@ -1,12 +1,9 @@
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { isLandlordAccessBlocked } from "@repo/utils";
-
 import { useCurrentUser } from "@/hooks/auth";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
 import { fetchNotifications, fetchUnreadNotificationCount } from "@/service/notifications/notificationService";
-import { usePortalStore } from "@/stores/usePortalStore";
 
 import type { NotificationItem } from "@/service/notifications/notificationService";
 
@@ -37,11 +34,6 @@ export function useNotifications() {
   const queryClient = useQueryClient();
   const currentUserQuery = useCurrentUser();
   const userId = currentUserQuery.data?.id ?? null;
-  const activePortal = usePortalStore((state) => state.portal);
-  // The rows are kept for when the account is verified; the closed landlord
-  // portal just doesn't show them.
-  const landlordPortalClosed = activePortal === "landlord"
-    && isLandlordAccessBlocked(currentUserQuery.data?.roles ?? [], currentUserQuery.data?.account_status);
 
   const notificationsQuery = useQuery({
     queryKey: ["notifications", userId] as const,
@@ -70,11 +62,9 @@ export function useNotifications() {
     },
   });
 
-  const notifications = landlordPortalClosed ? [] : (notificationsQuery.data ?? []);
+  const notifications = notificationsQuery.data ?? [];
 
-  const unreadCount = landlordPortalClosed
-    ? 0
-    : (unreadCountQuery.data ?? notifications.filter((n) => !n.is_read).length);
+  const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.is_read).length;
 
   const refetch = useCallback(async () => {
     if (!userId) return;

@@ -96,7 +96,7 @@ export default async function DashboardLayout({
           userRoles={userRoles}
           activePortal="landlord"
         />
-        {!blocked && <DraggableNotificationBell activePortal="landlord" />}
+        <DraggableNotificationBell activePortal="landlord" />
         <main className="flex min-h-0 flex-1 flex-col bg-background">
           <LandlordAccessGate blocked={blocked} accountStatus={accountStatus}>
             {children}
@@ -106,11 +106,9 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <SettingsOverlay initialRoles={userRoles} activePortal="landlord" />
       </Suspense>
-      {!blocked && (
-        <Suspense fallback={null}>
-          <NotificationsOverlay activePortal="landlord" />
-        </Suspense>
-      )}
+      <Suspense fallback={null}>
+        <NotificationsOverlay activePortal="landlord" />
+      </Suspense>
     </div>
   );
 }
