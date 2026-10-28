@@ -1,9 +1,12 @@
 import type { Ref } from "react";
 import { View, TextInput as RNTextInput } from "react-native";
-import { IconSend } from "@tabler/icons-react-native";
+import { IconArrowUp } from "@tabler/icons-react-native";
 import { Button, InputGroup, TextField } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
+
+const MAX_MESSAGE_LENGTH = 500;
+const MAX_INPUT_HEIGHT = 120;
 
 interface MessageComposerProps {
   inputRef: Ref<RNTextInput>;
@@ -13,6 +16,8 @@ interface MessageComposerProps {
   isDisabled: boolean;
 }
 
+// A roomy rounded field that grows with the message, with a round send
+// button that only lights up when there is something to send.
 export default function MessageComposer({
   inputRef,
   value,
@@ -21,35 +26,42 @@ export default function MessageComposer({
   isDisabled,
 }: MessageComposerProps) {
   const { colors } = useColors();
+  const canSend = value.trim().length > 0 && !isDisabled;
 
   return (
-    <View className="px-3 py-2 border-t border-border">
+    <View className="px-4 pt-1 pb-2 bg-background">
       <TextField>
-        <InputGroup className="rounded-full">
+        <InputGroup className="rounded-3xl bg-surface">
           <InputGroup.Input
             ref={inputRef}
-            className="rounded-full border"
-            placeholder="Ask me anything about rentals..."
+            className="rounded-3xl border bg-surface pl-4 py-3 text-base"
+            style={{ maxHeight: MAX_INPUT_HEIGHT }}
+            placeholder="Ask Ava about rentals..."
             placeholderTextColor={colors.gray400}
             value={value}
             onChangeText={onChangeText}
+            multiline
+            submitBehavior="submit"
             onSubmitEditing={onSend}
             returnKeyType="send"
-            maxLength={500}
+            maxLength={MAX_MESSAGE_LENGTH}
+            accessibilityLabel="Message Ava"
           />
 
-          {value.trim().length > 0 && (
-            <InputGroup.Suffix className="p-0">
-              <Button
-                onPress={onSend}
-                isDisabled={isDisabled}
-                className="bg-accent rounded-full mr-1.5 w-14 h-9 items-center justify-center"
-                accessibilityLabel="Send message"
-              >
-                <IconSend size={20} color={colors.secondaryForeground} />
-              </Button>
-            </InputGroup.Suffix>
-          )}
+          <InputGroup.Suffix className="p-0 self-end pb-1.5">
+            <Button
+              onPress={onSend}
+              isDisabled={!canSend}
+              isIconOnly
+              className={`mr-1.5 size-9 rounded-full ${canSend ? "bg-accent" : "bg-surface-tertiary"}`}
+              accessibilityLabel="Send message"
+            >
+              <IconArrowUp
+                size={20}
+                color={canSend ? colors.secondaryForeground : colors.gray400}
+              />
+            </Button>
+          </InputGroup.Suffix>
         </InputGroup>
       </TextField>
     </View>

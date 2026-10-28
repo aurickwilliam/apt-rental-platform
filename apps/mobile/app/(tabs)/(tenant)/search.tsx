@@ -83,6 +83,10 @@ export default function Search() {
     router.push("/tenant/map-search" as any);
   };
 
+  const handleAskAvaPress = () => {
+    router.push("/search/ai-search");
+  };
+
   const handleClearAll = () => {
     clearSearch();
     handleClearFilters();
@@ -115,6 +119,7 @@ export default function Search() {
         onFavoritesPress={() => router.push("/tenant/favorites")}
         isNetflixMode={showNetflix}
         onMapPress={handleMapPress}
+        onAskAvaPress={handleAskAvaPress}
       />
 
       <SearchFiltersBar

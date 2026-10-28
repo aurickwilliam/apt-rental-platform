@@ -11,6 +11,11 @@ import { supabase } from "@repo/supabase";
 
 import { useFavorites } from "@/hooks/favorites";
 import { loadSearchPreference, saveSearchPreference } from "@/service/search/searchPreference";
+import {
+  APARTMENT_CARD_SELECT,
+  toApartmentCards,
+  type ApartmentCardRow,
+} from "@/service/search/apartmentCards";
 
 import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
@@ -74,25 +79,7 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   ) => {
     let query = supabase
       .from("apartments")
-      .select(
-        `
-        id,
-        name,
-        barangay,
-        city,
-        average_rating,
-        monthly_rent,
-        no_bedrooms,
-        no_bathrooms,
-        area_sqm,
-        is_verified,
-        apartment_images (
-          url,
-          url_thumb,
-          is_cover,
-          created_at
-        )
-      `, { count: "estimated" })
+      .select(APARTMENT_CARD_SELECT, { count: "estimated" })
       .is("deleted_at", null)
       .eq("is_hidden_by_admin", false)
       .in("status", ["available", "unverified"])
@@ -207,36 +194,8 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
     return query;
   };
 
-  const transformData = (data: any[]): ApartmentCardProps[] =>
-    data.map((apt) => {
-      const images = apt.apartment_images ?? [];
-      const cover = images.find((img: any) => img.is_cover);
-      const earliest = images
-        .slice()
-        .sort(
-          (a: any, b: any) =>
-            new Date(a.created_at ?? 0).getTime() -
-            new Date(b.created_at ?? 0).getTime(),
-        )[0];
-      const thumbnailUrl =
-        (cover?.url_thumb || cover?.url) ??
-        (earliest?.url_thumb || earliest?.url) ??
-        undefined;
-
-      return {
-        id: apt.id,
-        thumbnail: thumbnailUrl ? { uri: thumbnailUrl } : undefined,
-        name: apt.name,
-        location: `${apt.barangay}, ${apt.city}`,
-        ratings: apt.average_rating?.toFixed(1) ?? "0.0",
-        monthlyRent: apt.monthly_rent,
-        noBedroom: apt.no_bedrooms,
-        noBathroom: apt.no_bathrooms,
-        areaSqm: apt.area_sqm,
-        isVerified: apt.is_verified,
-        isGrid: true,
-      };
-    });
+  const transformData = (data: ApartmentCardRow[]): ApartmentCardProps[] =>
+    toApartmentCards(data);
 
   const fetchApartments = useCallback(
     async (isRefresh = false, activeFilters: FilterState | null = filters) => {

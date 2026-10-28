@@ -8,6 +8,9 @@
     ".": "./src/index.ts",
     "./birth-date": "./src/birthDate.ts"
   },
+  "dependencies": {
+    "@repo/constants": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.3.3"
   }

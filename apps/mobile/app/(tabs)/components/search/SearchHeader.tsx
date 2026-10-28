@@ -6,6 +6,7 @@ import {
   IconHeart,
   IconMap,
   IconMapPinFilled,
+  IconSparkles,
 } from '@tabler/icons-react-native';
 
 import DropdownButton from 'components/buttons/DropdownButton';
@@ -23,6 +24,7 @@ type SearchHeaderProps = {
   onFavoritesPress: () => void;
   isNetflixMode?: boolean;
   onMapPress?: () => void;
+  onAskAvaPress?: () => void;
 };
 
 export default function SearchHeader({
@@ -34,6 +36,7 @@ export default function SearchHeader({
   onFavoritesPress,
   isNetflixMode = false,
   onMapPress,
+  onAskAvaPress,
 }: SearchHeaderProps) {
   const { colors } = useColors();
 
@@ -53,6 +56,18 @@ export default function SearchHeader({
       </View>
 
       <View className='flex-row items-center gap-4'>
+        {onAskAvaPress && (
+          <Button
+            onPress={onAskAvaPress}
+            variant='ghost'
+            className='p-0'
+            accessibilityLabel="Ask Ava, the APT Virtual Assistant"
+            accessibilityRole="button"
+          >
+            <IconSparkles size={24} color={colors.primary} />
+          </Button>
+        )}
+
         <Button
           onPress={onFavoritesPress}
           variant='ghost'
