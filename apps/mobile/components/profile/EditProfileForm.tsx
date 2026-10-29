@@ -111,7 +111,7 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
   const disabled = edit.busy || edit.succeeded;
   const saveDisabled = disabled || !edit.dirty;
   const cities = edit.fields.province ? getCitiesByProvince(edit.fields.province as Province) : [];
-  const barangays = edit.fields.city ? getBarangaysByCity(edit.fields.city) : [];
+  const barangays = edit.fields.city ? getBarangaysByCity(edit.fields.city, edit.fields.province) : [];
   const requestExit = () => {
     if (!edit.busyRef.current) returnToProfile();
   };
