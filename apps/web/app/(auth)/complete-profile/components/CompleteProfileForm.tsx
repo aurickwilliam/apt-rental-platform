@@ -17,6 +17,8 @@ import { validateBirthDate } from "@/lib/birth-date";
 import { GENDERS, sanitizePHMobileInput } from "@repo/constants";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
 import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
+import RegistrationPolicyAcceptance from "../../components/RegistrationPolicyAcceptance";
+import { emptyRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
 import { resolveRegistrationAddress, validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
 
 type Props = {
@@ -44,6 +46,16 @@ export default function CompleteProfileForm({
   const [mobileNumber, setMobileNumber] = useState("");
   const [birthDateError, setBirthDateError] = useState<string | null>(null);
   const [birthDate, setBirthDate] = useState(initialBirthDate ?? "");
+  const [acceptance, setAcceptance] = useState(emptyRegistrationAcceptance);
+  const [acceptanceErrors, setAcceptanceErrors] = useState<AcceptanceErrors>({});
+  const [previousAcceptanceErrors, setPreviousAcceptanceErrors] = useState(state.acceptanceErrors);
+  if (previousAcceptanceErrors !== state.acceptanceErrors) {
+    setPreviousAcceptanceErrors(state.acceptanceErrors);
+    if (state.acceptanceErrors) {
+      setAcceptance(previous => ({ ...previous, termsAccepted: false, privacyAccepted: false }));
+      setAcceptanceErrors(state.acceptanceErrors);
+    }
+  }
   const birthDateRef = useRef<HTMLDivElement>(null);
   // A server error belongs to the submitted date, not a subsequently edited one.
   const fieldError = birthDateError ?? (state.birthDate === birthDate ? state.birthDateError : null);
@@ -57,7 +69,9 @@ export default function CompleteProfileForm({
     const error = validateBirthDate(birthDate);
     setBirthDateError(error);
     setAddressSubmitted(true);
-    if (error || Object.keys(validateRegistrationAddress(address)).length) e.preventDefault();
+    const policyErrors = validateRegistrationAcceptance(acceptance);
+    setAcceptanceErrors(policyErrors);
+    if (isPending || error || Object.keys(validateRegistrationAddress(address)).length || Object.keys(policyErrors).length) e.preventDefault();
     if (error) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
   };
 
@@ -144,12 +158,15 @@ export default function CompleteProfileForm({
         </div>
       )}
 
+      <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
+        errors={acceptanceErrors} isDisabled={isPending} />
+
       <Button
         type="submit"
         variant="primary"
         size="lg"
         className="w-full font-semibold"
-        isDisabled={isPending}
+        isDisabled={isPending || !acceptance.termsAccepted || !acceptance.privacyAccepted}
       >
         {isPending ? (
           <>

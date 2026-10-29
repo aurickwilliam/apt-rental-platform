@@ -1,3 +1,5 @@
+import { REGISTRATION_POLICIES } from "@/lib/registration-policies";
+
 export const BRAND = {
   email: "support@apt-rental.ph",
   address: "109 Samson Road corner Caimito Road, Caloocan, Philippines",
@@ -5,9 +7,9 @@ export const BRAND = {
 };
 
 export const LEGAL_META = {
-  lastUpdated: "October 29, 2026",
+  lastUpdated: REGISTRATION_POLICIES.terms.lastUpdated,
   jurisdiction: "Effective in the Philippines",
-  version: "1.1",
+  version: REGISTRATION_POLICIES.terms.version,
 };
 
 export type Callout = { kind: "info" | "warning"; label: string; text: string };

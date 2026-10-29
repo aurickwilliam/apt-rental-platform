@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import * as policyRules from "./registration-policies.ts";
+const accepted = { ...policyRules.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 import test from "node:test";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -144,6 +146,8 @@ function formHarness(kind, role, initialAddress = undefined) {
     react: { ...runtime.react, useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
+    "@/lib/registration-policies": policyRules,
+    "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "next/link": { default: "Link" },
@@ -199,6 +203,7 @@ const serverConstants = { ...constants, validatePHMobile };
 const year = new Date().getFullYear() - 25;
 function submission(address = validAddress, role = "tenant") {
   const data = new FormData();
+  policyRules.writeRegistrationAcceptance(data, accepted);
   for (const [key, value] of Object.entries({ first_name: "Test", last_name: "User", birth_date: `${year}-01-01`, gender: GENDERS[0], mobile_number: "09171234567", role,
     province: address.province, city: address.city, barangay: address.barangay, street_address: address.streetAddress, postal_code: address.postalCode, user_id: "attacker" })) data.set(key, value);
   return data;
@@ -219,6 +224,10 @@ function actionHarness(options = {}) {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
     "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate }, "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "@/service/registrationService": { completeWebRegistration: async (client, details, role, acceptance, source) => {
+      writes.push(details); rpcs.push(["complete_web_registration", { role, acceptance, source }]); return { error: null };
+    } },
   }, { process: { env: { NODE_ENV: "test" } } });
   return { completeProfile, writes, selects, rpcs };
 }
@@ -243,8 +252,11 @@ test("valid Tenant/Landlord payloads retain existing column names, caller owners
     assert.equal(row.province, validAddress.province); assert.equal(row.city, validAddress.city); assert.equal(row.barangay, validAddress.barangay);
     assert.equal(row.street_address, validAddress.streetAddress); assert.equal(row.postal_code, 1485);
     assert.equal(row.stateProvince, undefined); assert.equal(row.streetAddress, undefined);
-    if (!profile) { assert.equal(row.user_id, "caller"); assert.equal(row.email, "caller@example.com"); assert.deepEqual(plain(row.roles), [role]); }
-    else { assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller")); assert.equal(h.rpcs[0][0], "set_onboarding_role"); }
+    assert.equal(row.user_id, undefined); assert.equal(row.email, undefined); assert.equal(row.roles, undefined);
+    const registration = h.rpcs.find(([name]) => name === "complete_web_registration");
+    assert.equal(registration[1].role, role);
+    assert.deepEqual(plain(registration[1].acceptance), accepted);
+    assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller"));
   }
 });
 

@@ -53,6 +53,41 @@
   color: var(--destructive);
 }
 
+/* Registration controls must remain visible on either theme. HeroUI's
+   unlayered defaults need scoped properties, as with preference checkboxes. */
+.registration-policy-checks .checkbox__control {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 4px;
+  background-color: var(--card);
+  box-shadow: none;
+}
+.registration-policy-checks .checkbox__control::before {
+  border-radius: 4px;
+}
+.registration-policy-checks .checkbox[data-selected="true"] .checkbox__control {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+.registration-policy-checks .checkbox[data-selected="true"] .checkbox__control::before {
+  background-color: var(--primary);
+  opacity: 1;
+  scale: 1;
+}
+.registration-policy-checks [data-slot="checkbox-default-indicator--checkmark"] {
+  width: 12px;
+  height: 12px;
+  color: var(--primary-foreground);
+}
+.registration-policy-checks .checkbox:has(input:focus-visible) .checkbox__control {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.registration-policy-checks .checkbox[data-invalid="true"] .checkbox__control {
+  border-color: var(--destructive);
+}
+
 /* Keep the review prompt's controls outside its scroll surface. HeroUI's
    unlayered positioning/sizing rules need scoped overrides, not utilities. */
 .review-unlock-container {

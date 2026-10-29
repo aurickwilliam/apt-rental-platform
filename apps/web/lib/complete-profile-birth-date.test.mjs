@@ -8,6 +8,8 @@ import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
 import * as birthRules from "./birth-date.ts";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
 import { addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
+import * as policyRules from "./registration-policies.ts";
+const accepted = { ...policyRules.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 
 const NOW = new Date("2026-10-25T04:00:00Z");
 const rules = { ...birthRules, getManilaDate: () => "2026-10-25", validateBirthDate: value => birthRules.validateBirthDate(value, NOW) };
@@ -149,6 +151,8 @@ function formHarness(kind, role, options = {}) {
     "react/jsx-runtime": virtualJsx,
     "@heroui/react": { ...ui, useOverlayState: () => { const [isOpen, set] = runtime.react.useState(false); return { isOpen, open: () => set(true), close: () => set(false) }; } },
     "@repo/constants": constants, "@/lib/birth-date": rules, "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: fieldComponent },
     "../../actions/complete-profile": { completeProfile() {} },
@@ -161,6 +165,7 @@ function formHarness(kind, role, options = {}) {
   const component = compile(complete ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx" : "app/(auth)/sign-up-form/components/SignUpForm.tsx", dependencies, { requestAnimationFrame: callback => callback() }).default;
   const render = () => runtime.render(() => component({ email: "test@example.com", firstName: "Test", lastName: "User", role, initialAddress: validAddress, initialBirthDate: options.initialBirthDate ?? "" }));
   const field = () => nodes(render()).find(node => node.type === fieldComponent);
+  nodes(render()).find(node => node.type === "RegistrationPolicyAcceptance").props.onChange(accepted);
   const set = (name, value) => nodes(render()).find(node => node.props?.name === name).props.onChange(value);
   const focusRef = field().props.inputRef;
   focusRef.current = { querySelector: () => ({ focus: () => focused.push(true) }) };
@@ -229,11 +234,12 @@ function submission(date, role = "tenant", complete = true) {
     streetAddress: validAddress.streetAddress, barangay: validAddress.barangay, city: validAddress.city, stateProvince: validAddress.province, postalCode: "1485", password: "ValidPassword1!", confirmPassword: "ValidPassword1!", role,
   };
   const fd = new FormData(); for (const [key, value] of Object.entries(values)) if (value != null) fd.set(key, value);
+  policyRules.writeRegistrationAcceptance(fd, accepted);
   return fd;
 }
 
 function actionHarness(kind, options = {}) {
-  const writes = [], auth = [];
+  const writes = [], auth = [], registrations = [];
   const client = {
     auth: { getUser: async () => { auth.push("getUser"); return { data: { user: options.signedOut ? null : { id: "caller", email: "caller@example.com" } }, error: null }; },
       signUp: async args => { auth.push(args); return { error: options.authError ?? null }; } },
@@ -247,9 +253,13 @@ function actionHarness(kind, options = {}) {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
     "@repo/constants": constants, "@/lib/birth-date": rules, "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "@/service/registrationService": { completeWebRegistration: async (client, details, role, acceptance, source) => {
+      writes.push(details); registrations.push({ role, acceptance, source }); return { error: options.dbError ?? null };
+    } },
     "../sign-up-form/utils": { validateSignUpForm }, "@repo/utils": { getEmailCodeRequestError: message => message },
   }, { process: { env: { NODE_ENV: "test" } } });
-  return { actions, writes, auth };
+  return { actions, writes, auth, registrations };
 }
 
 test("all three server entry points reject the same invalid dates, without creating accounts or writing profiles", async () => {
@@ -273,9 +283,9 @@ test("valid server submissions retain role destinations, Auth signup options and
     await assert.rejects(complete.actions.completeProfile({}, submission(adult, role)), role === "tenant" ? /redirect:\/tenant\/personalize/ : /redirect:\/landlord\/dashboard/);
     assert.equal(complete.writes[0].birth_date, adult);
     assert.equal((await signup.actions.signUp({ error: null, success: false }, submission(adult, role, false))).success, true);
-    assert.equal(signup.writes[0].email, "caller@example.com"); assert.equal(signup.writes[0].user_id, "caller");
-    assert.equal(signup.writes[0].roles[0], role); assert.equal(signup.writes[0].birth_date, adult);
-    assert.equal((await otp.actions.sendEmailOtp("test@example.com", "password", "First", "Last", adult)).success, true);
+    assert.equal(signup.writes[0].email, undefined); assert.equal(signup.writes[0].user_id, undefined);
+    assert.equal(signup.registrations[0].role, role); assert.equal(signup.writes[0].birth_date, adult);
+    assert.equal((await otp.actions.sendEmailOtp("test@example.com", "password", "First", "Last", adult, accepted)).success, true);
     assert.equal(otp.auth[0].options.data.full_name, "First Last");
   }
 });
@@ -313,10 +323,11 @@ test("OTP verification routes typed birth-date failures inline while preserving 
       "../../hooks/use-otp-attempts": { useOtpAttempts: () => ({ locked: false, recordWrongCode() {}, reset() {} }) },
       "@repo/supabase/browser": { createClient: () => ({ auth: { verifyOtp: async () => ({ data: { user: { id: "caller" } } }), signOut: async () => signedOut.push(true) } }) },
       "@repo/utils": { getOtpAttemptError: () => "wrong code" },
+      "@/lib/registration-policies": policyRules,
       "../../actions/sign-up": { signUp: async () => kind === "birth" ? { birthDateError: errors.invalid, birthDate: adult, error: null, success: false } : kind === "general" ? { error: "Network failure", success: false } : { error: null, success: true } },
       "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
     }, { FormData });
-    const hook = runtime.render(() => otpFlow.useOtpFlow({ formData: { ...validAddress, birthDate: adult, email: "test@example.com", postalCode: 1485 }, role: "tenant", showError: message => generic.push(message), onSuccessOpen: () => successes.push(true), onBirthDateError: (...args) => fieldErrors.push(args) }));
+    const hook = runtime.render(() => otpFlow.useOtpFlow({ formData: { ...validAddress, birthDate: adult, email: "test@example.com", postalCode: 1485 }, role: "tenant", acceptance: accepted, onAcceptanceError: () => assert.fail("unexpected policy error"), showError: message => generic.push(message), onSuccessOpen: () => successes.push(true), onBirthDateError: (...args) => fieldErrors.push(args) }));
     runtime.flush(); await hook.handleVerifyOtp(() => closed.push(true));
     assert.equal(closed.length, 1);
     if (kind === "birth") { assert.equal(fieldErrors[0][0], errors.invalid); assert.equal(fieldErrors[0][2], true); assert.equal(generic.length, 0); assert.equal(signedOut.length, 1); }

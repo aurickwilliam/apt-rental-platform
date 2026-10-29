@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-import * as privacy from "../app/(main)/pap/data/pap-sections.ts";
+import { privacy } from "./test-support/legal-policy-runtime.mjs";
 import * as cookies from "../app/(main)/cookies/data/cookies-sections.ts";
 
 const policies = [

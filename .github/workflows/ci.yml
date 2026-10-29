@@ -42,3 +42,6 @@ jobs:
 
       - name: Web tests
         run: pnpm --filter web test
+
+      - name: Web registration database tests
+        run: pnpm db:web-registration:test

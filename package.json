@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "db:web-registration:test": "node --experimental-strip-types --test scripts/web-registration/*.test.mjs",
     "db:billing:test": "node --experimental-strip-types --test scripts/billing/*.test.mjs",
     "db:landlord-gate:test": "node --experimental-strip-types --test scripts/verified-landlord/*.test.mjs",
     "web": "pnpm --filter web dev",

@@ -252,6 +252,8 @@ Sizes `sm`/`md`/`lg`; modifiers `isIconOnly`, `fullWidth`/`w-full`, `h-20 flex-c
 
 ## 10. Inputs
 
+**Web registration policy acceptance:** regular email sign-up and Complete Profile share `RegistrationPolicyAcceptance` (HeroUI v3 Checkbox with Content/Control/Indicator). Privacy Policy comes first, Terms and Conditions second; both start unchecked and remain independent. Place the rows immediately above submission, followed by small, readable `text-muted-foreground` micro-copy about false information/fraudulent listings and Philippine data protection. Policy names are underlined primary-color links opening in new tabs (announced to assistive technology); following one never selects its checkbox. Rows provide at least 44px touch height. Submission is disabled until both are selected, with a visible instruction explaining why. Missing/stale acceptance errors are inline and accessible, never a confirmation modal. Keep the website's existing surfaces, typography and light/dark tokens; no new visual tokens or mobile UI changes. Behavior/storage: ARCHITECTURE.md §4.3 and `docs/web-registration-acceptance.md`.
+
 **Canonical: HeroUI `TextField`/`Input`/`InputGroup`/`Select`/`TextArea`/`NumberField`/`Slider`/`SearchField`/`InputOTP`.**
 
 - **Focus (web):** `border-gray-300` rest → `focus-within:border-[#376BF5] focus-within:ring-2 ring-[#376BF5]/15`; fields `rounded-xl bg-white`; no drop shadow on any HeroUI field (`--field-shadow` is transparent in `app/globals.css` for both themes)
