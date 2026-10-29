@@ -20,6 +20,11 @@ export const HOUSEHOLD_OPTIONS = [
 
 export const PARKING_SPOT_OPTIONS = ["1", "2", "3", "4", "5"] as const;
 
+// Mirrors MAX_PET_COUNT / OTHER_PET in @repo/constants (this module cannot
+// import workspace packages, see the header).
+export const PREFERENCE_MAX_PET_COUNT = 10;
+export const PREFERENCE_OTHER_PET = "Other";
+
 export interface BudgetPreset {
   id: string;
   label: string;
@@ -71,7 +76,8 @@ export interface TenantPreferences {
   bedroomCount: string | null;
   householdSize: string | null;
   hasPets: boolean;
-  kindOfPets: string;
+  kindOfPets: string[];
+  noOfPets: number;
   nameOfPets: string | null;
   hasParking: boolean;
   noOfParkingSpots: number;
@@ -87,7 +93,8 @@ export const DEFAULT_TENANT_PREFERENCES: TenantPreferences = {
   bedroomCount: null,
   householdSize: null,
   hasPets: false,
-  kindOfPets: "",
+  kindOfPets: [],
+  noOfPets: 1,
   nameOfPets: null,
   hasParking: false,
   noOfParkingSpots: 1,
@@ -98,6 +105,12 @@ export const DEFAULT_TENANT_PREFERENCES: TenantPreferences = {
 
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+// Older saved preferences hold a single kind as a string.
+function asKindOfPets(value: unknown): string[] {
+  if (Array.isArray(value)) return asStringArray(value).filter((kind) => kind !== "");
+  return typeof value === "string" && value !== "" ? [value] : [];
 }
 
 function asNumber(value: unknown, fallback: number): number {
@@ -116,7 +129,8 @@ export function parseTenantPreferences(raw: unknown): TenantPreferences | null {
     bedroomCount: typeof obj.bedroomCount === "string" ? obj.bedroomCount : null,
     householdSize: typeof obj.householdSize === "string" ? obj.householdSize : null,
     hasPets: Boolean(obj.hasPets),
-    kindOfPets: typeof obj.kindOfPets === "string" ? obj.kindOfPets : "",
+    kindOfPets: asKindOfPets(obj.kindOfPets),
+    noOfPets: asNumber(obj.noOfPets, 1),
     nameOfPets: typeof obj.nameOfPets === "string" ? obj.nameOfPets : null,
     hasParking: Boolean(obj.hasParking),
     noOfParkingSpots: asNumber(obj.noOfParkingSpots, 1),
@@ -124,6 +138,27 @@ export function parseTenantPreferences(raw: unknown): TenantPreferences | null {
     hasSmoker: Boolean(obj.hasSmoker),
     hasDisability: Boolean(obj.hasDisability),
   };
+}
+
+/** Pet answers: needs at least one kind and a count that fits them. */
+export function validatePets(
+  prefs: Pick<TenantPreferences, "hasPets" | "kindOfPets" | "noOfPets">,
+): string | null {
+  if (!prefs.hasPets) return null;
+  if (!Array.isArray(prefs.kindOfPets) || prefs.kindOfPets.length === 0) {
+    return "Please choose the kind of pets you have.";
+  }
+  if (
+    !Number.isInteger(prefs.noOfPets) ||
+    prefs.noOfPets < 1 ||
+    prefs.noOfPets > PREFERENCE_MAX_PET_COUNT
+  ) {
+    return `Please enter how many pets you have (1 to ${PREFERENCE_MAX_PET_COUNT}).`;
+  }
+  if (prefs.noOfPets < prefs.kindOfPets.length) {
+    return "The number of pets cannot be fewer than the kinds you selected.";
+  }
+  return null;
 }
 
 /**
@@ -163,8 +198,5 @@ export function validateTenantPreferences(prefs: TenantPreferences): string | nu
   if (!Array.isArray(prefs.listOfVehicles) || prefs.listOfVehicles.some((v) => typeof v !== "string")) {
     return "Please choose valid vehicle types.";
   }
-  if (prefs.hasPets && prefs.kindOfPets === "") {
-    return "Please choose the kind of pet you have.";
-  }
-  return null;
+  return validatePets(prefs);
 }

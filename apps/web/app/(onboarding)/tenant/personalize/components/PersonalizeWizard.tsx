@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button, Input, Label, ListBox, Select, toast } from "@heroui/react";
+import { Button, Input, Label, ListBox, NumberField, Select, toast } from "@heroui/react";
 import {
   IconAccessible,
   IconBed,
@@ -14,7 +14,13 @@ import {
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  CAMANAVA_CITIES,
+  MAX_PET_COUNT,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+} from "@repo/constants";
 
 import {
   BEDROOM_OPTIONS,
@@ -22,6 +28,7 @@ import {
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
   parseTenantPreferences,
+  validatePets,
   type TenantPreferences,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
@@ -165,7 +172,8 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
     });
   };
 
-  const canContinue = step !== 5 || prefs.kindOfPets !== "" || !prefs.hasPets;
+  const petsError = validatePets(prefs);
+  const canContinue = step !== 5 || petsError === null;
 
   const finish = async () => {
     if (isSaving) return;
@@ -286,40 +294,66 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
               onChange={(value) =>
                 patch({
                   hasPets: value,
-                  kindOfPets: value ? prefs.kindOfPets : "",
+                  kindOfPets: value ? prefs.kindOfPets : [],
+                  noOfPets: value ? prefs.noOfPets : 1,
                   nameOfPets: value ? prefs.nameOfPets : null,
                 })
               }
             />
             {prefs.hasPets && (
               <Select
-                placeholder="Select the kind of pet you have"
-                value={prefs.kindOfPets || null}
-                onChange={(key) => {
-                  const next = key ? String(key) : "";
+                selectionMode="multiple"
+                placeholder="Select the kinds of pets you have"
+                value={prefs.kindOfPets}
+                onChange={(keys) => {
+                  const picked = keys.map(String);
+                  const next = PETS.filter((pet) => picked.includes(pet));
                   patch({
                     kindOfPets: next,
-                    nameOfPets: next === "Other" ? prefs.nameOfPets : null,
+                    nameOfPets: next.includes(OTHER_PET) ? prefs.nameOfPets : null,
                   });
                 }}
               >
-                <Label>If yes, what kind of pet do you have?</Label>
+                <Label>If yes, what kinds of pets do you have?</Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
                 </Select.Trigger>
                 <Select.Popover>
-                  <ListBox>
+                  <ListBox selectionMode="multiple">
                     {PETS.map((pet) => (
                       <ListBox.Item key={pet} id={pet} textValue={pet}>
                         {pet}
+                        <ListBox.ItemIndicator />
                       </ListBox.Item>
                     ))}
                   </ListBox>
                 </Select.Popover>
               </Select>
             )}
-            {prefs.hasPets && prefs.kindOfPets === "Other" && (
+            {prefs.hasPets && (
+              <NumberField
+                minValue={1}
+                maxValue={MAX_PET_COUNT}
+                value={prefs.noOfPets}
+                onChange={(value) => patch({ noOfPets: value })}
+                isInvalid={prefs.kindOfPets.length > 0 && petsError !== null}
+              >
+                <Label>How many pets do you have?</Label>
+                <NumberField.Group className="flex w-full items-center overflow-hidden rounded-xl border border-border bg-card transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                  <NumberField.Input
+                    placeholder="e.g., 2"
+                    className="w-full bg-transparent px-3 py-2.5 text-sm text-card-foreground outline-none placeholder:text-muted-foreground"
+                  />
+                </NumberField.Group>
+                {prefs.kindOfPets.length > 0 && petsError && (
+                  <p role="alert" className="mt-1 text-xs text-destructive">
+                    {petsError}
+                  </p>
+                )}
+              </NumberField>
+            )}
+            {prefs.hasPets && prefs.kindOfPets.includes(OTHER_PET) && (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pet-name">Please specify the kind of pet you have</Label>
                 <Input

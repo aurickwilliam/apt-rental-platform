@@ -12,7 +12,14 @@ import {
   ListGroup,
   Switch,
 } from "heroui-native";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  CAMANAVA_CITIES,
+  MAX_PET_COUNT,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+  getPetsError,
+} from "@repo/constants";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import DropdownButton from "components/buttons/DropdownButton";
@@ -48,6 +55,7 @@ export default function RentalPreferences() {
     householdSize,
     hasPets,
     kindOfPets,
+    noOfPets,
     nameOfPets,
     hasParking,
     noOfParkingSpots,
@@ -61,6 +69,7 @@ export default function RentalPreferences() {
     setHouseholdSize,
     setHasPets,
     setKindOfPets,
+    setNoOfPets,
     setNameOfPets,
     setHasParking,
     setNoOfParkingSpots,
@@ -101,6 +110,11 @@ export default function RentalPreferences() {
   const handleSave = async () => {
     if (!profile?.user_id) {
       toast.show({ variant: "danger", label: "Not signed in" });
+      return;
+    }
+    const petsError = getPetsError(hasPets, kindOfPets, noOfPets);
+    if (petsError) {
+      toast.show({ variant: "danger", label: "Check your pets", description: petsError });
       return;
     }
     try {
@@ -307,21 +321,42 @@ export default function RentalPreferences() {
               <Separator className="mx-4" />
               <ListGroup.Item disabled>
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle className="font-inter">What kind of pet?</ListGroup.ItemTitle>
+                  <ListGroup.ItemTitle className="font-inter">What kinds of pets?</ListGroup.ItemTitle>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>
                   <DropdownButton
-                    value={kindOfPets || null}
+                    multi
+                    value={null}
+                    values={kindOfPets}
                     options={[...PETS] as string[]}
-                    onSelect={(v) => setKindOfPets(v)}
+                    onSelect={() => {}}
+                    onValuesChange={(kinds) => setKindOfPets(PETS.filter((pet) => kinds.includes(pet)))}
                     placeholder="Select"
-                    label="Pet kind"
+                    label="Pet kinds"
                     width={220}
                   />
                 </ListGroup.ItemSuffix>
               </ListGroup.Item>
 
-              {kindOfPets === "Other" && (
+              <Separator className="mx-4" />
+              <View className="p-4">
+                <TextField isRequired>
+                  <Label>How many pets?</Label>
+                  <Input
+                    placeholder="e.g., 2"
+                    keyboardType="number-pad"
+                    maxLength={String(MAX_PET_COUNT).length}
+                    value={noOfPets > 0 ? String(noOfPets) : ""}
+                    onChangeText={(text) => {
+                      const digits = text.replace(/[^0-9]/g, "");
+                      setNoOfPets(digits === "" ? 0 : Number(digits));
+                    }}
+                  />
+                  <Description className="font-inter">Up to {MAX_PET_COUNT} pets</Description>
+                </TextField>
+              </View>
+
+              {kindOfPets.includes(OTHER_PET) && (
                 <>
                   <Separator className="mx-4" />
                   <View className="p-4">

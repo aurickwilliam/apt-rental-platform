@@ -22,7 +22,8 @@ test("parses a stored mobile payload into the shared shape", () => {
     bedroomCount: "1-2 Bedrooms",
     householdSize: "Family of 2",
     hasPets: true,
-    kindOfPets: "Dog",
+    kindOfPets: ["Dog"],
+    noOfPets: 1,
     nameOfPets: null,
     hasParking: true,
     noOfParkingSpots: 2,
@@ -76,12 +77,39 @@ test("rejects out-of-range budgets and bad option values", () => {
   );
 });
 
-test("requires a pet kind when the household has pets", () => {
-  const base = { ...DEFAULT_TENANT_PREFERENCES, hasPets: true, kindOfPets: "" };
-  assert.match(validateTenantPreferences(base) ?? "", /kind of pet/);
+test("requires a pet kind and a fitting count when the household has pets", () => {
+  const base = { ...DEFAULT_TENANT_PREFERENCES, hasPets: true, kindOfPets: [] };
+  assert.match(validateTenantPreferences(base) ?? "", /kind of pets/);
   assert.equal(
-    validateTenantPreferences({ ...base, kindOfPets: "Cat" }),
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat", "Dog"], noOfPets: 2 }),
     null,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat"], noOfPets: Number.NaN }) ?? "",
+    /how many pets/,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat"], noOfPets: 11 }) ?? "",
+    /how many pets/,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat", "Dog", "Bird"], noOfPets: 2 }) ?? "",
+    /fewer than the kinds/,
+  );
+});
+
+test("loads a legacy single pet kind as a list with a default count", () => {
+  const parsed = parseTenantPreferences({
+    selectedCities: [],
+    hasPets: true,
+    kindOfPets: "Dog",
+  });
+  assert.deepEqual(parsed?.kindOfPets, ["Dog"]);
+  assert.equal(parsed?.noOfPets, 1);
+  assert.deepEqual(parseTenantPreferences({ selectedCities: [], kindOfPets: "" })?.kindOfPets, []);
+  assert.deepEqual(
+    parseTenantPreferences({ selectedCities: [], kindOfPets: ["Cat", 3, "Dog"], noOfPets: 3 })?.kindOfPets,
+    ["Cat", "Dog"],
   );
 });
 

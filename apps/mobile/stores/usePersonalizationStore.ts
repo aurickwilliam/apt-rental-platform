@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { OTHER_PET } from "@repo/constants";
 
 export type PersonalizationStep1 = {
   selectedCities: string[];
@@ -19,7 +20,8 @@ export type PersonalizationStep4 = {
 
 export type PersonalizationStep5 = {
   hasPets: boolean;
-  kindOfPets: string;
+  kindOfPets: string[];
+  noOfPets: number;
   nameOfPets: string | null;
   hasParking: boolean;
   noOfParkingSpots: number;
@@ -51,7 +53,8 @@ const DEFAULT_STATE: PersonalizationState = {
 
   // Step 5
   hasPets: false,
-  kindOfPets: "",
+  kindOfPets: [],
+  noOfPets: 1,
   nameOfPets: null,
   hasParking: false,
   noOfParkingSpots: 1,
@@ -75,7 +78,8 @@ type PersonalizationActions = {
 
   // Step 5
   setHasPets: (value: boolean) => void;
-  setKindOfPets: (value: string) => void;
+  setKindOfPets: (value: string[]) => void;
+  setNoOfPets: (value: number) => void;
   setNameOfPets: (value: string | null) => void;
   setHasParking: (value: boolean) => void;
   setNoOfParkingSpots: (value: number) => void;
@@ -118,16 +122,20 @@ export const usePersonalizationStore = create<
     set((state) => ({
       hasPets: value,
       // Clear pet details when toggled off
-      kindOfPets: value ? state.kindOfPets : "",
+      kindOfPets: value ? state.kindOfPets : [],
+      noOfPets: value ? state.noOfPets : 1,
       nameOfPets: value ? state.nameOfPets : null,
     })),
 
   setKindOfPets: (value) =>
     set((state) => ({
       kindOfPets: value,
-      // Clear custom pet name if switching away from "Other"
-      nameOfPets: value === "Other" ? state.nameOfPets : null,
+      // Clear custom pet name if "Other" is no longer selected
+      nameOfPets: value.includes(OTHER_PET) ? state.nameOfPets : null,
     })),
+
+  setNoOfPets: (value) =>
+    set({ noOfPets: value }),
 
   setNameOfPets: (value) =>
     set({ nameOfPets: value }),

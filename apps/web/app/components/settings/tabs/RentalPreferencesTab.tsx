@@ -7,6 +7,7 @@ import {
   CheckboxGroup,
   Input,
   Label,
+  NumberField,
 } from "@heroui/react";
 import {
   IconAccessible,
@@ -17,17 +18,19 @@ import {
   IconSmoking,
   IconUser,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import { CAMANAVA_CITIES, MAX_PET_COUNT, OTHER_PET, PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
 import type { RentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import {
   BEDROOM_OPTIONS,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  validatePets,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
   type BudgetRangeFieldHandle,
 } from "@/app/components/preferences/BudgetRangeField";
+import SettingsMultiSelect from "../SettingsMultiSelect";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
 
@@ -71,6 +74,7 @@ export default function RentalPreferencesTab({
   form: RentalPreferencesForm;
 }) {
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
+  const petsError = validatePets(form);
 
   const handleSave = async () => {
     // Flush any in-progress custom-range typing first; an invalid entry
@@ -245,18 +249,37 @@ export default function RentalPreferencesTab({
             {form.hasPets && (
               <div className="flex flex-col gap-3 rounded-xl bg-muted/40 p-3">
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Pet type</Label>}
+                  label={<Label className="text-sm text-foreground">Pet types</Label>}
                   control={
-                    <SettingsSelect
-                      label="Kind of pet"
+                    <SettingsMultiSelect
+                      label="Kinds of pets"
                       value={form.kindOfPets}
                       options={PETS.map((pet) => ({ value: pet, label: pet }))}
                       onChange={form.setKindOfPets}
+                      placeholder="Select"
                       className="w-44"
                     />
                   }
                 />
-                {form.kindOfPets === "Other" && (
+                <ControlRow
+                  label={<Label className="text-sm text-foreground">Number of pets</Label>}
+                  control={
+                    <NumberField
+                      aria-label="Number of pets"
+                      minValue={1}
+                      maxValue={MAX_PET_COUNT}
+                      value={form.noOfPets}
+                      onChange={form.setNoOfPets}
+                      isInvalid={form.kindOfPets.length > 0 && petsError !== null}
+                      className="w-24"
+                    >
+                      <NumberField.Group className="flex w-full items-center overflow-hidden rounded-xl border border-border bg-card transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                        <NumberField.Input className="w-full bg-transparent px-3 py-2 text-sm text-card-foreground outline-none" />
+                      </NumberField.Group>
+                    </NumberField>
+                  }
+                />
+                {form.kindOfPets.includes(OTHER_PET) && (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="settings-pet-name">Please specify</Label>
                     <Input

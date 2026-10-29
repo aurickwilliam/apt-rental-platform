@@ -7,7 +7,13 @@ import DropdownField from "components/inputs/DropdownField";
 
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
-import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  MAX_PET_COUNT,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+  getPetsError,
+} from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
 import { useProfile } from "hooks/auth";
@@ -35,6 +41,7 @@ export default function StepFive() {
   const {
     hasPets, setHasPets,
     kindOfPets, setKindOfPets,
+    noOfPets, setNoOfPets,
     nameOfPets, setNameOfPets,
     hasParking, setHasParking,
     noOfParkingSpots, setNoOfParkingSpots,
@@ -50,7 +57,18 @@ export default function StepFive() {
 
   const NO_PARKING_OPTIONS = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
+  const petsError = getPetsError(hasPets, kindOfPets, noOfPets);
+
   const handleNext = async () => {
+    if (petsError) {
+      toast.show({
+        variant: "danger",
+        label: "Check your pets",
+        description: petsError,
+      });
+      return;
+    }
+
     if (!profile?.user_id) {
       router.replace("/(tabs)/(tenant)/rentals");
       return;
@@ -70,6 +88,7 @@ export default function StepFive() {
             householdSize: personalization.householdSize,
             hasPets: personalization.hasPets,
             kindOfPets: personalization.kindOfPets,
+            noOfPets: personalization.noOfPets,
             nameOfPets: personalization.nameOfPets,
             hasParking: personalization.hasParking,
             noOfParkingSpots: personalization.noOfParkingSpots,
@@ -156,17 +175,36 @@ export default function StepFive() {
 
             {hasPets && (
               <DropdownField
-                label="If yes, what kind of pet do you have?"
-                bottomSheetLabel="Select your Pet"
-                placeholder="Select the kind of pets you have"
+                label="If yes, what kinds of pets do you have?"
+                bottomSheetLabel="Select your Pets"
+                placeholder="Select the kinds of pets you have"
                 options={PETS}
-                onSelect={(value) => setKindOfPets(value ?? "")}
-                value={kindOfPets}
+                multiple
+                values={kindOfPets}
+                onSelectMultiple={setKindOfPets}
+                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
                 required
               />
             )}
 
-            {hasPets && kindOfPets === "Other" && (
+            {hasPets && (
+              <TextField isRequired>
+                <Label>How many pets do you have?</Label>
+                <Input
+                  placeholder="e.g., 2"
+                  keyboardType="number-pad"
+                  maxLength={String(MAX_PET_COUNT).length}
+                  value={noOfPets > 0 ? String(noOfPets) : ""}
+                  onChangeText={(text) => {
+                    const digits = text.replace(/[^0-9]/g, "");
+                    setNoOfPets(digits === "" ? 0 : Number(digits));
+                  }}
+                />
+                <Description>Up to {MAX_PET_COUNT} pets</Description>
+              </TextField>
+            )}
+
+            {hasPets && kindOfPets.includes(OTHER_PET) && (
               <TextField isRequired>
                 <Label>Please specify the kind of pet you have</Label>
                 <Input
