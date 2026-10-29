@@ -55,7 +55,7 @@ export const SECTIONS: Section[] = [
     title: "Acceptance of",
     emphasis: "Terms",
     body: [
-      `Welcome to APT (A Place to Thrive). These Terms of Service ("Terms") govern your access to and use of the APT website and mobile application ("Platform"). By creating an account, accessing, or using the Platform, you acknowledge that you have read, understood, and agree to comply with these Terms.`,
+      `Welcome to APT (A Place to Thrive). These Terms and Conditions ("Terms") govern your access to and use of the APT website and mobile application ("Platform"). By creating an account, accessing, or using the Platform, you acknowledge that you have read, understood, and agree to comply with these Terms.`,
     ],
     callout: {
       kind: "info",

@@ -8,8 +8,8 @@ import * as privacy from "../app/(main)/pap/data/pap-sections.ts";
 import * as cookies from "../app/(main)/cookies/data/cookies-sections.ts";
 
 const policies = [
-  { name: "Privacy", route: "pap", data: privacy, count: 13, infoIndex: 1, warningIndex: 10, related: [{ href: "/tos", label: "Terms of Service" }, { href: "/cookies", label: "Cookie Policy" }] },
-  { name: "Cookie", route: "cookies", data: cookies, count: 9, infoIndex: 3, warningIndex: 5, related: [{ href: "/tos", label: "Terms of Service" }, { href: "/pap", label: "Privacy Policy" }] },
+  { name: "Privacy", route: "pap", data: privacy, count: 13, infoIndex: 1, warningIndex: 10, related: [{ href: "/tos", label: "Terms and Conditions" }, { href: "/cookies", label: "Cookie Policy" }] },
+  { name: "Cookie", route: "cookies", data: cookies, count: 9, infoIndex: 3, warningIndex: 5, related: [{ href: "/tos", label: "Terms and Conditions" }, { href: "/pap", label: "Privacy Policy" }] },
 ];
 const normalize = value => JSON.parse(JSON.stringify(value));
 

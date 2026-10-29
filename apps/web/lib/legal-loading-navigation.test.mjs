@@ -9,7 +9,7 @@ import { TOC as privacyContents } from "../app/(main)/pap/data/pap-sections.ts";
 import { TOC as cookieContents } from "../app/(main)/cookies/data/cookies-sections.ts";
 
 const routes = [
-  { route: "tos", title: "Terms of", titleAccent: "Service", contents: termsContents },
+  { route: "tos", title: "Terms and", titleAccent: "Conditions", contents: termsContents },
   { route: "pap", title: "Privacy", titleAccent: "Policy", contents: privacyContents },
   { route: "cookies", title: "Cookie", titleAccent: "Policy", contents: cookieContents },
 ];
