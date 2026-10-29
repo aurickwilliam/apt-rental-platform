@@ -1,6 +1,7 @@
 "use client";
 
-import { FieldError, Input, Label, ListBox, Select, TextField } from "@heroui/react";
+import { Button, FieldError, Input, InputGroup, Label, ListBox, Select, TextField, Tooltip } from "@heroui/react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { PROVINCES, getCitiesByProvince, getBarangaysByCity, type Province } from "@repo/constants";
 import { changeRegistrationAddress, getRegistrationZipWarning, validateRegistrationAddress, type RegistrationAddress, type RegistrationAddressErrors } from "@/lib/registration-address";
 
@@ -55,9 +56,23 @@ export default function RegistrationAddressFields({ value, onChange, errors = {}
       <TextField name={names.postalCode} isRequired validationBehavior="aria" value={value.postalCode}
         onChange={text => onChange(changeRegistrationAddress(value, "postalCode", text))} isDisabled={isDisabled} isInvalid={postalError ? true : undefined}>
         <Label>Postal Code</Label>
-        <Input className="bg-card! text-foreground!" placeholder="Enter your postal code" inputMode="numeric" maxLength={4} />
+        <InputGroup className="registration-input-group bg-card!">
+          <InputGroup.Input className="text-foreground!" placeholder="Enter your postal code" inputMode="numeric" maxLength={4} />
+          {postalWarning && (
+            <InputGroup.Suffix>
+              <Tooltip delay={0}>
+                <Tooltip.Trigger>
+                  <Button variant="ghost" isIconOnly size="sm" aria-label="About this postal code" className="size-7 min-w-0 cursor-pointer text-muted-foreground">
+                    <IconInfoCircle size={18} aria-hidden="true" />
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content placement="top" className="max-w-64">{postalWarning}</Tooltip.Content>
+              </Tooltip>
+            </InputGroup.Suffix>
+          )}
+        </InputGroup>
         <FieldError className="text-xs">{postalError}</FieldError>
-        {postalWarning && <p role="status" className="text-xs text-[#92400E] dark:text-[#FDE047]">{postalWarning}</p>}
+        {postalWarning && <span role="status" className="sr-only">{postalWarning}</span>}
       </TextField>
     </div>
   );

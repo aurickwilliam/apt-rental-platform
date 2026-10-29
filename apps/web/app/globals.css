@@ -793,6 +793,16 @@
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
   }
 
+  /* HeroUI InputGroup draws its border from the --field-* variables, not from
+     `.input`, so give it the same token border, radius, hover and focus. */
+  .registration-input-group {
+    --border-width-field: 1px;
+    --field-border: var(--border);
+    --field-border-hover: var(--muted-foreground);
+    --field-border-focus: #376BF5;
+    border-radius: var(--radius-xl);
+  }
+
   /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
      light background token, so descriptions and the close icon were nearly
      invisible. Use the app's muted text color instead. */

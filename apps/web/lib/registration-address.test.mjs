@@ -19,11 +19,14 @@ const ui = {
   DatePicker: Object.assign(() => {}, { Popover: "DatePopover", Trigger: "DateTrigger", TriggerIndicator: "DateTriggerIndicator" }),
   DateField: { Group: "Group", Input: "DateInput", Suffix: "Suffix" },
   Calendar: Object.assign(() => {}, Object.fromEntries(["Header", "YearPickerTrigger", "YearPickerTriggerHeading", "YearPickerTriggerIndicator", "NavButton", "Grid", "GridHeader", "GridBody", "YearPickerGrid", "YearPickerGridBody"].map(key => [key, key]))),
+  InputGroup: Object.assign(() => {}, { Input: "InputGroupInput", Suffix: "InputGroupSuffix" }),
+  Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }),
   useOverlayState: () => ({ isOpen: false, open() {}, close() {} }),
 };
 const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [] };
+const icons = { IconInfoCircle: "IconInfoCircle" };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
 }).default;
 
 function fieldHarness(initial = empty) {
@@ -108,6 +111,21 @@ test("a well-formed ZIP we do not recognize for the city is a warning, not an er
   assert.equal(addressRules.getRegistrationZipWarning({ ...validAddress, postalCode: "14a5" }), null);
 });
 
+test("an unrecognized ZIP shows an info icon whose tooltip carries the note, not text under the field", () => {
+  const warning = `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`;
+  const h = fieldHarness({ ...validAddress, postalCode: "9999" });
+  const parts = nodes(h.field("postalCode"));
+  assert.equal(parts.find(node => node.type === "TooltipContent")?.props.children, warning);
+  assert.ok(parts.some(node => node.type === "InputGroupSuffix"));
+  assert.equal(parts.some(node => node.type === "p"), false);
+  const recognized = nodes(fieldHarness(validAddress).field("postalCode"));
+  assert.equal(recognized.some(node => node.type === "TooltipContent" || node.type === "InputGroupSuffix"), false);
+  const html = renderToStaticMarkup(compile("app/(auth)/components/RegistrationAddressFields.tsx", {
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  }).default({ value: { ...validAddress, postalCode: "9999" }, onChange() {} }));
+  assert.match(html, /aria-label="About this postal code"/);
+});
+
 test("street and ZIP remain editable, user-entered valid ZIPs are not auto-replaced, and geographic coverage stays nationwide", () => {
   const h = fieldHarness(validAddress);
   h.change("streetAddress", "  Unit 2, Existing Street  ");
@@ -135,7 +153,7 @@ test("shared fields preserve ordered two-column desktop / stacked mobile layout 
 
 test("installed HeroUI provides input error association and disabled dependent selectors", () => {
   const nativeFields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
   }).default;
   const html = renderToStaticMarkup(nativeFields({ value: empty, onChange() {}, errors: validate(empty) }));
   assert.match(html, /aria-invalid="true"/);
