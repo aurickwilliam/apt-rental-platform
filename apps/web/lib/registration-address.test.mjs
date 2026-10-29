@@ -106,11 +106,21 @@ test("changing the city empties barangay, street and postal code, but keeps the 
   assert.deepEqual(plain(cleared.value()), { ...empty, province: "Metro Manila" });
 });
 
-test("changing the barangay or typing street and postal never touches the other fields", () => {
+test("changing the barangay empties street and postal code, but keeps province and city", () => {
   const h = fieldHarness(validAddress);
+  h.change("barangay", validAddress.barangay);
+  assert.deepEqual(plain(h.value()), validAddress);
   const other = addressConstants.getBarangaysByCity("Navotas").find(name => name !== validAddress.barangay);
   h.change("barangay", other);
-  assert.deepEqual(plain(h.value()), { ...validAddress, barangay: other });
+  assert.deepEqual(plain(h.value()), { ...plain(empty), province: validAddress.province, city: validAddress.city, barangay: other });
+
+  const cleared = fieldHarness(validAddress);
+  cleared.change("barangay", "");
+  assert.deepEqual(plain(cleared.value()), { ...plain(empty), province: validAddress.province, city: validAddress.city });
+
+  const firstPick = fieldHarness({ ...validAddress, barangay: "", streetAddress: "Typed first", postalCode: "1485" });
+  firstPick.change("barangay", validAddress.barangay);
+  assert.deepEqual(plain(firstPick.value()), { ...validAddress, streetAddress: "Typed first" });
 });
 
 test("saved selector labels and safely equivalent legacy labels prefill, but unknown IDs/labels never guess locations", () => {

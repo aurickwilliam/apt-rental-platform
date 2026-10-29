@@ -38,13 +38,17 @@ export function changeRegistrationAddress(
   if (field === "streetAddress") return { ...current, streetAddress: value };
   const next = resolveRegistrationAddress({ ...current, [field]: value });
   // Domino effect: replacing (or clearing) a chosen province empties everything
-  // after it; replacing a chosen city empties barangay through postal code.
-  // Picking the same value again, or a first pick, leaves what was typed alone.
+  // after it; a chosen city empties barangay through postal code; a chosen
+  // barangay empties street address and postal code. Picking the same value
+  // again, or a first pick, leaves what was typed alone.
   if (field === "province" && current.province && next.province !== current.province) {
     return { ...EMPTY_REGISTRATION_ADDRESS, province: next.province };
   }
   if (field === "city" && current.city && next.city !== current.city) {
     return { ...EMPTY_REGISTRATION_ADDRESS, province: next.province, city: next.city };
+  }
+  if (field === "barangay" && current.barangay && next.barangay !== current.barangay) {
+    return { ...next, streetAddress: "", postalCode: "" };
   }
   return next;
 }
