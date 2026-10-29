@@ -2,7 +2,7 @@
 
 import { FieldError, Input, Label, ListBox, Select, TextField } from "@heroui/react";
 import { PROVINCES, getCitiesByProvince, getBarangaysByCity, type Province } from "@repo/constants";
-import { changeRegistrationAddress, validateRegistrationAddress, type RegistrationAddress, type RegistrationAddressErrors } from "@/lib/registration-address";
+import { changeRegistrationAddress, getRegistrationZipWarning, validateRegistrationAddress, type RegistrationAddress, type RegistrationAddressErrors } from "@/lib/registration-address";
 
 interface RegistrationAddressFieldsProps {
   value: RegistrationAddress;
@@ -20,6 +20,7 @@ export default function RegistrationAddressFields({ value, onChange, errors = {}
   const cities = PROVINCES.includes(value.province as Province) ? getCitiesByProvince(value.province as Province) : [];
   const barangays = cities.includes(value.city) ? getBarangaysByCity(value.city) : [];
   const postalError = errors.postalCode ?? (value.postalCode.length === 4 ? validateRegistrationAddress(value).postalCode : undefined);
+  const postalWarning = postalError ? null : getRegistrationZipWarning(value);
   const selectors = [
     { field: "province" as const, label: "State/Province", options: PROVINCES, placeholder: "Select your state/province", disabled: false },
     { field: "city" as const, label: "City", options: cities, placeholder: value.province ? "Select your city" : "Select a province first", disabled: !value.province },
@@ -56,6 +57,7 @@ export default function RegistrationAddressFields({ value, onChange, errors = {}
         <Label>Postal Code</Label>
         <Input className="bg-card! text-foreground!" placeholder="Enter your postal code" inputMode="numeric" maxLength={4} />
         <FieldError className="text-xs">{postalError}</FieldError>
+        {postalWarning && <p role="status" className="text-xs text-[#92400E] dark:text-[#FDE047]">{postalWarning}</p>}
       </TextField>
     </div>
   );

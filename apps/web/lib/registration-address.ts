@@ -1,4 +1,4 @@
-import { PROVINCES, getCitiesByProvince, getBarangaysByCity, isZipPlausibleForCity, type Province } from "@repo/constants";
+import { PROVINCES, getCitiesByProvince, getBarangaysByCity, getZipCityWarning, type Province } from "@repo/constants";
 
 export interface RegistrationAddress {
   province: string;
@@ -51,8 +51,12 @@ export function validateRegistrationAddress(value: RegistrationAddress): Registr
   if (!value.postalCode) errors.postalCode = "Postal code is required.";
   else if (!/^\d{4}$/.test(value.postalCode)) errors.postalCode = "Enter a valid 4-digit postal code.";
   else if (Number(value.postalCode) < 1000) errors.postalCode = "Postal code must be between 1000 and 9999.";
-  else if (!errors.city && !errors.province && !isZipPlausibleForCity(value.city, value.province, value.postalCode)) {
-    errors.postalCode = `Enter a valid postal code for ${value.city}.`;
-  }
   return errors;
+}
+
+// Never blocks: our ZIP tables are incomplete, so a well-formed ZIP we do not
+// recognize for the city only gets a "double-check it" note.
+export function getRegistrationZipWarning(value: RegistrationAddress): string | null {
+  if (validateRegistrationAddress(value).postalCode) return null;
+  return getZipCityWarning(value.city, value.province, value.postalCode);
 }

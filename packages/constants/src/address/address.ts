@@ -3,7 +3,7 @@ export const CITIES = {
   "Metro Manila": [
     "Manila", "Quezon City", "Caloocan", "Makati", "Pasig", "Taguig",
     "Parañaque", "Las Piñas", "Muntinlupa", "Marikina", "Mandaluyong",
-    "Pasay", "Malabon", "Navotas", "Valenzuela", "San Juan",
+    "Pasay", "Malabon", "Navotas", "Valenzuela", "San Juan", "Pateros",
   ],
 
   // REGION I — Ilocos Region
@@ -276,6 +276,8 @@ export const METRO_MANILA_ZIP_RANGES: Record<string, { min: number; max: number 
   Mandaluyong: { min: 1550, max: 1556 },
   Pasig: { min: 1600, max: 1612 },
   Taguig: { min: 1630, max: 1639 },
+  // Pateros is the one municipality in Metro Manila; its ZIPs run 1620-1622.
+  Pateros: { min: 1620, max: 1622 },
   Parañaque: { min: 1700, max: 1720 },
   "Las Piñas": { min: 1740, max: 1752 },
   Muntinlupa: { min: 1770, max: 1781 },

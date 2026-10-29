@@ -3,7 +3,7 @@ import test from "node:test";
 import { PH_CITY_ZIPS } from "../../../packages/constants/src/address/ph-city-zips.ts";
 import { addressConstants } from "./test-support/registration-address-runtime.mjs";
 
-const { CITIES, METRO_MANILA_ZIP_RANGES, getPostalCode, isZipPlausibleForCity } = addressConstants;
+const { CITIES, METRO_MANILA_ZIP_RANGES, getPostalCode, getZipCityWarning, isZipPlausibleForCity } = addressConstants;
 
 test("every Metro Manila city accepts its whole PHLPost ZIP block and nothing outside it", () => {
   for (const city of CITIES["Metro Manila"]) {
@@ -37,6 +37,21 @@ test("a ZIP that belongs to another city is rejected", () => {
   assert.equal(isZipPlausibleForCity("San Fernando", "La Union", "2000"), false);
   assert.equal(isZipPlausibleForCity("San Fernando", "Pampanga", "2500"), false);
   assert.equal(isZipPlausibleForCity("Dagupan", "Pangasinan", "24000"), false);
+});
+
+test("Pateros is offered and accepts its ZIP block", () => {
+  assert.ok(CITIES["Metro Manila"].includes("Pateros"));
+  for (const zip of ["1620", "1621", "1622"]) assert.equal(isZipPlausibleForCity("Pateros", "Metro Manila", zip), true, zip);
+  assert.equal(getPostalCode("Pateros", "Metro Manila"), "1620");
+});
+
+test("a well-formed ZIP we do not recognize only gets a warning, never an error", () => {
+  const warning = "This ZIP isn't one we recognize for Quezon City. Double-check it.";
+  assert.equal(getZipCityWarning("Quezon City", "Metro Manila", "1200"), warning);
+  assert.equal(getZipCityWarning("Quezon City", "Metro Manila", "1102"), null);
+  assert.equal(getZipCityWarning("Tongkil", "Sulu", "7400"), null);
+  assert.equal(getZipCityWarning("Quezon City", "Metro Manila", "11"), null);
+  assert.equal(getZipCityWarning("", "", "1200"), null);
 });
 
 test("a city with no published ZIP only gets the format check", () => {

@@ -94,11 +94,18 @@ test("required and tampered address values are rejected independently of the sel
     { ...validAddress, barangay: "pasted fake barangay" },
     { ...validAddress, postalCode: "14a5" },
     { ...validAddress, postalCode: "0001" },
-    { ...validAddress, postalCode: "9999" },
     { ...validAddress, streetAddress: "   " },
   ]) assert.ok(Object.keys(validate(value)).length > 0);
   const forged = change(validAddress, "city", "Cebu City");
   assert.equal(forged.city, ""); assert.equal(forged.barangay, "");
+});
+
+test("a well-formed ZIP we do not recognize for the city is a warning, not an error", () => {
+  const unfamiliar = { ...validAddress, postalCode: "9999" };
+  assert.equal(validate(unfamiliar).postalCode, undefined);
+  assert.equal(addressRules.getRegistrationZipWarning(unfamiliar), `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`);
+  assert.equal(addressRules.getRegistrationZipWarning(validAddress), null);
+  assert.equal(addressRules.getRegistrationZipWarning({ ...validAddress, postalCode: "14a5" }), null);
 });
 
 test("street and ZIP remain editable, user-entered valid ZIPs are not auto-replaced, and geographic coverage stays nationwide", () => {

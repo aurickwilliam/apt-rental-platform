@@ -128,6 +128,20 @@ describe("useProfileDetailsForm", () => {
     expect(result.current.postal.error).toBeTruthy();
   });
 
+  it("warns, without blocking, about a well-formed ZIP we do not recognize for the city", () => {
+    const { result } = setup();
+    fillValid(() => result.current);
+    expect(result.current.postal.warning).toBeNull();
+
+    act(() => result.current.postal.onChange("1200"));
+    expect(result.current.postal.warning).toBe("This ZIP isn't one we recognize for Caloocan. Double-check it.");
+
+    let valid = false;
+    act(() => { valid = result.current.validate(); });
+    expect(valid).toBe(true);
+    expect(result.current.postal.error).toBeNull();
+  });
+
   it("builds the users row with blanks as null and the formatted mobile number", () => {
     const { result } = setup();
     fillValid(() => result.current);

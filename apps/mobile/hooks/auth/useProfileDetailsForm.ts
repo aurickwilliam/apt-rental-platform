@@ -200,6 +200,7 @@ export function useProfileDetailsForm({ firstName, lastName, scrollRef }: Profil
     postal: {
       value: postal.value,
       error: postal.error,
+      warning: postal.warning,
       onChange: postal.handleChange,
       onBlur: postal.handleBlur,
     },
