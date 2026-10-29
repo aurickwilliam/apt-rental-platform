@@ -53,6 +53,35 @@
   color: var(--destructive);
 }
 
+/* Registration-only: date segments are not text inputs, so the browser draws
+   no caret. A blinking bar on the active segment shows where typing lands.
+   Invalid segments keep the danger color through currentColor. */
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"] {
+  position: relative;
+}
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus::after,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"]::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  right: 0;
+  width: 1.5px;
+  background-color: currentColor;
+  animation: birth-date-caret-blink 1.05s steps(1) infinite;
+  pointer-events: none;
+}
+@keyframes birth-date-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .registration-birth-date [data-slot="date-input-group-segment"][data-type]:focus::after {
+    animation: none;
+  }
+}
+
 /* Keep the review prompt's controls outside its scroll surface. HeroUI's
    unlayered positioning/sizing rules need scoped overrides, not utilities. */
 .review-unlock-container {
