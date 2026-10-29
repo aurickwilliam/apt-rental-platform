@@ -36,7 +36,17 @@ export function changeRegistrationAddress(
 ): RegistrationAddress {
   if (field === "postalCode") return { ...current, postalCode: value.replace(/\D/g, "").slice(0, 4) };
   if (field === "streetAddress") return { ...current, streetAddress: value };
-  return resolveRegistrationAddress({ ...current, [field]: value });
+  const next = resolveRegistrationAddress({ ...current, [field]: value });
+  // Domino effect: replacing (or clearing) a chosen province empties everything
+  // after it; replacing a chosen city empties barangay through postal code.
+  // Picking the same value again, or a first pick, leaves what was typed alone.
+  if (field === "province" && current.province && next.province !== current.province) {
+    return { ...EMPTY_REGISTRATION_ADDRESS, province: next.province };
+  }
+  if (field === "city" && current.city && next.city !== current.city) {
+    return { ...EMPTY_REGISTRATION_ADDRESS, province: next.province, city: next.city };
+  }
+  return next;
 }
 
 export function validateRegistrationAddress(value: RegistrationAddress): RegistrationAddressErrors {
