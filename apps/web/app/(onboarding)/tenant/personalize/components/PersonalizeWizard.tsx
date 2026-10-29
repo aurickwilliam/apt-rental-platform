@@ -59,12 +59,14 @@ function OptionCard({
   onPress,
   label,
   icon,
+  compact = false,
   className = "",
 }: {
   selected: boolean;
   onPress: () => void;
   label: string;
   icon?: ReactNode;
+  compact?: boolean;
   className?: string;
 }) {
   return (
@@ -72,7 +74,7 @@ function OptionCard({
       variant="ghost"
       aria-pressed={selected}
       onClick={onPress}
-      className={`button--bare flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`button--bare flex ${compact ? "min-h-12 p-3" : "min-h-16 p-4"} items-center gap-3 rounded-xl border text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         selected
           ? "border-primary bg-primary/10"
           : "border-border bg-card hover:border-primary/40"
@@ -96,7 +98,8 @@ function OptionCard({
   );
 }
 
-// Yes/No segmented control mirroring the mobile radio semantics.
+// Yes/No choice drawn as option cards, like the other steps, so it never
+// reads as the Back/Continue action buttons.
 function YesNoField({
   label,
   value,
@@ -118,22 +121,18 @@ function YesNoField({
         )}
         {label}
       </p>
-      <div className="flex gap-2" role="group" aria-label={label}>
+      <div className="grid grid-cols-2 gap-2.5" role="group" aria-label={label}>
         {[
           { option: true, text: "Yes" },
           { option: false, text: "No" },
         ].map(({ option, text }) => (
-          <Button
+          <OptionCard
             key={text}
-            type="button"
-            size="sm"
-            variant={value === option ? "primary" : "outline"}
-            aria-pressed={value === option}
+            compact
+            label={text}
+            selected={value === option}
             onPress={() => onChange(option)}
-            className="min-h-10 flex-1"
-          >
-            {text}
-          </Button>
+          />
         ))}
       </div>
     </div>
@@ -305,37 +304,6 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
               }
             />
             {prefs.hasPets && (
-              <Select
-                selectionMode="multiple"
-                placeholder="Select the kinds of pets you have"
-                value={prefs.kindOfPets}
-                onChange={(keys) => {
-                  const picked = keys.map(String);
-                  const next = PETS.filter((pet) => picked.includes(pet));
-                  patch({
-                    kindOfPets: next,
-                    nameOfPets: next.includes(OTHER_PET) ? prefs.nameOfPets : null,
-                  });
-                }}
-              >
-                <Label>If yes, what kinds of pets do you have?</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox selectionMode="multiple">
-                    {PETS.map((pet) => (
-                      <ListBox.Item key={pet} id={pet} textValue={pet}>
-                        {pet}
-                        <ListBox.ItemIndicator />
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-            )}
-            {prefs.hasPets && (
               <NumberField
                 minValue={1}
                 maxValue={MAX_PET_COUNT}
@@ -356,6 +324,39 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                   </p>
                 )}
               </NumberField>
+            )}
+            {prefs.hasPets && (
+              <Select
+                selectionMode="multiple"
+                placeholder="Select the kinds of pets you have"
+                value={prefs.kindOfPets}
+                onChange={(keys) => {
+                  const picked = keys.map(String);
+                  const next = PETS.filter((pet) => picked.includes(pet));
+                  patch({
+                    kindOfPets: next,
+                    // Never fewer pets than kinds: raise the count as kinds are added.
+                    noOfPets: Math.max(prefs.noOfPets || 0, next.length),
+                    nameOfPets: next.includes(OTHER_PET) ? prefs.nameOfPets : null,
+                  });
+                }}
+              >
+                <Label>If yes, what kinds of pets do you have?</Label>
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox selectionMode="multiple">
+                    {PETS.map((pet) => (
+                      <ListBox.Item key={pet} id={pet} textValue={pet}>
+                        {pet}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
             )}
             {prefs.hasPets && prefs.kindOfPets.includes(OTHER_PET) && (
               <div className="flex flex-col gap-1.5">
@@ -438,7 +439,7 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
       </div>
 
       {/* Pinned to the bottom of the screen so the actions stay in the same place on every step */}
-      <div className="sticky bottom-0 mt-auto flex items-center gap-2 bg-card py-4">
+      <div className="sticky bottom-0 mt-auto flex items-center gap-2 bg-card pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
         {step > 1 ? (
           <Button
             type="button"

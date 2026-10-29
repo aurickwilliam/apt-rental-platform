@@ -174,20 +174,6 @@ export default function StepFive() {
             </View>
 
             {hasPets && (
-              <DropdownField
-                label="If yes, what kinds of pets do you have?"
-                bottomSheetLabel="Select your Pets"
-                placeholder="Select the kinds of pets you have"
-                options={PETS}
-                multiple
-                values={kindOfPets}
-                onSelectMultiple={setKindOfPets}
-                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
-                required
-              />
-            )}
-
-            {hasPets && (
               <TextField isRequired>
                 <Label>How many pets do you have?</Label>
                 <Input
@@ -202,6 +188,20 @@ export default function StepFive() {
                 />
                 <Description>Up to {MAX_PET_COUNT} pets</Description>
               </TextField>
+            )}
+
+            {hasPets && (
+              <DropdownField
+                label="If yes, what kinds of pets do you have?"
+                bottomSheetLabel="Select your Pets"
+                placeholder="Select the kinds of pets you have"
+                options={PETS}
+                multiple
+                values={kindOfPets}
+                onSelectMultiple={setKindOfPets}
+                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
+                required
+              />
             )}
 
             {hasPets && kindOfPets.includes(OTHER_PET) && (

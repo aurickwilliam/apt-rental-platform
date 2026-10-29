@@ -319,6 +319,24 @@ export default function RentalPreferences() {
           {hasPets && (
             <>
               <Separator className="mx-4" />
+              <View className="p-4">
+                <TextField isRequired>
+                  <Label>How many pets?</Label>
+                  <Input
+                    placeholder="e.g., 2"
+                    keyboardType="number-pad"
+                    maxLength={String(MAX_PET_COUNT).length}
+                    value={noOfPets > 0 ? String(noOfPets) : ""}
+                    onChangeText={(text) => {
+                      const digits = text.replace(/[^0-9]/g, "");
+                      setNoOfPets(digits === "" ? 0 : Number(digits));
+                    }}
+                  />
+                  <Description className="font-inter">Up to {MAX_PET_COUNT} pets</Description>
+                </TextField>
+              </View>
+
+              <Separator className="mx-4" />
               <ListGroup.Item disabled>
                 <ListGroup.ItemContent>
                   <ListGroup.ItemTitle className="font-inter">What kinds of pets?</ListGroup.ItemTitle>
@@ -337,24 +355,6 @@ export default function RentalPreferences() {
                   />
                 </ListGroup.ItemSuffix>
               </ListGroup.Item>
-
-              <Separator className="mx-4" />
-              <View className="p-4">
-                <TextField isRequired>
-                  <Label>How many pets?</Label>
-                  <Input
-                    placeholder="e.g., 2"
-                    keyboardType="number-pad"
-                    maxLength={String(MAX_PET_COUNT).length}
-                    value={noOfPets > 0 ? String(noOfPets) : ""}
-                    onChangeText={(text) => {
-                      const digits = text.replace(/[^0-9]/g, "");
-                      setNoOfPets(digits === "" ? 0 : Number(digits));
-                    }}
-                  />
-                  <Description className="font-inter">Up to {MAX_PET_COUNT} pets</Description>
-                </TextField>
-              </View>
 
               {kindOfPets.includes(OTHER_PET) && (
                 <>

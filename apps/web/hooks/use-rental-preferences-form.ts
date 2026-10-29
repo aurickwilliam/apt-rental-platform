@@ -160,6 +160,8 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
   const setKindOfPets = useCallback((value: string[]) => {
     setSaveError(null);
     setKindOfPetsRaw(value);
+    // Never fewer pets than kinds: raise the count as kinds are added.
+    setNoOfPetsRaw((count) => Math.max(count || 0, value.length));
     if (!value.includes("Other")) setNameOfPets(null);
   }, []);
 

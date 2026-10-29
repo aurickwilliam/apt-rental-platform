@@ -130,6 +130,8 @@ export const usePersonalizationStore = create<
   setKindOfPets: (value) =>
     set((state) => ({
       kindOfPets: value,
+      // Never fewer pets than kinds: raise the count as kinds are added
+      noOfPets: Math.max(state.noOfPets, value.length),
       // Clear custom pet name if "Other" is no longer selected
       nameOfPets: value.includes(OTHER_PET) ? state.nameOfPets : null,
     })),

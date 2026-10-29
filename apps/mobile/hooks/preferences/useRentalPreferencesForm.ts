@@ -127,6 +127,8 @@ export function useRentalPreferencesForm() {
 
   const handleSelectPetKinds = useCallback((kinds: string[]) => {
     setKindOfPets(kinds);
+    // Never fewer pets than kinds: raise the count as kinds are added.
+    setNoOfPets((count) => Math.max(count, kinds.length));
     if (!kinds.includes(OTHER_PET)) setNameOfPets(null);
   }, []);
 

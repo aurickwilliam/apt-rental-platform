@@ -249,19 +249,6 @@ export default function RentalPreferencesTab({
             {form.hasPets && (
               <div className="flex flex-col gap-3 rounded-xl bg-muted/40 p-3">
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Pet types</Label>}
-                  control={
-                    <SettingsMultiSelect
-                      label="Kinds of pets"
-                      value={form.kindOfPets}
-                      options={PETS.map((pet) => ({ value: pet, label: pet }))}
-                      onChange={form.setKindOfPets}
-                      placeholder="Select"
-                      className="w-44"
-                    />
-                  }
-                />
-                <ControlRow
                   label={<Label className="text-sm text-foreground">Number of pets</Label>}
                   control={
                     <NumberField
@@ -277,6 +264,19 @@ export default function RentalPreferencesTab({
                         <NumberField.Input className="w-full bg-transparent px-3 py-2 text-sm text-card-foreground outline-none" />
                       </NumberField.Group>
                     </NumberField>
+                  }
+                />
+                <ControlRow
+                  label={<Label className="text-sm text-foreground">Pet types</Label>}
+                  control={
+                    <SettingsMultiSelect
+                      label="Kinds of pets"
+                      value={form.kindOfPets}
+                      options={PETS.map((pet) => ({ value: pet, label: pet }))}
+                      onChange={form.setKindOfPets}
+                      placeholder="Select"
+                      className="w-44"
+                    />
                   }
                 />
                 {form.kindOfPets.includes(OTHER_PET) && (
