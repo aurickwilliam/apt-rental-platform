@@ -266,7 +266,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                 label={option}
                 icon={<IconBed size={19} />}
                 selected={prefs.bedroomCount === option}
-                onPress={() => patch({ bedroomCount: option })}
+                onPress={() =>
+                  patch({ bedroomCount: prefs.bedroomCount === option ? null : option })
+                }
               />
             ))}
           </div>
@@ -280,7 +282,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                 label={option}
                 icon={option === "Single" ? <IconUser size={19} /> : <IconUsers size={19} />}
                 selected={prefs.householdSize === option}
-                onPress={() => patch({ householdSize: option })}
+                onPress={() =>
+                  patch({ householdSize: prefs.householdSize === option ? null : option })
+                }
               />
             ))}
           </div>

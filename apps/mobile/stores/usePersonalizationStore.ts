@@ -71,10 +71,10 @@ type PersonalizationActions = {
   setBudgetRange: (min: number, max: number) => void;
 
   // Step 3
-  setBedroomCount: (count: string) => void;
+  setBedroomCount: (count: string | null) => void;
 
   // Step 4
-  setHouseholdSize: (size: string) => void;
+  setHouseholdSize: (size: string | null) => void;
 
   // Step 5
   setHasPets: (value: boolean) => void;
