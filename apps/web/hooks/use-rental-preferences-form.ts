@@ -6,6 +6,7 @@ import { toast } from "@heroui/react";
 
 import {
   DEFAULT_TENANT_PREFERENCES,
+  minimumPetCount,
   parseTenantPreferences,
   validateTenantPreferences,
   type TenantPreferences,
@@ -48,7 +49,8 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
   const [bedroomCount, setBedroomCount] = useState<string | null>(baseline.bedroomCount);
   const [householdSize, setHouseholdSize] = useState<string | null>(baseline.householdSize);
   const [hasPets, setHasPetsRaw] = useState(baseline.hasPets);
-  const [kindOfPets, setKindOfPetsRaw] = useState(baseline.kindOfPets);
+  const [kindOfPets, setKindOfPetsRaw] = useState<string[]>(baseline.kindOfPets);
+  const [noOfPets, setNoOfPetsRaw] = useState(baseline.noOfPets);
   const [nameOfPets, setNameOfPets] = useState<string | null>(baseline.nameOfPets);
   const [hasParking, setHasParkingRaw] = useState(baseline.hasParking);
   const [noOfParkingSpots, setNoOfParkingSpots] = useState(baseline.noOfParkingSpots);
@@ -70,6 +72,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setHouseholdSize(next.householdSize);
     setHasPetsRaw(next.hasPets);
     setKindOfPetsRaw(next.kindOfPets);
+    setNoOfPetsRaw(next.noOfPets);
     setNameOfPets(next.nameOfPets);
     setHasParkingRaw(next.hasParking);
     setNoOfParkingSpots(next.noOfParkingSpots);
@@ -88,6 +91,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       householdSize,
       hasPets,
       kindOfPets,
+      noOfPets,
       nameOfPets,
       hasParking,
       noOfParkingSpots,
@@ -103,6 +107,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       householdSize,
       hasPets,
       kindOfPets,
+      noOfPets,
       nameOfPets,
       hasParking,
       noOfParkingSpots,
@@ -147,15 +152,23 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setSaveError(null);
     setHasPetsRaw(value);
     if (!value) {
-      setKindOfPetsRaw("");
+      setKindOfPetsRaw([]);
+      setNoOfPetsRaw(1);
       setNameOfPets(null);
     }
   }, []);
 
-  const setKindOfPets = useCallback((value: string) => {
+  const setKindOfPets = useCallback((value: string[]) => {
     setSaveError(null);
     setKindOfPetsRaw(value);
-    if (value !== "Other") setNameOfPets(null);
+    // Never fewer pets than kinds: raise the count as kinds are added.
+    setNoOfPetsRaw((count) => Math.max(count || 0, minimumPetCount(value.length)));
+    if (!value.includes("Other")) setNameOfPets(null);
+  }, []);
+
+  const setNoOfPets = useCallback((value: number) => {
+    setSaveError(null);
+    setNoOfPetsRaw(value);
   }, []);
 
   const setHasParking = useCallback((value: boolean) => {
@@ -178,6 +191,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setHouseholdSize(baseline.householdSize);
     setHasPetsRaw(baseline.hasPets);
     setKindOfPetsRaw(baseline.kindOfPets);
+    setNoOfPetsRaw(baseline.noOfPets);
     setNameOfPets(baseline.nameOfPets);
     setHasParkingRaw(baseline.hasParking);
     setNoOfParkingSpots(baseline.noOfParkingSpots);
@@ -227,6 +241,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     householdSize,
     hasPets,
     kindOfPets,
+    noOfPets,
     nameOfPets,
     hasParking,
     noOfParkingSpots,
@@ -249,6 +264,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     },
     setHasPets,
     setKindOfPets,
+    setNoOfPets,
     setNameOfPets: (v: string | null) => {
       setSaveError(null);
       setNameOfPets(v);

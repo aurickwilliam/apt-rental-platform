@@ -70,7 +70,8 @@ export const METRO_MANILA_ZIP_RANGES: Record<string, { min: number; max: number 
   "San Juan": { min: 1500, max: 1504 },
   Mandaluyong: { min: 1550, max: 1556 },
   Pasig: { min: 1600, max: 1612 },
-  Pateros: { min: 1620, max: 1621 },
+  // Pateros is the one municipality in Metro Manila; its ZIPs run 1620-1622.
+  Pateros: { min: 1620, max: 1622 },
   Taguig: { min: 1630, max: 1639 },
   Parañaque: { min: 1700, max: 1720 },
   "Las Piñas": { min: 1740, max: 1752 },
