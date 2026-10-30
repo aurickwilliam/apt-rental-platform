@@ -181,6 +181,13 @@
   padding: 0 1.5rem 1.5rem;
   background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
 }
+.registration-policy-panel[hidden] {
+  display: none;
+}
+.registration-policies-dialog [data-legal-section] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 24rem;
+}
 .registration-policy-meta {
   align-items: center;
   gap: 1rem;

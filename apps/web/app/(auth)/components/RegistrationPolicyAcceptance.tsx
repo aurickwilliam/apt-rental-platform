@@ -3,7 +3,7 @@
 import { Button, Checkbox } from "@heroui/react";
 import { useId, useState } from "react";
 import { REGISTRATION_POLICIES, type AcceptanceErrors, type RegistrationAcceptance, type RegistrationPolicy } from "@/lib/registration-policies";
-import RegistrationPoliciesModal from "./RegistrationPoliciesModal";
+import RegistrationPoliciesModal, { preloadRegistrationPolicyContent } from "./RegistrationPoliciesModal";
 
 interface RegistrationPolicyAcceptanceProps {
   value: RegistrationAcceptance;
@@ -27,6 +27,7 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
             <div key={policy} className="space-y-1">
               <div className="flex items-start gap-2">
                 <Checkbox
+                  id={`${id}-${policy}-checkbox`}
                   aria-labelledby={labelId}
                   aria-describedby={errors[field] ? errorId : undefined}
                   isSelected={value[field]}
@@ -43,8 +44,9 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                 {/* Reading and accepting are separate actions; keep the
                     dialog button outside the checkbox's pressable label. */}
                 <span id={labelId} className="py-3 text-sm font-normal leading-5 text-foreground">
-                  I have read and agree to the{" "}
+                  <label htmlFor={`${id}-${policy}-checkbox`} className="cursor-pointer">I have read and agree to the</label>{" "}
                   <Button type="button" variant="ghost" className="registration-policy-link" aria-haspopup="dialog"
+                    onHoverStart={preloadRegistrationPolicyContent} onFocus={preloadRegistrationPolicyContent}
                     onPress={() => setOpenPolicy(policy)}>
                     {info.label}
                   </Button>.

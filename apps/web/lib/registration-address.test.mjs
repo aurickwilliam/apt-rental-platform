@@ -299,9 +299,15 @@ function actionHarness(options = {}) {
   const { completeProfile } = compile("app/(auth)/actions/complete-profile.ts", {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
-    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate }, "@/lib/registration-address": addressRules,
+    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
     "@/lib/registration-policies": policyRules,
     "@/service/registrationService": { completeWebRegistration: async (client, details, role, acceptance, source) => {
+      // Eligibility is transaction-owned so completed requests can be retried.
+      // Model its rejection here; actual RLS/replay behavior has a DB suite.
+      if (profile && (profile.roles.includes("admin") || profile.mobile_number || profile.account_status !== "unverified")) {
+        rpcs.push(["complete_web_registration", { role, acceptance, source }]);
+        return { error: { code: "P0001", message: "Profile setup is no longer available for this account." } };
+      }
       writes.push(details); rpcs.push(["complete_web_registration", { role, acceptance, source }]); return { error: null };
     } },
   }, { process: { env: { NODE_ENV: "test" } } });

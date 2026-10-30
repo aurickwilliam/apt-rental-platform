@@ -29,7 +29,7 @@ test("acceptance is explicit and versioned, never truthy strings, metadata or a 
 test("installed HeroUI renders required checkboxes and non-submitting policy dialog buttons", () => {
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: React, "react/jsx-runtime": jsx, "@heroui/react": HeroUI,
-    "./RegistrationPoliciesModal": { default: () => null }, "@/lib/registration-policies": policies,
+    "./RegistrationPoliciesModal": { default: () => null, preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
   }).default;
   const html = renderToStaticMarkup(jsx.jsx(Component, { value: policies.emptyRegistrationAcceptance(), onChange() {}, errors: policies.validateRegistrationAcceptance(policies.emptyRegistrationAcceptance()) }));
   assert.equal((html.match(/type="checkbox"/g) ?? []).length, 2);
@@ -53,14 +53,20 @@ test("installed HeroUI renders required checkboxes and non-submitting policy dia
 test("policy reading opens the requested tab and closes without changing explicit acceptance", () => {
   const runtime = hookRuntime();
   const changes = [];
+  const preloads = [];
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: { ...runtime.react, useId: () => "acceptance-test" }, "react/jsx-runtime": virtualJsx,
     "@heroui/react": { Button: "Button", Checkbox: Object.assign(() => {}, { Content: "Checkbox.Content", Control: "Checkbox.Control", Indicator: "Checkbox.Indicator" }) },
-    "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal" }, "@/lib/registration-policies": policies,
+    "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal", preloadRegistrationPolicyContent: () => preloads.push(true) }, "@/lib/registration-policies": policies,
   }).default;
   const render = () => runtime.render(() => Component({ value: accepted, onChange: value => changes.push(value) }));
   const modal = () => nodes(render()).find(node => node.type === "RegistrationPoliciesModal");
   assert.equal(modal().props.policy, null);
+  const trigger = nodes(render()).find(node => node.type === "Button");
+  trigger.props.onHoverStart(); trigger.props.onFocus();
+  assert.equal(preloads.length, 2);
+  assert.equal(modal().props.policy, null);
+  assert.deepEqual(changes, []);
   for (const [index, policy] of ["privacy", "terms"].entries()) {
     nodes(render()).filter(node => node.type === "Button")[index].props.onPress();
     assert.equal(modal().props.policy, policy);
@@ -131,7 +137,7 @@ function submission() {
 
 function actionHarness(kind, options = {}) {
   const requests = [], signup = [];
-  const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: { roles: ["tenant"], account_status: "unverified", mobile_number: null }, error: null }) };
+  const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: options.profile ?? { roles: ["tenant"], account_status: "unverified", mobile_number: null }, error: null }) };
   const client = {
     auth: { getUser: async () => ({ data: { user: { id: "caller", email: "caller@example.test" } } }), signUp: async args => { signup.push(args); return { error: null }; } },
     from: () => q,
@@ -192,6 +198,15 @@ test("failed storage cannot report signup success or redirect Complete Profile",
     const result = await h.submit(accepted);
     assert.ok(result.error); assert.notEqual(result.success, true);
   }
+});
+
+test("Complete Profile delegates completed retries and legacy rejection to the transaction", async () => {
+  const profile = { roles: ["tenant"], account_status: "unverified", mobile_number: "09171234567" };
+  const retry = actionHarness("complete-profile", { profile });
+  await assert.rejects(retry.submit(accepted), /redirect:\/tenant\/personalize/);
+  assert.equal(retry.requests[0][0], "complete_web_registration");
+  const legacy = actionHarness("complete-profile", { profile, error: { code: "P0001", message: "Profile setup is no longer available for this account." } });
+  assert.equal((await legacy.submit(accepted)).error, "Profile setup is no longer available for this account.");
 });
 
 test("a thrown transport failure becomes a safe retryable error, never a crash or profile-only fallback", async () => {

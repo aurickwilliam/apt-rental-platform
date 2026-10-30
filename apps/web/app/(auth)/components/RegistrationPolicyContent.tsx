@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert } from "@heroui/react";
+import { memo } from "react";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import LegalBlocks from "../../(main)/components/legal/LegalBlocks";
 import LegalBulletList from "../../(main)/components/legal/LegalBulletList";
@@ -15,7 +16,7 @@ interface RegistrationPolicyContentProps {
   instanceId: string;
 }
 
-export default function RegistrationPolicyContent({ policy, instanceId }: RegistrationPolicyContentProps) {
+function RegistrationPolicyContent({ policy, instanceId }: RegistrationPolicyContentProps) {
   const isPrivacy = policy === "privacy";
   const meta = isPrivacy ? PRIVACY_META : TERMS_META;
   const brand = isPrivacy ? PRIVACY_BRAND : TERMS_BRAND;
@@ -51,3 +52,5 @@ export default function RegistrationPolicyContent({ policy, instanceId }: Regist
     </article>
   );
 }
+
+export default memo(RegistrationPolicyContent);

@@ -1,17 +1,34 @@
 "use client";
 
-import { Component, lazy, Suspense, useId, type ReactNode } from "react";
+import { Component, lazy, Suspense, useId, useState, type ReactNode } from "react";
 import { Alert, Button, Modal, Spinner, Tabs } from "@heroui/react";
 import { IconFileText, IconInfoCircle, IconNotes } from "@tabler/icons-react";
 import { REGISTRATION_POLICIES, type RegistrationPolicy } from "@/lib/registration-policies";
 
-// The dialog/focus boundary opens immediately; policy prose is loaded only
-// when requested. Registration inputs never unmount when reading a policy.
-const RegistrationPolicyContent = lazy(() => import("./RegistrationPolicyContent"));
+// Share public-content loading across hover, focus and both registration forms.
+// Discard rejected requests so preloading cannot poison a later open or Retry.
+let contentRequest: Promise<typeof import("./RegistrationPolicyContent")> | undefined;
+let loadedContent: typeof import("./RegistrationPolicyContent") | undefined;
+function requestPolicyContent() {
+  return contentRequest ??= import("./RegistrationPolicyContent").then(module => {
+    loadedContent = module;
+    return module;
+  }).catch(error => {
+    contentRequest = undefined;
+    throw error;
+  });
+}
+
+export function preloadRegistrationPolicyContent() {
+  // Speculative failure is handled by the dialog if the user opens it.
+  void requestPolicyContent().catch(() => {});
+}
+
+const loadPolicyContent = () => loadedContent?.default ?? lazy(requestPolicyContent);
 
 // A failed chunk must not replace the registration screen with an error page.
 // The surrounding dialog remains dismissible and the form draft stays mounted.
-class PolicyContentBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+class PolicyContentBoundary extends Component<{ children: ReactNode; onRetry: () => void }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -24,7 +41,10 @@ class PolicyContentBoundary extends Component<{ children: ReactNode }, { failed:
 
   render() {
     if (this.state.failed) {
-      return <p role="alert" className="p-5 text-sm leading-6 text-foreground">We could not load this policy. You can close this dialog without losing your form. Check your connection and reload the page when you are ready to try again.</p>;
+      return <div className="space-y-3 p-5">
+        <p role="alert" className="text-sm leading-6 text-foreground">We could not load this policy. Check your connection and try again. Your form will stay unchanged.</p>
+        <Button type="button" variant="secondary" onPress={this.props.onRetry}>Retry loading policy</Button>
+      </div>;
     }
     return this.props.children;
   }
@@ -38,6 +58,21 @@ interface RegistrationPoliciesModalProps {
 
 export default function RegistrationPoliciesModal({ policy, onPolicyChange, onClose }: RegistrationPoliciesModalProps) {
   const instanceId = useId();
+  const [content, setContent] = useState(() => ({ Component: loadPolicyContent(), attempt: 0, open: policy !== null }));
+  if (content.open !== (policy !== null)) {
+    // Select a ready preload before mounting, then keep this component type
+    // stable until dismissal (including after a cold lazy load resolves).
+    setContent({ ...content, open: policy !== null, Component: policy !== null ? loadPolicyContent() : content.Component });
+  }
+  const [visited, setVisited] = useState<RegistrationPolicy[]>(() => policy ? [policy] : []);
+  // Retain only visited panels during this opening, not every policy up front.
+  // Modal dismissal unmounts its content, so clear the visit list too.
+  if (policy === null && visited.length) setVisited([]);
+  else if (policy !== null && !visited.includes(policy)) setVisited([...visited, policy]);
+  // A finished preload can render synchronously, avoiding even a one-frame
+  // Suspense fallback when the modal is first opened.
+  const RegistrationPolicyContent = content.Component;
+  const retryContent = () => setContent(previous => ({ ...previous, Component: loadPolicyContent(), attempt: previous.attempt + 1 }));
   return (
     <Modal isOpen={policy !== null} onOpenChange={open => { if (!open) onClose(); }}>
       <Modal.Backdrop variant="blur">
@@ -67,9 +102,9 @@ export default function RegistrationPoliciesModal({ policy, onPolicyChange, onCl
                   </Tabs.List>
                 </Tabs.ListContainer>
                 {(["privacy", "terms"] as const).map(key => (
-                  <Tabs.Panel key={key} id={key} className="registration-policy-panel">
-                    {policy === key ? (
-                      <PolicyContentBoundary>
+                  <Tabs.Panel key={key} id={key} shouldForceMount hidden={policy !== key} inert={policy !== key} className="registration-policy-panel">
+                    {policy === key || visited.includes(key) ? (
+                      <PolicyContentBoundary key={content.attempt} onRetry={retryContent}>
                         <Suspense fallback={<div role="status" className="flex items-center gap-3 p-5 text-sm text-muted-foreground"><Spinner size="sm" />Loading policy…</div>}>
                           <RegistrationPolicyContent policy={key} instanceId={instanceId} />
                         </Suspense>

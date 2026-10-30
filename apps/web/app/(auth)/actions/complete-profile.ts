@@ -78,14 +78,9 @@ export async function completeProfile(
     if ((suspension as { suspended?: boolean } | null)?.suspended) redirect("/suspended");
   }
 
-  if (
-    profile &&
-    (profile.roles.includes("admin") ||
-      profile.mobile_number ||
-      profile.account_status !== "unverified")
-  ) {
-    return { error: "Profile setup is no longer available for this account." };
-  }
+  // The transaction distinguishes a completed retry from a legacy account.
+  // Do not reject here: the previous request may have committed before its
+  // response reached the browser. RLS and eligibility remain RPC-enforced.
   const birthDateError = validateBirthDate(birthDate);
   if (birthDateError) return { birthDateError, birthDate: birthDate ?? "" };
   const requiredFields: Record<string, string> = {

@@ -34,7 +34,13 @@ try {
   const initialPages = page.context().pages().length;
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.waitForLoadState("networkidle");
-  assert.equal(policyRequests.length, 0, "policy prose must not be requested until a policy is opened");
+  assert.equal(policyRequests.length, 0, "policy prose must not be requested before user intent");
+  const firstTrigger = page.getByRole("form", { name: "Email registration", exact: true }).getByRole("button", { name: "Privacy Policy", exact: true });
+  const preloaded = page.waitForResponse(response => response.url().includes("RegistrationPolicyContent-") && response.ok());
+  await firstTrigger.hover();
+  await preloaded;
+  await firstTrigger.focus();
+  assert.equal(await page.getByRole("dialog").count(), 0, "preloading must not open the dialog");
   for (const [name, buttonLabel] of [["Email registration", "Sign Up"], ["Google profile completion", "Complete Profile"]]) {
     const form = page.getByRole("form", { name, exact: true });
     const privacy = form.getByRole("checkbox", { name: /Privacy Policy/ });
@@ -65,6 +71,7 @@ try {
       const heading = dialog.getByRole("heading", { name: "Policies", exact: true });
       const before = await heading.boundingBox();
       const panel = dialog.getByRole("tabpanel");
+      await article.evaluate(element => { element.dataset.retainedPolicy = "yes"; });
       await panel.evaluate(element => { element.scrollTop = element.scrollHeight; });
       assert.ok(await panel.evaluate(element => element.scrollTop > 0));
       assert.ok(Math.abs((await heading.boundingBox()).y - before.y) < 1);
@@ -75,6 +82,9 @@ try {
       await dialog.getByRole("tab", { name: other, exact: true }).focus();
       await page.keyboard.press(other === "Privacy Policy" ? "ArrowRight" : "ArrowLeft");
       await dialog.getByRole("article", { name: policy, exact: true }).waitFor();
+      assert.equal(await article.getAttribute("data-retained-policy"), "yes", "returning to a tab must reuse its DOM");
+      assert.ok(await panel.evaluate(element => element.scrollTop > 0), "tab switching preserves scroll position");
+      assert.equal(await dialog.getByRole("tabpanel").count(), 1, "inactive policy must stay out of the accessibility tree");
       for (let tab = 0; tab < 8; tab++) {
         await page.keyboard.press("Tab");
         assert.ok(await dialog.evaluate(element => element.contains(document.activeElement)));
@@ -102,6 +112,7 @@ try {
       assert.ok(bounds.height >= 44 && bounds.width >= 44);
     }
   }
+  assert.equal(policyRequests.length, 1, "hover, focus, both forms and repeated opens share one policy download");
   await page.screenshot({ path: path.join(root, "desktop-light.png"), fullPage: true });
   await page.evaluate(() => document.documentElement.classList.add("dark"));
   await page.screenshot({ path: path.join(root, "desktop-dark.png"), fullPage: true });
@@ -131,10 +142,21 @@ try {
   const failedForm = failedPage.getByRole("form", { name: "Email registration", exact: true });
   await failedForm.getByRole("button", { name: "Privacy Policy", exact: true }).click();
   await failedPage.getByRole("dialog").getByRole("alert").waitFor();
+  await failedPage.unroute("**/RegistrationPolicyContent-*.js");
+  await failedPage.getByRole("dialog").getByRole("button", { name: "Retry loading policy", exact: true }).click();
+  await failedPage.getByRole("dialog").getByRole("article", { name: "Privacy Policy", exact: true }).waitFor();
+  const recoveredArticle = failedPage.getByRole("dialog").getByRole("article", { name: "Privacy Policy", exact: true });
+  await recoveredArticle.evaluate(element => { element.dataset.retainedPolicy = "recovered"; });
+  await failedPage.getByRole("tab", { name: "Terms and Conditions", exact: true }).click();
+  await failedPage.getByRole("article", { name: "Terms and Conditions", exact: true }).waitFor();
+  await failedPage.getByRole("tab", { name: "Privacy Policy", exact: true }).click();
+  assert.equal(await recoveredArticle.getAttribute("data-retained-policy"), "recovered", "cold/retried content must also retain its DOM");
   await failedPage.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   await failedPage.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(await failedForm.getByRole("textbox", { name: "Draft name" }).inputValue(), "Unsaved draft");
   assert.equal(await failedForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), false);
+  await failedForm.locator("label").filter({ hasText: "I have read and agree to the" }).first().click();
+  assert.equal(await failedForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), true);
   await failedPage.close();
   console.log("PASS: policy modal tabs/full content, scrolling, focus trap/return, Escape/Close, no new tabs/submits/acceptance, draft preservation and responsive themes.");
 } finally {

@@ -10,7 +10,7 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const parts = (name, keys) => Object.assign(() => {}, Object.fromEntries(keys.map(key => [key, `${name}.${key}`])));
 
 const Modal = compile("app/(auth)/components/RegistrationPoliciesModal.tsx", {
-  react: { Component: class {}, useId: () => "dialog-instance", lazy: () => "RegistrationPolicyContent", Suspense: "Suspense" },
+  react: { Component: class {}, useId: () => "dialog-instance", useState: init => [init(), () => {}], lazy: () => "RegistrationPolicyContent", Suspense: "Suspense" },
   "react/jsx-runtime": jsx,
   "@heroui/react": {
     Button: "Button", Spinner: "Spinner", Alert: parts("Alert", ["Indicator", "Content", "Description"]),
@@ -50,6 +50,7 @@ test("the shared modal selects either policy, keeps navigation and close outside
 });
 
 const Content = compile("app/(auth)/components/RegistrationPolicyContent.tsx", {
+  react: { memo: component => component },
   "react/jsx-runtime": jsx, "@/lib/registration-policies": policies,
   "@heroui/react": { Alert: parts("Alert", ["Indicator", "Content", "Title", "Description"]) },
   "@tabler/icons-react": { IconInfoCircleFilled: "IconInfoCircleFilled" },

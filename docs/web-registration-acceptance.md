@@ -20,12 +20,24 @@ Selections are local, initially false, and never persisted as proof. Policy-name
 buttons open `RegistrationPoliciesModal` on the corresponding tab, with both
 documents available without navigating away. The dialog's heading, tabs and Close
 controls stay outside the scrolling panel. `RegistrationPolicyContent` is loaded
-on demand and reuses the public policy data and legal components, including
+on intent (policy-button hover or keyboard focus) or first open and reuses the public policy data and legal components, including
 version metadata, all sections and contact details. Section IDs are namespaced
 per dialog and document; their headings are nested beneath the dialog heading.
 Reading, switching tabs and closing do not accept policies, submit registration
 or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
 dismissal. Public policy URLs remain available outside registration.
+The ordinary acceptance text is a clickable checkbox label; policy-name buttons
+remain separate and never toggle acceptance. A failed policy download offers a
+HeroUI Retry button that replaces the failed lazy loader without reloading the
+page or clearing the draft.
+The public-content import is shared across both forms; failed speculative loads
+are discarded so opening or Retry can request it again. A completed preload
+renders without a loading fallback. During one modal opening, each visited
+HeroUI tab panel stays mounted, with inactive panels hidden and inert; memoized
+policy content avoids rebuilding the section cards and preserves scroll position
+when switching back. Dismissal still releases the panels. Off-screen sections
+use browser `content-visibility` to defer layout/paint without removing policy
+text or changing the HeroUI controls.
 Submission stays disabled until both are selected;
 server actions independently reject missing, malformed or stale acceptance.
 
@@ -56,6 +68,9 @@ account's acceptance.
 `policy_acceptances.user_id` references the internal `public.users.id`, not the
 Auth ID. Rows include policy ID, version, database time and web source. The
 primary key makes retries idempotent without rewriting original timestamps.
+Complete Profile delegates completed-account eligibility to that transaction,
+so a retry after a lost success response can return the existing result; legacy
+completed accounts without the matching records remain ineligible.
 Ordinary clients have owner-only SELECT and no direct write grants. Account
 deletion cascades its acceptance rows. No IP address or browser fingerprint is
 collected. A failed acceptance insert rolls back the profile and role change.
@@ -108,3 +123,9 @@ Run `check-fixture.mjs` with the same output directory and
 `REGISTRATION_PLAYWRIGHT_PATH` pointing to a temporary Playwright installation;
 `REGISTRATION_BROWSER_PATH` optionally selects an installed Chromium/Edge binary.
 It is not a substitute for real OAuth and email journey checks after rollout.
+
+`benchmark-fixture.mjs <fixture-directory>` uses the same temporary browser
+variables to report median first-open, hover-preloaded-open, visited-tab and
+reopen timings (3 runs, isolated development fixture, 4x CPU slowdown, 250ms
+policy response delay, 1-second hover dwell). Timings are informational, include
+browser automation overhead and are not production guarantees or CI thresholds.
