@@ -55,6 +55,289 @@
 
 /* Registration controls must remain visible on either theme. HeroUI's
    unlayered defaults need scoped properties, as with preference checkboxes. */
+.registration-policy-checks .registration-policy-link {
+  display: inline;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  vertical-align: baseline;
+  box-shadow: none;
+}
+.registration-policy-checks .registration-policy-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.registration-policies-container {
+  width: 100%;
+  max-width: 64rem;
+}
+.registration-policies-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: min(64rem, calc(100vw - 2rem));
+  height: min(90dvh, 64rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}
+.registration-policies-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+  padding: 1.5rem 4.5rem 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.registration-policies-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  margin: 0;
+  border-radius: 20px;
+  background-color: color-mix(in srgb, var(--primary) 10%, var(--card));
+  color: var(--primary);
+}
+.registration-policies-body {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.registration-policies-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+}
+.registration-policies-tab-list {
+  flex-shrink: 0;
+  padding: 1.25rem 1.5rem 1rem;
+  background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
+}
+.registration-policies-tab-list [role="tablist"] {
+  width: 100%;
+  gap: 0;
+  padding: 0;
+  border-radius: 16px;
+  background-color: var(--muted);
+}
+.registration-policies-tab-list [role="tab"] {
+  flex: 1;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 60px;
+  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  white-space: normal;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.registration-policies-tab-list [role="tab"][aria-selected="true"] {
+  color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
+}
+.registration-policies-tab-list [data-slot="tabs-indicator"] {
+  top: auto;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0 0 16px 16px;
+  background-color: var(--primary);
+  box-shadow: none;
+}
+.registration-policies-tab-list [role="tab"] svg {
+  flex-shrink: 0;
+}
+.registration-policies-tab-list [role="tab"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.registration-policy-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+  padding: 0 1.5rem 1.5rem;
+  background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
+}
+.registration-policy-meta {
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--primary) 6%, var(--card));
+  box-shadow: none;
+}
+.registration-policy-meta [data-slot="alert-indicator"],
+.registration-policies-reminder [data-slot="alert-indicator"] {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+.registration-policy-meta [data-slot="alert-title"] {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+.registration-policy-meta [data-slot="alert-description"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.registration-policies-dialog [data-legal-section] > .card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  border-color: var(--border);
+}
+.registration-policies-dialog [data-legal-section] .card__header > h3,
+.registration-policies-dialog [data-legal-section] .card__header > h3 > span {
+  color: var(--foreground);
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+.registration-policies-dialog [data-legal-section] .card__content {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.registration-policies-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--card);
+}
+.registration-policies-reminder {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.registration-policies-reminder [data-slot="alert-description"] {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.registration-policies-footer .registration-policies-close {
+  flex-shrink: 0;
+  min-width: 100px;
+  padding-inline: 1.5rem;
+  border-radius: 14px;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+.registration-policies-footer .button,
+.registration-policies-dialog [data-slot="modal-close-trigger"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+.registration-policies-dialog [data-slot="modal-close-trigger"] {
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+@media (max-width: 639px) {
+  .registration-policies-dialog {
+    height: calc(100dvh - 2rem);
+  }
+  .registration-policies-header,
+  .registration-policies-tab-list,
+  .registration-policy-panel,
+  .registration-policies-footer {
+    padding-inline: 1rem;
+  }
+  .registration-policies-header {
+    padding-right: 3.5rem;
+    gap: 0.75rem;
+    padding-block: 1rem;
+  }
+  .registration-policies-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+  .registration-policies-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+  .registration-policies-header [data-slot="modal-heading"] {
+    font-size: 1.5rem;
+  }
+  .registration-policies-tab-list [role="tab"] {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .registration-policy-meta {
+    gap: 0.75rem;
+    padding: 0.875rem;
+  }
+  .registration-policy-meta-separator {
+    display: none;
+  }
+  .registration-policy-meta [data-slot="alert-description"] {
+    flex-direction: column;
+  }
+  .registration-policies-dialog [data-legal-section] > .card {
+    padding: 1rem;
+  }
+  .registration-policies-dialog [data-legal-section] .card__header > h3,
+  .registration-policies-dialog [data-legal-section] .card__header > h3 > span {
+    font-size: 1.375rem;
+  }
+  .registration-policies-dialog [data-legal-section] .card__content {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+  .registration-policies-reminder [data-slot="alert-description"] {
+    font-size: 0.75rem;
+  }
+  .registration-policies-footer .registration-policies-close {
+    min-width: 80px;
+    padding-inline: 1rem;
+  }
+}
+
 .registration-policy-checks .checkbox__control {
   width: 20px;
   height: 20px;

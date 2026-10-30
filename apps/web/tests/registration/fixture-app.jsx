@@ -7,7 +7,10 @@ import { emptyRegistrationAcceptance } from "../../lib/registration-policies";
 function PolicyForm({ title, button }) {
   const [value, setValue] = useState(emptyRegistrationAcceptance);
   return (
-    <form aria-label={title} className="mx-auto my-8 max-w-lg space-y-5 rounded-xl bg-card p-6" onSubmit={event => event.preventDefault()}>
+    <form aria-label={title} className="mx-auto my-8 max-w-lg space-y-5 rounded-xl bg-card p-6" onSubmit={event => {
+      event.preventDefault();
+      event.currentTarget.dataset.submissions = String(Number(event.currentTarget.dataset.submissions ?? 0) + 1);
+    }}>
       <h1 className="text-xl text-foreground">{title}</h1>
       <input aria-label="Draft name" defaultValue="Unsaved draft" className="text-foreground" />
       <RegistrationPolicyAcceptance value={value} onChange={setValue} />

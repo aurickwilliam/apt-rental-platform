@@ -16,8 +16,17 @@ or a claim that direct Supabase profile writes require acceptance.
 ## UI
 
 See DESIGN.md §10. `RegistrationPolicyAcceptance` is shared by both web forms.
-Selections are local, initially false, and never persisted as proof. Links open
-public policies in new tabs. Submission stays disabled until both are selected;
+Selections are local, initially false, and never persisted as proof. Policy-name
+buttons open `RegistrationPoliciesModal` on the corresponding tab, with both
+documents available without navigating away. The dialog's heading, tabs and Close
+controls stay outside the scrolling panel. `RegistrationPolicyContent` is loaded
+on demand and reuses the public policy data and legal components, including
+version metadata, all sections and contact details. Section IDs are namespaced
+per dialog and document; their headings are nested beneath the dialog heading.
+Reading, switching tabs and closing do not accept policies, submit registration
+or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
+dismissal. Public policy URLs remain available outside registration.
+Submission stays disabled until both are selected;
 server actions independently reject missing, malformed or stale acceptance.
 
 ## Storage and authorization
@@ -91,7 +100,7 @@ writes. Web tests exercise both form integrations, all three server entry
 points, policy versions, installed HeroUI markup and OTP error cleanup.
 
 `apps/web/tests/registration/` is an isolated UI fixture for keyboard, disabled
-submission, new-tab links and responsive theme checks. It uses production
+submission, policy-dialog navigation/focus and responsive theme checks. It uses production
 checkboxes and freshly compiled application CSS, never Next, Auth, `.env` or hosted data.
 Build it with an existing temporary esbuild installation via
 `REGISTRATION_ESBUILD_PATH` and pass an output directory to `build-fixture.mjs`.

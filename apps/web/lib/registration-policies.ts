@@ -5,6 +5,8 @@ export const REGISTRATION_POLICIES = {
   terms: { version: "1.1", lastUpdated: "October 29, 2026", href: "/tos", label: "Terms and Conditions" },
 } as const;
 
+export type RegistrationPolicy = keyof typeof REGISTRATION_POLICIES;
+
 export interface RegistrationAcceptance {
   termsAccepted: boolean;
   privacyAccepted: boolean;

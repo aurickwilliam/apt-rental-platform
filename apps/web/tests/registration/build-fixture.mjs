@@ -13,14 +13,17 @@ if (!output || !process.env.REGISTRATION_ESBUILD_PATH) throw new Error("Supply o
 const { build } = createRequire(import.meta.url)(process.env.REGISTRATION_ESBUILD_PATH);
 await mkdir(output, { recursive: true });
 await build({
-  entryPoints: [path.join(here, "fixture-app.jsx")], outfile: path.join(output, "fixture.js"),
-  bundle: true, platform: "browser", format: "esm", jsx: "automatic",
+  entryPoints: [path.join(here, "fixture-app.jsx")], outdir: output, entryNames: "fixture", chunkNames: "[name]-[hash]",
+  bundle: true, splitting: true, platform: "browser", format: "esm", jsx: "automatic",
   define: { "process.env.NODE_ENV": '"development"' },
   nodePaths: [path.join(web, "node_modules"), path.resolve(web, "../../node_modules")],
   plugins: [{ name: "isolated-registration", setup(plugin) {
     plugin.onResolve({ filter: /^next\/link$/ }, () => ({ path: "link", namespace: "fixture" }));
-    plugin.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
-      contents: 'import {createElement} from "react"; export default function Link(props) { return createElement("a",props); }',
+    plugin.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "navigation", namespace: "fixture" }));
+    plugin.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path: source }) => ({
+      contents: source === "navigation"
+        ? 'export function useRouter() { return { prefetch() {} }; }'
+        : 'import {createElement} from "react"; export default function Link(props) { return createElement("a",props); }',
       loader: "js", resolveDir: web,
     }));
     plugin.onResolve({ filter: /^@\// }, ({ path: source }) => {

@@ -1,9 +1,9 @@
 "use client";
 
-import { Checkbox } from "@heroui/react";
-import { useId } from "react";
-import Link from "next/link";
-import { REGISTRATION_POLICIES, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
+import { Button, Checkbox } from "@heroui/react";
+import { useId, useState } from "react";
+import { REGISTRATION_POLICIES, type AcceptanceErrors, type RegistrationAcceptance, type RegistrationPolicy } from "@/lib/registration-policies";
+import RegistrationPoliciesModal from "./RegistrationPoliciesModal";
 
 interface RegistrationPolicyAcceptanceProps {
   value: RegistrationAcceptance;
@@ -14,6 +14,7 @@ interface RegistrationPolicyAcceptanceProps {
 
 export default function RegistrationPolicyAcceptance({ value, onChange, errors = {}, isDisabled = false }: RegistrationPolicyAcceptanceProps) {
   const id = useId();
+  const [openPolicy, setOpenPolicy] = useState<RegistrationPolicy | null>(null);
   return (
     <div className="registration-policy-checks w-full space-y-2">
       <div>
@@ -39,13 +40,14 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                     <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
                   </Checkbox.Content>
                 </Checkbox>
-                {/* Outside the pressable label: React Aria consumes a nested
-                    link's click, which would prevent opening the policy. */}
+                {/* Reading and accepting are separate actions; keep the
+                    dialog button outside the checkbox's pressable label. */}
                 <span id={labelId} className="py-3 text-sm font-normal leading-5 text-foreground">
                   I have read and agree to the{" "}
-                  <Link href={info.href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary">
-                    {info.label}<span className="sr-only"> (opens in a new tab)</span>
-                  </Link>.
+                  <Button type="button" variant="ghost" className="registration-policy-link" aria-haspopup="dialog"
+                    onPress={() => setOpenPolicy(policy)}>
+                    {info.label}
+                  </Button>.
                 </span>
               </div>
               {errors[field] ? <p id={errorId} role="alert" className="text-sm text-danger">{errors[field]}</p> : null}
@@ -62,6 +64,7 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
         <p>False information or fraudulent listings may lead to account suspension or termination.</p>
         <p>Personal data is handled under our Privacy Policy and Philippine data protection laws.</p>
       </div>
+      <RegistrationPoliciesModal policy={openPolicy} onPolicyChange={setOpenPolicy} onClose={() => setOpenPolicy(null)} />
     </div>
   );
 }

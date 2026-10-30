@@ -26,21 +26,21 @@ test("acceptance is explicit and versioned, never truthy strings, metadata or a 
   assert.equal(privacy.LEGAL_META.version, policies.REGISTRATION_POLICIES.privacy.version);
 });
 
-test("installed HeroUI renders two labelled checkboxes, safe external-tab policy links and readable hint copy", () => {
+test("installed HeroUI renders required checkboxes and non-submitting policy dialog buttons", () => {
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: React, "react/jsx-runtime": jsx, "@heroui/react": HeroUI,
-    "next/link": { default: props => jsx.jsx("a", props) }, "@/lib/registration-policies": policies,
+    "./RegistrationPoliciesModal": { default: () => null }, "@/lib/registration-policies": policies,
   }).default;
   const html = renderToStaticMarkup(jsx.jsx(Component, { value: policies.emptyRegistrationAcceptance(), onChange() {}, errors: policies.validateRegistrationAcceptance(policies.emptyRegistrationAcceptance()) }));
   assert.equal((html.match(/type="checkbox"/g) ?? []).length, 2);
   assert.doesNotMatch(html, /\schecked="/);
   assert.equal((html.match(/aria-required="true"/g) ?? []).length, 2);
   for (const policy of Object.values(policies.REGISTRATION_POLICIES)) {
-    assert.ok(html.includes(`href="${policy.href}"`));
     assert.ok(html.includes(policy.label));
   }
-  assert.equal((html.match(/target="_blank"/g) ?? []).length, 2);
-  assert.equal((html.match(/rel="noopener noreferrer"/g) ?? []).length, 2);
+  assert.equal((html.match(/aria-haspopup="dialog"/g) ?? []).length, 2);
+  assert.equal((html.match(/type="button"/g) ?? []).length, 2);
+  assert.doesNotMatch(html, /target="_blank"|href="\/(pap|tos)"/);
   assert.equal((html.match(/role="alert"/g) ?? []).length, 2);
   assert.match(html, /text-muted-foreground/);
   assert.match(html, /text-sm font-normal leading-5 text-foreground/);
@@ -48,6 +48,29 @@ test("installed HeroUI renders two labelled checkboxes, safe external-tab policy
   assert.match(html, /<p>False information.*<\/p><p>Personal data/);
   assert.doesNotMatch(html, /Accept both policies to enable registration/);
   assert.doesNotMatch(html, /securely processed|will be banned/);
+});
+
+test("policy reading opens the requested tab and closes without changing explicit acceptance", () => {
+  const runtime = hookRuntime();
+  const changes = [];
+  const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
+    react: { ...runtime.react, useId: () => "acceptance-test" }, "react/jsx-runtime": virtualJsx,
+    "@heroui/react": { Button: "Button", Checkbox: Object.assign(() => {}, { Content: "Checkbox.Content", Control: "Checkbox.Control", Indicator: "Checkbox.Indicator" }) },
+    "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal" }, "@/lib/registration-policies": policies,
+  }).default;
+  const render = () => runtime.render(() => Component({ value: accepted, onChange: value => changes.push(value) }));
+  const modal = () => nodes(render()).find(node => node.type === "RegistrationPoliciesModal");
+  assert.equal(modal().props.policy, null);
+  for (const [index, policy] of ["privacy", "terms"].entries()) {
+    nodes(render()).filter(node => node.type === "Button")[index].props.onPress();
+    assert.equal(modal().props.policy, policy);
+    modal().props.onPolicyChange(policy === "privacy" ? "terms" : "privacy");
+    assert.equal(modal().props.policy, policy === "privacy" ? "terms" : "privacy");
+    modal().props.onClose();
+    assert.equal(modal().props.policy, null);
+    assert.deepEqual(changes, []);
+    assert.ok(nodes(render()).filter(node => node.props?.type === "hidden" && /Accepted$/.test(node.props.name)).every(node => node.props.value === "true"));
+  }
 });
 
 function formHarness(kind, server = {}) {
