@@ -18,7 +18,7 @@ const OPTION_CLASS = "data-[hovered=true]:bg-light-blue! data-[selected=true]:bg
 
 export default function RegistrationAddressFields({ value, onChange, errors = {}, isDisabled = false, names = DEFAULT_NAMES, className = "w-full grid grid-cols-1 gap-5 md:grid-cols-2" }: RegistrationAddressFieldsProps) {
   const cities = PROVINCES.includes(value.province as Province) ? getCitiesByProvince(value.province as Province) : [];
-  const barangays = cities.includes(value.city) ? getBarangaysByCity(value.city) : [];
+  const barangays = cities.includes(value.city) ? getBarangaysByCity(value.city, value.province) : [];
   const postalError = errors.postalCode ?? (value.postalCode.length === 4 ? validateRegistrationAddress(value).postalCode : undefined);
   const selectors = [
     { field: "province" as const, label: "State/Province", options: PROVINCES, placeholder: "Select your state/province", disabled: false },
@@ -34,7 +34,7 @@ export default function RegistrationAddressFields({ value, onChange, errors = {}
           <Label>{label}</Label>
           <Select.Trigger className="bg-card! text-foreground!"><Select.Value /><Select.Indicator /></Select.Trigger>
           <Select.Popover>
-            <ListBox className={field === "barangay" ? "max-h-64 overflow-y-auto" : undefined}>
+            <ListBox className="max-h-64 overflow-y-auto">
               {options.map(option => (
                 <ListBox.Item key={option} id={option} textValue={option} className={OPTION_CLASS}>
                   {option}<ListBox.ItemIndicator className="text-primary" />

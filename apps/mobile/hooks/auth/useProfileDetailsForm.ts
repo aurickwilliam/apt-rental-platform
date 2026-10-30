@@ -123,7 +123,7 @@ export function useProfileDetailsForm({ firstName, lastName, scrollRef }: Profil
   const cityOptions = values.province
     ? getCitiesByProvince(values.province as Parameters<typeof getCitiesByProvince>[0])
     : [];
-  const barangayOptions = values.city ? getBarangaysByCity(values.city) : [];
+  const barangayOptions = values.city ? getBarangaysByCity(values.city, values.province) : [];
 
   // The error for a field, once the user has tried to submit. The birth date
   // is also checked live (same rule as web and the database: 18+, not in the

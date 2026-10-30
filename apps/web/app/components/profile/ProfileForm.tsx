@@ -519,7 +519,7 @@ export default function ProfileForm({
     city,
   );
   const barangayOptions = withCurrent(
-    city ? getBarangaysByCity(city) : [],
+    city ? getBarangaysByCity(city, province) : [],
     barangay,
   );
 

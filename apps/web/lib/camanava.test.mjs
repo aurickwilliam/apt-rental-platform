@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import {
+import { matchBarangay } from "../../../packages/constants/src/address/barangay-match.ts";
+import { addressConstants } from "./test-support/registration-address-runtime.mjs";
+
+const {
   CAMANAVA_CITIES,
+  getBarangaysByCity,
   isCamanavaCity,
   isCamanavaZipForCity,
   isMetroManilaProvince,
   toCamanavaCity,
-} from "../../../packages/constants/src/address/address.ts";
-import { matchBarangay } from "../../../packages/constants/src/address/barangay-match.ts";
-import { getBarangaysByCity } from "../../../packages/constants/src/address/barangays.ts";
+} = addressConstants;
 
 test("only the four CAMANAVA cities are valid listing cities", () => {
   assert.deepEqual(CAMANAVA_CITIES, ["Caloocan", "Malabon", "Navotas", "Valenzuela"]);

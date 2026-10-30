@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Regenerates packages/constants/src/address/ph-city-zips.ts: the ZIP codes of
-// every non-NCR city in `CITIES`, matched by province and city name.
+// every non-NCR city in `CITIES` (ph-addresses.ts), matched by province and city name.
 //
 //   node --experimental-strip-types scripts/zip-codes/build-city-zips.mjs \
 //     --phlpost <ph_zip_codes.json> --community <postal-codes-2024.json>
@@ -17,7 +17,14 @@
 // (`METRO_MANILA_ZIP_RANGES` in address.ts). The script only checks that every NCR ZIP
 // in the inputs falls inside one of those blocks.
 import { readFileSync, writeFileSync } from "node:fs";
+import { register } from "node:module";
 import { fileURLToPath } from "node:url";
+
+// address.ts imports ph-addresses.ts without a file extension (as the bundlers expect); let Node follow it.
+register(`data:text/javascript,${encodeURIComponent(`export async function resolve(specifier, context, next) {
+  try { return await next(specifier, context); }
+  catch (error) { if (specifier.startsWith(".") && !/\\.\\w+$/.test(specifier)) return next(specifier + ".ts", context); throw error; }
+}`)}`);
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((pairs, arg, index, all) => (arg.startsWith("--") ? [...pairs, [arg.slice(2), all[index + 1]]] : pairs), []),
@@ -41,10 +48,7 @@ const PROVINCE_CODE_OVERRIDES = { Basilan: "1507", Capiz: "0619", "La Union": "0
 const SOURCE_NAMES = {
   "Cavite|Trece Martires": "Trece Martirez City",
   "Misamis Occidental|Ozamiz": "Ozamis City",
-  "Antique|San Jose de Buenavista": "San Jose de Buanavista",
-  "Maguindanao del Norte|Datu Blah Sinsuat": "Datu Blah T. Sinsuat",
-  "Maguindanao del Norte|Kabuntalan": "Northern Kabuntalan",
-  "Maguindanao del Sur|Raja Buayan": "Rajah Buayan",
+  "Antique|San Jose": "San Jose de Buanavista",
   "Sulu|Kalingalan Caluang": "Kalingalan Kalauang",
   "Sulu|Old Panamao": "Panamao",
   "Tawi-Tawi|Turtle Islands": "Turtle Island",
