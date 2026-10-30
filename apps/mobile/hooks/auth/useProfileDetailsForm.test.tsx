@@ -165,10 +165,21 @@ describe("useProfileDetailsForm", () => {
     expect(result.current.postal.error).toBeNull();
   });
 
+  it("spaces the mobile number as it is typed and refuses a +63 number", () => {
+    const { result } = setup();
+    act(() => result.current.mobile.onChange("09171234567"));
+    expect(result.current.mobile.value).toBe("0917 123 4567");
+    expect(result.current.mobile.errorMessage).toBeNull();
+
+    act(() => result.current.mobile.onChange("+639171234567"));
+    expect(result.current.mobile.value).toBe("6391 712 3456");
+    expect(result.current.mobile.errorMessage).toBe("Enter a valid mobile number, like 0917 123 4567.");
+  });
+
   it("builds the users row with blanks as null and the formatted mobile number", () => {
     const { result } = setup();
     fillValid(() => result.current);
-    act(() => result.current.mobile.onChange("+639171234567"));
+    act(() => result.current.mobile.onChange("0917 123 4567"));
 
     expect(result.current.toRow()).toEqual({
       first_name: "Ana",

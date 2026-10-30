@@ -116,16 +116,16 @@ describe("useEditProfile", () => {
     expect(result.current.photos.avatar).toEqual(photo);
   });
 
-  it("normalizes international mobile numbers, clears drafts and refreshes the shared profile on success", async () => {
+  it("saves a spaced mobile number in the 09 format, clears drafts and refreshes the shared profile on success", async () => {
     const { result, client } = setup();
     const invalidate = jest.spyOn(client, "invalidateQueries");
-    act(() => result.current.changeMobile("+639181234567"));
+    act(() => result.current.changeMobile("0918 123 4567"));
     await act(async () => { await result.current.pickPhoto("background"); });
     await act(async () => { await result.current.save(); });
     expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
       authUserId: "auth-1", fields: expect.objectContaining({ mobile_number: "09181234567" }), photos: { avatar: null, background: photo },
     }));
-    expect(result.current.fields.mobile_number).toBe("09181234567");
+    expect(result.current.fields.mobile_number).toBe("0918 123 4567");
     expect(result.current.photos).toEqual({ avatar: null, background: null });
     expect(result.current.succeeded).toBe(true);
     expect(result.current.dirty).toBe(false);
