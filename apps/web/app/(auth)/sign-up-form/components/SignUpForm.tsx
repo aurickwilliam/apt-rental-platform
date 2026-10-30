@@ -346,7 +346,7 @@ export default function SignUpForm() {
 
         <Button
           variant="primary"
-          className="w-full mt-[clamp(1.25rem,3vh,1.5rem)] md:max-w-[300px] md:self-end rounded-full"
+          className="w-full md:max-w-[300px] md:self-end rounded-full"
           size="lg"
           type="submit"
           isPending={loading}

@@ -43,6 +43,10 @@ test("installed HeroUI renders two labelled checkboxes, safe external-tab policy
   assert.equal((html.match(/rel="noopener noreferrer"/g) ?? []).length, 2);
   assert.equal((html.match(/role="alert"/g) ?? []).length, 2);
   assert.match(html, /text-muted-foreground/);
+  assert.match(html, /text-sm font-normal leading-5 text-foreground/);
+  assert.match(html, /space-y-1 text-xs leading-5 text-muted-foreground/);
+  assert.match(html, /<p>False information.*<\/p><p>Personal data/);
+  assert.doesNotMatch(html, /Accept both policies to enable registration/);
   assert.doesNotMatch(html, /securely processed|will be banned/);
 });
 
