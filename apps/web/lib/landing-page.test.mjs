@@ -296,7 +296,7 @@ test("Our Team renders the four real members with circular portraits and approve
   assert.doesNotMatch(source, /member\.bio/);
   assert.match(source, /from "\.\.\/about\/data\/AboutData"/);
   for (const member of teamMembers) assert(data.includes(member.name), `${member.name} must come from AboutData`);
-  assert(data.includes("Full Stack Yearner"));
+  assert(data.includes("Full-Stack Developer & UI/UX Designer"));
 });
 
 test("FAQs render six questions in two balanced HeroUI accordion columns", () => {
