@@ -253,9 +253,9 @@ test("How It Works orders Discover, Apply, Move in, and Manage around one blue p
 test("Our Team renders the four real members with circular portraits and approved links", () => {
   const teamMembers = [
     { name: "Aurick William Lorenzo", role: "Lead Developer", image: "/images/orik.jpg", github: "https://github.com/aurickwilliam", linkedin: "https://www.linkedin.com/in/aurick-william-lorenzo-ba83a73a6/?skipRedirect=true" },
-    { name: "Mhart Aaron Navales", role: "Full Stack Yearner", image: "/images/ron.jpg", github: "https://github.com/Kaironnnn", linkedin: null },
-    { name: "Michael Jann Mateo", role: "Project Manager", image: "/images/mija.jpg", github: "https://github.com/YuriPatriotic", linkedin: null },
-    { name: "Charle Fulgencio", role: "Project Coordinator", image: "/images/charle.jpg", github: "https://github.com/KhromaUnus", linkedin: null },
+    { name: "Mhart Aaron Navales", role: "Full-Stack Developer & UI/UX", image: "/images/ron.jpg", github: "https://github.com/Kaironnnn", linkedin: null },
+    { name: "Michael Jann Mateo", role: "Backend developer & Project Manager", image: "/images/mija.jpg", github: "https://github.com/YuriPatriotic", linkedin: null },
+    { name: "Charle Fulgencio", role: "Quality Assurance & Documentation", image: "/images/charle.jpg", github: "https://github.com/KhromaUnus", linkedin: null },
   ];
   const tree = load("(main)/components/TeamSection.tsx", { "../about/data/AboutData": { teamMembers } })();
   const all = nodes(tree);
@@ -296,7 +296,7 @@ test("Our Team renders the four real members with circular portraits and approve
   assert.doesNotMatch(source, /member\.bio/);
   assert.match(source, /from "\.\.\/about\/data\/AboutData"/);
   for (const member of teamMembers) assert(data.includes(member.name), `${member.name} must come from AboutData`);
-  assert(data.includes("Full Stack Yearner"));
+  assert(data.includes("Full-Stack Developer & UI/UX"));
 });
 
 test("FAQs render six questions in two balanced HeroUI accordion columns", () => {

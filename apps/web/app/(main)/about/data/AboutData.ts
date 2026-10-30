@@ -12,7 +12,7 @@ export type TeamMember = {
 export const teamMembers = [
   {
     name: "Aurick William Lorenzo",
-    role: "Lead Developer",
+    role: "	Lead Developer",
     bio: "Fullstack engineer with a love for clean code. Built APT's core matching engine and Supabase backend. ============ Kuromi tulong",
     image: "/images/orik.jpg",
     imageHeight: "h-63",
@@ -21,7 +21,7 @@ export const teamMembers = [
   },
   {
     name: "Mhart Aaron Navales",
-    role: "Full Stack Yearner",
+    role: "Full-Stack Developer & UI/UX",
     bio: "Matcha lover, umiiyak kapag nauulanan yung mga stray cats & dogs, academic archiver, 6'7, walang gbf, nakikinig kila daniel caesar, taylor swift, laufey, lana del rey, beabadoobedoobedapdap, w2e, leehi, clairo, niki, malcolm todd, prefers wired earphones, bias si hanni ng newjeans, anime & kdrama lover, malakas mag ml, knows ball, marunong mag gitara, naliligo kahit malamig tubig, emotionally intelligent, good listener, nakikinig sa news, may good sense of humor, galit sa period cramps, okc, kfc, ufc, lakers in 5 (hates corruption btw)",
     image: "/images/ron.jpg",
     imageHeight: "h-56",
@@ -30,7 +30,7 @@ export const teamMembers = [
   },
   {
     name: "Michael Jann Mateo",
-    role: "Project Manager",
+    role: "Backend developer & Project Manager",
     bio: "A good Project Manager. 67676767. piti piwpiw wiw wiw. (tambay sa fully booked btw)",
     image: "/images/mija.jpg",
     imageHeight: "h-63",
@@ -39,7 +39,7 @@ export const teamMembers = [
   },
   {
     name: "Charle Fulgencio",
-    role: "Project Coordinator",
+    role: "Quality Assurance & Documentation",
     bio: "Exists in theory. Confirmed present during exam week only. Shows up when it matters.",
     image: "/images/charle.jpg",
     imageHeight: "h-61",
