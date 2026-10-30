@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft } from "@tabler/icons-react";
+import { Link } from "@heroui/react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { useAuth } from "../../components/AuthContext";
 
 export default function BackBtn() {
   const { role } = useAuth();
 
   return (
-    <Link href={`/sign-up?role=${role}`}>
-      <Button variant="ghost" className="font-medium rounded-full">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+    <Link
+      href={`/sign-up?role=${role}`}
+      className="inline-flex cursor-pointer items-center gap-2 font-medium text-primary no-underline"
+    >
+      <IconArrowLeft size={18} aria-hidden="true" />
+      Back
     </Link>
   );
 }
