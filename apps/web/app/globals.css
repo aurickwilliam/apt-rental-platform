@@ -21,6 +21,25 @@
     display: none;
   }
 }
+/* The landing header carries four extra section links, so it keeps the
+   compact menu until the wide desktop navigation has room for all six. */
+.public-navbar .landing-menu-toggle {
+  display: flex;
+}
+/* Keep the 5rem header bar and its 1px border above a scrollable landing menu. */
+.public-navbar .landing-mobile-menu {
+  max-height: calc(100dvh - 5rem - 1px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.public-navbar .landing-mobile-menu > * {
+  flex-shrink: 0;
+}
+@media (min-width: 1280px) {
+  .public-navbar .landing-menu-toggle {
+    display: none;
+  }
+}
 @media (max-width: 767px) {
   .landing-responsive-cta {
     width: 100%;
