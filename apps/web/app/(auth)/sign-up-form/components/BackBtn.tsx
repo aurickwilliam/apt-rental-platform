@@ -10,7 +10,7 @@ export default function BackBtn() {
   return (
     <Link
       href={`/sign-up?role=${role}`}
-      className="inline-flex cursor-pointer items-center gap-2 font-medium text-primary no-underline"
+      className="inline-flex cursor-pointer items-center gap-2 font-medium text-primary hover:decoration-primary"
     >
       <IconArrowLeft size={18} aria-hidden="true" />
       Back
