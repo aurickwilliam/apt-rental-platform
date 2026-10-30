@@ -8,7 +8,9 @@ import DropdownField from "components/inputs/DropdownField";
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import {
-  MAX_PET_COUNT,
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
   OTHER_PET,
   PETS,
   VEHICLE_OPTIONS,
@@ -48,6 +50,7 @@ export default function StepFive() {
     listOfVehicles, toggleVehicle,
     hasSmoker, setHasSmoker,
     hasDisability, setHasDisability,
+    answered,
     reset,
   } = personalization;
 
@@ -149,7 +152,7 @@ export default function StepFive() {
               </Text>
 
               <RadioGroup
-                value={hasPets ? "yes" : "no"}
+                value={answered.hasPets ? (hasPets ? "yes" : "no") : ""}
                 onValueChange={(val) => setHasPets(val === "yes")}
               >
                 <RadioGroup.Item
@@ -174,20 +177,16 @@ export default function StepFive() {
             </View>
 
             {hasPets && (
-              <TextField isRequired>
-                <Label>How many pets do you have?</Label>
-                <Input
-                  placeholder="e.g., 2"
-                  keyboardType="number-pad"
-                  maxLength={String(MAX_PET_COUNT).length}
-                  value={noOfPets > 0 ? String(noOfPets) : ""}
-                  onChangeText={(text) => {
-                    const digits = text.replace(/[^0-9]/g, "");
-                    setNoOfPets(digits === "" ? 0 : Number(digits));
-                  }}
-                />
-                <Description>Up to {MAX_PET_COUNT} pets</Description>
-              </TextField>
+              <DropdownField
+                label="How many pets do you have?"
+                bottomSheetLabel="Select your Pets"
+                placeholder="Select the number of pets you have"
+                options={PET_COUNT_OPTIONS}
+                onSelect={(value) => setNoOfPets(value ? optionToPetCount(value) : 1)}
+                value={petCountToOption(noOfPets)}
+                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
+                required
+              />
             )}
 
             {hasPets && (
@@ -199,7 +198,6 @@ export default function StepFive() {
                 multiple
                 values={kindOfPets}
                 onSelectMultiple={setKindOfPets}
-                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
                 required
               />
             )}
@@ -227,7 +225,7 @@ export default function StepFive() {
               </Text>
 
               <RadioGroup
-                value={hasParking ? "yes" : "no"}
+                value={answered.hasParking ? (hasParking ? "yes" : "no") : ""}
                 onValueChange={(val) => setHasParking(val === "yes")}
               >
                 <RadioGroup.Item
@@ -297,7 +295,7 @@ export default function StepFive() {
             </Text>
 
             <RadioGroup
-              value={hasSmoker ? "yes" : "no"}
+              value={answered.hasSmoker ? (hasSmoker ? "yes" : "no") : ""}
               onValueChange={(val) => setHasSmoker(val === "yes")}
             >
               <RadioGroup.Item
@@ -330,7 +328,7 @@ export default function StepFive() {
             </Text>
 
             <RadioGroup
-              value={hasDisability ? "yes" : "no"}
+              value={answered.hasDisability ? (hasDisability ? "yes" : "no") : ""}
               onValueChange={(val) => setHasDisability(val === "yes")}
             >
               <RadioGroup.Item

@@ -7,7 +7,6 @@ import {
   CheckboxGroup,
   Input,
   Label,
-  NumberField,
 } from "@heroui/react";
 import {
   IconAccessible,
@@ -18,13 +17,16 @@ import {
   IconSmoking,
   IconUser,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, MAX_PET_COUNT, OTHER_PET, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import { CAMANAVA_CITIES, OTHER_PET, PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
 import type { RentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import {
   BEDROOM_OPTIONS,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
   validatePets,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
@@ -251,19 +253,14 @@ export default function RentalPreferencesTab({
                 <ControlRow
                   label={<Label className="text-sm text-foreground">Number of pets</Label>}
                   control={
-                    <NumberField
-                      aria-label="Number of pets"
-                      minValue={1}
-                      maxValue={MAX_PET_COUNT}
-                      value={form.noOfPets}
-                      onChange={form.setNoOfPets}
+                    <SettingsSelect
+                      label="Number of pets"
+                      value={petCountToOption(form.noOfPets)}
+                      options={PET_COUNT_OPTIONS.map((count) => ({ value: count, label: count }))}
+                      onChange={(value) => form.setNoOfPets(optionToPetCount(value))}
                       isInvalid={form.kindOfPets.length > 0 && petsError !== null}
-                      className="w-24"
-                    >
-                      <NumberField.Group className="flex w-full items-center overflow-hidden rounded-xl border border-border bg-card transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                        <NumberField.Input className="w-full bg-transparent px-3 py-2 text-sm text-card-foreground outline-none" />
-                      </NumberField.Group>
-                    </NumberField>
+                      className="w-32"
+                    />
                   }
                 />
                 <ControlRow

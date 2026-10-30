@@ -6,6 +6,7 @@ import { toast } from "@heroui/react";
 
 import {
   DEFAULT_TENANT_PREFERENCES,
+  minimumPetCount,
   parseTenantPreferences,
   validateTenantPreferences,
   type TenantPreferences,
@@ -161,7 +162,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setSaveError(null);
     setKindOfPetsRaw(value);
     // Never fewer pets than kinds: raise the count as kinds are added.
-    setNoOfPetsRaw((count) => Math.max(count || 0, value.length));
+    setNoOfPetsRaw((count) => Math.max(count || 0, minimumPetCount(value.length)));
     if (!value.includes("Other")) setNameOfPets(null);
   }, []);
 

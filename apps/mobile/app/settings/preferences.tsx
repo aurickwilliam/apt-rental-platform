@@ -14,7 +14,9 @@ import {
 } from "heroui-native";
 import {
   CAMANAVA_CITIES,
-  MAX_PET_COUNT,
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
   OTHER_PET,
   PETS,
   VEHICLE_OPTIONS,
@@ -319,22 +321,21 @@ export default function RentalPreferences() {
           {hasPets && (
             <>
               <Separator className="mx-4" />
-              <View className="p-4">
-                <TextField isRequired>
-                  <Label>How many pets?</Label>
-                  <Input
-                    placeholder="e.g., 2"
-                    keyboardType="number-pad"
-                    maxLength={String(MAX_PET_COUNT).length}
-                    value={noOfPets > 0 ? String(noOfPets) : ""}
-                    onChangeText={(text) => {
-                      const digits = text.replace(/[^0-9]/g, "");
-                      setNoOfPets(digits === "" ? 0 : Number(digits));
-                    }}
+              <ListGroup.Item disabled>
+                <ListGroup.ItemContent>
+                  <ListGroup.ItemTitle className="font-inter">How many pets?</ListGroup.ItemTitle>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix>
+                  <DropdownButton
+                    value={petCountToOption(noOfPets)}
+                    options={PET_COUNT_OPTIONS}
+                    onSelect={(v) => setNoOfPets(optionToPetCount(v))}
+                    placeholder="Select"
+                    label="Number of pets"
+                    width={160}
                   />
-                  <Description className="font-inter">Up to {MAX_PET_COUNT} pets</Description>
-                </TextField>
-              </View>
+                </ListGroup.ItemSuffix>
+              </ListGroup.Item>
 
               <Separator className="mx-4" />
               <ListGroup.Item disabled>

@@ -4,19 +4,19 @@ import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button, Input, Label, ListBox, NumberField, Select, toast } from "@heroui/react";
+import { Button, Input, Label, ListBox, Select, toast } from "@heroui/react";
 import {
   IconAccessible,
   IconBed,
   IconCar,
   IconCheck,
+  IconPaw,
   IconSmoking,
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
 import {
   CAMANAVA_CITIES,
-  MAX_PET_COUNT,
   OTHER_PET,
   PETS,
   VEHICLE_OPTIONS,
@@ -27,6 +27,10 @@ import {
   DEFAULT_TENANT_PREFERENCES,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  PET_COUNT_OPTIONS,
+  minimumPetCount,
+  optionToPetCount,
+  petCountToOption,
   parseTenantPreferences,
   validatePets,
   type TenantPreferences,
@@ -100,6 +104,8 @@ function OptionCard({
 
 // Yes/No choice drawn as option cards, like the other steps, so it never
 // reads as the Back/Continue action buttons.
+type YesNoQuestion = "hasPets" | "hasParking" | "hasSmoker" | "hasDisability";
+
 function YesNoField({
   label,
   value,
@@ -107,7 +113,8 @@ function YesNoField({
   icon,
 }: {
   label: string;
-  value: boolean;
+  /** null while the question is unanswered, so neither option is preselected. */
+  value: boolean | null;
   onChange: (value: boolean) => void;
   icon?: ReactNode;
 }) {
@@ -149,6 +156,19 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
   const [isSaving, setIsSaving] = useState(false);
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
   const [hadSavedPrefs] = useState(() => parseTenantPreferences(initial) !== null);
+  // The Yes/No preferences default to false; this tracks which the tenant has
+  // actually answered so no option is preselected. The last step is optional,
+  // so an unanswered question is saved as No.
+  const [answered, setAnswered] = useState<Record<YesNoQuestion, boolean>>(() => ({
+    hasPets: hadSavedPrefs,
+    hasParking: hadSavedPrefs,
+    hasSmoker: hadSavedPrefs,
+    hasDisability: hadSavedPrefs,
+  }));
+  const answerYesNo = (question: YesNoQuestion, value: boolean, extra?: Partial<TenantPreferences>) => {
+    setAnswered((prev) => ({ ...prev, [question]: true }));
+    patch({ [question]: value, ...extra });
+  };
 
   const patch = (next: Partial<TenantPreferences>) => {
     setPrefs((prev) => ({ ...prev, ...next }));
@@ -293,10 +313,10 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
           <div className="flex flex-col gap-5">
             <YesNoField
               label="Do you have any pets?"
-              value={prefs.hasPets}
+              icon={<IconPaw size={18} />}
+              value={answered.hasPets ? prefs.hasPets : null}
               onChange={(value) =>
-                patch({
-                  hasPets: value,
+                answerYesNo("hasPets", value, {
                   kindOfPets: value ? prefs.kindOfPets : [],
                   noOfPets: value ? prefs.noOfPets : 1,
                   nameOfPets: value ? prefs.nameOfPets : null,
@@ -304,26 +324,35 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
               }
             />
             {prefs.hasPets && (
-              <NumberField
-                minValue={1}
-                maxValue={MAX_PET_COUNT}
-                value={prefs.noOfPets}
-                onChange={(value) => patch({ noOfPets: value })}
-                isInvalid={prefs.kindOfPets.length > 0 && petsError !== null}
-              >
-                <Label>How many pets do you have?</Label>
-                <NumberField.Group className="flex w-full items-center overflow-hidden rounded-xl border border-border bg-card transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                  <NumberField.Input
-                    placeholder="e.g., 2"
-                    className="w-full bg-transparent px-3 py-2.5 text-sm text-card-foreground outline-none placeholder:text-muted-foreground"
-                  />
-                </NumberField.Group>
+              <div className="flex flex-col gap-1.5">
+                <Select
+                  placeholder="Select the number of pets you have"
+                  value={petCountToOption(prefs.noOfPets)}
+                  onChange={(key) => patch({ noOfPets: key ? optionToPetCount(String(key)) : 1 })}
+                  isInvalid={prefs.kindOfPets.length > 0 && petsError !== null}
+                >
+                  <Label>How many pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox className="settings-select-list">
+                      {PET_COUNT_OPTIONS.map((count) => (
+                        <ListBox.Item key={count} id={count} textValue={count}>
+                          {count}
+                          <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
                 {prefs.kindOfPets.length > 0 && petsError && (
-                  <p role="alert" className="mt-1 text-xs text-destructive">
+                  <p role="alert" className="text-xs text-destructive">
                     {petsError}
                   </p>
                 )}
-              </NumberField>
+              </div>
             )}
             {prefs.hasPets && (
               <Select
@@ -336,18 +365,18 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                   patch({
                     kindOfPets: next,
                     // Never fewer pets than kinds: raise the count as kinds are added.
-                    noOfPets: Math.max(prefs.noOfPets || 0, next.length),
+                    noOfPets: Math.max(prefs.noOfPets || 0, minimumPetCount(next.length)),
                     nameOfPets: next.includes(OTHER_PET) ? prefs.nameOfPets : null,
                   });
                 }}
               >
-                <Label>If yes, what kinds of pets do you have?</Label>
+                <Label>If yes, what kinds of pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
                 </Select.Trigger>
                 <Select.Popover>
-                  <ListBox selectionMode="multiple">
+                  <ListBox className="settings-select-list" selectionMode="multiple">
                     {PETS.map((pet) => (
                       <ListBox.Item key={pet} id={pet} textValue={pet}>
                         {pet}
@@ -372,10 +401,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
             <YesNoField
               label="Do you need a parking space?"
               icon={<IconCar size={18} />}
-              value={prefs.hasParking}
+              value={answered.hasParking ? prefs.hasParking : null}
               onChange={(value) =>
-                patch({
-                  hasParking: value,
+                answerYesNo("hasParking", value, {
                   noOfParkingSpots: value ? prefs.noOfParkingSpots : 1,
                   listOfVehicles: value ? prefs.listOfVehicles : [],
                 })
@@ -389,16 +417,17 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                   patch({ noOfParkingSpots: key ? Number(key) : 1 })
                 }
               >
-                <Label>If yes, how many cars or motorcycles do you have?</Label>
+                <Label>If yes, how many cars or motorcycles do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
                 </Select.Trigger>
                 <Select.Popover>
-                  <ListBox>
+                  <ListBox className="settings-select-list">
                     {PARKING_SPOT_OPTIONS.map((count) => (
                       <ListBox.Item key={count} id={count} textValue={count}>
                         {count}
+                        <ListBox.ItemIndicator />
                       </ListBox.Item>
                     ))}
                   </ListBox>
@@ -425,14 +454,14 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
             <YesNoField
               label="Is anyone in your household a smoker?"
               icon={<IconSmoking size={18} />}
-              value={prefs.hasSmoker}
-              onChange={(value) => patch({ hasSmoker: value })}
+              value={answered.hasSmoker ? prefs.hasSmoker : null}
+              onChange={(value) => answerYesNo("hasSmoker", value)}
             />
             <YesNoField
               label="Do you have any household members with a disability?"
               icon={<IconAccessible size={18} />}
-              value={prefs.hasDisability}
-              onChange={(value) => patch({ hasDisability: value })}
+              value={answered.hasDisability ? prefs.hasDisability : null}
+              onChange={(value) => answerYesNo("hasDisability", value)}
             />
           </div>
         )}
