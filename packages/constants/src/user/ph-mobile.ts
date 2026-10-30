@@ -5,56 +5,49 @@ export interface PHMobileValidation {
   prefix: string | null;
 }
 
-// Longest thing a person can reasonably type: "+63 917 123 4567".
-export const PH_MOBILE_MAX_INPUT_LENGTH = 17;
+// Longest thing the field holds: "0917 123 4567" (11 digits plus two spaces).
+export const PH_MOBILE_MAX_INPUT_LENGTH = 13;
 
-// Mobile numbers are a 10-digit national number after the leading 0 / +63.
+// Mobile numbers are a 10-digit national number after the leading 0.
 // The NTC mobile range is the whole 9XX block (0900-0999), so every 9XX prefix
 // is accepted: operators are issued new blocks (0924/0925/0934/0944 in 2025)
 // faster than any list can follow, and number portability means the prefix no
 // longer identifies the operator anyway. The 8XX series is allocated in a few
 // blocks only (Smart 813, Globe 817, DITO 895-899), so those stay explicit.
 const NATIONAL_NUMBER = /^(9\d{2}|813|817|89[5-9])\d{7}$/;
-const LOOKS_LIKE_NATIONAL_NUMBER = /^[89]\d{9}$/;
 
-// "+63", "63" or "0063", optionally followed by the trunk 0 that people often
-// keep ("+63 0917 ..."), then the 10-digit national number; or a trunk 0; or
-// the bare national number.
-const COUNTRY_CODE_PREFIX = /^(?:\+?63|0063)0?(?=\d{10}$)/;
-const TRUNK_PREFIX = /^0(?=\d{10}$)/;
+// Only the local format is accepted: 11 digits with the leading 0, typed with
+// or without the spaces the field adds ("0917 123 4567"). +63 / 63 forms are not.
+const LOCAL_NUMBER = /^0\d{10}$/;
+
+const stripSeparators = (input: string) => input.trim().replace(/[\s\-().]/g, "");
 
 function toNationalNumber(input: string): string | null {
-  const stripped = input.trim().replace(/[\s\-().]/g, "");
+  const stripped = stripSeparators(input);
 
-  if (COUNTRY_CODE_PREFIX.test(stripped)) return stripped.replace(COUNTRY_CODE_PREFIX, "");
-  if (TRUNK_PREFIX.test(stripped)) return stripped.replace(TRUNK_PREFIX, "");
-  if (LOOKS_LIKE_NATIONAL_NUMBER.test(stripped)) return stripped;
-
-  return null;
+  return LOCAL_NUMBER.test(stripped) ? stripped.slice(1) : null;
 }
 
 const LOCAL_DIGIT_LIMIT = 11; // 09XXXXXXXXX
-const INTERNATIONAL_DIGIT_LIMIT = 14; // 0063 0 XXXXXXXXXX, the longest accepted form
 
-// For controlled inputs that keep digits only: keeps a leading "+" and caps the
-// length by shape, so a typed 63917... or +63917... is never cut short. A
-// national number starts with 8 or 9, so "63" and "00" always mean a country code.
-export function sanitizePHMobileInput(value: string): string {
-  const plus = value.startsWith("+");
-  const digits = value.replace(/\D/g, "");
-  const international = plus || digits.startsWith("63") || digits.startsWith("00");
-  const limit = international ? INTERNATIONAL_DIGIT_LIMIT : LOCAL_DIGIT_LIMIT;
+export const PH_MOBILE_TOO_SHORT_MESSAGE = `Mobile number must be ${LOCAL_DIGIT_LIMIT} digits, like 0917 123 4567.`;
 
-  return `${plus ? "+" : ""}${digits.slice(0, limit)}`;
+// For controlled inputs: keeps digits only (at most 11) and spaces them as
+// "XXXX XXX XXXX" while typing. No trailing space is added, so Backspace always
+// removes a digit.
+export function formatPHMobileInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, LOCAL_DIGIT_LIMIT);
+
+  return [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7)].filter(Boolean).join(" ");
 }
 
-// Any accepted PH mobile format -> the stored 0XXXXXXXXXX form (11 digits;
-// input that matches no format comes back stripped of separators, for the
-// error path).
+// An accepted PH mobile number -> the stored 0XXXXXXXXXX form (11 digits;
+// input that is not valid comes back stripped of separators, for the error
+// path).
 export function normalizePHMobile(input: string): string {
   const national = toNationalNumber(input);
 
-  return national ? `0${national}` : input.trim().replace(/[\s\-().]/g, "");
+  return national ? `0${national}` : stripSeparators(input);
 }
 
 // Single rule for web and mobile; the database re-checks the stored format
@@ -66,10 +59,16 @@ export function validatePHMobile(input: string): PHMobileValidation {
 
   const national = toNationalNumber(input);
 
+  const stripped = stripSeparators(input);
+
+  if (/^\d+$/.test(stripped) && stripped.length < LOCAL_DIGIT_LIMIT) {
+    return { isValid: false, errorMessage: PH_MOBILE_TOO_SHORT_MESSAGE, formattedNumber: null, prefix: null };
+  }
+
   if (!national) {
     return {
       isValid: false,
-      errorMessage: "Enter a valid mobile number, like 0917 123 4567 or +63 917 123 4567.",
+      errorMessage: "Enter a valid mobile number, like 0917 123 4567.",
       formattedNumber: null,
       prefix: null,
     };

@@ -88,6 +88,35 @@
   border-color: var(--destructive);
 }
 
+/* Registration-only: date segments are not text inputs, so the browser draws
+   no caret. A blinking bar on the active segment shows where typing lands.
+   Invalid segments keep the danger color through currentColor. */
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"] {
+  position: relative;
+}
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus::after,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"]::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  right: 0;
+  width: 1.5px;
+  background-color: currentColor;
+  animation: birth-date-caret-blink 1.05s steps(1) infinite;
+  pointer-events: none;
+}
+@keyframes birth-date-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .registration-birth-date [data-slot="date-input-group-segment"][data-type]:focus::after {
+    animation: none;
+  }
+}
+
 /* Keep the review prompt's controls outside its scroll surface. HeroUI's
    unlayered positioning/sizing rules need scoped overrides, not utilities. */
 .review-unlock-container {
@@ -799,6 +828,16 @@
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
   }
 
+  /* HeroUI InputGroup draws its border from the --field-* variables, not from
+     `.input`, so give it the same token border, radius, hover and focus. */
+  .registration-input-group {
+    --border-width-field: 1px;
+    --field-border: var(--border);
+    --field-border-hover: var(--muted-foreground);
+    --field-border-focus: #376BF5;
+    border-radius: var(--radius-xl);
+  }
+
   /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
      light background token, so descriptions and the close icon were nearly
      invisible. Use the app's muted text color instead. */
@@ -1330,13 +1369,20 @@ body[data-scroll-locked] [role="option"] {
 .settings-select-list .list-box-item:hover,
 .settings-select-list .list-box-item[data-hovered="true"],
 .settings-select-list .list-box-item[data-focused="true"] {
-  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 .settings-select-list .list-box-item[data-selected="true"],
 .settings-select-list .list-box-item[aria-selected="true"] {
   background-color: color-mix(in oklab, #376BF5 12%, transparent);
   color: #376BF5;
+}
+
+/* Hovering or focusing the selected row deepens its tint like any other row. */
+.settings-select-list .list-box-item[data-selected="true"]:hover,
+.settings-select-list .list-box-item[data-selected="true"][data-hovered="true"],
+.settings-select-list .list-box-item[data-selected="true"][data-focused="true"] {
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 /* The selected option's check mark is brand blue, matching its tinted row. */

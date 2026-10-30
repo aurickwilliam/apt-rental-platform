@@ -36,7 +36,8 @@ import {
   getCitiesByProvince,
   getPostalCode,
   normalizePHMobile,
-  sanitizePHMobileInput,
+  formatPHMobileInput,
+  PH_MOBILE_MAX_INPUT_LENGTH,
   validatePHMobile,
   type Province,
 } from "@repo/constants";
@@ -192,7 +193,7 @@ export default function ProfileForm({
   const formRef = useRef<HTMLFormElement>(null);
   const photosCommittedRef = useRef(false);
 
-  const [mobileNumber, setMobileNumber] = useState(initial.mobile_number ?? "");
+  const [mobileNumber, setMobileNumber] = useState(formatPHMobileInput(initial.mobile_number ?? ""));
   const [postalCode, setPostalCode] = useState(
     initial.postal_code != null ? String(initial.postal_code) : "",
   );
@@ -215,7 +216,7 @@ export default function ProfileForm({
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
 
   const fieldsDirty =
-    mobileNumber !== baseline.mobile_number ||
+    normalizePHMobile(mobileNumber) !== baseline.mobile_number ||
     gender !== baseline.gender ||
     streetAddress !== baseline.street_address ||
     barangay !== baseline.barangay ||
@@ -302,7 +303,7 @@ export default function ProfileForm({
   };
 
   const resetToBaseline = () => {
-    setMobileNumber(baseline.mobile_number);
+    setMobileNumber(formatPHMobileInput(baseline.mobile_number));
     setPostalCode(baseline.postal_code);
     setGender(baseline.gender);
     setProvince(baseline.province);
@@ -519,7 +520,7 @@ export default function ProfileForm({
     city,
   );
   const barangayOptions = withCurrent(
-    city ? getBarangaysByCity(city) : [],
+    city ? getBarangaysByCity(city, province) : [],
     barangay,
   );
 
@@ -781,7 +782,7 @@ export default function ProfileForm({
             fullWidth
             value={mobileNumber}
             onChange={(val: string) => {
-              const cleaned = sanitizePHMobileInput(val);
+              const cleaned = formatPHMobileInput(val);
               setMobileNumber(cleaned);
               revalidateIfShown("mobile_number", cleaned);
             }}
@@ -792,7 +793,8 @@ export default function ProfileForm({
             <Input
               ref={mobileInputRef}
               inputMode="tel"
-              placeholder="09XX XXX XXXX or +63 9XX XXX XXXX"
+              placeholder="09XX XXX XXXX"
+              maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
               className="bg-card! text-foreground!"
             />
             <FieldError>{errors.mobile_number}</FieldError>

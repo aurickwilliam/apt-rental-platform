@@ -20,6 +20,18 @@ export function isZipPlausibleForCity(city: string, province: string, zip: strin
 }
 
 /**
+ * Soft check for forms that must not lock a user out over incomplete ZIP data:
+ * returns a warning when a well-formed ZIP is not one we recognize for the
+ * city, otherwise null. A malformed ZIP is a separate (blocking) error, so it
+ * returns null here. Listing forms keep the strict CAMANAVA check instead.
+ */
+export function getZipCityWarning(city: string, province: string, zip: string): string | null {
+  if (!city || !province || !ZIP_PATTERN.test(zip)) return null;
+  if (isZipPlausibleForCity(city, province, zip)) return null;
+  return `This ZIP isn't one we recognize for ${city}. Double-check it.`;
+}
+
+/**
  * The central post office ZIP of a city (the first of its codes), used to
  * prefill an address. Without a province, a city name shared by several
  * provinces (San Fernando, Santa Cruz) returns null rather than a guess.

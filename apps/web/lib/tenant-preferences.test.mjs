@@ -5,12 +5,16 @@ import {
   BUDGET_PRESETS,
   DEFAULT_TENANT_PREFERENCES,
   HOUSEHOLD_OPTIONS,
+  PET_COUNT_OPTIONS,
   PREFERENCE_BUDGET_MAX,
   PREFERENCE_BUDGET_MIN,
   matchBudgetPreset,
+  minimumPetCount,
+  optionToPetCount,
   orderBudgetRange,
   parseBudgetDraftAmount,
   parseTenantPreferences,
+  petCountToOption,
   validateTenantPreferences,
 } from "./tenant-preferences.ts";
 
@@ -22,7 +26,8 @@ test("parses a stored mobile payload into the shared shape", () => {
     bedroomCount: "1-2 Bedrooms",
     householdSize: "Family of 2",
     hasPets: true,
-    kindOfPets: "Dog",
+    kindOfPets: ["Dog"],
+    noOfPets: 1,
     nameOfPets: null,
     hasParking: true,
     noOfParkingSpots: 2,
@@ -76,12 +81,39 @@ test("rejects out-of-range budgets and bad option values", () => {
   );
 });
 
-test("requires a pet kind when the household has pets", () => {
-  const base = { ...DEFAULT_TENANT_PREFERENCES, hasPets: true, kindOfPets: "" };
-  assert.match(validateTenantPreferences(base) ?? "", /kind of pet/);
+test("requires a pet kind and a fitting count when the household has pets", () => {
+  const base = { ...DEFAULT_TENANT_PREFERENCES, hasPets: true, kindOfPets: [] };
+  assert.match(validateTenantPreferences(base) ?? "", /kind of pets/);
   assert.equal(
-    validateTenantPreferences({ ...base, kindOfPets: "Cat" }),
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat", "Dog"], noOfPets: 2 }),
     null,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat"], noOfPets: Number.NaN }) ?? "",
+    /how many pets/,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat"], noOfPets: 11 }) ?? "",
+    /how many pets/,
+  );
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: ["Cat", "Dog", "Bird"], noOfPets: 2 }) ?? "",
+    /fewer than the kinds/,
+  );
+});
+
+test("loads a legacy single pet kind as a list with a default count", () => {
+  const parsed = parseTenantPreferences({
+    selectedCities: [],
+    hasPets: true,
+    kindOfPets: "Dog",
+  });
+  assert.deepEqual(parsed?.kindOfPets, ["Dog"]);
+  assert.equal(parsed?.noOfPets, 1);
+  assert.deepEqual(parseTenantPreferences({ selectedCities: [], kindOfPets: "" })?.kindOfPets, []);
+  assert.deepEqual(
+    parseTenantPreferences({ selectedCities: [], kindOfPets: ["Cat", 3, "Dog"], noOfPets: 3 })?.kindOfPets,
+    ["Cat", "Dog"],
   );
 });
 
@@ -151,4 +183,25 @@ test("parses custom-range drafts with step snapping and clamping", () => {
   assert.ok(Number.isNaN(parseBudgetDraftAmount("")));
   assert.deepEqual(orderBudgetRange(30000, 10000), [10000, 30000]);
   assert.deepEqual(orderBudgetRange(10000, 30000), [10000, 30000]);
+});
+
+test("4+ pets covers any larger number of kinds", () => {
+  const base = { ...DEFAULT_TENANT_PREFERENCES, hasPets: true };
+  const kinds = ["Cat", "Dog", "Bird", "Fish", "Reptile"];
+  assert.equal(validateTenantPreferences({ ...base, kindOfPets: kinds, noOfPets: 4 }), null);
+  assert.match(
+    validateTenantPreferences({ ...base, kindOfPets: kinds, noOfPets: 3 }) ?? "",
+    /fewer than the kinds/,
+  );
+});
+
+test("pet count options top out at 4+ and map to stored counts", () => {
+  assert.deepEqual(PET_COUNT_OPTIONS, ["1", "2", "3", "4+"]);
+  assert.equal(petCountToOption(2), "2");
+  assert.equal(petCountToOption(4), "4+");
+  assert.equal(petCountToOption(7), "4+");
+  assert.equal(optionToPetCount("4+"), 4);
+  assert.equal(optionToPetCount("3"), 3);
+  assert.equal(minimumPetCount(6), 4);
+  assert.equal(minimumPetCount(2), 2);
 });

@@ -192,6 +192,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
             onBlur={form.postal.onBlur}
           />
           {form.postal.error && <FieldError>{form.postal.error}</FieldError>}
+          {!form.postal.error && form.postal.warning && (
+            <Text className="text-xs text-warning-text">{form.postal.warning}</Text>
+          )}
         </TextField>
       </View>
     </>

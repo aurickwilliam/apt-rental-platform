@@ -45,7 +45,7 @@ export default function StepThree() {
                 key={option}
                 label={option}
                 selected={bedroomCount === option}
-                onPress={() => setBedroomCount(option)}
+                onPress={() => setBedroomCount(bedroomCount === option ? null : option)}
               />
             ))}
           </View>

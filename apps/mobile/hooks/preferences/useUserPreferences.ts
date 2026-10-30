@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { normalizeKindOfPets } from "@repo/constants";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import type { PersonalizationState } from "@/stores/usePersonalizationStore";
 
@@ -36,7 +37,8 @@ export function parsePreferences(raw: unknown): TenantPreferences | null {
     bedroomCount: (obj.bedroomCount as string | null) ?? null,
     householdSize: (obj.householdSize as string | null) ?? null,
     hasPets: Boolean(obj.hasPets),
-    kindOfPets: (obj.kindOfPets as string) ?? "",
+    kindOfPets: normalizeKindOfPets(obj.kindOfPets),
+    noOfPets: typeof obj.noOfPets === "number" ? obj.noOfPets : 1,
     nameOfPets: (obj.nameOfPets as string | null) ?? null,
     hasParking: Boolean(obj.hasParking),
     noOfParkingSpots: typeof obj.noOfParkingSpots === "number" ? obj.noOfParkingSpots : 1,

@@ -7,7 +7,15 @@ import DropdownField from "components/inputs/DropdownField";
 
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
-import { PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+  getPetsError,
+} from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
 import { useProfile } from "hooks/auth";
@@ -35,12 +43,14 @@ export default function StepFive() {
   const {
     hasPets, setHasPets,
     kindOfPets, setKindOfPets,
+    noOfPets, setNoOfPets,
     nameOfPets, setNameOfPets,
     hasParking, setHasParking,
     noOfParkingSpots, setNoOfParkingSpots,
     listOfVehicles, toggleVehicle,
     hasSmoker, setHasSmoker,
     hasDisability, setHasDisability,
+    answered,
     reset,
   } = personalization;
 
@@ -50,7 +60,18 @@ export default function StepFive() {
 
   const NO_PARKING_OPTIONS = Array.from({ length: 5 }, (_, i) => `${i + 1}`);
 
+  const petsError = getPetsError(hasPets, kindOfPets, noOfPets);
+
   const handleNext = async () => {
+    if (petsError) {
+      toast.show({
+        variant: "danger",
+        label: "Check your pets",
+        description: petsError,
+      });
+      return;
+    }
+
     if (!profile?.user_id) {
       router.replace("/(tabs)/(tenant)/rentals");
       return;
@@ -70,6 +91,7 @@ export default function StepFive() {
             householdSize: personalization.householdSize,
             hasPets: personalization.hasPets,
             kindOfPets: personalization.kindOfPets,
+            noOfPets: personalization.noOfPets,
             nameOfPets: personalization.nameOfPets,
             hasParking: personalization.hasParking,
             noOfParkingSpots: personalization.noOfParkingSpots,
@@ -130,7 +152,7 @@ export default function StepFive() {
               </Text>
 
               <RadioGroup
-                value={hasPets ? "yes" : "no"}
+                value={answered.hasPets ? (hasPets ? "yes" : "no") : ""}
                 onValueChange={(val) => setHasPets(val === "yes")}
               >
                 <RadioGroup.Item
@@ -156,17 +178,31 @@ export default function StepFive() {
 
             {hasPets && (
               <DropdownField
-                label="If yes, what kind of pet do you have?"
-                bottomSheetLabel="Select your Pet"
-                placeholder="Select the kind of pets you have"
-                options={PETS}
-                onSelect={(value) => setKindOfPets(value ?? "")}
-                value={kindOfPets}
+                label="How many pets do you have?"
+                bottomSheetLabel="Select your Pets"
+                placeholder="Select the number of pets you have"
+                options={PET_COUNT_OPTIONS}
+                onSelect={(value) => setNoOfPets(value ? optionToPetCount(value) : 1)}
+                value={petCountToOption(noOfPets)}
+                error={kindOfPets.length > 0 ? petsError ?? undefined : undefined}
                 required
               />
             )}
 
-            {hasPets && kindOfPets === "Other" && (
+            {hasPets && (
+              <DropdownField
+                label="If yes, what kinds of pets do you have?"
+                bottomSheetLabel="Select your Pets"
+                placeholder="Select the kinds of pets you have"
+                options={PETS}
+                multiple
+                values={kindOfPets}
+                onSelectMultiple={setKindOfPets}
+                required
+              />
+            )}
+
+            {hasPets && kindOfPets.includes(OTHER_PET) && (
               <TextField isRequired>
                 <Label>Please specify the kind of pet you have</Label>
                 <Input
@@ -189,7 +225,7 @@ export default function StepFive() {
               </Text>
 
               <RadioGroup
-                value={hasParking ? "yes" : "no"}
+                value={answered.hasParking ? (hasParking ? "yes" : "no") : ""}
                 onValueChange={(val) => setHasParking(val === "yes")}
               >
                 <RadioGroup.Item
@@ -259,7 +295,7 @@ export default function StepFive() {
             </Text>
 
             <RadioGroup
-              value={hasSmoker ? "yes" : "no"}
+              value={answered.hasSmoker ? (hasSmoker ? "yes" : "no") : ""}
               onValueChange={(val) => setHasSmoker(val === "yes")}
             >
               <RadioGroup.Item
@@ -292,7 +328,7 @@ export default function StepFive() {
             </Text>
 
             <RadioGroup
-              value={hasDisability ? "yes" : "no"}
+              value={answered.hasDisability ? (hasDisability ? "yes" : "no") : ""}
               onValueChange={(val) => setHasDisability(val === "yes")}
             >
               <RadioGroup.Item

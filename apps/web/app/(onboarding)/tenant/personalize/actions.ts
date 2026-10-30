@@ -32,8 +32,9 @@ export async function saveTenantPreferences(
     return { ok: false, error: "Please choose valid cities." };
   }
   if (
-    (prefs.kindOfPets !== "" &&
-      !(PETS as readonly string[]).includes(prefs.kindOfPets)) ||
+    !prefs.kindOfPets.every((kind) =>
+      (PETS as readonly string[]).includes(kind),
+    ) ||
     !prefs.listOfVehicles.every((vehicle) =>
       (VEHICLE_OPTIONS as readonly string[]).includes(vehicle),
     )

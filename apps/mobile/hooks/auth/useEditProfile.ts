@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePHMobileValidation, usePHPostalCode } from "@repo/hooks";
-import { GENDERS, getPostalCode, sanitizePHMobileInput } from "@repo/constants";
+import { GENDERS, getPostalCode } from "@repo/constants";
 import { describeAuthError } from "@repo/utils";
 
 import type { UserProfile } from "@/service/auth/currentUserService";
@@ -50,7 +50,9 @@ export function useEditProfile(initial: UserProfile) {
   const busyRef = useRef(false);
 
   const fields = { ...form, mobile_number: mobile.value, postal_code: postal.value };
-  const dirty = PROFILE_FIELD_ORDER.some((field) => fields[field] !== baseline[field]) ||
+  // The field shows "0917 123 4567"; the saved profile holds 09171234567.
+  const comparable = { ...fields, mobile_number: mobile.validation.formattedNumber ?? mobile.value };
+  const dirty = PROFILE_FIELD_ORDER.some((field) => comparable[field] !== baseline[field]) ||
     photos.avatar !== null || photos.background !== null;
 
   const mutation = useMutation({
@@ -152,7 +154,7 @@ export function useEditProfile(initial: UserProfile) {
     try {
       await mutation.mutateAsync({
         authUserId: initial.user_id,
-        fields: { ...fields, mobile_number: mobile.formatTo("09XXXXXXXXX") ?? mobile.value },
+        fields: comparable,
         photos,
       });
     } catch (error) {
@@ -174,7 +176,7 @@ export function useEditProfile(initial: UserProfile) {
     },
     changeMobile: (value: string) => {
       if (busyRef.current || succeeded) return;
-      mobile.onChange(sanitizePHMobileInput(value));
+      mobile.onChange(value);
       clearError("mobile_number");
     },
     changePostal: (value: string) => {
