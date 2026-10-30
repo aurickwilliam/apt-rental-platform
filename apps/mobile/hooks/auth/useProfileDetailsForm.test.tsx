@@ -55,6 +55,29 @@ describe("useProfileDetailsForm", () => {
     expect(result.current.cityOptions).toContain("Caloocan");
   });
 
+  it("offers every municipality of a province, not a short list", () => {
+    const { result } = setup();
+
+    act(() => result.current.setProvince("Bulacan"));
+
+    expect(result.current.cityOptions).toEqual(expect.arrayContaining(["Baliwag", "Marilao", "Malolos"]));
+    expect(result.current.cityOptions.length).toBeGreaterThanOrEqual(24);
+  });
+
+  it("offers the barangays of the picked province's city when several provinces share the name", () => {
+    const { result } = setup();
+
+    act(() => result.current.setProvince("Pampanga"));
+    act(() => result.current.setCity("San Fernando"));
+    expect(result.current.barangayOptions).toContain("Alasas");
+    expect(result.current.barangayOptions).not.toContain("Abut");
+
+    act(() => result.current.setProvince("La Union"));
+    act(() => result.current.setCity("San Fernando"));
+    expect(result.current.barangayOptions).toContain("Abut");
+    expect(result.current.barangayOptions).not.toContain("Alasas");
+  });
+
   it("shows required errors only after a submit attempt", () => {
     const { result } = setup();
     expect(result.current.getError("firstName")).toBeUndefined();

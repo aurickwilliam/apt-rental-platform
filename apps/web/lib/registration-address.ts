@@ -25,7 +25,7 @@ function matchLabel(options: readonly string[], value: string): string {
 export function resolveRegistrationAddress(value: Partial<RegistrationAddress> = {}): RegistrationAddress {
   const province = matchLabel(PROVINCES, value.province ?? "");
   const city = matchLabel(getCitiesByProvince(province as Province), value.city ?? "");
-  const barangay = city ? matchLabel(getBarangaysByCity(city), value.barangay ?? "") : "";
+  const barangay = city ? matchLabel(getBarangaysByCity(city, province), value.barangay ?? "") : "";
   return { province, city, barangay, streetAddress: value.streetAddress ?? "", postalCode: value.postalCode ?? "" };
 }
 
@@ -60,7 +60,7 @@ export function validateRegistrationAddress(value: RegistrationAddress): Registr
   if (!value.city) errors.city = "City is required.";
   else if (errors.province || !getCitiesByProvince(value.province as Province).includes(value.city)) errors.city = "Select a city belonging to your state/province.";
   if (!value.barangay) errors.barangay = "Barangay is required.";
-  else if (errors.city || !getBarangaysByCity(value.city).includes(value.barangay)) errors.barangay = "Select a barangay belonging to your city.";
+  else if (errors.city || !getBarangaysByCity(value.city, value.province).includes(value.barangay)) errors.barangay = "Select a barangay belonging to your city.";
   if (typeof value.streetAddress !== "string" || !value.streetAddress.trim()) errors.streetAddress = "Street Address is required.";
   if (!value.postalCode) errors.postalCode = "Postal code is required.";
   else if (!/^\d{4}$/.test(value.postalCode)) errors.postalCode = "Enter a valid 4-digit postal code.";
