@@ -277,7 +277,18 @@ test("Our Team renders the four real members with circular portraits and approve
     }).length,
     4,
   );
-  assert.equal(all.filter(node => node.type === "a" && node.props.href.includes("linkedin.com")).length, 1);
+  assert.equal(
+    all.filter(node => {
+      if (node.type !== "a") return false;
+      try {
+        const href = new URL(node.props.href);
+        return href.protocol === "https:" && href.hostname === "www.linkedin.com";
+      } catch {
+        return false;
+      }
+    }).length,
+    1,
+  );
   assert(all.filter(node => node.type === "a").every(node => node.props.target === "_blank" && node.props.rel === "noopener noreferrer"));
 
   const source = readFileSync(new URL("../app/(main)/components/TeamSection.tsx", import.meta.url), "utf8");
