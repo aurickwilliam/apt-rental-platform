@@ -18,7 +18,7 @@ for (const [path, expectedStatusFilter] of [
   ["../app/browse/lib/fetch-browse-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/browse/lib/fetch-map-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/browse/lib/fetch-browse-sections.ts", /\.in\("status", \["available", "unverified"\]\)/],
-  ["../app/(main)/page.tsx", /\.eq\("status", "available"\)/],
+  ["../app/(main)/components/FeaturedApartments.tsx", /\.eq\("status", "available"\)/],
   ["../app/browse/[apartmentId]/components/ApartmentDetailView.tsx", /\.in\("status", \["available", "unverified"\]\)/],
 ]) {
   test(`${path} filters discovery before pagination/counting`, () => {
