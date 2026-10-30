@@ -139,7 +139,7 @@ describe("mobile Edit Profile", () => {
     }
     expect(screen.getByLabelText("Suffix (read-only)").props.value).toBe("Jr.");
     expect(screen.getByRole("button", { name: "Save Changes" }).props.accessibilityState.disabled).toBe(true);
-    fireEvent.changeText(screen.getByLabelText("Mobile Number"), "+639181234567");
+    fireEvent.changeText(screen.getByLabelText("Mobile Number"), "09181234567");
     fireEvent.press(screen.getByRole("button", { name: "Save Changes" }));
     expect(await screen.findByText("Profile Updated")).toBeTruthy();
     expect(mockRouter.replace).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe("mobile Edit Profile", () => {
     mockProfile = { ...profileFixture, roles: ["tenant", "landlord"] };
     mockRouter.canGoBack.mockReturnValue(false);
     setup();
-    fireEvent.changeText(screen.getByLabelText("Mobile Number"), "+639181234567");
+    fireEvent.changeText(screen.getByLabelText("Mobile Number"), "09181234567");
     fireEvent.press(screen.getByRole("button", { name: "Save Changes" }));
     await screen.findByText("Profile Updated");
     fireEvent.press(screen.getByRole("button", { name: "Dismiss success" }));
@@ -243,13 +243,13 @@ describe("mobile Edit Profile", () => {
     const { rerender } = setup();
     fireEvent.changeText(screen.getByLabelText("Mobile Number"), "123");
     fireEvent.press(screen.getByRole("button", { name: "Save Changes" }));
-    expect(await screen.findByText(/Enter a valid mobile number/)).toBeTruthy();
+    expect(await screen.findByText(/Mobile number must be 11 digits/)).toBeTruthy();
     expect(mockSave).not.toHaveBeenCalled();
     mockProfile = { ...profileFixture, mobile_number: "09191234567" };
     rerender(<EditProfile />);
     expect(screen.getByLabelText("Mobile Number").props.value).toBe("123");
     fireEvent.changeText(screen.getByLabelText("Mobile Number"), "09181234567");
-    expect(screen.queryByText(/Enter a valid mobile number/)).toBeNull();
+    expect(screen.queryByText(/Mobile number must be 11 digits/)).toBeNull();
   });
 
   it("disables fields, photo buttons, Cancel and repeated saves while a write is pending", async () => {

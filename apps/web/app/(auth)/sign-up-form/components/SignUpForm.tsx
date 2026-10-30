@@ -11,6 +11,7 @@ import {
   TextField, 
   Label,
   ListBox,
+  FieldError,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
@@ -32,7 +33,9 @@ import {
   GENDERS,
   SUFFIXES,
   getPasswordRequirements,
-  sanitizePHMobileInput,
+  formatPHMobileInput,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  validatePHMobile,
 } from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
 
@@ -60,6 +63,8 @@ export default function SignUpForm() {
   const [birthDateError, setBirthDateError] = useState<{ message: string; value: string } | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
   const birthDateRef = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLInputElement>(null);
+  const [mobileTouched, setMobileTouched] = useState(false);
 
   const [formData, setFormData] = useState<SignUpFormData>({
     email,
@@ -94,6 +99,8 @@ export default function SignUpForm() {
     streetAddress: formData.streetAddress, postalCode: formData.postalCode === undefined ? "" : String(formData.postalCode),
   };
   const addressErrors = validateRegistrationAddress(address);
+  // Shown once the field was left or a submit was tried, then kept live.
+  const mobileError = mobileTouched ? validatePHMobile(formData.mobileNumber).errorMessage : null;
 
   const showBirthDateError = (message: string, value: string, verified = false) => {
     setBirthDateError({ message, value });
@@ -111,7 +118,10 @@ export default function SignUpForm() {
     const birthError = validationError?.field === "birthDate" ? validationError.message : null;
     setBirthDateError(birthError ? { message: birthError, value: formData.birthDate } : null);
     if (birthError) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
-    if (birthError || Object.keys(addressErrors).length) return;
+    setMobileTouched(true);
+    const mobileInvalid = !!validatePHMobile(formData.mobileNumber).errorMessage;
+    if (mobileInvalid && !birthError) mobileRef.current?.focus();
+    if (birthError || mobileInvalid || Object.keys(addressErrors).length) return;
 
     if (validationError) {
       showError(validationError.message);
@@ -265,12 +275,15 @@ export default function SignUpForm() {
             type="tel"
             value={formData.mobileNumber}
             onChange={(val) => {
-              handleChange("mobileNumber")(sanitizePHMobileInput(val));
+              handleChange("mobileNumber")(formatPHMobileInput(val));
             }}
+            onBlur={() => setMobileTouched(true)}
+            isInvalid={!!mobileError}
             isDisabled={loading}
           >
             <Label>Mobile Number</Label>
-            <Input className="bg-card! text-foreground!" placeholder="09XX XXX XXXX or +63 9XX XXX XXXX" inputMode="tel" />
+            <Input ref={mobileRef} className="bg-card! text-foreground!" placeholder="09XX XXX XXXX" inputMode="tel" maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
+            <FieldError className="text-xs">{mobileError}</FieldError>
           </TextField>
 
           <RegistrationBirthDateField name="birthDate" value={formData.birthDate} inputRef={birthDateRef} isDisabled={loading}

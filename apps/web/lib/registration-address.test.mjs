@@ -24,7 +24,8 @@ const ui = {
   Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }),
   useOverlayState: () => ({ isOpen: false, open() {}, close() {} }),
 };
-const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [] };
+const { validatePHMobile, formatPHMobileInput } = compile("../../packages/constants/src/user/ph-mobile.ts");
+const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [], validatePHMobile, formatPHMobileInput };
 const icons = { IconInfoCircle: "IconInfoCircle" };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
   "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
@@ -270,8 +271,7 @@ test("Complete Profile seeds valid saved values once and marks unsafe legacy loc
   assert.equal(unknown.addressNode().props.value.streetAddress, validAddress.streetAddress);
 });
 
-const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts");
-const serverConstants = { ...constants, validatePHMobile };
+const serverConstants = constants;
 const year = new Date().getFullYear() - 25;
 function submission(address = validAddress, role = "tenant") {
   const data = new FormData();
