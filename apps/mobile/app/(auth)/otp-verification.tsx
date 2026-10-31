@@ -13,6 +13,8 @@ import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
+import { completeMobileRegistration } from '@/service/auth/registrationService'
+import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '@/service/auth/registrationAcceptance'
 
 import {
   MAX_OTP_ATTEMPTS,
@@ -48,6 +50,7 @@ export default function OTPVerification() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
+  const [acceptanceError, setAcceptanceError] = useState<string | null>(null)
 
   const [otp, setOtp] = useState('')
   const [otpError, setOtpError] = useState<string | null>(null)
@@ -72,6 +75,14 @@ export default function OTPVerification() {
   // Then resend the OTP to the user email
   const handleResend = async () => {
     if (resendLoading) return
+    if (!isConfirmMode) {
+      try {
+        requireRegistrationAcceptance(data.acceptance)
+      } catch (err) {
+        setAcceptanceError(err instanceof Error ? err.message : 'Please read and accept both policies.')
+        return
+      }
+    }
 
     setResendLoading(true)
     setOtpError(null)
@@ -108,6 +119,18 @@ export default function OTPVerification() {
   // then insert the user profile to the database
   const handleVerify = async () => {
     if (loading || otpLocked || otp.length < 6) return
+    if (!isConfirmMode) {
+      try {
+        requireRegistrationAcceptance(data.acceptance)
+        if (!data.email || (emailValue && emailValue.trim().toLowerCase() !== data.email.trim().toLowerCase())) {
+          setAcceptanceError('Your signup details are no longer available. Return to signup and review the policies again.')
+          return
+        }
+      } catch (err) {
+        setAcceptanceError(err instanceof Error ? err.message : 'Please read and accept both policies.')
+        return
+      }
+    }
 
     setLoading(true)
     setOtpError(null)
@@ -137,26 +160,17 @@ export default function OTPVerification() {
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
 
-      const { error: insertError } = await supabase.from('users').insert({
-        user_id: authData.user.id,
-        // Auth's canonical (lowercased) address: the profile email must match it.
-        email: authData.user.email ?? (emailValue || data.email!).trim().toLowerCase(),
-        roles: [userSide],
-        first_name: data.firstName,
-        last_name: data.lastName,
-        middle_name: data.middleName || null,
-        suffix: data.suffixName || null,
-        gender: data.gender,
-        mobile_number: data.mobileNumber,
-        birth_date: data.birthDate,
-        street_address: data.streetAddress,
-        barangay: data.barangay,
-        city: data.city,
-        province: data.province,
-        postal_code: parseInt(data.postalCode!, 10),
+      if (!data.profileDetails || !authData.user.email || authData.user.email.toLowerCase() !== data.email?.trim().toLowerCase()) {
+        throw new Error('Your signup details are no longer available. Please sign in to finish setting up your profile.')
+      }
+      requireRegistrationAcceptance(data.acceptance)
+      await completeMobileRegistration({
+        details: data.profileDetails,
+        role: userSide,
+        acceptance: data.acceptance,
+        source: 'mobile_registration',
+        expectedAuthId: authData.user.id,
       })
-
-      if (insertError) throw insertError
 
       await usePortalStore.getState().switchTo(authData.user.id, [userSide], userSide)
       reset()
@@ -169,6 +183,16 @@ export default function OTPVerification() {
       }
 
     } catch (err: any) {
+      const acceptanceErrors = getRegistrationAcceptanceErrors(err)
+      if (acceptanceErrors) {
+        if (emailVerified) {
+          clearQueryClient()
+          await supabase.auth.signOut()
+        }
+        reset()
+        setAcceptanceError(acceptanceErrors.version ?? 'Please return to signup and read and accept both policies.')
+        return
+      }
       const msg: string = (err as any)?.message ?? ''
       // Supabase answers a wrong code and an old code with the same
       // "Token has expired or is invalid", so both are treated as an
@@ -276,6 +300,15 @@ export default function OTPVerification() {
               </Text>
             )}
           </View>
+          {acceptanceError && (
+            <View className="gap-2 mt-4">
+              <Text accessibilityRole="alert" className="text-danger text-sm">{acceptanceError}</Text>
+              <Text className="text-sm text-muted">If your email is already verified, sign in to finish your profile and review the policies.</Text>
+              <Button variant="secondary" onPress={() => { reset(); router.replace('/sign-in') }}>
+                <Button.Label>Back to sign in</Button.Label>
+              </Button>
+            </View>
+          )}
 
           {/* Resend Link and Countdown */}
           <View className="flex-row items-center">
@@ -304,7 +337,7 @@ export default function OTPVerification() {
         {/* Verify Button */}
         <Button
           onPress={handleVerify}
-          isDisabled={loading || otpLocked || otp.length < 6}
+          isDisabled={loading || otpLocked || otp.length < 6 || !!acceptanceError}
         >
           <Button.Label>
             {loading

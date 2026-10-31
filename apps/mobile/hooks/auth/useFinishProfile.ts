@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigation, useRouter } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
 
@@ -11,6 +11,7 @@ import { usePortalStore } from "@/stores/usePortalStore";
 import { clearQueryClient } from "@/utils/queryClient";
 
 import type { ProfileDetailsForm } from "./useProfileDetailsForm";
+import { useRegistrationAcceptance } from "./useRegistrationAcceptance";
 
 interface UseFinishProfileOptions {
   form: ProfileDetailsForm;
@@ -24,6 +25,8 @@ interface UseFinishProfileOptions {
 export function useFinishProfile({ form, role, requestedRole }: UseFinishProfileOptions) {
   const router = useRouter();
   const navigation = useNavigation();
+  const policies = useRegistrationAcceptance();
+  const pending = useRef(false);
 
   const [canLeave, setCanLeave] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,12 +40,15 @@ export function useFinishProfile({ form, role, requestedRole }: UseFinishProfile
   });
 
   const submit = async () => {
+    if (pending.current) return;
+    if (!policies.validate()) return;
     if (!form.validate()) return;
 
+    pending.current = true;
     setLoading(true);
 
     try {
-      const userId = await finishProfile({ details: form.toRow(), role, requestedRole });
+      const userId = await finishProfile({ details: form.toRow(), role, requestedRole, acceptance: policies.value });
       await usePortalStore.getState().switchTo(userId, [role], role);
 
       setCanLeave(true);
@@ -52,9 +58,11 @@ export function useFinishProfile({ form, role, requestedRole }: UseFinishProfile
           : "/personalization/step-one",
       );
     } catch (err) {
+      if (policies.handleError(err)) return;
       setError(getProfileSubmitError(err));
       setErrorDialogOpen(true);
     } finally {
+      pending.current = false;
       setLoading(false);
     }
   };
@@ -62,6 +70,7 @@ export function useFinishProfile({ form, role, requestedRole }: UseFinishProfile
   // An account that cannot finish here (wrong account, changed mind) needs an
   // explicit way out, since back is blocked.
   const signOut = async () => {
+    if (pending.current) return;
     clearQueryClient();
     await supabase.auth.signOut();
     setCanLeave(true);
@@ -69,6 +78,7 @@ export function useFinishProfile({ form, role, requestedRole }: UseFinishProfile
   };
 
   return {
+    policies,
     submit,
     signOut,
     loading,

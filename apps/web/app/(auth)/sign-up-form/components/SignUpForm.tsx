@@ -27,6 +27,8 @@ import { validateSignUpForm } from "../utils";
 import { SignUpFormData } from "../types";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
 import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
+import RegistrationPolicyAcceptance from "../../components/RegistrationPolicyAcceptance";
+import { emptyRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
 import { validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
 
 import {
@@ -62,6 +64,8 @@ export default function SignUpForm() {
   const [addressSubmitted, setAddressSubmitted] = useState(false);
   const [birthDateError, setBirthDateError] = useState<{ message: string; value: string } | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [acceptance, setAcceptance] = useState(emptyRegistrationAcceptance);
+  const [acceptanceErrors, setAcceptanceErrors] = useState<AcceptanceErrors>({});
   const birthDateRef = useRef<HTMLDivElement>(null);
   const mobileRef = useRef<HTMLInputElement>(null);
   const [mobileTouched, setMobileTouched] = useState(false);
@@ -108,7 +112,13 @@ export default function SignUpForm() {
     onClose();
     requestAnimationFrame(() => birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus());
   };
-  const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen, onBirthDateError: showBirthDateError });
+  const showAcceptanceErrors = (errors: AcceptanceErrors, verified = false) => {
+    if (verified) setEmailVerified(true);
+    setAcceptanceErrors(errors);
+    setAcceptance(previous => ({ ...previous, privacyAccepted: false, termsAccepted: false }));
+    onClose();
+  };
+  const otpFlow = useOtpFlow({ formData, role, acceptance, showError, onSuccessOpen, onBirthDateError: showBirthDateError, onAcceptanceError: showAcceptanceErrors });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -128,6 +138,11 @@ export default function SignUpForm() {
       return;
     }
 
+    const policyErrors = validateRegistrationAcceptance(acceptance);
+    setAcceptanceErrors(policyErrors);
+    if (Object.keys(policyErrors).length) return;
+    if (loading || otpFlow.loading || isOpen) return;
+
     setLoading(true);
     try {
       const result = await sendEmailOtp(
@@ -136,7 +151,12 @@ export default function SignUpForm() {
         formData.firstName,
         formData.lastName,
         formData.birthDate,
+        acceptance,
       );
+      if (result.acceptanceErrors) {
+        showAcceptanceErrors(result.acceptanceErrors);
+        return;
+      }
       if (result.birthDateError) {
         showBirthDateError(result.birthDateError, result.birthDate ?? formData.birthDate);
         return;
@@ -334,13 +354,16 @@ export default function SignUpForm() {
           />
         </div>
 
+        <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
+          errors={acceptanceErrors} isDisabled={loading || otpFlow.loading || isOpen} />
+
         <Button
           variant="primary"
-          className="w-full mt-[clamp(1.25rem,3vh,1.5rem)] md:max-w-[300px] md:self-end rounded-full"
+          className="w-full md:max-w-[300px] md:self-end rounded-full"
           size="lg"
           type="submit"
           isPending={loading}
-          isDisabled={loading}
+          isDisabled={loading || otpFlow.loading || isOpen || !acceptance.termsAccepted || !acceptance.privacyAccepted}
         >
           {loading ? "Creating Account..." : "Sign Up"}
         </Button>

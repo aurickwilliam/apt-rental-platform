@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 const RELATED_POLICIES = [
-  { href: "/tos", label: "Terms of Service" },
+  { href: "/tos", label: "Terms and Conditions" },
   { href: "/cookies", label: "Cookie Policy" },
 ];
 

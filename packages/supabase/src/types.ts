@@ -1816,6 +1816,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_mobile_registration: {
+        Args: {
+          profile_details: Json;
+          requested_role: string;
+          terms_accepted: boolean;
+          privacy_accepted: boolean;
+          terms_version: string;
+          privacy_version: string;
+          registration_source: string;
+          expected_auth_id: string;
+        };
+        Returns: string;
+      };
       acknowledge_signed_lease: {
         Args: { p_tenancy_id: string }
         Returns: undefined

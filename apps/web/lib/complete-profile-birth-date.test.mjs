@@ -11,6 +11,8 @@ import {
   addressRules,
   validAddress,
 } from "./test-support/registration-address-runtime.mjs";
+import * as policyRules from "./registration-policies.ts";
+const accepted = { ...policyRules.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 
 const NOW = new Date("2026-10-25T04:00:00Z");
 const rules = {
@@ -318,7 +320,8 @@ function formHarness(kind, role, options = {}) {
   const runtime = hookRuntime();
   const sent = [],
     openedErrors = [],
-    focused = [];
+    focused = [],
+    dispatched = [];
   let serverState = {},
     otpOptions;
   const complete = kind === "complete";
@@ -326,7 +329,8 @@ function formHarness(kind, role, options = {}) {
   const dependencies = {
     react: {
       ...runtime.react,
-      useActionState: () => [serverState, () => {}, false],
+      startTransition: (callback) => callback(),
+      useActionState: () => [serverState, value => dispatched.push(value), false],
     },
     "react/jsx-runtime": virtualJsx,
     "@heroui/react": {
@@ -339,6 +343,8 @@ function formHarness(kind, role, options = {}) {
     "@repo/constants": constants,
     "@/lib/birth-date": rules,
     "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": {
       default: "RegistrationAddressFields",
     },
@@ -374,7 +380,7 @@ function formHarness(kind, role, options = {}) {
       ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx"
       : "app/(auth)/sign-up-form/components/SignUpForm.tsx",
     dependencies,
-    { requestAnimationFrame: (callback) => callback() },
+    { requestAnimationFrame: (callback) => callback(), FormData: class { get() { return null; } } },
   ).default;
   const render = () =>
     runtime.render(() =>
@@ -389,6 +395,7 @@ function formHarness(kind, role, options = {}) {
     );
   const field = () =>
     nodes(render()).find((node) => node.type === fieldComponent);
+  nodes(render()).find(node => node.type === "RegistrationPolicyAcceptance").props.onChange(accepted);
   const set = (name, value) =>
     nodes(render())
       .find((node) => node.props?.name === name)
@@ -425,17 +432,18 @@ function formHarness(kind, role, options = {}) {
       serverState = value;
     },
     async submit() {
-      let blocked = false;
+      let prevented = false;
       const root = nodes(render()).find(
         (node) => node.type === (complete ? "form" : "Form"),
       );
+      const before = dispatched.length;
       await root.props.onSubmit({
         preventDefault() {
-          blocked = true;
+          prevented = true;
         },
         currentTarget: {},
       });
-      return blocked;
+      return complete ? dispatched.length === before : prevented;
     },
     otpError(message, date, verified) {
       otpOptions.onBirthDateError(message, date, verified);
@@ -585,12 +593,14 @@ function submission(date, role = "tenant", complete = true) {
   const fd = new FormData();
   for (const [key, value] of Object.entries(values))
     if (value != null) fd.set(key, value);
+  policyRules.writeRegistrationAcceptance(fd, accepted);
   return fd;
 }
 
 function actionHarness(kind, options = {}) {
   const writes = [],
-    auth = [];
+    auth = [],
+    registrations = [];
   const client = {
     auth: {
       getUser: async () => {
@@ -649,12 +659,20 @@ function actionHarness(kind, options = {}) {
       "@repo/constants": constants,
       "@/lib/birth-date": rules,
       "@/lib/registration-address": addressRules,
+      "@/lib/registration-policies": policyRules,
+      "@/service/registrationService": {
+        completeWebRegistration: async (client, details, role, acceptance, source) => {
+          writes.push(details);
+          registrations.push({ role, acceptance, source });
+          return { error: options.dbError ?? null };
+        },
+      },
       "../sign-up-form/utils": { validateSignUpForm },
       "@repo/utils": { getEmailCodeRequestError: (message) => message },
     },
     { process: { env: { NODE_ENV: "test" } } },
   );
-  return { actions, writes, auth };
+  return { actions, writes, auth, registrations };
 }
 
 test("all three server entry points reject the same invalid dates, without creating accounts or writing profiles", async () => {
@@ -716,9 +734,9 @@ test("valid server submissions retain role destinations, Auth signup options and
       ).success,
       true,
     );
-    assert.equal(signup.writes[0].email, "caller@example.com");
-    assert.equal(signup.writes[0].user_id, "caller");
-    assert.equal(signup.writes[0].roles[0], role);
+    assert.equal(signup.writes[0].email, undefined);
+    assert.equal(signup.writes[0].user_id, undefined);
+    assert.equal(signup.registrations[0].role, role);
     assert.equal(signup.writes[0].birth_date, adult);
     assert.equal(
       (
@@ -728,6 +746,7 @@ test("valid server submissions retain role destinations, Auth signup options and
           "First",
           "Last",
           adult,
+          accepted,
         )
       ).success,
       true,
@@ -828,6 +847,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
           }),
         },
         "@repo/utils": { getOtpAttemptError: () => "wrong code" },
+        "@/lib/registration-policies": policyRules,
         "../../actions/sign-up": {
           signUp: async () =>
             kind === "birth"
@@ -856,6 +876,8 @@ test("OTP verification routes typed birth-date failures inline while preserving 
           postalCode: 1485,
         },
         role: "tenant",
+        acceptance: accepted,
+        onAcceptanceError: () => assert.fail("unexpected policy error"),
         showError: (message) => generic.push(message),
         onSuccessOpen: () => successes.push(true),
         onBirthDateError: (...args) => fieldErrors.push(args),
