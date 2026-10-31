@@ -396,3 +396,11 @@ Still open for this listing: deposit ₱5,000 and advance ₱20,000 against rent
 Two stock photos show people (a person cooking, a man with a tool) and looked wrong in listing galleries. The database has no per-photo hidden flag, so the 8 gallery rows using them were removed from the 8 demo listings that carried them (3 of the cooking photo, 5 of the other). None was a cover, and no listing was left with fewer than 2 photos. The photos are external stock URLs, so no storage object was touched. The 8 exact rows are in `private.listing_audit_backup_hidden_images_20261031`; the transaction aborted on any count other than 8, on any listing left with under 2 photos or not exactly one cover.
 
 Restore: `insert into apartment_images (id, apartment_id, url, is_cover, created_at, url_thumb) select id, apartment_id, url, is_cover, created_at, url_thumb from private.listing_audit_backup_hidden_images_20261031;`
+
+### O.2 Same photo twice inside one listing (applied 2026-10-31)
+
+Reported from the Acacia Family 3BR page (the sofa photo as the main image and again as a thumbnail). The audit had flagged this (`I2`) for two listings, Acacia Family 3BR and Punturin Family 3BR, but it had not been fixed. A re-scan of every live listing found no others. The duplicate is certain (identical URL); the copy that is the cover is kept, or the older copy when neither is, and the other row was removed. No cover was affected. Both listings now have 2 photos and exactly one cover. The 2 removed rows are in `private.listing_audit_backup_duplicate_images_20261031`; the transaction aborted on any count other than 2, on a cover being removed, or on a listing not left with 2 photos and one cover.
+
+Restore: `insert into apartment_images (id, apartment_id, url, is_cover, created_at, url_thumb) select id, apartment_id, url, is_cover, created_at, url_thumb from private.listing_audit_backup_duplicate_images_20261031;`
+
+Possible follow-up: the database now blocks nothing for duplicate photos within a listing; a unique index on (apartment_id, URL) would prevent this, and is cheap now that no live listing has a repeat.
