@@ -79,14 +79,20 @@ test("policy reading opens the requested tab and closes without changing explici
   }
 });
 
-function formHarness(kind, server = {}) {
+function formHarness(kind, server = {}, props = {}) {
   const runtime = hookRuntime();
   let serverState = server;
+  const dispatched = [];
+  // Simulates browser autofill: the DOM form carries values React state never saw.
+  class SubmittedFormData {
+    constructor(form) { this.entries = form.entries; }
+    get(name) { return Object.hasOwn(this.entries, name) ? this.entries[name] : null; }
+  }
   const parts = keys => Object.assign(() => {}, Object.fromEntries(keys.map(key => [key, key])));
   const deps = {
-    react: { ...runtime.react, useActionState: () => [serverState, () => {}, false] }, "react/jsx-runtime": virtualJsx,
+    react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [serverState, value => dispatched.push(value), false] }, "react/jsx-runtime": virtualJsx,
     "@heroui/react": { TextField: "TextField", Input: "Input", Label: "Label", Button: "Button", Separator: "Separator", Spinner: "Spinner", Form: "Form", Select: parts(["Trigger", "Value", "Indicator", "Popover"]), ListBox: parts(["Item", "ItemIndicator"]), useOverlayState: () => ({ isOpen: false, open() {}, close() {} }) },
-    "@repo/constants": { GENDERS: ["Male"], SUFFIXES: [], sanitizePHMobileInput: value => value, getPasswordRequirements: () => [] },
+    "@repo/constants": { GENDERS: ["Male"], SUFFIXES: [], sanitizePHMobileInput: value => value, getPasswordRequirements: () => [], PH_MOBILE_MAX_INPUT_LENGTH: 13, formatPHMobileInput: value => value, validatePHMobile: value => ({ formattedNumber: value || null, errorMessage: value ? null : "Enter a valid mobile number." }) },
     "@/lib/birth-date": { validateBirthDate: () => null }, "@/lib/registration-address": addressRules,
     "@/lib/registration-policies": policies,
     "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
@@ -98,11 +104,12 @@ function formHarness(kind, server = {}) {
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null }, "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
   };
-  const Component = compile(kind === "complete" ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx" : "app/(auth)/sign-up-form/components/SignUpForm.tsx", deps).default;
-  const render = () => runtime.render(() => Component({ role: "tenant", initialAddress: validAddress, initialBirthDate: "2000-01-01" }));
+  const Component = compile(kind === "complete" ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx" : "app/(auth)/sign-up-form/components/SignUpForm.tsx", deps, kind === "complete" ? { FormData: SubmittedFormData } : {}).default;
+  const render = () => runtime.render(() => Component({ role: "tenant", initialAddress: validAddress, initialBirthDate: "2000-01-01", ...props }));
   const consent = () => nodes(render()).find(node => node.type === "RegistrationPolicyAcceptance");
   const button = () => nodes(render()).find(node => node.type === "Button" && node.props.type === "submit");
-  return { render, consent, button, server: value => { serverState = value; } };
+  const form = () => nodes(render()).find(node => node.type === "form");
+  return { render, consent, button, form, dispatched, server: value => { serverState = value; } };
 }
 
 for (const kind of ["regular", "complete"]) {
@@ -127,6 +134,58 @@ test("Complete Profile clears selected policies when the server reports stale/mi
   assert.equal(h.button().props.isDisabled, true);
   assert.equal(h.consent().props.value.termsAccepted, false);
   assert.equal(h.consent().props.errors.version, "Review updated policies.");
+});
+
+test("Complete Profile hides a stale server error as soon as the form is edited", () => {
+  const message = "We could not complete your registration. Please try again.";
+  const h = formHarness("complete");
+  const banner = () => nodes(h.render()).find(node => node.type === "p" && node.props.children === message);
+  h.server({ error: message });
+  h.render();
+  assert.ok(banner());
+  h.form().props.onInput();
+  assert.equal(banner(), undefined);
+  h.server({ error: message });
+  assert.ok(banner(), "a new response shows its own error again");
+});
+
+test("Complete Profile dispatches its own submit so the browser never resets the draft", () => {
+  const h = formHarness("complete");
+  let prevented = false;
+  h.form().props.onSubmit({ preventDefault: () => { prevented = true; }, currentTarget: { entries: {} } });
+  assert.equal(prevented, true);
+});
+
+test("Complete Profile validates and syncs the submitted FormData, not stale React state", () => {
+  const entries = {
+    province: validAddress.province, city: validAddress.city, barangay: validAddress.barangay,
+    street_address: validAddress.streetAddress, postal_code: validAddress.postalCode,
+    mobile_number: "09171234567", birth_date: "2000-01-01",
+  };
+  const h = formHarness("complete", {}, { initialAddress: undefined, initialBirthDate: "" });
+  h.consent().props.onChange(accepted);
+  let prevented = false;
+  h.form().props.onSubmit({ preventDefault: () => { prevented = true; }, currentTarget: { entries } });
+  assert.equal(prevented, true);
+  assert.equal(h.dispatched.length, 1);
+  const fields = () => nodes(h.render()).find(node => node.type === "RegistrationAddressFields");
+  for (const field of ["province", "city", "barangay", "streetAddress", "postalCode"]) assert.equal(fields().props.value[field], validAddress[field]);
+  assert.equal(nodes(h.render()).find(node => node.type === "TextField" && node.props.name === "mobile_number").props.value, "09171234567");
+  assert.equal(nodes(h.render()).find(node => node.type === "RegistrationBirthDateField").props.value, "2000-01-01");
+});
+
+test("Complete Profile blocks a submit whose FormData is incomplete even when React state looks valid", () => {
+  const h = formHarness("complete");
+  h.consent().props.onChange(accepted);
+  const entries = { province: "", city: "", barangay: "", street_address: "", postal_code: "", mobile_number: "", birth_date: "" };
+  let prevented = false;
+  h.form().props.onSubmit({ preventDefault: () => { prevented = true; }, currentTarget: { entries } });
+  assert.equal(prevented, true);
+  assert.equal(h.dispatched.length, 0);
+  const fields = nodes(h.render()).find(node => node.type === "RegistrationAddressFields");
+  assert.equal(fields.props.value.postalCode, "");
+  assert.equal(fields.props.errors.postalCode, "Postal code is required.");
+  assert.equal(nodes(h.render()).find(node => node.type === "TextField" && node.props.name === "mobile_number").props.isInvalid, true);
 });
 
 function submission() {

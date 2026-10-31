@@ -12,8 +12,8 @@ import {
   FieldError,
 } from "@heroui/react";
 
-import { useActionState, useRef, useState } from "react";
-import { completeProfile } from "../../actions/complete-profile";
+import { startTransition, useActionState, useRef, useState } from "react";
+import { completeProfile, type CompleteProfileState } from "../../actions/complete-profile";
 import { validateBirthDate } from "@/lib/birth-date";
 import { GENDERS, PH_MOBILE_MAX_INPUT_LENGTH, formatPHMobileInput, validatePHMobile } from "@repo/constants";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
@@ -21,6 +21,12 @@ import RegistrationBirthDateField from "../../components/RegistrationBirthDateFi
 import RegistrationPolicyAcceptance from "../../components/RegistrationPolicyAcceptance";
 import { emptyRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
 import { resolveRegistrationAddress, validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
+
+const ADDRESS_FIELDS = ["province", "city", "barangay", "streetAddress", "postalCode"] as const;
+
+function registrationAddressesMatch(first: RegistrationAddress, second: RegistrationAddress) {
+  return ADDRESS_FIELDS.every(field => first[field] === second[field]);
+}
 
 type Props = {
   email: string;
@@ -40,6 +46,10 @@ export default function CompleteProfileForm({
   initialBirthDate,
 }: Props) {
   const [state, action, isPending] = useActionState(completeProfile, {});
+  // A rejected submit's banner describes the data that was submitted, so hide
+  // it as soon as the user edits anything; a new response replaces it.
+  const [dismissedState, setDismissedState] = useState<CompleteProfileState | null>(null);
+  const dismissServerError = () => { if (state.error) setDismissedState(state); };
   const [address, setAddress] = useState(() => resolveRegistrationAddress(initialAddress));
   const [addressSubmitted, setAddressSubmitted] = useState(() =>
     !!initialAddress && (["province", "city", "barangay"] as const).some(field =>
@@ -70,22 +80,54 @@ export default function CompleteProfileForm({
   const mobileError = mobileTouched ? validatePHMobile(mobileNumber).errorMessage : null;
 
   // Instant client-side feedback using the same shared validator the
-  // server enforces; the server remains the real gate.
+  // server enforces; the server remains the real gate. Browser autofill can
+  // update a control without React seeing it, so validate exactly what this
+  // submit will send and sync the visible fields with it.
+  //
+  // Dispatch the action ourselves: React resets a form after every form
+  // action, and react-aria clears its controlled controls on that reset even
+  // when the `reset` event is cancelled. A rejected submit must keep the
+  // draft for correction and retry, so the browser never owns this submit.
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const error = validateBirthDate(birthDate);
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const readField = (name: string, fallback = "") => {
+      const value = formData.get(name);
+      return typeof value === "string" ? value : fallback;
+    };
+    const submittedAddress = resolveRegistrationAddress({
+      province: readField("province", address.province),
+      city: readField("city", address.city),
+      barangay: readField("barangay", address.barangay),
+      streetAddress: readField("street_address", address.streetAddress),
+      postalCode: readField("postal_code", address.postalCode),
+    });
+    const submittedMobile = formatPHMobileInput(readField("mobile_number", mobileNumber));
+    // Some browsers omit react-aria's date input from FormData; keep the
+    // tracked date then rather than clearing it.
+    const submittedBirthDate = readField("birth_date", birthDate);
+    if (!registrationAddressesMatch(submittedAddress, address)) setAddress(submittedAddress);
+    if (submittedMobile !== mobileNumber) setMobileNumber(submittedMobile);
+    if (submittedBirthDate !== birthDate) setBirthDate(submittedBirthDate);
+
+    const error = validateBirthDate(submittedBirthDate);
     setBirthDateError(error);
     setAddressSubmitted(true);
     const policyErrors = validateRegistrationAcceptance(acceptance);
     setAcceptanceErrors(policyErrors);
     setMobileTouched(true);
-    const mobileInvalid = !!validatePHMobile(mobileNumber).errorMessage;
-    if (isPending || error || mobileInvalid || Object.keys(validateRegistrationAddress(address)).length || Object.keys(policyErrors).length) e.preventDefault();
+    const mobileInvalid = !!validatePHMobile(submittedMobile).errorMessage;
+    const addressInvalid = Object.keys(validateRegistrationAddress(submittedAddress)).length > 0;
     if (error) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
     else if (mobileInvalid) mobileRef.current?.focus();
+    if (isPending || error || mobileInvalid || addressInvalid || Object.keys(policyErrors).length) return;
+    // A form-action dispatch is a transition, so keep that here or isPending
+    // would not update while the server action runs.
+    startTransition(() => action(formData));
   };
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-[clamp(1.5rem,4vh,2rem)]">
+    <form onSubmit={handleSubmit} onInput={dismissServerError} onChange={dismissServerError} className="flex flex-col gap-[clamp(1.5rem,4vh,2rem)]">
       <input type="hidden" name="role" value={role} />
 
       {/* Personal Information */}
@@ -137,7 +179,7 @@ export default function CompleteProfileForm({
             isRequired
             fullWidth
             value={mobileNumber}
-            onChange={(val) => setMobileNumber(formatPHMobileInput(val))}
+            onChange={(val) => { setMobileNumber(formatPHMobileInput(val)); dismissServerError(); }}
             onBlur={() => setMobileTouched(true)}
             isInvalid={!!mobileError}
           >
@@ -147,7 +189,7 @@ export default function CompleteProfileForm({
           </TextField>
 
           <RegistrationBirthDateField name="birth_date" value={birthDate} error={fieldError} inputRef={birthDateRef} isDisabled={isPending}
-            onChange={value => { setBirthDate(value); setBirthDateError(null); }} />
+            onChange={value => { setBirthDate(value); setBirthDateError(null); dismissServerError(); }} />
         </div>
       </section>
 
@@ -159,18 +201,18 @@ export default function CompleteProfileForm({
           Address Information
         </h2>
 
-        <RegistrationAddressFields value={address} onChange={setAddress} errors={addressErrors} isDisabled={isPending}
+        <RegistrationAddressFields value={address} onChange={value => { setAddress(value); dismissServerError(); }} errors={addressErrors} isDisabled={isPending}
           className="grid grid-cols-1 gap-4 md:grid-cols-2"
           names={{ province: "province", city: "city", barangay: "barangay", streetAddress: "street_address", postalCode: "postal_code" }} />
       </section>
 
-      {state?.error && (
+      {state.error && dismissedState !== state && (
         <div className="rounded-lg border border-danger-200 bg-danger-50 p-3">
           <p className="text-center text-sm text-danger">{state.error}</p>
         </div>
       )}
 
-      <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
+      <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); dismissServerError(); }}
         errors={acceptanceErrors} isDisabled={isPending} />
 
       <Button

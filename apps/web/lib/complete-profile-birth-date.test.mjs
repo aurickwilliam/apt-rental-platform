@@ -320,7 +320,8 @@ function formHarness(kind, role, options = {}) {
   const runtime = hookRuntime();
   const sent = [],
     openedErrors = [],
-    focused = [];
+    focused = [],
+    dispatched = [];
   let serverState = {},
     otpOptions;
   const complete = kind === "complete";
@@ -328,7 +329,8 @@ function formHarness(kind, role, options = {}) {
   const dependencies = {
     react: {
       ...runtime.react,
-      useActionState: () => [serverState, () => {}, false],
+      startTransition: (callback) => callback(),
+      useActionState: () => [serverState, value => dispatched.push(value), false],
     },
     "react/jsx-runtime": virtualJsx,
     "@heroui/react": {
@@ -378,7 +380,7 @@ function formHarness(kind, role, options = {}) {
       ? "app/(auth)/complete-profile/components/CompleteProfileForm.tsx"
       : "app/(auth)/sign-up-form/components/SignUpForm.tsx",
     dependencies,
-    { requestAnimationFrame: (callback) => callback() },
+    { requestAnimationFrame: (callback) => callback(), FormData: class { get() { return null; } } },
   ).default;
   const render = () =>
     runtime.render(() =>
@@ -430,17 +432,18 @@ function formHarness(kind, role, options = {}) {
       serverState = value;
     },
     async submit() {
-      let blocked = false;
+      let prevented = false;
       const root = nodes(render()).find(
         (node) => node.type === (complete ? "form" : "Form"),
       );
+      const before = dispatched.length;
       await root.props.onSubmit({
         preventDefault() {
-          blocked = true;
+          prevented = true;
         },
         currentTarget: {},
       });
-      return blocked;
+      return complete ? dispatched.length === before : prevented;
     },
     otpError(message, date, verified) {
       otpOptions.onBirthDateError(message, date, verified);

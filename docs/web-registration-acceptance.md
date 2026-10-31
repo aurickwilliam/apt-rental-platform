@@ -82,6 +82,14 @@ incomplete. Existing server onboarding guards prevent portal entry. Email OTP
 verification may already create a session; a failed final submission signs it
 out and preserves the existing sign-in-to-finish path. Complete Profile handles
 both Google placeholders and confirmed email accounts without profile rows.
+Submit-time validation reads the form's actual submitted values, so browser
+autofill React did not observe cannot produce a false missing-field error, and
+the visible controls sync to those values. Complete Profile calls its server
+action itself inside a transition instead of using the browser form action,
+because React resets a form after every action and react-aria clears its
+controlled controls on that reset. A rejected submit therefore keeps the draft
+and the checkboxes, and its banner disappears on the next edit (only a new
+response replaces it).
 Acceptance errors stay inline and clear the selections. Other validation errors
 preserve the draft. A stale-policy message asks the user to reload/review; it
 does not silently accept a newer revision.

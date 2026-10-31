@@ -220,7 +220,7 @@ test("installed HeroUI provides input error association and disabled dependent s
 function formHarness(kind, role, initialAddress = undefined) {
   const runtime = hookRuntime();
   const shared = {
-    react: { ...runtime.react, useActionState: () => [{}, () => {}, false] },
+    react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
     "@/lib/registration-policies": policyRules,
@@ -239,7 +239,7 @@ function formHarness(kind, role, initialAddress = undefined) {
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null },
     "../../actions/send-otp": { sendEmailOtp: async () => ({}) },
-  }, { FormData: class { get() { return "2000-01-01"; } } }).default;
+  }, { FormData: class { get(name) { return name === "birth_date" ? "2000-01-01" : null; } } }).default;
   const render = () => runtime.render(() => component({ email: "test@example.com", firstName: "Test", lastName: "User", role, initialAddress }));
   const addressNode = () => nodes(render()).find(node => node.type === "RegistrationAddressFields");
   return { render, addressNode, fields: () => fields(addressNode().props),
