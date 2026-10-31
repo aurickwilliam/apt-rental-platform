@@ -695,6 +695,10 @@ The isolated SQL regression harness is `supabase/test-support/landlord-finances-
 
 ---
 
+### 12.3 Landlord ratings of tenants
+
+`tenant_reviews` holds at most one landlord-to-tenant rating per tenancy. The only write path is the `submit_tenant_review()` RPC, which resolves landlord and tenant from the tenancy, checks the caller is that tenancy's verified landlord and that the tenancy has `ended` (a passed `lease_end` alone does not count), and upserts on `tenancy_id`, so a later call edits the rating. Rules shared by web and mobile live in `@repo/utils` (`tenantReview.ts`: validation, `prepareTenantReview` for the RPC arguments, `toTenantReviewRecords` for the read rows, mean of individual ratings); the database remains authoritative. Both platforms read ratings only through `get_tenant_reviews()`, which applies the same audience as the table's RLS (the rated tenant, the author, landlords linked through an application or tenancy, admins) and adds the author's name and the apartment and lease dates, because other landlords cannot read the tenancy row itself; it returns at most 50 rows and flags the caller's own with `is_mine`. An admin can hide a rating with `admin_set_tenant_review_hidden()` (reason required, kept on the row): hidden ratings disappear for everyone but admins and stop counting toward the average, and the author can no longer edit them. Web reads them in `loadTenantProfile`; mobile uses React Query (`['tenant-reviews', tenantId]`, invalidated exactly after a save), and the rating screen refuses to save while the author's saved rating failed to load. There is no notification, no Realtime binding and no admin screen for hiding yet.
+
 ### 12.2 Apartment review readiness and mobile prompt
 
 Web and mobile use the pure `isReviewStayEligible` helper in `@repo/utils`: the stay has reached three calendar months (month-end clamped like PostgreSQL), or its lease end date has passed. The existing `enforce_review_stay_eligibility` database trigger is still the write authority; no schema, grants or eligibility overrides are added. Mobile's existing review-button query now includes `lease_start` and applies the shared check.

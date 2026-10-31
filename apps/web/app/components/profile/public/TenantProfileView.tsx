@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconCalendarMonth, IconHomeSearch, IconKey, IconShieldCheckFilled, IconStar } from "@tabler/icons-react";
+import { IconCalendarMonth, IconHomeSearch, IconKey, IconShieldCheckFilled, IconStar, IconStarFilled } from "@tabler/icons-react";
 
 import BackBtn from "@/app/browse/[apartmentId]/components/BackBtn";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
@@ -13,6 +13,9 @@ import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileEmptyState from "./PublicProfileEmptyState";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
+import PublicProfileReviewList from "./PublicProfileReviewList";
+import RateTenantButton from "./RateTenantButton";
+import ReportRatingButton from "./ReportRatingButton";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
 import PublicProfileTagsCard from "./PublicProfileTagsCard";
@@ -44,6 +47,15 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
             />
             <PublicProfileStats
               stats={[
+                {
+                  label: "Landlord rating",
+                  value: data.landlordRating === null ? "—" : data.landlordRating.toFixed(1),
+                  icon: <IconStarFilled size={20} className="text-rating" aria-hidden="true" />,
+                  hint:
+                    data.landlordRatingCount === 0
+                      ? "No ratings yet"
+                      : `${data.landlordRatingCount} ${data.landlordRatingCount === 1 ? "rating" : "ratings"} from landlords`,
+                },
                 {
                   label: "Reviews written",
                   value: data.reviewCount,
@@ -120,10 +132,37 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
                       </Link>
                     </p>
                   ) : null}
+                  {stay.canRate ? (
+                    <RateTenantButton
+                      tenancyId={stay.id}
+                      tenantName={firstName}
+                      apartmentName={stay.apartmentName}
+                      myReview={stay.myReview}
+                    />
+                  ) : null}
                 </div>
               </li>
             ))}
           </ul>
+        )}
+      </PublicProfileSection>
+
+      <PublicProfileSection
+        title={`What landlords say about ${firstName}`}
+        description="Ratings from landlords this tenant rented from, left after the lease ended."
+      >
+        {data.landlordReviews.length === 0 ? (
+          <PublicProfileEmptyState
+            icon={IconStar}
+            title="No landlord ratings yet"
+            description="Landlords can rate a tenant once their lease has ended."
+          />
+        ) : (
+          <PublicProfileReviewList
+            reviews={data.landlordReviews}
+            reviewCount={data.landlordReviews.length}
+            renderFooter={(review) => (review.isMine ? null : <ReportRatingButton reviewId={review.id} />)}
+          />
         )}
       </PublicProfileSection>
       </PublicProfileLayout>
