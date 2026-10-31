@@ -8,6 +8,7 @@ import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/Sc
 import ProfileDetailsFields from '@/components/profile/ProfileDetailsFields';
 import NewPasswordFields from '@/components/inputs/NewPasswordFields';
 import ErrorDialog from '@/components/display/ErrorDialog';
+import RegistrationPolicyAcceptance from '@/components/legal/RegistrationPolicyAcceptance';
 
 import { useProfileDetailsForm } from '@/hooks/auth/useProfileDetailsForm';
 import { useSignUpProfile } from '@/hooks/auth/useSignUpProfile';
@@ -36,7 +37,7 @@ export default function CompleteProfile() {
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const form = useProfileDetailsForm({ scrollRef });
   const passwords = usePasswordValidation();
-  const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog } = useSignUpProfile({
+  const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog, policies } = useSignUpProfile({
     form,
     passwords,
     email,
@@ -93,7 +94,8 @@ export default function CompleteProfile() {
       </View>
 
       <View className="mt-16 mb-0">
-        <Button onPress={submit} isDisabled={loading}>
+        <RegistrationPolicyAcceptance form={policies} isDisabled={loading} />
+        <Button onPress={submit} isDisabled={loading || !policies.canSubmit}>
           <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
           {loading && (
             <Spinner size="sm" color={colors.white} className="ml-2" />

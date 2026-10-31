@@ -13,4 +13,8 @@ Mobile keeps its own data with no web runtime imports or network requirement.
 `constants/legal/policies.test.ts` checks all content and metadata against those
 web files; update the mobile copies when the reference policies change.
 
-These are read-only policy screens, not registration or consent controls.
+Settings screens and `LegalPolicyContent` remain read-only. Registration's
+`RegistrationPolicyAcceptance` owns separate checkbox controls and opens
+`RegistrationPoliciesDialog` without leaving the form. Neither reading the
+shared content nor closing that dialog accepts a policy. See
+`docs/mobile-registration-acceptance.md` for the registration contract.
