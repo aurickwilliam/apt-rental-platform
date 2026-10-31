@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react";
 
 import { Dropdown, Button, Label, buttonVariants } from "@heroui/react";
 import { IconMenu2 as Menu, IconX as X } from "@tabler/icons-react";
@@ -22,6 +22,13 @@ const NAV_LINKS = [
   { label: "For owners", href: "/forowners" },
 ];
 
+const SECTION_LINKS = [
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Team", href: "#team" },
+  { label: "FAQs", href: "#faqs" },
+  { label: "Contact", href: "#contact" },
+];
+
 const getInitials = (value: string) => {
   const normalized = value.trim();
   if (!normalized) return "U";
@@ -31,12 +38,26 @@ const getInitials = (value: string) => {
 
 export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
   const mounted = useHydrated();
 
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, profile, loading } = useUser();
+  const isLanding = pathname === "/";
+
+  // The landing menu holds more links than the compact public header. Close it
+  // before measuring the target so the sticky offset is not changed by the
+  // menu's height while the browser scrolls.
+  const closeMenuAndScroll = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault();
+    setIsMenuOpen(false);
+    window.history.replaceState(null, "", href);
+    window.setTimeout(() => {
+      document.getElementById(href.slice(1))?.scrollIntoView({ block: "start" });
+    }, 0);
+  };
 
   const openSettings = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -63,18 +84,17 @@ export default function AppNavbar() {
       : "/tenant/profile";
   };
 
-  // The mobile panel is hidden by `md:hidden`, so a window widened past the
-  // breakpoint would otherwise leave it "open" in state and re-shown on the
-  // next shrink. Close it when the media query stops matching.
+  // Match each route's CSS breakpoint so a menu hidden on desktop cannot
+  // unexpectedly reopen when the window returns to the compact layout.
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 768px)");
+    const desktop = window.matchMedia(isLanding ? "(min-width: 1280px)" : "(min-width: 768px)");
     // The menu starts closed; only widening the window needs to close it.
     const handleChange = (e: MediaQueryListEvent) => {
       if (e.matches) setIsMenuOpen(false);
     };
     desktop.addEventListener("change", handleChange);
     return () => desktop.removeEventListener("change", handleChange);
-  }, []);
+  }, [isLanding]);
 
   const firstName = user?.user_metadata?.first_name ?? "";
   const lastName  = user?.user_metadata?.last_name  ?? "";
@@ -91,9 +111,10 @@ export default function AppNavbar() {
           {/* Left: hamburger + logo */}
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Button
+              ref={menuToggleRef}
               isIconOnly
               variant="ghost"
-              className="public-menu-toggle"
+              className={`public-menu-toggle${isLanding ? " landing-menu-toggle" : ""}`}
               onPress={() => setIsMenuOpen((prev) => !prev)}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMenuOpen}
@@ -114,7 +135,14 @@ export default function AppNavbar() {
           </div>
 
           {/* Center: nav links (desktop) */}
-          <nav aria-label="Main navigation" className="hidden items-center gap-6 text-sm md:flex lg:gap-10">
+          <nav
+            aria-label="Main navigation"
+            className={
+              isLanding
+                ? "hidden items-center gap-4 text-sm xl:flex xl:gap-6"
+                : "hidden items-center gap-6 text-sm md:flex lg:gap-10"
+            }
+          >
             {NAV_LINKS.map(({ label, href }) => (
               <Link
                 key={label}
@@ -129,6 +157,17 @@ export default function AppNavbar() {
                 {label}
               </Link>
             ))}
+            {isLanding
+              ? SECTION_LINKS.map(({ label, href }) => (
+                  <a
+                    key={href}
+                    href={href}
+                    className="public-nav-link whitespace-nowrap text-foreground font-medium"
+                  >
+                    {label}
+                  </a>
+                ))
+              : null}
           </nav>
 
           {/* Right: theme + auth (desktop) */}
@@ -194,7 +233,18 @@ export default function AppNavbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <nav id="public-mobile-menu" aria-label="Mobile navigation" className="md:hidden border-t border-divider bg-background px-6 py-4 flex flex-col gap-4">
+        <nav
+          id="public-mobile-menu"
+          aria-label="Mobile navigation"
+          className={`${isLanding ? "landing-mobile-menu xl:hidden" : "md:hidden"} border-t border-divider bg-background px-6 py-4 flex flex-col gap-4`}
+          onKeyDown={isLanding ? (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            setIsMenuOpen(false);
+            menuToggleRef.current?.focus();
+          } : undefined}
+        >
           {NAV_LINKS.map(({ label, href }) => (
             <Link
               key={label}
@@ -210,6 +260,18 @@ export default function AppNavbar() {
               {label}
             </Link>
           ))}
+          {isLanding
+            ? SECTION_LINKS.map(({ label, href }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="public-nav-link py-2 text-foreground font-medium"
+                  onClick={(event) => closeMenuAndScroll(event, href)}
+                >
+                  {label}
+                </a>
+              ))
+            : null}
 
           <div className="h-px bg-divider" />
 

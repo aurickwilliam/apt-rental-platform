@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import ApartmentCarousel from "./components/ApartmentCarousel";
-import AppSection from "./components/AppSection";
-import HeroSection from "./components/HeroSection";
-import ProductShowcaseSection from "./components/ProductShowcaseSection";
-import RentalStepsSection from "./components/RentalStepsSection";
-import OwnerCtaSection from "./components/OwnerCtaSection";
+import AppSection from "../(main)/components/AppSection";
+import HeroSection from "../(main)/components/HeroSection";
+import ProductShowcaseSection from "../(main)/components/ProductShowcaseSection";
+import RentalStepsSection from "../(main)/components/RentalStepsSection";
+import OwnerCtaSection from "../(main)/components/OwnerCtaSection";
+import FeaturedApartments from "../(main)/components/FeaturedApartments";
+import FeaturedApartmentsState from "../(main)/components/FeaturedApartmentsState";
+import TeamSection from "../(main)/components/TeamSection";
+import FaqSection from "../(main)/components/FaqSection";
+import ContactSection from "../(main)/components/ContactSection";
+import styles from "../(main)/components/landing-motion.module.css";
+import JourneyScene from "../(main)/components/journey/JourneyScene";
+import JourneyCta from "../(main)/components/journey/JourneyCta";
 
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
-import { rankTenantLovedApartments } from "@/lib/tenant-loved-apartments";
 
 import { createClient } from "@repo/supabase/server";
 
@@ -42,48 +49,26 @@ export default async function Home() {
     if (portal === 'tenant') redirect('/tenant/my-rental');
   }
 
-  const { data: apartments, error } = await supabase
-    .from('apartments')
-    .select(`
-      id,
-      name,
-      city,
-      monthly_rent,
-      average_rating,
-      no_ratings,
-      created_at,
-      apartment_images(url, is_cover)
-    `)
-    .eq('is_hidden_by_admin', false)
-    .is('deleted_at', null)
-    .eq("status", "available")
-    .eq("is_verified", true)
-    .limit(100)
-    .order('created_at', { ascending: false });
-
-  if (error) console.error(error);
-
-  const mapped = rankTenantLovedApartments(apartments ?? []).map((apt) => ({
-    id: apt.id,
-    name: apt.name,
-    location: apt.city,
-    price: apt.monthly_rent,
-    rating: apt.average_rating ?? 0,
-    image: apt.apartment_images?.find((img) => img.is_cover)?.url ?? '/default/default-thumbnail.jpeg',
-  }));
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" data-landing-page>
       <main className="mx-auto max-w-7xl px-6">
         <HeroSection />
-        <section className="pb-8 sm:pb-12">
-          <ApartmentCarousel apartment={mapped} />
-        </section>
+        <JourneyScene>
+          <section data-journey-featured className={`pb-8 sm:pb-12 ${styles.featured}`}>
+            <Suspense fallback={<FeaturedApartmentsState state="loading" />}>
+              <FeaturedApartments supabase={supabase} />
+            </Suspense>
+          </section>
 
-        <ProductShowcaseSection />
-        <RentalStepsSection />
+          <ProductShowcaseSection />
+          <RentalStepsSection />
+          <JourneyCta />
+        </JourneyScene>
         <OwnerCtaSection />
         <AppSection />
+        <TeamSection />
+        <FaqSection />
+        <ContactSection />
       </main>
     </div>
   );
