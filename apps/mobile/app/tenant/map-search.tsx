@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Keyboard, Pressable } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
-import { Button, Spinner } from 'heroui-native';
+import { Button, SearchField, Spinner } from 'heroui-native';
 
 import MapViewSwitcher from '@/components/maps/MapViewSwitcher';
 import { MAP_DEFAULT_COORDS, MAP_DEFAULTS } from '@/utils/mapConfig';
@@ -17,6 +17,13 @@ import {
 } from '@/service/apartments/mapSearchService';
 import { useApartmentMapSearch } from '@/hooks/apartments/useApartmentMapSearch';
 import { useUserLocation } from '@/hooks/location/useUserLocation';
+import { useProfile } from '@/hooks/auth';
+import { useRecentApartmentSearches } from '@/hooks/search/useRecentApartmentSearches';
+import RecentSearchesList from '@/app/(tabs)/components/search/RecentSearchesList';
+import {
+  toRecentApartmentSearch,
+  type RecentApartmentSearch,
+} from '@/service/search/recentApartmentSearches';
 import MapPreviewSheet from './components/MapPreviewSheet';
 import { IconNavigation, IconSearch, IconMapPin, IconChevronLeft, IconCompass } from '@tabler/icons-react-native';
 import { useColors } from '@/hooks/useTheme';
@@ -52,7 +59,18 @@ export default function TenantMapSearchScreen() {
   const userInteractedRef = useRef(false);
   const suppressFetchRef = useRef(false);
 
-  const { apartments, loading, isFetching, error } = useApartmentMapSearch(bbox, { limit: 100 });
+  const { profile } = useProfile();
+  const { recent, remember, clear: clearRecent } = useRecentApartmentSearches(profile?.user_id);
+  const [searchDraft, setSearchDraft] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [fieldBottom, setFieldBottom] = useState(0);
+  const showRecent = isSearchFocused && searchDraft.trim() === '' && recent.length > 0;
+
+  const { apartments, loading, isFetching, error } = useApartmentMapSearch(bbox, {
+    limit: 100,
+    search: committedSearch,
+  });
   const { coords: userCoords, status: locationStatus } = useUserLocation(true);
 
   const isLocating = locationStatus === 'loading' && bbox == null;
@@ -212,7 +230,35 @@ export default function TenantMapSearchScreen() {
   };
 
   const handlePressApartment = (id: string) => {
+    const apt = apartments.find((a) => a.id === id);
+    if (apt) {
+      const thumbnailUri = apt.coverThumbUrl ?? apt.coverUrl;
+      remember(
+        toRecentApartmentSearch({
+          id: apt.id,
+          name: apt.name,
+          location: `${apt.barangay}, ${apt.city}`,
+          thumbnail: thumbnailUri ? { uri: thumbnailUri } : undefined,
+        }),
+      );
+    }
     router.push(`/apartment/${id}` as any);
+  };
+
+  const handleRecentPress = (apartment: RecentApartmentSearch) => {
+    Keyboard.dismiss();
+    remember(apartment);
+    router.push(`/apartment/${apartment.id}` as any);
+  };
+
+  const handleSubmitSearch = () => {
+    Keyboard.dismiss();
+    setCommittedSearch(searchDraft.trim());
+  };
+
+  const handleClearSearch = () => {
+    setSearchDraft('');
+    setCommittedSearch('');
   };
 
   return (
@@ -236,8 +282,14 @@ export default function TenantMapSearchScreen() {
           showFallbackBanner
         />
 
-        {/* Floating back */}
-        <View className="absolute left-4" style={{ top: insets.top + 12, elevation: 4 }}>
+        {/* Top row: back + search */}
+        <View
+          className="absolute left-4 right-4 flex-row items-center gap-2"
+          style={{ top: insets.top + 12, elevation: 4 }}
+          onLayout={(event) =>
+            setFieldBottom(event.nativeEvent.layout.y + event.nativeEvent.layout.height)
+          }
+        >
           <Button
             onPress={() => router.back()}
             variant="tertiary"
@@ -247,12 +299,40 @@ export default function TenantMapSearchScreen() {
           >
             <IconChevronLeft size={22} color={colors.textPrimary} />
           </Button>
+          <View className="flex-1">
+            <SearchField value={searchDraft} onChange={setSearchDraft}>
+              <SearchField.Group>
+                <SearchField.Input
+                  placeholder="Search apartments..."
+                  returnKeyType="search"
+                  enterKeyHint="search"
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  onSubmitEditing={handleSubmitSearch}
+                  blurOnSubmit
+                  className="ps-3 pe-20 bg-surface"
+                />
+                <SearchField.ClearButton onPress={handleClearSearch} className="inset-e-10!" />
+                <Pressable
+                  onPress={handleSubmitSearch}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Search"
+                  className="absolute inset-e-3 z-10"
+                >
+                  <IconSearch size={20} color={colors.gray500} />
+                </Pressable>
+              </SearchField.Group>
+            </SearchField>
+          </View>
         </View>
 
-        {/* Top stats pill */}
+        {/* Stats pill, bottom left — lifts above the popup card when visible */}
         <View
-          className="absolute right-4 flex-row items-center"
-          style={{ top: insets.top + 12 }}
+          className="absolute left-4 flex-row items-center"
+          style={{ bottom: sheetApartment ? 248 : insets.bottom + 24 }}
           pointerEvents="box-none"
         >
           <View className="bg-surface px-3 py-2.5 rounded-full shadow border border-border flex-row items-center gap-2">
@@ -266,14 +346,14 @@ export default function TenantMapSearchScreen() {
 
         {/* Error banner */}
         {error && (
-          <View className="absolute left-4 right-4 bg-dangerLight border border-danger/20 px-3 py-2 rounded-xl" style={{ top: insets.top + 64 }}>
+          <View className="absolute left-4 right-4 bg-dangerLight border border-danger/20 px-3 py-2 rounded-xl" style={{ top: insets.top + 72 }}>
             <Text className="text-sm text-danger font-inter">{error}</Text>
           </View>
         )}
 
         {/* Empty state overlay — top-anchored so the map center (blue dot) stays visible */}
         {!isLocating && !loading && apartments.length === 0 && !error && (
-          <View className="absolute left-6 right-6 items-center" style={{ top: insets.top + 64 }}>
+          <View className="absolute left-6 right-6 items-center" style={{ top: insets.top + 72 }}>
             <View className="bg-surface px-5 py-5 rounded-2xl shadow border border-border items-center w-full">
               <View className="bg-surface-secondary p-4 rounded-full mb-3">
                 <IconMapPin size={28} color={colors.gray400} />
@@ -316,6 +396,16 @@ export default function TenantMapSearchScreen() {
           onClose={dismissSheetAndPin}
           onPress={() => sheetApartment && handlePressApartment(sheetApartment.id)}
         />
+
+        {showRecent && (
+          <RecentSearchesList
+            top={fieldBottom}
+            onDismiss={Keyboard.dismiss}
+            recent={recent}
+            onSelect={handleRecentPress}
+            onClear={clearRecent}
+          />
+        )}
       </View>
     </View>
   );

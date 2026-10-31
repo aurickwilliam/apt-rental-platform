@@ -11,6 +11,7 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
 import BrowseSeeAllPending from "./BrowseSeeAllPending";
@@ -161,6 +162,7 @@ const SectionRow = memo(function SectionRow({
 export default function BrowseSectionsList({ sections, basePath = "/browse" }: BrowseSectionsListProps) {
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const rememberRecentApartment = useRememberRecentApartment();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const {
@@ -206,9 +208,13 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
   const handlePressApartment = useCallback(
     (apartmentId: string) => {
       dismissPreview();
+      const apt = sections
+        .flatMap((section) => section.apartments)
+        .find((item) => item.id === apartmentId);
+      if (apt) rememberRecentApartment(apt);
       router.push(`${basePath}/${apartmentId}`);
     },
-    [basePath, dismissPreview, router],
+    [basePath, dismissPreview, router, sections, rememberRecentApartment],
   );
 
   const handleToggleFavorite = useCallback(
