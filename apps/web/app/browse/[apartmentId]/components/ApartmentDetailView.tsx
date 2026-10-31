@@ -51,6 +51,11 @@ export default async function ApartmentDetailView({
       .eq('id', apartmentId)
       .eq('is_hidden_by_admin', false)
       .is('deleted_at', null)
+      // Cover first: the gallery's big photo is `images[0]`, and the listing
+      // cards show the `is_cover` photo, so the two must agree.
+      .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
+      .order("created_at", { referencedTable: "apartment_images", ascending: true })
+      .order("id", { referencedTable: "apartment_images", ascending: true })
       .single(),
   ]);
 

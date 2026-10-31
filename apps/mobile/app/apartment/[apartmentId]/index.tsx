@@ -42,6 +42,7 @@ import { useCurrentUserId } from "@/hooks/auth";
 import { getInquiryConversationId } from "@/service/chat/chatRoutes";
 import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
 import { getApplyDisabledReason } from "@/service/apartments/applyEligibility";
+import { orderCoverFirst } from "@/service/apartments/coverImage";
 
 import { Button } from "heroui-native";
 
@@ -77,11 +78,11 @@ export default function ApartmentScreen() {
     reviewableTenancyId,
   } = useReviewEligibility(apartmentId);
 
-  const apartmentImages =
-    apartment?.apartment_images.map((image) => ({
-      id: image.id,
-      image: { uri: image.url },
-    })) ?? [];
+  // Cover first, so the hero photo matches the listing cards.
+  const apartmentImages = orderCoverFirst(apartment?.apartment_images).map((image) => ({
+    id: image.id,
+    image: { uri: image.url },
+  }));
 
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;
