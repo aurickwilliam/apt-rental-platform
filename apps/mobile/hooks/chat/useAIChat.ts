@@ -1,4 +1,15 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+
+import {
+  AVA_GENERIC_ERROR,
+  AVA_LISTINGS_ERROR,
+  composeAvaReply,
+  shouldSearchForAva,
+  type AvaTurn,
+} from "@repo/utils";
+
+import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
+import { askAva, fetchAvaListings } from "@/service/search/aiSearchService";
 
 export type AIChatMessage = {
   id: string;
@@ -6,12 +17,22 @@ export type AIChatMessage = {
   text: string;
   timestamp: number;
   quickReplies?: string[];
+  /** Real listings found with the filters Ava understood. */
+  listings?: ApartmentCardProps[];
 };
+
+let messageSequence = 0;
+const nextMessageId = () => `${Date.now()}-${(messageSequence += 1)}`;
+
+const toTurns = (messages: AIChatMessage[]): AvaTurn[] =>
+  messages.map((message) => ({ role: message.role, text: message.text }));
 
 export function useAIChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  // Bumped by resetChat so a reply still in flight never lands in the new chat.
+  const chatGenerationRef = useRef(0);
 
   const sendMessage = useCallback(
     async (text?: string) => {
@@ -19,7 +40,7 @@ export function useAIChat() {
       if (!trimmed || isLoading) return;
 
       const userMessage: AIChatMessage = {
-        id: Date.now().toString(),
+        id: nextMessageId(),
         role: "user",
         text: trimmed,
         timestamp: Date.now(),
@@ -29,31 +50,62 @@ export function useAIChat() {
       setInput("");
       setIsLoading(true);
 
-      try {
-        // TODO: Replace with actual AI API call
-        const assistantMessage: AIChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          text: "Casa here! I found a few apartments that might match what you're looking for. Let me narrow it down further — do you have a preferred area in Metro Manila?",
-          timestamp: Date.now(),
-          quickReplies: ["Caloocan", "Malabon", "Navotas", "Valenzuela"],
-        };
+      const generation = chatGenerationRef.current;
+      const isCurrentChat = () => generation === chatGenerationRef.current;
 
-        setMessages((prev) => [...prev, assistantMessage]);
-      } catch {
-        const errorMessage: AIChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          text: "Sorry, I couldn't process that. Please try again.",
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
+      const reply = (
+        replyText: string,
+        extra: Pick<AIChatMessage, "quickReplies" | "listings"> = {},
+      ) => {
+        if (!isCurrentChat()) return;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: nextMessageId(),
+            role: "assistant",
+            text: replyText,
+            timestamp: Date.now(),
+            ...extra,
+          },
+        ]);
+      };
+
+      try {
+        const answer = await askAva(toTurns([...messages, userMessage]));
+
+        if (!shouldSearchForAva(answer)) {
+          const { text: replyText, quickReplies } = composeAvaReply(answer, null);
+          reply(replyText, { quickReplies });
+          return;
+        }
+
+        let found: Awaited<ReturnType<typeof fetchAvaListings>>;
+        try {
+          found = await fetchAvaListings(answer.filters);
+        } catch (err) {
+          console.error("Ava listings failed:", err);
+          reply(AVA_LISTINGS_ERROR);
+          return;
+        }
+
+        const { text: replyText, quickReplies } = composeAvaReply(answer, found.listings.length);
+        reply(replyText, { quickReplies, listings: found.listings });
+      } catch (err) {
+        console.error("Ava chat failed:", err);
+        reply(AVA_GENERIC_ERROR);
       } finally {
-        setIsLoading(false);
+        if (isCurrentChat()) setIsLoading(false);
       }
     },
-    [input, isLoading]
+    [input, isLoading, messages],
   );
 
-  return { input, setInput, messages, isLoading, sendMessage };
+  const resetChat = useCallback(() => {
+    chatGenerationRef.current += 1;
+    setMessages([]);
+    setInput("");
+    setIsLoading(false);
+  }, []);
+
+  return { input, setInput, messages, isLoading, sendMessage, resetChat };
 }

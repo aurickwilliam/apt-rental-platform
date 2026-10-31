@@ -14,16 +14,14 @@ import {
 
 // The preview reuses the apartment page's own sections so it looks exactly
 // like the published listing will.
-import {
-  ApartmentHeroSection,
-  ApartmentDetailsSection,
-  ApartmentDescriptionSection,
-  PerksSection,
-  MapPreviewSection,
-  LandlordSection,
-  LeaseAgreementSection,
-  RatingsSection,
-} from "@/app/apartment/[apartmentId]/components";
+import ApartmentHeroSection from "@/app/apartment/[apartmentId]/components/sections/ApartmentHeroSection";
+import ApartmentDetailsSection from "@/app/apartment/[apartmentId]/components/sections/ApartmentDetailsSection";
+import ApartmentDescriptionSection from "@/app/apartment/[apartmentId]/components/sections/ApartmentDescriptionSection";
+import PerksSection from "@/app/apartment/[apartmentId]/components/sections/PerksSection";
+import MapPreviewSection from "@/app/apartment/[apartmentId]/components/sections/MapPreviewSection";
+import LandlordSection from "@/app/apartment/[apartmentId]/components/sections/LandlordSection";
+import LeaseAgreementSection from "@/app/apartment/[apartmentId]/components/sections/LeaseAgreementSection";
+import RatingsSection from "@/app/apartment/[apartmentId]/components/sections/RatingsSection";
 import SectionCard from "@/app/apartment/[apartmentId]/components/SectionCard";
 
 import { Button, Dialog } from "heroui-native";

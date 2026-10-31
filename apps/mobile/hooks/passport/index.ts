@@ -5,6 +5,7 @@ export {
   useLinkApprovedVerification,
   usePassportDocuments,
   usePassportVerifiedPaths,
+  useReplacePassportDocument,
   useRequestPassportDocumentReview,
   useUploadPassportDocument,
 } from './usePassport'

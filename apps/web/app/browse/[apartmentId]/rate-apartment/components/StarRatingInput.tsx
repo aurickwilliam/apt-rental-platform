@@ -1,6 +1,7 @@
 "use client";
 
 import { IconStarFilled } from "@tabler/icons-react";
+import { Button } from "@heroui/react";
 
 const STAR_SIZE = 40;
 
@@ -17,9 +18,9 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
         const half = !filled && value >= i - 0.5;
 
         return (
-          <button
+          <Button
+            variant="ghost"
             key={i}
-            type="button"
             aria-label={`Rate ${i} star${i !== 1 ? "s" : ""}`}
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
@@ -27,7 +28,7 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
               const isHalf = x < rect.width / 2;
               onChange(isHalf ? i - 0.5 : i);
             }}
-            className="relative inline-flex cursor-pointer p-0"
+            className="button--bare relative inline-flex cursor-pointer p-0"
           >
             <IconStarFilled size={STAR_SIZE} className="text-grey-300" />
 
@@ -38,7 +39,7 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
                 <IconStarFilled size={STAR_SIZE} className="text-rating" />
               </span>
             )}
-          </button>
+          </Button>
         );
       })}
     </div>

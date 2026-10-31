@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { translate } from "@repo/i18n";
 import { createClient } from "@repo/supabase/server";
-import { isPendingOnboarding } from "@repo/supabase";
+import { isPendingOnboarding } from "@repo/supabase/pending-onboarding";
 
 import { getServerLocale } from "@/lib/i18n/locale";
 
@@ -88,7 +88,7 @@ export default async function SignUp({ searchParams }: SignUpPageProps) {
             src="/logo/logo-name.svg"
             alt="APT Logo"
             width={150}
-            height={100}
+            height={69}
           />
         </div>
       </aside>

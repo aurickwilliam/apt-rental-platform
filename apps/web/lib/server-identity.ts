@@ -4,6 +4,8 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@repo/supabase/server";
 import { isPendingOnboarding } from "@repo/supabase/pending-onboarding";
+import { isLandlordAccessBlocked } from "@repo/utils";
+import { LANDLORD_VERIFY_REQUIRED_PATH } from "@/lib/landlord-verification-access";
 
 /** React request-local only. Never use unstable_cache or a module-level value here. */
 export const getServerIdentity = cache(async () => {
@@ -16,8 +18,17 @@ export const getServerIdentity = cache(async () => {
   return { supabase, user, profile, error };
 });
 
-/** Resolve authorization before starting any private presentation read. */
-export const requirePortalViewer = cache(async (portal: "tenant" | "landlord" | "admin") => {
+/**
+ * Resolve authorization before starting any private presentation read.
+ * A landlord who is not verified is sent to the verification page before any
+ * landlord data is read; the few pages that stay open to them (public listing
+ * views, the wall itself) pass `allowUnverifiedLandlord`. A primitive, so the
+ * request cache keeps working.
+ */
+export const requirePortalViewer = cache(async (
+  portal: "tenant" | "landlord" | "admin",
+  allowUnverifiedLandlord = false,
+) => {
   const identity = await getServerIdentity();
   const { supabase, user, profile, error } = identity;
   if (!user) redirect("/sign-in");
@@ -33,5 +44,9 @@ export const requirePortalViewer = cache(async (portal: "tenant" | "landlord" | 
   if (profile.is_suspended) redirect("/suspended");
   if (isPendingOnboarding(profile)) redirect("/sign-up?from=google-new");
   if (!profile.roles.includes(portal)) redirect("/browse");
+  if (portal === "landlord" && !allowUnverifiedLandlord
+    && isLandlordAccessBlocked(profile.roles, profile.account_status)) {
+    redirect(LANDLORD_VERIFY_REQUIRED_PATH);
+  }
   return { supabase, user, profile };
 });

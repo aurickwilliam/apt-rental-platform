@@ -4,6 +4,64 @@
 @import "@heroui/styles";
 @custom-variant dark (&:is(.dark *));
 
+/* Public marketing controls: scoped properties beat HeroUI's unlayered rules. */
+.landing-cta {
+  border-radius: 9999px;
+  min-height: 2.75rem;
+  padding-inline: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.public-navbar .public-menu-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+@media (min-width: 768px) {
+  .public-navbar .public-menu-toggle {
+    display: none;
+  }
+}
+/* The landing header carries four extra section links, so it keeps the
+   compact menu until the wide desktop navigation has room for all six. */
+.public-navbar .landing-menu-toggle {
+  display: flex;
+}
+/* Keep the 5rem header bar and its 1px border above a scrollable landing menu. */
+.public-navbar .landing-mobile-menu {
+  max-height: calc(100dvh - 5rem - 1px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.public-navbar .landing-mobile-menu > * {
+  flex-shrink: 0;
+}
+@media (min-width: 1280px) {
+  .public-navbar .landing-menu-toggle {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .landing-responsive-cta {
+    width: 100%;
+  }
+}
+.public-navbar .public-nav-link {
+  border-radius: 0.25rem;
+  transition: color 150ms ease;
+}
+.public-navbar .public-nav-link:hover {
+  color: var(--secondary-foreground);
+}
+.public-navbar .public-nav-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-navbar .public-nav-link {
+    transition: none;
+  }
+}
+
 /* Registration-only: HeroUI's invalid-border variable is not supplied by the
    current theme. Use APT's danger role without changing other date pickers. */
 .registration-birth-date [data-slot="date-input-group"][data-invalid="true"] {
@@ -12,6 +70,35 @@
 .registration-birth-date [data-slot="field-error"],
 .registration-birth-date [data-slot="date-input-group-segment"][data-invalid="true"] {
   color: var(--destructive);
+}
+
+/* Registration-only: date segments are not text inputs, so the browser draws
+   no caret. A blinking bar on the active segment shows where typing lands.
+   Invalid segments keep the danger color through currentColor. */
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"] {
+  position: relative;
+}
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus::after,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"]::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  right: 0;
+  width: 1.5px;
+  background-color: currentColor;
+  animation: birth-date-caret-blink 1.05s steps(1) infinite;
+  pointer-events: none;
+}
+@keyframes birth-date-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .registration-birth-date [data-slot="date-input-group-segment"][data-type]:focus::after {
+    animation: none;
+  }
 }
 
 /* Keep the review prompt's controls outside its scroll surface. HeroUI's
@@ -630,6 +717,34 @@
 }
 
 @layer components {
+  /* Layout-only HeroUI Button: keeps the look of the raw <button> it replaced
+     (icon buttons, rows, tiles). Drops the pill box, fill and press scale;
+     the call site's utilities (later layer) set size, shape and colors. Kept
+     first in this layer with a single class so later component classes such as
+     `.notification-feed-row` still override it. */
+  .button--bare {
+    @apply h-auto min-h-0 w-auto gap-0 rounded-none p-0 whitespace-normal;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+    --button-bg: transparent;
+    --button-bg-hover: transparent;
+    --button-bg-pressed: transparent;
+  }
+
+  .button--bare:active,
+  .button--bare[data-pressed="true"] {
+    transform: none;
+  }
+
+  /* HeroUI sizes button icons itself; bare buttons keep the icon's own size. */
+  .button--bare svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    width: revert-layer;
+    height: revert-layer;
+    margin: revert-layer;
+  }
+
   .notification-feed-row {
     @apply flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
@@ -663,6 +778,11 @@
     @apply flex min-h-11 w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
   }
 
+  /* Button labels are Nunito on web too (DESIGN.md §9, mobile `.button__label`). */
+  .button {
+    font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  }
+
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
@@ -690,6 +810,16 @@
   .input:focus-visible, .input[data-focus-visible="true"],
   .textarea:focus-visible, .textarea[data-focus-visible="true"] {
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  }
+
+  /* HeroUI InputGroup draws its border from the --field-* variables, not from
+     `.input`, so give it the same token border, radius, hover and focus. */
+  .registration-input-group {
+    --border-width-field: 1px;
+    --field-border: var(--border);
+    --field-border-hover: var(--muted-foreground);
+    --field-border-focus: #376BF5;
+    border-radius: var(--radius-xl);
   }
 
   /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
@@ -1223,13 +1353,20 @@ body[data-scroll-locked] [role="option"] {
 .settings-select-list .list-box-item:hover,
 .settings-select-list .list-box-item[data-hovered="true"],
 .settings-select-list .list-box-item[data-focused="true"] {
-  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 .settings-select-list .list-box-item[data-selected="true"],
 .settings-select-list .list-box-item[aria-selected="true"] {
   background-color: color-mix(in oklab, #376BF5 12%, transparent);
   color: #376BF5;
+}
+
+/* Hovering or focusing the selected row deepens its tint like any other row. */
+.settings-select-list .list-box-item[data-selected="true"]:hover,
+.settings-select-list .list-box-item[data-selected="true"][data-hovered="true"],
+.settings-select-list .list-box-item[data-selected="true"][data-focused="true"] {
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 /* The selected option's check mark is brand blue, matching its tinted row. */

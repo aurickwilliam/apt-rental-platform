@@ -4,6 +4,7 @@ import {
   checkDownloadLink,
   formatBytes,
   githubRepoFromUrl,
+  openDownloadStream,
   parseCheckableUrl,
 } from "./app-release-link.ts";
 
@@ -77,4 +78,32 @@ test("formats sizes and finds the GitHub repository", () => {
   assert.equal(formatBytes(2048), "2 KB");
   assert.equal(githubRepoFromUrl(APK), "o/r");
   assert.equal(githubRepoFromUrl("https://example.com/apt.apk"), null);
+});
+
+test("opens the file behind redirects for streaming", async () => {
+  const calls = [];
+  const steps = [
+    new Response(null, { status: 302, headers: { location: "https://cdn.example.com/apt.apk" } }),
+    new Response("apk-bytes", { status: 200, headers: { "content-type": "application/octet-stream" } }),
+  ];
+  const fetchImpl = async (url) => {
+    calls.push(String(url));
+    return steps.shift();
+  };
+  const file = await openDownloadStream(APK, fetchImpl);
+  assert.equal(await file?.text(), "apk-bytes");
+  assert.deepEqual(calls, [APK, "https://cdn.example.com/apt.apk"]);
+});
+
+test("does not open a file that is missing or redirects to an internal host", async () => {
+  assert.equal(await openDownloadStream(APK, async () => new Response("no", { status: 404 })), null);
+  const toInternal = async () =>
+    new Response(null, { status: 302, headers: { location: "https://127.0.0.1/a.apk" } });
+  assert.equal(await openDownloadStream(APK, toInternal), null);
+});
+
+test("does not open a link that serves a web page instead of the file", async () => {
+  const page = async () =>
+    new Response("<!DOCTYPE html>", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+  assert.equal(await openDownloadStream(APK, page), null);
 });

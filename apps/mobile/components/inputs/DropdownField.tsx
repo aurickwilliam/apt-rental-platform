@@ -41,7 +41,11 @@ interface DropdownFieldProps {
   bottomSheetLabel: string;
   options: string[];
   value?: string | null;
-  onSelect: (value: string | null) => void;
+  onSelect?: (value: string | null) => void;
+  /** Lets several options be picked; the sheet stays open until dismissed. */
+  multiple?: boolean;
+  values?: string[];
+  onSelectMultiple?: (values: string[]) => void;
   /** Display text for a stored option; defaults to the option itself. */
   optionLabel?: (option: string) => string;
   placeholder?: string;
@@ -59,6 +63,9 @@ export default function DropdownField({
   options,
   value,
   onSelect,
+  multiple = false,
+  values = [],
+  onSelectMultiple,
   optionLabel,
   placeholder,
   required = false,
@@ -79,6 +86,7 @@ export default function DropdownField({
   const [searchQuery, setSearchQuery] = useState('');
   const isDisabled = !!disabled;
   const isReadOnly = !!readOnly;
+  const displayValue = multiple ? values.join(', ') : value;
 
   const filteredOptions = useMemo(() => {
     if (!enableSearch || !searchQuery.trim()) return options;
@@ -129,12 +137,16 @@ export default function DropdownField({
               className={`font-inter ${
                 isDisabled 
                   ? 'text-gray-400' 
-                  : value 
+                  : displayValue
                   ? 'text-foreground' 
                   : 'text-gray-500'
               }`}
             >
-              {value ? labelOf(value) : displayPlaceholder}
+              {displayValue
+                ? multiple
+                  ? values.map(labelOf).join(', ')
+                  : labelOf(displayValue)
+                : displayPlaceholder}
             </Text>
 
             {!isReadOnly && (
@@ -163,15 +175,23 @@ export default function DropdownField({
               keyExtractor={(item: string) => item}
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }: { item: string }) => {
-                const isSelected = item === value;
+                const isSelected = multiple ? values.includes(item) : item === value;
 
                 return (
                   <>
                     <Pressable
                       className={`p-3 rounded-xl flex-row items-center justify-between ${isSelected ? 'bg-accent/10' : 'bg-transparent'}`}
+                      accessibilityRole={multiple ? 'checkbox' : 'button'}
+                      accessibilityState={{ selected: isSelected, checked: multiple ? isSelected : undefined }}
                       onPress={() => {
                         Keyboard.dismiss();
-                        onSelect(isSelected ? null : item);
+                        if (multiple) {
+                          // Keep the options' order, whatever order they were tapped in.
+                          const picked = isSelected ? values.filter((v) => v !== item) : [...values, item];
+                          onSelectMultiple?.(options.filter((o) => picked.includes(o)));
+                          return;
+                        }
+                        onSelect?.(isSelected ? null : item);
                         setIsOpen(false);
                         setSearchQuery('');
                       }}

@@ -81,3 +81,7 @@ content_path = "./supabase/templates/email-changed.html"
 # verification is enforced (default) — the key is checked, not a specific role.
 [functions.paymongo]
 verify_jwt = true
+
+# Casa chatbot search (Gemini). Signed-in callers only; see the function header.
+[functions.ai-search]
+verify_jwt = true

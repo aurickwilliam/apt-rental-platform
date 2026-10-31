@@ -15,7 +15,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
@@ -28,6 +28,7 @@ import DescriptionModal from "./modals/DescriptionModal";
 import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 type ApartmentImage = {
   id: string;
@@ -230,7 +231,8 @@ export default function PropertyDetailsSheet({
                         src={selected.thumbnail}
                         alt={selected.name}
                         fill
-                        unoptimized
+                        sizes="(max-width: 640px) 100vw, 480px"
+                        unoptimized={!canOptimizePublicApartmentImage(selected.thumbnail)}
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />

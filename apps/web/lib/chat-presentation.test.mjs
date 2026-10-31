@@ -55,7 +55,7 @@ function harness(file, browser = { getSelection: () => null }) {
       useEffect: () => {}, useId: () => "composer-hint", useCallback: (fn) => fn,
     },
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Button: "Button", TextArea: "TextArea", Popover: Object.assign(() => {}, { Content: "PopoverContent", Dialog: "PopoverDialog" }) },
+    "@heroui/react": { Button: "Button", TextArea: "TextArea", Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }), Popover: Object.assign(() => {}, { Content: "PopoverContent", Dialog: "PopoverDialog" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatChatAttachmentSize, getReplyCaption },
     "./attachments": { attachmentDisplayUrl: (m) => m.resolvedUrl, hasAttachment: (m) => Boolean(m.attachment_path) },
@@ -299,7 +299,7 @@ test("reaction badges stay compact and only display counts above one", () => {
     const badges = tree.find(n => n.props.reactions);
     const row = badges.type(badges.props);
     assert.match(row.props.className, /-mt-3/);
-    const chip = nodes(row).find(n => n.type === "button");
+    const chip = nodes(row).find(n => n.type === "Button");
     // Same 24px grey circle as mobile's ReactionBadge, whoever sent the message.
     assert.match(chip.props.className, /h-6/);
     assert.match(chip.props.className, /bg-muted/);
@@ -335,8 +335,8 @@ test("reply previews jump to the stable original ID, never start another reply o
     const message = { id: "reply", message: "Reply body", reactions: [], reply_to: "original-id", replyTo: { id: "preview-id", message: messageType === "text" ? "Quoted text" : null, messageType } };
     const tree = h.render({ message, isMine: true, onReply: () => assert.fail("must not compose a reply"), onOpenContextMenu: () => assert.fail("must not open actions"), onJumpToOriginal: id => jumped.push(id), isReplyHighlighted: true });
     const preview = tree.find(node => node.props["aria-label"] === "Jump to original message");
-    assert.equal(preview.type, "button");
-    assert.equal(preview.props.type, "button");
+    assert.equal(preview.type, "Button");
+    assert.match(preview.props.className, /button--bare/);
     assert.match(preview.props.className, /cursor-pointer/);
     assert.match(preview.props.className, /focus-visible:ring-2/);
     let stopped = 0;

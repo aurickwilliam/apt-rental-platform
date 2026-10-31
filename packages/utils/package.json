@@ -9,6 +9,7 @@
     "./birth-date": "./src/birthDate.ts"
   },
   "dependencies": {
+    "@repo/constants": "workspace:*",
     "@repo/i18n": "workspace:*"
   },
   "devDependencies": {

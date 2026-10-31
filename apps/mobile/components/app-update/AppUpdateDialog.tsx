@@ -12,13 +12,17 @@ interface AppUpdateDialogProps {
   onDismiss: () => void;
 }
 
-/** The optional prompt: a newer build exists, but this one still works. */
+/**
+ * The optional prompt: a newer build exists, but this one still works. Only the
+ * buttons close it, so a stray tap outside can't silently mark the version as dismissed.
+ */
 export default function AppUpdateDialog({ latestVersion, releaseNotes, errorMessage, onUpdate, onDismiss }: AppUpdateDialogProps) {
   const { colors } = useColors();
   return (
     <AppDialog
       isOpen
-      onOpenChange={open => { if (!open) onDismiss(); }}
+      dismissible={false}
+      onOpenChange={() => {}}
       title="A new version is available"
       description={`APT ${latestVersion} is ready to install.`}
       scrollable

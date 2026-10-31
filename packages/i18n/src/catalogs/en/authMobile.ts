@@ -287,7 +287,10 @@ export const authMobile = {
     "Fill-up the form and select the appropriate response to curate the properties that will fit for you.",
   "authMobile.personalization.hasPetsQuestion": "Do you have any pets?",
   "authMobile.personalization.petsQuestion":
-    "If yes, what kind of pet do you have?",
+    "If yes, what kinds of pets do you have?",
+  "authMobile.personalization.petCountQuestion": "How many pets do you have?",
+  "authMobile.personalization.petCountSheet": "Select your Pets",
+  "authMobile.personalization.petCountPlaceholder": "Select the number of pets you have",
   "authMobile.personalization.hasParkingQuestion":
     "Do you need a parking space?",
   "authMobile.personalization.smokerQuestion":

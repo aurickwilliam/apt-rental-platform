@@ -10,8 +10,7 @@ import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
 import SearchSectionsList from "../components/search/SearchSectionsList";
-import useSearchLogic from "../components/search/useSearchLogic";
-import { useSearchSections } from "../components/search/useSearchSections";
+import { useSearchLogic, useSearchSections } from "@/hooks/search";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { useFavoriteToggle } from "@/hooks/favorites";
 
@@ -84,6 +83,10 @@ export default function Search() {
     router.push("/tenant/map-search" as any);
   };
 
+  const handleAskAvaPress = () => {
+    router.push("/search/ai-search");
+  };
+
   const handleClearAll = () => {
     clearSearch();
     handleClearFilters();
@@ -116,6 +119,7 @@ export default function Search() {
         onFavoritesPress={() => router.push("/tenant/favorites")}
         isNetflixMode={showNetflix}
         onMapPress={handleMapPress}
+        onAskAvaPress={handleAskAvaPress}
       />
 
       <SearchFiltersBar

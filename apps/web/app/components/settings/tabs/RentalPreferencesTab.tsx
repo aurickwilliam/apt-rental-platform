@@ -17,7 +17,12 @@ import {
   IconSmoking,
   IconUser,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  CAMANAVA_CITIES,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+} from "@repo/constants";
 import { PET_KEYS, enumLabel } from "@repo/i18n";
 
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
@@ -26,10 +31,15 @@ import {
   BEDROOM_OPTIONS,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
+  validatePets,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
   type BudgetRangeFieldHandle,
 } from "@/app/components/preferences/BudgetRangeField";
+import SettingsMultiSelect from "../SettingsMultiSelect";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
 
@@ -73,6 +83,7 @@ export default function RentalPreferencesTab({
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
   const { language, t } = useTranslation();
   const noPreference = t("settings.rental.noPreference");
+  const petsError = validatePets(form);
 
   const handleSave = async () => {
     // Flush any in-progress custom-range typing first; an invalid entry
@@ -286,23 +297,41 @@ export default function RentalPreferencesTab({
                 <ControlRow
                   label={
                     <Label className="text-sm text-foreground">
-                      {t("settings.rental.petType")}
+                      {t("settings.rental.petCount")}
                     </Label>
                   }
                   control={
                     <SettingsSelect
-                      label={t("settings.rental.petKind.aria")}
+                      label={t("settings.rental.petCount")}
+                      value={petCountToOption(form.noOfPets)}
+                      options={PET_COUNT_OPTIONS.map((count) => ({ value: count, label: count }))}
+                      onChange={(value) => form.setNoOfPets(optionToPetCount(value))}
+                      isInvalid={form.kindOfPets.length > 0 && petsError !== null}
+                      className="w-32"
+                    />
+                  }
+                />
+                <ControlRow
+                  label={
+                    <Label className="text-sm text-foreground">
+                      {t("settings.rental.petTypes")}
+                    </Label>
+                  }
+                  control={
+                    <SettingsMultiSelect
+                      label={t("settings.rental.petKinds.aria")}
                       value={form.kindOfPets}
                       options={PETS.map((pet) => ({
                         value: pet,
                         label: enumLabel(language, PET_KEYS, pet),
                       }))}
                       onChange={form.setKindOfPets}
+                      placeholder={t("common.select")}
                       className="w-44"
                     />
                   }
                 />
-                {form.kindOfPets === "Other" && (
+                {form.kindOfPets.includes(OTHER_PET) && (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="settings-pet-name">
                       {t("settings.rental.petOther")}

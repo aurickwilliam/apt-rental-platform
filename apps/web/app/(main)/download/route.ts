@@ -1,43 +1,49 @@
 import { NextResponse } from "next/server";
 
+import { fetchAndroidApkUrl } from "@/lib/android-apk-url";
+import { openDownloadStream } from "@/lib/app-release-link";
+
+import { createClient } from "@repo/supabase/server";
+
+const APK_CONTENT_TYPE = "application/vnd.android.package-archive";
+const FALLBACK_FILE_NAME = "apt.apk";
+
 /**
- * Stable permalink for the Android build. The landing page's download buttons
- * link here instead of a bucket URL, so swapping the published APK (or the
- * host entirely) only means changing `NEXT_PUBLIC_APT_APK_URL` — never the
- * landing page.
+ * Stable permalink for the Android build. The landing page links here instead
+ * of the APK host, so publishing a new link in Admin → App updates never needs
+ * a web deploy. Kept dynamic so the published link is read per request.
  *
- * Kept dynamic so the variable is read per request, not baked at build time.
+ * The file is streamed from this page as an attachment, so visitors download
+ * it straight away and never land on the host's own page. If the host cannot
+ * be reached from the server, the visitor is redirected to it instead.
  */
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  const target = process.env.NEXT_PUBLIC_APT_APK_URL?.trim();
+function fileNameFromUrl(link: string): string {
+  const name = new URL(link).pathname.split("/").pop() ?? "";
+  return name.toLowerCase().endsWith(".apk") ? name.replace(/[^\w.-]/g, "_") : FALLBACK_FILE_NAME;
+}
 
-  if (!target) {
+export async function GET() {
+  const apkUrl = await fetchAndroidApkUrl(await createClient());
+
+  if (!apkUrl) {
     return new NextResponse("The Android build is not published yet.", {
       status: 404,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
 
-  let location: URL;
-  try {
-    location = new URL(target);
-  } catch {
-    console.error("NEXT_PUBLIC_APT_APK_URL is not a valid URL.");
-    return new NextResponse("The Android build link is misconfigured.", {
-      status: 500,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
-  }
+  const file = await openDownloadStream(apkUrl);
+  if (!file?.body) return NextResponse.redirect(apkUrl, 302);
 
-  if (location.protocol !== "https:" && location.protocol !== "http:") {
-    console.error("NEXT_PUBLIC_APT_APK_URL must be an http(s) URL.");
-    return new NextResponse("The Android build link is misconfigured.", {
-      status: 500,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
-  }
+  const headers = new Headers({
+    "Content-Type": APK_CONTENT_TYPE,
+    "Content-Disposition": `attachment; filename="${fileNameFromUrl(apkUrl)}"`,
+    "Cache-Control": "no-store",
+  });
+  const length = file.headers.get("content-length");
+  if (length) headers.set("Content-Length", length);
 
-  return NextResponse.redirect(location, 302);
+  return new NextResponse(file.body, { status: 200, headers });
 }

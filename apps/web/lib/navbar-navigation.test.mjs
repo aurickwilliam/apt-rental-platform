@@ -20,11 +20,11 @@ function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
   const jsx = (type, props) => ({ type, props });
   const dropdown = { Popover: "Dropdown.Popover", Menu: "Dropdown.Menu", Item: "Dropdown.Item" };
   const modules = {
-    react: { useState: (value) => [value, () => {}], useEffect: () => {} },
+    react: { useState: (value) => [value, () => {}], useEffect: () => {}, useRef: (value) => ({ current: value }) },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "next/navigation": { usePathname: () => pathname, useRouter: () => ({ push: (href) => pushes.push(href) }), useSearchParams: () => new URLSearchParams() },
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
-    "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label" },
+    "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label", buttonVariants: ({ className = "" }) => className },
     "@tabler/icons-react": {},
     "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-hydrated": { useHydrated: () => true },

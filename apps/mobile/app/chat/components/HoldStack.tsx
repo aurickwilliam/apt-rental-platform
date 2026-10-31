@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { computeHoldLayout, type HoldViewport } from './holdLayout';
+import { computeHoldLayout, type HoldViewport } from '@/utils/chat/holdLayout';
 
 // A little bounce as the bubble lifts into place (Google Messages / iMessage feel).
 const SETTLE_SPRING = { damping: 18, stiffness: 220, mass: 0.9 };

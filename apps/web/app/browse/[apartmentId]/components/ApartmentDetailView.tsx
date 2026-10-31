@@ -6,6 +6,8 @@ import MapLocation from "./MapLocation";
 
 import { Separator } from "@heroui/react";
 
+import { fetchVerifiedLandlordIds } from "@/lib/verified-landlord";
+
 import {
   IconHome,
   IconBed,
@@ -76,7 +78,7 @@ export default async function ApartmentDetailView({
           .eq("status", "pending").limit(1)
       : { data: null },
   );
-  const [profileResult, landlordResult, relatedResult, pendingResult] = await Promise.all([
+  const [profileResult, landlordResult, relatedResult, pendingResult, verifiedLandlordIds] = await Promise.all([
     profilePromise,
     apartment.landlord_id
       ? supabase
@@ -98,6 +100,7 @@ export default async function ApartmentDetailView({
       .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
       .limit(1, { referencedTable: "apartment_images" }),
     pendingPromise,
+    fetchVerifiedLandlordIds(supabase, apartment.landlord_id ? [apartment.landlord_id] : []),
   ]);
 
   const { data: currentUser } = profileResult;
@@ -247,6 +250,7 @@ export default async function ApartmentDetailView({
             advancePayment={apartment.advance_rent ?? undefined}
             apartmentId={apartment.id}
             basePath={basePath}
+            isApplyDisabled={basePath === "/landlord/browse"}
             applyViewer={applyViewer}
             applyApartment={{
               id: apartment.id,
@@ -270,8 +274,10 @@ export default async function ApartmentDetailView({
             landlordId={apartment.landlord_id ?? null}
             landlordName={`${landlord?.first_name ?? ""} ${landlord?.last_name ?? ""}`}
             landlordAvatarUrl={landlord?.avatar_url ?? ""}
+            isVerifiedLandlord={Boolean(apartment.landlord_id && verifiedLandlordIds.has(apartment.landlord_id))}
             apartmentId={apartment.id}
             apartmentName={apartment.name ?? ""}
+            profilePortal={basePath === "/tenant/browse" ? "tenant" : basePath === "/landlord/browse" ? "landlord" : "public"}
           />
         </div>
       </div>

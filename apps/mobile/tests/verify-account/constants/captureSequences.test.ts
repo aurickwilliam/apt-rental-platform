@@ -9,7 +9,7 @@ import {
   SELFIE_STEP,
   getCaptureSequence,
   getNextCaptureStep,
-} from '@/app/(auth)/verify-account/constants/captureSequences';
+} from '@/constants/verification/captureSequences';
 
 const NON_PASSPORT_ID_TYPES = ALL_SUPPORTED_ID_TYPES.filter((id) => id !== 'Passport');
 

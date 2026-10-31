@@ -1,7 +1,7 @@
 import { FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchSectionPage } from "@/app/(tabs)/components/search/useSearchSectionPage";
+import { useSearchSectionPage } from "@/hooks/search/useSearchSectionPage";
 import { useMemo, useState } from "react";
 import { Button } from "heroui-native";
 import { IconSearchOff, IconLayoutGrid, IconLayoutRows } from "@tabler/icons-react-native";
@@ -14,8 +14,8 @@ import { supabase } from "@repo/supabase";
 import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
-import { transformApartments, scorePreferences } from "@/app/(tabs)/components/search/useSearchSections";
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
+import { transformApartments, scorePreferences } from "@/hooks/search/useSearchSections";
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 
 
 

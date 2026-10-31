@@ -52,7 +52,7 @@ export default function StepFour() {
                 key={option}
                 label={option}
                 selected={householdSize === option}
-                onPress={() => setHouseholdSize(option)}
+                onPress={() => setHouseholdSize(householdSize === option ? null : option)}
               />
             ))}
           </View>

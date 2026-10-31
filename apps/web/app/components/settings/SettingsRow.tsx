@@ -2,6 +2,7 @@
 
 import { IconChevronRight } from "@tabler/icons-react";
 import Link from "next/link";
+import { Button } from "@heroui/react";
 
 interface SettingsRowProps {
   icon: React.ReactNode;
@@ -88,11 +89,11 @@ export default function SettingsRow({
 
   if (onClick) {
     return (
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={onClick}
-        disabled={disabled}
-        className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 w-full text-left rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-muted/40"}`}
+        isDisabled={disabled}
+        className={`button--bare grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5 px-4 w-full text-left rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-muted/40"}`}
         aria-disabled={disabled}
         aria-expanded={expanded}
         aria-controls={controlsId}
@@ -100,7 +101,7 @@ export default function SettingsRow({
         {iconEl}
         {labelEl}
         {trailingEl}
-      </button>
+      </Button>
     );
   }
 

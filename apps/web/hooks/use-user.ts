@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { createBrowserClient, type Database } from "@repo/supabase";
+import type { Database } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import { PROFILE_PHOTO_UPDATED_EVENT } from "@/app/components/profile/use-profile-photo";
 import { RequestCache } from "@/lib/profile-request-cache";

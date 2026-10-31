@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button, Card, Spinner, toast } from "@heroui/react";
 import { IconShieldCheck } from "@tabler/icons-react";
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import { SECONDARY_IDS, VALID_IDS } from "@repo/constants";
 
 import { claimVerificationSession, submitVerificationSession } from "../../actions";

@@ -9,6 +9,7 @@ import {
   Button,
   Separator,
   Spinner,
+  FieldError,
 } from "@heroui/react";
 
 import { useActionState, useRef, useState } from "react";
@@ -18,7 +19,7 @@ import { GENDER_KEYS, enumLabel } from "@repo/i18n";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { completeProfile } from "../../actions/complete-profile";
 import { validateBirthDate } from "@/lib/birth-date";
-import { GENDERS } from "@repo/constants";
+import { GENDERS, PH_MOBILE_MAX_INPUT_LENGTH, formatPHMobileInput, validatePHMobile } from "@repo/constants";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
 import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
 import { resolveRegistrationAddress, validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
@@ -47,6 +48,8 @@ export default function CompleteProfileForm({
     !!initialAddress && (["province", "city", "barangay"] as const).some(field =>
       !!initialAddress[field] && !resolveRegistrationAddress(initialAddress)[field]));
   const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileTouched, setMobileTouched] = useState(false);
+  const mobileRef = useRef<HTMLInputElement>(null);
   const [birthDateError, setBirthDateError] = useState<string | null>(null);
   const [birthDate, setBirthDate] = useState(initialBirthDate ?? "");
   const birthDateRef = useRef<HTMLDivElement>(null);
@@ -56,14 +59,20 @@ export default function CompleteProfileForm({
     .every(field => state.address?.[field] === address[field]);
   const addressErrors = { ...(serverAddressMatches ? state.addressErrors : {}), ...(addressSubmitted ? validateRegistrationAddress(address) : {}) };
 
+  // Shown once the field was left or a submit was tried, then kept live.
+  const mobileError = mobileTouched ? validatePHMobile(mobileNumber).errorMessage : null;
+
   // Instant client-side feedback using the same shared validator the
   // server enforces; the server remains the real gate.
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const error = validateBirthDate(birthDate);
     setBirthDateError(error);
     setAddressSubmitted(true);
-    if (error || Object.keys(validateRegistrationAddress(address)).length) e.preventDefault();
+    setMobileTouched(true);
+    const mobileInvalid = !!validatePHMobile(mobileNumber).errorMessage;
+    if (error || mobileInvalid || Object.keys(validateRegistrationAddress(address)).length) e.preventDefault();
     if (error) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
+    else if (mobileInvalid) mobileRef.current?.focus();
   };
 
   return (
@@ -137,14 +146,13 @@ export default function CompleteProfileForm({
             isRequired
             fullWidth
             value={mobileNumber}
-            onChange={(val) => setMobileNumber(val.replace(/\D/g, "").slice(0, 11))}
+            onChange={(val) => setMobileNumber(formatPHMobileInput(val))}
+            onBlur={() => setMobileTouched(true)}
+            isInvalid={!!mobileError}
           >
             <Label>{t("auth.form.mobile")}</Label>
-            <Input
-              inputMode="numeric"
-              className="bg-card! text-foreground!"
-              placeholder={t("auth.form.mobilePlaceholder")}
-            />
+            <Input ref={mobileRef} inputMode="tel" className="bg-card! text-foreground!" placeholder={t("auth.form.mobilePlaceholder")} maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
+            <FieldError className="text-xs">{mobileError}</FieldError>
           </TextField>
 
           <RegistrationBirthDateField name="birth_date" value={birthDate} error={fieldError} inputRef={birthDateRef} isDisabled={isPending}

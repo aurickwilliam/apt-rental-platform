@@ -17,6 +17,7 @@ import {
 } from "@repo/utils";
 
 import type { FeedNotification } from "@/service/notificationService";
+import { Button } from "@heroui/react";
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   payment: <IconCreditCard size={18} aria-hidden="true" />,
@@ -59,11 +60,11 @@ export default function NotificationRow({
   }, language);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onOpen}
       aria-label={accessibleLabel}
-      className={compact ? "notification-feed-member" : "notification-feed-row"}
+      className={`button--bare ${compact ? "notification-feed-member" : "notification-feed-row"}`}
     >
       {!compact && <span aria-hidden="true" className="notification-feed-icon">
         {TYPE_ICONS[notification.type] ?? (
@@ -89,6 +90,6 @@ export default function NotificationRow({
         </time>
       </span>
       <span aria-hidden="true" className={`mt-1.5 size-1.5 shrink-0 rounded-full ${notification.is_read ? "bg-transparent" : "bg-primary"}`} />
-    </button>
+    </Button>
   );
 }

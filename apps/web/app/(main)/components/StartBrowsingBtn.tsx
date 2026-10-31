@@ -1,20 +1,11 @@
-"use client";
+import { IconArrowUpRight } from "@tabler/icons-react";
 
-import Link from "next/link";
+import LandingCta from "./LandingCta";
 
-import { Button } from "@heroui/react";
-
-import { IconSearch as SearchIcon } from "@tabler/icons-react";
-
-// Link wraps the button (never the reverse) so Next can prefetch the browse
-// route while the button keeps its HeroUI styling and focus behavior.
 export default function StartBrowsingBtn() {
   return (
-    <Link href="/browse" className="inline-flex">
-      <Button variant="primary">
-        <SearchIcon size={18} />
-        Start Browsing
-      </Button>
-    </Link>
+    <LandingCta href="/browse">
+      Explore apartments <IconArrowUpRight size={16} aria-hidden="true" />
+    </LandingCta>
   );
 }

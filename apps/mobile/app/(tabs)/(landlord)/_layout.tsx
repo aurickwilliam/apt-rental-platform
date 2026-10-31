@@ -14,7 +14,7 @@ import {
 import { useTranslation } from 'hooks/i18n';
 import { useColors } from 'hooks/useTheme';
 
-import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
+import { CustomTabBar, type CustomTabConfig } from '@/components/layout/CustomTabBar';
 
 const LANDLORD_TABS: CustomTabConfig[] = [
   {

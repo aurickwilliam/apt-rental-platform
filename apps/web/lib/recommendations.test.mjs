@@ -148,7 +148,7 @@ test("default/empty preferences are not meaningful", () => {
   assert.equal(hasMeaningfulPreferences(prefs({ budgetMin: 5000, budgetMax: 20000 })), true);
   assert.equal(hasMeaningfulPreferences(prefs({ selectedCities: ["Caloocan"] })), true);
   assert.equal(hasMeaningfulPreferences(prefs({ bedroomCount: "1-2 Bedrooms" })), true);
-  assert.equal(hasMeaningfulPreferences(prefs({ hasPets: true, kindOfPets: "Dog" })), true);
+  assert.equal(hasMeaningfulPreferences(prefs({ hasPets: true, kindOfPets: ["Dog"] })), true);
 });
 
 test("mobile-saved preferences parse and score on web", () => {
@@ -159,7 +159,8 @@ test("mobile-saved preferences parse and score on web", () => {
     bedroomCount: "1-2 Bedrooms",
     householdSize: "Family of 2",
     hasPets: false,
-    kindOfPets: "",
+    kindOfPets: [],
+    noOfPets: 1,
     nameOfPets: null,
     hasParking: false,
     noOfParkingSpots: 1,

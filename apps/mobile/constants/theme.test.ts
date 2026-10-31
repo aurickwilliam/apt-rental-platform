@@ -28,9 +28,23 @@ function declarations(block: string): Record<string, string> {
   );
 }
 
+/** Body of a top-level block, brace-matched so nested rules can't truncate it. */
+function blockBody(opening: string): string {
+  const start = css.indexOf(opening);
+  const bodyStart = css.indexOf("{", start);
+  let depth = 0;
+  for (let index = bodyStart; index < css.length; index += 1) {
+    if (css[index] === "{") depth += 1;
+    if (css[index] !== "}") continue;
+    depth -= 1;
+    if (depth === 0) return css.slice(bodyStart + 1, index);
+  }
+  throw new Error(`Unclosed block: ${opening}`);
+}
+
 function themeVariables(theme: "light" | "dark") {
-  const base = declarations(css.match(/@theme\s*\{([^}]+)\}/)![1]);
-  const variant = declarations(css.match(new RegExp(`@variant ${theme}\\s*\\{([^}]+)\\}`))![1]);
+  const base = declarations(blockBody("@theme"));
+  const variant = declarations(blockBody(`@variant ${theme}`));
   const variables: Record<string, string> = { "--white": "#FFFFFF", ...base, ...variant };
   const value = (name: string): string => {
     const raw = variables[name];
@@ -113,6 +127,15 @@ describe.each(["light", "dark"] as const)("%s mobile palette", (theme) => {
     expect(colors.primary).toBe(COLORS[theme].primary);
     expect(colors.success).toBe(COLORS[theme].success);
   });
+});
+
+it("declares the same variables in both Uniwind themes", () => {
+  // Uniwind requires every @variant theme to expose the same variable set; a
+  // variable added to only one theme fails at bundle time with
+  // "Theme <name> is missing variable ...".
+  const light = Object.keys(declarations(blockBody("@variant light"))).sort();
+  const dark = Object.keys(declarations(blockBody("@variant dark"))).sort();
+  expect(light).toEqual(dark);
 });
 
 it("uses the requested cool-gray background, white cards and subtle borders in light mode", () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import { IconChevronLeft as ChevronLeft, IconChevronRight as ChevronRight } from "@tabler/icons-react";
 
 function toISODate(date: Date): string {
@@ -58,22 +58,22 @@ export default function VisitsCalendar({ markedDates, selectedDate, onSelectDate
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm font-semibold text-card-foreground">{monthLabel}</p>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             aria-label="Previous month"
             onClick={() => setMonthOffset((offset) => offset - 1)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted"
+            className="button--bare p-1.5 rounded-lg text-muted-foreground hover:bg-muted"
           >
             <ChevronLeft size={16} />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
             aria-label="Next month"
             onClick={() => setMonthOffset((offset) => offset + 1)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted"
+            className="button--bare p-1.5 rounded-lg text-muted-foreground hover:bg-muted"
           >
             <ChevronRight size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -87,11 +87,11 @@ export default function VisitsCalendar({ markedDates, selectedDate, onSelectDate
           iso === null ? (
             <span key={`empty-${index}`} />
           ) : (
-            <button
+            <Button
+              variant="ghost"
               key={iso}
-              type="button"
               onClick={() => onSelectDate(selectedDate === iso ? null : iso)}
-              className={`flex flex-col items-center justify-center rounded-full py-1.5 text-xs transition-colors ${
+              className={`button--bare flex flex-col items-center justify-center rounded-full py-1.5 text-xs transition-colors ${
                 selectedDate === iso
                   ? "bg-primary text-white"
                   : iso === todayStr
@@ -105,7 +105,7 @@ export default function VisitsCalendar({ markedDates, selectedDate, onSelectDate
                   <span className={`h-1 w-1 rounded-full ${selectedDate === iso ? "bg-white" : "bg-amber-500"}`} />
                 )}
               </span>
-            </button>
+            </Button>
           ),
         )}
       </div>

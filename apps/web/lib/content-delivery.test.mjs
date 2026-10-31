@@ -26,9 +26,21 @@ const nodes = node => !node || typeof node !== "object" ? [] : [node, ...[node.p
 // The public getImageProps export relies on Next's build-time config injection.
 // Next 16.4 prepares config before getImgProps; 16.3 prepares it inside that call.
 // Mirror the installed version's setup while exercising the app's real config.
-const imageOptions = { ...imageConfigModule.imageConfigDefault, ...compile("next.config.ts", {}).default.images };
+const loadImageConfig = NODE_ENV => compile("next.config.ts", {}, { process: { env: { NODE_ENV } } }).default.images;
+const imageOptions = { ...imageConfigModule.imageConfigDefault, ...loadImageConfig("production") };
 const imageConfig = imageConfigModule.prepareImageConfig ? imageConfigModule.prepareImageConfig(imageOptions) : imageOptions;
 const getImageProps = props => getImgProps(props, { imgConf: imageConfig, defaultLoader: imageLoaderModule.default ?? imageLoaderModule });
+
+test("resized images stay cached for a month so Supabase originals are not re-pulled every few hours", () => {
+  const thirtyDays = 60 * 60 * 24 * 30;
+  assert.equal(imageOptions.minimumCacheTTL, thirtyDays);
+  assert.ok(imageOptions.minimumCacheTTL > imageConfigModule.imageConfigDefault.minimumCacheTTL);
+});
+
+test("the image optimizer only accepts NAT64/local addresses in development, never in production", () => {
+  assert.equal(loadImageConfig("development").dangerouslyAllowLocalIP, true);
+  assert.notEqual(loadImageConfig("production").dangerouslyAllowLocalIP, true);
+});
 
 test("only known public apartment rasters opt into optimization, never signed or other private buckets", () => {
   for (const src of [publicPhoto, publicPhoto.replace(".jpg", "_thumb.webp"), "/images/apartment.jpg", "https://images.unsplash.com/photo-123?auto=format&fit=crop&w=800&q=80"]) {
@@ -71,8 +83,10 @@ test("installed Next Image emits responsive optimizer variants at the supported 
 test("public card and rental hero preserve source selection, geometry, null fallback and existing loading priority", () => {
   const policy = { canOptimizePublicApartmentImage: src => canOptimizePublicApartmentImage(src, origin) };
   const common = {
-    "react/jsx-runtime": jsxRuntime, "next/image": { default: "Image" }, "next/link": { default: "Link" },
+    "react/jsx-runtime": jsxRuntime, react: hookRuntime().react,
+    "next/image": { default: "Image" }, "next/link": { default: "Link" },
     "@/lib/public-apartment-image": policy,
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => String(value) },
     "@heroui/react": { Card: { Footer: "Card.Footer" }, Button: "Button" },
@@ -82,6 +96,12 @@ test("public card and rental hero preserve source selection, geometry, null fall
   const image = card.find(node => node.type === "Image");
   assert.match(image.props.src, /_thumb\.jpg$/); assert.equal(image.props.unoptimized, false); assert.equal(image.props.priority, true);
   assert.match(image.props.className, /object-cover/); assert.match(image.props.className, /aspect-square/);
+  // Listings without a resolvable photo keep the card's shape: a decorative
+  // fallback image (the card itself is labelled "View {name}").
+  assert.equal(image.props.alt, "");
+  assert.equal(typeof image.props.onError, "function");
+  const missingPhoto = nodes(Card({ thumbnailUrl: "", name: "Unit", price: 5000, rating: 0 })).find(node => node.type === "Image");
+  assert.equal(missingPhoto.props.src, "/images/house-check.png");
   const Hero = compile("app/tenant/my-rental/components/RentalHero.tsx", common).default;
   const heroImage = nodes(Hero({ name: "Unit", address: "Address", imageUrl: publicPhoto, descriptionHref: "/browse/a" })).find(node => node.type === "Image");
   assert.equal(heroImage.props.fill, true); assert.equal(heroImage.props.unoptimized, false);
@@ -143,7 +163,7 @@ test("property editor chunk loads only after selection; exact resource key, draf
     react: runtime.react, "react/jsx-runtime": jsxRuntime, "next/navigation": { useRouter: () => ({ push() {}, prefetch() {} }) },
     "next/dynamic": { default: lazy.dynamic }, "./PropertiesTable": { default: "PropertiesTable" },
     "@/app/components/display/RouteLoadingStatus": { default: "RouteLoadingStatus" },
-    "@repo/supabase": { createBrowserClient: () => { clients++; return {}; } },
+    "@repo/supabase/browser": { createClient: () => { clients++; return {}; } },
     "./modals/DeletePropertyModal": { default: "DeletePropertyModal" },
   };
   Object.defineProperty(modules, "./PropertyDetailsSheet", { enumerable: true, get: () => { imports++; return { default: "PropertyDetailsSheet" }; } });
@@ -249,7 +269,9 @@ test("Passport guard reuses layout identity but retains every portal/status deni
         },
       };
       const identity = compile("lib/server-identity.ts", { "server-only": {}, react: { cache }, "next/navigation": navigation,
-        "@repo/supabase/server": { createClient: async () => client }, "@repo/supabase/pending-onboarding": {} });
+        "@repo/supabase/server": { createClient: async () => client }, "@repo/supabase/pending-onboarding": {},
+        "@repo/utils": compile("../../packages/utils/src/landlordAccess.ts", {}),
+        "@/lib/landlord-verification-access": compile("lib/landlord-verification-access.ts", {}) });
       const guard = compile("app/components/passport/requirePassportViewer.ts", { react: { cache }, "next/navigation": navigation, "@/lib/server-identity": identity, "@/lib/passport-access": access }).requirePassportViewer;
       await identity.getServerIdentity();
       if (scenario === "verified") {

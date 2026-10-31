@@ -14,7 +14,7 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ replace: mockReplace }),
   useNavigation: () => ({ dispatch: mockDispatch }),
 }));
-jest.mock("@react-navigation/native", () => ({ usePreventRemove: jest.fn() }));
+jest.mock("expo-router/react-navigation", () => ({ usePreventRemove: jest.fn() }));
 jest.mock("@repo/supabase", () => ({
   supabase: { auth: { signOut: (...args: unknown[]) => mockSignOut(...args) } },
 }));

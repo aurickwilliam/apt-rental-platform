@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { Label } from "@heroui/react";
+import { Label, Button } from "@heroui/react";
 import { IconPhotoPlus, IconUpload, IconX } from "@tabler/icons-react";
 
 export type ReviewPhoto = {
@@ -90,35 +90,35 @@ export default function ReviewPhotosInput({
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/20" />
-              <button
-                type="button"
+              <Button
+                variant="ghost"
                 aria-label="Remove photo"
                 onClick={() => onRemove(photo.url)}
-                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
+                className="button--bare absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
               >
                 <IconX size={12} />
-              </button>
+              </Button>
             </div>
           ))}
 
           {!limitReached && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={() => inputRef.current?.click()}
-              className="flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-grey-300 transition hover:border-primary hover:bg-primary/5"
+              className="button--bare flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-grey-300 transition hover:border-primary hover:bg-primary/5"
             >
               <IconPhotoPlus size={20} className="mb-1 text-grey-400" />
               <span className="text-xs text-grey-400">Add photo</span>
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {images.length === 0 && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={() => inputRef.current?.click()}
-          className="mt-2 flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-grey-300 py-6 transition hover:border-primary hover:bg-primary/5"
+          className="button--bare mt-2 flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-grey-300 py-6 transition hover:border-primary hover:bg-primary/5"
         >
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
             <IconUpload size={22} className="text-primary" />
@@ -127,7 +127,7 @@ export default function ReviewPhotosInput({
           <span className="text-xs text-grey-400">
             PNG, JPG up to {MAX_REVIEW_IMAGE_SIZE_MB}MB
           </span>
-        </button>
+        </Button>
       )}
 
       {selectionError && (

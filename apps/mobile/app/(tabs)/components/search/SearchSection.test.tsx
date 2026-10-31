@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react-native";
 
 import SearchSection from "./SearchSection";
-import type { SearchSection as SearchSectionType } from "./useSearchSections";
+import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock("@tabler/icons-react-native", () => ({ IconChevronRight: () => null }));

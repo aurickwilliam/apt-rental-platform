@@ -110,7 +110,7 @@ test("switching destinations, cancellation and failure clear old link feedback w
 test("mobile menu/keyboard actions retain pathname semantics and expose visible pending feedback without disabling navigation", () => {
   const h = harness({ mobile: true });
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  const messages = tree => tree.find(node => node.type === "button" && labelOf(node) === "Messages");
+  const messages = tree => tree.find(node => node.type === "Button" && node.props.className?.includes("button--bare") && labelOf(node) === "Messages");
   messages(h.render()).props.onClick();
   assert.deepEqual(h.pushes, ["/tenant/messages"]);
   const pending = h.render();

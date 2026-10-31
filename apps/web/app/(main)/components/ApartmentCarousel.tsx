@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/carousel"
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
+import { useFeaturedCardEntrance } from "@/hooks/use-featured-card-entrance";
+import styles from "./landing-motion.module.css";
+import design from "./landing-design.module.css";
 
 import { IconChevronLeft as ChevronLeft, IconChevronRight as ChevronRight } from "@tabler/icons-react";
 
@@ -31,15 +34,17 @@ interface RenderApartmentsCarouselProps {
 export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const router = useRouter();
+  useFeaturedCardEntrance(api);
 
   return (
     <Carousel setApi={setApi} className="mt-10">
-      <div className="flex items-center justify-between gap-4">
+      <noscript><style>{"[data-featured-card] { opacity: 1 !important; transform: none !important; }"}</style></noscript>
+      <div className={`flex items-center justify-between gap-4 ${design.featuredHeader}`}>
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="font-nunito text-2xl font-bold md:text-3xl">
+          <h2 className={`font-nunito ${design.listingTitle}`}>
             Apartments Tenants Love
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Verified homes our tenants rate highest.
           </p>
         </div>
@@ -48,6 +53,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
           <Button
             variant="outline"
             isIconOnly
+            aria-label="Previous apartments"
             onPress={() => api?.scrollPrev()}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -55,6 +61,7 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
           <Button
             variant="outline"
             isIconOnly
+            aria-label="Next apartments"
             onPress={() => api?.scrollNext()}
           >
             <ChevronRight className="w-4 h-4" />
@@ -67,14 +74,16 @@ export default function ApartmentCarousel({apartment}: RenderApartmentsCarouselP
         {
           apartment.map(apt => (
             <CarouselItem key={apt.id} className="w-44 basis-auto sm:w-56">
-              <ApartmentCard
-                name={apt.name}
-                location={apt.location}
-                price={apt.price}
-                rating={apt.rating}
-                thumbnailUrl={apt.image}
-                onPress={() => router.push(`/browse/${apt.id}`)}
-              />
+              <div data-featured-card className={styles.featuredCard}>
+                <ApartmentCard
+                  name={apt.name}
+                  location={apt.location}
+                  price={apt.price}
+                  rating={apt.rating}
+                  thumbnailUrl={apt.image}
+                  onPress={() => router.push(`/browse/${apt.id}`)}
+                />
+              </div>
             </CarouselItem>
           ))
         }

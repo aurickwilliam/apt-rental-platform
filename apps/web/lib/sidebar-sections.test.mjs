@@ -3,17 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
-import { translate } from "../../../packages/i18n/src/translate.ts";
-
-const locale = {
-  useTranslation: () => ({
-    language: "en",
-    pending: false,
-    setLanguage: () => {},
-    t: (key, vars) => translate("en", key, vars),
-  }),
-};
-
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const jsx = (type, props) => ({ type, props });
 function compile(file, modules, globals = {}) {
@@ -30,7 +20,7 @@ const sectioned = [
   { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", sectionKey: "nav.section.rentals" },
   { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", sectionKey: "nav.section.finance" },
 ];
-const flat = sectioned.map(item => ({ href: item.href, labelKey: item.labelKey, icon: item.icon }));
+const flat = sectioned.map(({ href, labelKey, icon }) => ({ href, labelKey, icon }));
 
 function render({ navItems, collapsed = false, mobile = false }) {
   const sidebar = compile("../app/components/layout/AppSidebar.tsx", {
@@ -44,11 +34,11 @@ function render({ navItems, collapsed = false, mobile = false }) {
     "next-themes": { useTheme: () => ({ resolvedTheme: "light" }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
-    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: () => {} }) },
     "./SidebarLinkPending": { default: "SidebarLinkPending" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
   }, { window: { localStorage: { getItem: () => String(collapsed) } }, URLSearchParams });
   const nodes = node => {
     if (!node || typeof node !== "object") return [];
@@ -97,20 +87,26 @@ test("mobile drawer renders one group per section, split by separators, then the
   assert.deepEqual(groups, ["Overview", "Rentals", "Finance", "Account"]);
   assert.equal(all.filter(node => node.type === "Separator").length >= 3, true);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  const rows = all.filter(node => node.type === "button" && sectioned.some(item => translate("en", item.labelKey) === labelOf(node)));
+  const rows = all.filter(node => node.type === "Button" && node.props.className?.includes("button--bare") && sectioned.some(item => translate("en", item.labelKey) === labelOf(node)));
   assert.equal(rows.length, sectioned.length);
 });
 
 function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pushed = [] }) {
   const item = compile("../app/components/layout/SidebarNotificationsItem.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@/app/components/i18n/LocaleProvider": locale,
+    "@heroui/react": { Button: "Button", Tooltip: Object.assign(() => {}, { Trigger: "Tooltip.Trigger", Content: "Tooltip.Content" }) },
     "@tabler/icons-react": { IconBell: "IconBell" },
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry, drawerSide: "right" } }) },
     "@/hooks/use-notifications": { useNotifications: () => ({ unreadCount }) },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
   }, { window: { location: { href: "http://localhost/landlord/dashboard?tab=1#top" }, history: { pushState: (_state, _title, url) => pushed.push(url) } }, URL });
-  return item.default({ activePortal: "landlord", collapsed });
+  const root = item.default({ activePortal: "landlord", collapsed });
+  if (!root) return null;
+  // The button sits inside a Tooltip that names it on the collapsed rail.
+  const [trigger, content] = root.props.children;
+  const button = trigger.props.children;
+  return Object.assign(button, { tooltip: content.props.children, tooltipDisabled: root.props.isDisabled });
 }
 
 test("Notifications tab is hidden while the floating bell is the chosen entry point", () => {
@@ -120,10 +116,20 @@ test("Notifications tab is hidden while the floating bell is the chosen entry po
 test("Notifications tab opens the drawer through the shared query param", () => {
   const pushed = [];
   const button = renderNotificationsItem({ entry: "sidebar", pushed });
-  assert.equal(button.type, "button");
+  assert.equal(button.type, "Button");
   assert.equal(button.props["aria-haspopup"], "dialog");
   button.props.onClick();
   assert.deepEqual(pushed, ["/landlord/dashboard?tab=1&notifications=open#top"]);
+});
+
+test("Notifications tab starts at the sidebar's left edge like the nav links", () => {
+  const expanded = renderNotificationsItem({ entry: "sidebar" });
+  // HeroUI's `.button` base centers its content; the expanded row must opt
+  // back into the nav links' flex-start alignment.
+  assert.match(expanded.props.className, /\bjustify-start\b/);
+  assert.doesNotMatch(expanded.props.className, /\bjustify-center\b/);
+  const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
+  assert.match(collapsed.props.className, /\bjustify-center\b/);
 });
 
 test("Notifications tab shows a red count badge capped at 9+ and a label-only collapsed rail", () => {
@@ -135,6 +141,8 @@ test("Notifications tab shows a red count badge capped at 9+ and a label-only co
   assert.equal([unread.props.children].flat(Infinity).some(child => /size-2 rounded-full/.test(child?.props?.className ?? "")), false);
   assert.equal(badge(renderNotificationsItem({ entry: "sidebar", unreadCount: 0 })), undefined);
   const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
-  assert.equal(collapsed.props.title, "Notifications");
+  assert.equal(collapsed.tooltip, "Notifications");
+  assert.equal(collapsed.tooltipDisabled, false);
+  assert.equal(renderNotificationsItem({ entry: "sidebar" }).tooltipDisabled, true);
   assert.equal([collapsed.props.children].flat(Infinity).some(child => child?.type === "span" && child.props.children === "Notifications"), false);
 });

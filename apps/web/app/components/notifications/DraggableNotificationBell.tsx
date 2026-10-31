@@ -20,6 +20,7 @@ import { FAB_EDGE_MARGIN_PX, FAB_SIZE_PX } from "@/lib/notification-fab-safe-are
 
 import { NOTIFICATIONS_QUERY_VALUE } from "./NotificationsOverlay";
 import { useFabSafePlacement } from "./use-fab-safe-placement";
+import { Button, Tooltip } from "@heroui/react";
 
 export const FAB_PLACEMENT_RESET_EVENT = "apt-notifications-fab:reset";
 
@@ -324,7 +325,7 @@ export default function DraggableNotificationBell({
     finishGesture("cancel");
   };
 
-  const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const onClick = (event: React.MouseEvent<Element>) => {
     // A click left over from an interrupted gesture must not open the drawer.
     // `detail` is 0 for keyboard activation, which always opens.
     if (suppressClickRef.current && event.detail > 0) {
@@ -358,31 +359,35 @@ export default function DraggableNotificationBell({
       : "cursor-grab hover:bg-primary/5 hover:text-primary active:bg-primary/10";
 
   return (
-    <button
-      ref={buttonRef}
-      type="button"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onLostPointerCapture={onLostPointerCapture}
-      onClick={onClick}
-      onDoubleClick={resting.docked ? undefined : resetPlacement}
-      title={bellTitle}
-      aria-haspopup="dialog"
-      aria-label={bellLabel}
-      style={{ top, left }}
-      className={`fixed z-40 hidden min-h-11 min-w-11 select-none items-center justify-center rounded-full border border-border bg-card/95 text-foreground/70 shadow-sm backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:flex ${resting.docked ? "" : "touch-none"} ${interactionClasses} motion-safe:transition-[top,left] motion-safe:duration-200 ${livePos !== null ? "motion-safe:transition-none" : ""}`}
-    >
-      <IconBell size={20} aria-hidden="true" className="pointer-events-none" />
-      {unreadCount > 0 && (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-0.5 -top-0.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white"
+    <Tooltip isDisabled={dragging}>
+      <Tooltip.Trigger>
+        <Button
+          variant="ghost"
+          ref={buttonRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+          onLostPointerCapture={onLostPointerCapture}
+          onClick={onClick}
+          onDoubleClick={resting.docked ? undefined : resetPlacement}
+          aria-haspopup="dialog"
+          aria-label={bellLabel}
+          style={{ top, left }}
+          className={`button--bare fixed z-40 hidden min-h-11 min-w-11 select-none items-center justify-center rounded-full border border-border bg-card/95 text-foreground/70 shadow-sm backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:flex ${resting.docked ? "" : "touch-none"} ${interactionClasses} motion-safe:transition-[top,left] motion-safe:duration-200 ${livePos !== null ? "motion-safe:transition-none" : ""}`}
         >
-          {unreadCount > 9 ? "9+" : unreadCount}
-        </span>
-      )}
-    </button>
+          <IconBell size={20} aria-hidden="true" className="pointer-events-none" />
+          {unreadCount > 0 && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-0.5 -top-0.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Button>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{bellTitle}</Tooltip.Content>
+    </Tooltip>
   );
 }

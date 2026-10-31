@@ -10,18 +10,29 @@ import {
   IconBed,
   IconCar,
   IconCheck,
+  IconPaw,
   IconSmoking,
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  CAMANAVA_CITIES,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+} from "@repo/constants";
 
 import {
   BEDROOM_OPTIONS,
   DEFAULT_TENANT_PREFERENCES,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  PET_COUNT_OPTIONS,
+  minimumPetCount,
+  optionToPetCount,
+  petCountToOption,
   parseTenantPreferences,
+  validatePets,
   type TenantPreferences,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
@@ -52,20 +63,22 @@ function OptionCard({
   onPress,
   label,
   icon,
+  compact = false,
   className = "",
 }: {
   selected: boolean;
   onPress: () => void;
   label: string;
   icon?: ReactNode;
+  compact?: boolean;
   className?: string;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-pressed={selected}
       onClick={onPress}
-      className={`flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`button--bare flex ${compact ? "min-h-12 p-3" : "min-h-16 p-4"} items-center gap-3 rounded-xl border text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         selected
           ? "border-primary bg-primary/10"
           : "border-border bg-card hover:border-primary/40"
@@ -85,11 +98,14 @@ function OptionCard({
       >
         <IconCheck size={13} />
       </span>
-    </button>
+    </Button>
   );
 }
 
-// Yes/No segmented control mirroring the mobile radio semantics.
+// Yes/No choice drawn as option cards, like the other steps, so it never
+// reads as the Back/Continue action buttons.
+type YesNoQuestion = "hasPets" | "hasParking" | "hasSmoker" | "hasDisability";
+
 function YesNoField({
   label,
   value,
@@ -97,7 +113,8 @@ function YesNoField({
   icon,
 }: {
   label: string;
-  value: boolean;
+  /** null while the question is unanswered, so neither option is preselected. */
+  value: boolean | null;
   onChange: (value: boolean) => void;
   icon?: ReactNode;
 }) {
@@ -111,22 +128,18 @@ function YesNoField({
         )}
         {label}
       </p>
-      <div className="flex gap-2" role="group" aria-label={label}>
+      <div className="grid grid-cols-2 gap-2.5" role="group" aria-label={label}>
         {[
           { option: true, text: "Yes" },
           { option: false, text: "No" },
         ].map(({ option, text }) => (
-          <Button
+          <OptionCard
             key={text}
-            type="button"
-            size="sm"
-            variant={value === option ? "primary" : "outline"}
-            aria-pressed={value === option}
+            compact
+            label={text}
+            selected={value === option}
             onPress={() => onChange(option)}
-            className="min-h-10 flex-1"
-          >
-            {text}
-          </Button>
+          />
         ))}
       </div>
     </div>
@@ -143,6 +156,19 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
   const [isSaving, setIsSaving] = useState(false);
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
   const [hadSavedPrefs] = useState(() => parseTenantPreferences(initial) !== null);
+  // The Yes/No preferences default to false; this tracks which the tenant has
+  // actually answered so no option is preselected. The last step is optional,
+  // so an unanswered question is saved as No.
+  const [answered, setAnswered] = useState<Record<YesNoQuestion, boolean>>(() => ({
+    hasPets: hadSavedPrefs,
+    hasParking: hadSavedPrefs,
+    hasSmoker: hadSavedPrefs,
+    hasDisability: hadSavedPrefs,
+  }));
+  const answerYesNo = (question: YesNoQuestion, value: boolean, extra?: Partial<TenantPreferences>) => {
+    setAnswered((prev) => ({ ...prev, [question]: true }));
+    patch({ [question]: value, ...extra });
+  };
 
   const patch = (next: Partial<TenantPreferences>) => {
     setPrefs((prev) => ({ ...prev, ...next }));
@@ -165,7 +191,8 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
     });
   };
 
-  const canContinue = step !== 5 || prefs.kindOfPets !== "" || !prefs.hasPets;
+  const petsError = validatePets(prefs);
+  const canContinue = step !== 5 || petsError === null;
 
   const finish = async () => {
     if (isSaving) return;
@@ -258,7 +285,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                 label={option}
                 icon={<IconBed size={19} />}
                 selected={prefs.bedroomCount === option}
-                onPress={() => patch({ bedroomCount: option })}
+                onPress={() =>
+                  patch({ bedroomCount: prefs.bedroomCount === option ? null : option })
+                }
               />
             ))}
           </div>
@@ -272,7 +301,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                 label={option}
                 icon={option === "Single" ? <IconUser size={19} /> : <IconUsers size={19} />}
                 selected={prefs.householdSize === option}
-                onPress={() => patch({ householdSize: option })}
+                onPress={() =>
+                  patch({ householdSize: prefs.householdSize === option ? null : option })
+                }
               />
             ))}
           </div>
@@ -282,44 +313,81 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
           <div className="flex flex-col gap-5">
             <YesNoField
               label="Do you have any pets?"
-              value={prefs.hasPets}
+              icon={<IconPaw size={18} />}
+              value={answered.hasPets ? prefs.hasPets : null}
               onChange={(value) =>
-                patch({
-                  hasPets: value,
-                  kindOfPets: value ? prefs.kindOfPets : "",
+                answerYesNo("hasPets", value, {
+                  kindOfPets: value ? prefs.kindOfPets : [],
+                  noOfPets: value ? prefs.noOfPets : 1,
                   nameOfPets: value ? prefs.nameOfPets : null,
                 })
               }
             />
             {prefs.hasPets && (
+              <div className="flex flex-col gap-1.5">
+                <Select
+                  placeholder="Select the number of pets you have"
+                  value={petCountToOption(prefs.noOfPets)}
+                  onChange={(key) => patch({ noOfPets: key ? optionToPetCount(String(key)) : 1 })}
+                  isInvalid={prefs.kindOfPets.length > 0 && petsError !== null}
+                >
+                  <Label>How many pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox className="settings-select-list">
+                      {PET_COUNT_OPTIONS.map((count) => (
+                        <ListBox.Item key={count} id={count} textValue={count}>
+                          {count}
+                          <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+                {prefs.kindOfPets.length > 0 && petsError && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {petsError}
+                  </p>
+                )}
+              </div>
+            )}
+            {prefs.hasPets && (
               <Select
-                placeholder="Select the kind of pet you have"
-                value={prefs.kindOfPets || null}
-                onChange={(key) => {
-                  const next = key ? String(key) : "";
+                selectionMode="multiple"
+                placeholder="Select the kinds of pets you have"
+                value={prefs.kindOfPets}
+                onChange={(keys) => {
+                  const picked = keys.map(String);
+                  const next = PETS.filter((pet) => picked.includes(pet));
                   patch({
                     kindOfPets: next,
-                    nameOfPets: next === "Other" ? prefs.nameOfPets : null,
+                    // Never fewer pets than kinds: raise the count as kinds are added.
+                    noOfPets: Math.max(prefs.noOfPets || 0, minimumPetCount(next.length)),
+                    nameOfPets: next.includes(OTHER_PET) ? prefs.nameOfPets : null,
                   });
                 }}
               >
-                <Label>If yes, what kind of pet do you have?</Label>
+                <Label>If yes, what kinds of pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
                 </Select.Trigger>
                 <Select.Popover>
-                  <ListBox>
+                  <ListBox className="settings-select-list" selectionMode="multiple">
                     {PETS.map((pet) => (
                       <ListBox.Item key={pet} id={pet} textValue={pet}>
                         {pet}
+                        <ListBox.ItemIndicator />
                       </ListBox.Item>
                     ))}
                   </ListBox>
                 </Select.Popover>
               </Select>
             )}
-            {prefs.hasPets && prefs.kindOfPets === "Other" && (
+            {prefs.hasPets && prefs.kindOfPets.includes(OTHER_PET) && (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pet-name">Please specify the kind of pet you have</Label>
                 <Input
@@ -333,10 +401,9 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
             <YesNoField
               label="Do you need a parking space?"
               icon={<IconCar size={18} />}
-              value={prefs.hasParking}
+              value={answered.hasParking ? prefs.hasParking : null}
               onChange={(value) =>
-                patch({
-                  hasParking: value,
+                answerYesNo("hasParking", value, {
                   noOfParkingSpots: value ? prefs.noOfParkingSpots : 1,
                   listOfVehicles: value ? prefs.listOfVehicles : [],
                 })
@@ -350,16 +417,17 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
                   patch({ noOfParkingSpots: key ? Number(key) : 1 })
                 }
               >
-                <Label>If yes, how many cars or motorcycles do you have?</Label>
+                <Label>If yes, how many cars or motorcycles do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
                 </Select.Trigger>
                 <Select.Popover>
-                  <ListBox>
+                  <ListBox className="settings-select-list">
                     {PARKING_SPOT_OPTIONS.map((count) => (
                       <ListBox.Item key={count} id={count} textValue={count}>
                         {count}
+                        <ListBox.ItemIndicator />
                       </ListBox.Item>
                     ))}
                   </ListBox>
@@ -386,21 +454,21 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
             <YesNoField
               label="Is anyone in your household a smoker?"
               icon={<IconSmoking size={18} />}
-              value={prefs.hasSmoker}
-              onChange={(value) => patch({ hasSmoker: value })}
+              value={answered.hasSmoker ? prefs.hasSmoker : null}
+              onChange={(value) => answerYesNo("hasSmoker", value)}
             />
             <YesNoField
               label="Do you have any household members with a disability?"
               icon={<IconAccessible size={18} />}
-              value={prefs.hasDisability}
-              onChange={(value) => patch({ hasDisability: value })}
+              value={answered.hasDisability ? prefs.hasDisability : null}
+              onChange={(value) => answerYesNo("hasDisability", value)}
             />
           </div>
         )}
       </div>
 
       {/* Pinned to the bottom of the screen so the actions stay in the same place on every step */}
-      <div className="sticky bottom-0 mt-auto flex items-center gap-2 bg-card py-4">
+      <div className="sticky bottom-0 mt-auto flex items-center gap-2 bg-card pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
         {step > 1 ? (
           <Button
             type="button"

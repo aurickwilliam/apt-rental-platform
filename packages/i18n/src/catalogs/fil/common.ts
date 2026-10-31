@@ -19,6 +19,7 @@ export const common: Record<keyof typeof enCommon, string> = {
   "common.yes": "Oo",
   "common.no": "Hindi",
   "common.all": "Lahat",
+  "common.select": "Pumili",
   "common.none": "Wala",
   "common.optional": "Optional",
   "common.required": "Kailangan",

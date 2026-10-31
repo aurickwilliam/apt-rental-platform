@@ -1,7 +1,7 @@
 "use client";
 
 import { IconAlertCircle, IconCircleCheck, IconCircleX, IconClockHour4 } from "@tabler/icons-react";
-import { Card, Table } from "@heroui/react";
+import { Card, Table, Button } from "@heroui/react";
 import { formatPesoDisplay } from "@repo/utils";
 import PaymentMethodChip from "@/app/components/display/PaymentMethodChip";
 import StatusChip from "@/app/components/display/StatusChip";
@@ -113,11 +113,11 @@ export default function PaymentsTable({ payments, showUnit, onOpen }: PaymentsTa
           const status = paymentStatusLabel(payment.status);
           return (
             <li key={payment.id}>
-              <button
-                type="button"
+              <Button
+                variant="ghost"
                 onClick={() => onOpen(payment)}
                 aria-label={`Open receipt: ${periodTitle(payment)}, ${formatPesoDisplay(payment.amount ?? 0)}, ${status}`}
-                className="block w-full cursor-pointer rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-primary"
+                className="button--bare block w-full cursor-pointer rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-primary"
               >
                 <Card className="rounded-2xl border border-border bg-card shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
                   <Card.Header className="px-4 pt-4 pb-1">
@@ -145,7 +145,7 @@ export default function PaymentsTable({ payments, showUnit, onOpen }: PaymentsTa
                     <span className="shrink-0 text-[11px] text-muted-foreground">{formatReferenceId(payment.reference_id)}</span>
                   </Card.Footer>
                 </Card>
-              </button>
+              </Button>
             </li>
           );
         })}

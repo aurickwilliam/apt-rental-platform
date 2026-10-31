@@ -267,7 +267,10 @@ export const authMobile: Record<keyof typeof enAuthMobile, string> = {
     "Punan ang form at piliin ang tamang sagot para ma-curate ang properties na bagay para sa iyo.",
   "authMobile.personalization.hasPetsQuestion": "May alaga ka ba?",
   "authMobile.personalization.petsQuestion":
-    "Kung oo, anong klaseng alaga ang meron ka?",
+    "Kung oo, anong mga klaseng alaga ang meron ka?",
+  "authMobile.personalization.petCountQuestion": "Ilan ang alaga mo?",
+  "authMobile.personalization.petCountSheet": "Piliin ang Bilang ng Alaga",
+  "authMobile.personalization.petCountPlaceholder": "Piliin kung ilan ang alaga mo",
   "authMobile.personalization.hasParkingQuestion":
     "Kailangan mo ba ng parking space?",
   "authMobile.personalization.smokerQuestion":

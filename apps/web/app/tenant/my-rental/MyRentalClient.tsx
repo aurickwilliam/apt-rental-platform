@@ -704,14 +704,14 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
                 }
 
                 return (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={action.label}
-                    type="button"
                     onClick={action.onPress}
-                    className={`${tileClassName} cursor-pointer`}
+                    className={`button--bare ${tileClassName} cursor-pointer`}
                   >
                     {content}
-                  </button>
+                  </Button>
                 );
               })}
             </div>

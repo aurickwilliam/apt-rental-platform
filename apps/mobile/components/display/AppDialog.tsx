@@ -26,7 +26,11 @@ type AppDialogProps = {
   scrollable?: boolean;
   /** Bounds the whole card to the safe viewport; only its body can shrink. */
   fitToViewport?: boolean;
+  /** When false, only the footer actions close it: no close button, backdrop tap, swipe or back press. */
+  dismissible?: boolean;
 };
+
+const IGNORE_OPEN_CHANGE = () => {};
 
 export default function AppDialog({
   isOpen,
@@ -40,6 +44,7 @@ export default function AppDialog({
   footer,
   scrollable = false,
   fitToViewport = false,
+  dismissible = true,
 }: AppDialogProps) {
   const { height } = useWindowDimensions();
   // Existing non-viewport dialogs can also be used outside a SafeAreaProvider.
@@ -73,7 +78,7 @@ export default function AppDialog({
     </View>
   );
   return (
-    <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Dialog isOpen={isOpen} onOpenChange={dismissible ? onOpenChange : IGNORE_OPEN_CHANGE}>
       <Dialog.Portal style={fitToViewport ? {
         paddingTop: insets.top + VIEWPORT_GUTTER,
         paddingBottom: insets.bottom + VIEWPORT_GUTTER,
@@ -83,18 +88,21 @@ export default function AppDialog({
         <Dialog.Overlay className="bg-backdrop items-center justify-center px-6" />
         <Dialog.Content
           className="w-full rounded-3xl bg-surface-secondary p-5"
+          isSwipeable={dismissible}
           style={fitToViewport ? {
             maxHeight: Math.max(0, height - insets.top - insets.bottom - VIEWPORT_GUTTER * 2),
             maxWidth: VIEWPORT_DIALOG_MAX_WIDTH,
             alignSelf: "center",
           } : undefined}
         >
-          <Dialog.Close
-            variant="ghost"
-            accessibilityLabel="Close"
-            className="absolute top-4 right-4 z-50"
-            style={fitToViewport ? { width: CLOSE_TARGET_SIZE, height: CLOSE_TARGET_SIZE, top: 12, right: 12 } : undefined}
-          />
+          {dismissible ? (
+            <Dialog.Close
+              variant="ghost"
+              accessibilityLabel="Close"
+              className="absolute top-4 right-4 z-50"
+              style={fitToViewport ? { width: CLOSE_TARGET_SIZE, height: CLOSE_TARGET_SIZE, top: 12, right: 12 } : undefined}
+            />
+          ) : null}
           {centeredTitle && scrollable ? <View style={{ height: CLOSE_TARGET_SIZE, flexShrink: 0 }} /> : heading}
           {scrollable ? (
             <ScrollView

@@ -1,0 +1,104 @@
+.discover,
+.manage {
+  position: relative;
+  aspect-ratio: 10 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+/* Static angles live below the two animated wrappers, never on Motion's transform. */
+.backLayer,
+.frontLayer {
+  position: absolute;
+}
+.backLayer {
+  top: 7%;
+  left: 3%;
+  width: 94%;
+}
+.frontLayer {
+  right: 3%;
+  bottom: 6%;
+  width: 62%;
+}
+.backAngle,
+.frontAngle {
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 12px 24px -14px rgb(0 0 0 / 28%);
+  transform-origin: center;
+}
+.backAngle {
+  transform: rotate(-2deg);
+}
+.frontAngle {
+  transform: rotate(-2deg);
+}
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* One primary rental dashboard and a quieter chat screen, with no UI overlap. */
+.manageDashboard,
+.manageChat {
+  position: absolute;
+}
+.manageDashboard {
+  top: 4%;
+  left: 10%;
+  width: 39%;
+}
+.manageChat {
+  right: 8%;
+  bottom: 5%;
+  width: 35%;
+}
+
+/* Filter feedback stays inside the existing carousel's cards, with no rail transforms. */
+.featuredCard {
+  opacity: 0;
+  transform: translateY(11px);
+}
+.featured :global([role="button"][aria-label^="View "]) img {
+  transition: filter 220ms ease;
+}
+@media (hover: hover) {
+  .featured :global([role="button"][aria-label^="View "]:hover) img {
+    filter: brightness(1.035);
+  }
+}
+.featured :global([role="button"][aria-label^="View "]:focus-visible) img {
+  filter: brightness(1.035);
+}
+.owner button {
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Override the SSR entrance frame before the preference hook hydrates. */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .featuredCard {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .featured :global([role="button"][aria-label^="View "]) img,
+  .owner button {
+    transition: none;
+  }
+}
+:global(html.apt-reduce-motion) .reveal,
+:global(html.apt-reduce-motion) .featuredCard,
+.reveal:focus-within,
+.featuredCard:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+:global(html.apt-reduce-motion) .featured img,
+:global(html.apt-reduce-motion) .owner button {
+  transition: none;
+}

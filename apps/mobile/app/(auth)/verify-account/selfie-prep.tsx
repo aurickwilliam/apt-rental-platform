@@ -13,8 +13,8 @@ import type { TranslationKey } from '@repo/i18n'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence } from './constants/captureSequences'
-import { getCaptureProgress } from './utils/gating'
+import { getCaptureSequence } from '@/constants/verification/captureSequences'
+import { getCaptureProgress } from '@/utils/verification/gating'
 import { useTranslation } from '@/hooks/i18n'
 
 type GuidelineIcon = typeof IconBulb;

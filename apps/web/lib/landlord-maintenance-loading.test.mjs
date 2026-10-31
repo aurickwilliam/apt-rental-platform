@@ -35,6 +35,7 @@ function load(file, options = {}) {
     },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams, useParams: () => ({ requestId: "request-one" }) },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next/link": { default: "Link" },
     "@heroui/react": { Skeleton: "Skeleton", Card, Table, InputGroup, Dropdown, Button: "Button", Label: "Label", Chip: "Chip", Separator: "Separator", toast: { success: () => {}, danger: () => {} }, useOverlayState: () => ({ isOpen: false, setOpen: options.setOpen ?? (() => {}) }) },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
@@ -152,7 +153,7 @@ test("loaded requests keep search/status/urgency/city filtering and desktop/mobi
   }).default();
   const elements = nodes(tree);
   elements.find(node => node.type === "Table.Content").props.onRowAction(record.id);
-  elements.find(node => node.type === "button").props.onClick();
+  elements.find(node => node.type === "Button" && node.props.className?.includes("button--bare")).props.onClick();
   assert.deepEqual(pushes, ["/landlord/maintenance-requests/request-one", "/landlord/maintenance-requests/request-one"]);
   for (const filters of [["other", "All", "All", "All"], ["", "Resolved", "All", "All"], ["", "All", "low", "All"], ["", "All", "All", "Malabon"]]) {
     assert.ok(text(load("page.tsx", { requests: [record], filters }).default()).includes("No maintenance requests"));
@@ -254,7 +255,7 @@ test("Maintenance failures show unknown statistics and details warm on hover or 
   const elements = nodes(load("page.tsx", { requests: [sampleRequest], prefetch: href => warmed.push(href) }).default());
   elements.find(node => node.type === "Table.Row").props.onMouseEnter();
   elements.find(node => node.type === "section").props.onFocusCapture({ target: { closest: () => ({ dataset: { requestId: sampleRequest.id } }) } });
-  const card = elements.find(node => node.type === "button");
+  const card = elements.find(node => node.type === "Button" && node.props.className?.includes("button--bare"));
   card.props.onMouseEnter(); card.props.onFocus();
   assert.deepEqual(warmed, Array(4).fill("/landlord/maintenance-requests/request-one"));
 });

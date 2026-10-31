@@ -15,11 +15,16 @@ import { DocumentTypeIcon, isImageDocument } from "./documentTypeIcons";
 import { isPdfDocument } from "./PassportDocumentThumbnail";
 
 interface PassportUploadFormProps {
+  portal?: "tenant" | "landlord";
   docType: string;
   isUploading: boolean;
   /** Rejects with a user-facing message; the chosen file is kept for a retry. */
   onSubmit: (input: { file: File; expiresAt: string | null }) => Promise<void>;
   onCancel: () => void;
+  /** Replacing a file reuses this form; the labels and an extra notice change, nothing else. */
+  submitLabel?: string;
+  pendingLabel?: string;
+  notice?: string;
 }
 
 function validateExpiry(value: CalendarDate | null): string | null {
@@ -31,7 +36,16 @@ const LEGAL_NOTICE =
   "By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).";
 
 /** Upload step of the add-document modal; renders the modal body and footer. */
-export default function PassportUploadForm({ docType, isUploading, onSubmit, onCancel }: PassportUploadFormProps) {
+export default function PassportUploadForm({
+  portal = "tenant",
+  docType,
+  isUploading,
+  onSubmit,
+  onCancel,
+  submitLabel = "Add Document",
+  pendingLabel = "Adding…",
+  notice,
+}: PassportUploadFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -78,12 +92,15 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
   return (
     <>
       <Modal.Body className="space-y-5">
+        {notice ? (
+          <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-card-foreground">{notice}</p>
+        ) : null}
         <div className="flex items-start gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
             <DocumentTypeIcon docType={docType} size={20} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">{getDocumentTypeDescription(docType)}</p>
+            <p className="text-sm text-muted-foreground">{getDocumentTypeDescription(docType, portal)}</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconFileInfo size={14} aria-hidden="true" />
               JPG, PNG, WebP, or PDF, up to 5 MB
@@ -110,12 +127,12 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
               onChange={handleFileChange}
               aria-label={`Choose your ${docType} file`}
             />
-            <button
-              type="button"
-              disabled={isUploading}
+            <Button
+              variant="ghost"
+              isDisabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
               aria-label={file ? `Replace ${file.name}` : "Choose a file"}
-              className={`relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
+              className={`button--bare relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                 fileError
                   ? "border-danger text-danger"
                   : file
@@ -145,23 +162,23 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
                   Choose a file
                 </>
               )}
-            </button>
+            </Button>
             {file ? (
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span className="truncate">
                   {file.name} · {(file.size / 1024).toFixed(1)} KB
                 </span>
-                <button
-                  type="button"
-                  disabled={isUploading}
+                <Button
+                  variant="ghost"
+                  isDisabled={isUploading}
                   onClick={() => {
                     setFile(null);
                     setPreviewUrl(null);
                   }}
-                  className="shrink-0 cursor-pointer font-medium text-danger hover:underline"
+                  className="button--bare shrink-0 cursor-pointer font-medium text-danger hover:underline"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             ) : null}
             {fileError ? <p className="text-xs text-danger">{fileError}</p> : null}
@@ -280,7 +297,7 @@ export default function PassportUploadForm({ docType, isUploading, onSubmit, onC
           onPress={() => void handleSubmit()}
         >
           {isUploading ? <Spinner size="sm" color="current" /> : null}
-          {isUploading ? "Adding…" : "Add Document"}
+          {isUploading ? pendingLabel : submitLabel}
         </Button>
       </Modal.Footer>
 

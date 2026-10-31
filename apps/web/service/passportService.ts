@@ -2,8 +2,8 @@
 
 import { createClient } from "@repo/supabase/browser";
 import type { Database } from "@repo/supabase";
-import { DOCUMENT_TYPES, isReviewEligibleDocType } from "@repo/constants";
-import { isExpiredDate } from "@repo/passport";
+import { PASSPORT_UPLOADABLE_DOC_TYPES, isReviewEligibleDocType } from "@repo/constants";
+import { findSupportingDocumentOfType, isExpiredDate } from "@repo/passport";
 
 import { passportUploadContentType, validatePassportUploadFile } from "@/lib/passport-upload";
 
@@ -200,7 +200,7 @@ export async function uploadPassportDocument({
   file,
   expiresAt = null,
 }: UploadPassportDocumentInput): Promise<PassportDocumentRow> {
-  if (!DOCUMENT_TYPES.includes(docType)) {
+  if (!PASSPORT_UPLOADABLE_DOC_TYPES.includes(docType)) {
     throw new Error(
       "This document type is not available for Passport uploads. Choose a supported document or verify your ID through live capture and a selfie.",
     );
@@ -214,6 +214,13 @@ export async function uploadPassportDocument({
   }
 
   const supabase = createClient();
+
+  // One document per type: a second upload is a replacement of the first.
+  const existing = findSupportingDocumentOfType(await fetchPassportDocumentsWithClient(supabase, userId), docType);
+  if (existing) {
+    throw new Error(`You already added a ${docType}. Open it to replace the file.`);
+  }
+
   const path = passportPath(userId, docType, file.name);
 
   const { error: uploadError } = await supabase.storage
@@ -240,6 +247,106 @@ export async function uploadPassportDocument({
     const { error: cleanupError } = await supabase.storage.from(PASSPORT_DOCUMENTS_BUCKET).remove([path]);
     if (cleanupError) console.warn("Cleanup failed for", path, cleanupError.message);
     throw new Error(insertError?.message ?? "Could not save your document. Please try again.");
+  }
+
+  return data as PassportDocumentRow;
+}
+
+export interface ReplacePassportDocumentInput {
+  userId: string;
+  id: string;
+  file: File;
+  expiresAt?: string | null;
+}
+
+/** True when an active rental application still points at this file. */
+async function isReferencedByActiveApplication(
+  supabase: BrowserSupabaseClient,
+  tenantId: string,
+  storagePath: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("rental_application")
+    .select("gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url")
+    .eq("tenant_id", tenantId)
+    .in("status", ACTIVE_APPLICATION_STATUSES);
+  if (error) throw error;
+
+  return (data ?? []).some((application) =>
+    [
+      application.gov_id_url,
+      application.gov_id_back_url,
+      application.proof_of_income_url,
+      application.proof_of_billing_url,
+      application.nbi_clearance_url,
+    ].includes(storagePath),
+  );
+}
+
+/**
+ * Swaps the file of a supporting document. The database resets it to
+ * unverified (any earlier verification or review is cleared), so a verified
+ * badge never moves onto a different file. The replaced file is deleted unless
+ * an active application still references it, so landlords keep their evidence.
+ */
+export async function replacePassportDocument({
+  userId,
+  id,
+  file,
+  expiresAt = null,
+}: ReplacePassportDocumentInput): Promise<PassportDocumentRow> {
+  const fileError = validatePassportUploadFile(file);
+  const contentType = passportUploadContentType(file);
+  if (fileError || !contentType) {
+    throw new Error(fileError ?? "Upload a JPG, PNG, WebP, or PDF file.");
+  }
+
+  const supabase = createClient();
+  const { data: current, error: currentError } = await supabase
+    .from("passport_documents")
+    .select("doc_type, storage_path, is_primary, verification_id")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+
+  if (currentError) throw currentError;
+  if (!current) throw new Error("Document not found.");
+  if (current.is_primary || current.verification_id) {
+    throw new Error("Your ID is managed through account verification and cannot be replaced here.");
+  }
+
+  const path = passportPath(userId, current.doc_type, file.name);
+  const { error: uploadError } = await supabase.storage
+    .from(PASSPORT_DOCUMENTS_BUCKET)
+    .upload(path, file, { contentType });
+  if (uploadError) {
+    throw new Error(`Failed to upload ${current.doc_type}: ${uploadError.message}`);
+  }
+
+  const { data, error: replaceError } = await supabase.rpc("replace_passport_document", {
+    p_document_id: id,
+    p_storage_path: path,
+    p_mime_type: contentType,
+    p_expires_at: expiresAt,
+  });
+
+  if (replaceError || !data) {
+    const { error: cleanupError } = await supabase.storage.from(PASSPORT_DOCUMENTS_BUCKET).remove([path]);
+    if (cleanupError) console.warn("Cleanup failed for", path, cleanupError.message);
+    throw new Error(replaceError?.message ?? "Could not replace your document. Please try again.");
+  }
+
+  try {
+    if (!(await isReferencedByActiveApplication(supabase, userId, current.storage_path))) {
+      const { error: removeError } = await supabase.storage
+        .from(PASSPORT_DOCUMENTS_BUCKET)
+        .remove([current.storage_path]);
+      if (removeError) console.warn("Cleanup failed for", current.storage_path, removeError.message);
+    }
+  } catch (err) {
+    // The swap already succeeded; a leftover file is harmless.
+    console.warn("Could not check the replaced file for cleanup", err);
   }
 
   return data as PassportDocumentRow;

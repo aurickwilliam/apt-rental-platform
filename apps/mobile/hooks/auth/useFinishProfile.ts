@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigation, useRouter } from "expo-router";
-import { usePreventRemove } from "@react-navigation/native";
+import { usePreventRemove } from "expo-router/react-navigation";
 
 import { supabase } from "@repo/supabase";
 import { getProfileSubmitError } from "@repo/utils";

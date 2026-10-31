@@ -27,7 +27,8 @@ import {
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
 import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/app/(tabs)/components/CustomTabBar";
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
+import LandlordVerificationGate from "@/components/landlord/LandlordVerificationGate";
 
 const statusOptions = ["All", ...VALID_APARTMENT_STATUSES];
 
@@ -36,7 +37,7 @@ const locationOptions = [
   ...CAMANAVA_CITIES,
 ];
 
-export default function Units() {
+function Units() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -228,5 +229,13 @@ export default function Units() {
         )}
       </View>
     </ScreenWrapper>
+  );
+}
+
+export default function UnitsScreen() {
+  return (
+    <LandlordVerificationGate>
+      <Units />
+    </LandlordVerificationGate>
   );
 }

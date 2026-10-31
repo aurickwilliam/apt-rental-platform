@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useRouter } from "expo-router";
+
 import { useMemo, useState } from "react";
 
 import { Button, ListGroup, Separator } from "heroui-native";
@@ -23,7 +24,8 @@ import ValidIdCard from "./components/ValidIdCard";
 import { useColors } from "@/hooks/useTheme";
 import { useDocumentUrls } from "@/hooks/applications";
 import { usePassportDocuments } from "@/hooks/passport";
-import { isExpiredDate } from "@repo/passport";
+import { usePortalStore } from "@/stores/usePortalStore";
+import { isExpiredDate, selectSupportingDocuments } from "@repo/passport";
 
 export default function Index() {
   const router = useRouter();
@@ -38,6 +40,7 @@ export default function Index() {
   const [isIdVisible, setIsIdVisible] = useState<boolean>(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isGridView, setIsGridView] = useState(true);
+  const portal = usePortalStore((state) => state.portal);
 
   const verifiedDoc = useMemo(
     () =>
@@ -47,8 +50,8 @@ export default function Index() {
     [documents],
   );
   const supportingDocs = useMemo(
-    () => documents.filter((doc) => doc.id !== verifiedDoc?.id),
-    [documents, verifiedDoc],
+    () => selectSupportingDocuments(documents, portal === "landlord" ? "landlord" : "tenant"),
+    [documents, portal],
   );
 
   const passportEntries = useMemo(

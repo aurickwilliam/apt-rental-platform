@@ -55,6 +55,7 @@ export default function SettingsSelect({
                 {Icon ? <Icon size={16} aria-hidden /> : null}
                 {optionLabel}
               </span>
+              <ListBox.ItemIndicator />
             </ListBox.Item>
           ))}
         </ListBox>

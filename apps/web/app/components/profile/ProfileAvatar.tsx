@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Avatar, Button, Spinner } from "@heroui/react";
 import { IconCamera as Camera } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import { compressAvatarImage, uploadAvatar, validateAvatarFile } from "@/lib/avatar-upload";
 import ProfilePhotoErrorDialog from "./ProfilePhotoErrorDialog";

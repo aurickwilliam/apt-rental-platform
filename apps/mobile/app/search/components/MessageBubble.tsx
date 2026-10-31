@@ -1,79 +1,77 @@
-import { Text, View } from "react-native";
-import { Image } from "expo-image";
-import { formatTime } from "@repo/utils";
+import { ScrollView, Text, View } from "react-native";
 
-import { useColors } from "@/hooks/useTheme";
 import { type AIChatMessage } from "hooks/chat";
-import { IMAGES } from "constants/images";
+import ApartmentCard from "components/cards/ApartmentCard";
 
 import { SuggestionChipFlex } from "./SuggestionChip";
+
+const LISTING_CARD_WIDTH = 200;
 
 interface MessageBubbleProps {
   message: AIChatMessage;
   onQuickReplyPress: (text: string) => void;
+  onListingPress: (apartmentId: string) => void;
+  isFavorite: (apartmentId: string) => boolean;
+  onToggleFavorite: (apartmentId: string) => void;
 }
 
+// The tenant's messages sit in a soft bubble on the right; Ava's replies read
+// as plain full-width text, so the answer and its listings get the room.
 export default function MessageBubble({
   message,
   onQuickReplyPress,
+  onListingPress,
+  isFavorite,
+  onToggleFavorite,
 }: MessageBubbleProps) {
-  const { colors } = useColors();
-  const isUser = message.role === "user";
-
-  return (
-    <View className={`mb-3 ${isUser ? "items-end" : "items-start"}`}>
-      <View className="flex-row items-end max-w-[85%]">
-        {/* AI Avatar */}
-        {!isUser && (
-          <View
-            className="w-8 h-8 rounded-full items-center justify-center mr-2 mb-1 overflow-hidden"
-            style={{ backgroundColor: colors.primary }}
-            accessibilityLabel="APT AI assistant"
-          >
-            <Image
-              source={IMAGES.aiIcon}
-              style={{ width: "100%", height: "100%" }}
-              contentFit="cover"
-            />
-          </View>
-        )}
-
-        {/* Bubble */}
-        <View
-          className={`rounded-3xl px-3 py-2 ${
-            isUser
-              ? "rounded-br-sm bg-accent"
-              : "rounded-bl-sm bg-surface-tertiary"
-          }`}
-        >
-          <Text
-            className={`text-sm font-inter leading-6 ${
-              isUser ? "text-white" : "text-foreground"
-            }`}
-          >
+  if (message.role === "user") {
+    return (
+      <View className="mb-6 items-end">
+        <View className="max-w-[85%] rounded-3xl bg-surface-tertiary px-4 py-2.5">
+          <Text className="text-base font-inter leading-6 text-foreground">
             {message.text}
           </Text>
         </View>
       </View>
+    );
+  }
 
-      {/* Quick replies under assistant message */}
-      {!isUser && message.quickReplies && message.quickReplies.length > 0 && (
-        <View className="ml-10 mt-1">
+  return (
+    <View className="mb-6" accessibilityLabel={`Ava: ${message.text}`}>
+      <Text className="text-base font-inter leading-7 text-foreground" selectable>
+        {message.text}
+      </Text>
+
+      {/* Real listings found with the filters Ava understood */}
+      {message.listings && message.listings.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-3 -mx-4"
+          contentContainerClassName="gap-3 px-4"
+          accessibilityLabel="Matching apartments"
+        >
+          {message.listings.map((listing) => (
+            <ApartmentCard
+              key={listing.id}
+              {...listing}
+              fixedWidth={LISTING_CARD_WIDTH}
+              isFavorite={isFavorite(listing.id)}
+              onPress={() => onListingPress(listing.id)}
+              onPressFavorite={() => onToggleFavorite(listing.id)}
+            />
+          ))}
+        </ScrollView>
+      )}
+
+      {message.quickReplies && message.quickReplies.length > 0 && (
+        <View className="mt-3">
           <SuggestionChipFlex
             suggestions={message.quickReplies}
             onSelect={onQuickReplyPress}
           />
         </View>
       )}
-
-      {/* Timestamp */}
-      <Text
-        className={`text-gray-300 text-xs font-inter mt-1 ${
-          isUser ? "mr-0" : "ml-10"
-        }`}
-      >
-        {formatTime(new Date(message.timestamp))}
-      </Text>
     </View>
   );
 }

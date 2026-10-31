@@ -185,7 +185,7 @@ test("quick action links and button fill the same equal-height grid cells", () =
   assert.match(grid.props.className, /@min-\[44rem\]\/dashboard:grid-cols-4/);
   const tiles = grid.props.children;
   assert.equal(tiles.length, 4);
-  assert.equal(tiles[1].type, "button", "signed lease remains an action rather than navigation");
+  assert.equal(tiles[1].type, "Button", "signed lease remains an action rather than navigation");
   assert.equal(typeof tiles[1].props.onClick, "function");
   assert.equal(tiles[0].props.href, "/tenant/browse/apartment");
   assert.equal(tiles[2].props.href, "/tenant/payment/history");

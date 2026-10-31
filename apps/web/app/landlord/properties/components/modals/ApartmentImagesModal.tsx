@@ -11,7 +11,7 @@ import {
 
 import { IconX as X, IconPhotoPlus as ImagePlus, IconStar as Star } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
 import {
   APARTMENT_IMAGES_BUCKET,

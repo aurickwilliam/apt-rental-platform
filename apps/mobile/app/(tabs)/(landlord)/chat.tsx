@@ -31,7 +31,8 @@ import {
   type ConversationListItem,
 } from '@/service/chat/conversationList'
 import type { ConversationWithMeta } from '@/service/chat/conversationService'
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar'
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar'
+import LandlordVerificationGate from '@/components/landlord/LandlordVerificationGate'
 
 const LIST_HORIZONTAL_PADDING = 20;
 
@@ -53,7 +54,7 @@ const FILTER_EMPTY_STATES: Record<
   },
 };
 
-export default function Chat() {
+function Chat() {
   const router = useRouter();
   const { colors } = useColors();
   const insets = useSafeAreaInsets();
@@ -220,4 +221,12 @@ export default function Chat() {
       <ConversationActionOverlays {...overlays} />
     </ScreenWrapper>
   )
+}
+
+export default function ChatScreen() {
+  return (
+    <LandlordVerificationGate>
+      <Chat />
+    </LandlordVerificationGate>
+  );
 }

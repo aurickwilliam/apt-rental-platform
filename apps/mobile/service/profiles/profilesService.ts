@@ -153,6 +153,8 @@ export type PastApartment = {
   leaseEndMonth: string;
   leaseEndYear: string;
   thumbnailUrl: string;
+  /** Internal users.id of the stay's landlord; the viewer may rate only their own stays. */
+  landlordId: string | null;
 };
 
 export type PublicTenantProfileResult = {
@@ -223,6 +225,7 @@ export async function fetchPublicTenantProfile(
         id,
         lease_start,
         lease_end,
+        landlord_id,
         apartment:apartments!tenancies_apartment_id_fkey (
           id,
           name,
@@ -239,6 +242,7 @@ export async function fetchPublicTenantProfile(
       id: string;
       lease_start: string | null;
       lease_end: string | null;
+      landlord_id: string | null;
       apartment: {
         id: string;
         name: string;
@@ -265,6 +269,7 @@ export async function fetchPublicTenantProfile(
         leaseEndMonth: formatMonth(t.lease_end),
         leaseEndYear: formatYear(t.lease_end),
         thumbnailUrl,
+        landlordId: t.landlord_id,
       };
     });
 

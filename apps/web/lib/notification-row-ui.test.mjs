@@ -10,6 +10,7 @@ const jsx = (type, props) => ({ type, props });
 const exports = {};
 const modules = {
   "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+  "@heroui/react": { Button: "Button" },
   "@tabler/icons-react": new Proxy({}, { get: (_, name) => String(name) }),
   "@repo/utils": { ...rowHelpers, getNotificationPreview, getRelativeTime: () => "Yesterday at 7:51 PM" },
 };
@@ -31,8 +32,8 @@ const notification = {
 
 test("message row has an inline semibold identity, regular action, quoted preview and semantic time", () => {
   const tree = NotificationRow({ notification, onOpen: () => {} });
-  assert.equal(tree.type, "button");
-  assert.equal(tree.props.type, "button");
+  assert.equal(tree.type, "Button");
+  assert.match(tree.props.className, /button--bare/);
   assert.match(text(tree), /Mhart Aaron sent you a message“Hello”Yesterday at 7:51 PM/);
   const name = nodes(tree).find(n => n.type === "span" && n.props.className?.includes("font-semibold"));
   assert.equal(text(name), "Mhart Aaron");
@@ -96,7 +97,7 @@ test("every event uses the same title/description/time hierarchy for historical 
           created_at: historical ? "2024-01-01T00:00:00Z" : notification.created_at };
         const tree = NotificationRow({ notification: row, onOpen: () => { opened++; } });
         const all = nodes(tree);
-        assert.equal(tree.props.className, "notification-feed-row");
+        assert.equal(tree.props.className, "button--bare notification-feed-row");
         assert.equal(all.filter(n => n.props?.className === "notification-feed-icon").length, 1);
         assert.equal(all.filter(n => n.props?.className === "notification-feed-primary").length, 1);
         assert.equal(all.filter(n => n.props?.className?.includes("notification-feed-preview")).length, 1);

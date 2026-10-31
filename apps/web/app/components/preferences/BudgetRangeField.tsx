@@ -2,18 +2,24 @@
 
 import { useImperativeHandle, useState, forwardRef } from "react";
 import type { ReactNode } from "react";
-import { InputGroup, Label } from "@heroui/react";
+import { InputGroup, Label, Button } from "@heroui/react";
 import { IconCheck } from "@tabler/icons-react";
 
 import {
   BUDGET_CUSTOM_ID,
   BUDGET_PRESETS,
+  PREFERENCE_BUDGET_MAX,
+  PREFERENCE_BUDGET_MIN,
   matchBudgetPreset,
   orderBudgetRange,
   parseBudgetDraftAmount,
 } from "@/lib/tenant-preferences";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import SettingsSelect from "../settings/SettingsSelect";
+
+// Marks a card choice the user cleared on purpose, so the saved values
+// are not used to pick a card again.
+const BUDGET_NONE_ID = "none";
 
 // Selectable option card shared by the onboarding wizard and the Settings
 // rental-preferences editor. Native button semantics keep keyboard
@@ -32,11 +38,11 @@ export function PreferenceOptionCard({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-pressed={selected}
       onClick={onPress}
-      className={`flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`button--bare flex min-h-16 items-center gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         selected
           ? "border-primary bg-primary/10"
           : "border-border bg-card hover:border-primary/40"
@@ -56,7 +62,7 @@ export function PreferenceOptionCard({
       >
         <IconCheck size={13} />
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -96,7 +102,8 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
     ref,
   ) {
     const { t } = useTranslation();
-    // Explicit budget-card choice. Null means "follow the values".
+    // Explicit budget-card choice. Null means "follow the values";
+    // BUDGET_NONE_ID means the user cleared the choice.
     const [budgetSel, setBudgetSel] = useState<string | null>(null);
     const [hadSavedPrefs] = useState(resolveInitialSelection);
     // Text drafts for the budget inputs. Null means "follow the committed
@@ -134,7 +141,9 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
     useImperativeHandle(ref, () => ({ commit: commitBudgetDrafts }));
 
     const budgetSelection =
-      budgetSel ?? (hadSavedPrefs ? (matchBudgetPreset(budgetMin, budgetMax) ?? BUDGET_CUSTOM_ID) : null);
+      budgetSel === BUDGET_NONE_ID
+        ? null
+        : (budgetSel ?? (hadSavedPrefs ? (matchBudgetPreset(budgetMin, budgetMax) ?? BUDGET_CUSTOM_ID) : null));
     const showCustomInputs = budgetSelection === BUDGET_CUSTOM_ID;
 
     const selectBudgetPreset = (preset: { id: string; min: number; max: number }): void => {
@@ -143,6 +152,16 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
       setBudgetError(null);
       setBudgetSel(preset.id);
       onRangeChange(preset.min, preset.max);
+    };
+
+    // Tapping the selected card clears it and returns the budget to the
+    // full range, which is how "no budget preference" is stored.
+    const clearBudgetSelection = (): void => {
+      setMinDraft(null);
+      setMaxDraft(null);
+      setBudgetError(null);
+      setBudgetSel(BUDGET_NONE_ID);
+      onRangeChange(PREFERENCE_BUDGET_MIN, PREFERENCE_BUDGET_MAX);
     };
 
     const customInputs = (
@@ -256,7 +275,9 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
               key={preset.id}
               label={preset.label}
               selected={budgetSelection === preset.id}
-              onPress={() => selectBudgetPreset(preset)}
+              onPress={() =>
+                budgetSelection === preset.id ? clearBudgetSelection() : selectBudgetPreset(preset)
+              }
               className={`cursor-pointer ${
                 budgetSelection === preset.id
                   ? "hover:bg-primary/15 active:bg-primary/20"
@@ -274,6 +295,10 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
                   : "hover:bg-primary/5 active:bg-primary/10"
               }`}
               onPress={() => {
+                if (budgetSelection === BUDGET_CUSTOM_ID) {
+                  clearBudgetSelection();
+                  return;
+                }
                 setMinDraft(null);
                 setMaxDraft(null);
                 setBudgetError(null);

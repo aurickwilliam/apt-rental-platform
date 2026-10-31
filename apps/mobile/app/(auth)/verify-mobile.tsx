@@ -6,6 +6,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
+import { PH_MOBILE_MAX_INPUT_LENGTH } from "@repo/constants";
 import { usePHMobileValidation } from "@repo/hooks";
 
 import { useRegistrationStore } from "@/stores/useRegistrationStore";
@@ -101,10 +102,11 @@ export default function VerifyMobile() {
           <TextField isRequired isInvalid={!!validation.errorMessage}>
             <Label>{t("authMobile.mobileLabel")}</Label>
             <Input
-              placeholder="09XXXXXXXXX"
+              placeholder="09XX XXX XXXX"
+              keyboardType="phone-pad"
               value={mobileNumber}
               onChangeText={onChange}
-              maxLength={11}
+              maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
             />
             {validation.errorMessage && (
               <FieldError>{validation.errorMessage}</FieldError>

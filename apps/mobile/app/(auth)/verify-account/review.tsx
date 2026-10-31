@@ -16,8 +16,8 @@ import ConfirmDialog from '@/components/display/ConfirmDialog'
 import { useColors } from '@/hooks/useTheme'
 import { buildVerificationInput, useSubmitSessionVerification, useSubmitVerification } from '@/hooks/verification'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { getCaptureSequence, SELFIE_STEP } from './constants/captureSequences'
-import { getCaptureProgress } from './utils/gating'
+import { getCaptureSequence, SELFIE_STEP } from '@/constants/verification/captureSequences'
+import { getCaptureProgress } from '@/utils/verification/gating'
 import { useTranslation } from '@/hooks/i18n'
 
 export default function Review() {

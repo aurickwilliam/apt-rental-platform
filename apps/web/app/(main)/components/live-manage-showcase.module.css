@@ -1,0 +1,86 @@
+.panel {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin-inline: auto;
+  aspect-ratio: 1;
+  /* Let the entering frames and their soft shadows travel without cropping. */
+  overflow: visible;
+  isolation: isolate;
+  border-radius: var(--radius-2xl);
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 12% 2% 6%;
+  z-index: -1;
+  border-radius: var(--radius-2xl);
+  background: var(--secondary);
+  pointer-events: none;
+}
+
+.dashboard,
+.chat {
+  position: absolute;
+}
+.dashboard {
+  z-index: 1;
+  top: 3%;
+  left: 9%;
+  width: 44%;
+}
+.chat {
+  z-index: 2;
+  top: 18%;
+  left: 51%;
+  width: 35%;
+}
+
+/* Permanent angles never share Motion's translation/scale transform. */
+.pixelAngle {
+  transform: rotate(-3deg);
+}
+.iphoneAngle {
+  transform: rotate(4deg);
+}
+.phone {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* One low-opacity cast shadow; retain the original frame's bevel and shading. */
+  filter: drop-shadow(0 10px 12px rgb(0 0 0 / 12%));
+}
+
+@media (max-width: 639px) {
+  .pixelAngle {
+    transform: rotate(-2deg);
+  }
+  .iphoneAngle {
+    transform: rotate(2deg);
+  }
+}
+
+/* Match the first scroll frame in SSR: no visible-then-hidden hydration flash. */
+@media (min-width: 1024px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .dashboard {
+    opacity: 0;
+    transform: translate(-16px, 32px) scale(0.98);
+  }
+  .chat {
+    opacity: 0;
+    transform: translate(18px, 36px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard,
+  .chat {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+:global(html.apt-reduce-motion) .dashboard,
+:global(html.apt-reduce-motion) .chat {
+  opacity: 1 !important;
+  transform: none !important;
+}

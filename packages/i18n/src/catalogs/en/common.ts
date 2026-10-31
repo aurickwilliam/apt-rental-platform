@@ -20,6 +20,7 @@ export const common = {
   "common.yes": "Yes",
   "common.no": "No",
   "common.all": "All",
+  "common.select": "Select",
   "common.none": "None",
   "common.optional": "Optional",
   "common.required": "Required",

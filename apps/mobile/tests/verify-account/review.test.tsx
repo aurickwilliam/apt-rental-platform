@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Review from '@/app/(auth)/verify-account/review';
-import { CARD_ASPECT_RATIO } from '@/app/(auth)/verify-account/constants/captureSequences';
+import { CARD_ASPECT_RATIO } from '@/constants/verification/captureSequences';
 import { initialVerificationState, useVerificationStore } from '@/stores/useVerificationStore';
 
 jest.mock('@/hooks/useTheme', () => ({

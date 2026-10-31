@@ -1,0 +1,413 @@
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+
+import {
+  APARTMENT_TYPES,
+  CAMANAVA_FILTER_OPTIONS,
+  FLOOR_LEVELS,
+  FURNISHED_TYPES,
+  LEASE_DURATIONS,
+} from "@repo/constants";
+import { supabase } from "@repo/supabase";
+
+import { useFavorites } from "@/hooks/favorites";
+import { loadSearchPreference, saveSearchPreference } from "@/service/search/searchPreference";
+import {
+  APARTMENT_CARD_SELECT,
+  toApartmentCards,
+  type ApartmentCardRow,
+} from "@/service/search/apartmentCards";
+
+import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
+import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
+
+const CITIES = [...CAMANAVA_FILTER_OPTIONS];
+const PAGE_SIZE = 10;
+
+const MIN_BUDGET = 1000;
+const MAX_BUDGET = 50000;
+const MIN_SIZE = 10;
+const MAX_SIZE = 300;
+
+type UseSearchLogicParams = {
+  initialCity?: string;
+};
+
+export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
+  const [apartments, setApartments] = useState<ApartmentCardProps[]>([]);
+  const [selectedCity, setSelectedCity] = useState<string>(initialCity ?? CITIES[0]);
+  const [prevInitialCity, setPrevInitialCity] = useState(initialCity);
+  if (initialCity !== prevInitialCity) {
+    setPrevInitialCity(initialCity);
+    if (initialCity && initialCity !== CITIES[0] && selectedCity === CITIES[0]) {
+      setSelectedCity(initialCity);
+    }
+  }
+  const [searchDraft, setSearchDraft] = useState<string>("");
+
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterState | null>(null);
+  const [resultCount, setResultCount] = useState<number | undefined>(undefined);
+  const [committedSearch, setCommittedSearch] = useState("");
+  const [isGridView, setIsGridView] = useState<boolean>(true);
+  const [hydrated, setHydrated] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const pageRef = useRef(0);
+
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const openFilterSheet = useCallback(() => setIsFilterSheetOpen(true), []);
+
+  const commitSearch = useCallback((draft: string) => {
+    setCommittedSearch(draft.trim());
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearchDraft("");
+    setCommittedSearch("");
+  }, []);
+
+  const buildQuery = (
+    from: number,
+    to: number,
+    city: string,
+    activeFilters: FilterState | null,
+    search: string,
+  ) => {
+    let query = supabase
+      .from("apartments")
+      .select(APARTMENT_CARD_SELECT, { count: "estimated" })
+      .is("deleted_at", null)
+      .eq("is_hidden_by_admin", false)
+      .in("status", ["available", "unverified"])
+      .range(from, to);
+
+    if (search.trim()) {
+      query = query.or(
+        `name.ilike.%${search.trim()}%,barangay.ilike.%${search.trim()}%,city.ilike.%${search.trim()}%`,
+      );
+    }
+
+    if (city !== "CAMANAVA") {
+      query = query.eq("city", city);
+    }
+
+    if (activeFilters) {
+      if (activeFilters.verifiedOnly) {
+        query = query.eq("is_verified", true);
+      }
+
+      if (activeFilters.budget[0] > MIN_BUDGET) {
+        query = query.gte("monthly_rent", activeFilters.budget[0]);
+      }
+      if (activeFilters.budget[1] < MAX_BUDGET) {
+        query = query.lte("monthly_rent", activeFilters.budget[1]);
+      }
+
+      if (
+        activeFilters.unitTypes.length > 0 &&
+        activeFilters.unitTypes.length < APARTMENT_TYPES.length
+      ) {
+        query = query.in("type", activeFilters.unitTypes);
+      }
+
+      if (activeFilters.bedrooms !== "Any") {
+        if (activeFilters.bedrooms === "4+") {
+          query = query.gte("no_bedrooms", 4);
+        } else {
+          query = query.eq("no_bedrooms", Number(activeFilters.bedrooms));
+        }
+      }
+
+      if (activeFilters.bathrooms !== "Any") {
+        if (activeFilters.bathrooms === "4+") {
+          query = query.gte("no_bathrooms", 4);
+        } else {
+          query = query.eq("no_bathrooms", Number(activeFilters.bathrooms));
+        }
+      }
+
+      if (activeFilters.sizeRange[0] > MIN_SIZE) {
+        query = query.gte("area_sqm", activeFilters.sizeRange[0]);
+      }
+      if (activeFilters.sizeRange[1] < MAX_SIZE) {
+        query = query.lte("area_sqm", activeFilters.sizeRange[1]);
+      }
+
+      if (
+        activeFilters.furnishing.length > 0 &&
+        activeFilters.furnishing.length < FURNISHED_TYPES.length
+      ) {
+        query = query.in("furnished_type", activeFilters.furnishing);
+      }
+
+      if (
+        activeFilters.floorLevel.length > 0 &&
+        activeFilters.floorLevel.length < FLOOR_LEVELS.length
+      ) {
+        query = query.in("floor_level", activeFilters.floorLevel);
+      }
+
+      if (
+        activeFilters.leaseDuration.length > 0 &&
+        activeFilters.leaseDuration.length < LEASE_DURATIONS.length
+      ) {
+        query = query.in("lease_duration", activeFilters.leaseDuration);
+      }
+
+      if (activeFilters.amenities.length > 0) {
+        query = query.contains("amenities", activeFilters.amenities);
+      }
+
+      switch (activeFilters.sortBy) {
+        case "price_asc":
+          query = query
+            .order("monthly_rent", { ascending: true })
+            .order("id", { ascending: true });
+          break;
+        case "price_desc":
+          query = query
+            .order("monthly_rent", { ascending: false })
+            .order("id", { ascending: true });
+          break;
+        case "most_popular":
+          query = query
+            .order("average_rating", { ascending: false })
+            .order("id", { ascending: true });
+          break;
+        case "newest":
+        default:
+          query = query
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true });
+          break;
+      }
+    } else {
+      query = query
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true });
+    }
+
+    return query;
+  };
+
+  const transformData = (data: ApartmentCardRow[]): ApartmentCardProps[] =>
+    toApartmentCards(data);
+
+  const fetchApartments = useCallback(
+    async (isRefresh = false, activeFilters: FilterState | null = filters) => {
+      try {
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
+        setError(null);
+        pageRef.current = 0;
+
+        const {
+          data,
+          error: supabaseError,
+          count,
+        } = await buildQuery(
+          0,
+          PAGE_SIZE - 1,
+          selectedCity,
+          activeFilters,
+          committedSearch,
+        );
+        if (supabaseError) throw supabaseError;
+
+        const transformed = transformData(data ?? []);
+        setApartments(transformed);
+        setResultCount(count ?? 0);
+        setHasMore(transformed.length === PAGE_SIZE);
+      } catch (err: any) {
+        console.error("Error fetching apartments:", err);
+        setError(err?.message ?? "Something went wrong.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [selectedCity, filters, committedSearch],
+  );
+
+  const loadMore = useCallback(async () => {
+    // An empty list fires onEndReached right away; paging from offset 10 then
+    // fails with PGRST103, so only page once a first page has loaded.
+    if (loadingMore || loading || refreshing || !hasMore || apartments.length === 0) {
+      return;
+    }
+    try {
+      setLoadingMore(true);
+      const nextPage = pageRef.current + 1;
+      const from = nextPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error: supabaseError } = await buildQuery(
+        from,
+        to,
+        selectedCity,
+        filters,
+        committedSearch,
+      );
+      if (supabaseError) throw supabaseError;
+
+      const transformed = transformData(data ?? []);
+      if (transformed.length === 0) {
+        setHasMore(false);
+      } else {
+        setApartments((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newItems = transformed.filter((t) => !existingIds.has(t.id));
+          return [...prev, ...newItems];
+        });
+        pageRef.current = nextPage;
+        setHasMore(transformed.length === PAGE_SIZE);
+      }
+    } catch (err: any) {
+      // PGRST103: the requested range starts past the last row, i.e. the end.
+      if (err?.code === "PGRST103") {
+        setHasMore(false);
+      } else {
+        console.error("Error loading more:", err);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [
+    loadingMore,
+    loading,
+    refreshing,
+    hasMore,
+    apartments.length,
+    selectedCity,
+    filters,
+    committedSearch,
+  ]);
+
+  // Restore the account's last browse inputs once on mount. The initial
+  // fetch is gated on hydration so defaults never flash a throwaway query.
+  useEffect(() => {
+    let cancelled = false;
+    void loadSearchPreference().then((saved) => {
+      if (cancelled) return;
+      if (saved) {
+        setSelectedCity(saved.city);
+        setCommittedSearch(saved.committedSearch);
+        setFilters(saved.filters);
+        setIsGridView(saved.isGridView);
+      }
+      setHydrated(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const load = async () => {
+      await fetchApartments();
+    };
+    void load();
+  }, [fetchApartments, committedSearch, hydrated]);
+
+  const handleApplyFilters = useCallback(
+    (newFilters: FilterState) => {
+      setFilters(newFilters);
+      fetchApartments(false, newFilters);
+    },
+    [fetchApartments],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setFilters(null);
+    fetchApartments(false, null);
+  }, [fetchApartments]);
+
+  // Persist only browse inputs (never results), scoped to the current
+  // account. Draft keystrokes are excluded — only committed state saves.
+  useEffect(() => {
+    if (!hydrated) return;
+    void saveSearchPreference({
+      city: selectedCity,
+      committedSearch,
+      filters,
+      isGridView,
+    });
+  }, [hydrated, selectedCity, committedSearch, filters, isGridView]);
+
+  const activeFilterCount = useMemo(() => {
+    if (!filters) return 0;
+    let count = 0;
+
+    if (filters.verifiedOnly) count++;
+    if (filters.budget[0] > MIN_BUDGET || filters.budget[1] < MAX_BUDGET)
+      count++;
+    if (
+      filters.unitTypes.length > 0 &&
+      filters.unitTypes.length < APARTMENT_TYPES.length
+    )
+      count++;
+    if (filters.bedrooms !== "Any") count++;
+    if (filters.bathrooms !== "Any") count++;
+    if (filters.sizeRange[0] > MIN_SIZE || filters.sizeRange[1] < MAX_SIZE)
+      count++;
+    if (
+      filters.furnishing.length > 0 &&
+      filters.furnishing.length < FURNISHED_TYPES.length
+    )
+      count++;
+    if (
+      filters.floorLevel.length > 0 &&
+      filters.floorLevel.length < FLOOR_LEVELS.length
+    )
+      count++;
+    if (
+      filters.leaseDuration.length > 0 &&
+      filters.leaseDuration.length < LEASE_DURATIONS.length
+    )
+      count++;
+    if (filters.sortBy !== "newest") count++;
+    if (filters.amenities.length > 0) count++;
+
+    return count;
+  }, [filters]);
+
+  const handleToggleFavorite = useCallback(
+    (id: string) => toggleFavorite(id),
+    [toggleFavorite],
+  );
+
+  return {
+    apartments,
+    activeFilterCount,
+    cities: CITIES,
+    committedSearch,
+    commitSearch,
+    clearSearch,
+    error,
+    fetchApartments,
+    filters,
+    isFilterSheetOpen,
+    setIsFilterSheetOpen,
+    openFilterSheet,
+    handleApplyFilters,
+    handleClearFilters,
+    handleToggleFavorite,
+    isFavorite,
+    isGridView,
+    loading,
+    loadingMore,
+    loadMore,
+    refreshing,
+    resultCount,
+    searchDraft,
+    selectedCity,
+    setIsGridView,
+    setSearchDraft,
+    setSelectedCity,
+  };
+}

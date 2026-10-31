@@ -52,13 +52,13 @@ export default function Footer() {
               <Link href="/help" className="text-base font-medium text-white/80 hover:text-white">
                 Help Center
               </Link>
-              <Link href="/contact" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
                 Contact Us
               </Link>
               <Link href="/safety" className="text-base font-medium text-white/80 hover:text-white">
                 Safety & Security
               </Link>
-              <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
                 FAQ
               </Link>
             </Accordion.Body>
@@ -113,13 +113,13 @@ export default function Footer() {
           <Link href="/help" className="text-base font-medium text-white/80 hover:text-white">
             Help Center
           </Link>
-          <Link href="/contact" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
             Contact Us
           </Link>
           <Link href="/safety" className="text-base font-medium text-white/80 hover:text-white">
             Safety & Security
           </Link>
-          <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
             FAQ
           </Link>
         </div>
@@ -210,7 +210,7 @@ export default function Footer() {
             src="/logo/logo-name.svg"
             alt="APT Rental Platform Logo"
             width={120}
-            height={40}
+            height={56}
           />
 
           <div>

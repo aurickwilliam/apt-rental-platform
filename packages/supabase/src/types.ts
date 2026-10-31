@@ -1342,6 +1342,80 @@ export type Database = {
           },
         ]
       }
+      tenant_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          hidden_at: string | null
+          hidden_by: string | null
+          hidden_reason: string | null
+          id: string
+          is_hidden_by_admin: boolean
+          landlord_id: string
+          rating: number
+          tenancy_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
+          id?: string
+          is_hidden_by_admin?: boolean
+          landlord_id: string
+          rating: number
+          tenancy_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
+          id?: string
+          is_hidden_by_admin?: boolean
+          landlord_id?: string
+          rating?: number
+          tenancy_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_reviews_hidden_by_fkey"
+            columns: ["hidden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_reviews_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_reviews_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: true
+            referencedRelation: "tenancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -1915,6 +1989,37 @@ export type Database = {
       }
       confirm_landlord_finance_month: { Args: { p_month: string; p_apartment_id?: string }; Returns: undefined }
       get_tenancy_bill: { Args: { p_tenancy_id: string }; Returns: Json }
+      get_landlord_ownership_documents: {
+        Args: { p_landlord_id: string }
+        Returns: { doc_type: string; is_verified: boolean }[]
+      }
+      get_verified_landlord_ids: {
+        Args: { p_landlord_ids: string[] }
+        Returns: string[]
+      }
+      get_tenant_reviews: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          apartment_name: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          is_mine: boolean
+          landlord_avatar_url: string | null
+          landlord_first_name: string | null
+          landlord_id: string
+          landlord_last_name: string | null
+          lease_end: string | null
+          lease_start: string | null
+          rating: number
+          tenancy_id: string
+          updated_at: string | null
+        }[]
+      }
+      admin_set_tenant_review_hidden: {
+        Args: { p_hide: boolean; p_reason?: string; p_review_id: string }
+        Returns: undefined
+      }
       get_my_suspension_status: { Args: never; Returns: Json }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
       get_portal_conversations: {
@@ -1996,11 +2101,43 @@ export type Database = {
         Args: { p_path: string; p_tenancy_id: string }
         Returns: undefined
       }
+      submit_tenant_review: {
+        Args: { p_comment?: string; p_rating: number; p_tenancy_id: string }
+        Returns: string
+      }
       sync_my_profile_email: { Args: never; Returns: undefined }
       unblock_user: { Args: { p_user_id: string }; Returns: undefined }
       validate_camanava_location: {
         Args: { p_city: string; p_latitude: number; p_longitude: number }
         Returns: boolean
+      }
+      replace_passport_document: {
+        Args: {
+          p_document_id: string
+          p_expires_at: string | null
+          p_mime_type: string
+          p_storage_path: string
+        }
+        Returns: {
+          created_at: string
+          doc_type: string
+          expires_at: string | null
+          id: string
+          id_type: string | null
+          is_primary: boolean
+          is_verified: boolean
+          mime_type: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          storage_path: string
+          storage_path_back: string | null
+          updated_at: string | null
+          user_id: string
+          verification_id: string | null
+        }
       }
       waive_maintenance_fee: {
         Args: { p_request_id: string }
