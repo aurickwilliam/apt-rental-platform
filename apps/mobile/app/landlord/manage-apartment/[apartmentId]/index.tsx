@@ -43,6 +43,8 @@ export default function Index() {
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
+  // Set once the lease has ended, so the landlord can rate the tenant who just left.
+  const [tenantToRate, setTenantToRate] = useState<{ id: string; name: string } | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
@@ -75,6 +77,7 @@ export default function Index() {
         .eq('id', apartmentId)
 
       setIsVacateDialogOpen(false)
+      if (tenant) setTenantToRate({ id: tenant.id, name: tenant.fullName })
       refetch()
       if (profile?.id) {
         void queryClient.invalidateQueries({
@@ -90,6 +93,15 @@ export default function Index() {
       console.error('Error vacating unit:', err)
       setIsVacateDialogOpen(false)
     }
+  }
+
+  const handleRateFormerTenant = () => {
+    if (!tenantToRate) return
+    router.push({
+      pathname: '/profile/tenant/[tenantId]',
+      params: { tenantId: tenantToRate.id, apartmentId },
+    })
+    setTenantToRate(null)
   }
 
   const handleRemoveUnit = async () => {
@@ -388,6 +400,19 @@ export default function Index() {
         description="Are you sure you want to mark this unit as vacant? The current tenant's lease will be ended and the unit will be listed as available."
         confirmLabel="Vacate"
         onConfirm={handleConfirmVacate}
+      />
+
+      <ConfirmDialog
+        isOpen={tenantToRate !== null}
+        onOpenChange={(open) => {
+          if (!open) setTenantToRate(null)
+        }}
+        title="Rate your tenant?"
+        description={`The lease has ended. You can now rate ${tenantToRate?.name ?? 'your tenant'} from their profile.`}
+        confirmLabel="Rate Tenant"
+        confirmVariant="primary"
+        cancelLabel="Maybe later"
+        onConfirm={handleRateFormerTenant}
       />
     </View>
   );

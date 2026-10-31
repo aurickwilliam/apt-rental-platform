@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import { Avatar, Card } from 'heroui-native'
@@ -16,6 +16,8 @@ interface RatingCardProps {
   /** Apartment the reviewer rented; shown as "Stayed at …" before the stay length. */
   apartmentName?: string
   images?: string[]
+  /** Optional action row under the review, e.g. a report button. */
+  footer?: ReactNode
 }
 
 const REVIEW_CHAR_LIMIT = 150
@@ -30,6 +32,7 @@ export default function RatingCard({
   durationOfStay,
   apartmentName,
   images,
+  footer,
 }: RatingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -87,9 +90,11 @@ export default function RatingCard({
 
           {/* Review Text */}
           <View>
-            <Text className='text-foreground text-sm font-inter'>
-              {displayedReview}
-            </Text>
+            {displayedReview ? (
+              <Text className='text-foreground text-sm font-inter'>
+                {displayedReview}
+              </Text>
+            ) : null}
             {isLongReview && (
               <Pressable
                 onPress={() => setIsExpanded((prev) => !prev)}
@@ -142,6 +147,8 @@ export default function RatingCard({
               </Text>
             </View>
           )}
+
+          {footer}
         </Card.Body>
       </Card>
 

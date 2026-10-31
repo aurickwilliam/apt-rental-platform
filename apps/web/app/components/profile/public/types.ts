@@ -41,6 +41,8 @@ export interface PublicProfileReview {
   apartmentName: string | null;
   /** Stay range; only read for signed-in viewers (anonymous readers cannot join tenancies). */
   stayPeriod?: string;
+  /** True when the signed-in viewer wrote this review (tenant ratings only). */
+  isMine?: boolean;
 }
 
 export interface LandlordProfileData {
@@ -91,6 +93,10 @@ export interface PublicProfilePastStay {
   durationLabel: string | null;
   landlord: { id: string; name: string } | null;
   thumbnailUrl: string;
+  /** True when the viewing landlord owned this stay and may rate the tenant for it. */
+  canRate: boolean;
+  /** The viewing landlord's own rating for this stay, when they left one. */
+  myReview: { rating: number; comment: string | null } | null;
 }
 
 export interface TenantProfileData {
@@ -101,4 +107,9 @@ export interface TenantProfileData {
   verifiedDocuments: VerifiedPassportSlot[];
   stayHistory: StayHistorySummary;
   pastStays: PublicProfilePastStay[];
+  /** Mean of the landlord ratings of this tenant (null when none are visible). */
+  landlordRating: number | null;
+  landlordRatingCount: number;
+  /** Ratings landlords left for this tenant, newest first. */
+  landlordReviews: PublicProfileReview[];
 }

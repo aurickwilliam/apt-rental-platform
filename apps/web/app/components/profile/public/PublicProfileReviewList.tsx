@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { formatReviewStayLabel } from "@repo/utils";
 
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
@@ -13,6 +15,8 @@ interface PublicProfileReviewListProps {
    * paginated page, which describes its own range beside the sort control.
    */
   note?: string | null;
+  /** Optional action under each review (for example a report button). */
+  renderFooter?: (review: PublicProfileReview) => ReactNode;
 }
 
 const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
@@ -28,6 +32,7 @@ export default function PublicProfileReviewList({
   reviews,
   reviewCount,
   note,
+  renderFooter,
 }: PublicProfileReviewListProps) {
   const noteText =
     note === undefined
@@ -49,6 +54,7 @@ export default function PublicProfileReviewList({
             stayPeriod={formatReviewStayLabel(review.apartmentName, review.stayPeriod)}
             rating={review.rating}
             images={review.images}
+            footer={renderFooter?.(review)}
           />
         ))}
       </div>

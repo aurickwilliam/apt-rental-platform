@@ -3,6 +3,7 @@ import "server-only";
 import { getVerifiedPassportSlots, type PassportSlotDocument } from "@repo/passport";
 import { sortLandlordOwnershipDocuments } from "@repo/constants";
 import { createClient } from "@repo/supabase/server";
+import { summarizeTenantReviews, toTenantReviewRecords } from "@repo/utils";
 
 import { fetchLandlordOwnershipDocuments } from "@/lib/verified-landlord";
 import { apartmentReviewSelect } from "@/lib/apartment-review-query";
@@ -14,11 +15,13 @@ import {
   clampProfileReviewPage,
   coveredCities,
   formatStayRange,
+  ownTenantRatingsByTenancy,
   profileDisplayName,
   profileLocation,
   profileReviewPageCount,
   stayDurationMonths,
   toPastStay,
+  toTenantRatingCard,
   summarizeListingVerification,
   summarizeReviewRatings,
   summarizeStayHistory,
@@ -384,7 +387,7 @@ export async function loadTenantProfile(
   const tenant = tenantData as unknown as UserRow | null;
   if (!tenant) return null;
 
-  const [reviewResult, stayResult, passportResult] = await Promise.all([
+  const [reviewResult, stayResult, passportResult, tenantReviewResult] = await Promise.all([
     supabase.from("reviews").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
     supabase
       .from("tenancies")
@@ -401,16 +404,29 @@ export async function loadTenantProfile(
       .from("passport_documents")
       .select("doc_type, id_type, is_primary, is_verified, review_status, expires_at, created_at")
       .eq("user_id", tenantId),
+    // Author name and stay context come from the RPC; the tenancy itself is unreadable to other landlords.
+    supabase.rpc("get_tenant_reviews", { p_tenant_id: tenantId }),
   ]);
+
+  const tenantReviews = toTenantReviewRecords(tenantReviewResult.data ?? []);
+  const myReviewsByTenancy = ownTenantRatingsByTenancy(tenantReviews);
+  const ratingSummary = summarizeTenantReviews(tenantReviews.map((review) => review.rating));
 
   const stayRows = (stayResult.data ?? []) as unknown as (PastStayRow & {
     apartments: { apartment_images: ImageRow[] | null } | null;
   })[];
 
-  const pastStays = stayRows.map<PublicProfilePastStay>((row) => ({
-    ...toPastStay(row),
-    thumbnailUrl: thumbnailOf(row.apartments?.apartment_images ?? null),
-  }));
+  const pastStays = stayRows.map<PublicProfilePastStay>((row) => {
+    const stay = toPastStay(row);
+    return {
+      ...stay,
+      thumbnailUrl: thumbnailOf(row.apartments?.apartment_images ?? null),
+      canRate: stay.landlord?.id === viewerLandlordId,
+      myReview: myReviewsByTenancy.get(row.id) ?? null,
+    };
+  });
+
+  const landlordReviews = tenantReviews.map(toTenantRatingCard);
 
   return {
     identity: toIdentity(tenant, "Tenant"),
@@ -419,5 +435,8 @@ export async function loadTenantProfile(
     verifiedDocuments: getVerifiedPassportSlots((passportResult.data ?? []) as unknown as PassportSlotDocument[]),
     stayHistory: summarizeStayHistory(stayRows.map((row) => stayDurationMonths(row.lease_start, row.lease_end))),
     pastStays,
+    landlordRating: ratingSummary.count > 0 ? ratingSummary.average : null,
+    landlordRatingCount: ratingSummary.count,
+    landlordReviews,
   };
 }

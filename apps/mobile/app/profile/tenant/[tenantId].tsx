@@ -1,18 +1,24 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import ProfileStatsCard from 'components/cards/ProfileStatsCard'
 import PastApartmentCard from 'components/cards/PastApartmentCard'
+import RateTenantSheet, { type RateTenantStay } from 'components/ratings/RateTenantSheet'
+import StayRatingFooter from 'components/ratings/StayRatingFooter'
+import RatingCard from 'components/cards/RatingCard'
 import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 
-import { Button, SkeletonGroup } from 'heroui-native'
+import { Button, SkeletonGroup, useToast } from 'heroui-native'
 
 import { usePublicTenantProfile } from 'hooks/profiles'
 import { useCurrentUser } from 'hooks/auth'
+import { useTenantReviews } from '@/hooks/ratings'
 import { useColors } from 'hooks/useTheme'
+
+import { formatStayRange } from '@repo/utils'
 
 import {
   IconShieldCheckFilled,
@@ -25,6 +31,7 @@ import {
   IconMessageCircle,
   IconHomeSearch,
   IconFlag,
+  IconStarFilled,
 } from '@tabler/icons-react-native';
 
 export default function PublicTenantProfile() {
@@ -48,6 +55,25 @@ export default function PublicTenantProfile() {
 
   const { profile, pastApartments, loading } = usePublicTenantProfile(resolvedTenantId);
   const currentUserQuery = useCurrentUser();
+  const {
+    reviews: landlordReviews,
+    average: landlordRating,
+    count: landlordRatingCount,
+    loading: reviewsLoading,
+    isError: reviewsFailed,
+    refetch: refetchReviews,
+  } = useTenantReviews(resolvedTenantId);
+  const viewerId = currentUserQuery.data?.id;
+  const { toast } = useToast();
+  // The stay being rated in the sheet; kept after closing so the sheet can animate out.
+  const [ratingStay, setRatingStay] = useState<RateTenantStay | null>(null);
+  const [isRatingOpen, setIsRatingOpen] = useState(false);
+  const savedRating = landlordReviews.find((review) => review.tenancyId === ratingStay?.tenancyId && review.isMine);
+
+  const openRatingSheet = (stay: RateTenantStay) => {
+    setRatingStay(stay);
+    setIsRatingOpen(true);
+  };
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -83,6 +109,11 @@ export default function PublicTenantProfile() {
     })
   }
 
+  // Entry point for reporting one landlord rating; replace the toast once the report flow exists.
+  const handleReportRating = (_reviewId: string) => {
+    toast.show({ variant: 'default', label: 'Reporting ratings is coming soon' })
+  }
+
   // TODO: Implement function to handle report tenant
   const handleReportTenant = () => {
     console.log("Report Tenant Pressed");
@@ -109,13 +140,20 @@ export default function PublicTenantProfile() {
         <ProfileStatsCard
           stats={[
             {
+              label: 'Rating',
+              value: landlordRatingCount > 0 ? landlordRating.toFixed(1) : '—',
+              icon: IconStarFilled,
+              iconColor: colors.rating,
+            },
+            {
               label: 'Reviews',
               value: String(profile?.reviewsCount ?? 0),
               icon: IconStar,
               iconColor: colors.rating,
             },
             {
-              label: 'Member Since',
+              // Four stats leave no room for a two-line label beside its icon.
+              label: 'Joined',
               value: profile?.memberSinceYear ?? '—',
               icon: IconCalendarMonth,
             },
@@ -209,19 +247,82 @@ export default function PublicTenantProfile() {
           </View>
         ) : (
           <View className="mt-3 gap-3">
-            {pastApartments.map((apartment) => (
-              <PastApartmentCard
-                key={apartment.id}
-                apartmentName={apartment.name}
-                barangay={apartment.barangay}
-                city={apartment.city}
-                leaseStartMonth={apartment.leaseStartMonth}
-                leaseStartYear={apartment.leaseStartYear}
-                leaseEndMonth={apartment.leaseEndMonth}
-                leaseEndYear={apartment.leaseEndYear}
-                thumbnailUrl={apartment.thumbnailUrl}
-                onPress={() =>
-                  console.log(`Pressed on apartment ${apartment.name}`)
+            {pastApartments.map((apartment) => {
+              const myReview = landlordReviews.find(
+                (review) => review.tenancyId === apartment.id && review.isMine,
+              )
+              const canRate = Boolean(viewerId) && apartment.landlordId === viewerId
+
+              return (
+                <PastApartmentCard
+                  key={apartment.id}
+                  apartmentName={apartment.name}
+                  barangay={apartment.barangay}
+                  city={apartment.city}
+                  leaseStartMonth={apartment.leaseStartMonth}
+                  leaseStartYear={apartment.leaseStartYear}
+                  leaseEndMonth={apartment.leaseEndMonth}
+                  leaseEndYear={apartment.leaseEndYear}
+                  thumbnailUrl={apartment.thumbnailUrl}
+                  onPress={() =>
+                    console.log(`Pressed on apartment ${apartment.name}`)
+                  }
+                  footer={
+                    canRate ? (
+                      <StayRatingFooter
+                        rating={myReview?.rating ?? null}
+                        onPress={() => openRatingSheet({ tenancyId: apartment.id, apartmentName: apartment.name })}
+                      />
+                    ) : undefined
+                  }
+                />
+              )
+            })}
+          </View>
+        )}
+      </View>
+
+      {/* Landlord ratings */}
+      <View className="mx-5 mt-8">
+        <Text className="text-foreground text-xl font-nunitoBold">
+          What landlords say about {firstName}
+        </Text>
+
+        {landlordReviews.length === 0 ? (
+          <View className="items-center py-10 px-8 gap-3">
+            <IconStar size={48} color={colors.primary} />
+            <Text className="text-foreground text-lg font-nunitoBold text-center">
+              No landlord ratings yet
+            </Text>
+            <Text className="text-gray-400 text-base font-inter text-center">
+              Landlords can rate a tenant once their lease has ended.
+            </Text>
+          </View>
+        ) : (
+          <View className="mt-3 gap-3">
+            {landlordReviews.map((review) => (
+              <RatingCard
+                key={review.id}
+                name={review.landlordName}
+                date={review.createdAt}
+                rating={review.rating}
+                review={review.comment}
+                profilePictureUrl={review.landlordAvatarUrl ?? undefined}
+                apartmentName={review.apartmentName ?? undefined}
+                durationOfStay={review.leaseStart ? formatStayRange(review.leaseStart, review.leaseEnd) : undefined}
+                footer={
+                  review.isMine ? undefined : (
+                    <Button
+                      size="sm"
+                      variant="tertiary"
+                      className="self-start"
+                      accessibilityLabel="Report this rating"
+                      onPress={() => handleReportRating(review.id)}
+                    >
+                      <IconFlag size={14} color={colors.danger} />
+                      <Button.Label className="text-danger font-nunitoSemiBold">Report</Button.Label>
+                    </Button>
+                  )
                 }
               />
             ))}
@@ -238,6 +339,20 @@ export default function PublicTenantProfile() {
           </Button.Label>
         </Button>
       </View>
+
+      {resolvedTenantId && (
+        <RateTenantSheet
+          isOpen={isRatingOpen}
+          onClose={() => setIsRatingOpen(false)}
+          tenantId={resolvedTenantId}
+          tenantName={profile?.fullName ?? 'this tenant'}
+          stay={ratingStay}
+          savedRating={savedRating ? { rating: savedRating.rating, comment: savedRating.comment } : null}
+          isLoadingSaved={reviewsLoading}
+          loadFailed={reviewsFailed}
+          onRetry={() => void refetchReviews()}
+        />
+      )}
     </ScreenWrapper>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import Image from "next/image";
 
@@ -21,6 +21,8 @@ interface ReviewCardProps {
   stayPeriod?: string;
   rating?: number;
   images?: string[];
+  /** Optional action row under the review, e.g. a report button. */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -32,6 +34,7 @@ export default function ReviewCard({
   stayPeriod,
   rating,
   images,
+  footer,
   className,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -82,9 +85,11 @@ export default function ReviewCard({
       </Card.Header>
 
       <Card.Content>
-        <p className="text-sm text-card-foreground">
-          {displayedReview}
-        </p>
+        {displayedReview ? (
+          <p className="text-sm text-card-foreground">
+            {displayedReview}
+          </p>
+        ) : null}
 
         {isLongReview && (
           <Button
@@ -133,11 +138,12 @@ export default function ReviewCard({
         )}
       </Card.Content>
 
-      {stayPeriod && (
-        <Card.Footer>
+      {(stayPeriod || footer) && (
+        <Card.Footer className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">
             {stayPeriod}
           </span>
+          {footer}
         </Card.Footer>
       )}
     </Card>
