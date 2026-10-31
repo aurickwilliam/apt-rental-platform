@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   addRecentApartmentSearch,
   parseRecentApartmentSearches,
+  recentApartmentHref,
   recentApartmentSearchesKey,
 } from "./recent-apartment-searches.ts";
 
@@ -25,4 +26,10 @@ test("ignores malformed storage", () => {
 
 test("guest and account lists are separate", () => {
   assert.notEqual(recentApartmentSearchesKey(null), recentApartmentSearchesKey("u1"));
+});
+
+test("listing links never include the map segment", () => {
+  assert.equal(recentApartmentHref("/browse", "x"), "/browse/x");
+  assert.equal(recentApartmentHref("/browse/map", "x"), "/browse/x");
+  assert.equal(recentApartmentHref("/tenant/browse/map", "x"), "/tenant/browse/x");
 });

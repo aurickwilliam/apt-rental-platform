@@ -6,13 +6,9 @@ import { Button, InputGroup, Spinner } from "@heroui/react";
 import Image from "next/image";
 import { IconMap2, IconPhoto, IconSearch, IconX } from "@tabler/icons-react";
 
-import { useUser } from "@/hooks/use-user";
+import { useRecentApartmentSearches, useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
-import {
-  loadRecentApartmentSearches,
-  saveRecentApartmentSearches,
-  type RecentApartmentSearch,
-} from "@/lib/recent-apartment-searches";
+import { recentApartmentHref } from "@/lib/recent-apartment-searches";
 import { BROWSE_HERO_CLASS, BROWSE_SEARCH_ROW_CLASS } from "../lib/browse-layout";
 
 export default function SearchContainer({
@@ -43,21 +39,12 @@ export default function SearchContainer({
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, loading: userLoading } = useUser();
+  // Focus anywhere in the pill wrapper (box or recent card) keeps the card open,
+  // so keyboard users can Tab into it; Escape closes it.
   const [isFocused, setIsFocused] = useState(false);
-  const [recent, setRecent] = useState<RecentApartmentSearch[]>([]);
+  const { recent, clear: clearRecent } = useRecentApartmentSearches(isFocused);
+  const rememberRecentApartment = useRememberRecentApartment();
   const showRecent = isFocused && search.trim() === "" && recent.length > 0;
-
-  // Read on focus so a listing opened since the last visit is always included.
-  const handleFocus = () => {
-    if (!userLoading) setRecent(loadRecentApartmentSearches(user?.id));
-    setIsFocused(true);
-  };
-
-  const handleClearRecent = () => {
-    saveRecentApartmentSearches(user?.id, []);
-    setRecent([]);
-  };
 
   // Clears the box and the applied search, then keeps the caret in the box.
   const handleClearSearch = () => {
@@ -107,7 +94,16 @@ export default function SearchContainer({
 
   // The pill, then the filter entry and (on Browse) the map entry.
   const searchPill = (
-    <div className="relative min-w-0 flex-1">
+    <div
+      className="relative min-w-0 flex-1"
+      onFocus={() => setIsFocused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setIsFocused(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setIsFocused(false);
+      }}
+    >
       <InputGroup className="w-full rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
         <InputGroup.Prefix>
           {isPending ? (
@@ -130,8 +126,6 @@ export default function SearchContainer({
           placeholder="Search by name or location..."
           value={search}
           onChange={(e) => handleChange(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={() => setIsFocused(false)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         />
         {search ? (
@@ -151,34 +145,40 @@ export default function SearchContainer({
       </InputGroup>
 
       {showRecent ? (
-        // mousedown is prevented so the box keeps focus while a row is chosen.
+        // mousedown is prevented so pressing the card never moves focus off the box.
         <div
-          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-lg"
+          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-surface text-left text-foreground shadow-lg"
           onMouseDown={(e) => e.preventDefault()}
         >
-          <div className="flex items-center justify-between px-4 pb-1 pt-3">
-            <span className="text-sm font-semibold text-gray-500">Recent searches</span>
-            <button
-              type="button"
-              onClick={handleClearRecent}
-              className="cursor-pointer text-sm font-semibold text-[#376BF5] hover:underline"
+          <div className="flex items-center justify-between px-4 pt-3">
+            <span className="text-sm font-semibold text-muted-foreground">Recent searches</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={clearRecent}
+              className="h-auto min-w-0 cursor-pointer p-0 text-sm font-semibold text-[#376BF5] hover:bg-transparent hover:underline"
             >
               Clear
-            </button>
+            </Button>
           </div>
-          <ul className="pb-2">
+          <ul className="py-1">
             {recent.map((item) => (
               <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => {
+                <Button
+                  variant="ghost"
+                  onPress={() => {
+                    rememberRecentApartment({
+                      id: item.id,
+                      name: item.name,
+                      location: item.location,
+                      image: item.thumbnailUrl,
+                    });
                     setIsFocused(false);
-                    inputRef.current?.blur();
-                    router.push(`${basePath}/${item.id}`);
+                    router.push(recentApartmentHref(basePath, item.id));
                   }}
-                  className="flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-left hover:bg-gray-50"
+                  className="h-auto w-full cursor-pointer justify-start gap-3 rounded-none px-4 py-2 text-left font-normal"
                 >
-                  <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-200">
+                  <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-default">
                     {item.thumbnailUrl ? (
                       <Image
                         src={item.thumbnailUrl}
@@ -189,16 +189,16 @@ export default function SearchContainer({
                         unoptimized={!canOptimizePublicApartmentImage(item.thumbnailUrl)}
                       />
                     ) : (
-                      <IconPhoto size={22} className="text-gray-400" />
+                      <IconPhoto size={22} className="text-muted-foreground" />
                     )}
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-gray-900">
+                    <span className="block truncate text-sm font-semibold text-foreground">
                       {item.name}
                     </span>
-                    <span className="block truncate text-xs text-gray-500">{item.location}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{item.location}</span>
                   </span>
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

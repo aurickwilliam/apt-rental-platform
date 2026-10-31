@@ -1,5 +1,6 @@
 import {
   addRecentApartmentSearch,
+  mergeRecentApartmentSearches,
   MAX_RECENT_APARTMENT_SEARCHES,
   type RecentApartmentSearch,
 } from "./recentApartmentSearches";
@@ -22,5 +23,17 @@ describe("addRecentApartmentSearch", () => {
     expect(result).toHaveLength(MAX_RECENT_APARTMENT_SEARCHES);
     expect(result[0].id).toBe("6");
     expect(result.map((item) => item.id)).not.toContain("5");
+  });
+});
+
+describe("mergeRecentApartmentSearches", () => {
+  it("keeps what was opened before storage loaded, then the stored list", () => {
+    const result = mergeRecentApartmentSearches([make("new")], [make("a"), make("new"), make("b")]);
+    expect(result.map((item) => item.id)).toEqual(["new", "a", "b"]);
+  });
+
+  it("never exceeds five", () => {
+    const result = mergeRecentApartmentSearches([make("1")], ["2", "3", "4", "5", "6"].map(make));
+    expect(result).toHaveLength(MAX_RECENT_APARTMENT_SEARCHES);
   });
 });

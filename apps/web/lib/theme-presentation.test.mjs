@@ -68,9 +68,12 @@ test("public and tenant search share HeroUI colors without changing field geomet
         InputGroup: { Prefix: "InputGroup.Prefix", Input: "InputGroup.Input", Suffix: "InputGroup.Suffix" },
       },
       "next/image": { default: "Image" },
-      "@/hooks/use-user": { useUser: () => ({ user: null, loading: true }) },
+      "@/hooks/use-recent-apartment-searches": {
+        useRecentApartmentSearches: () => ({ recent: [], clear() {} }),
+        useRememberRecentApartment: () => () => {},
+      },
+      "@/lib/recent-apartment-searches": { recentApartmentHref: (base, id) => `${base}/${id}` },
       "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => true },
-      "@/lib/recent-apartment-searches": { loadRecentApartmentSearches: () => [], saveRecentApartmentSearches() {} },
       "@tabler/icons-react": { IconSearch: "IconSearch", IconMap2: "IconMap2", IconPhoto: "IconPhoto", IconX: "IconX" },
       "../lib/browse-layout": compile("app/browse/lib/browse-layout.ts", {}),
     });

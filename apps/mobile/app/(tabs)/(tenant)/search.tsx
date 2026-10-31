@@ -17,7 +17,10 @@ import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { useFavoriteToggle } from "@/hooks/favorites";
 import { useProfile } from "@/hooks/auth";
 import { useRecentApartmentSearches } from "@/hooks/search/useRecentApartmentSearches";
-import type { RecentApartmentSearch } from "@/service/search/recentApartmentSearches";
+import {
+  toRecentApartmentSearch,
+  type RecentApartmentSearch,
+} from "@/service/search/recentApartmentSearches";
 
 export default function Search() {
   const router = useRouter();
@@ -88,14 +91,7 @@ export default function Search() {
     const card =
       apartments.find((item) => item.id === id) ??
       sections.flatMap((section) => section.apartments).find((item) => item.id === id);
-    if (card?.name) {
-      remember({
-        id,
-        name: card.name,
-        location: card.location ?? "",
-        thumbnailUri: card.thumbnail?.uri,
-      });
-    }
+    if (card?.name) remember(toRecentApartmentSearch(card));
     router.push(`/apartment/${id}` as any);
   };
 
@@ -207,6 +203,7 @@ export default function Search() {
       {showRecent && (
         <RecentSearchesList
           top={fieldBottom}
+          onDismiss={Keyboard.dismiss}
           recent={recent}
           onSelect={handleRecentPress}
           onClear={clearRecent}

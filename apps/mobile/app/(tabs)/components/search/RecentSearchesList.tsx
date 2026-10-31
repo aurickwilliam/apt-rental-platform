@@ -9,6 +9,8 @@ import type { RecentApartmentSearch } from "@/service/search/recentApartmentSear
 type RecentSearchesListProps = {
   /** Where the card starts: the bottom edge of the search field. */
   top: number;
+  /** Called when the area outside the card is tapped. */
+  onDismiss: () => void;
   recent: RecentApartmentSearch[];
   onSelect: (apartment: RecentApartmentSearch) => void;
   onClear: () => void;
@@ -16,6 +18,7 @@ type RecentSearchesListProps = {
 
 export default function RecentSearchesList({
   top,
+  onDismiss,
   recent,
   onSelect,
   onClear,
@@ -23,6 +26,14 @@ export default function RecentSearchesList({
   const { colors } = useColors();
 
   return (
+    <>
+      {/* Starts below the field, so the field itself stays tappable. */}
+      <Pressable
+        onPress={onDismiss}
+        accessibilityLabel="Close recent searches"
+        className="absolute inset-x-0 bottom-0 z-40"
+        style={{ top }}
+      />
     <View
       className="absolute inset-x-5 z-50 overflow-hidden rounded-2xl border border-border bg-surface"
       style={{ top: top + 4, elevation: 8 }}
@@ -76,5 +87,6 @@ export default function RecentSearchesList({
       ))}
     </ScrollView>
     </View>
+    </>
   );
 }

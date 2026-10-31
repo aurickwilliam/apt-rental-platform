@@ -9,8 +9,7 @@ import { Pagination, toast } from "@heroui/react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
-import { useUser } from "@/hooks/use-user";
-import { rememberRecentApartmentSearch } from "@/lib/recent-apartment-searches";
+import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
@@ -107,7 +106,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
   const { isFavorite, toggleFavorite } = useFavorites();
-  const { user, loading: userLoading } = useUser();
+  const rememberRecentApartment = useRememberRecentApartment();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const {
@@ -128,17 +127,10 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
     (apartmentId: string) => {
       dismissPreview();
       const apt = apartment.find((item) => item.id === apartmentId);
-      if (apt && !userLoading) {
-        rememberRecentApartmentSearch(user?.id, {
-          id: apt.id,
-          name: apt.name,
-          location: apt.location,
-          thumbnailUrl: apt.image,
-        });
-      }
+      if (apt) rememberRecentApartment(apt);
       router.push(`${basePath}/${apartmentId}`);
     },
-    [apartment, basePath, dismissPreview, router, user?.id, userLoading],
+    [apartment, basePath, dismissPreview, router, rememberRecentApartment],
   );
 
   const isVerifiedOnly = searchParams.get("verified") === "1";

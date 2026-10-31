@@ -10,6 +10,23 @@ export interface RecentApartmentSearch {
   thumbnailUri?: string;
 }
 
+/** The card fields a recent entry needs (a search card satisfies it). */
+export interface RecentApartmentSource {
+  id: string;
+  name?: string;
+  location?: string;
+  thumbnail?: { uri: string };
+}
+
+export function toRecentApartmentSearch(apartment: RecentApartmentSource): RecentApartmentSearch {
+  return {
+    id: apartment.id,
+    name: apartment.name ?? "",
+    location: apartment.location ?? "",
+    thumbnailUri: apartment.thumbnail?.uri,
+  };
+}
+
 export const MAX_RECENT_APARTMENT_SEARCHES = 5;
 
 const RECENT_APARTMENTS_KEY_PREFIX = "apt-recent-apartment-searches:";
@@ -35,6 +52,17 @@ export function addRecentApartmentSearch(
   apartment: RecentApartmentSearch,
 ): RecentApartmentSearch[] {
   return [apartment, ...current.filter((item) => item.id !== apartment.id)].slice(
+    0,
+    MAX_RECENT_APARTMENT_SEARCHES,
+  );
+}
+
+/** Newest-first merge of an already-held list with one loaded from storage. */
+export function mergeRecentApartmentSearches(
+  current: RecentApartmentSearch[],
+  loaded: RecentApartmentSearch[],
+): RecentApartmentSearch[] {
+  return [...current, ...loaded.filter((item) => !current.some((held) => held.id === item.id))].slice(
     0,
     MAX_RECENT_APARTMENT_SEARCHES,
   );

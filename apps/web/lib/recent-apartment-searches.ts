@@ -9,6 +9,31 @@ export interface RecentApartmentSearch {
   thumbnailUrl?: string;
 }
 
+/** The card fields a recent entry needs (a Browse card satisfies it). */
+export interface RecentApartmentSource {
+  id: string;
+  name: string;
+  location: string;
+  image?: string;
+}
+
+export function toRecentApartmentSearch(apartment: RecentApartmentSource): RecentApartmentSearch {
+  return {
+    id: apartment.id,
+    name: apartment.name,
+    location: apartment.location,
+    thumbnailUrl: apartment.image,
+  };
+}
+
+/**
+ * Apartment page for a recent entry. The map search passes its own path
+ * (`/browse/map`) as its base path, but listings live beside it, not under it.
+ */
+export function recentApartmentHref(basePath: string, apartmentId: string): string {
+  return `${basePath.replace(/\/map$/, "")}/${apartmentId}`;
+}
+
 export const MAX_RECENT_APARTMENT_SEARCHES = 5;
 
 const KEY_PREFIX = "apt-recent-apartment-searches:";
