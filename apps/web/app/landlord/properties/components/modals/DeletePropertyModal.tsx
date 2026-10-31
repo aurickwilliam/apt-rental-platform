@@ -1,9 +1,12 @@
 import { Button, Modal } from "@heroui/react";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 
 type Props = {
   isOpen: boolean;
   propertyName?: string;
   isDeleting: boolean;
+  /** The database's reason when the delete was refused, shown as-is. */
+  error?: string | null;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -12,6 +15,7 @@ export default function DeletePropertyModal({
   isOpen,
   propertyName,
   isDeleting,
+  error,
   onClose,
   onConfirm,
 }: Props) {
@@ -37,6 +41,7 @@ export default function DeletePropertyModal({
                 <span className="font-medium text-primary">{propertyName}</span>?
                 This action cannot be undone.
               </p>
+              {error ? <ErrorBanner message={error} /> : null}
             </Modal.Body>
 
             <Modal.Footer>

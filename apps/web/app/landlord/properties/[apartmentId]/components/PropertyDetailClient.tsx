@@ -121,6 +121,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signedLeaseOpen, setSignedLeaseOpen] = useState(false);
   const { viewLease, viewing: viewingLease } = useLeaseViewer();
   const { viewSignedLease, viewing: viewingSignedLease } = useSignedLeaseViewer();
@@ -185,10 +186,13 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const handleRemove = async () => {
     setDeleting(true);
     setActionError(null);
+    setDeleteError(null);
     const result = await removeLandlordUnit(createClient(), apartment.id);
     setDeleting(false);
     if (!result.success) {
-      setActionError(result.error ?? "Could not remove this property.");
+      // The modal stays open, so show the database's reason there (for example
+      // "End the active tenancy before deleting this property.").
+      setDeleteError(result.error ?? "Could not remove this property.");
       return;
     }
     setDeleteConfirmOpen(false);
@@ -599,7 +603,11 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
         isOpen={deleteConfirmOpen}
         propertyName={apartment.name}
         isDeleting={deleting}
-        onClose={() => setDeleteConfirmOpen(false)}
+        error={deleteError}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
         onConfirm={() => void handleRemove()}
       />
 
