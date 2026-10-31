@@ -3,8 +3,16 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
-import { IconMap2, IconSearch } from "@tabler/icons-react";
+import Image from "next/image";
+import { IconMap2, IconPhoto, IconSearch, IconX } from "@tabler/icons-react";
 
+import { useUser } from "@/hooks/use-user";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import {
+  loadRecentApartmentSearches,
+  saveRecentApartmentSearches,
+  type RecentApartmentSearch,
+} from "@/lib/recent-apartment-searches";
 import { BROWSE_HERO_CLASS, BROWSE_SEARCH_ROW_CLASS } from "../lib/browse-layout";
 
 export default function SearchContainer({
@@ -35,6 +43,37 @@ export default function SearchContainer({
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { user, loading: userLoading } = useUser();
+  const [isFocused, setIsFocused] = useState(false);
+  const [recent, setRecent] = useState<RecentApartmentSearch[]>([]);
+  const showRecent = isFocused && search.trim() === "" && recent.length > 0;
+
+  // Read on focus so a listing opened since the last visit is always included.
+  const handleFocus = () => {
+    if (!userLoading) setRecent(loadRecentApartmentSearches(user?.id));
+    setIsFocused(true);
+  };
+
+  const handleClearRecent = () => {
+    saveRecentApartmentSearches(user?.id, []);
+    setRecent([]);
+  };
+
+  // Clears the box and the applied search, then keeps the caret in the box.
+  const handleClearSearch = () => {
+    setSearch("");
+    if (searchParams.get("search")) {
+      const current = new URLSearchParams(searchParams.toString());
+      current.delete("search");
+      current.delete("page");
+      startTransition(() => {
+        const href = `${basePath}?${current.toString()}`;
+        if (navigate) navigate(href);
+        else router.replace(href);
+      });
+    }
+    inputRef.current?.focus();
+  };
 
   // No live fetching while typing: the URL (and therefore results) only
   // updates when the user commits via the magnifier button or Enter.
@@ -68,31 +107,104 @@ export default function SearchContainer({
 
   // The pill, then the filter entry and (on Browse) the map entry.
   const searchPill = (
-    <InputGroup className="flex-1 min-w-0 rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
-      <InputGroup.Prefix>
-        {isPending ? (
-          <Spinner size="sm" color="current" className="text-grey-500" />
-        ) : (
-          <Button
-            isIconOnly
-            variant="ghost"
-            size="sm"
-            onPress={handleSearch}
-            aria-label="Search"
-            className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            <IconSearch size={20} className="text-grey-500" />
-          </Button>
-        )}
-      </InputGroup.Prefix>
-      <InputGroup.Input
-        ref={inputRef}
-        placeholder="Search by name or location..."
-        value={search}
-        onChange={(e) => handleChange(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-      />
-    </InputGroup>
+    <div className="relative min-w-0 flex-1">
+      <InputGroup className="w-full rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
+        <InputGroup.Prefix>
+          {isPending ? (
+            <Spinner size="sm" color="current" className="text-grey-500" />
+          ) : (
+            <Button
+              isIconOnly
+              variant="ghost"
+              size="sm"
+              onPress={handleSearch}
+              aria-label="Search"
+              className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <IconSearch size={20} className="text-grey-500" />
+            </Button>
+          )}
+        </InputGroup.Prefix>
+        <InputGroup.Input
+          ref={inputRef}
+          placeholder="Search by name or location..."
+          value={search}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={() => setIsFocused(false)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+        />
+        {search ? (
+          <InputGroup.Suffix>
+            <Button
+              isIconOnly
+              variant="ghost"
+              size="sm"
+              onPress={handleClearSearch}
+              aria-label="Clear search"
+              className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <IconX size={18} className="text-grey-500" />
+            </Button>
+          </InputGroup.Suffix>
+        ) : null}
+      </InputGroup>
+
+      {showRecent ? (
+        // mousedown is prevented so the box keeps focus while a row is chosen.
+        <div
+          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-lg"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div className="flex items-center justify-between px-4 pb-1 pt-3">
+            <span className="text-sm font-semibold text-gray-500">Recent searches</span>
+            <button
+              type="button"
+              onClick={handleClearRecent}
+              className="cursor-pointer text-sm font-semibold text-[#376BF5] hover:underline"
+            >
+              Clear
+            </button>
+          </div>
+          <ul className="pb-2">
+            {recent.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFocused(false);
+                    inputRef.current?.blur();
+                    router.push(`${basePath}/${item.id}`);
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-left hover:bg-gray-50"
+                >
+                  <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-200">
+                    {item.thumbnailUrl ? (
+                      <Image
+                        src={item.thumbnailUrl}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                        unoptimized={!canOptimizePublicApartmentImage(item.thumbnailUrl)}
+                      />
+                    ) : (
+                      <IconPhoto size={22} className="text-gray-400" />
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-gray-900">
+                      {item.name}
+                    </span>
+                    <span className="block truncate text-xs text-gray-500">{item.location}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 
   // Filters carry over to the map; paging and the previous camera do not.

@@ -65,9 +65,13 @@ test("public and tenant search share HeroUI colors without changing field geomet
       },
       "@heroui/react": {
         Button: "Button", Spinner: "Spinner",
-        InputGroup: { Prefix: "InputGroup.Prefix", Input: "InputGroup.Input" },
+        InputGroup: { Prefix: "InputGroup.Prefix", Input: "InputGroup.Input", Suffix: "InputGroup.Suffix" },
       },
-      "@tabler/icons-react": { IconSearch: "IconSearch" },
+      "next/image": { default: "Image" },
+      "@/hooks/use-user": { useUser: () => ({ user: null, loading: true }) },
+      "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => true },
+      "@/lib/recent-apartment-searches": { loadRecentApartmentSearches: () => [], saveRecentApartmentSearches() {} },
+      "@tabler/icons-react": { IconSearch: "IconSearch", IconMap2: "IconMap2", IconPhoto: "IconPhoto", IconX: "IconX" },
       "../lib/browse-layout": compile("app/browse/lib/browse-layout.ts", {}),
     });
     const filterButton = jsx("ExistingFilterButton", {});
@@ -77,7 +81,8 @@ test("public and tenant search share HeroUI colors without changing field geomet
     assert.ok(group);
     assert.doesNotMatch(group.props.className, /(?:^|\s)bg-white(?:\s|$)/);
     assert.doesNotMatch(group.props.className, /(?:^|\s)(?:bg-|text-)(?:black|white)(?:\s|$)/);
-    assert.match(group.props.className, /flex-1 min-w-0 rounded-full/);
+    assert.match(group.props.className, /w-full rounded-full/);
+    assert.ok(tree.some(node => node.props.className === "relative min-w-0 flex-1"), "pill wrapper keeps the flexible width");
     assert.match(group.props.className, /focus-within:border-\[#376BF5\]/);
     assert.ok(group.props.className.includes("[&_input::placeholder]:text-muted-foreground"));
     assert.doesNotMatch(group.props.className, /text-gray-400/);

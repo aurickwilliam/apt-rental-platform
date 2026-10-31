@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { SearchField, Chip, Button } from 'heroui-native';
 import { IconFilter2, IconSearch, IconX } from '@tabler/icons-react-native';
@@ -15,6 +16,9 @@ type SearchFiltersBarProps = {
   onClearFilters: () => void;
   selectedCity?: string;
   committedSearch?: string;
+  onFocusChange?: (focused: boolean) => void;
+  /** Bottom edge of the search field row, in the parent's coordinates. */
+  onFieldBottomChange?: (bottom: number) => void;
 };
 
 export default function SearchFiltersBar({
@@ -29,12 +33,29 @@ export default function SearchFiltersBar({
   onClearFilters,
   selectedCity = "CAMANAVA",
   committedSearch = "",
+  onFocusChange,
+  onFieldBottomChange,
 }: SearchFiltersBarProps) {
   const { colors } = useColors();
   const isTyping = searchValue.trim() !== '';
+  const barY = useRef(0);
+  const rowBottom = useRef(0);
+  const reportBottom = () => onFieldBottomChange?.(barY.current + rowBottom.current);
   return (
-    <View className='px-5'>
-      <View className='flex-row items-center gap-2'>
+    <View
+      className='px-5'
+      onLayout={(event) => {
+        barY.current = event.nativeEvent.layout.y;
+        reportBottom();
+      }}
+    >
+      <View
+        className='flex-row items-center gap-2'
+        onLayout={(event) => {
+          rowBottom.current = event.nativeEvent.layout.y + event.nativeEvent.layout.height;
+          reportBottom();
+        }}
+      >
         <View className='flex-1'>
           <SearchField
             value={searchValue}
@@ -47,6 +68,8 @@ export default function SearchFiltersBar({
                 enterKeyHint='search'
                 autoCorrect={false}
                 autoCapitalize='none'
+                onFocus={() => onFocusChange?.(true)}
+                onBlur={() => onFocusChange?.(false)}
                 onSubmitEditing={onSubmitSearch}
                 blurOnSubmit
                 className='ps-3 pe-20'

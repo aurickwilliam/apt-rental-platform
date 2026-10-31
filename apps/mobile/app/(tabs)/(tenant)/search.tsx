@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Keyboard } from "react-native";
 
 import { useRouter } from "expo-router";
@@ -9,15 +10,23 @@ import FilterBottomSheet, {
 import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
+import RecentSearchesList from "../components/search/RecentSearchesList";
 import SearchSectionsList from "../components/search/SearchSectionsList";
 import { useSearchLogic, useSearchSections } from "@/hooks/search";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { useFavoriteToggle } from "@/hooks/favorites";
+import { useProfile } from "@/hooks/auth";
+import { useRecentApartmentSearches } from "@/hooks/search/useRecentApartmentSearches";
+import type { RecentApartmentSearch } from "@/service/search/recentApartmentSearches";
 
 export default function Search() {
   const router = useRouter();
   const { preferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
+  const { profile } = useProfile();
+  const { recent, remember, clear: clearRecent } = useRecentApartmentSearches(profile?.user_id);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [fieldBottom, setFieldBottom] = useState(0);
 
   const initialCity = "CAMANAVA";
 
@@ -73,7 +82,28 @@ export default function Search() {
   // Degrade to the bounded legacy list when the batched section RPC fails.
   const showNetflix = isNetflixBrowse && !sectionsError;
 
-  const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
+  const showRecent = isSearchFocused && searchDraft.trim() === "" && recent.length > 0;
+
+  const handleApartmentPress = (id: string) => {
+    const card =
+      apartments.find((item) => item.id === id) ??
+      sections.flatMap((section) => section.apartments).find((item) => item.id === id);
+    if (card?.name) {
+      remember({
+        id,
+        name: card.name,
+        location: card.location ?? "",
+        thumbnailUri: card.thumbnail?.uri,
+      });
+    }
+    router.push(`/apartment/${id}` as any);
+  };
+
+  const handleRecentPress = (apartment: RecentApartmentSearch) => {
+    Keyboard.dismiss();
+    remember(apartment);
+    router.push(`/apartment/${apartment.id}` as any);
+  };
 
   const handleFavoritePress = async (apartmentId: string) => {
     await toggleFavoriteWithToast(apartmentId);
@@ -138,6 +168,8 @@ export default function Search() {
         onClearFilters={handleClearFilters}
         selectedCity={selectedCity}
         committedSearch={committedSearch}
+        onFocusChange={setIsSearchFocused}
+        onFieldBottomChange={setFieldBottom}
       />
 
       {showNetflix ? (
@@ -169,6 +201,15 @@ export default function Search() {
           selectedCity={selectedCity}
           activeFilterCount={activeFilterCount}
           onClearAll={handleClearAll}
+        />
+      )}
+
+      {showRecent && (
+        <RecentSearchesList
+          top={fieldBottom}
+          recent={recent}
+          onSelect={handleRecentPress}
+          onClear={clearRecent}
         />
       )}
 
