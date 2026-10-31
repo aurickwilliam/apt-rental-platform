@@ -18,6 +18,8 @@ import { useCurrentUser } from 'hooks/auth'
 import { useTenantReviews } from '@/hooks/ratings'
 import { useColors } from 'hooks/useTheme'
 
+import { formatStayRange } from '@repo/utils'
+
 import {
   IconShieldCheckFilled,
   IconShieldX,
@@ -307,6 +309,7 @@ export default function PublicTenantProfile() {
                 review={review.comment}
                 profilePictureUrl={review.landlordAvatarUrl ?? undefined}
                 apartmentName={review.apartmentName ?? undefined}
+                durationOfStay={review.leaseStart ? formatStayRange(review.leaseStart, review.leaseEnd) : undefined}
                 footer={
                   review.isMine ? undefined : (
                     <Button

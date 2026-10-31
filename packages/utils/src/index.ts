@@ -1,6 +1,6 @@
 export { getRelativeTime } from './getRelativeTime';
 export { isReviewStayEligible } from './reviewEligibility';
-export { formatReviewStayLabel } from './reviewStayLabel';
+export { formatReviewStayLabel, formatStayRange } from './reviewStayLabel';
 export {
   TENANT_REVIEW_MAX_COMMENT_LENGTH,
   TENANT_REVIEW_MIN_RATING,
