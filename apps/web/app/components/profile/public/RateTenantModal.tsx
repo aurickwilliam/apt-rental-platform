@@ -43,14 +43,22 @@ export default function RateTenantModal({
 
   const isEditing = initialRating > 0;
 
+  // Drafts never outlive an open: every open reseeds from the saved rating, so a rating that
+  // changed while the modal was closed is never overwritten by a stale draft.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setRating(initialRating);
+      setComment(initialComment ?? "");
+      setRatingError(null);
+      setCommentError(null);
+      setSubmitError(null);
+    }
+  }
+
   const handleOpenChange = (open: boolean) => {
     if (open || saving) return;
-    // Drafts never outlive the modal: reseed from the saved rating next time.
-    setRating(initialRating);
-    setComment(initialComment ?? "");
-    setRatingError(null);
-    setCommentError(null);
-    setSubmitError(null);
     onClose();
   };
 
@@ -92,8 +100,8 @@ export default function RateTenantModal({
 
             <Modal.Body className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                How was {tenantName} as a tenant at {apartmentName}? Other landlords you share an
-                application or lease with can see your rating.
+                How was {tenantName} as a tenant at {apartmentName}? {tenantName} and the landlords they
+                have applied to or rented from can see your rating and comment.
               </p>
 
               <div className="space-y-2">

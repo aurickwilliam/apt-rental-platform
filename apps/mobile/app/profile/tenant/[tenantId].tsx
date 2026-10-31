@@ -9,7 +9,7 @@ import PastApartmentCard from 'components/cards/PastApartmentCard'
 import RatingCard from 'components/cards/RatingCard'
 import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 
-import { Button, SkeletonGroup } from 'heroui-native'
+import { Button, SkeletonGroup, useToast } from 'heroui-native'
 
 import { usePublicTenantProfile } from 'hooks/profiles'
 import { useCurrentUser } from 'hooks/auth'
@@ -57,6 +57,7 @@ export default function PublicTenantProfile() {
     count: landlordRatingCount,
   } = useTenantReviews(resolvedTenantId);
   const viewerId = currentUserQuery.data?.id;
+  const { toast } = useToast();
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -104,6 +105,11 @@ export default function PublicTenantProfile() {
         apartmentName,
       },
     })
+  }
+
+  // Entry point for reporting one landlord rating; replace the toast once the report flow exists.
+  const handleReportRating = (_reviewId: string) => {
+    toast.show({ variant: 'default', label: 'Reporting ratings is coming soon' })
   }
 
   // TODO: Implement function to handle report tenant
@@ -240,7 +246,7 @@ export default function PublicTenantProfile() {
           <View className="mt-3 gap-3">
             {pastApartments.map((apartment) => {
               const myReview = landlordReviews.find(
-                (review) => review.tenancyId === apartment.id && review.landlordId === viewerId,
+                (review) => review.tenancyId === apartment.id && review.isMine,
               )
 
               return (
@@ -302,8 +308,22 @@ export default function PublicTenantProfile() {
                 date={review.createdAt}
                 rating={review.rating}
                 review={review.comment}
-                profilePictureUrl={review.landlordAvatarUrl}
-                apartmentName={review.apartmentName}
+                profilePictureUrl={review.landlordAvatarUrl ?? undefined}
+                apartmentName={review.apartmentName ?? undefined}
+                footer={
+                  review.isMine ? undefined : (
+                    <Button
+                      size="sm"
+                      variant="tertiary"
+                      className="self-start"
+                      accessibilityLabel="Report this rating"
+                      onPress={() => handleReportRating(review.id)}
+                    >
+                      <IconFlag size={14} color={colors.danger} />
+                      <Button.Label className="text-danger font-nunitoSemiBold">Report</Button.Label>
+                    </Button>
+                  )
+                }
               />
             ))}
           </View>

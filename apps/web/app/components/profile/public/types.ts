@@ -41,6 +41,8 @@ export interface PublicProfileReview {
   apartmentName: string | null;
   /** Stay range; only read for signed-in viewers (anonymous readers cannot join tenancies). */
   stayPeriod?: string;
+  /** True when the signed-in viewer wrote this review (tenant ratings only). */
+  isMine?: boolean;
 }
 
 export interface LandlordProfileData {

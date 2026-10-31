@@ -19,6 +19,7 @@ export function useTenantReviews(tenantId?: string) {
     average: reviewsQuery.data?.average ?? 0,
     count: reviewsQuery.data?.count ?? 0,
     loading: reviewsQuery.isLoading,
+    isError: reviewsQuery.isError,
     refetch: reviewsQuery.refetch,
   }
 }

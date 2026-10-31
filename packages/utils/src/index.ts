@@ -5,15 +5,21 @@ export {
   TENANT_REVIEW_MAX_COMMENT_LENGTH,
   TENANT_REVIEW_MIN_RATING,
   TENANT_REVIEW_MAX_RATING,
-  isTenantReviewable,
+  TENANT_REVIEW_SAVE_ERROR,
   validateTenantReview,
   hasTenantReviewErrors,
   summarizeTenantReviews,
+  prepareTenantReview,
+  toTenantReviewRecords,
 } from './tenantReview';
 export type {
-  TenantReviewableTenancy,
   TenantReviewErrors,
   TenantReviewSummary,
+  TenantReviewSubmission,
+  SubmitTenantReviewArgs,
+  PreparedTenantReview,
+  TenantReviewRow,
+  TenantReviewRecord,
 } from './tenantReview';
 export {
   MAX_CHAT_ATTACHMENT_BYTES,

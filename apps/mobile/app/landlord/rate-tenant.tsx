@@ -40,7 +40,7 @@ export default function RateTenant() {
   const { colors } = useColors()
   const router = useRouter()
 
-  const { reviews, loading: reviewsLoading } = useTenantReviews(tenantId)
+  const { reviews, loading: reviewsLoading, isError: reviewsFailed, refetch } = useTenantReviews(tenantId)
   const { submitTenantReview, isSubmitting } = useSubmitTenantReview()
 
   const [rating, setRating] = useState(0)
@@ -50,7 +50,7 @@ export default function RateTenant() {
 
   // Seed the form once from the rating already saved for this stay (edit mode).
   const [isSeeded, setIsSeeded] = useState(false)
-  const existing = reviews.find((review) => review.tenancyId === tenancyId)
+  const existing = reviews.find((review) => review.tenancyId === tenancyId && review.isMine)
   if (!isSeeded && !reviewsLoading) {
     setIsSeeded(true)
     if (existing) {
@@ -60,7 +60,8 @@ export default function RateTenant() {
   }
 
   const isEditing = existing !== undefined
-  const isSubmitDisabled = !tenancyId || !tenantId || isSubmitting || reviewsLoading
+  // Without the saved rating a second save would silently replace it, so a failed load blocks saving.
+  const isSubmitDisabled = !tenancyId || !tenantId || isSubmitting || reviewsLoading || reviewsFailed
 
   const handleSubmit = async () => {
     if (isSubmitDisabled || !tenancyId || !tenantId) return
@@ -89,7 +90,7 @@ export default function RateTenant() {
         <Text className="text-xl font-nunitoBold text-accent">{tenantName}</Text>
         <Text className="text-foreground text-base font-nunitoSemiBold">{apartmentName}</Text>
         <Text className="text-muted text-sm font-inter mt-1">
-          Landlords you share an application or lease with can see your rating.
+          The tenant and the landlords they have applied to or rented from can see your rating and comment.
         </Text>
       </View>
 
@@ -150,6 +151,17 @@ export default function RateTenant() {
           {errors.comment && <FieldError>{errors.comment}</FieldError>}
         </TextField>
       </View>
+
+      {reviewsFailed && (
+        <View className="mt-6 gap-2">
+          <Text className="text-danger text-sm font-inter">
+            We could not load your saved rating, so saving is paused to avoid replacing it.
+          </Text>
+          <Button size="sm" variant="secondary" onPress={() => void refetch()}>
+            <Button.Label>Try again</Button.Label>
+          </Button>
+        </View>
+      )}
 
       <Button className="mt-10" onPress={handleSubmit} isDisabled={isSubmitDisabled}>
         <Button.Label>

@@ -1346,7 +1346,11 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
+          hidden_at: string | null
+          hidden_by: string | null
+          hidden_reason: string | null
           id: string
+          is_hidden_by_admin: boolean
           landlord_id: string
           rating: number
           tenancy_id: string
@@ -1356,7 +1360,11 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
           id?: string
+          is_hidden_by_admin?: boolean
           landlord_id: string
           rating: number
           tenancy_id: string
@@ -1366,7 +1374,11 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
           id?: string
+          is_hidden_by_admin?: boolean
           landlord_id?: string
           rating?: number
           tenancy_id?: string
@@ -1374,6 +1386,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_reviews_hidden_by_fkey"
+            columns: ["hidden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tenant_reviews_landlord_id_fkey"
             columns: ["landlord_id"]
@@ -1977,6 +1996,29 @@ export type Database = {
       get_verified_landlord_ids: {
         Args: { p_landlord_ids: string[] }
         Returns: string[]
+      }
+      get_tenant_reviews: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          apartment_name: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          is_mine: boolean
+          landlord_avatar_url: string | null
+          landlord_first_name: string | null
+          landlord_id: string
+          landlord_last_name: string | null
+          lease_end: string | null
+          lease_start: string | null
+          rating: number
+          tenancy_id: string
+          updated_at: string | null
+        }[]
+      }
+      admin_set_tenant_review_hidden: {
+        Args: { p_hide: boolean; p_reason?: string; p_review_id: string }
+        Returns: undefined
       }
       get_my_suspension_status: { Args: never; Returns: Json }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }

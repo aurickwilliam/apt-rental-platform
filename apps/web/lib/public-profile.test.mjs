@@ -9,6 +9,7 @@ import {
   landlordProfileHref,
   landlordReviewsHref,
   memberSinceYear,
+  ownTenantRatingsByTenancy,
   parseProfileReviewSort,
   profileDisplayName,
   profileLocation,
@@ -21,6 +22,7 @@ import {
   summarizeUnits,
   tenantProfileHref,
   toPastStay,
+  toTenantRatingCard,
 } from "./public-profile.ts";
 
 test("profile links follow the viewer's portal and encode the id", () => {
@@ -196,4 +198,50 @@ test("the reviews link keeps default params out of the URL", () => {
     landlordReviewsHref("public", "a/b", { page: 2 }),
     "/browse/landlords/a%2Fb/reviews?page=2",
   );
+});
+
+const tenantRecord = (overrides = {}) => ({
+  id: "r1",
+  tenancyId: "t1",
+  landlordId: "l1",
+  rating: 4,
+  comment: "Paid on time",
+  createdAt: "2026-10-01T00:00:00Z",
+  landlordName: "Ana Cruz",
+  landlordAvatarUrl: null,
+  apartmentName: "Unit 5",
+  leaseStart: "2026-01-01",
+  leaseEnd: "2026-06-01",
+  isMine: false,
+  ...overrides,
+});
+
+test("a landlord's rating of a tenant becomes a profile review card", () => {
+  const card = toTenantRatingCard(tenantRecord());
+  assert.equal(card.reviewerName, "Ana Cruz");
+  assert.equal(card.text, "Paid on time");
+  assert.equal(card.rating, 4);
+  assert.equal(card.apartmentName, "Unit 5");
+  assert.equal(card.reviewerAvatar, undefined);
+  assert.equal(card.stayPeriod, formatStayRange("2026-01-01", "2026-06-01"));
+  assert.equal(card.isMine, false);
+  assert.equal(toTenantRatingCard(tenantRecord({ isMine: true })).isMine, true);
+});
+
+test("a rating without stay dates has no stay line, and a rating-only review has empty text", () => {
+  const card = toTenantRatingCard(tenantRecord({ leaseStart: null, leaseEnd: null, comment: "", landlordAvatarUrl: "a.png" }));
+  assert.equal(card.stayPeriod, undefined);
+  assert.equal(card.text, "");
+  assert.equal(card.reviewerAvatar, "a.png");
+});
+
+test("only the signed-in landlord's own ratings are offered for editing, by tenancy", () => {
+  const own = ownTenantRatingsByTenancy([
+    tenantRecord({ tenancyId: "t1", isMine: true, rating: 5, comment: "" }),
+    tenantRecord({ id: "r2", tenancyId: "t2", isMine: false }),
+    tenantRecord({ id: "r3", tenancyId: "t3", isMine: true, comment: "Tidy" }),
+  ]);
+  assert.deepEqual([...own.keys()], ["t1", "t3"]);
+  assert.deepEqual(own.get("t1"), { rating: 5, comment: null });
+  assert.deepEqual(own.get("t3"), { rating: 4, comment: "Tidy" });
 });

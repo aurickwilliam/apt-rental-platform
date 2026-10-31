@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
-import { hasTenantReviewErrors, validateTenantReview } from "@repo/utils";
+import { prepareTenantReview, TENANT_REVIEW_SAVE_ERROR } from "@repo/utils";
 
 export interface SubmitTenantReviewInput {
   tenancyId: string;
@@ -16,25 +16,14 @@ export type SubmitTenantReviewResult = { success: true } | { success: false; err
  * write path. Calling it again for the same tenancy edits the review. The
  * database messages are user-facing, so they are surfaced as-is.
  */
-export async function submitTenantReview({
-  tenancyId,
-  rating,
-  comment,
-}: SubmitTenantReviewInput): Promise<SubmitTenantReviewResult> {
-  const errors = validateTenantReview(rating, comment);
-  if (hasTenantReviewErrors(errors)) {
-    return { success: false, error: errors.rating ?? errors.comment ?? "Check your rating and try again." };
-  }
+export async function submitTenantReview(input: SubmitTenantReviewInput): Promise<SubmitTenantReviewResult> {
+  const prepared = prepareTenantReview(input);
+  if (!prepared.ok) return { success: false, error: prepared.error };
 
-  const { error } = await createClient().rpc("submit_tenant_review", {
-    p_tenancy_id: tenancyId,
-    p_rating: rating,
-    p_comment: comment.trim() || undefined,
-  });
-
+  const { error } = await createClient().rpc("submit_tenant_review", prepared.args);
   if (error) {
     console.error("Tenant review failed", error.code);
-    return { success: false, error: error.message || "Could not save your rating. Please try again." };
+    return { success: false, error: error.message || TENANT_REVIEW_SAVE_ERROR };
   }
   return { success: true };
 }

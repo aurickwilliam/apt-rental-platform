@@ -15,6 +15,7 @@ import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
 import RateTenantButton from "./RateTenantButton";
+import ReportRatingButton from "./ReportRatingButton";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
 import PublicProfileTagsCard from "./PublicProfileTagsCard";
@@ -157,7 +158,11 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
             description="Landlords can rate a tenant once their lease has ended."
           />
         ) : (
-          <PublicProfileReviewList reviews={data.landlordReviews} reviewCount={data.landlordReviews.length} />
+          <PublicProfileReviewList
+            reviews={data.landlordReviews}
+            reviewCount={data.landlordReviews.length}
+            renderFooter={(review) => (review.isMine ? null : <ReportRatingButton reviewId={review.id} />)}
+          />
         )}
       </PublicProfileSection>
       </PublicProfileLayout>

@@ -3,7 +3,7 @@ import "server-only";
 import { getVerifiedPassportSlots, type PassportSlotDocument } from "@repo/passport";
 import { sortLandlordOwnershipDocuments } from "@repo/constants";
 import { createClient } from "@repo/supabase/server";
-import { summarizeTenantReviews } from "@repo/utils";
+import { summarizeTenantReviews, toTenantReviewRecords } from "@repo/utils";
 
 import { fetchLandlordOwnershipDocuments } from "@/lib/verified-landlord";
 import { apartmentReviewSelect } from "@/lib/apartment-review-query";
@@ -15,11 +15,13 @@ import {
   clampProfileReviewPage,
   coveredCities,
   formatStayRange,
+  ownTenantRatingsByTenancy,
   profileDisplayName,
   profileLocation,
   profileReviewPageCount,
   stayDurationMonths,
   toPastStay,
+  toTenantRatingCard,
   summarizeListingVerification,
   summarizeReviewRatings,
   summarizeStayHistory,
@@ -65,24 +67,6 @@ interface UserRow {
   mobile_number?: string | null;
   city?: string | null;
   province?: string | null;
-}
-
-// Landlord ratings of one tenant are bounded: one per tenancy, newest first.
-const MAX_TENANT_REVIEWS = 50;
-
-interface TenantReviewRow {
-  id: string;
-  tenancy_id: string;
-  landlord_id: string;
-  rating: number;
-  comment: string | null;
-  created_at: string;
-  landlord: { first_name: string | null; last_name: string | null; avatar_url: string | null } | null;
-  tenancy: {
-    lease_start: string | null;
-    lease_end: string | null;
-    apartments: { name: string | null } | null;
-  } | null;
 }
 
 interface ImageRow {
@@ -420,24 +404,13 @@ export async function loadTenantProfile(
       .from("passport_documents")
       .select("doc_type, id_type, is_primary, is_verified, review_status, expires_at, created_at")
       .eq("user_id", tenantId),
-    // RLS: landlords with an application or tenancy for this tenant may read these.
-    supabase
-      .from("tenant_reviews")
-      .select(
-        "id, tenancy_id, landlord_id, rating, comment, created_at, landlord:users!tenant_reviews_landlord_id_fkey(first_name, last_name, avatar_url), tenancy:tenancies!tenant_reviews_tenancy_id_fkey(lease_start, lease_end, apartments!tenancies_apartment_id_fkey(name))",
-      )
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false })
-      .limit(MAX_TENANT_REVIEWS),
+    // Author name and stay context come from the RPC; the tenancy itself is unreadable to other landlords.
+    supabase.rpc("get_tenant_reviews", { p_tenant_id: tenantId }),
   ]);
 
-  const tenantReviewRows = (tenantReviewResult.data ?? []) as unknown as TenantReviewRow[];
-  const myReviewsByTenancy = new Map(
-    tenantReviewRows
-      .filter((row) => row.landlord_id === viewerLandlordId)
-      .map((row) => [row.tenancy_id, { rating: Number(row.rating), comment: row.comment }]),
-  );
-  const ratingSummary = summarizeTenantReviews(tenantReviewRows.map((row) => Number(row.rating)));
+  const tenantReviews = toTenantReviewRecords(tenantReviewResult.data ?? []);
+  const myReviewsByTenancy = ownTenantRatingsByTenancy(tenantReviews);
+  const ratingSummary = summarizeTenantReviews(tenantReviews.map((review) => review.rating));
 
   const stayRows = (stayResult.data ?? []) as unknown as (PastStayRow & {
     apartments: { apartment_images: ImageRow[] | null } | null;
@@ -453,16 +426,7 @@ export async function loadTenantProfile(
     };
   });
 
-  const landlordReviews = tenantReviewRows.map<PublicProfileReview>((row) => ({
-    id: row.id,
-    reviewerName: profileDisplayName(row.landlord?.first_name ?? null, row.landlord?.last_name ?? null, "Landlord"),
-    reviewerAvatar: row.landlord?.avatar_url ?? undefined,
-    date: row.created_at,
-    text: row.comment ?? "",
-    rating: Number(row.rating),
-    apartmentName: row.tenancy?.apartments?.name ?? null,
-    stayPeriod: row.tenancy ? formatStayRange(row.tenancy.lease_start, row.tenancy.lease_end) : undefined,
-  }));
+  const landlordReviews = tenantReviews.map(toTenantRatingCard);
 
   return {
     identity: toIdentity(tenant, "Tenant"),

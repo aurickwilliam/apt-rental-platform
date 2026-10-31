@@ -3,7 +3,9 @@
  * (mobile parity: `app/profile/landlord/[landlordId]`, `app/profile/tenant/[tenantId]`).
  */
 
-import type { PublicProfilePastStay } from "@/app/components/profile/public/types";
+import type { TenantReviewRecord } from "@repo/utils";
+
+import type { PublicProfilePastStay, PublicProfileReview } from "@/app/components/profile/public/types";
 
 export type ProfileViewerPortal = "public" | "tenant" | "landlord";
 
@@ -275,4 +277,30 @@ export function summarizeStayHistory(durationsInMonths: ReadonlyArray<number | n
     completedStays: durationsInMonths.length,
     longestStayMonths: known.length > 0 ? Math.max(...known) : null,
   };
+}
+
+/** A landlord's rating of a tenant as a profile review card; the stay line needs the apartment or its dates. */
+export function toTenantRatingCard(record: TenantReviewRecord): PublicProfileReview {
+  return {
+    id: record.id,
+    reviewerName: record.landlordName,
+    reviewerAvatar: record.landlordAvatarUrl ?? undefined,
+    date: record.createdAt,
+    text: record.comment,
+    rating: record.rating,
+    apartmentName: record.apartmentName,
+    stayPeriod: record.leaseStart ? formatStayRange(record.leaseStart, record.leaseEnd) : undefined,
+    isMine: record.isMine,
+  };
+}
+
+/** The signed-in landlord's own ratings by tenancy, so a past stay can offer "Edit" instead of "Rate". */
+export function ownTenantRatingsByTenancy(
+  records: readonly TenantReviewRecord[],
+): Map<string, { rating: number; comment: string | null }> {
+  return new Map(
+    records
+      .filter((record) => record.isMine)
+      .map((record) => [record.tenancyId, { rating: record.rating, comment: record.comment || null }]),
+  );
 }

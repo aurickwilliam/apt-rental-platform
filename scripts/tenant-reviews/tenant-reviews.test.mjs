@@ -7,6 +7,7 @@ import { PGlite } from "@electric-sql/pglite";
 const read = (name) => readFile(new URL(`../../supabase/migrations/${name}`, import.meta.url), "utf8");
 const landlordGate = await read("20261028160000_verified_landlord_gate.sql");
 const tenantReviews = await read("20261030234743_tenant_reviews.sql");
+const tenantReviewsFollowup = await read("20261031053102_tenant_reviews_followup.sql");
 
 // Minimal stand-ins for the tables and helpers the migration builds on.
 const schema = `
@@ -21,7 +22,7 @@ $$;
 create function private.is_admin() returns boolean language sql stable as $$
   select coalesce(nullif(current_setting('test.admin', true), ''), 'false')::boolean;
 $$;
-create table users (id uuid primary key, user_id uuid, roles text[], account_status text, is_suspended boolean not null default false);
+create table users (id uuid primary key, user_id uuid, roles text[], account_status text, is_suspended boolean not null default false, first_name text, last_name text, avatar_url text);
 create table apartments (id uuid primary key default gen_random_uuid(), landlord_id uuid, name text);
 create table apartment_images (id uuid primary key default gen_random_uuid(), apartment_id uuid);
 create table rental_application (id uuid primary key default gen_random_uuid(), apartment_id uuid, tenant_id uuid, status text default 'pending');
@@ -66,10 +67,14 @@ async function setup() {
   await db.exec(schema);
   await db.exec(landlordGate);
   await db.exec(tenantReviews);
+  await db.exec(tenantReviewsFollowup);
   const people = {};
   const add = async (key, roles, status = "verified") => {
     const person = { id: randomUUID(), authId: randomUUID() };
-    await db.query("insert into users(id, user_id, roles, account_status) values ($1,$2,$3,$4)", [person.id, person.authId, roles, status]);
+    await db.query(
+      "insert into users(id, user_id, roles, account_status, first_name, last_name) values ($1,$2,$3,$4,$5,$6)",
+      [person.id, person.authId, roles, status, key, "Test"],
+    );
     people[key] = person;
   };
   await add("landlord", ["landlord"]);
@@ -79,6 +84,7 @@ async function setup() {
   await add("unverifiedLandlord", ["landlord"], "unverified");
   await add("tenant", ["tenant"]);
   await add("otherTenant", ["tenant"]);
+  await add("admin", ["admin"]);
 
   const apartment = (await db.query("insert into apartments(landlord_id, name) values ($1,'Unit') returning id", [people.landlord.id])).rows[0].id;
   const tenancy = async (landlord, tenant, status, leaseEnd) =>
@@ -89,6 +95,8 @@ async function setup() {
   const tenancies = {
     ended: await tenancy(people.landlord, people.tenant, "ended", "2026-06-01"),
     expired: await tenancy(people.landlord, people.otherTenant, "active", "2026-06-01"),
+    endedOther: await tenancy(people.landlord, people.otherTenant, "ended", "2026-06-01"),
+    cancelled: await tenancy(people.landlord, people.otherTenant, "cancelled", "2026-06-01"),
     running: await tenancy(people.landlord, people.otherTenant, "active", "2099-01-01"),
     open: await tenancy(people.landlord, people.otherTenant, "active", null),
     other: await tenancy(people.otherLandlord, people.tenant, "ended", "2026-06-01"),
@@ -100,7 +108,7 @@ async function setup() {
 test("landlords rate a tenant once the lease is over", async (t) => {
   const { db, people, tenancies, apartment } = await setup();
   t.after(() => db.close());
-  const { landlord, otherLandlord, relatedLandlord, strangerLandlord, unverifiedLandlord, tenant, otherTenant } = people;
+  const { landlord, otherLandlord, relatedLandlord, strangerLandlord, unverifiedLandlord, tenant, otherTenant, admin } = people;
   const rate = (tenancyId, rating, comment) =>
     db.query("select public.submit_tenant_review($1,$2,$3) as id", [tenancyId, rating, comment]);
 
@@ -123,8 +131,12 @@ test("landlords rate a tenant once the lease is over", async (t) => {
     assert.notEqual(rows[0].updated_at, null);
   });
 
-  await t.test("a lease whose end date has passed counts as over", async () => {
-    await as(db, landlord, () => rate(tenancies.expired, 5, null));
+  await t.test("only an ended tenancy counts; a passed lease end alone does not", async () => {
+    await as(db, landlord, async () => {
+      await assert.rejects(rate(tenancies.expired, 5, null), /once the lease has ended/);
+      await assert.rejects(rate(tenancies.cancelled, 5, null), /once the lease has ended/);
+      await rate(tenancies.endedOther, 5, null);
+    });
   });
 
   await t.test("a running lease cannot be rated yet", async () => {
@@ -182,6 +194,54 @@ test("landlords rate a tenant once the lease is over", async (t) => {
     assert.equal(await count(strangerLandlord), 0, "no relationship, no access");
     assert.equal(await count(unverifiedLandlord), 0, "an unverified landlord reads no landlord-side rows");
     assert.equal(await count(null, { admin: false }), 2, "service role is unrestricted");
+  });
+
+  await t.test("get_tenant_reviews adds author and stay context for every allowed reader", async () => {
+    const list = (person, tenantId, options) =>
+      as(db, person, async () => (await db.query("select * from get_tenant_reviews($1)", [tenantId])).rows, options);
+
+    const forTenant = await list(otherLandlord, tenant.id);
+    assert.equal(forTenant.length, 1, "another landlord who rented to the tenant sees the rating");
+    assert.equal(forTenant[0].landlord_first_name, "landlord");
+    assert.equal(forTenant[0].apartment_name, "Unit", "apartment context comes through although the tenancy is not theirs");
+    assert.equal(forTenant[0].is_mine, false);
+
+    const own = await list(landlord, tenant.id);
+    assert.equal(own.length, 1);
+    assert.equal(own[0].is_mine, true);
+
+    assert.equal((await list(tenant, tenant.id)).length, 1, "the tenant reads ratings about them");
+    assert.equal((await list(strangerLandlord, tenant.id)).length, 0, "no relationship, no rows");
+    assert.equal((await list(unverifiedLandlord, tenant.id)).length, 0, "an unverified landlord reads nothing");
+    assert.equal((await list(otherTenant, tenant.id)).length, 0, "another tenant reads nothing");
+    assert.equal((await list(admin, tenant.id, { admin: true })).length, 1, "admins read every rating");
+    assert.equal((await list(null, tenant.id)).length, 0, "a call without a session reads nothing");
+  });
+
+  await t.test("admins can hide a rating and it leaves the lists and the table for everyone else", async () => {
+    const reviewId = (await db.query("select id from tenant_reviews where tenancy_id = $1", [tenancies.ended])).rows[0].id;
+    const hide = (person, hideIt, reason, options) =>
+      as(db, person, () => db.query("select public.admin_set_tenant_review_hidden($1,$2,$3)", [reviewId, hideIt, reason]), options);
+
+    await assert.rejects(hide(landlord, true, "Not allowed"), /Admin access required/);
+    await assert.rejects(hide(admin, true, "", { admin: true }), /reason/);
+    await hide(admin, true, "Abusive language", { admin: true });
+
+    const visible = (person, options) =>
+      as(db, person, async () => (await db.query("select count(*)::int as n from get_tenant_reviews($1)", [tenant.id])).rows[0].n, options);
+    assert.equal(await visible(otherLandlord), 0);
+    assert.equal(await visible(tenant), 0);
+    assert.equal(await visible(landlord), 0);
+    assert.equal(await visible(admin, { admin: true }), 1);
+
+    await as(db, tenant, async () => {
+      assert.equal((await db.query("select count(*)::int as n from tenant_reviews")).rows[0].n, 0);
+    });
+    await as(db, landlord, () => assert.rejects(rate(tenancies.ended, 1, "Edit after hide"), /removed by an administrator/));
+
+    await hide(admin, false, null, { admin: true });
+    assert.equal(await visible(otherLandlord), 1);
+    await as(db, landlord, () => rate(tenancies.ended, 2, ""));
   });
 
   await t.test("a suspended account is invisible", async () => {
