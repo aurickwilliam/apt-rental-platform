@@ -7,3 +7,7 @@ export type { LandlordReviewSort } from './useLandlordReviewsPage'
 export { useReviewEligibility } from './useReviewEligibility'
 export { useSubmitReview } from './useSubmitReview'
 export { useReviewUnlock } from './useReviewUnlock'
+
+export { useTenantReviews } from './useTenantReviews'
+export type { TenantReview } from './useTenantReviews'
+export { useSubmitTenantReview } from './useSubmitTenantReview'

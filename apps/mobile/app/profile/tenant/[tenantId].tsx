@@ -6,12 +6,14 @@ import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import ProfileStatsCard from 'components/cards/ProfileStatsCard'
 import PastApartmentCard from 'components/cards/PastApartmentCard'
+import RatingCard from 'components/cards/RatingCard'
 import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 
 import { Button, SkeletonGroup } from 'heroui-native'
 
 import { usePublicTenantProfile } from 'hooks/profiles'
 import { useCurrentUser } from 'hooks/auth'
+import { useTenantReviews } from '@/hooks/ratings'
 import { useColors } from 'hooks/useTheme'
 
 import {
@@ -25,6 +27,7 @@ import {
   IconMessageCircle,
   IconHomeSearch,
   IconFlag,
+  IconStarFilled,
 } from '@tabler/icons-react-native';
 
 export default function PublicTenantProfile() {
@@ -48,6 +51,12 @@ export default function PublicTenantProfile() {
 
   const { profile, pastApartments, loading } = usePublicTenantProfile(resolvedTenantId);
   const currentUserQuery = useCurrentUser();
+  const {
+    reviews: landlordReviews,
+    average: landlordRating,
+    count: landlordRatingCount,
+  } = useTenantReviews(resolvedTenantId);
+  const viewerId = currentUserQuery.data?.id;
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -83,6 +92,20 @@ export default function PublicTenantProfile() {
     })
   }
 
+  const handleRateTenant = (tenancyId: string, apartmentName: string) => {
+    if (!profile || !resolvedTenantId) return
+
+    router.push({
+      pathname: '/landlord/rate-tenant',
+      params: {
+        tenancyId,
+        tenantId: resolvedTenantId,
+        tenantName: profile.fullName,
+        apartmentName,
+      },
+    })
+  }
+
   // TODO: Implement function to handle report tenant
   const handleReportTenant = () => {
     console.log("Report Tenant Pressed");
@@ -108,6 +131,12 @@ export default function PublicTenantProfile() {
       <View className="mx-5 mt-5">
         <ProfileStatsCard
           stats={[
+            {
+              label: 'Rating',
+              value: landlordRatingCount > 0 ? landlordRating.toFixed(1) : '—',
+              icon: IconStarFilled,
+              iconColor: colors.rating,
+            },
             {
               label: 'Reviews',
               value: String(profile?.reviewsCount ?? 0),
@@ -209,20 +238,72 @@ export default function PublicTenantProfile() {
           </View>
         ) : (
           <View className="mt-3 gap-3">
-            {pastApartments.map((apartment) => (
-              <PastApartmentCard
-                key={apartment.id}
-                apartmentName={apartment.name}
-                barangay={apartment.barangay}
-                city={apartment.city}
-                leaseStartMonth={apartment.leaseStartMonth}
-                leaseStartYear={apartment.leaseStartYear}
-                leaseEndMonth={apartment.leaseEndMonth}
-                leaseEndYear={apartment.leaseEndYear}
-                thumbnailUrl={apartment.thumbnailUrl}
-                onPress={() =>
-                  console.log(`Pressed on apartment ${apartment.name}`)
-                }
+            {pastApartments.map((apartment) => {
+              const myReview = landlordReviews.find(
+                (review) => review.tenancyId === apartment.id && review.landlordId === viewerId,
+              )
+
+              return (
+                <View key={apartment.id} className="gap-2">
+                  <PastApartmentCard
+                    apartmentName={apartment.name}
+                    barangay={apartment.barangay}
+                    city={apartment.city}
+                    leaseStartMonth={apartment.leaseStartMonth}
+                    leaseStartYear={apartment.leaseStartYear}
+                    leaseEndMonth={apartment.leaseEndMonth}
+                    leaseEndYear={apartment.leaseEndYear}
+                    thumbnailUrl={apartment.thumbnailUrl}
+                    onPress={() =>
+                      console.log(`Pressed on apartment ${apartment.name}`)
+                    }
+                  />
+                  {viewerId && apartment.landlordId === viewerId && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onPress={() => handleRateTenant(apartment.id, apartment.name)}
+                    >
+                      <IconStar size={16} color={colors.rating} />
+                      <Button.Label>
+                        {myReview ? `Your rating: ${myReview.rating}/5 · Edit` : 'Rate Tenant'}
+                      </Button.Label>
+                    </Button>
+                  )}
+                </View>
+              )
+            })}
+          </View>
+        )}
+      </View>
+
+      {/* Landlord ratings */}
+      <View className="mx-5 mt-8">
+        <Text className="text-foreground text-xl font-nunitoBold">
+          What landlords say about {firstName}
+        </Text>
+
+        {landlordReviews.length === 0 ? (
+          <View className="items-center py-10 px-8 gap-3">
+            <IconStar size={48} color={colors.primary} />
+            <Text className="text-foreground text-lg font-nunitoBold text-center">
+              No landlord ratings yet
+            </Text>
+            <Text className="text-gray-400 text-base font-inter text-center">
+              Landlords can rate a tenant once their lease has ended.
+            </Text>
+          </View>
+        ) : (
+          <View className="mt-3 gap-3">
+            {landlordReviews.map((review) => (
+              <RatingCard
+                key={review.id}
+                name={review.landlordName}
+                date={review.createdAt}
+                rating={review.rating}
+                review={review.comment}
+                profilePictureUrl={review.landlordAvatarUrl}
+                apartmentName={review.apartmentName}
               />
             ))}
           </View>

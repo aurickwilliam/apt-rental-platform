@@ -169,6 +169,16 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
       return;
     }
     setVacateOpen(false);
+    if (tenant) {
+      // The lease is over, so the tenant can now be rated from their profile.
+      toast.success("Unit vacated", {
+        description: `You can now rate ${tenant.fullName} as a tenant.`,
+        actionProps: {
+          children: "Rate tenant",
+          onPress: () => router.push(tenantProfileHref(tenant.id)),
+        },
+      });
+    }
     router.refresh();
   };
 

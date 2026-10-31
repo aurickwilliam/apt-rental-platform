@@ -1342,6 +1342,61 @@ export type Database = {
           },
         ]
       }
+      tenant_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          landlord_id: string
+          rating: number
+          tenancy_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          landlord_id: string
+          rating: number
+          tenancy_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          rating?: number
+          tenancy_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_reviews_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_reviews_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: true
+            referencedRelation: "tenancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -2003,6 +2058,10 @@ export type Database = {
       set_tenancy_signed_lease: {
         Args: { p_path: string; p_tenancy_id: string }
         Returns: undefined
+      }
+      submit_tenant_review: {
+        Args: { p_comment?: string; p_rating: number; p_tenancy_id: string }
+        Returns: string
       }
       sync_my_profile_email: { Args: never; Returns: undefined }
       unblock_user: { Args: { p_user_id: string }; Returns: undefined }

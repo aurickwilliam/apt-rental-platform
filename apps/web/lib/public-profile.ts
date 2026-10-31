@@ -189,8 +189,10 @@ export interface PastStayRow {
   } | null;
 }
 
-/** Everything a past-stay card shows, minus the photo (which needs the image rows). */
-export function toPastStay(row: PastStayRow): Omit<PublicProfilePastStay, "thumbnailUrl"> {
+/** Everything a past-stay card shows, minus the photo (which needs the image rows) and the viewer's rating. */
+export function toPastStay(
+  row: PastStayRow,
+): Omit<PublicProfilePastStay, "thumbnailUrl" | "canRate" | "myReview"> {
   const apartment = row.apartments;
   const months = stayDurationMonths(row.lease_start, row.lease_end);
   return {

@@ -2,6 +2,20 @@ export { getRelativeTime } from './getRelativeTime';
 export { isReviewStayEligible } from './reviewEligibility';
 export { formatReviewStayLabel } from './reviewStayLabel';
 export {
+  TENANT_REVIEW_MAX_COMMENT_LENGTH,
+  TENANT_REVIEW_MIN_RATING,
+  TENANT_REVIEW_MAX_RATING,
+  isTenantReviewable,
+  validateTenantReview,
+  hasTenantReviewErrors,
+  summarizeTenantReviews,
+} from './tenantReview';
+export type {
+  TenantReviewableTenancy,
+  TenantReviewErrors,
+  TenantReviewSummary,
+} from './tenantReview';
+export {
   MAX_CHAT_ATTACHMENT_BYTES,
   CHAT_DOCUMENT_MIME_TYPES,
   chatAttachmentMimeType,

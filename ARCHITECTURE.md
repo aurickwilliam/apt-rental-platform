@@ -689,6 +689,10 @@ The isolated SQL regression harness is `supabase/test-support/landlord-finances-
 
 ---
 
+### 12.3 Landlord ratings of tenants
+
+`tenant_reviews` holds at most one landlord-to-tenant rating per tenancy. The only write path is the `submit_tenant_review()` RPC, which resolves landlord and tenant from the tenancy, checks the caller is that tenancy's verified landlord and that the lease is over (status `ended` or `lease_end` reached), and upserts on `tenancy_id`, so a later call edits the rating. Rules shared by web and mobile live in `@repo/utils` (`tenantReview.ts`); the database remains authoritative. Both platforms read the ratings with RLS deciding visibility (author, rated tenant, landlords linked through an application or tenancy, admins) and show the mean of individual ratings on the tenant profile. Web reads them in `loadTenantProfile`; mobile uses React Query (`['tenant-reviews', tenantId]`, invalidated exactly after a save). There is no notification and no Realtime binding.
+
 ### 12.2 Apartment review readiness and mobile prompt
 
 Web and mobile use the pure `isReviewStayEligible` helper in `@repo/utils`: the stay has reached three calendar months (month-end clamped like PostgreSQL), or its lease end date has passed. The existing `enforce_review_stay_eligibility` database trigger is still the write authority; no schema, grants or eligibility overrides are added. Mobile's existing review-button query now includes `lease_start` and applies the shared check.
