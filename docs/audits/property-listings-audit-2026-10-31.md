@@ -349,3 +349,13 @@ File: `supabase/migrations/20261031120000_listing_data_guards.sql`, plus `apps/w
 The migration was applied to production through the migration tool and is recorded as `20261031143939 listing_data_guards`. Read back afterwards: the three triggers are enabled (`apartments.guard_apartment_amenities`, `apartments.guard_apartment_verified_flag`, `apartment_images.guard_apartment_image_url`); `private.listing_data_quality` returns `photo_outside_bucket=168, pin_outside_stated_city=2, pricing_off_rule=3, verified_without_review=56`; no client role holds any privilege on the view or the guard functions; row counts and data are unchanged (68 apartments, 220 images, 34 tenancies, 60 live verified, 54 new descriptions). `AGENTS.md` now documents the guards and the `app.allow_unreviewed_verified` opt-in.
 
 Still to try by hand once: an admin approving a pending listing verification, and a landlord adding a photo from web and from mobile.
+
+## L. Follow-up: repeated cover thumbnails on the demo listings (applied 2026-10-31)
+
+**Cause:** the 56 demo listings each own 3 stock photos drawn from a pool of 28, but their cover photos used only 8 of the 28 (one cover on 14 listings, another on 13), so neighboring cards in a browse row repeated the same room.
+
+**Change:** only `apartment_images.is_cover` was rebalanced, among each listing's own three existing photos; no photo was added, removed or edited. Deterministic greedy rebalance (least-used photo first, keep the current cover on ties), simulated first inside a rolled-back block, then applied in one transaction that backed up the 168 affected rows to `private.listing_audit_backup_images_20261031` and aborted on any deviation (28 distinct covers, 42 changed, exactly one cover per listing, nothing but `is_cover` different).
+
+**Result:** distinct covers 8 → 28; the most-shared cover 14 → 3 listings; 42 of 56 listings changed cover; every listing still has exactly one cover; totals unchanged.
+
+**Limit:** 28 photos for 56 listings means each photo still appears on 2–3 listings, so two neighbors in a row can occasionally match. Fully unique thumbnails need more distinct photos. Restore: `update apartment_images i set is_cover = b.is_cover from private.listing_audit_backup_images_20261031 b where i.id = b.id;`
