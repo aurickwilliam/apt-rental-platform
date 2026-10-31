@@ -1,4 +1,8 @@
+"use client";
+
 import { Skeleton } from "@heroui/react";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import {
   BROWSE_BODY_CLASS,
@@ -36,9 +40,10 @@ function CardSkeleton({ index = 0 }: { index?: number }) {
 }
 
 export function BrowseCardsSkeleton({ count = 8, className = BROWSE_GRID_CLASS }: { count?: number; className?: string }) {
+  const { t } = useTranslation();
   return (
     <div
-      aria-label="Loading apartments"
+      aria-label={t("browse.loading.apartments")}
       role="status"
       className={className}
     >
@@ -69,8 +74,9 @@ function SectionSkeleton({ sectionIndex }: { sectionIndex: number }) {
 }
 
 export function BrowseSectionsSkeleton({ count = 3 }: { count?: number }) {
+  const { t } = useTranslation();
   return (
-    <div aria-label="Loading curated sections" role="status" className="flex min-w-0 flex-col gap-6 sm:gap-8">
+    <div aria-label={t("browse.loading.sections")} role="status" className="flex min-w-0 flex-col gap-6 sm:gap-8">
       {Array.from({ length: count }, (_, i) => (
         <SectionSkeleton key={i} sectionIndex={i} />
       ))}

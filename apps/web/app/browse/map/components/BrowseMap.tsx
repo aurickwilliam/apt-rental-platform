@@ -10,6 +10,7 @@ import { getGoogleMaps, loadGoogleMaps, type GoogleMapInstance } from "@/lib/goo
 import { centerMapOnUser } from "@/lib/map-locate";
 
 import type { MapView } from "../../lib/map-view";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import MapControls from "./MapControls";
 import { useMapPins, type MapPin } from "./useMapPins";
 import { useMapPopup } from "./useMapPopup";
@@ -56,6 +57,7 @@ export default function BrowseMap({
   popupAnchor = null,
   popup,
 }: BrowseMapProps) {
+  const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const savedViewRef = useRef<MapView | null>(null);
@@ -191,9 +193,7 @@ export default function BrowseMap({
     return (
       <div className="flex size-full items-center justify-center rounded-2xl border border-border bg-surface-secondary p-6 text-center">
         <p className={`text-sm ${status === "error" ? "text-danger" : "text-muted-foreground"}`}>
-          {status === "error"
-            ? "The map couldn't load. Check your connection; the list still shows listings in the default area."
-            : "The map isn't available right now. The list shows listings in the default area."}
+          {status === "error" ? t("browse.map.loadError") : t("browse.map.unavailable")}
         </p>
       </div>
     );
@@ -202,7 +202,7 @@ export default function BrowseMap({
   return (
     <div className="relative size-full overflow-hidden rounded-2xl border border-border bg-surface-secondary">
       {status === "loading" ? (
-        <div className="absolute inset-0 animate-pulse bg-surface-secondary" aria-label="Loading map" role="status" />
+        <div className="absolute inset-0 animate-pulse bg-surface-secondary" aria-label={t("browse.map.loading")} role="status" />
       ) : null}
       <div ref={containerRef} className="size-full" />
 

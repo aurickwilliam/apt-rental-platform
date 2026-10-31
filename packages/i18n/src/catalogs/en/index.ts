@@ -1,7 +1,9 @@
 import { auth } from "./auth";
+import { browse } from "./browse";
 import { authMobile } from "./authMobile";
 import { common } from "./common";
 import { enums } from "./enums";
+import { favorites } from "./favorites";
 import { errors } from "./errors";
 import { languages } from "./languages";
 import { nav } from "./nav";
@@ -24,6 +26,8 @@ export const en = {
   ...errors,
   ...notifications,
   ...enums,
+  ...browse,
+  ...favorites,
 } as const;
 
 export type TranslationKey = keyof typeof en;

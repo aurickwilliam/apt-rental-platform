@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
 import { IconMap2, IconSearch } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import { BROWSE_HERO_CLASS, BROWSE_SEARCH_ROW_CLASS } from "../lib/browse-layout";
 
 export default function SearchContainer({
@@ -32,6 +34,7 @@ export default function SearchContainer({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +81,7 @@ export default function SearchContainer({
             variant="ghost"
             size="sm"
             onPress={handleSearch}
-            aria-label="Search"
+            aria-label={t("browse.search.aria")}
             className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
           >
             <IconSearch size={20} className="text-grey-500" />
@@ -87,7 +90,7 @@ export default function SearchContainer({
       </InputGroup.Prefix>
       <InputGroup.Input
         ref={inputRef}
-        placeholder="Search by name or location..."
+        placeholder={t("browse.search.placeholder")}
         value={search}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -117,10 +120,10 @@ export default function SearchContainer({
     // which opens straight into search). md+ keeps the banner.
     <div className={BROWSE_HERO_CLASS}>
       <h2 className="hidden md:block w-full text-2xl sm:text-3xl lg:text-4xl font-medium font-nunito text-white leading-tight text-balance">
-        Find your Perfect Apartment!
+        {t("browse.hero.title")}
       </h2>
       <p className="hidden md:block w-full text-white/80 text-xs sm:text-sm px-2 text-balance">
-        Browse verified listings across Caloocan, Malabon, Navotas, and Valenzuela
+        {t("browse.hero.subtitle")}
       </p>
 
       {/* Search bar: pill, then the filter and map entries, centered at every
@@ -136,7 +139,7 @@ export default function SearchContainer({
             size="lg"
             className="shrink-0 cursor-pointer"
             onPress={openMap}
-            aria-label="Search on the map"
+            aria-label={t("browse.searchMap.aria")}
           >
             <IconMap2 size={18} />
           </Button>

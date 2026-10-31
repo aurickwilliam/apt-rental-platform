@@ -71,6 +71,8 @@ test("See All keeps all loaded cards during pending, cancelled and failed naviga
     "@/app/components/ui/AuthPromptModal": { default: "AuthPromptModal" },
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: key => key }) },
+    "../lib/section-labels": { sectionTitleKey: () => null },
   };
   const Browse = compile("app/browse/components/BrowseSectionsList.tsx", dependencies).default;
   const sections = [{ id: "verified", title: "Verified", seeAllHref: "/browse?verified=1", apartments: [{ id: "one", name: "One" }, { id: "two", name: "Two" }] }];

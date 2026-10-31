@@ -13,6 +13,8 @@ import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import { sectionTitleKey } from "../lib/section-labels";
 import BrowseSeeAllPending from "./BrowseSeeAllPending";
 import {
   previewPosition,
@@ -29,6 +31,8 @@ interface BrowseSectionsListProps {
 
 interface SectionRowProps {
   section: BrowseSection;
+  /** Translated section title, used for the arrow aria labels. */
+  title: string;
   sectionIndex: number;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (apartmentId: string) => void;
@@ -44,6 +48,7 @@ interface SectionRowProps {
 // the row fits without scrolling.
 const SectionRow = memo(function SectionRow({
   section,
+  title,
   sectionIndex,
   isFavorite,
   onToggleFavorite,
@@ -52,6 +57,7 @@ const SectionRow = memo(function SectionRow({
   onLeaveCard,
   activeFavoriteId,
 }: SectionRowProps) {
+  const { t } = useTranslation();
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -137,7 +143,7 @@ const SectionRow = memo(function SectionRow({
       {canScrollLeft && (
         <Button
           variant="ghost"
-          aria-label={`Scroll ${section.title} left`}
+          aria-label={t("browse.section.scrollLeft", { section: title })}
           onClick={() => scrollRow(-1)}
           className={`button--bare ${leftStripClass}`}
         >
@@ -147,7 +153,7 @@ const SectionRow = memo(function SectionRow({
       {canScrollRight && (
         <Button
           variant="ghost"
-          aria-label={`Scroll ${section.title} right`}
+          aria-label={t("browse.section.scrollRight", { section: title })}
           onClick={() => scrollRow(1)}
           className={`button--bare ${rightStripClass}`}
         >
@@ -160,6 +166,7 @@ const SectionRow = memo(function SectionRow({
 
 export default function BrowseSectionsList({ sections, basePath = "/browse" }: BrowseSectionsListProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
@@ -178,9 +185,9 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
       try {
         const nextValue = await toggleFavorite(apartmentId);
         if (nextValue) {
-          toast.success("Saved to favorites");
+          toast.success(t("favorites.saved"));
         } else {
-          toast("Removed from favorites");
+          toast(t("favorites.removed"));
         }
       } catch (err: unknown) {
         const error = err as { code?: string; message?: string };
@@ -191,16 +198,16 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
         }
 
         if (error?.code === "NOT_TENANT") {
-          toast.warning(error?.message ?? "Only tenants can save favorites");
+          toast.warning(error?.message ?? t("favorites.tenantsOnly"));
           return;
         }
 
-        toast.danger(error?.message ?? "Unable to update favorites");
+        toast.danger(error?.message ?? t("favorites.updateFailed"));
       } finally {
         setActiveFavoriteId(null);
       }
     },
-    [toggleFavorite],
+    [toggleFavorite, t],
   );
 
   const handlePressApartment = useCallback(
@@ -220,12 +227,15 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
 
   return (
     <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
-      {sections.map((section, sectionIndex) => (
-        <section key={section.id} aria-label={section.title} className="min-w-0">
+      {sections.map((section, sectionIndex) => {
+        const titleKey = sectionTitleKey(section.id);
+        const title = titleKey ? t(titleKey) : section.title;
+        return (
+        <section key={section.id} aria-label={title} className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
             <div className="min-w-0">
               <h3 className="min-w-0 truncate font-nunito text-lg font-semibold">
-                {section.title}
+                {title}
               </h3>
               {section.subtitle ? (
                 <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -238,9 +248,9 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
                 href={section.seeAllHref}
                 onNavigate={dismissPreview}
                 className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-                aria-label={`See all ${section.title}`}
+                aria-label={t("browse.section.seeAllAria", { section: title })}
               >
-                See All
+                {t("browse.section.seeAll")}
                 <IconChevronRight size={18} />
                 <BrowseSeeAllPending />
               </Link>
@@ -249,6 +259,7 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
 
           <SectionRow
             section={section}
+            title={title}
             sectionIndex={sectionIndex}
             isFavorite={isFavorite}
             onToggleFavorite={handleToggleFavorite}
@@ -258,7 +269,8 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
             activeFavoriteId={activeFavoriteId}
           />
         </section>
-      ))}
+        );
+      })}
 
       {preview && (
         <ApartmentHoverPreview
@@ -277,8 +289,8 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
       <AuthPromptModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
+        title={t("favorites.signInTitle")}
+        description={t("favorites.signInBody")}
       />
     </div>
   );

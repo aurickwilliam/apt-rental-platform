@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
@@ -38,12 +39,13 @@ export default function ApartmentHoverPreview({
   onMouseEnter,
   onMouseLeave,
 }: ApartmentHoverPreviewProps) {
+  const { t } = useTranslation();
   // CSS-only enter animation (no motion library): fade + slight zoom on
   // mount, instant unmount. Respects reduced-motion preferences.
   return (
     <div
       role="dialog"
-      aria-label={`Quick preview of ${apartment.name}`}
+      aria-label={t("browse.preview.quickAria", { name: apartment.name })}
       className="fixed z-50 hidden animate-in fade-in-0 zoom-in-95 duration-180 motion-reduce:animate-none md:block"
       style={style}
       onMouseEnter={onMouseEnter}
@@ -63,7 +65,7 @@ export default function ApartmentHoverPreview({
           {apartment.isVerified ? (
             <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-500">
               <IconShieldCheckFilled size={14} className="text-green-500" />
-              Verified
+              {t("browse.preview.verified")}
             </span>
           ) : null}
         </div>
@@ -89,19 +91,19 @@ export default function ApartmentHoverPreview({
               {apartment.bedrooms !== undefined && (
                 <span className="flex items-center gap-1">
                   <IconBed size={14} />
-                  {apartment.bedrooms} BR
+                  {t("browse.preview.bedrooms", { count: apartment.bedrooms })}
                 </span>
               )}
               {apartment.bathrooms !== undefined && (
                 <span className="flex items-center gap-1">
                   <IconBath size={14} />
-                  {apartment.bathrooms} BA
+                  {t("browse.preview.bathrooms", { count: apartment.bathrooms })}
                 </span>
               )}
               {apartment.areaSqm !== undefined && (
                 <span className="flex items-center gap-1">
                   <IconRuler size={14} />
-                  {apartment.areaSqm} sqm
+                  {t("browse.preview.sqm", { count: apartment.areaSqm })}
                 </span>
               )}
             </div>
@@ -112,15 +114,15 @@ export default function ApartmentHoverPreview({
               size="sm"
               className="flex-1"
               onPress={onViewDetails}
-              aria-label={`View details of ${apartment.name}`}
+              aria-label={t("browse.preview.viewDetailsAria", { name: apartment.name })}
             >
-              View Details
+              {t("browse.preview.viewDetails")}
             </Button>
             <Button
               size="sm"
               variant="ghost"
               isIconOnly
-              aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+              aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
               isPending={isFavoriteLoading}
               onPress={onFavoritePress}
             >

@@ -9,6 +9,7 @@ import { Pagination, toast } from "@heroui/react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
@@ -102,6 +103,7 @@ function getVisiblePages(page: number, totalPages: number): (number | "…")[] {
 
 export default function RenderApartments({ apartment, page, totalCount, pageSize, basePath = "/browse" }: RenderApartmentsProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -138,9 +140,9 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       try {
         const nextValue = await toggleFavorite(apartmentId);
         if (nextValue) {
-          toast.success("Saved to favorites");
+          toast.success(t("favorites.saved"));
         } else {
-          toast("Removed from favorites");
+          toast(t("favorites.removed"));
         }
       } catch (err: unknown) {
         const error = err as { code?: string; message?: string };
@@ -151,16 +153,16 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
         }
 
         if (error?.code === "NOT_TENANT") {
-          toast.warning(error?.message ?? "Only tenants can save favorites");
+          toast.warning(error?.message ?? t("favorites.tenantsOnly"));
           return;
         }
 
-        toast.danger(error?.message ?? "Unable to update favorites");
+        toast.danger(error?.message ?? t("favorites.updateFailed"));
       } finally {
         setActiveFavoriteId(null);
       }
     },
-    [toggleFavorite],
+    [toggleFavorite, t],
   );
 
   const handleToggleFavorite = useCallback(
@@ -175,9 +177,9 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       {apartment.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 px-4 text-center text-default-400">
           <p className="text-lg font-medium">
-            {isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
+            {isVerifiedOnly ? t("browse.empty.noVerified") : t("browse.empty.none")}
           </p>
-          <p className="text-sm">Try adjusting your filters</p>
+          <p className="text-sm">{t("browse.empty.hint")}</p>
         </div>
       ) : (
         <div className={BROWSE_GRID_CLASS}>
@@ -208,7 +210,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
                   onPress={() => handlePageChange(page - 1)}
                 >
                   <Pagination.PreviousIcon />
-                  <span className="hidden sm:inline">Previous</span>
+                  <span className="hidden sm:inline">{t("browse.pagination.previous")}</span>
                 </Pagination.Previous>
               </Pagination.Item>
 
@@ -234,7 +236,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
                   isDisabled={page === totalPages}
                   onPress={() => handlePageChange(page + 1)}
                 >
-                  <span className="hidden sm:inline">Next</span>
+                  <span className="hidden sm:inline">{t("browse.pagination.next")}</span>
                   <Pagination.NextIcon />
                 </Pagination.Next>
               </Pagination.Item>
@@ -261,8 +263,8 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
       <AuthPromptModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
+        title={t("favorites.signInTitle")}
+        description={t("favorites.signInBody")}
       />
     </div>
   );

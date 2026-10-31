@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const source = file => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const jsx = (type, props) => ({ type, props: props ?? {} });
@@ -68,6 +69,7 @@ test("public and tenant search share HeroUI colors without changing field geomet
         InputGroup: { Prefix: "InputGroup.Prefix", Input: "InputGroup.Input" },
       },
       "@tabler/icons-react": { IconSearch: "IconSearch" },
+      "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
       "../lib/browse-layout": compile("app/browse/lib/browse-layout.ts", {}),
     });
     const filterButton = jsx("ExistingFilterButton", {});

@@ -8,6 +8,8 @@ import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import { FILTER_KEYS } from "../lib/browse-params";
 import { FilterPanelSkeleton } from "./BrowsePageSkeleton";
 
@@ -32,6 +34,7 @@ type Props = {
 export default function FilterDrawerButton({ resultCount, basePath = "/browse", navigate }: Props) {
   const isMobile = useIsMobile();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const activeCount = useMemo(() => {
@@ -57,7 +60,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
         isIconOnly
         className="relative shrink-0"
         onPress={() => setIsOpen(true)}
-        aria-label="Open filters"
+        aria-label={t("browse.filters.open")}
       >
         <IconAdjustmentsHorizontal size={18} />
         {activeCount > 0 && (
@@ -85,7 +88,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
                   <div className="flex min-w-0 items-baseline gap-3">
                     <h3 className="flex items-center gap-2 font-nunito text-base font-semibold">
                       <IconAdjustmentsHorizontal size={16} />
-                      Filters
+                      {t("browse.filters.title")}
                       {activeCount > 0 && (
                         <span className="min-h-5 min-w-5 rounded-full bg-primary px-1 text-[11px] font-bold text-white flex items-center justify-center">
                           {activeCount}
@@ -94,7 +97,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
                     </h3>
                     {resultCount === undefined ? null : (
                       <p className="truncate text-sm text-muted-foreground" aria-live="polite">
-                        {resultCount} results found
+                        {t("browse.results.found", { count: resultCount })}
                       </p>
                     )}
                   </div>
@@ -103,7 +106,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
                     variant="ghost"
                     size="sm"
                     onPress={close}
-                    aria-label="Close filters"
+                    aria-label={t("browse.filters.close")}
                   >
                     <IconX size={16} />
                   </Button>

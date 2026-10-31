@@ -33,6 +33,7 @@ export {
 } from "./vocabulary";
 
 export {
+  AMENITY_KEYS,
   APARTMENT_STATUS_KEYS,
   APARTMENT_TYPE_KEYS,
   EMPLOYMENT_TYPE_KEYS,
