@@ -1,9 +1,10 @@
 import { Suspense } from "react";
-import Image from "next/image";
 
 import { Skeleton } from "@heroui/react";
 
 import AppDownloadAction from "./AppDownloadAction";
+import LandingMobileDemo from "./mobile-demo/LandingMobileDemo";
+import { demoInter, demoNunito } from "./mobile-demo/demo-fonts";
 
 export default function AppSection() {
   return (
@@ -22,15 +23,7 @@ export default function AppSection() {
           </Suspense>
         </div>
       </div>
-      {/* The phone is cropped at its bottom edge, so it sits flush with the card and the card clips it. */}
-      <Image
-        src="/landing/app-mobile-my-rental.png"
-        alt="APT mobile app showing the monthly rent, due date and Pay Now button for a rented apartment"
-        width={990}
-        height={1165}
-        sizes="(min-width: 1024px) 416px, (min-width: 640px) 320px, 288px"
-        className="mx-auto mt-2 h-auto w-72 self-end sm:w-80 md:mr-12 md:mt-12 lg:mr-16 lg:w-[26rem]"
-      />
+      <LandingMobileDemo fontClassName={`${demoInter.variable} ${demoNunito.variable}`} />
     </section>
   );
 }

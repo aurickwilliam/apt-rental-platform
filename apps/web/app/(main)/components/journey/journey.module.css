@@ -1,0 +1,19 @@
+/* Preserve the landing page's existing margin collapse and section flow. */
+.scene { position: relative; isolation: isolate; }
+.referenceContent { position: relative; z-index: 1; }
+.referenceContent > :global(section[aria-labelledby="thriving-title"]),
+.referenceContent > :global(#how-it-works) { border-top-color: transparent; }
+.pathLayer { position: absolute; top: 0; left: 0; z-index: 0; display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.pathLayer * { pointer-events: none; }
+.marker[data-marker-size="32"] { filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.12)); }
+.conclusion { position: relative; padding-block: 32px 56px; text-align: center; }
+.conclusion h2 { max-width: 24ch; margin-inline: auto; font-size: clamp(1.875rem, 1.35rem + 1.5vw, 2.5rem); line-height: 1.15; letter-spacing: -0.03em; font-weight: 700; text-wrap: balance; }
+.conclusion p { margin-top: 12px; font-size: 1rem; line-height: 1.75; color: var(--muted-foreground); }
+.conclusion .ctaLink { margin-top: 24px; }
+.conclusion .ctaLink:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+.ctaAccents { position: absolute; inset-inline: 0; margin-inline: auto; top: calc(4px - var(--journey-marker-size, 32px)); bottom: 48px; width: min(calc(100% - 48px), 800px); opacity: 0; pointer-events: none; color: var(--brand); transform-origin: center; }
+.ctaAccents svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+@media (max-width: 767px) { .pathLayer, .ctaAccents { display: none; } }
+@media (prefers-reduced-motion: reduce) { .pathLayer, .ctaAccents { display: none; } }
+:global(html.apt-reduce-motion) .pathLayer,
+:global(html.apt-reduce-motion) .ctaAccents { display: none; }

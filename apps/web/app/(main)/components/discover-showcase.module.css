@@ -1,0 +1,102 @@
+.panel {
+  position: relative;
+  width: 100%;
+  /* Reserve room for the larger details window below the screen, not over listings. */
+  aspect-ratio: 10 / 9;
+  isolation: isolate;
+  /* A low shared surface anchors browsing and its supporting details window. */
+  overflow: visible;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 44% 0 4%;
+  z-index: -1;
+  border-radius: var(--radius-2xl);
+  background: var(--secondary);
+  pointer-events: none;
+}
+.laptop,
+.details {
+  position: absolute;
+}
+.laptop {
+  z-index: 1;
+  top: 5%;
+  left: 0;
+  width: 94%;
+}
+.details {
+  z-index: 2;
+  right: 0;
+  bottom: 2%;
+  width: 52%;
+}
+.laptopSurface {
+  filter: drop-shadow(0 10px 14px rgb(0 0 0 / 10%));
+}
+.detailsSurface {
+  /* Align the real window with the laptop; translation stays on the outer wrapper. */
+  filter: drop-shadow(0 14px 18px rgb(0 0 0 / 18%));
+}
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (min-width: 1024px) {
+  .details {
+    width: 58%;
+  }
+}
+
+@media (max-width: 639px) {
+  .panel {
+    display: grid;
+    gap: 0;
+    padding-block: 12px;
+    aspect-ratio: auto;
+  }
+  .laptop,
+  .details {
+    position: relative;
+    inset: auto;
+  }
+  .laptop {
+    width: 100%;
+  }
+  .details {
+    justify-self: end;
+    width: 82%;
+    /* Only the laptop base overlaps: keep both real interfaces legible. */
+    margin-top: -8px;
+  }
+  .detailsSurface {
+    transform: none;
+  }
+}
+
+/* Match the desktop SSR frame to useScroll's initial values, without a flash. */
+@media (min-width: 1024px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .laptop {
+    opacity: 0;
+    transform: translateY(48px) scale(0.96);
+  }
+  .details {
+    opacity: 0;
+    transform: translate(44px, 76px) scale(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .laptop,
+  .details {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+:global(html.apt-reduce-motion) .laptop,
+:global(html.apt-reduce-motion) .details {
+  opacity: 1 !important;
+  transform: none !important;
+}
