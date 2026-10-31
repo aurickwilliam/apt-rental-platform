@@ -359,3 +359,9 @@ Still to try by hand once: an admin approving a pending listing verification, an
 **Result:** distinct covers 8 → 28; the most-shared cover 14 → 3 listings; 42 of 56 listings changed cover; every listing still has exactly one cover; totals unchanged.
 
 **Limit:** 28 photos for 56 listings means each photo still appears on 2–3 listings, so two neighbors in a row can occasionally match. Fully unique thumbnails need more distinct photos. Restore: `update apartment_images i set is_cover = b.is_cover from private.listing_audit_backup_images_20261031 b where i.id = b.id;`
+
+## M. Irene's Housing description corrected (applied 2026-10-31)
+
+The audit (B1, D3) flagged that Irene's Housing's landlord-written description contradicted its own record. On the owner's confirmation that the text was wrong, only the contradicting sentence was corrected: "45-square-meter studio unit. Located on the 12th floor," became "40-square-meter 1-bedroom apartment. Located on the 2nd to 5th floor," (record: Apartment, 1 bedroom, 40 sqm, floor "2nd-5th Floor"). The rest of the landlord's text, including the balcony that the amenities list supports, is unchanged. The row was added to `private.listing_audit_backup_20261031` first; only `description` was written. Restore: `update apartments set description = b.description from private.listing_audit_backup_20261031 b where apartments.id = b.id and b.id = (select id from apartments where name = 'Irene''s Housing');`
+
+Still open for this listing: deposit ₱5,000 and advance ₱20,000 against rent ₱15,000 (outside the 0/1×/2× rule), and Unfurnished with the Bed and Furnished amenities. Both are the landlord's terms to confirm.
