@@ -426,3 +426,22 @@ Follow-up to O.3. Files: `supabase/migrations/20261031160000_guard_delete_listin
 **Applied** to production through the migration tool, recorded as `20261031155427 guard_delete_listing_with_active_tenancy`. Read back: the trigger is enabled on `apartments`, no client role can execute the function, no deleted listing has an active tenancy, and row counts are unchanged. The installed trigger was exercised once more in a rolled-back block: delete with an active tenancy rejected with the exact message and `23514`; delete without one, restore and the operator opt-in allowed. Rollback: `drop trigger guard_apartment_delete_with_active_tenancy on public.apartments; drop function public.guard_apartment_delete_with_active_tenancy();` (the UI changes are harmless without it: a delete simply succeeds, as before).
 
 **Not verified:** the modal's error banner and the mobile toast were not exercised in a browser or on a device. They need a landlord session and a listing with an active tenancy; with the guard now live, deleting such a listing from the web table or the details sheet should show the banner, and from the mobile screen the toast. Please try each once.
+
+## Q. Follow-up: Tinajeros and Potrero demo pins (applied 2026-11-01)
+
+Reported from the map search: the pills for Tinajeros Studio Condo (₱22k) and Potrero Urban Loft Studio (₱13k) sat in the Muzon and Dampalit fishponds. These were two of the listings section N left alone, because the app's simplified Malabon boundary rejected the geocoded barangay centres. The pins themselves passed that boundary, which includes the fishponds, but they were in the wrong barangays: reverse lookups (OpenStreetMap Nominatim) put Tinajeros' pin on North Merville Park in **Dampalit** (2.5 km from the real Tinajeros) and Potrero's on Damzon Street in **Muzon** (4.2 km from the real Potrero).
+
+**Change** (only `latitude` and `longitude`, one transaction, compare-and-set on the audited positions, aborting on a count other than 2, an invalid pin, identical pins, pins closer than 50 m, or any other field differing from a snapshot taken inside the transaction):
+
+| Listing | Old pin | New pin | What is there | Moved |
+|---|---|---|---|---|
+| Tinajeros Studio Condo (`b25c2d3c`) | 14.68410, 120.94680 | 14.67651, 120.97096 | Sisa Extension Street, Araneta Subdivision, Tinajeros (residential) | 2.7 km |
+| Potrero Urban Loft Studio (`1999525d`) | 14.68010, 120.94790 | 14.66277, 120.98326 | Mango Road, Daop Palad, Potrero (residential) | 4.3 km |
+
+Both new pins pass `validate_camanava_location` as Malabon. The Potrero pin is 291 m from the real listing Sheldon & Leonard's Apartment; no live listing shares a coordinate. First candidates (the barangay centre points) landed on a company and on Malabon Zoo, so a nearby residential street was chosen for each by reverse lookup. They are barangay-level approximations, not street addresses.
+
+Previous coordinates: `private.listing_audit_backup_pins2_20261101`. Restore: `update apartments a set latitude = k.latitude, longitude = k.longitude from private.listing_audit_backup_pins2_20261101 k where a.id = k.id;`
+
+Read back afterwards: both pins valid, no identical pins, 68 apartments unchanged. Live pins failing the city check are still 2 (Tala Riverside 2BR and Charle's Apartment). Still open from section N: Bagbaguin Premium 2BR and Tanong Industrial 2BR. Their real barangay centres were rejected by the app's simplified boundary, so they were left at their seed pins, which pass the boundary check but are very likely not at their barangays either (the Tinajeros and Potrero pins passed it too while sitting in the wrong barangays). The same reverse-lookup method used here could place them.
+
+**Not verified:** the pins were not viewed on the map (the Google Maps tiles did not render in the embedded browser used for checking); streets and barangays were confirmed with reverse lookups.
