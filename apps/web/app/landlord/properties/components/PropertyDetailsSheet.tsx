@@ -100,6 +100,7 @@ export default function PropertyDetailsSheet({
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [verification, setVerification] = useState<{ status: string; rejection_reason: string | null } | null>(null);
 
   const drawerState = useOverlayState({
@@ -134,9 +135,11 @@ export default function PropertyDetailsSheet({
     };
   }, [selected.id]);
 
-  const handleDelete = async () => {
-    if (!selected || deleting) return;
+  /** Resolves true when the property was deleted; false leaves the modal open with the reason. */
+  const handleDelete = async (): Promise<boolean> => {
+    if (!selected || deleting) return false;
     setDeleting(true);
+    setDeleteError(null);
     const supabase = createBrowserClient();
 
     const { error } = await supabase
@@ -148,9 +151,13 @@ export default function PropertyDetailsSheet({
       onDelete(selected.id);
     } else {
       console.error(error);
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it as-is.
+      setDeleteError(error.message || "Could not delete this property.");
     }
 
     setDeleting(false);
+    return !error;
   };
 
   const handleEditImages = async (selectedId: string) => {
@@ -548,10 +555,13 @@ export default function PropertyDetailsSheet({
         isOpen={deleteConfirmOpen}
         propertyName={selected?.name}
         isDeleting={deleting}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={async () => {
-          await handleDelete();
+        error={deleteError}
+        onClose={() => {
           setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
+        onConfirm={async () => {
+          if (await handleDelete()) setDeleteConfirmOpen(false);
         }}
       />
     </>

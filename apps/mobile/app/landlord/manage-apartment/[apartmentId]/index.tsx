@@ -14,7 +14,7 @@ import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 
-import { Button, Separator } from 'heroui-native'
+import { Button, Separator, useToast } from 'heroui-native'
 
 import {
   IconUser,
@@ -35,11 +35,13 @@ import { useLandlordTenancy, getLandlordTenancyQueryKey } from 'hooks/tenancy'
 import { useProfile } from 'hooks/auth'
 
 import { formatDate } from '@repo/utils';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 export default function Index() {
   const router = useRouter()
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
   const { colors } = useColors();
+  const { toast } = useToast();
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
@@ -120,6 +122,12 @@ export default function Index() {
     } catch (err) {
       console.error('Error removing unit:', err)
       setIsRemoveDialogOpen(false)
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it instead of closing silently.
+      toast.show({
+        variant: 'danger',
+        label: getErrorMessage(err, 'Could not remove this property. Please try again.'),
+      })
     }
   }
 
