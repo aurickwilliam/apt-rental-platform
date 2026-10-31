@@ -404,3 +404,11 @@ Reported from the Acacia Family 3BR page (the sofa photo as the main image and a
 Restore: `insert into apartment_images (id, apartment_id, url, is_cover, created_at, url_thumb) select id, apartment_id, url, is_cover, created_at, url_thumb from private.listing_audit_backup_duplicate_images_20261031;`
 
 Possible follow-up: the database now blocks nothing for duplicate photos within a listing; a unique index on (apartment_id, URL) would prevent this, and is cheap now that no live listing has a repeat.
+
+### O.3 Test tenancy on a deleted listing ended (applied 2026-10-31)
+
+Reported from My Rental: "[Messaging Test] Shaq Time" (`90cd6eee`) still appeared with an active lease although the listing had been deleted. The listing was soft-deleted through the app at 14:08 UTC the same day while tenancy `f97c33a6` (landlord Charle Fulgencio, tenant Aurick William, ₱1,000/month, 4 paid payments, 1 resolved maintenance request, nothing unpaid) was still `active`. The app keeps a running tenancy visible to its tenant by design, and nothing blocks a landlord from deleting a listing that has one: the delete paths (`PropertiesTableSection`, `PropertyDetailsSheet`, `removeLandlordUnit`) only set `deleted_at`, and the sole trigger on delete cancels pending applications.
+
+On the owner's confirmation the tenancy was ended using exactly what the app's vacate path does: `status` set to `ended`. The app's vacate path also sets the unit to `available` (via a sync trigger plus an explicit update); here the trigger did not change the already-deleted listing, which still reads `occupied`, and I left it, since the listing is deleted and admin-hidden. Dates, rent, parties, payments and the listing's `deleted_at` are unchanged; the transaction aborted on any other difference. The tenancy row before the change is in `private.listing_audit_backup_tenancy_20261031`. Restore: `update tenancies t set status = b.status from private.listing_audit_backup_tenancy_20261031 b where t.id = b.id;` (the listing would then be an active lease on a deleted unit again).
+
+**Recommended follow-up (not built):** a database guard that blocks deleting a listing while it has an active tenancy, with the three delete paths showing the database message ("end the tenancy first").
