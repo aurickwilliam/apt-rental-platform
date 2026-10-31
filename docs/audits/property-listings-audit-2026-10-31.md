@@ -378,3 +378,21 @@ Still open for this listing: deposit ₱5,000 and advance ₱20,000 against rent
 - All real landlord listings: Charle's, Irene's, Harvey's Villa, Sheldon & Leonard's, Cozy Cove, Villa Quintin. Their landlords must confirm real addresses.
 
 **Caveat:** the new pins are barangay centres, not street addresses. A first-time visitor will see a pin at the centre of the stated barangay, which is accurate to the barangay and no better.
+
+## O. Follow-up: consistent cover thumbnails (applied 2026-10-31)
+
+**Problem:** the cover rebalance in section L spread covers evenly but ignored what kind of photo became the cover, so browse rows and detail pages mixed building exteriors, kitchens, a bare sofa close-up and two photos with people in them.
+
+**Classification of the 28 stock photos** (by looking at them): 17 interiors (living rooms and one bedroom), 5 exteriors (buildings, pool patio), 2 kitchens, 4 unsuitable as covers (bare sofa close-up, bunk bed, a person cooking, a man with a tool).
+
+**Change:** only `apartment_images.is_cover`, among each listing's own three photos. 52 of the 56 demo listings now have an interior as the cover (17 distinct photos, most-shared cover on 5 listings); the 4 listings with no interior of their own get the least-bad option from their own photos (kitchen for Daanghari Family 2BR and Lingunan 2BR, house exterior for Bagong Barrio Garden 2BR, pool-patio exterior kept for Tala Riverside 2BR). No cover shows people. 25 listings changed cover. Simulated first in a rolled-back block, then applied in one transaction that backed up 168 rows to `private.listing_audit_backup_images2_20261031` (state before this change) and aborted on any deviation. Restore: `update apartment_images i set is_cover = b.is_cover from private.listing_audit_backup_images2_20261031 b where i.id = b.id;` (the original pre-rebalance state is in `private.listing_audit_backup_images_20261031`).
+
+**Trade-off:** consistency costs variety. Section L reached 28 distinct covers; this reaches 21, because only 17 of the 28 photos make good covers. The only fix for both is more distinct interior photos. Two of the unsuitable photos (people cooking, man with a tool) still appear inside some listings' galleries as non-cover photos; hiding them would be a further change.
+
+**Untouched:** real landlord listings keep their own photos (for example Villa Quintin Apartment's exterior shot).
+
+### O.1 Gallery photos with people removed (applied 2026-10-31)
+
+Two stock photos show people (a person cooking, a man with a tool) and looked wrong in listing galleries. The database has no per-photo hidden flag, so the 8 gallery rows using them were removed from the 8 demo listings that carried them (3 of the cooking photo, 5 of the other). None was a cover, and no listing was left with fewer than 2 photos. The photos are external stock URLs, so no storage object was touched. The 8 exact rows are in `private.listing_audit_backup_hidden_images_20261031`; the transaction aborted on any count other than 8, on any listing left with under 2 photos or not exactly one cover.
+
+Restore: `insert into apartment_images (id, apartment_id, url, is_cover, created_at, url_thumb) select id, apartment_id, url, is_cover, created_at, url_thumb from private.listing_audit_backup_hidden_images_20261031;`
