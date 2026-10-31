@@ -125,6 +125,7 @@ No root-level `dev`, `lint`, `typecheck`, or `build` scripts exist.
 ## Git & CI Workflow
 
 - `main` is protected by the `main-protection` ruleset: PR required, `ci` check (mobile lint + jest, web lint + typecheck + tests) must pass, direct pushes to `main` are rejected by design. Always work on a feature branch and open a PR.
+- Never commit or push automatically after implementing a change. Run `git add`, `git commit`, or `git push` only when the user explicitly asks; otherwise leave the work in the working tree for review. Read-only Git commands (`git status`, `git diff`, `git log`) remain fine.
 - Sync with `main` before opening/merging a PR: `git merge main` on your branch (the `ci` check runs against the PR's merge commit).
 - If CI fails with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install` locally and commit the updated `pnpm-lock.yaml` (CI installs with `--frozen-lockfile`).
 - Stale branches (long-diverged from `main`) commonly fail CI on lockfile drift or moved tests — merge `main` first, then re-run.
