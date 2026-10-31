@@ -20,9 +20,9 @@ export default function RegistrationPoliciesDialog({ policy, onPolicyChange, onC
     <Dialog isOpen={policy !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal unstable_accessibilityContainerViewIsModal>
         <Dialog.Overlay />
-        <Dialog.Content style={{ height: height * 0.85 }} className="gap-3 p-5" accessibilityViewIsModal>
-          <Dialog.Title>{content.title}</Dialog.Title>
-          <View className="flex-row gap-2">
+        <Dialog.Content isSwipeable={false} style={{ height: height * 0.85 }} className="gap-3 p-5" accessibilityViewIsModal>
+          <Dialog.Title className="shrink-0">{content.title}</Dialog.Title>
+          <View className="flex-row shrink-0 gap-2">
             {(["privacy", "terms"] as const).map((item) => (
               <Button key={item} size="sm" variant={policy === item ? "primary" : "tertiary"}
                 className="flex-1" accessibilityState={{ selected: policy === item }}
@@ -31,10 +31,17 @@ export default function RegistrationPoliciesDialog({ policy, onPolicyChange, onC
               </Button>
             ))}
           </View>
-          <ScrollView key={policy} className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
+          <ScrollView
+            key={policy}
+            style={{ flex: 1, minHeight: 0 }}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 16 }}
+          >
             <LegalPolicyContent policy={content} />
           </ScrollView>
-          <Button variant="secondary" onPress={onClose} accessibilityLabel="Close policies">
+          <Button variant="secondary" className="shrink-0" onPress={onClose} accessibilityLabel="Close policies">
             <Button.Label>Close</Button.Label>
           </Button>
         </Dialog.Content>

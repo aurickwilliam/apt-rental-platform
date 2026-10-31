@@ -18,3 +18,9 @@ Settings screens and `LegalPolicyContent` remain read-only. Registration's
 `RegistrationPoliciesDialog` without leaving the form. Neither reading the
 shared content nor closing that dialog accepts a policy. See
 `docs/mobile-registration-acceptance.md` for the registration contract.
+
+Keep required markers after the full linked policy names, suppressing the
+introductory Label's automatic marker without removing the checkbox's required
+state. The reader disables `Dialog.Content` swipe-to-dismiss and bounds its
+native ScrollView with explicit flex/min-height styles and Android nested
+scrolling; its title, policy switch and Close stay outside that scrolling body.

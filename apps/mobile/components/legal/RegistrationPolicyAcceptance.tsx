@@ -24,11 +24,13 @@ export default function RegistrationPolicyAcceptance({ form, isDisabled = false 
                 isDisabled={isDisabled} isRequired isInvalid={!!form.errors[field]}
                 accessibilityLabel={`I have read and agree to the ${label}`} className="min-h-12 flex-row gap-2">
                 <ControlField.Indicator><Checkbox className="size-5 border border-border shadow-none" /></ControlField.Indicator>
-                <Label><Label.Text className="text-sm text-foreground font-inter">I agree to the</Label.Text></Label>
+                <Label isRequired={false}><Label.Text className="text-sm text-foreground font-inter">I agree to the</Label.Text></Label>
               </ControlField>
               <LinkButton isDisabled={isDisabled} onPress={() => { Keyboard.dismiss(); setOpenPolicy(policy); }}
                 accessibilityLabel={`Read ${label}`} className="min-h-12 px-0">
-                <LinkButton.Label className="text-sm text-accent font-inter underline">{label}</LinkButton.Label>
+                <LinkButton.Label className="text-sm text-accent font-inter underline">
+                  {label}<Text accessible={false} className="text-danger">*</Text>
+                </LinkButton.Label>
               </LinkButton>
             </View>
             {form.errors[field] ? <FieldError accessibilityRole="alert">{form.errors[field]}</FieldError> : null}
