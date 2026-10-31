@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { View } from 'react-native'
 import { Image } from 'expo-image'
 
@@ -13,6 +14,8 @@ interface PastApartmentCardProps {
   leaseEndYear: string
   thumbnailUrl: string
   onPress: () => void
+  /** Optional row inside the card, under the stay details (e.g. rating the tenant). */
+  footer?: ReactNode
 }
 
 export default function PastApartmentCard({
@@ -24,11 +27,13 @@ export default function PastApartmentCard({
   leaseEndMonth,
   leaseEndYear,
   thumbnailUrl,
-  onPress
+  onPress,
+  footer,
 }: PastApartmentCardProps) {
 
   return (
-    <PressableFeedback onPress={onPress} className='rounded-3xl p-0 shadow-none border border-border'>
+    <View className='rounded-3xl border border-border overflow-hidden bg-surface'>
+    <PressableFeedback onPress={onPress} className='rounded-3xl p-0 shadow-none'>
       <PressableFeedback.Ripple />
       <Card className='flex-row p-0 rounded-3xl'>
         {/* Image */}
@@ -66,5 +71,8 @@ export default function PastApartmentCard({
         </Card.Body>
       </Card>
     </PressableFeedback>
+
+    {footer ? <View className='border-t border-border px-4 py-2.5'>{footer}</View> : null}
+    </View>
   )
 }

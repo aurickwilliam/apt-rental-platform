@@ -1,11 +1,13 @@
 import { View, Text } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
 import ProfileStatsCard from 'components/cards/ProfileStatsCard'
 import PastApartmentCard from 'components/cards/PastApartmentCard'
+import RateTenantSheet, { type RateTenantStay } from 'components/ratings/RateTenantSheet'
+import StayRatingFooter from 'components/ratings/StayRatingFooter'
 import RatingCard from 'components/cards/RatingCard'
 import ProfileHeader from '@/app/(tabs)/components/profile/ProfileHeader'
 
@@ -55,9 +57,21 @@ export default function PublicTenantProfile() {
     reviews: landlordReviews,
     average: landlordRating,
     count: landlordRatingCount,
+    loading: reviewsLoading,
+    isError: reviewsFailed,
+    refetch: refetchReviews,
   } = useTenantReviews(resolvedTenantId);
   const viewerId = currentUserQuery.data?.id;
   const { toast } = useToast();
+  // The stay being rated in the sheet; kept after closing so the sheet can animate out.
+  const [ratingStay, setRatingStay] = useState<RateTenantStay | null>(null);
+  const [isRatingOpen, setIsRatingOpen] = useState(false);
+  const savedRating = landlordReviews.find((review) => review.tenancyId === ratingStay?.tenancyId && review.isMine);
+
+  const openRatingSheet = (stay: RateTenantStay) => {
+    setRatingStay(stay);
+    setIsRatingOpen(true);
+  };
 
   const firstName = profile?.fullName.split(' ')[0] ?? 'Tenant';
 
@@ -89,20 +103,6 @@ export default function PublicTenantProfile() {
         otherUserName: profile.fullName,
         otherUserAvatar: profile.avatarUrl ?? '',
         apartmentId: resolvedApartmentId,
-      },
-    })
-  }
-
-  const handleRateTenant = (tenancyId: string, apartmentName: string) => {
-    if (!profile || !resolvedTenantId) return
-
-    router.push({
-      pathname: '/landlord/rate-tenant',
-      params: {
-        tenancyId,
-        tenantId: resolvedTenantId,
-        tenantName: profile.fullName,
-        apartmentName,
       },
     })
   }
@@ -150,7 +150,8 @@ export default function PublicTenantProfile() {
               iconColor: colors.rating,
             },
             {
-              label: 'Member Since',
+              // Four stats leave no room for a two-line label beside its icon.
+              label: 'Joined',
               value: profile?.memberSinceYear ?? '—',
               icon: IconCalendarMonth,
             },
@@ -248,35 +249,31 @@ export default function PublicTenantProfile() {
               const myReview = landlordReviews.find(
                 (review) => review.tenancyId === apartment.id && review.isMine,
               )
+              const canRate = Boolean(viewerId) && apartment.landlordId === viewerId
 
               return (
-                <View key={apartment.id} className="gap-2">
-                  <PastApartmentCard
-                    apartmentName={apartment.name}
-                    barangay={apartment.barangay}
-                    city={apartment.city}
-                    leaseStartMonth={apartment.leaseStartMonth}
-                    leaseStartYear={apartment.leaseStartYear}
-                    leaseEndMonth={apartment.leaseEndMonth}
-                    leaseEndYear={apartment.leaseEndYear}
-                    thumbnailUrl={apartment.thumbnailUrl}
-                    onPress={() =>
-                      console.log(`Pressed on apartment ${apartment.name}`)
-                    }
-                  />
-                  {viewerId && apartment.landlordId === viewerId && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onPress={() => handleRateTenant(apartment.id, apartment.name)}
-                    >
-                      <IconStar size={16} color={colors.rating} />
-                      <Button.Label>
-                        {myReview ? `Your rating: ${myReview.rating}/5 · Edit` : 'Rate Tenant'}
-                      </Button.Label>
-                    </Button>
-                  )}
-                </View>
+                <PastApartmentCard
+                  key={apartment.id}
+                  apartmentName={apartment.name}
+                  barangay={apartment.barangay}
+                  city={apartment.city}
+                  leaseStartMonth={apartment.leaseStartMonth}
+                  leaseStartYear={apartment.leaseStartYear}
+                  leaseEndMonth={apartment.leaseEndMonth}
+                  leaseEndYear={apartment.leaseEndYear}
+                  thumbnailUrl={apartment.thumbnailUrl}
+                  onPress={() =>
+                    console.log(`Pressed on apartment ${apartment.name}`)
+                  }
+                  footer={
+                    canRate ? (
+                      <StayRatingFooter
+                        rating={myReview?.rating ?? null}
+                        onPress={() => openRatingSheet({ tenancyId: apartment.id, apartmentName: apartment.name })}
+                      />
+                    ) : undefined
+                  }
+                />
               )
             })}
           </View>
@@ -339,6 +336,20 @@ export default function PublicTenantProfile() {
           </Button.Label>
         </Button>
       </View>
+
+      {resolvedTenantId && (
+        <RateTenantSheet
+          isOpen={isRatingOpen}
+          onClose={() => setIsRatingOpen(false)}
+          tenantId={resolvedTenantId}
+          tenantName={profile?.fullName ?? 'this tenant'}
+          stay={ratingStay}
+          savedRating={savedRating ? { rating: savedRating.rating, comment: savedRating.comment } : null}
+          isLoadingSaved={reviewsLoading}
+          loadFailed={reviewsFailed}
+          onRetry={() => void refetchReviews()}
+        />
+      )}
     </ScreenWrapper>
   );
 }
