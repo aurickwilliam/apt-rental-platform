@@ -365,3 +365,16 @@ Still to try by hand once: an admin approving a pending listing verification, an
 The audit (B1, D3) flagged that Irene's Housing's landlord-written description contradicted its own record. On the owner's confirmation that the text was wrong, only the contradicting sentence was corrected: "45-square-meter studio unit. Located on the 12th floor," became "40-square-meter 1-bedroom apartment. Located on the 2nd to 5th floor," (record: Apartment, 1 bedroom, 40 sqm, floor "2nd-5th Floor"). The rest of the landlord's text, including the balcony that the amenities list supports, is unchanged. The row was added to `private.listing_audit_backup_20261031` first; only `description` was written. Restore: `update apartments set description = b.description from private.listing_audit_backup_20261031 b where apartments.id = b.id and b.id = (select id from apartments where name = 'Irene''s Housing');`
 
 Still open for this listing: deposit ₱5,000 and advance ₱20,000 against rent ₱15,000 (outside the 0/1×/2× rule), and Unfurnished with the Bed and Furnished amenities. Both are the landlord's terms to confirm.
+
+## N. Follow-up: demo pins were inside their city but not at their barangay (applied 2026-10-31)
+
+**Found from a user report** (Acacia Family 3BR drawn beside Tonsuya Barangay Hall): the audit checked each pin against its **city** only. A barangay-level scan (OpenStreetMap Nominatim centres, district names only) showed 45 of 62 live pins more than 1 km from their stated barangay, typically 1–5 km, up to 10 km. The demo pins had been set to arbitrary points inside the city.
+
+**Change:** 35 demo listings (stock-photo listings only) moved to their barangay's geocoded centre. Where two listings share a barangay, each sits on a 160 m ring around the centre so no pins stack (closest pair is at least 50 m apart; zero identical coordinates). Applied in one transaction that aborted on: a count other than 35, any pin failing `validate_camanava_location`, identical pins, pins closer than 50 m, or any non-coordinate field differing from a snapshot taken inside the transaction. Previous coordinates: `private.listing_audit_backup_pins_20261031`. Restore: `update apartments a set latitude = k.latitude, longitude = k.longitude from private.listing_audit_backup_pins_20261031 k where a.id = k.id;`
+
+**Left alone**
+- 4 demo listings whose real barangay location the app's simplified city polygon rejects: Tinajeros Studio Condo, Potrero Urban Loft Studio, Bagbaguin Premium 2BR, Tanong Industrial 2BR (plus Tala Riverside 2BR, same cause). Fixing needs better boundary data.
+- Polo Budget Studio (not a canonical barangay), Ibayo Central Room (Ibayo-Tipas is not a CAMANAVA barangay) and Santolan Heritage 1BR (no geocode).
+- All real landlord listings: Charle's, Irene's, Harvey's Villa, Sheldon & Leonard's, Cozy Cove, Villa Quintin. Their landlords must confirm real addresses.
+
+**Caveat:** the new pins are barangay centres, not street addresses. A first-time visitor will see a pin at the centre of the stated barangay, which is accurate to the barangay and no better.
