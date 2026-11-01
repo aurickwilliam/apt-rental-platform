@@ -2,7 +2,7 @@ export { APP_LANGUAGES, type LanguageCode } from "@repo/constants/languages";
 
 export { en, type TranslationKey } from "./catalogs/en";
 export { fil } from "./catalogs/fil";
-export { translate, type TranslateVars } from "./translate";
+export { translate, type Translate, type TranslateVars } from "./translate";
 
 export {
   ALLOW_FILIPINO,
@@ -45,6 +45,9 @@ export {
   MAINTENANCE_CATEGORY_KEYS,
   MAINTENANCE_URGENCY_KEYS,
   PAYMENT_STATUS_KEYS,
+  PASSPORT_DOC_TYPE_DESCRIPTION_KEYS,
+  PASSPORT_DOC_TYPE_KEYS,
+  PASSPORT_STATUS_KEYS,
   PET_KEYS,
   REVIEW_SORT_KEYS,
   VEHICLE_KEYS,

@@ -6,12 +6,15 @@ import { Button, Calendar, Checkbox, CloseButton, DateField, DatePicker, FieldEr
 import { IconAlertTriangle, IconFileInfo, IconFileText, IconShieldCheck, IconUpload } from "@tabler/icons-react";
 
 import { isReviewEligibleDocType } from "@repo/constants";
-import { getDocumentTypeDescription, isExpiredDate, toExpiryDateString } from "@repo/passport";
+import { isExpiredDate, toExpiryDateString } from "@repo/passport";
+import { PASSPORT_DOC_TYPE_KEYS, enumLabel, type Translate } from "@repo/i18n";
 
 import PdfThumbnail from "@/app/components/display/PdfThumbnail";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { PASSPORT_UPLOAD_ACCEPT, validatePassportUploadFile } from "@/lib/passport-upload";
 
 import { DocumentTypeIcon, isImageDocument } from "./documentTypeIcons";
+import { documentTypeDescriptionKey } from "./documentTypeCopy";
 import { isPdfDocument } from "./PassportDocumentThumbnail";
 
 interface PassportUploadFormProps {
@@ -27,13 +30,10 @@ interface PassportUploadFormProps {
   notice?: string;
 }
 
-function validateExpiry(value: CalendarDate | null): string | null {
+function validateExpiry(value: CalendarDate | null, t: Translate): string | null {
   if (!value) return null;
-  return isExpiredDate(value.toString()) ? "Expiry date cannot be in the past." : null;
+  return isExpiredDate(value.toString()) ? t("passport.upload.expiryPast") : null;
 }
-
-const LEGAL_NOTICE =
-  "By uploading your documents, you certify that all information is true and valid. Any fraudulent or falsified documents may result in account suspension and legal action in accordance with applicable Philippine laws on fraud and identity theft, including the Cybercrime Prevention Act (Republic Act No. 10175).";
 
 /** Upload step of the add-document modal; renders the modal body and footer. */
 export default function PassportUploadForm({
@@ -42,10 +42,11 @@ export default function PassportUploadForm({
   isUploading,
   onSubmit,
   onCancel,
-  submitLabel = "Add Document",
-  pendingLabel = "Adding…",
+  submitLabel,
+  pendingLabel,
   notice,
 }: PassportUploadFormProps) {
+  const { language, t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -56,7 +57,8 @@ export default function PassportUploadForm({
   const [isLegalOpen, setIsLegalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const expiryError = validateExpiry(expiresAt);
+  const expiryError = validateExpiry(expiresAt, t);
+  const typeLabel = enumLabel(language, PASSPORT_DOC_TYPE_KEYS, docType);
 
   // Object URLs hold the file in memory until revoked.
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function PassportUploadForm({
       await onSubmit({ file, expiresAt: expiresAt ? expiresAt.toString() : null });
     } catch (err) {
       console.error("Passport upload failed", err);
-      setSubmitError(err instanceof Error ? err.message : "Could not save your document. Please try again.");
+      setSubmitError(err instanceof Error ? err.message : t("passport.upload.saveError"));
     }
   };
 
@@ -100,15 +102,15 @@ export default function PassportUploadForm({
             <DocumentTypeIcon docType={docType} size={20} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">{getDocumentTypeDescription(docType, portal)}</p>
+            <p className="text-sm text-muted-foreground">{t(documentTypeDescriptionKey(docType, portal))}</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconFileInfo size={14} aria-hidden="true" />
-              JPG, PNG, WebP, or PDF, up to 5 MB
+              {t("passport.upload.fileHint")}
             </p>
             {isReviewEligibleDocType(docType) ? (
               <p className="mt-1 flex items-center gap-1.5 text-xs text-success">
                 <IconShieldCheck size={14} aria-hidden="true" />
-                Can be verified: request a review from the document&apos;s page after adding it.
+                {t("passport.upload.reviewHint")}
               </p>
             ) : null}
           </div>
@@ -117,7 +119,7 @@ export default function PassportUploadForm({
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2">
             <Label className="block text-sm font-medium text-card-foreground">
-              Document <span className="text-danger">*</span>
+              {t("passport.upload.document")} <span className="text-danger">*</span>
             </Label>
             <input
               ref={fileInputRef}
@@ -125,13 +127,15 @@ export default function PassportUploadForm({
               accept={PASSPORT_UPLOAD_ACCEPT}
               className="hidden"
               onChange={handleFileChange}
-              aria-label={`Choose your ${docType} file`}
+              aria-label={t("passport.upload.chooseAria", { type: typeLabel })}
             />
             <Button
               variant="ghost"
               isDisabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              aria-label={file ? `Replace ${file.name}` : "Choose a file"}
+              aria-label={
+                file ? t("passport.upload.replaceAria", { name: file.name }) : t("passport.upload.chooseFile")
+              }
               className={`button--bare relative flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                 fileError
                   ? "border-danger text-danger"
@@ -143,12 +147,16 @@ export default function PassportUploadForm({
               {file && previewUrl && isImageDocument(file.type, file.name) ? (
                 // Local object URL preview; next/image cannot load blob: URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt={`${docType} preview`} className="absolute inset-0 size-full object-contain" />
+                <img
+                  src={previewUrl}
+                  alt={t("passport.upload.previewAlt", { type: typeLabel })}
+                  className="absolute inset-0 size-full object-contain"
+                />
               ) : file && previewUrl && isPdfDocument(file.type, file.name) ? (
                 <PdfThumbnail
                   url={previewUrl}
                   cacheKey={`local:${file.name}:${file.size}:${file.lastModified}`}
-                  alt={`${docType} preview`}
+                  alt={t("passport.upload.previewAlt", { type: typeLabel })}
                   fit="contain"
                 />
               ) : file ? (
@@ -159,7 +167,7 @@ export default function PassportUploadForm({
               ) : (
                 <>
                   <IconUpload size={24} aria-hidden="true" />
-                  Choose a file
+                  {t("passport.upload.chooseFile")}
                 </>
               )}
             </Button>
@@ -177,7 +185,7 @@ export default function PassportUploadForm({
                   }}
                   className="button--bare shrink-0 cursor-pointer font-medium text-danger hover:underline"
                 >
-                  Remove
+                  {t("passport.upload.remove")}
                 </Button>
               </div>
             ) : null}
@@ -193,7 +201,7 @@ export default function PassportUploadForm({
               isInvalid={!!expiryError}
               isDisabled={isUploading}
             >
-              <Label className="text-sm font-medium text-card-foreground">Expiry date (optional)</Label>
+              <Label className="text-sm font-medium text-card-foreground">{t("passport.upload.expiryLabel")}</Label>
               <DateField.Group fullWidth className="border border-border bg-card">
                 <DateField.Input>
                   {(segment) => (
@@ -209,7 +217,7 @@ export default function PassportUploadForm({
                       // Opt out of the DatePicker's button context, which
                       // would otherwise make this open the calendar too.
                       slot={null}
-                      aria-label="Clear expiry date"
+                      aria-label={t("passport.upload.clearExpiry")}
                       className="cursor-pointer text-muted-foreground!"
                       isDisabled={isUploading}
                       onPress={() => setExpiresAt(null)}
@@ -222,7 +230,7 @@ export default function PassportUploadForm({
               </DateField.Group>
               <FieldError>{expiryError}</FieldError>
               <DatePicker.Popover>
-                <Calendar aria-label="Expiry date">
+                <Calendar aria-label={t("passport.upload.calendarAria")}>
                   <Calendar.Header>
                     <Calendar.YearPickerTrigger className="cursor-pointer">
                       <Calendar.YearPickerTriggerHeading />
@@ -262,7 +270,7 @@ export default function PassportUploadForm({
                   <Checkbox.Indicator className="[&_svg]:text-white!" />
                 </Checkbox.Control>
                 <Label className="cursor-pointer text-sm font-semibold text-card-foreground">
-                  I confirm that the information provided is true and the document belongs to me.{" "}
+                  {t("passport.upload.confirm")}{" "}
                   <span className="text-danger">*</span>
                 </Label>
               </Checkbox.Content>
@@ -270,11 +278,10 @@ export default function PassportUploadForm({
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                <span className="text-danger">*</span> By uploading, you confirm this document is valid and belongs to
-                you. Fraudulent documents may lead to account suspension.
+                <span className="text-danger">*</span> {t("passport.upload.certify")}
               </p>
               <Link className="cursor-pointer text-sm font-medium text-primary! underline" onPress={() => setIsLegalOpen(true)}>
-                Legal notice
+                {t("passport.upload.legalNoticeTitle")}
               </Link>
             </div>
           </div>
@@ -289,7 +296,7 @@ export default function PassportUploadForm({
 
       <Modal.Footer className="flex justify-end gap-2">
         <Button variant="danger-soft" isDisabled={isUploading} onPress={onCancel}>
-          Cancel
+          {t("passport.upload.cancel")}
         </Button>
         <Button
           isDisabled={!file || !isConfirmed || !!expiryError}
@@ -297,7 +304,7 @@ export default function PassportUploadForm({
           onPress={() => void handleSubmit()}
         >
           {isUploading ? <Spinner size="sm" color="current" /> : null}
-          {isUploading ? pendingLabel : submitLabel}
+          {isUploading ? (pendingLabel ?? t("passport.upload.adding")) : (submitLabel ?? t("passport.upload.add"))}
         </Button>
       </Modal.Footer>
 
@@ -309,15 +316,15 @@ export default function PassportUploadForm({
               <Modal.Header>
                 <Modal.Heading className="flex items-center gap-2 font-nunito text-xl font-bold text-card-foreground">
                   <IconAlertTriangle size={20} className="text-warning" aria-hidden="true" />
-                  Legal notice
+                  {t("passport.upload.legalNoticeTitle")}
                 </Modal.Heading>
               </Modal.Header>
               <Modal.Body>
-                <p className="text-sm leading-relaxed text-muted-foreground">{LEGAL_NOTICE}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{t("passport.upload.legalNotice")}</p>
               </Modal.Body>
               <Modal.Footer className="flex justify-end">
                 <Button className="cursor-pointer" onPress={() => setIsLegalOpen(false)}>
-                  Got it
+                  {t("passport.upload.gotIt")}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

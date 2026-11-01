@@ -11,8 +11,10 @@ import {
 } from "@tabler/icons-react";
 
 import { getAddedSupportingDocTypes, getPassportDocumentStatus, selectSupportingDocuments } from "@repo/passport";
+import { PASSPORT_DOC_TYPE_KEYS, enumLabel } from "@repo/i18n";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import {
   usePassportDocuments,
@@ -49,6 +51,7 @@ export default function PassportClient({
   showApplicationReadiness = true,
   portal = "tenant",
 }: PassportClientProps) {
+  const { language, t } = useTranslation();
   const searchParams = useSearchParams();
   const { documents, loading, error, refresh, addDocument } =
     usePassportDocuments(userId);
@@ -72,10 +75,12 @@ export default function PassportClient({
     window.history.replaceState(null, "", addHref(docType));
   const closeAdd = () => window.history.replaceState(null, "", basePath);
 
+  const docTypeLabel = (docType: string) => enumLabel(language, PASSPORT_DOC_TYPE_KEYS, docType);
+
   const handleUploaded = (row: PassportDocumentRow) => {
     addDocument(row);
     closeAdd();
-    toast.success(`${row.doc_type} added`);
+    toast.success(t("passport.toast.added", { type: docTypeLabel(row.doc_type) }));
   };
 
   const primaryId = useMemo(
@@ -133,10 +138,10 @@ export default function PassportClient({
       {error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
           <p className="font-nunito text-xl font-bold text-card-foreground">
-            Couldn&apos;t load your documents
+            {t("passport.loadError.title")}
           </p>
           <p className="max-w-md text-sm text-muted-foreground">{error}</p>
-          <Button onPress={refresh}>Try Again</Button>
+          <Button onPress={refresh}>{t("passport.loadError.retry")}</Button>
         </div>
       ) : loading ? (
         <PassportWalletSkeleton
@@ -165,11 +170,10 @@ export default function PassportClient({
               <Card className="rounded-2xl border border-border bg-card p-4 shadow-none">
                 <Card.Content className="p-0">
                   <h2 className="font-nunito text-lg font-semibold text-card-foreground">
-                    Government ID
+                    {t("passport.id.title")}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Your ID is linked automatically from your approved account
-                    verification.
+                    {t("passport.id.autoLinked")}
                   </p>
                 </Card.Content>
               </Card>
@@ -186,24 +190,28 @@ export default function PassportClient({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-nunito text-lg font-semibold text-card-foreground">
-                  Supporting documents
+                  {t("passport.supporting.title")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {supportingDocs.length}{" "}
-                  {supportingDocs.length === 1 ? "document" : "documents"}
+                  {t(
+                    supportingDocs.length === 1
+                      ? "passport.supporting.count"
+                      : "passport.supporting.countPlural",
+                    { count: supportingDocs.length },
+                  )}
                 </p>
               </div>
               {supportingDocs.length > 0 ? (
                 <div
                   className="flex items-center gap-1"
                   role="group"
-                  aria-label="Document layout"
+                  aria-label={t("passport.supporting.layoutAria")}
                 >
                   <Button
                     isIconOnly
                     size="sm"
                     variant={layout === "grid" ? "primary" : "ghost"}
-                    aria-label="Grid view"
+                    aria-label={t("passport.supporting.gridView")}
                     aria-pressed={layout === "grid"}
                     onPress={() => setLayout("grid")}
                   >
@@ -213,7 +221,7 @@ export default function PassportClient({
                     isIconOnly
                     size="sm"
                     variant={layout === "list" ? "primary" : "ghost"}
-                    aria-label="List view"
+                    aria-label={t("passport.supporting.listView")}
                     aria-pressed={layout === "list"}
                     onPress={() => setLayout("list")}
                   >
@@ -231,16 +239,16 @@ export default function PassportClient({
                   aria-hidden="true"
                 />
                 <p className="font-nunito text-lg font-bold text-card-foreground">
-                  No supporting documents yet
+                  {t("passport.supporting.emptyTitle")}
                 </p>
                 <p className="max-w-md text-sm text-muted-foreground">
                   {portal === "landlord"
-                    ? "Add your tax declaration, land title, business permit or other ownership documents so tenants can trust your listings. Our team reviews them to confirm you are a legitimate landlord."
-                    : "Add payslips, billing statements, or clearances so they're ready when you apply for an apartment. Documents are only shared with landlords you apply to."}
+                    ? t("passport.supporting.emptyBody.landlord")
+                    : t("passport.supporting.emptyBody.tenant")}
                 </p>
                 <Button onPress={() => openAdd()}>
                   <IconPlus size={18} aria-hidden="true" />
-                  Add a Document
+                  {t("passport.supporting.addDocument")}
                 </Button>
               </div>
             ) : (
@@ -273,7 +281,7 @@ export default function PassportClient({
                   }`}
                 >
                   <IconPlus size={24} aria-hidden="true" />
-                  Add document
+                  {t("passport.supporting.add")}
                 </Button>
               </div>
             )}
@@ -293,9 +301,11 @@ export default function PassportClient({
       />
 
       <PhotoGalleryModal
-        name="Government ID"
+        name={t("passport.id.title")}
         photos={viewerSides.map(({ url }) => ({ url }))}
-        labels={viewerSides.map(({ label }) => label)}
+        labels={viewerSides.map(({ label }) =>
+          label === "Back" ? t("passport.id.side.back") : t("passport.id.side.front"),
+        )}
         isOpen={viewerOpen}
         onOpenChange={setViewerOpen}
         activeIndex={viewerIndex}

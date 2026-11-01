@@ -1,8 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { IconChevronRight } from "@tabler/icons-react";
 
 import { formatDate } from "@repo/utils";
+import {
+  PASSPORT_DOC_TYPE_KEYS,
+  enumLabel,
+  type LanguageCode,
+  type Translate,
+} from "@repo/i18n";
 import type { PassportDocumentStatus } from "@repo/passport";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import PassportDocumentThumbnail from "./PassportDocumentThumbnail";
 import PassportStatusChip from "./PassportStatusChip";
@@ -11,6 +21,7 @@ export type PassportDocumentLayout = "grid" | "list";
 
 interface PassportDocumentCardProps {
   href: string;
+  /** Stored document type, e.g. `Proof of Income`. */
   label: string;
   storagePath: string;
   signedUrl: string | null;
@@ -21,9 +32,21 @@ interface PassportDocumentCardProps {
   layout?: PassportDocumentLayout;
 }
 
-function metaLine(createdAt: string, expiresAt: string | null): string {
-  const expiry = expiresAt ? `Expires ${formatDate(`${expiresAt}T00:00:00`, "medium")}` : "No expiry";
-  return `Added ${formatDate(createdAt, "medium")} · ${expiry}`;
+function metaLine(
+  createdAt: string,
+  expiresAt: string | null,
+  t: Translate,
+  language: LanguageCode,
+): string {
+  const expiry = expiresAt
+    ? t("passport.card.expires", {
+        date: formatDate(`${expiresAt}T00:00:00`, "medium", language),
+      })
+    : t("passport.card.noExpiry");
+  return t("passport.card.meta", {
+    date: formatDate(createdAt, "medium", language),
+    expiry,
+  });
 }
 
 /** A supporting document as a grid card or a horizontal list row. */
@@ -38,9 +61,11 @@ export default function PassportDocumentCard({
   expiresAt,
   layout = "grid",
 }: PassportDocumentCardProps) {
+  const { language, t } = useTranslation();
+  const title = enumLabel(language, PASSPORT_DOC_TYPE_KEYS, label);
   const thumbnail = (
     <PassportDocumentThumbnail
-      label={label}
+      label={title}
       storagePath={storagePath}
       signedUrl={signedUrl}
       mimeType={mimeType}
@@ -58,8 +83,10 @@ export default function PassportDocumentCard({
           {thumbnail}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-nunito text-base font-semibold text-card-foreground">{label}</p>
-          <p className="truncate text-xs text-muted-foreground">{metaLine(createdAt, expiresAt)}</p>
+          <p className="truncate font-nunito text-base font-semibold text-card-foreground">{title}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {metaLine(createdAt, expiresAt, t, language)}
+          </p>
         </div>
         <PassportStatusChip status={status} className="hidden sm:inline-flex" />
         <IconChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -76,8 +103,8 @@ export default function PassportDocumentCard({
         {thumbnail}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <p className="truncate font-nunito text-base font-semibold text-card-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground">{metaLine(createdAt, expiresAt)}</p>
+        <p className="truncate font-nunito text-base font-semibold text-card-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{metaLine(createdAt, expiresAt, t, language)}</p>
         <PassportStatusChip status={status} className="self-start" />
       </div>
     </Link>

@@ -56,6 +56,27 @@ export const enums = {
   "enums.applicationSlot.proofOfBilling": "Proof of Billing",
   "enums.applicationSlot.nbiClearance": "NBI Clearance",
 
+  // Passport document types and review states.
+  "enums.passportDocType.proofOfIncome": "Proof of Income",
+  "enums.passportDocType.proofOfResidency": "Proof of Residency",
+  "enums.passportDocType.birthCertificate": "Birth Certificate",
+  "enums.passportDocType.nbiClearance": "NBI Clearance",
+  "enums.passportDocType.certificateOfEmployment": "Certificate of Employment",
+  "enums.passportDocType.payslip": "Payslip",
+  "enums.passportDocType.incomeTaxReturn": "Income Tax Return (ITR)",
+  "enums.passportDocType.taxDeclaration": "Tax Declaration",
+  "enums.passportDocType.transferCertificateOfTitle": "Transfer Certificate of Title",
+  "enums.passportDocType.realPropertyTaxReceipt": "Real Property Tax Receipt",
+  "enums.passportDocType.businessPermit": "Business Permit",
+  "enums.passportDocType.dtiSecRegistration": "DTI / SEC Registration",
+  "enums.passportDocType.authorizationLetterSpa": "Authorization Letter (SPA)",
+
+  "enums.passportStatus.verified": "Verified",
+  "enums.passportStatus.expired": "Expired",
+  "enums.passportStatus.pending": "Under review",
+  "enums.passportStatus.rejected": "Rejected",
+  "enums.passportStatus.unverified": "Unverified",
+
   "enums.apartmentStatus.available": "Available",
   "enums.apartmentStatus.occupied": "Occupied",
   "enums.apartmentStatus.underMaintenance": "Under Maintenance",

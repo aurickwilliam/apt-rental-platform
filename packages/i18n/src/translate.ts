@@ -5,6 +5,9 @@ import { fil } from "./catalogs/fil";
 
 export type TranslateVars = Record<string, string | number>;
 
+/** A locale-bound lookup, as returned by the platforms' `useTranslation`. */
+export type Translate = (key: TranslationKey, vars?: TranslateVars) => string;
+
 const CATALOGS: Record<LanguageCode, Record<TranslationKey, string>> = { en, fil };
 
 const PLACEHOLDER = /\{(\w+)\}/g;

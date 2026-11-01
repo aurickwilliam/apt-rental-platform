@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, Card, buttonVariants } from "@heroui/react";
 import { IconFileCheck, IconLock } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import VerifyDialog from "@/app/verify/components/VerifyDialog";
 import { preloadVerificationPageState } from "@/app/verify/components/verificationPageStateCache";
 
@@ -37,6 +38,7 @@ export default function PassportProfileCard({
   basePath,
   verificationSlot = null,
 }: PassportProfileCardProps) {
+  const { t } = useTranslation();
   const isVerified = accountStatus === "verified";
   const isPending = accountStatus === "pending";
   // The trigger keeps account_status in sync with the latest submission, so
@@ -58,12 +60,12 @@ export default function PassportProfileCard({
   };
 
   const description = isVerified
-    ? "Your identity has been verified."
+    ? t("passport.profile.verified")
     : isPending
-      ? "Your identity verification is under review."
+      ? t("passport.profile.pending")
       : isRejected
-        ? "Verification unsuccessful. Review the result and resubmit."
-        : "Verify your identity to get started.";
+        ? t("passport.profile.rejected")
+        : t("passport.profile.unverified");
 
   return (
     <>
@@ -78,14 +80,14 @@ export default function PassportProfileCard({
               )}
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-nunito text-lg font-bold text-primary">APT Passport</h2>
+              <h2 className="font-nunito text-lg font-bold text-primary">{t("passport.title")}</h2>
               <p className="text-sm text-muted-foreground">{description}</p>
             </div>
           </div>
 
           {isVerified ? (
             <Link href={basePath} className={buttonVariants({ variant: "primary", className: "w-full" })}>
-              Open Passport
+              {t("passport.profile.open")}
             </Link>
           ) : null}
           {!isVerified && !isPending ? (
@@ -99,7 +101,7 @@ export default function PassportProfileCard({
               onHoverStart={preloadVerificationPageState}
               onFocus={preloadVerificationPageState}
             >
-              {isRejected ? "Re-Apply for Verification" : "Apply for Verification"}
+              {isRejected ? t("passport.profile.reapply") : t("passport.profile.apply")}
             </Button>
           ) : null}
 

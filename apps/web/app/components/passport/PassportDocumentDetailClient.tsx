@@ -8,13 +8,16 @@ import { IconExternalLink, IconRefresh, IconShieldCheck, IconTrash } from "@tabl
 
 import { isReviewEligibleDocType } from "@repo/constants";
 import { formatDate } from "@repo/utils";
-import { getDocumentTypeDescription, getPassportDocumentStatus, isExpiredDate } from "@repo/passport";
+import { getPassportDocumentStatus, isExpiredDate } from "@repo/passport";
+import { PASSPORT_DOC_TYPE_KEYS, enumLabel } from "@repo/i18n";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
 import { usePassportDocuments, type PassportDocumentRow } from "@/hooks/use-passport-documents";
 
+import { documentTypeDescriptionKey } from "./documentTypeCopy";
 import PassportDocumentThumbnail from "./PassportDocumentThumbnail";
 import ReplaceDocumentModal from "./ReplaceDocumentModal";
 import { PassportBackLink, PassportPageShell } from "./PassportPageLayout";
@@ -64,6 +67,7 @@ export default function PassportDocumentDetailClient({
   basePath,
   documentId,
 }: PassportDocumentDetailClientProps) {
+  const { language, t } = useTranslation();
   const router = useRouter();
   const { documents, loading, error, refresh, replaceDocument } = usePassportDocuments(userId);
   const { remove, requestReview, pending } = usePassportDocumentActions(userId);
@@ -76,6 +80,8 @@ export default function PassportDocumentDetailClient({
   const [viewerIndex, setViewerIndex] = useState(0);
 
   const document = documents.find((doc) => doc.id === documentId) ?? null;
+  const sideLabel = (side: string) =>
+    side === "Back" ? t("passport.id.side.back") : t("passport.id.side.front");
 
   const entries = useMemo(
     () =>
@@ -104,14 +110,14 @@ export default function PassportDocumentDetailClient({
         <PassportBackLink basePath={basePath} />
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-12 text-center">
           <p className="font-nunito text-xl font-bold text-card-foreground">
-            {error ? "Couldn't load this document" : "Document not found"}
+            {error ? t("passport.detail.loadError") : t("passport.detail.notFound")}
           </p>
-          <p className="text-sm text-muted-foreground">{error ?? "This document may have been deleted."}</p>
+          <p className="text-sm text-muted-foreground">{error ?? t("passport.detail.deleted")}</p>
           {error ? (
-            <Button onPress={refresh}>Try Again</Button>
+            <Button onPress={refresh}>{t("passport.loadError.retry")}</Button>
           ) : (
             <Link href={basePath} className={buttonVariants({ variant: "primary" })}>
-              Back to Documents
+              {t("passport.detail.backToDocuments")}
             </Link>
           )}
         </div>
@@ -152,17 +158,21 @@ export default function PassportDocumentDetailClient({
     try {
       const updated = await requestReview(document.id);
       replaceDocument(updated);
-      toast.success("Verification requested. We'll notify you once an admin has checked it.");
+      toast.success(t("passport.detail.reviewRequested"));
     } catch (err) {
       console.error("Passport review request failed", err);
-      setActionError(err instanceof Error ? err.message : "Could not request review. Please try again.");
+      setActionError(err instanceof Error ? err.message : t("passport.detail.reviewError"));
     }
   };
 
   const handleReplaced = (row: PassportDocumentRow) => {
     replaceDocument(row);
     replaceModal.close();
-    toast.success(`${row.doc_type} replaced. It is not verified yet.`);
+    toast.success(
+      t("passport.detail.replaced", {
+        type: enumLabel(language, PASSPORT_DOC_TYPE_KEYS, row.doc_type),
+      }),
+    );
   };
 
   const handleDelete = async () => {
@@ -170,11 +180,11 @@ export default function PassportDocumentDetailClient({
     try {
       await remove({ id: document.id, storagePath: document.storage_path });
       confirmDelete.close();
-      toast.success("Document deleted");
+      toast.success(t("passport.detail.deletedToast"));
       router.replace(basePath);
     } catch (err) {
       console.error("Passport delete failed", err);
-      setDeleteError(err instanceof Error ? err.message : "Could not delete this document. Please try again.");
+      setDeleteError(err instanceof Error ? err.message : t("passport.detail.deleteError"));
     }
   };
 
@@ -183,11 +193,13 @@ export default function PassportDocumentDetailClient({
       <PassportBackLink basePath={basePath} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <section className="space-y-4" aria-label="Document preview">
+        <section className="space-y-4" aria-label={t("passport.detail.previewAria")}>
           {sides.map((side, index) => (
             <div key={side.label} className="space-y-2">
               {sides.length > 1 ? (
-                <p className="font-nunito text-base font-semibold text-card-foreground">{side.label}</p>
+                <p className="font-nunito text-base font-semibold text-card-foreground">
+                  {sideLabel(side.label)}
+                </p>
               ) : null}
               <Button
                 variant="ghost"
@@ -195,14 +207,19 @@ export default function PassportDocumentDetailClient({
                 onClick={() => openSide(side)}
                 aria-label={
                   side.isImage
-                    ? `Enlarge ${document.doc_type} ${side.label.toLowerCase()}`
-                    : `Open ${document.doc_type} file`
+                    ? t("passport.detail.enlargeAria", {
+                        type: enumLabel(language, PASSPORT_DOC_TYPE_KEYS, document.doc_type),
+                        side: sideLabel(side.label),
+                      })
+                    : t("passport.detail.openAria", {
+                        type: enumLabel(language, PASSPORT_DOC_TYPE_KEYS, document.doc_type),
+                      })
                 }
                 className="button--bare relative flex aspect-[4/3] max-h-[70vh] w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted enabled:cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
               >
                 {side.url ? (
                   <PassportDocumentThumbnail
-                    label={`${document.doc_type} ${side.label.toLowerCase()}`}
+                    label={`${enumLabel(language, PASSPORT_DOC_TYPE_KEYS, document.doc_type)} ${sideLabel(side.label)}`}
                     storagePath={side.path}
                     signedUrl={side.url}
                     mimeType={side.label === "Front" ? document.mime_type : null}
@@ -213,11 +230,13 @@ export default function PassportDocumentDetailClient({
                 ) : urlsLoading ? (
                   <Spinner size="sm" color="accent" />
                 ) : (
-                  <span className="text-sm text-muted-foreground">Preview unavailable</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("passport.detail.previewUnavailable")}
+                  </span>
                 )}
                 {side.url && !side.isImage ? (
                   <span className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Open file <IconExternalLink size={14} aria-hidden="true" />
+                    {t("passport.detail.openFile")} <IconExternalLink size={14} aria-hidden="true" />
                   </span>
                 ) : null}
               </Button>
@@ -232,25 +251,37 @@ export default function PassportDocumentDetailClient({
                 <DocumentTypeIcon docType={document.doc_type} size={24} isIdentity={isLinkedVerification} />
               </span>
               <div className="min-w-0 space-y-1">
-                <h1 className="font-nunito text-xl font-bold text-primary">{document.doc_type}</h1>
+                <h1 className="font-nunito text-xl font-bold text-primary">
+                  {enumLabel(language, PASSPORT_DOC_TYPE_KEYS, document.doc_type)}
+                </h1>
                 <PassportStatusChip status={status} />
               </div>
             </div>
 
             <p className="text-sm text-muted-foreground">
               {isLinkedVerification
-                ? "This ID is linked to your approved account verification and is managed automatically."
-                : getDocumentTypeDescription(document.doc_type, basePath.startsWith("/landlord") ? "landlord" : "tenant")}
+                ? t("passport.detail.linkedId")
+                : t(
+                    documentTypeDescriptionKey(
+                      document.doc_type,
+                      basePath.startsWith("/landlord") ? "landlord" : "tenant",
+                    ),
+                  )}
             </p>
 
             <div className="space-y-3 border-t border-border pt-4">
-              <DetailRow label="Uploaded" value={formatDate(document.created_at, "medium")} />
               <DetailRow
-                label="Expiry date"
+                label={t("passport.detail.uploaded")}
+                value={formatDate(document.created_at, "medium", language)}
+              />
+              <DetailRow
+                label={t("passport.detail.expiryDate")}
                 value={
                   document.expires_at
-                    ? `${formatDate(`${document.expires_at}T00:00:00`, "medium")}${isExpired ? " (Expired)" : ""}`
-                    : "No expiry"
+                    ? `${formatDate(`${document.expires_at}T00:00:00`, "medium", language)}${
+                        isExpired ? ` ${t("passport.detail.expiredSuffix")}` : ""
+                      }`
+                    : t("passport.detail.noExpiry")
                 }
                 isDanger={isExpired}
               />
@@ -258,25 +289,25 @@ export default function PassportDocumentDetailClient({
           </div>
 
           {reviewStatus === "rejected" ? (
-            <Notice tone="danger" title="Not verified">
-              {document.rejection_reason ?? "An admin could not verify this document."}
+            <Notice tone="danger" title={t("passport.detail.notVerified")}>
+              {document.rejection_reason ?? t("passport.detail.notVerifiedBody")}
             </Notice>
           ) : null}
           {isExpired ? (
-            <Notice tone="danger" title="Expired document">
-              Upload a current copy before requesting verification.
+            <Notice tone="danger" title={t("passport.detail.expiredTitle")}>
+              {t("passport.detail.expiredBody")}
             </Notice>
           ) : null}
 
           {isUnderReview && !isLinkedVerification ? (
-            <Notice tone="warning" title="Under admin review">
-              We&apos;ll notify you once an admin has checked this document.
+            <Notice tone="warning" title={t("passport.detail.underReviewTitle")}>
+              {t("passport.detail.underReviewBody")}
             </Notice>
           ) : null}
           {!isLinkedVerification ? (
             <Button fullWidth variant="outline" isDisabled={pending !== null} onPress={replaceModal.open}>
               <IconRefresh size={18} aria-hidden="true" />
-              Replace Document
+              {t("passport.detail.replace")}
             </Button>
           ) : null}
           {!isUnderReview && !isLinkedVerification ? (
@@ -298,7 +329,9 @@ export default function PassportDocumentDetailClient({
                   ) : (
                     <IconShieldCheck size={18} aria-hidden="true" />
                   )}
-                  {reviewStatus === "rejected" ? "Request Review Again" : "Request Verification"}
+                  {reviewStatus === "rejected"
+                    ? t("passport.detail.requestAgain")
+                    : t("passport.detail.request")}
                 </Button>
               ) : null}
               <Button
@@ -311,7 +344,7 @@ export default function PassportDocumentDetailClient({
                 }}
               >
                 <IconTrash size={18} aria-hidden="true" />
-                Delete Document
+                {t("passport.detail.delete")}
               </Button>
             </div>
           ) : null}
@@ -323,12 +356,11 @@ export default function PassportDocumentDetailClient({
           <Modal.Container size="sm">
             <Modal.Dialog>
               <Modal.Header>
-                <Modal.Heading>Delete document?</Modal.Heading>
+                <Modal.Heading>{t("passport.detail.deleteTitle")}</Modal.Heading>
               </Modal.Header>
               <Modal.Body className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  This document will be permanently removed from your passport. Documents attached to an active
-                  application cannot be deleted.
+                  {t("passport.detail.deleteBody")}
                 </p>
                 {deleteError ? (
                   <p role="alert" className="text-sm text-danger">
@@ -344,7 +376,7 @@ export default function PassportDocumentDetailClient({
                   isDisabled={pending === "delete"}
                   onPress={confirmDelete.close}
                 >
-                  Keep
+                  {t("passport.detail.keep")}
                 </Button>
                 <Button
                   variant="danger"
@@ -353,7 +385,7 @@ export default function PassportDocumentDetailClient({
                   isPending={pending === "delete"}
                   onPress={() => void handleDelete()}
                 >
-                  {pending === "delete" ? "Deleting…" : "Delete"}
+                  {pending === "delete" ? t("passport.detail.deleting") : t("passport.detail.deleteConfirm")}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -375,7 +407,7 @@ export default function PassportDocumentDetailClient({
       <PhotoGalleryModal
         name={document.doc_type}
         photos={viewerSides.map(({ url }) => ({ url }))}
-        labels={viewerSides.map(({ label }) => label)}
+        labels={viewerSides.map(({ label }) => sideLabel(label))}
         isOpen={viewerOpen}
         onOpenChange={setViewerOpen}
         activeIndex={viewerIndex}

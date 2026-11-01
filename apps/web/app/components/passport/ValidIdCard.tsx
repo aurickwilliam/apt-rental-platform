@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Button, Card, Skeleton } from "@heroui/react";
 import { IconRefresh } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import PassportStatusChip from "./PassportStatusChip";
 
 interface IdSide {
@@ -31,10 +33,14 @@ export default function ValidIdCard({
   loading,
   onOpenViewer,
 }: ValidIdCardProps) {
+  const { t } = useTranslation();
   const [showBack, setShowBack] = useState(false);
   const front = sides.find((side) => side.label === "Front") ?? null;
   const back = sides.find((side) => side.label === "Back" && side.url) ?? null;
   const current = showBack && back ? back : front;
+
+  const sideLabel = (side: IdSide["label"]) =>
+    side === "Back" ? t("passport.id.side.back") : t("passport.id.side.front");
 
   return (
     <Card className="rounded-2xl border border-border bg-card p-4 shadow-none">
@@ -42,7 +48,7 @@ export default function ValidIdCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="font-nunito text-lg font-semibold text-card-foreground">
-              Government ID
+              {t("passport.id.title")}
             </h2>
             <p className="truncate text-sm text-muted-foreground">{idType}</p>
           </div>
@@ -54,13 +60,18 @@ export default function ValidIdCard({
             variant="ghost"
             isDisabled={!current?.url}
             onClick={() => current && onOpenViewer(current.label)}
-            aria-label={`Enlarge the ${(current?.label ?? "Front").toLowerCase()} of your ID`}
+            aria-label={t("passport.id.enlargeAria", {
+              side: sideLabel(current?.label ?? "Front"),
+            })}
             className="button--bare relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-muted enabled:cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
           >
             {current?.url ? (
               <Image
                 src={current.url}
-                alt={`${idType} (${current.label.toLowerCase()})`}
+                alt={t("passport.id.alt", {
+                  idType,
+                  side: sideLabel(current.label),
+                })}
                 fill
                 unoptimized
                 loading="eager"
@@ -71,22 +82,22 @@ export default function ValidIdCard({
               <Skeleton className="absolute inset-0 rounded-none bg-skeleton!" />
             ) : (
               <span className="text-sm text-muted-foreground">
-                Preview unavailable
+                {t("passport.id.previewUnavailable")}
               </span>
             )}
           </Button>
 
           {back ? (
             <>
-              <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white">
-                {current?.label ?? "Front"}
+              <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white capitalize">
+                {sideLabel(current?.label ?? "Front")}
               </span>
               <Button
                 variant="primary"
                 size="sm"
                 isIconOnly
                 className="absolute right-3 bottom-3"
-                aria-label={showBack ? "Show front of ID" : "Show back of ID"}
+                aria-label={showBack ? t("passport.id.showFront") : t("passport.id.showBack")}
                 onPress={() => setShowBack((prev) => !prev)}
               >
                 <IconRefresh size={20} aria-hidden="true" />

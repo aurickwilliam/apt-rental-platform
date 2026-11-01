@@ -9,7 +9,9 @@ import {
   PASSPORT_UPLOADABLE_DOC_TYPES,
   type PassportPortalRole,
 } from "@repo/constants";
+import { PASSPORT_DOC_TYPE_KEYS, enumLabel } from "@repo/i18n";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { usePassportDocumentActions } from "@/hooks/use-passport-document-actions";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
 
@@ -43,6 +45,7 @@ export default function AddDocumentModal({
   onClose,
   onUploaded,
 }: AddDocumentModalProps) {
+  const { language, t } = useTranslation();
   const { upload, pending } = usePassportDocumentActions(userId);
   const isUploading = pending === "upload";
   const isAlreadyAdded = !!docType && addedDocTypes.includes(docType);
@@ -77,11 +80,11 @@ export default function AddDocumentModal({
                   className="button--bare inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <IconArrowLeft size={16} aria-hidden="true" />
-                  Document types
+                  {t("passport.add.documentTypes")}
                 </Button>
               ) : null}
               <Modal.Heading className="font-nunito text-2xl font-bold text-card-foreground">
-                {docType ?? "Add a document"}
+                {docType ? enumLabel(language, PASSPORT_DOC_TYPE_KEYS, docType) : t("passport.add.title")}
               </Modal.Heading>
             </Modal.Header>
 
@@ -110,10 +113,12 @@ export default function AddDocumentModal({
                 <Modal.Body>
                   <p className="text-sm text-muted-foreground">
                     {isAlreadyAdded
-                      ? `You already added a ${docType}. Open it from your wallet to replace the file.`
+                      ? t("passport.add.alreadyAdded", {
+                          type: enumLabel(language, PASSPORT_DOC_TYPE_KEYS, docType ?? ""),
+                        })
                       : isIdentityDoc
-                        ? "Identity documents use live ID capture and a selfie in account verification. Once approved, your ID is added to your APT Passport automatically."
-                        : "This document type is not available for Passport uploads. Choose a type from the list instead."}
+                        ? t("passport.add.identity")
+                        : t("passport.add.unavailable")}
                   </p>
                 </Modal.Body>
                 <Modal.Footer className="flex justify-end gap-2">
@@ -122,11 +127,11 @@ export default function AddDocumentModal({
                       href="/verify"
                       className={buttonVariants({ variant: "primary" })}
                     >
-                      Go to ID verification
+                      {t("passport.add.goVerify")}
                     </Link>
                   ) : (
                     <Button onPress={() => onSelectType(null)}>
-                      Choose document type
+                      {t("passport.add.chooseType")}
                     </Button>
                   )}
                 </Modal.Footer>

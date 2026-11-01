@@ -10,6 +10,7 @@ import { errors } from "./errors";
 import { languages } from "./languages";
 import { nav } from "./nav";
 import { notifications } from "./notifications";
+import { passport } from "./passport";
 import { reviews } from "./reviews";
 import { settings } from "./settings";
 import { validation } from "./validation";
@@ -34,6 +35,7 @@ export const en = {
   ...apartment,
   ...reviews,
   ...apply,
+  ...passport,
 } as const;
 
 export type TranslationKey = keyof typeof en;

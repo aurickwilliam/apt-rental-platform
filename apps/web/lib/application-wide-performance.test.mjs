@@ -266,6 +266,9 @@ test("Passport prioritizes only visible image rendering; original URLs, private 
     "react/jsx-runtime": jsxRuntime, react: { useState: () => [false, () => {}] },
     "next/image": { default: "Image" }, "@heroui/react": { Card: { Content: "Content" }, Button: "Button", Skeleton: "Skeleton" },
     "@tabler/icons-react": { IconRefresh: "Refresh" }, "./PassportStatusChip": { default: "Status" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }),
+    },
   });
   const walk = node => !node || typeof node !== "object" ? [] : [node, ...[node.props?.children].flat(Infinity).flatMap(walk)];
   const image = walk(h.default({ idType: "Fixture", sides: [{ label: "Front", url: "fixture-image" }], loading: false, onOpenViewer() {} })).find(node => node.type === "Image");

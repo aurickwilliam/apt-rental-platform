@@ -72,6 +72,49 @@ export const APPLICATION_SLOT_KEYS: EnumKeyMap = {
   nbiClearance: "enums.applicationSlot.nbiClearance",
 };
 
+/** Supporting and ownership document types a Passport can hold. */
+export const PASSPORT_DOC_TYPE_KEYS: EnumKeyMap = {
+  "Proof of Income": "enums.passportDocType.proofOfIncome",
+  "Proof of Residency": "enums.passportDocType.proofOfResidency",
+  "Birth Certificate": "enums.passportDocType.birthCertificate",
+  "NBI Clearance": "enums.passportDocType.nbiClearance",
+  "Certificate of Employment": "enums.passportDocType.certificateOfEmployment",
+  "Payslip": "enums.passportDocType.payslip",
+  "Income Tax Return (ITR)": "enums.passportDocType.incomeTaxReturn",
+  "Tax Declaration": "enums.passportDocType.taxDeclaration",
+  "Transfer Certificate of Title": "enums.passportDocType.transferCertificateOfTitle",
+  "Real Property Tax Receipt": "enums.passportDocType.realPropertyTaxReceipt",
+  "Business Permit": "enums.passportDocType.businessPermit",
+  "DTI / SEC Registration": "enums.passportDocType.dtiSecRegistration",
+  "Authorization Letter (SPA)": "enums.passportDocType.authorizationLetterSpa",
+};
+
+/** One-line explanation shown under a document type, keyed by stored type. */
+export const PASSPORT_DOC_TYPE_DESCRIPTION_KEYS: EnumKeyMap = {
+  "Proof of Income": "passport.docType.proofOfIncome.description",
+  "Proof of Residency": "passport.docType.proofOfResidency.description",
+  "Birth Certificate": "passport.docType.birthCertificate.description",
+  "NBI Clearance": "passport.docType.nbiClearance.description",
+  "Certificate of Employment": "passport.docType.certificateOfEmployment.description",
+  "Payslip": "passport.docType.payslip.description",
+  "Income Tax Return (ITR)": "passport.docType.incomeTaxReturn.description",
+  "Tax Declaration": "passport.docType.taxDeclaration.description",
+  "Transfer Certificate of Title": "passport.docType.transferCertificateOfTitle.description",
+  "Real Property Tax Receipt": "passport.docType.realPropertyTaxReceipt.description",
+  "Business Permit": "passport.docType.businessPermit.description",
+  "DTI / SEC Registration": "passport.docType.dtiSecRegistration.description",
+  "Authorization Letter (SPA)": "passport.docType.authorizationLetterSpa.description",
+};
+
+/** The single status shown for a Passport document. */
+export const PASSPORT_STATUS_KEYS: EnumKeyMap = {
+  verified: "enums.passportStatus.verified",
+  expired: "enums.passportStatus.expired",
+  pending: "enums.passportStatus.pending",
+  rejected: "enums.passportStatus.rejected",
+  unverified: "enums.passportStatus.unverified",
+};
+
 export const GENDER_KEYS: EnumKeyMap = {
   Male: "enums.gender.male",
   Female: "enums.gender.female",

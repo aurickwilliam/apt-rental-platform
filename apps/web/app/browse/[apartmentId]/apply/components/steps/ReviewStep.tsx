@@ -24,6 +24,7 @@ import {
   APARTMENT_TYPE_KEYS,
   APPLICATION_SLOT_KEYS,
   EMPLOYMENT_TYPE_KEYS,
+  PASSPORT_DOC_TYPE_KEYS,
   FLOOR_LEVEL_KEYS,
   FURNISHED_TYPE_KEYS,
   LEASE_DURATION_KEYS,
@@ -233,7 +234,9 @@ export default function ReviewStep({
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
                               {doc
-                                ? `${doc.doc_type}${hasBack ? t("apply.review.frontAndBack") : ""}`
+                                ? `${enumLabel(language, PASSPORT_DOC_TYPE_KEYS, doc.doc_type)}${
+                                    hasBack ? t("apply.review.frontAndBack") : ""
+                                  }`
                                 : emptySlotLabel(slot, form.employmentType)}
                             </p>
                           </div>
