@@ -28,7 +28,7 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 import PortalSwitcher from '../components/profile/PortalSwitcher';
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '../components/CustomTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
 export default function Profile() {
   const router = useRouter();

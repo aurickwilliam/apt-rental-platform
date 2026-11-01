@@ -3,5 +3,5 @@ import { requirePassportViewer } from "@/app/components/passport/requirePassport
 
 export default async function LandlordPassportPage() {
   const { userId } = await requirePassportViewer("landlord");
-  return <PassportClient userId={userId} basePath="/landlord/passport" showApplicationReadiness={false} />;
+  return <PassportClient userId={userId} basePath="/landlord/passport" showApplicationReadiness={false} portal="landlord" />;
 }

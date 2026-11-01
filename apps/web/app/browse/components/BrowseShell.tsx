@@ -7,6 +7,8 @@ interface BrowseShellProps {
   basePath?: string;
   /** Filter entry rendered beside the search pill. */
   filterButton?: ReactNode;
+  /** Ava entry rendered after the map button (tenant Browse only). */
+  assistantButton?: ReactNode;
   /** Placeholder shown while `children` streams in. */
   fallback: ReactNode;
   children: ReactNode;
@@ -29,6 +31,7 @@ interface BrowseShellProps {
 export default function BrowseShell({
   basePath = "/browse",
   filterButton,
+  assistantButton,
   fallback,
   children,
   fullWidth = false,
@@ -36,7 +39,11 @@ export default function BrowseShell({
   return (
     <div className={browseFrameClass(fullWidth)}>
       <Suspense>
-        <SearchContainer basePath={basePath} filterButton={filterButton} mapHref={`${basePath}/map`} />
+        <SearchContainer basePath={basePath}
+          filterButton={filterButton}
+          mapHref={`${basePath}/map`}
+          assistantButton={assistantButton}
+        />
       </Suspense>
       <div className={BROWSE_BODY_CLASS}>
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">

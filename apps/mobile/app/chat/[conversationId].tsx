@@ -53,11 +53,11 @@ import {
   SENDER_AVATAR_GUTTER,
   getBubbleGroupPosition,
   showsSenderAvatar,
-} from './components/bubbleGrouping';
+} from '@/utils/chat/bubbleGrouping';
 import {
   TIMESTAMP_REVEAL_WIDTH,
   TimestampRevealContext,
-} from './components/timestampReveal';
+} from '@/utils/chat/timestampReveal';
 
 import ChatLoadingSkeleton from './components/ChatLoadingSkeleton';
 import ChatBlockedNotice from './components/ChatBlockedNotice';

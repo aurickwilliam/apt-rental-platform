@@ -70,6 +70,7 @@ test("See All keeps all loaded cards during pending, cancelled and failed naviga
     "../../components/ui/ApartmentCard": { default: "ApartmentCard" },
     "@/app/components/ui/AuthPromptModal": { default: "AuthPromptModal" },
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
+    "@/hooks/use-recent-apartment-searches": { useRememberRecentApartment: () => () => {} },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
   };
   const Browse = compile("app/browse/components/BrowseSectionsList.tsx", dependencies).default;

@@ -1,4 +1,5 @@
 // apps/web/app/(main)/pap/data/pap-sections.ts
+import { REGISTRATION_POLICIES } from "@/lib/registration-policies";
 
 export const BRAND = {
   email: "support@apt-rental.ph",
@@ -7,9 +8,9 @@ export const BRAND = {
 };
 
 export const LEGAL_META = {
-  lastUpdated: "January 15, 2026",
+  lastUpdated: REGISTRATION_POLICIES.privacy.lastUpdated,
   jurisdiction: "Effective in the Philippines",
-  version: "1.0",
+  version: REGISTRATION_POLICIES.privacy.version,
 };
 
 export type Callout = { kind: "info" | "warning"; label: string; text: string };

@@ -132,8 +132,21 @@ export default function ApartmentHeroSection({
         />
       )}
 
+      {/* The gradient is a native view that must never take touches; the content
+          sits in a plain View so only its own controls do, and swipes reach the carousel. */}
       <LinearGradient
         colors={BOTTOM_SCRIM_COLORS}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        pointerEvents='none'
+      />
+
+      <View
         style={{
           position: 'absolute',
           top: 0,
@@ -233,7 +246,7 @@ export default function ApartmentHeroSection({
             );
           })}
         </View>
-      </LinearGradient>
+      </View>
 
       <ImageViewing
         key={imageIndex}

@@ -389,12 +389,12 @@ export function AppSidebar({
         className={`flex border-b border-sidebar-border bg-sidebar ${collapsed ? "justify-center px-2 py-3" : "items-center justify-between gap-2 px-5 py-5"}`}
       >
         {collapsed ? (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             aria-label="Expand sidebar"
             aria-expanded={false}
             onClick={toggleCollapsed}
-            className="group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="button--bare group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Image
               src={isDark ? "/logo/logo.svg" : "/logo/logo-white.svg"}
@@ -413,7 +413,7 @@ export function AppSidebar({
                 className="size-6 shrink-0"
               />
             </span>
-          </button>
+          </Button>
         ) : (
           <Link
             href={navItems[0]?.href ?? "/"}
@@ -423,18 +423,18 @@ export function AppSidebar({
               src="/logo/logo-name-transparent.svg"
               alt="APT Logo"
               width={118}
-              height={42}
+              height={55}
               className="object-contain"
               priority
             />
           </Link>
         )}
         {collapsible && !collapsed ? (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             aria-label="Collapse sidebar"
             aria-expanded={true}
-            className="group flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-primary/10 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="button--bare group flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-primary/10 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             onClick={toggleCollapsed}
           >
             <IconLayoutSidebarLeftCollapse
@@ -442,7 +442,7 @@ export function AppSidebar({
               className="size-6 shrink-0 group-hover:text-primary"
               aria-hidden="true"
             />
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -896,7 +896,7 @@ function MobileSidebarMenu({
           <Image
             src="/logo/logo-name-transparent.svg"
             alt="APT Logo"
-            width={90}
+            width={69}
             height={32}
             className="h-8 w-auto object-contain"
             priority
@@ -920,8 +920,8 @@ function MobileSidebarMenu({
                   <Image
                     src="/logo/logo-name-transparent.svg"
                     alt="APT Logo"
-                    width={104}
-                    height={37}
+                    width={78}
+                    height={36}
                     className="h-9 w-auto object-contain"
                   />
                 </Link>
@@ -953,18 +953,18 @@ function MobileSidebarMenu({
                       const active = isActive(pathname, href);
                       const hasActivity = !!activityKey && activity.has(activityKey);
                       return (
-                        <button
+                        <Button
+                          variant="ghost"
                           key={href}
-                          type="button"
                           onClick={() => go(href)}
                           aria-current={active ? "page" : undefined}
                           aria-label={hasActivity ? `${label}, Unread activity` : undefined}
-                          className={`relative pr-7 ${drawerRowClass(active)}`}
+                          className={`button--bare relative pr-7 ${drawerRowClass(active)}`}
                         >
                           <Icon size={20} aria-hidden="true" />
                           {label}
                           {hasActivity ? <UnreadActivityDot /> : null}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -974,56 +974,56 @@ function MobileSidebarMenu({
 
                 <div role="group" aria-label="Account" className="flex flex-col gap-1">
                   {profileHref ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
                       onClick={() => go(profileHref)}
                       aria-current={profileActive ? "page" : undefined}
-                      className={drawerRowClass(profileActive)}
+                      className={`button--bare ${drawerRowClass(profileActive)}`}
                     >
                       <IconUser size={20} aria-hidden="true" />
                       Profile
-                    </button>
+                    </Button>
                   ) : null}
                   {favoritesHref ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
                       onClick={() => go(favoritesHref)}
                       aria-current={favoritesActive ? "page" : undefined}
-                      className={drawerRowClass(favoritesActive)}
+                      className={`button--bare ${drawerRowClass(favoritesActive)}`}
                     >
                       <IconHeart size={20} aria-hidden="true" />
                       Favorites
-                    </button>
+                    </Button>
                   ) : null}
 
                   {switchTargets.map((target) => (
-                    <button
+                    <Button
+                      variant="ghost"
                       key={target.href}
-                      type="button"
                       onClick={() => go(target.href)}
-                      className={drawerRowClass(false)}
+                      className={`button--bare ${drawerRowClass(false)}`}
                     >
                       <IconArrowsExchange size={20} aria-hidden="true" />
                       {target.label}
-                    </button>
+                    </Button>
                   ))}
 
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
                     onClick={() => openOverlay("settings", SETTINGS_QUERY_VALUE)}
-                    className={drawerRowClass(false)}
+                    className={`button--bare ${drawerRowClass(false)}`}
                   >
                     <IconSettings size={20} aria-hidden="true" />
                     Settings
-                  </button>
+                  </Button>
 
                   {(activePortal === "tenant" ||
                     activePortal === "landlord" ||
                     activePortal === "admin") && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
                       onClick={() => openOverlay("notifications", NOTIFICATIONS_QUERY_VALUE)}
-                      className={drawerRowClass(false)}
+                      className={`button--bare ${drawerRowClass(false)}`}
                     >
                       <IconBell size={20} aria-hidden="true" />
                       Notifications
@@ -1032,18 +1032,18 @@ function MobileSidebarMenu({
                           {unreadCount > 9 ? "9+" : unreadCount}
                         </span>
                       )}
-                    </button>
+                    </Button>
                   )}
 
                   {/* The switch is pointer-events-none, so the row tap is what
                       actually toggles the theme (mirrors the sidebar footer). */}
-                  <button
-                    type="button"
-                    role="switch"
+                  <Button
+                    variant="ghost"
+                    {...{ role: "switch" }}
                     aria-checked={isDark}
-                    disabled={!themeMounted}
+                    isDisabled={!themeMounted}
                     onClick={toggleTheme}
-                    className={drawerRowClass(false)}
+                    className={`button--bare ${drawerRowClass(false)}`}
                   >
                     {isDark ? (
                       <IconMoon size={20} aria-hidden="true" />
@@ -1059,22 +1059,22 @@ function MobileSidebarMenu({
                         aria-label="Toggle dark mode"
                       />
                     </span>
-                  </button>
+                  </Button>
                 </div>
               </nav>
 
               <div className="border-t border-divider px-3 py-3">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     closeMobileMenu();
                     signOut();
                   }}
-                  className={`${DRAWER_ROW_CLASS} text-danger hover:bg-danger/10`}
+                  className={`button--bare ${DRAWER_ROW_CLASS} text-danger hover:bg-danger/10`}
                 >
                   <IconLogout size={20} aria-hidden="true" />
                   Log Out
-                </button>
+                </Button>
               </div>
             </Drawer.Dialog>
           </Drawer.Content>

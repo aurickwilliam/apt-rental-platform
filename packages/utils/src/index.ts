@@ -1,5 +1,26 @@
 export { getRelativeTime } from './getRelativeTime';
 export { isReviewStayEligible } from './reviewEligibility';
+export { formatReviewStayLabel, formatStayRange } from './reviewStayLabel';
+export {
+  TENANT_REVIEW_MAX_COMMENT_LENGTH,
+  TENANT_REVIEW_MIN_RATING,
+  TENANT_REVIEW_MAX_RATING,
+  TENANT_REVIEW_SAVE_ERROR,
+  validateTenantReview,
+  hasTenantReviewErrors,
+  summarizeTenantReviews,
+  prepareTenantReview,
+  toTenantReviewRecords,
+} from './tenantReview';
+export type {
+  TenantReviewErrors,
+  TenantReviewSummary,
+  TenantReviewSubmission,
+  SubmitTenantReviewArgs,
+  PreparedTenantReview,
+  TenantReviewRow,
+  TenantReviewRecord,
+} from './tenantReview';
 export {
   MAX_CHAT_ATTACHMENT_BYTES,
   CHAT_DOCUMENT_MIME_TYPES,
@@ -131,6 +152,13 @@ export {
 } from './passwordErrors';
 export { type AuthIdentityUser, hasEmailPasswordIdentity } from './authIdentity';
 export {
+  LANDLORD_VERIFICATION_MESSAGE,
+  type LandlordAccessState,
+  canUseLandlordFeatures,
+  getLandlordAccessState,
+  isLandlordAccessBlocked,
+} from './landlordAccess';
+export {
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
   normalizeRecoveryEmail,
@@ -234,3 +262,39 @@ export {
   getAppUpdateStatus,
   validateAppRelease,
 } from './appRelease';
+export {
+  AI_SEARCH_MIN_BUDGET,
+  AI_SEARCH_MAX_BUDGET,
+  AI_SEARCH_KEYWORD_MAX_LENGTH,
+  AI_SEARCH_ROOM_OPTIONS,
+  AI_SEARCH_SORTS,
+  AI_SEARCH_AMENITIES,
+  EMPTY_AI_SEARCH_FILTERS,
+  type AiSearchFilters,
+  type AiSearchRoomCount,
+  type AiSearchSort,
+  sanitizeAiFilters,
+  sanitizeSearchKeyword,
+  countAiSearchFilters,
+  parseSearchKeywords,
+  aiFiltersToBrowseParams,
+} from './aiSearch';
+export {
+  AVA_RESULT_LIMIT,
+  AVA_ASK_FOR_DETAILS,
+  AVA_FOUND_REPLY,
+  AVA_NO_RESULTS,
+  AVA_LIMIT_NOTE,
+  AVA_LISTINGS_ERROR,
+  AVA_GENERIC_ERROR,
+  AVA_LOOSEN_QUICK_REPLIES,
+  type AvaSource,
+  type AvaTurn,
+  type AvaAnswer,
+  type AvaReply,
+  hasAvaQuestion,
+  avaFallbackAnswer,
+  readAvaResponse,
+  shouldSearchForAva,
+  composeAvaReply,
+} from './avaChat';

@@ -2,10 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { Button, Card } from "@heroui/react";
 import { IconFileText } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
+
+import ProfilePhotoErrorDialog from "@/app/components/profile/ProfilePhotoErrorDialog";
 
 interface LeaseAgreementCardProps {
   leaseDetailsUrl: string;
@@ -15,7 +19,9 @@ interface LeaseAgreementCardProps {
 
 export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, className = "" }: LeaseAgreementCardProps) {
   const hasLease = !!leaseDetailsUrl || !!localFile;
+  const router = useRouter();
   const [viewingLease, setViewingLease] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
   const localUrl = useRef<string | null>(null);
   useEffect(() => () => {
     if (localUrl.current) URL.revokeObjectURL(localUrl.current);
@@ -42,6 +48,14 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
         return;
       }
       const supabase = createBrowserClient();
+      // The lease file is private, so signed-out visitors sign in first.
+      // Storage RLS still decides access; this only improves the feedback.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        router.push("/sign-in");
+        return;
+      }
+
       const { data: signed, error } = await supabase.storage
         .from("lease-agreements")
         .createSignedUrl(leaseDetailsUrl, 60 * 60);
@@ -60,7 +74,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to view lease agreement");
+      setViewError("We couldn't open the lease agreement. Please try again.");
     } finally {
       setViewingLease(false);
     }
@@ -92,6 +106,11 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
           </p>
         )}
       </Card.Content>
+      <ProfilePhotoErrorDialog
+        title="Unable to open lease agreement"
+        message={viewError}
+        onClose={() => setViewError(null)}
+      />
     </Card>
   );
 }

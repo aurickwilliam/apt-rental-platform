@@ -13,8 +13,8 @@ import StepProgress from '@/components/display/StepProgress'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { computeCanContinue, getCaptureProgress } from './utils/gating'
-import { getCaptureSequence, type CaptureStepConfig } from './constants/captureSequences'
+import { computeCanContinue, getCaptureProgress } from '@/utils/verification/gating'
+import { getCaptureSequence, type CaptureStepConfig } from '@/constants/verification/captureSequences'
 import type { IdCaptureResult } from '@/stores/useVerificationStore'
 
 const AUTHENTICITY_DECLARATION = 'I confirm that the submitted ID is authentic, valid, and belongs to me.'

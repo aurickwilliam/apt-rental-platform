@@ -4,6 +4,11 @@
 
 const SCRIPT_ID = "google-maps-js";
 
+// Google calls this global once the API is usable. Asking for it (and
+// `loading=async`) avoids the "loaded directly without loading=async" warning;
+// resolving from `onload` alone could run before `google.maps` exists.
+const READY_CALLBACK = "__aptGoogleMapsReady";
+
 export interface GoogleLatLngLiteral {
   lat: number;
   lng: number;
@@ -30,6 +35,8 @@ export interface GoogleMapPoint {
 
 export interface GoogleMapProjection {
   fromLatLngToDivPixel(latLng: GoogleLatLng | GoogleLatLngLiteral): GoogleMapPoint | null;
+  /** Div-pixel coordinates (the overlay pane's frame) back to a point on the map. */
+  fromDivPixelToLatLng(pixel: GoogleMapPoint): GoogleLatLng;
 }
 
 export interface GoogleMapPanes {
@@ -57,13 +64,6 @@ export interface GoogleMapInstance {
   getBounds(): GoogleLatLngBounds | undefined;
 }
 
-export interface GoogleMarkerInstance {
-  addListener(eventName: string, handler: () => void): void;
-  setPosition(position: GoogleLatLngLiteral): void;
-  setMap(map: GoogleMapInstance | null): void;
-  getPosition(): GoogleLatLng | null;
-}
-
 export interface GoogleMapOptions {
   center: GoogleLatLngLiteral;
   zoom: number;
@@ -80,12 +80,8 @@ export interface GoogleMapOptions {
 
 export interface GoogleMapsNamespace {
   Map: new (element: HTMLElement, options: GoogleMapOptions) => GoogleMapInstance;
-  Marker: new (options: {
-    position: GoogleLatLngLiteral;
-    map: GoogleMapInstance;
-    draggable?: boolean;
-  }) => GoogleMarkerInstance;
   OverlayView: new () => GoogleOverlayView;
+  Point: new (x: number, y: number) => GoogleMapPoint;
   event: {
     clearInstanceListeners(instance: unknown): void;
     trigger(instance: unknown, eventName: string): void;
@@ -105,23 +101,36 @@ export function loadGoogleMaps(apiKey: string): Promise<void> {
   if (loadPromise) return loadPromise;
 
   loadPromise = new Promise<void>((resolve, reject) => {
+    const browserWindow = window as unknown as Record<string, unknown>;
     const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+
+    const clearCallback = () => {
+      delete browserWindow[READY_CALLBACK];
+    };
+
+    const fail = (error: Error) => {
+      clearCallback();
+      script.remove();
+      loadPromise = null;
+      reject(error);
+    };
+
+    browserWindow[READY_CALLBACK] = () => {
       if (getGoogleMaps()) {
+        clearCallback();
         resolve();
       } else {
-        loadPromise = null;
-        reject(new Error("Google Maps failed to initialize."));
+        fail(new Error("Google Maps failed to initialize."));
       }
     };
-    script.onerror = () => {
-      loadPromise = null;
-      reject(new Error("Google Maps script failed to load."));
-    };
+
+    script.id = SCRIPT_ID;
+    script.src =
+      `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}` +
+      `&v=weekly&loading=async&callback=${READY_CALLBACK}`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => fail(new Error("Google Maps script failed to load."));
     document.head.appendChild(script);
   });
 

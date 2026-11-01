@@ -39,11 +39,11 @@ export default function MapPreviewCard({
   return (
     <div className="w-72 overflow-hidden rounded-2xl bg-surface text-foreground shadow-2xl ring-1 ring-black/5">
       <div className="relative">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onOpen}
           aria-label={`View ${apartment.name}`}
-          className="block aspect-[4/3] w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
+          className="button--bare block aspect-[4/3] w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
         >
           <Image
             src={apartment.image}
@@ -53,7 +53,7 @@ export default function MapPreviewCard({
             unoptimized={!canOptimizePublicApartmentImage(apartment.image)}
             className="size-full object-cover"
           />
-        </button>
+        </Button>
 
         {apartment.isVerified ? (
           <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-600">
@@ -95,10 +95,10 @@ export default function MapPreviewCard({
         </div>
       </div>
 
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={onOpen}
-        className="block w-full cursor-pointer p-3 text-left focus-visible:outline-2 focus-visible:outline-primary"
+        className="button--bare block w-full cursor-pointer p-3 text-left focus-visible:outline-2 focus-visible:outline-primary"
       >
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 truncate font-nunito text-[15px] font-semibold">{apartment.name}</p>
@@ -110,7 +110,7 @@ export default function MapPreviewCard({
         <p className="truncate text-sm text-muted-foreground">{apartment.location}</p>
         {specs.length > 0 ? <p className="truncate text-sm text-muted-foreground">{specs.join(" · ")}</p> : null}
         <p className="mt-1.5 text-[15px] font-medium text-primary">{formatPesoDisplay(apartment.price)}</p>
-      </button>
+      </Button>
     </div>
   );
 }

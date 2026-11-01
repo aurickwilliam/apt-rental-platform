@@ -8,6 +8,7 @@ import { getOtpAttemptError } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
+import { writeRegistrationAcceptance, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
 
 const OTP_COOLDOWN = 120;
 
@@ -19,17 +20,21 @@ const supabase = createClient();
 interface UseOtpFlowOptions {
   formData: SignUpFormData;
   role: string;
+  acceptance: RegistrationAcceptance;
   showError: (msg: string) => void;
   onSuccessOpen: () => void;
   onBirthDateError: (message: string, value: string, verified?: boolean) => void;
+  onAcceptanceError: (errors: AcceptanceErrors, verified?: boolean) => void;
 }
 
 export function useOtpFlow({
   formData,
   role,
+  acceptance,
   showError,
   onSuccessOpen,
   onBirthDateError,
+  onAcceptanceError,
 }: UseOtpFlowOptions) {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -46,13 +51,13 @@ export function useOtpFlow({
   // Keeps handlers stable while still reading the latest values when fired.
   // Mirrored in an effect (not during render) to satisfy
   // react-hooks/set-state-in-effect / no-ref-write-in-render.
-  const latest = useRef({ formData, role, showError, onSuccessOpen, onBirthDateError });
+  const latest = useRef({ formData, role, acceptance, showError, onSuccessOpen, onBirthDateError, onAcceptanceError });
   const otpRef = useRef(otp);
 
   useEffect(() => {
-    latest.current = { formData, role, showError, onSuccessOpen, onBirthDateError };
+    latest.current = { formData, role, acceptance, showError, onSuccessOpen, onBirthDateError, onAcceptanceError };
     otpRef.current = otp;
-  }, [formData, role, showError, onSuccessOpen, onBirthDateError, otp]);
+  }, [formData, role, acceptance, showError, onSuccessOpen, onBirthDateError, onAcceptanceError, otp]);
 
   const handleResendOtp = useCallback(async () => {
     const { formData: data } = latest.current;
@@ -65,7 +70,12 @@ export function useOtpFlow({
         data.firstName,
         data.lastName,
         data.birthDate,
+        latest.current.acceptance,
       );
+      if (result.acceptanceErrors) {
+        latest.current.onAcceptanceError(result.acceptanceErrors);
+        return;
+      }
       if (result.birthDateError) {
         latest.current.onBirthDateError(result.birthDateError, result.birthDate ?? data.birthDate);
         return;
@@ -120,10 +130,15 @@ export function useOtpFlow({
       fd.set("password", data.password);
       fd.set("confirmPassword", data.confirmPassword);
       fd.set("role", currentRole);
+      writeRegistrationAcceptance(fd, latest.current.acceptance);
 
       const result = await signUp({ error: null, success: false }, fd);
 
-      if (result.birthDateError) {
+      if (result.acceptanceErrors) {
+        await supabase.auth.signOut();
+        latest.current.onAcceptanceError(result.acceptanceErrors, true);
+        onClose();
+      } else if (result.birthDateError) {
         // Preserve cleanup of a verified but profile-less session, without
         // sending this known field failure to the generic ErrorModal.
         await supabase.auth.signOut();

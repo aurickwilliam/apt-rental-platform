@@ -32,7 +32,7 @@ import {
   type ConversationListItem,
 } from '@/service/chat/conversationList';
 import type { ConversationWithMeta } from '@/service/chat/conversationService';
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
 const LIST_HORIZONTAL_PADDING = 20;
 

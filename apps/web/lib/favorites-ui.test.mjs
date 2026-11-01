@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { canOptimizePublicApartmentImage } from "./public-apartment-image.ts";
+import { hookRuntime } from "./test-support/hook-runtime.mjs";
 
 const apartment = {
   id: "saved-apartment", name: "Irene's Housing", barangay: "Malanday", city: "Valenzuela",
@@ -22,7 +23,9 @@ const text = element => nodes(element).flatMap(node => [node.props?.children].fl
 
 function loadComponent(file, modules = {}, exportName = "default") {
   const jsx = (type, props) => ({ type, props });
+  const runtime = hookRuntime();
   const dependencies = {
+    react: runtime.react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => `₱ ${value}` },
@@ -30,6 +33,7 @@ function loadComponent(file, modules = {}, exportName = "default") {
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage },
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
     ...modules,
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");

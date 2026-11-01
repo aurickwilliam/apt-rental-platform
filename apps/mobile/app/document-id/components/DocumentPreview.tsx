@@ -8,7 +8,7 @@ import { IconChevronRight, IconFileText } from "@tabler/icons-react-native";
 import PdfThumbnail from "@/components/display/PdfThumbnail";
 import { useColors } from "@/hooks/useTheme";
 
-import { getExtension, isPdfDocument, isPreviewable } from "../utils/fileType";
+import { getExtension, isPdfDocument, isPreviewable } from "@/utils/documents/fileType";
 
 interface DocumentPreviewProps {
   docType: string;

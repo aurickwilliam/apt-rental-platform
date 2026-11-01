@@ -21,14 +21,14 @@ import { useColors } from '@/hooks/useTheme';
 
 import { isEmojiOnly } from '@/service/chat/chatService';
 
-import { HEART_REACTION } from './reactionEmojis';
-import { continuesBelow, type BubbleGroupPosition } from './bubbleGrouping';
+import { HEART_REACTION } from '@/utils/chat/reactionEmojis';
+import { continuesBelow, type BubbleGroupPosition } from '@/utils/chat/bubbleGrouping';
 import SenderAvatar from './SenderAvatar';
 import SeenAvatar from './SeenAvatar';
 import { groupReactionsByEmoji } from '@/service/chat/reactionGroups';
 import SwipeToReply from './SwipeToReply';
 import TimestampRevealRow from './TimestampRevealRow';
-import { formatRevealTime } from './timestampReveal';
+import { formatRevealTime } from '@/utils/chat/timestampReveal';
 
 /** Gap below a bubble: tight inside a same-sender run, else `mb-4`. */
 const ROW_GAP = 16;

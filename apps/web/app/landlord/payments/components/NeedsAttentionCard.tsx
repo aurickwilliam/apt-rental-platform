@@ -61,13 +61,13 @@ export default function NeedsAttentionCard({ payments, showUnit, onOpen }: Needs
           <ul className="max-h-80 space-y-2 overflow-y-auto">
             {payments.map((payment) => (
               <li key={payment.id}>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setOpen(false);
                     onOpen(payment);
                   }}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl bg-primary/10 p-3 text-left text-foreground transition-colors hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="button--bare flex w-full cursor-pointer items-center gap-3 rounded-2xl bg-primary/10 p-3 text-left text-foreground transition-colors hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <IconCash size={20} className="shrink-0 text-primary" aria-hidden="true" />
                   <span className="min-w-0 flex-1">
@@ -83,7 +83,7 @@ export default function NeedsAttentionCard({ payments, showUnit, onOpen }: Needs
                     </span>
                   </span>
                   <IconChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

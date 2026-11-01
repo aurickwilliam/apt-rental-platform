@@ -26,6 +26,7 @@ function load(file, options = {}) {
     "react": { Suspense: "Suspense", useMemo: callback => callback(), useState: initial => [filters ? filters[stateIndex++] : initial, () => {}] },
     "next/navigation": { useRouter: () => ({ push, prefetch }), useSearchParams: () => new URL(href).searchParams },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "@heroui/react": { Skeleton: "Skeleton", Table, InputGroup, Dropdown, Button: "Button", Label: "Label", Chip: "Chip", Separator: "Separator" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatDate: value => value, formatPesoDisplay: value => `₱${value}`, getInitials: () => "T" },
@@ -148,7 +149,7 @@ test("loaded records still respect search, status and city filters and open the 
   }).default();
   const elements = nodes(tree);
   elements.find(node => node.type === "Table.Content").props.onRowAction(record.id);
-  elements.find(node => node.type === "button").props.onClick();
+  elements.find(node => node.type === "Button" && node.props.className?.includes("button--bare")).props.onClick();
   assert.deepEqual(pushes, ["/landlord/applications/application-one", "/landlord/applications/application-one"]);
   for (const filters of [["other", "All", "All"], ["", "Approved", "All"], ["", "All", "Malabon"]]) {
     assert.ok(text(load("page.tsx", { applications: [record], filters }).default()).includes("No applications found"));
@@ -216,7 +217,7 @@ test("Application detail routes warm on table hover/focus and responsive card ho
   const elements = nodes(load("page.tsx", { applications: [record], prefetch: href => warmed.push(href) }).default());
   elements.find(element => element.type === "Table.Row").props.onMouseEnter();
   elements.find(element => element.type === "section").props.onFocusCapture({ target: { closest: () => ({ dataset: { applicationId: record.id } }) } });
-  const card = elements.find(element => element.type === "button");
+  const card = elements.find(element => element.type === "Button" && element.props.className?.includes("button--bare"));
   card.props.onMouseEnter();
   card.props.onFocus();
   assert.deepEqual(warmed, Array(4).fill("/landlord/applications/application-one"));

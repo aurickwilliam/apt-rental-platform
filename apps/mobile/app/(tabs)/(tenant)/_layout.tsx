@@ -13,7 +13,7 @@ import {
 
 import { useColors } from "hooks/useTheme";
 
-import { CustomTabBar, type CustomTabConfig } from '../components/CustomTabBar';
+import { CustomTabBar, type CustomTabConfig } from '@/components/layout/CustomTabBar';
 
 const TENANT_TABS: CustomTabConfig[] = [
   {

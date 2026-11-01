@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
-import { toast } from "@heroui/react";
 
 import type { BBox } from "@repo/utils";
 
 import { getGoogleMaps, loadGoogleMaps, type GoogleMapInstance } from "@/lib/google-maps-loader";
+import { centerMapOnUser } from "@/lib/map-locate";
 
 import type { MapView } from "../../lib/map-view";
 import MapControls from "./MapControls";
@@ -16,7 +16,6 @@ import { useMapPopup } from "./useMapPopup";
 
 /** Wait for the camera to settle before reporting it, so a drag is one search, not hundreds. */
 const IDLE_DEBOUNCE_MS = 350;
-const LOCATE_ZOOM = 15;
 
 interface BrowseMapProps {
   initialView: MapView;
@@ -185,18 +184,7 @@ export default function BrowseMap({
   };
 
   const locateMe = () => {
-    if (!map || !navigator.geolocation) {
-      toast.warning("Your browser can't share your location");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        map.panTo({ lat: position.coords.latitude, lng: position.coords.longitude });
-        map.setZoom(LOCATE_ZOOM);
-      },
-      () => toast.warning("Allow location access to center the map on you"),
-      { maximumAge: 60_000, timeout: 10_000 },
-    );
+    if (map) centerMapOnUser(map);
   };
 
   if (status === "missing-key" || status === "error") {

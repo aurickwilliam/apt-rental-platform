@@ -31,7 +31,8 @@ import {
 import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_BOTTOM_OFFSET,
-} from "@/app/(tabs)/components/CustomTabBar";
+} from "@/components/layout/CustomTabBar";
+import LandlordVerificationGate from "@/components/landlord/LandlordVerificationGate";
 
 const REQUEST_ROUTES = {
   applications: "/landlord/tenant-applications",
@@ -39,7 +40,7 @@ const REQUEST_ROUTES = {
   maintenance: "/landlord/maintenance-requests",
 } as const;
 
-export default function Dashboard() {
+function Dashboard() {
   const router = useRouter();
   const { colors } = useColors();
   const { data, isLoading, error } = useDashboardData();
@@ -194,5 +195,13 @@ export default function Dashboard() {
         </>
       )}
     </ScreenWrapper>
+  );
+}
+
+export default function DashboardScreen() {
+  return (
+    <LandlordVerificationGate>
+      <Dashboard />
+    </LandlordVerificationGate>
   );
 }

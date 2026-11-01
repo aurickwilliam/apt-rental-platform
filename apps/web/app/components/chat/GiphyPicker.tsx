@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type RefObject } from "react";
-import { Input, Label, Popover, ScrollShadow, Spinner, TextField } from "@heroui/react";
+import { Input, Label, Popover, ScrollShadow, Spinner, TextField, Button } from "@heroui/react";
 
 import { fetchGiphyGifs, type GiphyGif } from "./giphy";
 
@@ -98,12 +98,12 @@ export default function GiphyPicker({
             ) : (
               <div className="grid grid-cols-3 gap-1.5">
                 {gifs.map((gif) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={gif.id}
-                    type="button"
                     onClick={() => handleSelect(gif.url)}
                     aria-label={gif.title || "Send GIF"}
-                    className="cursor-pointer overflow-hidden rounded-xl border border-border transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="button--bare cursor-pointer overflow-hidden rounded-xl border border-border transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     {/* External CDN URL — not a configured `next/image`
                         host, so plain `<img>` per the signed-URL
@@ -115,7 +115,7 @@ export default function GiphyPicker({
                       loading="lazy"
                       className="aspect-square w-full bg-muted object-cover"
                     />
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}

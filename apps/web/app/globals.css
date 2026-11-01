@@ -78,6 +78,360 @@
   color: var(--destructive);
 }
 
+/* Registration controls must remain visible on either theme. HeroUI's
+   unlayered defaults need scoped properties, as with preference checkboxes. */
+.registration-policy-checks .registration-policy-link {
+  display: inline;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  vertical-align: baseline;
+  box-shadow: none;
+}
+.registration-policy-checks .registration-policy-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.registration-policies-container {
+  width: 100%;
+  max-width: 64rem;
+}
+.registration-policies-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: min(64rem, calc(100vw - 2rem));
+  height: min(90dvh, 64rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}
+.registration-policies-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+  padding: 1.5rem 4.5rem 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.registration-policies-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  margin: 0;
+  border-radius: 20px;
+  background-color: color-mix(in srgb, var(--primary) 10%, var(--card));
+  color: var(--primary);
+}
+.registration-policies-body {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.registration-policies-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+}
+.registration-policies-tab-list {
+  flex-shrink: 0;
+  padding: 1.25rem 1.5rem 1rem;
+  background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
+}
+.registration-policies-tab-list [role="tablist"] {
+  width: 100%;
+  gap: 0;
+  padding: 0;
+  border-radius: 16px;
+  background-color: var(--muted);
+}
+.registration-policies-tab-list [role="tab"] {
+  flex: 1;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 60px;
+  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  white-space: normal;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.registration-policies-tab-list [role="tab"][aria-selected="true"] {
+  color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
+}
+.registration-policies-tab-list [data-slot="tabs-indicator"] {
+  top: auto;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0 0 16px 16px;
+  background-color: var(--primary);
+  box-shadow: none;
+}
+.registration-policies-tab-list [role="tab"] svg {
+  flex-shrink: 0;
+}
+.registration-policies-tab-list [role="tab"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.registration-policy-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+  padding: 0 1.5rem 1.5rem;
+  background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
+}
+.registration-policy-panel[hidden] {
+  display: none;
+}
+.registration-policies-dialog [data-legal-section] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 24rem;
+}
+.registration-policy-meta {
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--primary) 6%, var(--card));
+  box-shadow: none;
+}
+.registration-policy-meta [data-slot="alert-indicator"],
+.registration-policies-reminder [data-slot="alert-indicator"] {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+.registration-policy-meta [data-slot="alert-title"] {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+.registration-policy-meta [data-slot="alert-description"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.registration-policies-dialog [data-legal-section] > .card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  border-color: var(--border);
+}
+.registration-policies-dialog [data-legal-section] .card__header > h3,
+.registration-policies-dialog [data-legal-section] .card__header > h3 > span {
+  color: var(--foreground);
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+.registration-policies-dialog [data-legal-section] .card__content {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.registration-policies-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--card);
+}
+.registration-policies-reminder {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.registration-policies-reminder [data-slot="alert-description"] {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.registration-policies-footer .registration-policies-close {
+  flex-shrink: 0;
+  min-width: 100px;
+  padding-inline: 1.5rem;
+  border-radius: 14px;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+.registration-policies-footer .button,
+.registration-policies-dialog [data-slot="modal-close-trigger"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+.registration-policies-dialog [data-slot="modal-close-trigger"] {
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+@media (max-width: 639px) {
+  .registration-policies-dialog {
+    height: calc(100dvh - 2rem);
+  }
+  .registration-policies-header,
+  .registration-policies-tab-list,
+  .registration-policy-panel,
+  .registration-policies-footer {
+    padding-inline: 1rem;
+  }
+  .registration-policies-header {
+    padding-right: 3.5rem;
+    gap: 0.75rem;
+    padding-block: 1rem;
+  }
+  .registration-policies-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+  .registration-policies-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+  .registration-policies-header [data-slot="modal-heading"] {
+    font-size: 1.5rem;
+  }
+  .registration-policies-tab-list [role="tab"] {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .registration-policy-meta {
+    gap: 0.75rem;
+    padding: 0.875rem;
+  }
+  .registration-policy-meta-separator {
+    display: none;
+  }
+  .registration-policy-meta [data-slot="alert-description"] {
+    flex-direction: column;
+  }
+  .registration-policies-dialog [data-legal-section] > .card {
+    padding: 1rem;
+  }
+  .registration-policies-dialog [data-legal-section] .card__header > h3,
+  .registration-policies-dialog [data-legal-section] .card__header > h3 > span {
+    font-size: 1.375rem;
+  }
+  .registration-policies-dialog [data-legal-section] .card__content {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+  .registration-policies-reminder [data-slot="alert-description"] {
+    font-size: 0.75rem;
+  }
+  .registration-policies-footer .registration-policies-close {
+    min-width: 80px;
+    padding-inline: 1rem;
+  }
+}
+
+.registration-policy-checks .checkbox__control {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 4px;
+  background-color: var(--card);
+  box-shadow: none;
+}
+.registration-policy-checks .checkbox__control::before {
+  border-radius: 4px;
+}
+.registration-policy-checks .checkbox[data-selected="true"] .checkbox__control {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+.registration-policy-checks .checkbox[data-selected="true"] .checkbox__control::before {
+  background-color: var(--primary);
+  opacity: 1;
+  scale: 1;
+}
+.registration-policy-checks [data-slot="checkbox-default-indicator--checkmark"] {
+  width: 12px;
+  height: 12px;
+  color: var(--primary-foreground);
+}
+.registration-policy-checks .checkbox:has(input:focus-visible) .checkbox__control {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.registration-policy-checks .checkbox[data-invalid="true"] .checkbox__control {
+  border-color: var(--destructive);
+}
+
+/* Registration-only: date segments are not text inputs, so the browser draws
+   no caret. A blinking bar on the active segment shows where typing lands.
+   Invalid segments keep the danger color through currentColor. */
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"] {
+  position: relative;
+}
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"]):focus::after,
+.registration-birth-date [data-slot="date-input-group-segment"][data-type]:not([data-type="literal"])[data-focused="true"]::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  right: 0;
+  width: 1.5px;
+  background-color: currentColor;
+  animation: birth-date-caret-blink 1.05s steps(1) infinite;
+  pointer-events: none;
+}
+@keyframes birth-date-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .registration-birth-date [data-slot="date-input-group-segment"][data-type]:focus::after {
+    animation: none;
+  }
+}
+
 /* Keep the review prompt's controls outside its scroll surface. HeroUI's
    unlayered positioning/sizing rules need scoped overrides, not utilities. */
 .review-unlock-container {
@@ -694,6 +1048,34 @@
 }
 
 @layer components {
+  /* Layout-only HeroUI Button: keeps the look of the raw <button> it replaced
+     (icon buttons, rows, tiles). Drops the pill box, fill and press scale;
+     the call site's utilities (later layer) set size, shape and colors. Kept
+     first in this layer with a single class so later component classes such as
+     `.notification-feed-row` still override it. */
+  .button--bare {
+    @apply h-auto min-h-0 w-auto gap-0 rounded-none p-0 whitespace-normal;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+    --button-bg: transparent;
+    --button-bg-hover: transparent;
+    --button-bg-pressed: transparent;
+  }
+
+  .button--bare:active,
+  .button--bare[data-pressed="true"] {
+    transform: none;
+  }
+
+  /* HeroUI sizes button icons itself; bare buttons keep the icon's own size. */
+  .button--bare svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    width: revert-layer;
+    height: revert-layer;
+    margin: revert-layer;
+  }
+
   .notification-feed-row {
     @apply flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
@@ -727,6 +1109,11 @@
     @apply flex min-h-11 w-full min-w-0 cursor-pointer items-start gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
   }
 
+  /* Button labels are Nunito on web too (DESIGN.md §9, mobile `.button__label`). */
+  .button {
+    font-family: var(--font-nunito), ui-sans-serif, sans-serif;
+  }
+
   .button--primary {
     @apply bg-primary text-white hover:bg-[#2554d4];
   }
@@ -754,6 +1141,16 @@
   .input:focus-visible, .input[data-focus-visible="true"],
   .textarea:focus-visible, .textarea[data-focus-visible="true"] {
     @apply border-[#376BF5] ring-2 ring-[#376BF5]/15;
+  }
+
+  /* HeroUI InputGroup draws its border from the --field-* variables, not from
+     `.input`, so give it the same token border, radius, hover and focus. */
+  .registration-input-group {
+    --border-width-field: 1px;
+    --field-border: var(--border);
+    --field-border-hover: var(--muted-foreground);
+    --field-border-focus: #376BF5;
+    border-radius: var(--radius-xl);
   }
 
   /* HeroUI colors toast text with `text-muted`, but `--muted` here is shadcn's
@@ -1287,13 +1684,20 @@ body[data-scroll-locked] [role="option"] {
 .settings-select-list .list-box-item:hover,
 .settings-select-list .list-box-item[data-hovered="true"],
 .settings-select-list .list-box-item[data-focused="true"] {
-  background-color: color-mix(in oklab, #376BF5 12%, transparent);
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 .settings-select-list .list-box-item[data-selected="true"],
 .settings-select-list .list-box-item[aria-selected="true"] {
   background-color: color-mix(in oklab, #376BF5 12%, transparent);
   color: #376BF5;
+}
+
+/* Hovering or focusing the selected row deepens its tint like any other row. */
+.settings-select-list .list-box-item[data-selected="true"]:hover,
+.settings-select-list .list-box-item[data-selected="true"][data-hovered="true"],
+.settings-select-list .list-box-item[data-selected="true"][data-focused="true"] {
+  background-color: color-mix(in oklab, #376BF5 20%, transparent);
 }
 
 /* The selected option's check mark is brand blue, matching its tinted row. */

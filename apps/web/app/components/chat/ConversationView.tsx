@@ -429,14 +429,14 @@ export default function ConversationView({
           the newest message, which is exactly the state in which auto-scroll
           deliberately does not follow. */}
       {!isNearBottom && !replyNavigation.notice && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={jumpToLatest}
           aria-label="Jump to latest messages"
-          className="absolute bottom-4 left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="button--bare absolute bottom-4 left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <IconArrowDown size={20} aria-hidden="true" />
-        </button>
+        </Button>
       )}
       </div>
 

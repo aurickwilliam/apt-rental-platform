@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { PUBLIC_IMAGE_CACHE_CONTROL } from "@repo/constants";
 import type { Database } from "@repo/supabase";
 
 export const APARTMENT_IMAGES_BUCKET = "apartment-images";
@@ -62,8 +63,8 @@ export async function uploadApartmentImage(
   const bucket = supabase.storage.from(APARTMENT_IMAGES_BUCKET);
 
   const results = await Promise.all([
-    bucket.upload(fullPath, full, { contentType: "image/jpeg" }),
-    bucket.upload(thumbPath, thumb, { contentType: "image/jpeg" }),
+    bucket.upload(fullPath, full, { contentType: "image/jpeg", cacheControl: PUBLIC_IMAGE_CACHE_CONTROL }),
+    bucket.upload(thumbPath, thumb, { contentType: "image/jpeg", cacheControl: PUBLIC_IMAGE_CACHE_CONTROL }),
   ]);
   const failed = results.find((result) => result.error);
   if (failed?.error) {

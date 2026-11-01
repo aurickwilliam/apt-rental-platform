@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import PropertiesTable from "./PropertiesTable";
 import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 import type { Property } from "./propertyTypes";
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 
 const PropertyDetailsSheet = dynamic(() => import("./PropertyDetailsSheet"), {
@@ -26,6 +26,7 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
 
   const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const openSheet = (property: Property, editMode = false) => {
     setSelected(property);
@@ -52,6 +53,7 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
   const handleDeleteTarget = async () => {
     if (!deleteTarget || deleting) return;
     setDeleting(true);
+    setDeleteError(null);
     const supabase = createBrowserClient();
 
     const { error } = await supabase
@@ -64,9 +66,17 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
       setDeleteTarget(null);
     } else {
       console.error(error);
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."); show it instead of closing silently.
+      setDeleteError(error.message || "Could not delete this property.");
     }
 
     setDeleting(false);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null);
+    setDeleteError(null);
   };
 
   return (
@@ -90,11 +100,12 @@ export default function PropertiesTableSection({ properties: initial }: Props) {
         />
       ) : null}
 
-      <DeletePropertyModal 
+      <DeletePropertyModal
         isOpen={!!deleteTarget}
         propertyName={deleteTarget?.name}
         isDeleting={deleting}
-        onClose={() => setDeleteTarget(null)}
+        error={deleteError}
+        onClose={closeDeleteModal}
         onConfirm={handleDeleteTarget}
       />
     </>

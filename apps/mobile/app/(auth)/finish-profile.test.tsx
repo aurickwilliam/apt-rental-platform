@@ -10,7 +10,7 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ replace: jest.fn() }),
   useNavigation: () => ({ dispatch: jest.fn() }),
 }));
-jest.mock("@react-navigation/native", () => ({ usePreventRemove: jest.fn() }));
+jest.mock("expo-router/react-navigation", () => ({ usePreventRemove: jest.fn() }));
 jest.mock("heroui-native", () => jest.requireActual("../../tests/support/heroUINativeStub"));
 jest.mock("components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual<typeof import("react-native")>("react-native");
@@ -84,6 +84,8 @@ describe("FinishProfile screen", () => {
     render(<FinishProfile />);
 
     fireEvent.changeText(screen.getByPlaceholderText("Enter your street address"), "1 Main St");
+    fireEvent.press(screen.getByLabelText("Read Privacy Policy"));
+    fireEvent.press(screen.getByLabelText("Close policies"));
 
     expect(screen.getByDisplayValue("1 Main St")).toBeTruthy();
   });
@@ -92,6 +94,8 @@ describe("FinishProfile screen", () => {
     setParams({ email: "a@example.test" });
     render(<FinishProfile />);
 
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
     fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getAllByText("This field is required").length).toBeGreaterThan(0));

@@ -12,7 +12,7 @@ interface AppDownloadButtonProps {
   hideWhenUnavailable?: boolean;
 }
 
-/** Points at the `/download` permalink, which redirects to the published APK. */
+/** Points at the `/download` permalink, which streams the published APK as a download. */
 export default function AppDownloadButton({ isAvailable, variant = "primary", hideWhenUnavailable = false }: AppDownloadButtonProps) {
   if (!isAvailable) {
     if (hideWhenUnavailable) return null;

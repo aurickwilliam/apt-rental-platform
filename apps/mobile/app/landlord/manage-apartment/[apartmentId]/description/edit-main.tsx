@@ -17,7 +17,7 @@ import {
   updateApartmentMain,
   type ExistingImage,
   type PendingImage,
-} from './updateApartmentMain'
+} from '@/service/apartments/updateApartmentMain'
 
 import { CAMANAVA_CITIES, getBarangaysByCity, isCamanavaCity } from '@repo/constants'
 import {

@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Modal, Button } from "@heroui/react";
-import { IconMaximize, IconNavigation } from "@tabler/icons-react";
+import { IconNavigation } from "@tabler/icons-react";
 
+// Built on the Maps JS API (not the embed iframe) so the map follows the
+// site's light/dark appearance.
+const GoogleMapPicker = dynamic(
+  () => import("@/app/landlord/properties/components/GoogleMapPicker"),
+  { ssr: false, loading: () => <div className="w-full h-64 sm:h-80 bg-muted animate-pulse" /> },
+);
 
 // Types and constants of the mode of transporatation for directions in Google Maps
 type TransportMode = "driving" | "motorcycle" | "walkBike" | "transit";
@@ -37,9 +44,6 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
     Number.isFinite(longitude);
   const mapCoordinates = hasCoordinates
     ? `${latitude},${longitude}`
-    : null;
-  const embedSrc = mapCoordinates
-    ? `https://maps.google.com/maps?q=${encodeURIComponent(mapCoordinates)}&z=15&output=embed`
     : null;
 
   const handleOpenDirections = () => {
@@ -82,9 +86,9 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   };
 
   // Empty State of no coordinates of the apartment
-  if (!hasCoordinates || !embedSrc || !mapCoordinates) {
+  if (!hasCoordinates || !mapCoordinates) {
     return (
-      <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center rounded-lg border border-border">
+      <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center rounded-3xl border border-border">
         <p className="text-muted-foreground text-sm">No location available</p>
       </div>
     );
@@ -93,13 +97,17 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   return (
     <>
       {/* Preview map */}
-      <div className="relative w-full h-64 sm:h-80 overflow-hidden rounded-lg border border-border">
-        <iframe
-          title={`Map of ${mapCoordinates}`}
-          src={embedSrc}
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          className="w-full h-full rounded-lg border-0"
+      <div className="relative w-full h-64 sm:h-80 overflow-hidden rounded-3xl border border-border">
+        <GoogleMapPicker
+          latitude={latitude}
+          longitude={longitude}
+          readOnly
+          showHeader={false}
+          showCoordinates={false}
+          mapHeightClass="h-64 sm:h-80"
+          frameClassName="rounded-3xl"
+          appControls
+          onExpand={() => setIsExpandOpen(true)}
         />
         <div className="absolute bottom-3 right-3 z-10 flex flex-wrap justify-end gap-2">
           <Button
@@ -109,15 +117,6 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
           >
             <IconNavigation size={16} />
             <p>Get Directions</p>
-          </Button>
-
-          <Button
-            isIconOnly
-            className="shadow-md bg-card text-foreground border border-border hover:border-primary"
-            size="sm"
-            onPress={() => setIsExpandOpen(true)}
-          >
-            <IconMaximize size={16} />
           </Button>
         </div>
       </div>
@@ -145,12 +144,15 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
                 }}
               >
                 <div className="w-[92vw] sm:w-2/3 bg-card p-4 rounded-3xl overflow-hidden shadow-xl">
-                  <iframe
-                    title={`Expanded map of ${mapCoordinates}`}
-                    src={embedSrc}
-                    loading="lazy"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    className="w-full h-[80vh] rounded-xl border-0"
+                  <GoogleMapPicker
+                    latitude={latitude}
+                    longitude={longitude}
+                    readOnly
+                    showHeader={false}
+                    showCoordinates={false}
+                    mapHeightClass="h-[80vh]"
+                    frameClassName="rounded-xl"
+                    appControls
                   />
                 </div>
               </Modal.Body>

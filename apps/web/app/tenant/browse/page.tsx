@@ -12,6 +12,7 @@ import BrowseDiscoveryContent from "@/app/browse/components/BrowseDiscoveryConte
 import BrowseResultsBar from "@/app/browse/components/BrowseResultsBar";
 import FilterDrawerButton from "@/app/browse/components/FilterDrawerButton";
 import BrowseShell from "@/app/browse/components/BrowseShell";
+import AskAvaButton from "@/app/components/ava/AskAvaButton";
 import RenderApartments from "@/app/browse/components/RenderApartments";
 import {
   loadBrowseResults,
@@ -45,6 +46,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     return (
       <BrowseShell
         basePath={BASE_PATH}
+        assistantButton={<AskAvaButton basePath={BASE_PATH} />}
         // No total is loaded in discovery, so the drawer omits the count.
         filterButton={<FilterDrawerButton basePath={BASE_PATH} />}
         fallback={
@@ -71,6 +73,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   return (
     <BrowseShell
       basePath={BASE_PATH}
+      assistantButton={<AskAvaButton basePath={BASE_PATH} />}
       filterButton={
         <Suspense fallback={<FilterEntrySkeleton />}>
           <BrowseFilterEntry supabase={supabase} params={params} />

@@ -11,7 +11,7 @@ import LegalTableOfContents from "../components/legal/LegalTableOfContents";
 import { BRAND, LEGAL_META, SECTIONS, TOC } from "./data/tos-sections";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — APT",
+  title: "Terms and Conditions — APT",
   description:
     "The terms that govern your access to and use of APT, the rental platform for tenants and landlords in Camanava.",
 };
@@ -26,8 +26,8 @@ export default function TosPage() {
     <div className="min-h-screen bg-muted/30 dark:bg-background">
       <LegalHero
         eyebrow="Legal"
-        title="Terms of"
-        titleAccent="Service"
+        title="Terms and"
+        titleAccent="Conditions"
         description="Please read these terms carefully before using APT. By creating an account or using our services, you agree to be bound by these terms."
         meta={LEGAL_META}
         icon={<IconShieldCheck size={14} aria-hidden="true" />}

@@ -18,7 +18,7 @@ import {
   getRentalsLayoutToRemember,
   getRentalsSkeleton,
   getRentalsView,
-} from '../components/rentals/rentalsView';
+} from '@/utils/tenancy/rentalsView';
 import EmptyState from 'components/display/EmptyState';
 
 import {
@@ -39,7 +39,7 @@ import { Button } from 'heroui-native';
 
 import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/app/(tabs)/components/CustomTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
 import type { TenantQuickActionId } from '@/service/tenancy/quickActionsPreference';
 

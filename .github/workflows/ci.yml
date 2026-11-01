@@ -31,6 +31,9 @@ jobs:
       - name: Mobile lint
         run: pnpm --filter mobile lint
 
+      - name: Mobile registration database tests
+        run: pnpm db:mobile-registration:test
+
       - name: Mobile tests
         run: pnpm --filter mobile exec jest --runInBand --forceExit
 
@@ -42,3 +45,6 @@ jobs:
 
       - name: Web tests
         run: pnpm --filter web test
+
+      - name: Web registration database tests
+        run: pnpm db:web-registration:test

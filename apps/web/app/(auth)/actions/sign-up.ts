@@ -3,15 +3,17 @@
 import { createClient } from "@repo/supabase/server";
 import { validateSignUpForm } from "../sign-up-form/utils";
 import { SignUpFormData } from "../sign-up-form/types";
-import type { Database } from "@repo/supabase";
 import { SUFFIXES, validatePHMobile } from "@repo/constants";
 import { getBirthDateDatabaseError } from "@/lib/birth-date";
+import { getRegistrationAcceptanceErrors, readRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
+import { completeWebRegistration } from "@/service/registrationService";
 
 export interface SignUpFormState {
   error: string | null;
   success: boolean;
   birthDateError?: string;
   birthDate?: string;
+  acceptanceErrors?: AcceptanceErrors;
 }
 
 export async function signUp(
@@ -57,6 +59,9 @@ export async function signUp(
     }
 
     const parsedPostalCode = mapped.postalCode ?? null;
+    const acceptance = readRegistrationAcceptance(formData);
+    const acceptanceErrors = validateRegistrationAcceptance(acceptance);
+    if (Object.keys(acceptanceErrors).length) return { error: null, success: false, acceptanceErrors };
 
     const supabase = await createClient();
 
@@ -65,29 +70,28 @@ export async function signUp(
       return { error: "Session not found. Please verify your email again.", success: false };
     }
 
-    // Shared generated types still describe the legacy schema; production uses roles[].
-    const profileInsert = {
-      user_id: userId,
-      // Auth's canonical (lowercased) address: the profile email must match it.
-      email: user.email,
-      roles: [requestedRole],
+    const mobile = validatePHMobile(mapped.mobileNumber);
+    if (!mobile.formattedNumber) return { error: mobile.errorMessage ?? "Enter a valid mobile number.", success: false };
+    const profileDetails = {
       first_name: mapped.firstName,
       last_name: mapped.lastName,
       middle_name: mapped.middleName || null,
       suffix: SUFFIXES.includes(mapped.suffix) ? mapped.suffix : null,
       gender: mapped.gender,
-      // validateForm accepted it, so this is always the stored 09XXXXXXXXX form.
-      mobile_number: validatePHMobile(mapped.mobileNumber).formattedNumber,
+      // The shared validator normalizes both allocated 08 and 09 blocks.
+      mobile_number: mobile.formattedNumber,
       birth_date: mapped.birthDate,
       street_address: mapped.streetAddress,
       barangay: mapped.barangay,
       city: mapped.city,
       province: mapped.stateProvince,
       postal_code: parsedPostalCode,
-    } as unknown as Database["public"]["Tables"]["users"]["Insert"];
-    const { error: insertError } = await supabase.from("users").insert(profileInsert);
+    };
+    const { error: insertError } = await completeWebRegistration(supabase, profileDetails, requestedRole, acceptance, "web_registration");
 
     if (insertError) {
+      const acceptanceErrors = getRegistrationAcceptanceErrors(insertError);
+      if (acceptanceErrors) return { error: null, success: false, acceptanceErrors };
       const birthDateError = getBirthDateDatabaseError(insertError);
       if (birthDateError) return { error: null, success: false, birthDateError, birthDate: mapped.birthDate };
       if (insertError.code === "23505") {
@@ -105,7 +109,7 @@ export async function signUp(
     return { error: null, success: true };
 
   } catch (error) {
-    console.error("Unexpected error during sign-up:", error);
+    console.error("Unexpected error during sign-up", { name: error instanceof Error ? error.name : "UnknownError" });
     return {
       error: "An unexpected error occurred. Please try again later.",
       success: false,

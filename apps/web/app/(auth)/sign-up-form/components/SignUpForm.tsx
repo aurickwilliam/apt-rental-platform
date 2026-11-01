@@ -11,6 +11,7 @@ import {
   TextField, 
   Label,
   ListBox,
+  FieldError,
 } from "@heroui/react";
 
 import { useAuth } from "../../components/AuthContext";
@@ -26,12 +27,17 @@ import { validateSignUpForm } from "../utils";
 import { SignUpFormData } from "../types";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
 import RegistrationBirthDateField from "../../components/RegistrationBirthDateField";
+import RegistrationPolicyAcceptance from "../../components/RegistrationPolicyAcceptance";
+import { emptyRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
 import { validateRegistrationAddress, type RegistrationAddress } from "@/lib/registration-address";
 
 import {
   GENDERS,
   SUFFIXES,
   getPasswordRequirements,
+  formatPHMobileInput,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  validatePHMobile,
 } from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
 
@@ -58,7 +64,11 @@ export default function SignUpForm() {
   const [addressSubmitted, setAddressSubmitted] = useState(false);
   const [birthDateError, setBirthDateError] = useState<{ message: string; value: string } | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [acceptance, setAcceptance] = useState(emptyRegistrationAcceptance);
+  const [acceptanceErrors, setAcceptanceErrors] = useState<AcceptanceErrors>({});
   const birthDateRef = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLInputElement>(null);
+  const [mobileTouched, setMobileTouched] = useState(false);
 
   const [formData, setFormData] = useState<SignUpFormData>({
     email,
@@ -93,6 +103,8 @@ export default function SignUpForm() {
     streetAddress: formData.streetAddress, postalCode: formData.postalCode === undefined ? "" : String(formData.postalCode),
   };
   const addressErrors = validateRegistrationAddress(address);
+  // Shown once the field was left or a submit was tried, then kept live.
+  const mobileError = mobileTouched ? validatePHMobile(formData.mobileNumber).errorMessage : null;
 
   const showBirthDateError = (message: string, value: string, verified = false) => {
     setBirthDateError({ message, value });
@@ -100,7 +112,13 @@ export default function SignUpForm() {
     onClose();
     requestAnimationFrame(() => birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus());
   };
-  const otpFlow = useOtpFlow({ formData, role, showError, onSuccessOpen, onBirthDateError: showBirthDateError });
+  const showAcceptanceErrors = (errors: AcceptanceErrors, verified = false) => {
+    if (verified) setEmailVerified(true);
+    setAcceptanceErrors(errors);
+    setAcceptance(previous => ({ ...previous, privacyAccepted: false, termsAccepted: false }));
+    onClose();
+  };
+  const otpFlow = useOtpFlow({ formData, role, acceptance, showError, onSuccessOpen, onBirthDateError: showBirthDateError, onAcceptanceError: showAcceptanceErrors });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -110,12 +128,20 @@ export default function SignUpForm() {
     const birthError = validationError?.field === "birthDate" ? validationError.message : null;
     setBirthDateError(birthError ? { message: birthError, value: formData.birthDate } : null);
     if (birthError) birthDateRef.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus();
-    if (birthError || Object.keys(addressErrors).length) return;
+    setMobileTouched(true);
+    const mobileInvalid = !!validatePHMobile(formData.mobileNumber).errorMessage;
+    if (mobileInvalid && !birthError) mobileRef.current?.focus();
+    if (birthError || mobileInvalid || Object.keys(addressErrors).length) return;
 
     if (validationError) {
       showError(validationError.message);
       return;
     }
+
+    const policyErrors = validateRegistrationAcceptance(acceptance);
+    setAcceptanceErrors(policyErrors);
+    if (Object.keys(policyErrors).length) return;
+    if (loading || otpFlow.loading || isOpen) return;
 
     setLoading(true);
     try {
@@ -125,7 +151,12 @@ export default function SignUpForm() {
         formData.firstName,
         formData.lastName,
         formData.birthDate,
+        acceptance,
       );
+      if (result.acceptanceErrors) {
+        showAcceptanceErrors(result.acceptanceErrors);
+        return;
+      }
       if (result.birthDateError) {
         showBirthDateError(result.birthDateError, result.birthDate ?? formData.birthDate);
         return;
@@ -264,13 +295,15 @@ export default function SignUpForm() {
             type="tel"
             value={formData.mobileNumber}
             onChange={(val) => {
-              const digits = val.replace(/\D/g, "").slice(0, 11);
-              handleChange("mobileNumber")(digits);
+              handleChange("mobileNumber")(formatPHMobileInput(val));
             }}
+            onBlur={() => setMobileTouched(true)}
+            isInvalid={!!mobileError}
             isDisabled={loading}
           >
             <Label>Mobile Number</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your mobile number" inputMode="numeric" />
+            <Input ref={mobileRef} className="bg-card! text-foreground!" placeholder="09XX XXX XXXX" inputMode="tel" maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
+            <FieldError className="text-xs">{mobileError}</FieldError>
           </TextField>
 
           <RegistrationBirthDateField name="birthDate" value={formData.birthDate} inputRef={birthDateRef} isDisabled={loading}
@@ -321,13 +354,16 @@ export default function SignUpForm() {
           />
         </div>
 
+        <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
+          errors={acceptanceErrors} isDisabled={loading || otpFlow.loading || isOpen} />
+
         <Button
           variant="primary"
-          className="w-full mt-[clamp(1.25rem,3vh,1.5rem)] md:max-w-[300px] md:self-end rounded-full"
+          className="w-full md:max-w-[300px] md:self-end rounded-full"
           size="lg"
           type="submit"
           isPending={loading}
-          isDisabled={loading}
+          isDisabled={loading || otpFlow.loading || isOpen || !acceptance.termsAccepted || !acceptance.privacyAccepted}
         >
           {loading ? "Creating Account..." : "Sign Up"}
         </Button>

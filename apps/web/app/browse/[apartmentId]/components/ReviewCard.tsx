@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import Image from "next/image";
 
-import { Card } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import StarRating from "@/app/components/display/StarRating";
@@ -21,6 +21,8 @@ interface ReviewCardProps {
   stayPeriod?: string;
   rating?: number;
   images?: string[];
+  /** Optional action row under the review, e.g. a report button. */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -32,6 +34,7 @@ export default function ReviewCard({
   stayPeriod,
   rating,
   images,
+  footer,
   className,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -52,8 +55,8 @@ export default function ReviewCard({
 
   return (
     <>
-    <Card className={["gap-0 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
-      <Card.Header className="flex flex-row items-center gap-3">
+    <Card className={["gap-3 rounded-3xl border border-border bg-card shadow-none", className].filter(Boolean).join(" ")}>
+      <Card.Header className="flex flex-row items-start gap-3">
         <UserAvatar
           src={reviewerAvatar}
           initials={reviewerName
@@ -82,18 +85,20 @@ export default function ReviewCard({
       </Card.Header>
 
       <Card.Content>
-        <p className="text-sm text-card-foreground">
-          {displayedReview}
-        </p>
+        {displayedReview ? (
+          <p className="text-sm text-card-foreground">
+            {displayedReview}
+          </p>
+        ) : null}
 
         {isLongReview && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="mt-1 text-sm font-medium text-brand"
+            className="button--bare mt-1 text-sm font-medium text-brand"
           >
             {isExpanded ? "Show less" : "Read more"}
-          </button>
+          </Button>
         )}
 
         {visibleThumbnails.length > 0 && (
@@ -103,14 +108,14 @@ export default function ReviewCard({
               const showOverlay = isLastVisible && remainingCount > 0;
 
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={src + index}
-                  type="button"
                   onClick={() =>
                     openGalleryAt(showOverlay ? MAX_VISIBLE_THUMBNAILS : index)
                   }
                   aria-label={`View review photo ${showOverlay ? MAX_VISIBLE_THUMBNAILS + 1 : index + 1}`}
-                  className="relative size-16 cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+                  className="button--bare relative size-16 cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <Image
                     src={src}
@@ -126,18 +131,19 @@ export default function ReviewCard({
                       </span>
                     </div>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
         )}
       </Card.Content>
 
-      {stayPeriod && (
-        <Card.Footer>
+      {(stayPeriod || footer) && (
+        <Card.Footer className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">
             {stayPeriod}
           </span>
+          {footer}
         </Card.Footer>
       )}
     </Card>

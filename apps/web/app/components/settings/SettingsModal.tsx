@@ -168,15 +168,15 @@ export default function SettingsModal({
                   {visibleTabs.map(({ id, label, icon: Icon }, index) => {
                     return (
                       <Fragment key={id}>
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
                           aria-current={activeId === id ? "page" : undefined}
                           onClick={() => setTab(id)}
-                          className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeId === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}
+                          className={`button--bare flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeId === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}
                         >
                           <Icon size={18} aria-hidden="true" />
                           {label}
-                        </button>
+                        </Button>
                         {/* Placeholder occupies the second slot (right after
                           General) while roles resolve. */}
                         {index === 0 && showTabPlaceholder ? (

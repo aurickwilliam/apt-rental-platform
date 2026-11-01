@@ -5,17 +5,18 @@
 // Expo CLI loads .env automatically before evaluating this file, but a bare `node app.config.js`
 // (e.g. quick validation) does not — so load it ourselves if present.
 try {
-  const fs = require('fs');
-  const path = require('path');
-  const envPath = path.join(__dirname, '.env');
+  const fs = require("fs");
+  const path = require("path");
+  const envPath = path.join(__dirname, ".env");
   if (fs.existsSync(envPath) && !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
-    const text = fs.readFileSync(envPath, 'utf8');
-    for (const line of text.split('\n')) {
+    const text = fs.readFileSync(envPath, "utf8");
+    for (const line of text.split("\n")) {
       const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)\s*$/);
       if (!m) continue;
       const k = m[1];
-      let v = m[2].trim().replace(/^['"]|['"]$/g, '');
-      if (!(k in process.env) && k.startsWith('EXPO_PUBLIC_')) process.env[k] = v;
+      let v = m[2].trim().replace(/^['"]|['"]$/g, "");
+      if (!(k in process.env) && k.startsWith("EXPO_PUBLIC_"))
+        process.env[k] = v;
     }
   }
 } catch {}
@@ -30,14 +31,14 @@ function resolveGoogleMapsKey() {
     process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ??
     // Fallback for EAS where secrets may surface via extra (defensive)
     undefined;
-  const key = typeof raw === 'string' ? raw.trim() : '';
+  const key = typeof raw === "string" ? raw.trim() : "";
   // During local dev without a key we still allow prebuild to succeed with a
   // placeholder — the JS-side isGoogleMapsEnabled() gate falls back gracefully.
   // For production builds, require the key.
-  if (!key && process.env.EAS_BUILD === 'true') {
+  if (!key && process.env.EAS_BUILD === "true") {
     throw new Error(
-      'Missing EXPO_PUBLIC_GOOGLE_MAPS_API_KEY — set it in apps/mobile/.env (local) or as an EAS secret (remote). ' +
-        'The Maps SDK will render blank tiles without it.',
+      "Missing EXPO_PUBLIC_GOOGLE_MAPS_API_KEY — set it in apps/mobile/.env (local) or as an EAS secret (remote). " +
+        "The Maps SDK will render blank tiles without it.",
     );
   }
   return key;
@@ -55,67 +56,74 @@ const googleMapsKey = resolveGoogleMapsKey();
 function resolveGoogleServicesFile() {
   const secret = process.env.GOOGLE_SERVICES_JSON;
   if (secret) {
-    const fs = require('fs');
-    const os = require('os');
-    const path = require('path');
+    const fs = require("fs");
+    const os = require("os");
+    const path = require("path");
     if (fs.existsSync(secret)) return secret;
-    const tmp = path.join(os.tmpdir(), 'google-services.json');
+    const tmp = path.join(os.tmpdir(), "google-services.json");
     fs.writeFileSync(tmp, secret);
     return tmp;
   }
-  return './google-services.json';
+  return "./google-services.json";
 }
 
 const googleServicesFile = resolveGoogleServicesFile();
 
 module.exports = {
   expo: {
-    name: 'APT',
-    slug: 'mobile',
-    version: '1.2.0',
-    orientation: 'portrait',
-    icon: './assets/images/logo.png',
-    scheme: 'mobile',
+    name: "APT",
+    slug: "mobile",
+    version: "1.2.1",
+    orientation: "portrait",
+    icon: "./assets/images/logo.png",
+    scheme: "mobile",
     // Over-the-air updates (EAS Update). The fingerprint is a hash of the native
     // parts of the app, so an update only reaches builds it can run on; anything
     // native needs a new APK (see docs/app-updates.md).
-    runtimeVersion: { policy: 'fingerprint' },
+    runtimeVersion: { policy: "fingerprint" },
     updates: {
-      url: 'https://u.expo.dev/77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb',
-      checkAutomatically: 'ON_LOAD',
+      url: "https://u.expo.dev/77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb",
+      checkAutomatically: "ON_LOAD",
       fallbackToCacheTimeout: 0,
     },
-    userInterfaceStyle: 'automatic',
+    userInterfaceStyle: "automatic",
     ios: {
-      bundleIdentifier: 'com.aurickwilliam.apt',
+      bundleIdentifier: "com.aurickwilliam.apt",
       supportsTablet: true,
       icon: {
-        dark: './assets/icons/ios/ios-dark.png',
-        light: './assets/icons/ios/ios-light.png',
-        tinted: './assets/icons/ios/ios-tinted.png',
+        dark: "./assets/icons/ios/ios-dark.png",
+        light: "./assets/icons/ios/ios-light.png",
+        tinted: "./assets/icons/ios/ios-tinted.png",
       },
       config: {
         googleMapsApiKey: googleMapsKey,
       },
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
-        NSCameraUsageDescription: 'APT uses your camera to capture a clear photo of your ID for identity verification.',
-        NSPhotoLibraryUsageDescription: 'APT accesses your photo library so you can upload a digital copy of your ID.',
+        NSCameraUsageDescription:
+          "APT uses your camera to capture a clear photo of your ID for identity verification.",
+        NSPhotoLibraryUsageDescription:
+          "APT accesses your photo library so you can upload a digital copy of your ID.",
         NSLocationWhenInUseUsageDescription:
-          'APT uses your location to show nearby apartments on the map and to pin your property\u2019s exact location.',
-        NSLocationAlwaysAndWhenInUseUsageDescription: 'APT uses your location to show nearby apartments on the map.',
+          "APT uses your location to show nearby apartments on the map and to pin your property\u2019s exact location.",
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          "APT uses your location to show nearby apartments on the map.",
       },
     },
     android: {
       adaptiveIcon: {
-        backgroundColor: '#376BF5',
-        foregroundImage: './assets/icons/android/adaptive-icon.png',
+        backgroundColor: "#376BF5",
+        foregroundImage: "./assets/icons/android/adaptive-icon.png",
       },
       predictiveBackGestureEnabled: false,
-      softwareKeyboardLayoutMode: 'resize',
-      package: 'com.aurickwilliam.apt',
+      softwareKeyboardLayoutMode: "resize",
+      package: "com.aurickwilliam.apt",
       googleServicesFile,
-      permissions: ['android.permission.CAMERA', 'android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
+      permissions: [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+      ],
       config: {
         googleMaps: {
           apiKey: googleMapsKey,
@@ -123,62 +131,64 @@ module.exports = {
       },
     },
     web: {
-      bundler: 'metro',
-      output: 'static',
-      favicon: './assets/images/logo.png',
+      bundler: "metro",
+      output: "static",
+      favicon: "./assets/images/logo.png",
     },
     plugins: [
-      'expo-router',
-      './plugins/withHiddenDevMenuButton',
+      "expo-router",
+      "./plugins/withHiddenDevMenuButton",
       [
-        'expo-splash-screen',
+        "expo-splash-screen",
         {
-          image: './assets/icons/splash/splash-icon-light.png',
+          image: "./assets/icons/splash/splash-icon-light.png",
           imageWidth: 200,
-          resizeMode: 'contain',
-          backgroundColor: '#376BF5',
+          resizeMode: "contain",
+          backgroundColor: "#376BF5",
           dark: {
-            image: './assets/icons/splash/splash-icon-light.png',
-            backgroundColor: '#121212',
+            image: "./assets/icons/splash/splash-icon-light.png",
+            backgroundColor: "#121212",
           },
         },
       ],
-      'expo-font',
-      'expo-image',
+      "expo-font",
+      "expo-image",
       [
-        'expo-notifications',
+        "expo-notifications",
         {
-          color: '#376BF5',
-          defaultChannel: 'default',
+          color: "#376BF5",
+          defaultChannel: "default",
           sounds: [],
         },
       ],
-      '@maplibre/maplibre-react-native',
+      "@maplibre/maplibre-react-native",
       [
-        'react-native-maps',
+        "react-native-maps",
         {
           iosGoogleMapsApiKey: googleMapsKey,
           androidGoogleMapsApiKey: googleMapsKey,
         },
       ],
-      '@react-native-community/datetimepicker',
+      "@react-native-community/datetimepicker",
       [
-        'expo-media-library',
+        "expo-media-library",
         {
           // Add-only: the app saves a receipt, it never reads the photo library through this.
-          savePhotosPermission: 'APT saves a copy of a payment receipt to your photos when you choose Save as photo.',
+          savePhotosPermission:
+            "APT saves a copy of a payment receipt to your photos when you choose Save as photo.",
           isAccessMediaLocationEnabled: false,
           // Saving goes through MediaStore and asks for write access only, so the
           // plugin's default READ_MEDIA_* permissions would only add review surface.
           granularPermissions: [],
         },
       ],
-      'expo-web-browser',
-      'expo-video',
+      "expo-web-browser",
+      "expo-video",
       [
-        'expo-camera',
+        "expo-camera",
         {
-          cameraPermission: 'APT uses your camera to capture a clear photo of your ID for identity verification.',
+          cameraPermission:
+            "APT uses your camera to capture a clear photo of your ID for identity verification.",
         },
       ],
     ],
@@ -191,7 +201,7 @@ module.exports = {
       // feature gate agrees with the native Maps SDK configuration.
       EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: googleMapsKey,
       eas: {
-        projectId: '77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb',
+        projectId: "77aa8e10-d0f8-4f0c-8323-33d7d7fb31eb",
       },
     },
   },

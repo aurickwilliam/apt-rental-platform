@@ -15,7 +15,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
@@ -28,6 +28,7 @@ import DescriptionModal from "./modals/DescriptionModal";
 import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 type ApartmentImage = {
   id: string;
@@ -103,6 +104,7 @@ export default function PropertyDetailsSheet({
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [verification, setVerification] = useState<{ status: string; rejection_reason: string | null } | null>(null);
 
   const drawerState = useOverlayState({
@@ -137,9 +139,11 @@ export default function PropertyDetailsSheet({
     };
   }, [selected.id]);
 
-  const handleDelete = async () => {
-    if (!selected || deleting) return;
+  /** Resolves true when the property was deleted; false leaves the modal open with the reason. */
+  const handleDelete = async (): Promise<boolean> => {
+    if (!selected || deleting) return false;
     setDeleting(true);
+    setDeleteError(null);
     const supabase = createBrowserClient();
 
     const { error } = await supabase
@@ -151,9 +155,13 @@ export default function PropertyDetailsSheet({
       onDelete(selected.id);
     } else {
       console.error(error);
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it as-is.
+      setDeleteError(error.message || "Could not delete this property.");
     }
 
     setDeleting(false);
+    return !error;
   };
 
   const handleEditImages = async (selectedId: string) => {
@@ -238,7 +246,8 @@ export default function PropertyDetailsSheet({
                         src={selected.thumbnail}
                         alt={selected.name}
                         fill
-                        unoptimized
+                        sizes="(max-width: 640px) 100vw, 480px"
+                        unoptimized={!canOptimizePublicApartmentImage(selected.thumbnail)}
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
@@ -555,10 +564,13 @@ export default function PropertyDetailsSheet({
         isOpen={deleteConfirmOpen}
         propertyName={selected?.name}
         isDeleting={deleting}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={async () => {
-          await handleDelete();
+        error={deleteError}
+        onClose={() => {
           setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
+        onConfirm={async () => {
+          if (await handleDelete()) setDeleteConfirmOpen(false);
         }}
       />
     </>

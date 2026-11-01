@@ -50,7 +50,9 @@ export function useEditProfile(initial: UserProfile) {
   const busyRef = useRef(false);
 
   const fields = { ...form, mobile_number: mobile.value, postal_code: postal.value };
-  const dirty = PROFILE_FIELD_ORDER.some((field) => fields[field] !== baseline[field]) ||
+  // The field shows "0917 123 4567"; the saved profile holds 09171234567.
+  const comparable = { ...fields, mobile_number: mobile.validation.formattedNumber ?? mobile.value };
+  const dirty = PROFILE_FIELD_ORDER.some((field) => comparable[field] !== baseline[field]) ||
     photos.avatar !== null || photos.background !== null;
 
   const mutation = useMutation({
@@ -91,8 +93,7 @@ export function useEditProfile(initial: UserProfile) {
       clearError("postal_code");
     } else if (field === "city") {
       setForm((previous) => ({ ...previous, barangay: "" }));
-      const code = getPostalCode(value);
-      postal.setValue(code != null ? String(code) : "");
+      postal.setValue(getPostalCode(value, form.province) ?? "");
       clearError("barangay");
       clearError("postal_code");
     }
@@ -153,7 +154,7 @@ export function useEditProfile(initial: UserProfile) {
     try {
       await mutation.mutateAsync({
         authUserId: initial.user_id,
-        fields: { ...fields, mobile_number: mobile.formatTo("09XXXXXXXXX") ?? mobile.value },
+        fields: comparable,
         photos,
       });
     } catch (error) {
@@ -175,10 +176,7 @@ export function useEditProfile(initial: UserProfile) {
     },
     changeMobile: (value: string) => {
       if (busyRef.current || succeeded) return;
-      const cleaned = value.startsWith("+")
-        ? `+${value.slice(1).replace(/\D/g, "").slice(0, 12)}`
-        : value.replace(/\D/g, "").slice(0, 11);
-      mobile.onChange(cleaned);
+      mobile.onChange(value);
       clearError("mobile_number");
     },
     changePostal: (value: string) => {
