@@ -1,4 +1,5 @@
 import type { TranslationKey } from "../en";
+import { apartment } from "./apartment";
 import { auth } from "./auth";
 import { browse } from "./browse";
 import { authMobile } from "./authMobile";
@@ -9,6 +10,7 @@ import { errors } from "./errors";
 import { languages } from "./languages";
 import { nav } from "./nav";
 import { notifications } from "./notifications";
+import { reviews } from "./reviews";
 import { settings } from "./settings";
 import { validation } from "./validation";
 
@@ -30,4 +32,6 @@ export const fil: Record<TranslationKey, string> = {
   ...enums,
   ...browse,
   ...favorites,
+  ...apartment,
+  ...reviews,
 };

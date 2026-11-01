@@ -28,6 +28,8 @@ import {
   type RateApartmentHeader,
 } from "@/service/reviewsService";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import { formatDate, REVIEW_SORT_KEYS, enumLabel } from "@repo/i18n";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   "Most Recent",
@@ -35,17 +37,10 @@ const SORT_OPTIONS: ReviewSortOption[] = [
   "Lowest Rating",
 ];
 
-function formatReviewDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 export default function ApartmentRatingsView() {
   const { apartmentId } = useParams<{ apartmentId: string }>();
   const pathname = usePathname();
+  const { language, t } = useTranslation();
   const reviewModal = useOverlayState();
   const [modalMode, setModalMode] = useState<{ tenancyId?: string | null; reviewId?: string | null }>({});
 
@@ -71,7 +66,7 @@ export default function ApartmentRatingsView() {
     ratingsCount.find((bucket) => bucket.rating === star)?.ratingCount ?? 0;
 
   const [aptHeader, setAptHeader] = useState<RateApartmentHeader | null>(null);
-  const [aptHeaderError, setAptHeaderError] = useState<string | null>(null);
+  const [aptHeaderFailed, setAptHeaderFailed] = useState(false);
 
   useEffect(() => {
     if (!apartmentId) return;
@@ -81,7 +76,7 @@ export default function ApartmentRatingsView() {
         if (!cancelled) setAptHeader(header);
       })
       .catch(() => {
-        if (!cancelled) setAptHeaderError("We couldn't load this apartment's details.");
+        if (!cancelled) setAptHeaderFailed(true);
       });
     return () => {
       cancelled = true;
@@ -122,21 +117,21 @@ export default function ApartmentRatingsView() {
             className="inline-flex w-fit items-center gap-1.5 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <ArrowLeft size={16} aria-hidden="true" />
-            Back to listing
+            {t("reviews.backToListing")}
           </Link>
 
           <h1 className="mt-2 font-nunito text-2xl font-bold md:text-3xl">
-            Ratings &amp; Reviews
+            {t("reviews.title")}
           </h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Tenant feedback for {aptHeader?.name ?? "this apartment"}.
+            {t("reviews.subtitle", { name: aptHeader?.name ?? t("reviews.subtitleFallback") })}
           </p>
 
           {showLockedHint && (
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconLock size={14} aria-hidden="true" />
-              Reviews unlock after 3 months of stay.
+              {t("reviews.locked")}
             </p>
           )}
         </div>
@@ -145,12 +140,12 @@ export default function ApartmentRatingsView() {
           <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
             {showReviewButton && (
               <Button className="w-full sm:w-auto" onPress={handleWriteReview}>
-                Write a Review
+                {t("reviews.write")}
               </Button>
             )}
             {showEditButton && (
               <Button className="w-full sm:w-auto" onPress={handleEditReview}>
-                Edit Review
+                {t("reviews.edit")}
               </Button>
             )}
           </div>
@@ -160,7 +155,7 @@ export default function ApartmentRatingsView() {
       <div className="mt-6 grid min-w-0 items-start gap-4 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[22rem_minmax(0,1fr)]">
         <aside
           className="grid min-w-0 gap-4 md:grid-cols-2 lg:grid-cols-1"
-          aria-label="Apartment details and rating summary"
+          aria-label={t("reviews.summaryAria")}
         >
           {aptHeader ? (
             <RatingsListingCard
@@ -172,13 +167,13 @@ export default function ApartmentRatingsView() {
               coverImage={aptHeader.coverImage}
               listingHref={listingHref}
             />
-          ) : aptHeaderError ? (
+          ) : aptHeaderFailed ? (
             <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-              <p className="text-sm text-muted-foreground">{aptHeaderError}</p>
+              <p className="text-sm text-muted-foreground">{t("reviews.detailsError")}</p>
             </Card>
           ) : (
             <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-              <p className="text-sm text-muted-foreground">Loading apartment details…</p>
+              <p className="text-sm text-muted-foreground">{t("reviews.loadingDetails")}</p>
             </Card>
           )}
 
@@ -203,10 +198,10 @@ export default function ApartmentRatingsView() {
                 </span>
                 <div className="space-y-1">
                   <p className="font-nunito text-base font-semibold text-card-foreground">
-                    No ratings yet
+                    {t("reviews.noneTitle")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Ratings will appear after tenants review this apartment.
+                    {t("reviews.noneBody")}
                   </p>
                 </div>
               </div>
@@ -221,11 +216,11 @@ export default function ApartmentRatingsView() {
                 id="tenant-reviews-heading"
                 className="font-nunito text-lg font-semibold"
               >
-                Tenant Reviews
+                {t("reviews.sectionTitle")}
               </h2>
               {totalReviews > 0 && (
                 <span className="text-sm text-muted-foreground">
-                  {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+                  {totalReviews === 1 ? t("reviews.count", { count: totalReviews }) : t("reviews.countPlural", { count: totalReviews })}
                 </span>
               )}
             </div>
@@ -236,15 +231,15 @@ export default function ApartmentRatingsView() {
                   variant="outline"
                   size="sm"
                   className="h-9 rounded-full"
-                  aria-label={`Sort reviews: ${sortBy}`}
+                  aria-label={t("reviews.sortAria", { sort: enumLabel(language, REVIEW_SORT_KEYS, sortBy) })}
                 >
-                  {sortBy}
+                  {enumLabel(language, REVIEW_SORT_KEYS, sortBy)}
                   <IconChevronDown size={16} aria-hidden="true" />
                 </Button>
 
                 <Dropdown.Popover>
                   <Dropdown.Menu
-                    aria-label="Sort reviews"
+                    aria-label={t("reviews.sortMenuAria")}
                     selectionMode="single"
                     selectedKeys={new Set([sortBy])}
                     onAction={(key) => setSortBy(key as ReviewSortOption)}
@@ -252,7 +247,7 @@ export default function ApartmentRatingsView() {
                     {SORT_OPTIONS.map((option) => (
                       <Dropdown.Item key={option} id={option} textValue={option}>
                         <Dropdown.ItemIndicator />
-                        <Label>{option}</Label>
+                        <Label>{enumLabel(language, REVIEW_SORT_KEYS, option)}</Label>
                       </Dropdown.Item>
                     ))}
                   </Dropdown.Menu>
@@ -264,7 +259,7 @@ export default function ApartmentRatingsView() {
           {error ? (
             <ErrorBanner message={error}>
               <Button size="sm" variant="outline" onPress={refresh}>
-                Retry
+                {t("reviews.retry")}
               </Button>
             </ErrorBanner>
           ) : totalReviews === 0 ? (
@@ -275,15 +270,15 @@ export default function ApartmentRatingsView() {
                 </span>
                 <div className="space-y-1">
                   <p className="font-nunito text-lg font-bold">
-                    No reviews yet. Be the first to share your experience!
+                    {t("reviews.emptyTitle")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Your review helps other tenants find their place to thrive.
+                    {t("reviews.emptyBody")}
                   </p>
                 </div>
 
-                {showReviewButton && <Button onPress={handleWriteReview}>Write a Review</Button>}
-                {showEditButton && <Button onPress={handleEditReview}>Edit Review</Button>}
+                {showReviewButton && <Button onPress={handleWriteReview}>{t("reviews.write")}</Button>}
+                {showEditButton && <Button onPress={handleEditReview}>{t("reviews.edit")}</Button>}
               </Card.Content>
             </Card>
           ) : (
@@ -293,7 +288,7 @@ export default function ApartmentRatingsView() {
                   key={review.id}
                   reviewerName={review.name}
                   reviewerAvatar={review.profilePictureUrl}
-                  reviewDate={formatReviewDate(review.date)}
+                  reviewDate={formatDate(review.date, "long", language)}
                   reviewText={review.review}
                   stayPeriod={review.stayPeriod}
                   rating={review.rating}

@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { apartmentReviewSelect } from "./apartment-review-query.ts";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 function load(path, modules) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
@@ -118,6 +119,17 @@ for (const view of ["ApartmentReviewsPreview", "ApartmentRatingsView"]) {
       "./RateApartmentModal": defaultModule("RateApartmentModal"),
       "./RatingBreakdown": defaultModule("RatingBreakdown"),
       "./RatingsListingCard": defaultModule("RatingsListingCard"),
+      "@repo/i18n": {
+        formatDate: () => "January 1, 2026",
+        REVIEW_SORT_KEYS: {},
+        enumLabel: (_language, _map, value) => value,
+      },
+      "@/app/components/i18n/LocaleProvider": {
+        useTranslation: () => ({
+          language: "en",
+          t: (key, vars) => translate("en", key, vars),
+        }),
+      },
       "./RatingsPageSkeleton": defaultModule("RatingsPageSkeleton"),
       "@/app/components/display/StatusChip": defaultModule("StatusChip"),
       "@/app/components/display/ErrorBanner": defaultModule("ErrorBanner"),

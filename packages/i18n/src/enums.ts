@@ -83,6 +83,13 @@ export const PAYMENT_STATUS_KEYS: EnumKeyMap = {
   Unpaid: "enums.paymentStatus.unpaid",
 };
 
+/** Review sort options keep their stored English values; only labels translate. */
+export const REVIEW_SORT_KEYS: EnumKeyMap = {
+  "Most Recent": "reviews.sort.mostRecent",
+  "Highest Rating": "reviews.sort.highest",
+  "Lowest Rating": "reviews.sort.lowest",
+};
+
 export const MAINTENANCE_URGENCY_KEYS: EnumKeyMap = {
   low: "enums.urgency.low",
   medium: "enums.urgency.medium",

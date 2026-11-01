@@ -10,6 +10,7 @@ import { IconFileText } from "@tabler/icons-react";
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import ProfilePhotoErrorDialog from "@/app/components/profile/ProfilePhotoErrorDialog";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface LeaseAgreementCardProps {
   leaseDetailsUrl: string;
@@ -20,6 +21,7 @@ interface LeaseAgreementCardProps {
 export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, className = "" }: LeaseAgreementCardProps) {
   const hasLease = !!leaseDetailsUrl || !!localFile;
   const router = useRouter();
+  const { t } = useTranslation();
   const [viewingLease, setViewingLease] = useState(false);
   const [viewError, setViewError] = useState<string | null>(null);
   const localUrl = useRef<string | null>(null);
@@ -74,7 +76,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
       }
     } catch (err) {
       console.error(err);
-      setViewError("We couldn't open the lease agreement. Please try again.");
+      setViewError(t("apartment.lease.errorBody"));
     } finally {
       setViewingLease(false);
     }
@@ -83,12 +85,12 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
   return (
     <Card className={`border border-border shadow-none ${className}`}>
       <Card.Content className="flex flex-col items-start gap-2">
-        <h3 className="font-nunito text-lg font-semibold">Lease Agreement</h3>
+        <h3 className="font-nunito text-lg font-semibold">{t("apartment.lease.title")}</h3>
 
         {hasLease ? (
           <>
             <p className="text-sm text-muted-foreground break-all">
-              {localFile ? localFile.name : "View the lease agreement for this apartment."}
+              {localFile ? localFile.name : t("apartment.lease.description")}
             </p>
             <Button
               variant="outline"
@@ -97,17 +99,17 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
               onPress={handleViewLease}
             >
               <IconFileText size={16} />
-              {viewingLease ? "Opening..." : localFile && !localFile.name.toLowerCase().endsWith(".pdf") ? "Download Lease Agreement" : "View Lease Agreement"}
+              {viewingLease ? t("apartment.lease.opening") : localFile && !localFile.name.toLowerCase().endsWith(".pdf") ? t("apartment.lease.download") : t("apartment.lease.view")}
             </Button>
           </>
         ) : (
           <p className="text-sm text-grey-500">
-            No lease agreement has been uploaded for this apartment.
+            {t("apartment.lease.none")}
           </p>
         )}
       </Card.Content>
       <ProfilePhotoErrorDialog
-        title="Unable to open lease agreement"
+        title={t("apartment.lease.errorTitle")}
         message={viewError}
         onClose={() => setViewError(null)}
       />

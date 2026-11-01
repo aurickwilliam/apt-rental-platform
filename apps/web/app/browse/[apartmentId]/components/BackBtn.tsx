@@ -5,8 +5,11 @@ import { Button } from "@heroui/react";
 
 import { IconArrowLeft } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 export default function BackBtn() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <Button
@@ -14,7 +17,7 @@ export default function BackBtn() {
       onPress={() => router.back()}
     >
       <IconArrowLeft size={18} />
-      Back
+      {t("apartment.back")}
     </Button>
   );
 }

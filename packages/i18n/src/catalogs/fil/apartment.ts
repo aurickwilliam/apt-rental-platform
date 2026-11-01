@@ -17,6 +17,8 @@ export const apartment: Record<keyof typeof enApartment, string> = {
 
   "apartment.landlord.unknown": "Hindi kilala",
   "apartment.landlord.role": "Landlord",
+  "apartment.landlord.unavailable":
+    "Wala pang detalye ng landlord.",
   "apartment.landlord.verified": "Verified na landlord",
   "apartment.landlord.profileAria": "Tingnan ang profile ni {name}",
 
@@ -83,6 +85,7 @@ export const apartment: Record<keyof typeof enApartment, string> = {
     "Hindi ma-load ang history ng maintenance.",
   "apartment.maintenance.reported": "Ini-report noong {date}",
   "apartment.maintenance.resolved": "Naayos noong {date}",
+  "apartment.maintenance.resolvedStatus": "Naayos",
 
   "apartment.related.title": "Kaugnay na Apartment",
   "apartment.related.previous": "Naunang mga apartment",

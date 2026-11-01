@@ -5,6 +5,7 @@ import { Meter } from "@heroui/react";
 import { IconStarFilled } from "@tabler/icons-react";
 
 import StarRating from "@/app/components/display/StarRating";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface RatingBreakdownProps {
   overallRate: number;
@@ -27,6 +28,11 @@ export default function RatingBreakdown({
   no1Star,
   layout = "responsive",
 }: RatingBreakdownProps) {
+  const { t } = useTranslation();
+
+  const reviewCountLabel = (count: number) =>
+    count === 1 ? t("reviews.count", { count }) : t("reviews.countPlural", { count });
+
   return (
     <div className={`w-full flex flex-col gap-6 min-w-0 ${layout === "responsive" ? "sm:flex-row sm:gap-3" : ""}`}>
       <div className={`w-full flex flex-col items-center justify-center min-w-0 ${layout === "responsive" ? "sm:w-1/3" : ""}`}>
@@ -42,7 +48,9 @@ export default function RatingBreakdown({
 
         <div className="mt-2 text-center">
           <p className="text-sm text-muted-foreground">
-            Based on {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+            {totalReviews === 1
+              ? t("reviews.basedOn", { count: totalReviews })
+              : t("reviews.basedOnPlural", { count: totalReviews })}
           </p>
         </div>
       </div>
@@ -63,7 +71,7 @@ export default function RatingBreakdown({
 
             <Meter
               value={totalReviews > 0 ? (count / totalReviews) * 100 : 0}
-              aria-label={`${label} star${label === 1 ? "" : "s"}: ${count} of ${totalReviews} ${totalReviews === 1 ? "review" : "reviews"}`}
+              aria-label={`${label === 1 ? t("reviews.starLabel", { count: label }) : t("reviews.starLabelPlural", { count: label })}: ${totalReviews === 1 ? t("reviews.meterAria", { count, total: totalReviews }) : t("reviews.meterAriaPlural", { count, total: totalReviews })}`}
               className="flex-1 min-w-0"
               color="accent"
             >
@@ -73,7 +81,7 @@ export default function RatingBreakdown({
             </Meter>
 
             <p className="w-16 shrink-0 text-right text-sm text-muted-foreground sm:w-20">
-              {count} {count === 1 ? "review" : "reviews"}
+              {reviewCountLabel(count)}
             </p>
           </div>
         ))}

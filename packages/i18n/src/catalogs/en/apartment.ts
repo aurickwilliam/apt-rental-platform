@@ -20,6 +20,7 @@ export const apartment = {
 
   "apartment.landlord.unknown": "Unknown",
   "apartment.landlord.role": "Landlord",
+  "apartment.landlord.unavailable": "Landlord details are not available yet.",
   "apartment.landlord.verified": "Verified landlord",
   "apartment.landlord.profileAria": "View {name}'s profile",
 
@@ -84,6 +85,7 @@ export const apartment = {
   "apartment.maintenance.loadError": "Failed to load maintenance history.",
   "apartment.maintenance.reported": "Reported {date}",
   "apartment.maintenance.resolved": "Resolved {date}",
+  "apartment.maintenance.resolvedStatus": "Resolved",
 
   "apartment.related.title": "Related Apartments",
   "apartment.related.previous": "Previous apartments",

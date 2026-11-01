@@ -16,6 +16,8 @@ import { formatPesoDisplay } from "@repo/utils";
 import dynamic from "next/dynamic";
 import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
 import { isApartmentUnavailable } from "@/lib/apartment-availability";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import type { TranslationKey } from "@repo/i18n";
 import type {
   ApplyStartApartment,
   ApplyStartViewer,
@@ -57,6 +59,7 @@ export default function PriceCard({
   isApplyDisabled = false,
 }: PriceCardProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const breakdownModal = useOverlayState();
   const isUnavailable = isApartmentUnavailable(apartmentStatus);
@@ -78,17 +81,19 @@ export default function PriceCard({
       ? securityDeposit / price
       : null;
 
-  const costBreakdown: { label: string; value: string; sub?: string }[] = [
-    { label: "Monthly Rent", value: formattedPrice },
+  const costBreakdown: { labelKey: TranslationKey; value: string; sub?: string }[] = [
+    { labelKey: "apartment.price.monthlyRent", value: formattedPrice },
     {
-      label: "Security Deposit",
+      labelKey: "apartment.price.securityDeposit",
       value: `${formatPesoDisplay(securityDeposit)}`,
       sub:
         securityDepositMonths !== null
-          ? `(${securityDepositMonths} month${securityDepositMonths !== 1 ? "s" : ""})`
+          ? securityDepositMonths === 1
+            ? t("apartment.price.months", { count: securityDepositMonths })
+            : t("apartment.price.monthsPlural", { count: securityDepositMonths })
           : undefined,
     },
-    { label: "Advance Payment", value: `${formatPesoDisplay(advancePayment)}` },
+    { labelKey: "apartment.price.advancePayment", value: `${formatPesoDisplay(advancePayment)}` },
   ]
 
   return (
@@ -98,16 +103,16 @@ export default function PriceCard({
         <Card className={`border border-border shadow-none w-full ${className}`}>
           <Card.Header>
             <Card.Title className="listing-rent-heading text-2xl sm:text-3xl font-medium text-primary">
-              {formattedPrice}<span className="text-base sm:text-xl">/month</span>
+              {formattedPrice}<span className="text-base sm:text-xl">{t("apartment.price.perMonth")}</span>
             </Card.Title>
           </Card.Header>
 
           <Card.Content>
             <div className="listing-cost-breakdown flex flex-col gap-3 bg-muted p-4 rounded-lg">
-              {costBreakdown.map(({ label, value, sub }) => (
-                <div key={label} className="flex justify-between text-sm">
+              {costBreakdown.map(({ labelKey, value, sub }) => (
+                <div key={labelKey} className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {label}
+                    {t(labelKey)}
                     {sub ? (
                       <span className="ml-1 text-xs font-normal">{sub}</span>
                     ) : null}
@@ -119,7 +124,7 @@ export default function PriceCard({
               <Separator />
 
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-foreground">Total Move-in Cost:</span>
+                <span className="font-medium text-foreground">{t("apartment.price.totalMoveIn")}</span>
                 <span className="font-medium text-foreground">{formatPesoDisplay(totalMoveInCost)}</span>
               </div>
             </div>
@@ -127,10 +132,10 @@ export default function PriceCard({
 
           <Card.Footer className="flex flex-col gap-2">
             <Button fullWidth className="cursor-pointer" onPress={handleApply} isDisabled={isPreview || isUnavailable || isApplyDisabled}>
-              {isUnavailable ? "Not Available" : "Apply Now"}
+              {isUnavailable ? t("apartment.price.unavailable") : t("apartment.price.apply")}
             </Button>
             {isApplyDisabled && !isUnavailable ? (
-              <p className="text-center text-xs text-muted-foreground">Only tenants can apply to a listing.</p>
+              <p className="text-center text-xs text-muted-foreground">{t("apartment.price.tenantsOnly")}</p>
             ) : null}
 
             {!isPreview && apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
@@ -143,7 +148,7 @@ export default function PriceCard({
               isDisabled={isPreview}
             >
               <IconFlag size={16} />
-              Report
+              {t("apartment.price.report")}
             </Button>
           </Card.Footer>
         </Card>
@@ -161,7 +166,7 @@ export default function PriceCard({
           fullWidth
         >
           <IconFlag size={16} />
-          Report
+          {t("apartment.price.report")}
         </Button>
       </div>
 
@@ -171,7 +176,7 @@ export default function PriceCard({
           <div className="flex items-center gap-3">
             <div className="shrink-0 min-w-0">
               <p className="text-xl font-medium text-primary">
-                {formattedPrice}<span className="text-sm">/month</span>
+                {formattedPrice}<span className="text-sm">{t("apartment.price.perMonth")}</span>
               </p>
               <Button
                 variant="ghost"
@@ -179,11 +184,11 @@ export default function PriceCard({
                 className="-ml-2 h-auto px-2 py-1 text-xs text-muted-foreground underline"
                 onPress={breakdownModal.open}
               >
-                Move-in cost breakdown
+                {t("apartment.price.breakdownLink")}
               </Button>
             </div>
             <Button className="flex-1 cursor-pointer" onPress={handleApply} isDisabled={isUnavailable || isApplyDisabled}>
-              {isUnavailable ? "Not Available" : "Apply Now"}
+              {isUnavailable ? t("apartment.price.unavailable") : t("apartment.price.apply")}
             </Button>
           </div>
         </div>
@@ -196,16 +201,16 @@ export default function PriceCard({
             <Modal.Dialog>
               <Modal.CloseTrigger className="text-black" />
               <Modal.Header>
-                <Modal.Heading className="text-foreground">Move-in Cost Breakdown</Modal.Heading>
+                <Modal.Heading className="text-foreground">{t("apartment.price.breakdownTitle")}</Modal.Heading>
               </Modal.Header>
               <Modal.Body className="flex flex-col gap-3">
                 <p className="text-sm text-foreground/70">
-                  Estimated initial payment required to move in.
+                  {t("apartment.price.breakdownBody")}
                 </p>
-                {costBreakdown.map(({ label, value, sub }) => (
-                  <div key={label} className="flex justify-between text-sm">
+                {costBreakdown.map(({ labelKey, value, sub }) => (
+                  <div key={labelKey} className="flex justify-between text-sm">
                     <span className="text-foreground">
-                      {label}
+                      {t(labelKey)}
                       {sub ? (
                         <span className="ml-1 text-xs font-normal text-muted-foreground">{sub}</span>
                       ) : null}
@@ -217,7 +222,7 @@ export default function PriceCard({
                 <Separator />
 
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium text-foreground">Total Move-in Cost:</span>
+                  <span className="font-medium text-foreground">{t("apartment.price.totalMoveIn")}</span>
                   <span className="font-medium text-foreground">{formatPesoDisplay(totalMoveInCost)}</span>
                 </div>
               </Modal.Body>
@@ -226,7 +231,7 @@ export default function PriceCard({
                   variant="tertiary"
                   onPress={breakdownModal.close}
                 >
-                  Close
+                  {t("apartment.price.close")}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

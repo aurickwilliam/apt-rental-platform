@@ -2,6 +2,8 @@
 
 import { Button } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface RatingsHeaderProps {
   /** Omit when there is nothing more to open; the button is hidden. */
   onSeeAll?: () => void;
@@ -14,16 +16,18 @@ interface RatingsHeaderProps {
 // The "Ratings & Reviews" row shared by the apartment page and the landlord profile.
 export default function RatingsHeader({
   onSeeAll,
-  seeAllLabel = "See all reviews",
+  seeAllLabel,
   headingLevel: Heading = "h3",
 }: RatingsHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between mb-5">
-      <Heading className="font-nunito text-lg font-semibold">Ratings & Reviews</Heading>
+      <Heading className="font-nunito text-lg font-semibold">{t("reviews.title")}</Heading>
 
       {onSeeAll ? (
         <Button size="sm" variant="ghost" onPress={onSeeAll} className="-mr-3 text-brand">
-          {seeAllLabel}
+          {seeAllLabel ?? t("reviews.seeAll")}
         </Button>
       ) : null}
     </div>

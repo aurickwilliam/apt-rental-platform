@@ -5,6 +5,10 @@ import dynamic from "next/dynamic";
 import { Modal, Button } from "@heroui/react";
 import { IconNavigation } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 // Built on the Maps JS API (not the embed iframe) so the map follows the
 // site's light/dark appearance.
 const GoogleMapPicker = dynamic(
@@ -17,13 +21,13 @@ type TransportMode = "driving" | "motorcycle" | "walkBike" | "transit";
 
 const MODES: { 
   id: TransportMode; 
-  label: string; 
+  labelKey: TranslationKey; 
   googleMode: string 
 }[] = [
-  { id: "driving",    label: "Drive", googleMode: "driving"   },
-  { id: "motorcycle", label: "Motorcycle", googleMode: "driving"   },
-  { id: "walkBike",    label: "Walk & Bike", googleMode: "walking" },
-  { id: "transit",    label: "Transit",    googleMode: "transit"   },
+  { id: "driving",    labelKey: "apartment.map.mode.drive",      googleMode: "driving" },
+  { id: "motorcycle", labelKey: "apartment.map.mode.motorcycle", googleMode: "driving" },
+  { id: "walkBike",   labelKey: "apartment.map.mode.walkBike",   googleMode: "walking" },
+  { id: "transit",    labelKey: "apartment.map.mode.transit",    googleMode: "transit" },
 ];
 
 interface MapLocationProps {
@@ -32,6 +36,7 @@ interface MapLocationProps {
 }
 
 export default function MapLocation({ latitude, longitude }: MapLocationProps) {
+  const { t } = useTranslation();
   const [isExpandOpen,     setIsExpandOpen]     = useState<boolean>(false);
   const [isDirectionsOpen, setIsDirectionsOpen] = useState<boolean>(false);
 
@@ -89,7 +94,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
   if (!hasCoordinates || !mapCoordinates) {
     return (
       <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center rounded-3xl border border-border">
-        <p className="text-muted-foreground text-sm">No location available</p>
+        <p className="text-muted-foreground text-sm">{t("apartment.map.none")}</p>
       </div>
     );
   }
@@ -116,7 +121,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
             onPress={handleOpenDirections}
           >
             <IconNavigation size={16} />
-            <p>Get Directions</p>
+            <p>{t("apartment.map.directions")}</p>
           </Button>
         </div>
       </div>
@@ -173,12 +178,12 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
               <Modal.CloseTrigger className="text-foreground" />
               <Modal.Header>
                 <Modal.Heading className="text-lg font-semibold text-foreground">
-                  Get Directions
+                  {t("apartment.map.directions")}
                 </Modal.Heading>
               </Modal.Header>
               <Modal.Body className="pb-2 flex flex-col gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Choose how you want to get there. Opens in Google Maps.
+                  {t("apartment.map.directionsBody")}
                 </p>
                 <div className="flex flex-col gap-2">
                   {MODES.map((mode) => (
@@ -190,7 +195,7 @@ export default function MapLocation({ latitude, longitude }: MapLocationProps) {
                       onPress={() => openInGoogleMaps(mode)}
                     >
                       <span>
-                        {mode.label}
+                        {t(mode.labelKey)}
                       </span>
                     </Button>
                   ))}

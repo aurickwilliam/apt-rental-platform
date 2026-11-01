@@ -34,11 +34,21 @@ import {
   type TenantApartmentReview,
 } from "@/service/reviewsService";
 import { useSubmitReview } from "@/hooks/use-submit-review";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import type { TranslationKey } from "@repo/i18n";
 
 type FormErrors = {
   rating?: string;
   reviewText?: string;
 };
+
+// Thrown while loading so the effect never captures `t` (a language switch
+// must not re-run it and wipe a half-written review).
+class ReviewLoadError extends Error {
+  constructor(readonly translationKey: TranslationKey) {
+    super(translationKey);
+  }
+}
 
 function isBlobPhoto(photo: ReviewPhoto): boolean {
   return photo.file !== null;
@@ -64,6 +74,7 @@ export function RateApartmentForm({
   onCancel,
 }: RateApartmentFormProps = {}) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { apartmentId: routeApartmentId } = useParams<{ apartmentId: string }>();
   const searchParams = useSearchParams();
   const apartmentId = apartmentIdOverride ?? routeApartmentId;
@@ -87,6 +98,7 @@ export function RateApartmentForm({
   const [originalPaths, setOriginalPaths] = useState<string[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [pageErrorKey, setPageErrorKey] = useState<TranslationKey | null>(null);
 
   const { submitReview, updateExistingReview, isSubmitting } = useSubmitReview();
 
@@ -104,14 +116,15 @@ export function RateApartmentForm({
     const load = async () => {
       setPageLoading(true);
       setPageError(null);
+      setPageErrorKey(null);
 
       try {
         const context = await getTenantContext();
         if (!context.tenantId) {
-          throw new Error(
+          throw new ReviewLoadError(
             isEditMode
-              ? "You must be signed in as a tenant to edit a review."
-              : "You must be signed in as a tenant to write a review.",
+              ? "reviews.form.signInToEdit"
+              : "reviews.form.signInToWrite",
           );
         }
 
@@ -124,12 +137,12 @@ export function RateApartmentForm({
 
           // Client-side guard only — RLS remains the authority.
           if (review.tenantId !== context.tenantId) {
-            throw new Error("This review cannot be edited.");
+            throw new ReviewLoadError("reviews.form.cannotEdit");
           }
 
           const lease = await fetchReviewTenancy(review.tenancyId);
           if (lease.apartment_id !== apartmentId) {
-            throw new Error("This review cannot be edited.");
+            throw new ReviewLoadError("reviews.form.cannotEdit");
           }
 
           if (isMounted) {
@@ -148,14 +161,14 @@ export function RateApartmentForm({
           }
         } else {
           if (!tenancyId) {
-            throw new Error("Missing tenancy reference.");
+            throw new ReviewLoadError("reviews.form.missingTenancy");
           }
 
           const [lease, apartmentHeader] = await Promise.all([fetchReviewTenancy(tenancyId), loadHeader()]);
 
           // Client-side guard only — RLS and triggers remain the authority.
           if (lease.tenant_id !== context.tenantId || lease.apartment_id !== apartmentId) {
-            throw new Error("This stay cannot be reviewed.");
+            throw new ReviewLoadError("reviews.form.stayNotReviewable");
           }
 
           if (isMounted) {
@@ -165,7 +178,11 @@ export function RateApartmentForm({
         }
       } catch (err) {
         if (isMounted) {
-          setPageError(err instanceof Error ? err.message : "Failed to load review details.");
+          if (err instanceof ReviewLoadError) {
+            setPageErrorKey(err.translationKey);
+          } else {
+            setPageError(err instanceof Error ? err.message : null);
+          }
         }
       } finally {
         if (isMounted) setPageLoading(false);
@@ -230,11 +247,11 @@ export function RateApartmentForm({
     const newErrors: FormErrors = {};
 
     if (rating <= 0) {
-      newErrors.rating = "Please select a rating";
+      newErrors.rating = t("reviews.form.ratingRequired");
     }
 
     if (!reviewText.trim()) {
-      newErrors.reviewText = "Please write a review";
+      newErrors.reviewText = t("reviews.form.reviewRequired");
     }
 
     setErrors(newErrors);
@@ -261,12 +278,12 @@ export function RateApartmentForm({
       });
 
       if (result.success) {
-        toast("Review updated!");
+        toast(t("reviews.form.updated"));
         handleClose();
         return;
       }
 
-      setSubmitError(result.error ?? "Failed to save your changes. Please try again.");
+      setSubmitError(result.error ?? t("reviews.form.updateFailed"));
       return;
     }
 
@@ -280,19 +297,19 @@ export function RateApartmentForm({
     });
 
     if (result.success) {
-      toast("Review submitted!");
+      toast(t("reviews.form.submitted"));
       handleClose();
       return;
     }
 
-    setSubmitError(result.error ?? "Failed to submit your review. Please try again.");
+    setSubmitError(result.error ?? t("reviews.form.submitFailed"));
   };
 
   if (pageLoading) {
     return (
       <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
         {!hideBackButton && <BackBtn />}
-        <p className="mt-6 text-sm text-muted-foreground">Loading review details…</p>
+        <p className="mt-6 text-sm text-muted-foreground">{t("reviews.form.loading")}</p>
       </div>
     );
   }
@@ -302,10 +319,12 @@ export function RateApartmentForm({
       <div className={hideBackButton ? "w-full" : "mx-auto max-w-3xl p-4"}>
         {!hideBackButton && <BackBtn />}
         <p className="mt-6 text-sm text-red-600">
-          {pageError ?? "We couldn't load this apartment's details."}
+          {pageErrorKey
+            ? t(pageErrorKey)
+            : (pageError ?? t("reviews.detailsError"))}
         </p>
         <Button className="mt-4" variant="outline" onPress={handleCancel}>
-          Go Back
+          {t("reviews.form.goBack")}
         </Button>
       </div>
     );
@@ -324,7 +343,7 @@ export function RateApartmentForm({
       {!hideBackButton && (
         <div className="mt-4">
           <h1 className="text-2xl font-medium md:text-3xl">
-            {isEditMode ? "Edit Review" : "Rate Apartment"}
+            {isEditMode ? t("reviews.edit") : t("reviews.form.title")}
           </h1>
         </div>
       )}
@@ -369,7 +388,7 @@ export function RateApartmentForm({
             {header && (
               <>
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">{t("reviews.form.landlord")}</Label>
                   <span className="text-base font-medium text-card-foreground">
                     {header.landlordName}
                   </span>
@@ -377,7 +396,7 @@ export function RateApartmentForm({
 
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">{t("reviews.form.apartmentType")}</Label>
                     <span className="text-base font-medium text-card-foreground">
                       {header.type ?? "—"}
                     </span>
@@ -395,7 +414,7 @@ export function RateApartmentForm({
 
             {/* Duration of Stay — read-only, sourced from the tenancy record */}
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Duration of Stay</Label>
+              <Label className="text-sm font-medium text-muted-foreground">{t("reviews.form.durationOfStay")}</Label>
               <div className="mt-2 flex items-center justify-between rounded-2xl border border-border bg-muted px-4 py-3">
                 <span className="text-base font-medium text-card-foreground">
                   {tenancy
@@ -403,7 +422,7 @@ export function RateApartmentForm({
                     : "—"}
                 </span>
                 {tenancy && !tenancy.lease_end && (
-                  <span className="text-xs text-muted-foreground">Ongoing</span>
+                  <span className="text-xs text-muted-foreground">{t("reviews.form.ongoing")}</span>
                 )}
               </div>
             </div>
@@ -418,7 +437,7 @@ export function RateApartmentForm({
         <div className={showApartmentInfo && !isModalLayout ? "contents" : undefined}>
           {/* Rating Input */}
           <div className="flex flex-col items-center">
-            <Label className="font-nunito text-lg font-semibold">Overall Rating</Label>
+            <Label className="font-nunito text-lg font-semibold">{t("reviews.form.overallRating")}</Label>
 
             <p className="mt-2 font-nunito text-5xl font-bold leading-tight text-brand">
               {rating.toFixed(1)}
@@ -429,8 +448,8 @@ export function RateApartmentForm({
             </div>
 
             <div className="flex items-center gap-5">
-              <span className="text-sm text-muted-foreground">1 - Poor</span>
-              <span className="text-sm text-muted-foreground">5 - Excellent</span>
+              <span className="text-sm text-muted-foreground">{t("reviews.form.ratingPoor")}</span>
+              <span className="text-sm text-muted-foreground">{t("reviews.form.ratingExcellent")}</span>
             </div>
 
             {errors.rating && (
@@ -446,10 +465,10 @@ export function RateApartmentForm({
               value={reviewText}
               onChange={handleReviewTextChange}
             >
-              <Label>Tenant Review:</Label>
+              <Label>{t("reviews.form.tenantReview")}</Label>
               <TextArea
                 rows={5}
-                placeholder="Type your experience and review about the apartment.."
+                placeholder={t("reviews.form.placeholder")}
                 className="resize-none"
                 style={{
                   backgroundColor: "var(--muted)",
@@ -482,7 +501,13 @@ export function RateApartmentForm({
         isPending={isSubmitting}
         isDisabled={isSubmitDisabled}
       >
-        {isSubmitting ? (isEditMode ? "Saving…" : "Submitting…") : isEditMode ? "Save Changes" : "Submit Review"}
+        {isSubmitting
+          ? isEditMode
+            ? t("reviews.form.saving")
+            : t("reviews.form.submitting")
+          : isEditMode
+            ? t("reviews.form.saveChanges")
+            : t("reviews.form.submit")}
       </Button>
     </div>
   );

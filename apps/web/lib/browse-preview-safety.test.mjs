@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const jsx = (type, props) => ({ type, props });
 const nodes = element => !element || typeof element !== "object" ? [] :
@@ -20,6 +21,12 @@ function load(name, overrides = {}, globals = {}) {
     "./MaintenanceHistoryButton": { default: "Maintenance" },
     "@/app/components/profile/ProfilePhotoErrorDialog": { default: "ErrorDialog" },
     "@/lib/apartment-availability": { isApartmentUnavailable: () => false },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     ...overrides,
   };
   const context = { exports: {}, require: key => modules[key], ...globals };
