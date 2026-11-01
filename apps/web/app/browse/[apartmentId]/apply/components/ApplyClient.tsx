@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button, Modal, useOverlayState } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
 
@@ -28,10 +31,24 @@ import TenantInfoStep from "./steps/TenantInfoStep";
 type Step = "tenant" | "preferences" | "review" | "submitted";
 
 // The three form steps; mobile's `ApplicationHeader` counts the same.
-const WIZARD: Partial<Record<Step, { index: number; currentTitle: string; nextTitle: string }>> = {
-  tenant: { index: 1, currentTitle: "Tenant Information", nextTitle: "Rental Preferences" },
-  preferences: { index: 2, currentTitle: "Rental Preferences", nextTitle: "Review Application" },
-  review: { index: 3, currentTitle: "Review Application", nextTitle: "Submit Application" },
+const WIZARD: Partial<
+  Record<Step, { index: number; currentTitleKey: TranslationKey; nextTitleKey: TranslationKey }>
+> = {
+  tenant: {
+    index: 1,
+    currentTitleKey: "apply.step.tenant",
+    nextTitleKey: "apply.step.preferences",
+  },
+  preferences: {
+    index: 2,
+    currentTitleKey: "apply.step.preferences",
+    nextTitleKey: "apply.step.review",
+  },
+  review: {
+    index: 3,
+    currentTitleKey: "apply.step.review",
+    nextTitleKey: "apply.step.submit",
+  },
 };
 const WIZARD_STEP_COUNT = 3;
 const PREVIOUS_STEP: Partial<Record<Step, Step>> = { preferences: "tenant", review: "preferences" };
@@ -51,6 +68,7 @@ interface ApplyClientProps {
  */
 export default function ApplyClient({ apartment, viewer, hasActiveApplication, personalInfo }: ApplyClientProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const discardModal = useOverlayState();
   const [step, setStep] = useState<Step>("tenant");
   const [form, setForm] = useState<ApplicationForm>(() => ({ ...EMPTY_APPLICATION_FORM, ...personalInfo }));
@@ -108,19 +126,20 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
         {step !== "submitted" ? (
           <Button variant="outline" size="sm" isDisabled={isSubmitting} onPress={goBack}>
             <IconArrowLeft size={16} />
-            Back
+            {t("apply.back")}
           </Button>
         ) : null}
         <div className="ml-auto hidden text-xs text-muted-foreground md:block">
-          Applying to <span className="font-semibold text-primary">{apartment.name ?? "Listing"}</span>
+          {t("apply.applyingTo")}{" "}
+          <span className="font-semibold text-primary">{apartment.name ?? t("apply.listingFallback")}</span>
         </div>
       </div>
 
       {wizard ? (
         <div className="mb-6">
           <ApplicationHeader
-            currentTitle={wizard.currentTitle}
-            nextTitle={wizard.nextTitle}
+            currentTitle={t(wizard.currentTitleKey)}
+            nextTitle={t(wizard.nextTitleKey)}
             step={wizard.index}
             totalSteps={WIZARD_STEP_COUNT}
           />
@@ -141,7 +160,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
           onChange={updateForm}
           clearError={clearError}
           onBack={goBack}
-          onNext={() => advanceIfValid(validateTenantInfo(form), "preferences")}
+          onNext={() => advanceIfValid(validateTenantInfo(form, t), "preferences")}
         />
       )}
 
@@ -153,7 +172,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
           clearError={clearError}
           maxOccupants={apartment.maxOccupants}
           onBack={goBack}
-          onNext={() => advanceIfValid(validatePreferences(form, apartment.maxOccupants), "review")}
+          onNext={() => advanceIfValid(validatePreferences(form, apartment.maxOccupants, t), "review")}
         />
       )}
 
@@ -177,16 +196,16 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
           <Modal.Container size="sm">
             <Modal.Dialog>
               <Modal.Header>
-                <Modal.Heading>Discard Application?</Modal.Heading>
+                <Modal.Heading>{t("apply.discard.title")}</Modal.Heading>
               </Modal.Header>
               <Modal.Body>
                 <p className="text-sm text-muted-foreground">
-                  Your progress will be lost if you leave now. Are you sure you want to cancel?
+                  {t("apply.discard.body")}
                 </p>
               </Modal.Body>
               <Modal.Footer className="grid grid-cols-2 gap-2">
                 <Button variant="outline" size="sm" fullWidth className="cursor-pointer" onPress={discardModal.close}>
-                  Keep Editing
+                  {t("apply.discard.keepEditing")}
                 </Button>
                 <Button
                   variant="danger-soft"
@@ -198,7 +217,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
                     router.back();
                   }}
                 >
-                  Discard
+                  {t("apply.discard.confirm")}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

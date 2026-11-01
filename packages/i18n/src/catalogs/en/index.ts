@@ -1,4 +1,5 @@
 import { apartment } from "./apartment";
+import { apply } from "./apply";
 import { auth } from "./auth";
 import { browse } from "./browse";
 import { authMobile } from "./authMobile";
@@ -32,6 +33,7 @@ export const en = {
   ...favorites,
   ...apartment,
   ...reviews,
+  ...apply,
 } as const;
 
 export type TranslationKey = keyof typeof en;

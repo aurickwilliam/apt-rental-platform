@@ -51,6 +51,11 @@ export const enums = {
   "enums.gender.female": "Female",
   "enums.gender.other": "Other",
 
+  "enums.applicationSlot.govId": "Government ID",
+  "enums.applicationSlot.proofOfIncome": "Proof of Income",
+  "enums.applicationSlot.proofOfBilling": "Proof of Billing",
+  "enums.applicationSlot.nbiClearance": "NBI Clearance",
+
   "enums.apartmentStatus.available": "Available",
   "enums.apartmentStatus.occupied": "Occupied",
   "enums.apartmentStatus.underMaintenance": "Under Maintenance",

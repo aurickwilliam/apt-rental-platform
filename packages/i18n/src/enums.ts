@@ -64,6 +64,14 @@ export const VEHICLE_KEYS: EnumKeyMap = {
   Other: "enums.vehicle.other",
 };
 
+/** APT Passport document slots used by the application review summary. */
+export const APPLICATION_SLOT_KEYS: EnumKeyMap = {
+  govId: "enums.applicationSlot.govId",
+  proofOfIncome: "enums.applicationSlot.proofOfIncome",
+  proofOfBilling: "enums.applicationSlot.proofOfBilling",
+  nbiClearance: "enums.applicationSlot.nbiClearance",
+};
+
 export const GENDER_KEYS: EnumKeyMap = {
   Male: "enums.gender.male",
   Female: "enums.gender.female",

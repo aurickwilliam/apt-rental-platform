@@ -3,6 +3,8 @@
 import CircleProgress from "./CircleProgress";
 import { Card } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface ApplicationHeaderProps {
   currentTitle: string;
   nextTitle: string;
@@ -16,11 +18,15 @@ export default function ApplicationHeader({
   step = 1,
   totalSteps = 3,
 }: ApplicationHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className="bg-card md:bg-card border border-border shadow-none p-5 flex flex-row items-center justify-between">
       <div className="flex-1 flex flex-col gap-1 min-w-0 pr-4">
         <h2 className="text-2xl font-nunito font-bold text-card-foreground leading-none">{currentTitle}</h2>
-        <p className="text-base font-nunito font-semibold text-muted-foreground">Next: {nextTitle}</p>
+        <p className="text-base font-nunito font-semibold text-muted-foreground">
+          {t("apply.nextStep", { title: nextTitle })}
+        </p>
       </div>
       <div className="hidden md:block">
         <CircleProgress currentStep={step} totalSteps={totalSteps} size={96} />

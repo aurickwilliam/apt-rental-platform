@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface CircleProgressProps {
   currentStep: number;
   totalSteps: number;
@@ -7,6 +9,7 @@ interface CircleProgressProps {
 }
 
 export default function CircleProgress({ currentStep, totalSteps, size = 80 }: CircleProgressProps) {
+  const { t } = useTranslation();
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -37,7 +40,7 @@ export default function CircleProgress({ currentStep, totalSteps, size = 80 }: C
         />
       </svg>
       <span className="text-sm md:text-base font-bold font-nunito text-card-foreground">
-        {currentStep} of {totalSteps}
+        {t("apply.progress", { current: currentStep, total: totalSteps })}
       </span>
     </div>
   );

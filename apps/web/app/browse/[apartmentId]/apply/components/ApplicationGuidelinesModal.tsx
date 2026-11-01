@@ -10,41 +10,42 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface Guideline {
   Icon: Icon;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
 }
 
 // Same copy as mobile `ApplicationGuidelinesSheet`.
 const GUIDELINES: Guideline[] = [
   {
     Icon: IconFileCheck,
-    title: "Your APT Passport is submitted automatically",
-    description: "Your ID and supporting documents are sent with your application, so there is nothing to upload.",
+    titleKey: "apply.guidelines.passport.title",
+    bodyKey: "apply.guidelines.passport.body",
   },
   {
     Icon: IconShieldCheck,
-    title: "Verified account required",
-    description: "Only tenants with a verified account can apply. Verify your account first if you haven't.",
+    titleKey: "apply.guidelines.verified.title",
+    bodyKey: "apply.guidelines.verified.body",
   },
   {
     Icon: IconId,
-    title: "Required documents",
-    description:
-      "A government ID and proof of billing or residency. Employed and self-employed tenants also need proof of income. NBI clearance is optional.",
+    titleKey: "apply.guidelines.documents.title",
+    bodyKey: "apply.guidelines.documents.body",
   },
   {
     Icon: IconBriefcase,
-    title: "Keep your documents current",
-    description:
-      "Expired or rejected documents are not sent. Upload a current copy to your APT Passport before applying.",
+    titleKey: "apply.guidelines.current.title",
+    bodyKey: "apply.guidelines.current.body",
   },
   {
     Icon: IconUserCheck,
-    title: "One application per apartment",
-    description:
-      "You can have one pending application for each apartment, and you can't apply to your own listing. Please provide accurate information.",
+    titleKey: "apply.guidelines.one.title",
+    bodyKey: "apply.guidelines.one.body",
   },
 ];
 
@@ -55,6 +56,8 @@ interface ApplicationGuidelinesModalProps {
 
 /** Rules for applying, opened from the Apply Now modal's guidelines link. */
 export default function ApplicationGuidelinesModal({ isOpen, onOpenChange }: ApplicationGuidelinesModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
@@ -62,25 +65,27 @@ export default function ApplicationGuidelinesModal({ isOpen, onOpenChange }: App
           <Modal.Dialog className="rounded-3xl bg-card">
             <Modal.CloseTrigger className="cursor-pointer text-card-foreground" />
             <Modal.Header className="flex flex-col items-start gap-1">
-              <Modal.Heading className="font-nunito text-xl font-bold text-card-foreground">Before you apply</Modal.Heading>
-              <p className="text-sm text-muted-foreground">A few things to know about applying for this apartment.</p>
+              <Modal.Heading className="font-nunito text-xl font-bold text-card-foreground">
+                {t("apply.guidelines.title")}
+              </Modal.Heading>
+              <p className="text-sm text-muted-foreground">{t("apply.guidelines.subtitle")}</p>
             </Modal.Header>
             <Modal.Body className="space-y-4">
-              {GUIDELINES.map(({ Icon, title, description }) => (
-                <div key={title} className="flex gap-3">
+              {GUIDELINES.map(({ Icon, titleKey, bodyKey }) => (
+                <div key={titleKey} className="flex gap-3">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
                     <Icon size={20} aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
-                    <p className="font-nunito text-base font-semibold text-card-foreground">{title}</p>
-                    <p className="text-sm text-muted-foreground">{description}</p>
+                    <p className="font-nunito text-base font-semibold text-card-foreground">{t(titleKey)}</p>
+                    <p className="text-sm text-muted-foreground">{t(bodyKey)}</p>
                   </div>
                 </div>
               ))}
             </Modal.Body>
             <Modal.Footer>
               <Button fullWidth onPress={() => onOpenChange(false)}>
-                I understand
+                {t("apply.guidelines.confirm")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

@@ -49,6 +49,11 @@ export const enums: Record<keyof typeof enEnums, string> = {
   "enums.gender.female": "Babae",
   "enums.gender.other": "Iba pa",
 
+  "enums.applicationSlot.govId": "Government ID",
+  "enums.applicationSlot.proofOfIncome": "Proof of Income",
+  "enums.applicationSlot.proofOfBilling": "Proof of Billing",
+  "enums.applicationSlot.nbiClearance": "NBI Clearance",
+
   "enums.apartmentStatus.available": "Available",
   "enums.apartmentStatus.occupied": "May nakatira",
   "enums.apartmentStatus.underMaintenance": "Under Maintenance",

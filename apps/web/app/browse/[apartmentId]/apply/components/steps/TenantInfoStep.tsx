@@ -5,6 +5,9 @@ import { Button, Card, FieldError, Input, Label, ListBox, Select, Separator, Tex
 
 import { handlePesoChange } from "@repo/utils";
 import { EMPLOYMENT_TYPES, REQUIRES_OCCUPATION_TYPES, requiresProofOfIncome, type EmploymentType } from "@repo/constants";
+import { EMPLOYMENT_TYPE_KEYS, enumLabel, formatDate, type TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import { employmentRules } from "../../lib/validate-application";
 import type { ApplicationStepProps } from "../../types";
@@ -15,24 +18,21 @@ const READ_ONLY_INPUT_CLASS = "bg-muted border-border text-card-foreground place
 // Filled from the profile and read-only, as on mobile.
 const PERSONAL_FIELDS: {
   key: "fullName" | "email" | "dateOfBirth" | "contactNumber" | "currentAddress";
-  label: string;
-  emptyLabel: string;
+  labelKey: TranslationKey;
+  emptyKey: TranslationKey;
   wide?: boolean;
 }[] = [
-  { key: "fullName", label: "Full Name", emptyLabel: "No full name on file" },
-  { key: "email", label: "Email", emptyLabel: "No email on file" },
-  { key: "dateOfBirth", label: "Date of Birth", emptyLabel: "No date of birth on file" },
-  { key: "contactNumber", label: "Contact Number", emptyLabel: "No contact number on file" },
-  { key: "currentAddress", label: "Current Address", emptyLabel: "No current address on file", wide: true },
+  { key: "fullName", labelKey: "apply.field.fullName", emptyKey: "apply.empty.fullName" },
+  { key: "email", labelKey: "apply.field.email", emptyKey: "apply.empty.email" },
+  { key: "dateOfBirth", labelKey: "apply.field.dateOfBirth", emptyKey: "apply.empty.dateOfBirth" },
+  { key: "contactNumber", labelKey: "apply.field.contactNumber", emptyKey: "apply.empty.contactNumber" },
+  {
+    key: "currentAddress",
+    labelKey: "apply.field.currentAddress",
+    emptyKey: "apply.empty.currentAddress",
+    wide: true,
+  },
 ];
-
-function formatBirthDate(value: string): string {
-  if (!value) return "";
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" });
-}
 
 interface TenantInfoStepProps extends ApplicationStepProps {
   onBack: () => void;
@@ -40,41 +40,44 @@ interface TenantInfoStepProps extends ApplicationStepProps {
 }
 
 export default function TenantInfoStep({ form, errors, onChange, clearError, onBack, onNext }: TenantInfoStepProps) {
+  const { language, t } = useTranslation();
   const { isNoIncomeType, requiresOccupation, requiresCompany } = employmentRules(form.employmentType);
+
+  const birthDate = form.dateOfBirth ? formatDate(`${form.dateOfBirth}T00:00:00`, "long", language) : "";
 
   return (
     <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
-      <h2 className="text-lg font-semibold text-card-foreground">Personal Information</h2>
+      <h2 className="text-lg font-semibold text-card-foreground">{t("apply.tenant.personalTitle")}</h2>
       <p className="mb-5 text-xs text-muted-foreground">
-        From your profile. To change these, update your{" "}
+        {t("apply.tenant.personalHintBefore")}{" "}
         <Link href="/tenant/profile" className="font-medium text-primary hover:underline">
-          profile
+          {t("apply.tenant.personalHintLink")}
         </Link>
-        .
+        {t("apply.tenant.personalHintAfter")}
       </p>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        {PERSONAL_FIELDS.map(({ key, label, emptyLabel, wide }) => (
+        {PERSONAL_FIELDS.map(({ key, labelKey, emptyKey, wide }) => (
           <TextField
             key={key}
             isReadOnly
             isRequired
             isInvalid={!!errors[key]}
-            value={key === "dateOfBirth" ? formatBirthDate(form.dateOfBirth) : form[key]}
+            value={key === "dateOfBirth" ? birthDate : form[key]}
             className={wide ? "md:col-span-2" : undefined}
           >
-            <Label>{label}</Label>
-            <Input placeholder={emptyLabel} className={READ_ONLY_INPUT_CLASS} />
+            <Label>{t(labelKey)}</Label>
+            <Input placeholder={t(emptyKey)} className={READ_ONLY_INPUT_CLASS} />
             <FieldError>{errors[key]}</FieldError>
           </TextField>
         ))}
       </div>
 
       <Separator className="my-6" />
-      <h3 className="mb-4 text-base font-semibold text-card-foreground">Employment & Income Details</h3>
+      <h3 className="mb-4 text-base font-semibold text-card-foreground">{t("apply.tenant.employmentTitle")}</h3>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Select
           isRequired
-          placeholder="Select your employment type"
+          placeholder={t("apply.tenant.employmentPlaceholder")}
           value={form.employmentType || null}
           onChange={(key) => {
             const value = key ? String(key) : "";
@@ -90,7 +93,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           }}
           isInvalid={!!errors.employmentType}
         >
-          <Label>Employment Type</Label>
+          <Label>{t("apply.tenant.employmentType")}</Label>
           <Select.Trigger className="border-border bg-card text-card-foreground">
             <Select.Value />
             <Select.Indicator />
@@ -99,7 +102,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             <ListBox>
               {EMPLOYMENT_TYPES.map((type) => (
                 <ListBox.Item key={type} id={type} textValue={type}>
-                  {type}
+                  {EMPLOYMENT_TYPE_KEYS[type] ? enumLabel(language, EMPLOYMENT_TYPE_KEYS, type) : type}
                 </ListBox.Item>
               ))}
             </ListBox>
@@ -116,8 +119,8 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             if (value.trim()) clearError("occupation");
           }}
         >
-          <Label>Occupation / Job Title</Label>
-          <Input placeholder="Enter your occupation" className={INPUT_CLASS} />
+          <Label>{t("apply.tenant.occupation")}</Label>
+          <Input placeholder={t("apply.tenant.occupationPlaceholder")} className={INPUT_CLASS} />
           <FieldError>{errors.occupation}</FieldError>
         </TextField>
 
@@ -131,8 +134,15 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             if (value.trim()) clearError("companyName");
           }}
         >
-          <Label>Company Name</Label>
-          <Input placeholder={isNoIncomeType ? "Not applicable" : "Enter your company name"} className={INPUT_CLASS} />
+          <Label>{t("apply.tenant.company")}</Label>
+          <Input
+            placeholder={
+              isNoIncomeType
+                ? t("apply.tenant.companyNotApplicable")
+                : t("apply.tenant.companyPlaceholder")
+            }
+            className={INPUT_CLASS}
+          />
           <FieldError>{errors.companyName}</FieldError>
         </TextField>
 
@@ -147,9 +157,13 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             if (parsed !== null && parsed >= 0 && (isNoIncomeType || parsed > 0)) clearError("monthlyIncome");
           }}
         >
-          <Label>Monthly Income</Label>
+          <Label>{t("apply.tenant.income")}</Label>
           <Input
-            placeholder={isNoIncomeType ? "Enter 0 if no income" : "Enter your monthly income"}
+            placeholder={
+              isNoIncomeType
+                ? t("apply.tenant.incomePlaceholderNoIncome")
+                : t("apply.tenant.incomePlaceholder")
+            }
             inputMode="decimal"
             className={INPUT_CLASS}
           />
@@ -158,8 +172,8 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
       </div>
 
       <Separator className="my-6" />
-      <h3 className="text-base font-semibold text-card-foreground">References</h3>
-      <p className="mb-4 text-xs text-muted-foreground">Preferred for fast-track review</p>
+      <h3 className="text-base font-semibold text-card-foreground">{t("apply.tenant.referencesTitle")}</h3>
+      <p className="mb-4 text-xs text-muted-foreground">{t("apply.tenant.referencesHint")}</p>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <TextField
           isInvalid={!!errors.prevLandlordName}
@@ -169,8 +183,8 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             if (value.trim()) clearError("prevLandlordName");
           }}
         >
-          <Label>Previous Landlord Name</Label>
-          <Input placeholder="Enter previous landlord name" className={INPUT_CLASS} />
+          <Label>{t("apply.tenant.prevLandlordName")}</Label>
+          <Input placeholder={t("apply.tenant.prevLandlordNamePlaceholder")} className={INPUT_CLASS} />
           <FieldError>{errors.prevLandlordName}</FieldError>
         </TextField>
         <TextField
@@ -181,7 +195,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             clearError("prevLandlordContact");
           }}
         >
-          <Label>Previous Landlord Contact</Label>
+          <Label>{t("apply.tenant.prevLandlordContact")}</Label>
           <Input placeholder="09XX XXX XXXX" className={INPUT_CLASS} />
           <FieldError>{errors.prevLandlordContact}</FieldError>
         </TextField>
@@ -189,10 +203,10 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
 
       <div className="mt-8 flex gap-3">
         <Button variant="outline" className="flex-1" onPress={onBack}>
-          Back
+          {t("apply.back")}
         </Button>
         <Button className="flex-1" onPress={onNext}>
-          Next
+          {t("apply.next")}
         </Button>
       </div>
     </Card>

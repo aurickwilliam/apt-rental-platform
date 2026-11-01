@@ -14,6 +14,10 @@ import {
   ToggleButtonGroup,
 } from "@heroui/react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import type { ApplicationForm, ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
@@ -21,10 +25,10 @@ const NOTES_MAX_LENGTH = 1000;
 
 type YesNoField = "hasPets" | "isSmoker" | "needParking";
 
-const YES_NO_QUESTIONS: { field: YesNoField; title: string }[] = [
-  { field: "hasPets", title: "Do you have pets?" },
-  { field: "isSmoker", title: "Are you a smoker?" },
-  { field: "needParking", title: "Do you need parking?" },
+const YES_NO_QUESTIONS: { field: YesNoField; titleKey: TranslationKey }[] = [
+  { field: "hasPets", titleKey: "apply.prefs.hasPets" },
+  { field: "isSmoker", titleKey: "apply.prefs.smoker" },
+  { field: "needParking", titleKey: "apply.prefs.parking" },
 ];
 
 interface PreferencesStepProps extends ApplicationStepProps {
@@ -42,9 +46,11 @@ export default function PreferencesStep({
   onBack,
   onNext,
 }: PreferencesStepProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
-      <h2 className="mb-5 text-lg font-semibold text-card-foreground">Rental Preferences</h2>
+      <h2 className="mb-5 text-lg font-semibold text-card-foreground">{t("apply.prefs.title")}</h2>
       <div className="flex flex-col gap-5">
         <TextField
           isRequired
@@ -55,11 +61,11 @@ export default function PreferencesStep({
             if (value) clearError("moveInDate");
           }}
         >
-          <Label>Preferred Move-In Date</Label>
+          <Label>{t("apply.prefs.moveInDate")}</Label>
           <Input type="date" className={INPUT_CLASS} />
           <FieldError>{errors.moveInDate}</FieldError>
           {maxOccupants !== null && !errors.moveInDate && (
-            <Description>This unit allows a maximum of {maxOccupants} occupant(s).</Description>
+            <Description>{t("apply.prefs.maxOccupants", { count: maxOccupants })}</Description>
           )}
         </TextField>
 
@@ -76,19 +82,24 @@ export default function PreferencesStep({
             }
           }}
         >
-          <Label>Number of Occupants</Label>
-          <Input type="number" placeholder="Enter number of occupants" inputMode="numeric" className={INPUT_CLASS} />
+          <Label>{t("apply.prefs.occupants")}</Label>
+          <Input
+            type="number"
+            placeholder={t("apply.prefs.occupantsPlaceholder")}
+            inputMode="numeric"
+            className={INPUT_CLASS}
+          />
           <FieldError>{errors.noOccupants}</FieldError>
         </TextField>
 
         <Separator />
 
-        {YES_NO_QUESTIONS.map(({ field, title }) => {
+        {YES_NO_QUESTIONS.map(({ field, titleKey }) => {
           const value = form[field];
           return (
             <div key={field}>
               <Label className="mb-2 block text-sm font-medium text-card-foreground">
-                {title} <span className="text-danger">*</span>
+                {t(titleKey)} <span className="text-danger">*</span>
               </Label>
               <ToggleButtonGroup
                 selectionMode="single"
@@ -101,13 +112,14 @@ export default function PreferencesStep({
                 }}
                 className="flex gap-2"
               >
-                {["Yes", "No"].map((option) => (
+                {/* Stored values stay "yes" / "no"; only the label translates. */}
+                {(["yes", "no"] as const).map((option) => (
                   <ToggleButton
                     key={option}
-                    id={option.toLowerCase()}
+                    id={option}
                     className="rounded-full border px-5 py-2 text-sm font-medium data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-white"
                   >
-                    {option}
+                    {option === "yes" ? t("common.yes") : t("common.no")}
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
@@ -119,24 +131,27 @@ export default function PreferencesStep({
         <Separator />
 
         <TextField value={form.additionalNotes} onChange={(value: string) => onChange({ additionalNotes: value })}>
-          <Label>Additional Notes</Label>
+          <Label>{t("apply.prefs.notes")}</Label>
           <TextArea
-            placeholder="Enter any additional information or preferences"
+            placeholder={t("apply.prefs.notesPlaceholder")}
             rows={5}
             maxLength={NOTES_MAX_LENGTH}
             className={INPUT_CLASS}
           />
           <Description>
-            {form.additionalNotes.length}/{NOTES_MAX_LENGTH} characters
+            {t("apply.prefs.notesCount", {
+              count: form.additionalNotes.length,
+              max: NOTES_MAX_LENGTH,
+            })}
           </Description>
         </TextField>
       </div>
       <div className="mt-8 flex gap-3">
         <Button variant="outline" className="flex-1" onPress={onBack}>
-          Back
+          {t("apply.back")}
         </Button>
         <Button className="flex-1" onPress={onNext}>
-          Next
+          {t("apply.next")}
         </Button>
       </div>
     </Card>
