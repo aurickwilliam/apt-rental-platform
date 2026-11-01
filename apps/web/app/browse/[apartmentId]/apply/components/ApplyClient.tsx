@@ -130,7 +130,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
       {/* Normally caught by the Apply Now modal; covers direct links to this page. */}
       {(step === "tenant" || step === "preferences") && !readiness.loading && readiness.upfrontIssues.length > 0 ? (
         <div className="mb-6">
-          <ApplicationIssues issues={readiness.upfrontIssues} />
+          <ApplicationIssues issues={readiness.upfrontIssues} accountStatus={viewer.accountStatus} />
         </div>
       ) : null}
 
@@ -160,6 +160,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
       {step === "review" && (
         <ReviewStep
           apartment={apartment}
+          accountStatus={viewer.accountStatus}
           form={form}
           totalMoveIn={totalMoveIn}
           readiness={readiness}

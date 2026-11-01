@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button, Card, Spinner, toast } from "@heroui/react";
-import { IconShieldCheck } from "@tabler/icons-react";
+import { IconCircleCheck, IconShieldCheck } from "@tabler/icons-react";
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
-import { SECONDARY_IDS, VALID_IDS } from "@repo/constants";
 
 import { claimVerificationSession, submitVerificationSession } from "../../actions";
-import CameraCapture from "./CameraCapture";
+import MobileVerificationNavigation from "./MobileVerificationNavigation";
+import MobileVerificationPhotoStep from "./MobileVerificationPhotoStep";
+import VerificationIdSelector from "./VerificationIdSelector";
+import { mobileVerificationHref } from "@/lib/mobile-verification-navigation";
 import VerifySubmitConfirm from "../../components/VerifySubmitConfirm";
 import {
   VERIFICATION_BUCKET as BUCKET,
@@ -30,13 +32,22 @@ type Claim =
 
 type Step = "requirements" | "idType" | "front" | "back" | "selfie" | "review";
 
+const STEP_TITLES: Record<Step, string> = {
+  requirements: "Verify your identity",
+  idType: "Select your ID type",
+  front: "ID front",
+  back: "ID back",
+  selfie: "Selfie with your ID",
+  review: "Review your submission",
+};
+
 function revoke(capture: Capture) {
   if (capture) URL.revokeObjectURL(capture.url);
 }
 
 // Claim validates token + owner WITHOUT consuming: the session stays active
 // while the wizard runs. Only the final submit consumes it atomically.
-export default function MobileVerifyClient({ token }: { token: string }) {
+export default function MobileVerifyClient({ token, returnTo = null }: { token: string; returnTo?: string | null }) {
   const [claim, setClaim] = useState<Claim>({ state: "claiming" });
   const [step, setStep] = useState<Step>("requirements");
   const [idType, setIdType] = useState<string | null>(null);
@@ -48,8 +59,10 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const claimRef = useRef(false);
+  const submittingRef = useRef(false);
 
-  const needsBack = idType !== null && idType !== PASSPORT_LABEL;
+  const needsBack = idType !== PASSPORT_LABEL;
+  const capturesReady = Boolean(idType && front && selfie && (!needsBack || back));
 
   const doClaim = useCallback(async () => {
     setClaim({ state: "claiming" });
@@ -101,6 +114,13 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   }, [needsBack]);
 
   const stepNumber = steps.indexOf(step) + 1;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (claim.state !== "ready" || expired || submitted) return;
+    headingRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step, claim.state, expired, submitted]);
 
   const setCapture = useCallback(
     (kind: "front" | "back" | "selfie", file: File) => {
@@ -130,8 +150,33 @@ export default function MobileVerifyClient({ token }: { token: string }) {
     [front, back, selfie, needsBack],
   );
 
+  const retakeCapture = (kind: "front" | "back" | "selfie") => {
+    const capture = { front, back, selfie }[kind];
+    if (capture) { revoke(capture); urlsRef.current.delete(capture.url); }
+    if (kind === "front") setFront(null);
+    else if (kind === "back") setBack(null);
+    else setSelfie(null);
+    setConfirmOpen(false);
+    setStep(kind);
+    headingRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const selectIdType = (value: string) => {
+    if (idType !== value) {
+      urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      urlsRef.current.clear();
+      setFront(null);
+      setBack(null);
+      setSelfie(null);
+      setConfirmOpen(false);
+    }
+    setIdType(value);
+  };
+
   const handleSubmit = useCallback(async () => {
-    if (claim.state !== "ready" || !idType || !front || !selfie || (needsBack && !back)) return;
+    if (submittingRef.current || submitted || claim.state !== "ready" || Date.parse(claim.expiresAt) <= Date.now() || !idType || !front || !selfie || (needsBack && !back)) return;
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       const supabase = createBrowserClient();
@@ -169,9 +214,10 @@ export default function MobileVerifyClient({ token }: { token: string }) {
         { timeout: 0 },
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [claim, idType, front, back, selfie, needsBack, token]);
+  }, [claim, idType, front, back, selfie, needsBack, token, submitted]);
 
   if (claim.state === "claiming") {
     return <LoadingCard message="Checking your verification code..." />;
@@ -181,14 +227,14 @@ export default function MobileVerifyClient({ token }: { token: string }) {
     // Same-account sign-in: `next` carries the opaque token only (no PII),
     // so a successful login returns to this exact page. Signing in never
     // consumes the session -- claim/submit stay read-only until final submit.
-    const resumePath = `/verify/mobile?token=${token}`;
+    const resumePath = mobileVerificationHref(token, returnTo);
     return (
-      <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+      <Card className="mobile-verification-shell">
         <Card.Content className="flex flex-col items-center gap-3 text-center">
           <h1 className="font-nunito text-xl font-bold">Sign in on this phone</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in with the same account you used on your computer, and
-            you&apos;ll return here automatically. Your code stays valid for
+            Sign in with the account that started verification, and
+            you&apos;ll return here automatically. Your link stays valid for
             10 minutes, and nothing is submitted by signing in.
           </p>
           <Button
@@ -210,25 +256,25 @@ export default function MobileVerifyClient({ token }: { token: string }) {
 
   if (claim.state === "error") {
     return (
-      <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+      <Card className="mobile-verification-shell">
         <Card.Content className="flex flex-col items-center gap-3 text-center">
           <h1 className="font-nunito text-xl font-bold">This code can&apos;t be used</h1>
           <p className="text-sm text-muted-foreground">{claim.message}</p>
           <p className="text-sm text-muted-foreground">
-            Ask the desktop page for a fresh code and scan it again.
+            Return to your profile to start a new verification.
           </p>
         </Card.Content>
       </Card>
     );
   }
 
-  if (expired) {
+  if (expired && !submitted) {
     return (
-      <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+      <Card className="mobile-verification-shell">
         <Card.Content className="flex flex-col items-center gap-3 text-center">
           <h1 className="font-nunito text-xl font-bold">This code has expired</h1>
           <p className="text-sm text-muted-foreground">
-            Codes last 10 minutes. Generate a new one on your computer and scan it again.
+            Links last 10 minutes. Return to your profile to start a new verification.
           </p>
         </Card.Content>
       </Card>
@@ -237,7 +283,7 @@ export default function MobileVerifyClient({ token }: { token: string }) {
 
   if (submitted) {
     return (
-      <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+      <Card className="mobile-verification-shell">
         <Card.Content className="flex flex-col items-center gap-3 text-center">
           <IconShieldCheck size={40} className="text-success" aria-hidden="true" />
           <h1 className="font-nunito text-xl font-bold">Your verification has been submitted.</h1>
@@ -248,140 +294,68 @@ export default function MobileVerifyClient({ token }: { token: string }) {
   }
 
   return (
-    <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
-      <Card.Content className="flex flex-col gap-4">
-        <div aria-live="polite">
-          <p className="text-xs text-muted-foreground text-center">
-            Step {stepNumber} of {steps.length}
-          </p>
-          <div
-            className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
-            role="progressbar"
-            aria-valuenow={stepNumber}
-            aria-valuemin={1}
-            aria-valuemax={steps.length}
-            aria-label="Verification progress"
-          >
-            <div
-              className="h-full rounded-full bg-primary transition-[width]"
-              style={{ width: `${(stepNumber / steps.length) * 100}%` }}
-            />
-          </div>
+    <section className="mobile-verification-shell" data-step={step} aria-labelledby="mobile-verification-heading">
+      <header className="mobile-verification-header">
+        <div className="mobile-verification-step-line">
+          <span className="mobile-verification-brand"><IconShieldCheck size={18} aria-hidden="true" />APT Passport</span>
+          <span>Step {stepNumber} of {steps.length}</span>
         </div>
+        <div className="mobile-verification-progress" role="progressbar" aria-valuenow={stepNumber} aria-valuemin={1} aria-valuemax={steps.length} aria-label="Verification progress" aria-valuetext={`Step ${stepNumber} of ${steps.length}: ${STEP_TITLES[step]}`}>
+          <div style={{ width: `${(stepNumber / steps.length) * 100}%` }} />
+        </div>
+        <h1 id="mobile-verification-heading" ref={headingRef} tabIndex={-1} className="mobile-verification-title">{STEP_TITLES[step]}</h1>
+      </header>
 
-        {step === "requirements" && (
-          <div className="flex flex-col gap-3">
-            <h1 className="font-nunito text-xl font-bold text-center">Verify your identity</h1>
-            <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm text-muted-foreground">
-              <li>A valid Philippine government ID.</li>
-              <li>Capture the ID front clearly (plus the back, except for Passport).</li>
-              <li>Hold your ID beside your face with your full face visible.</li>
-              <li>Find good lighting and avoid glare.</li>
-            </ul>
-            <Button type="button" variant="primary" onPress={() => setStep("idType")}>
-              Continue
-            </Button>
-          </div>
-        )}
+      {step === "requirements" ? <>
+        <p className="mobile-verification-description">Have your ID ready. You&apos;ll take:</p>
+        <ul className="mobile-verification-instructions">
+          <li>Clear photos of your valid Philippine government ID, front and back. Passport needs the front only.</li>
+          <li>A selfie holding your ID beside your face, with your full face visible.</li>
+        </ul>
+        <p className="mobile-verification-description">Use your camera in good lighting and avoid glare. Your photos go to our team for review.</p>
+        <MobileVerificationNavigation onContinue={() => setStep("idType")} />
+      </> : null}
 
-        {step === "idType" && (
-          <div className="flex flex-col gap-3">
-            <h1 className="font-nunito text-xl font-bold text-center">Select your ID type</h1>
-            <div className="flex flex-col gap-2">
-              {VALID_IDS.map((id) => (
-                <Button
-                  key={id}
-                  type="button"
-                  variant={idType === id ? "primary" : "outline"}
-                  onPress={() => setIdType(id)}
-                  className="justify-start"
-                >
-                  {id}
-                </Button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground text-center">Secondary IDs</p>
-            <div className="flex flex-col gap-2">
-              {SECONDARY_IDS.map((id) => (
-                <Button
-                  key={id}
-                  type="button"
-                  variant={idType === id ? "primary" : "outline"}
-                  onPress={() => setIdType(id)}
-                  className="justify-start"
-                >
-                  {id}
-                </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" onPress={() => setStep("requirements")} className="flex-1">
-                Back
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                onPress={() => setStep("front")}
-                isDisabled={!idType}
-                className="flex-1"
-              >
-                Continue
-              </Button>
-            </div>
-          </div>
-        )}
+      {step === "idType" ? <>
+        <p className="mobile-verification-description">Choose the document you&apos;ll photograph.</p>
+        <VerificationIdSelector value={idType} onChange={selectIdType} />
+        <MobileVerificationNavigation onBack={() => setStep("requirements")} onContinue={() => setStep("front")} isDisabled={!idType} />
+      </> : null}
 
-        {step === "front" && (
-          <CameraCapture
-            facing="environment"
-            guide="Align your ID front inside the frame, then capture."
-            onCapture={(file) => setCapture("front", file)}
-            onCancel={() => setStep("idType")}
-          />
-        )}
+      {step === "front" ? <MobileVerificationPhotoStep
+        capture={front} label="ID front" facing="environment" guide="Align your ID front inside the frame, then capture."
+        onCapture={file => setCapture("front", file)} onRetake={() => retakeCapture("front")}
+        onBack={() => setStep("idType")} onContinue={() => setStep(needsBack ? "back" : "selfie")}
+      /> : null}
+      {step === "back" ? <MobileVerificationPhotoStep
+        capture={back} label="ID back" facing="environment" guide="Flip your ID over and capture the back."
+        onCapture={file => setCapture("back", file)} onRetake={() => retakeCapture("back")}
+        onBack={() => setStep("front")} onContinue={() => setStep("selfie")}
+      /> : null}
+      {step === "selfie" ? <MobileVerificationPhotoStep
+        capture={selfie} label="Selfie holding ID" facing="user" guide="Hold your ID beside your face with your full face visible."
+        onCapture={file => setCapture("selfie", file)} onRetake={() => retakeCapture("selfie")}
+        onBack={() => setStep(needsBack ? "back" : "front")} onContinue={() => setStep("review")}
+      /> : null}
 
-        {step === "back" && (
-          <CameraCapture
-            facing="environment"
-            guide="Flip your ID over and capture the back."
-            onCapture={(file) => setCapture("back", file)}
-            onCancel={() => setStep("front")}
-          />
-        )}
-
-        {step === "selfie" && (
-          <CameraCapture
-            facing="user"
-            guide="Hold your ID beside your face with your full face visible."
-            onCapture={(file) => setCapture("selfie", file)}
-            onCancel={() => setStep(needsBack ? "back" : "front")}
-          />
-        )}
-
-        {step === "review" && (
-          <div className="flex flex-col gap-3">
-            <h1 className="font-nunito text-xl font-bold text-center">Review your submission</h1>
+      {step === "review" ? <>
+        <p className="mobile-verification-description">Check that your ID is readable and your face is clear.</p>
+        <div className="mobile-verification-review">
             <PreviewRow
               label="ID front"
               capture={front}
-              onRetake={() => setStep("front")}
+              onRetake={() => retakeCapture("front")}
             />
             {needsBack && (
-              <PreviewRow label="ID back" capture={back} onRetake={() => setStep("back")} />
+              <PreviewRow label="ID back" capture={back} onRetake={() => retakeCapture("back")} />
             )}
             <PreviewRow
               label="Selfie holding ID"
               capture={selfie}
-              onRetake={() => setStep("selfie")}
+              onRetake={() => retakeCapture("selfie")}
             />
-            <Button
-              type="button"
-              variant="primary"
-              onPress={() => setConfirmOpen(true)}
-              isDisabled={isSubmitting}
-            >
-              Submit for Review
-            </Button>
+        </div>
+        <MobileVerificationNavigation onBack={() => setStep("selfie")} onContinue={() => setConfirmOpen(true)} label="Submit for Review" isDisabled={!capturesReady} isPending={isSubmitting} />
             <VerifySubmitConfirm
               open={confirmOpen}
               isSubmitting={isSubmitting}
@@ -393,16 +367,14 @@ export default function MobileVerifyClient({ token }: { token: string }) {
               }}
               onClose={() => setConfirmOpen(false)}
             />
-          </div>
-        )}
-      </Card.Content>
-    </Card>
+      </> : null}
+    </section>
   );
 }
 
 function LoadingCard({ message }: { message: string }) {
   return (
-    <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+    <Card className="mobile-verification-shell">
       <Card.Content className="flex items-center justify-center gap-2 py-10">
         <Spinner size="sm" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">{message}</p>
@@ -421,7 +393,7 @@ function PreviewRow({
   onRetake: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border p-2">
+    <div className="flex items-center gap-3 rounded-xl border border-border p-3">
       {capture ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -434,8 +406,8 @@ function PreviewRow({
           <p className="text-xs text-muted-foreground">Missing</p>
         </div>
       )}
-      <p className="flex-1 text-sm font-medium">{label}</p>
-      <Button type="button" variant="outline" size="sm" onPress={onRetake}>
+      <div className="min-w-0 flex-1"><p className="text-sm font-medium">{label}</p>{capture ? <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><IconCircleCheck size={14} aria-hidden="true" />Captured</span> : null}</div>
+      <Button type="button" variant="outline" size="sm" onPress={onRetake} aria-label={`Retake ${label}`}>
         Retake
       </Button>
     </div>

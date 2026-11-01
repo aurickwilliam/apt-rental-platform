@@ -73,8 +73,10 @@ export default function VerifySubmitConfirm({
                   type="button"
                   variant="primary"
                   size="sm"
-                  onPress={onConfirm}
-                  isDisabled={isSubmitting}
+                  onPress={() => {
+                    if (!isSubmitting && idPhotosReady && selfieReady) onConfirm();
+                  }}
+                  isDisabled={isSubmitting || !idPhotosReady || !selfieReady}
                   isPending={isSubmitting}
                   className="w-[95%] px-6 text-sm font-semibold @[360px]:w-auto"
                 >

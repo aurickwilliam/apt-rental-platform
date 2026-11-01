@@ -96,6 +96,10 @@ export default function PropertyDetailsSheet({
   const [viewingLease, setViewingLease] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(openEditMode);
+  // The drawer's overlay layer owns any dialog opened from inside it. React
+  // sets this once the layer is in the DOM, so the nested dialog never mounts
+  // in the same commit as the drawer (see EditPropertyModal.portalContainer).
+  const [drawerOverlay, setDrawerOverlay] = useState<HTMLDivElement | null>(null);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
@@ -227,7 +231,11 @@ export default function PropertyDetailsSheet({
     <>
       <Drawer.Root state={drawerState}>
         <Drawer.Trigger className="hidden" />
-        <Drawer.Backdrop isDismissable={!isAnyModalOpen} className="z-50">
+        <Drawer.Backdrop
+          ref={setDrawerOverlay}
+          isDismissable={!isAnyModalOpen}
+          className="z-50"
+        >
           <Drawer.Content placement="right" className="z-60">
             <Drawer.Dialog className="flex h-full flex-col p-0 w-125 max-w-[90vw]">
               <Drawer.Body className="flex-1 overflow-y-auto p-0">
@@ -539,10 +547,11 @@ export default function PropertyDetailsSheet({
         amenityIds={selected?.amenities}
       />
 
-      {selected && (
+      {selected && drawerOverlay && (
         <EditPropertyModal
           isOpen={editModalOpen}
           property={selected}
+          portalContainer={drawerOverlay}
           onClose={() => setEditModalOpen(false)}
           onSaved={(updated) => {
             onUpdate(updated);
