@@ -161,7 +161,21 @@ module.exports = {
           sounds: [],
         },
       ],
-      "@maplibre/maplibre-react-native",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            // The same list for every Android build (never read from the build
+            // environment): the OTA fingerprint hashes this block, and `eas update`
+            // runs outside a build profile. 32-bit and x86 devices are not supported.
+            buildArchs: ["arm64-v8a"],
+            enableMinifyInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+            // Stores the .so files deflated in the APK (smaller download).
+            useLegacyPackaging: true,
+          },
+        },
+      ],
       [
         "react-native-maps",
         {
