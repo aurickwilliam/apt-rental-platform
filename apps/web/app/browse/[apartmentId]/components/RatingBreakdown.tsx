@@ -2,7 +2,9 @@
 
 import { Meter } from "@heroui/react";
 
-import { IconStar, IconStarFilled } from "@tabler/icons-react";
+import { IconStarFilled } from "@tabler/icons-react";
+
+import StarRating from "@/app/components/display/StarRating";
 
 interface RatingBreakdownProps {
   overallRate: number;
@@ -32,35 +34,15 @@ export default function RatingBreakdown({
           {overallRate}
         </h3>
 
-        <div className="mt-2 flex flex-wrap justify-center gap-2">
-          {[1, 2, 3, 4, 5].map((i) => {
-            const filled = overallRate >= i;
-            const half = !filled && overallRate >= i - 0.5;
-
-            return (
-              <span key={i} className="relative inline-flex">
-                {/* Empty star (base) */}
-                <IconStar size={22} className="text-rating" />
-                {/* Filled overlay — full or half */}
-                {(filled || half) && (
-                  <span
-                    className={`absolute inset-0 overflow-hidden ${half ? "w-1/2" : "w-full"}`}
-                  >
-                    <IconStarFilled size={22} className="text-rating" />
-                  </span>
-                )}
-              </span>
-            );
-          })}
-        </div>
+        <StarRating
+          rating={overallRate}
+          size={22}
+          className="mt-2 flex flex-wrap justify-center gap-2"
+        />
 
         <div className="mt-2 text-center">
-          <p className="font-nunito text-base font-semibold text-card-foreground">
-            Overall Rating
-          </p>
-
           <p className="text-sm text-muted-foreground">
-            Based on {totalReviews} reviews
+            Based on {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
           </p>
         </div>
       </div>
@@ -81,7 +63,7 @@ export default function RatingBreakdown({
 
             <Meter
               value={totalReviews > 0 ? (count / totalReviews) * 100 : 0}
-              aria-label={`${label} Star`}
+              aria-label={`${label} star${label === 1 ? "" : "s"}: ${count} of ${totalReviews} ${totalReviews === 1 ? "review" : "reviews"}`}
               className="flex-1 min-w-0"
               color="accent"
             >
@@ -91,7 +73,7 @@ export default function RatingBreakdown({
             </Meter>
 
             <p className="w-16 shrink-0 text-right text-sm text-muted-foreground sm:w-20">
-              {count} reviews
+              {count} {count === 1 ? "review" : "reviews"}
             </p>
           </div>
         ))}

@@ -31,9 +31,9 @@ export default function ApartmentGallery({ name, images, imagesError, backHref =
     <>
       <div className="relative h-56 w-full bg-muted sm:h-72">
         {cover && !imagesError ? (
-          <button type="button" onClick={() => openGallery(0)} className="absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary" aria-label={`View photos of ${name}`}>
+          <Button variant="ghost" onClick={() => openGallery(0)} className="button--bare absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary" aria-label={`View photos of ${name}`}>
             <Image src={cover.url} alt={`${name} cover`} fill unoptimized className="object-cover" />
-          </button>
+          </Button>
         ) : (
           <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
             <IconPhoto size={20} aria-hidden="true" />

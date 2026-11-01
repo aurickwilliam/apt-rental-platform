@@ -31,6 +31,7 @@ import { useReconciledAction } from "@/hooks/use-reconciled-action";
 import ReconciliationNotice from "@/app/components/display/ReconciliationNotice";
 
 import { getVisitStatusChipColor, getVisitStatusLabel } from "../lib/visit-status-styles";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
@@ -167,7 +168,7 @@ function LandlordVisitRequestDetailContent() {
         <div className="flex flex-col gap-4 min-w-0">
           {request.apartment.cover_url ? (
             <div className="relative rounded-3xl overflow-hidden border border-border h-56 lg:h-72">
-              <Image src={request.apartment.cover_url} alt={request.apartment.name} fill unoptimized className="object-cover" />
+              <Image src={request.apartment.cover_url} alt={request.apartment.name} fill sizes="(max-width: 1024px) 100vw, 66vw" unoptimized={!canOptimizePublicApartmentImage(request.apartment.cover_url)} className="object-cover" />
             </div>
           ) : (
             <div className="rounded-3xl border border-border h-56 lg:h-72 bg-muted flex items-center justify-center">

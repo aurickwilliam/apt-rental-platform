@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import { PH_ZIP_DATABASE, isZipPlausibleForCity } from "@repo/constants";
-import type { PHLocation } from "@repo/constants";
+import { getZipCityWarning } from "@repo/constants";
 
 // Philippine ZIP codes are exactly 4 digits (1000–9999)
 const PH_ZIP_PATTERN = /^\d{4}$/;
@@ -11,23 +10,19 @@ function isValidPHZip(zip: string): boolean {
   return num >= 1000 && num <= 9999;
 }
 
-function lookupLocation(zip: string): PHLocation | null {
-  return PH_ZIP_DATABASE.find((loc) => loc.zip === zip) ?? null;
-}
-
 interface UsePHPostalCodeReturn {
   /** Current input value */
   value: string;
   /** Imperatively set the value (e.g. for resetting) */
   setValue: (value: string) => void;
-  /** True when the 4-digit zip passes format AND range check */
+  /** True when the value is a 4-digit ZIP (1000–9999); a city mismatch only warns */
   isValid: boolean;
   /** True after the user has blurred the field at least once */
   isTouched: boolean;
   /** Validation error — only shown after the field is touched */
   error: string | null;
-  /** Matched location from database (city, province, region), or null */
-  location: PHLocation | null;
+  /** Non-blocking note when a well-formed ZIP is not one we recognize for the city */
+  warning: string | null;
   /** Attach to onChange / onChangeText */
   handleChange: (value: string) => void;
   /** Attach to onBlur */
@@ -41,11 +36,11 @@ interface UsePHPostalCodeReturn {
 interface UsePHPostalCodeOptions {
   /** Initial value */
   defaultValue?: string;
-  /** When both are set, the ZIP must also fit this city (see isZipPlausibleForCity) */
+  /** When both are set, a ZIP we do not recognize for this city gets a warning (never an error) */
   city?: string;
   province?: string;
   /** Fires on every change with the new value and validity */
-  onChange?: (value: string, isValid: boolean, location: PHLocation | null) => void;
+  onChange?: (value: string, isValid: boolean) => void;
 }
 
 
@@ -55,16 +50,10 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
   const [value, setValue] = useState<string>(defaultValue);
   const [isTouched, setIsTouched] = useState<boolean>(false);
 
-  const matchesCity =
-    !city || !province || !isValidPHZip(value) || isZipPlausibleForCity(city, province, value);
-  const isValid = isValidPHZip(value) && matchesCity;
-  const location = isValid ? lookupLocation(value) : null;
+  const isValid = isValidPHZip(value);
+  const warning = city && province && isValid ? getZipCityWarning(city, province, value) : null;
 
   const error: string | null = (() => {
-    // A complete ZIP that does not fit the chosen city is flagged right away.
-    if (value.length === 4 && isValidPHZip(value) && !matchesCity) {
-      return `Enter a valid postal code for ${city}.`;
-    }
     if (!isTouched) return null;
     if (value.length === 0) return "ZIP code is required.";
     if (!/^\d+$/.test(value)) return "ZIP code must contain numbers only.";
@@ -78,9 +67,7 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
       // Strip non-digits and cap at 4 characters
       const cleaned = raw.replace(/\D/g, "").slice(0, 4);
       setValue(cleaned);
-      const valid = isValidPHZip(cleaned);
-      const loc = valid ? lookupLocation(cleaned) : null;
-      onChange?.(cleaned, valid, loc);
+      onChange?.(cleaned, isValidPHZip(cleaned));
     },
     [onChange]
   );
@@ -103,7 +90,7 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
     isValid,
     isTouched,
     error,
-    location,
+    warning,
     handleChange,
     handleBlur,
     validate,
@@ -111,5 +98,5 @@ function usePHPostalCode(options: UsePHPostalCodeOptions = {}): UsePHPostalCodeR
   };
 }
 
-export { usePHPostalCode, isValidPHZip, lookupLocation };
+export { usePHPostalCode, isValidPHZip };
 export type { UsePHPostalCodeOptions, UsePHPostalCodeReturn };

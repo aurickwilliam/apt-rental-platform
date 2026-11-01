@@ -2,15 +2,22 @@
 
 import { useEffect, useState } from "react";
 
-import Image from "next/image";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 
-import { Button, Card, Chip, Dropdown, Label, Separator, useOverlayState } from "@heroui/react";
-import { IconCalendar, IconChevronDown, IconHome, IconMapPin, IconMessage, IconUser } from "@tabler/icons-react";
+import { Button, Card, Dropdown, Label, useOverlayState } from "@heroui/react";
+import {
+  IconArrowLeft as ArrowLeft,
+  IconChevronDown,
+  IconLock,
+  IconMessage,
+  IconStar,
+} from "@tabler/icons-react";
 
-import BackBtn from "./BackBtn";
 import RateApartmentModal from "./RateApartmentModal";
 import RatingBreakdown from "./RatingBreakdown";
+import RatingsListingCard from "./RatingsListingCard";
+import RatingsPageSkeleton from "./RatingsPageSkeleton";
 import ReviewCard from "./ReviewCard";
 import {
   useApartmentReviews,
@@ -18,13 +25,9 @@ import {
 } from "@/hooks/use-apartment-reviews";
 import {
   fetchRateApartmentHeader,
-  fetchReviewTenancy,
-  formatStayPeriod,
   type RateApartmentHeader,
 } from "@/service/reviewsService";
-import StatusChip from "@/app/components/display/StatusChip";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
-import { statusToneFor } from "@/lib/status-tone";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   "Most Recent",
@@ -40,12 +43,9 @@ function formatReviewDate(iso: string): string {
   });
 }
 
-function formatApartmentStatus(status: string | null): string {
-  return (status ?? "unknown").replace(/_/g, " ");
-}
-
 export default function ApartmentRatingsView() {
   const { apartmentId } = useParams<{ apartmentId: string }>();
+  const pathname = usePathname();
   const reviewModal = useOverlayState();
   const [modalMode, setModalMode] = useState<{ tenancyId?: string | null; reviewId?: string | null }>({});
 
@@ -63,7 +63,6 @@ export default function ApartmentRatingsView() {
     stayLocked,
     checkingEligibility,
     reviewableTenancyId,
-    lockedTenancyId,
     existingReview,
     refresh,
   } = useApartmentReviews(apartmentId);
@@ -93,35 +92,12 @@ export default function ApartmentRatingsView() {
     ? [aptHeader.street_address, aptHeader.barangay, aptHeader.city].filter(Boolean).join(", ")
     : "";
 
-  const [stay, setStay] = useState<{ id: string; label: string } | null>(null);
-
-  const viewerTenancyId = reviewableTenancyId ?? existingReview?.tenancyId ?? lockedTenancyId ?? null;
-
-  useEffect(() => {
-    if (!viewerTenancyId) return;
-    let cancelled = false;
-    const run = async () => {
-      try {
-        const lease = await fetchReviewTenancy(viewerTenancyId);
-        if (cancelled) return;
-        const label = formatStayPeriod(lease.lease_start, lease.lease_end);
-        setStay(label ? { id: viewerTenancyId, label } : null);
-      } catch {
-        if (!cancelled) setStay(null);
-      }
-    };
-    void run();
-    return () => {
-      cancelled = true;
-    };
-  }, [viewerTenancyId]);
-
-  const stayLabel = stay && stay.id === viewerTenancyId ? stay.label : null;
-
+  const listingHref = `${pathname.startsWith("/tenant/") ? "/tenant/browse" : "/browse"}/${apartmentId}`;
 
   const showReviewButton = !checkingEligibility && canReview;
   const showEditButton = !checkingEligibility && canEdit;
   const showLockedHint = !checkingEligibility && stayLocked;
+  const showHeaderAction = showReviewButton || showEditButton;
 
   const handleWriteReview = () => {
     setModalMode({ tenancyId: reviewableTenancyId, reviewId: null });
@@ -134,206 +110,200 @@ export default function ApartmentRatingsView() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full px-3 py-4 sm:px-4">
-        <BackBtn />
-        <div className="mt-4">
-          <h1 className="font-nunito text-2xl font-bold md:text-3xl">Ratings & Reviews</h1>
-        </div>
-        <p className="mt-6 text-sm text-muted-foreground">Loading reviews…</p>
-      </div>
-    );
+    return <RatingsPageSkeleton />;
   }
 
   return (
-    <div className="w-full px-3 py-4 sm:px-4">
-      <BackBtn />
+    <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <Link
+            href={listingHref}
+            className="inline-flex w-fit items-center gap-1.5 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            Back to listing
+          </Link>
 
-      <div className="mt-4">
-        <h1 className="font-nunito text-2xl font-bold md:text-3xl">Ratings & Reviews</h1>
-      </div>
+          <h1 className="mt-2 font-nunito text-2xl font-bold md:text-3xl">
+            Ratings &amp; Reviews
+          </h1>
 
-      {aptHeaderError && <p className="mt-4 text-sm text-red-600">{aptHeaderError}</p>}
-
-      {aptHeader ? (
-        <Card className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-            <div className="h-48 w-full shrink-0 overflow-hidden rounded-2xl sm:h-56 sm:w-[38%] lg:h-64">
-              <Image
-                src={aptHeader.coverImage ?? "/default/default-thumbnail.jpeg"}
-                alt={aptHeader.name}
-                width={1200}
-                height={256}
-                unoptimized
-                className="size-full object-cover"
-              />
-            </div>
-
-            <div className="flex min-w-0 flex-1 flex-col">
-              {aptHeader.status && (
-                <StatusChip
-                  tone={statusToneFor(aptHeader.status)}
-                  className="self-start capitalize"
-                >
-                  <Chip.Label className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-current" />
-                    {formatApartmentStatus(aptHeader.status)}
-                  </Chip.Label>
-                </StatusChip>
-              )}
-
-              <h2 className="mt-2 font-nunito text-2xl font-semibold text-card-foreground">
-                {aptHeader.name}
-              </h2>
-              <p className="mt-1 flex items-center gap-1.5 text-base text-muted-foreground">
-                <IconMapPin size={16} className="shrink-0" />
-                {aptAddress}
-              </p>
-
-              <Separator className="my-4" />
-
-              <div className="flex flex-col gap-3 lg:flex-row lg:gap-0 lg:divide-x lg:divide-border">
-                <div className="flex items-start gap-2 lg:flex-1 lg:pr-4">
-                  <IconUser size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <Label className="text-sm font-medium text-muted-foreground">Landlord</Label>
-                    <span className="text-base font-medium text-card-foreground">
-                      {aptHeader.landlordName}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 lg:flex-1 lg:px-4">
-                  <IconHome size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <Label className="text-sm font-medium text-muted-foreground">Apartment Type</Label>
-                    <span className="text-base font-medium text-card-foreground">
-                      {aptHeader.type ?? "—"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 lg:flex-1 lg:pl-4">
-                  <IconCalendar size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <Label className="text-sm font-medium text-muted-foreground">Duration of Stay</Label>
-                    <span className="text-base font-medium text-card-foreground">
-                      {stayLabel ?? "—"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ) : (
-        !aptHeaderError && (
-          <p className="mt-4 text-sm text-muted-foreground">Loading apartment details…</p>
-        )
-      )}
-
-      {!error && totalReviews > 0 && (
-        <Card className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-          <RatingBreakdown
-            overallRate={overallRating}
-            totalReviews={totalReviews}
-            no5Star={countFor(5)}
-            no4Star={countFor(4)}
-            no3Star={countFor(3)}
-            no2Star={countFor(2)}
-            no1Star={countFor(1)}
-          />
-        </Card>
-      )}
-
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <h2 className="font-nunito text-lg font-semibold">Tenant Reviews</h2>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {showReviewButton && (
-            <Button size="sm" onPress={handleWriteReview}>
-              Write a Review
-            </Button>
-          )}
-
-          {showEditButton && (
-            <Button size="sm" onPress={handleEditReview}>
-              Edit Review
-            </Button>
-          )}
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tenant feedback for {aptHeader?.name ?? "this apartment"}.
+          </p>
 
           {showLockedHint && (
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <IconLock size={14} aria-hidden="true" />
               Reviews unlock after 3 months of stay.
             </p>
           )}
+        </div>
 
-          {totalReviews > 0 && (
-            <Dropdown>
-              <Button variant="outline" size="sm" className="h-9 rounded-full">
-                {sortBy}
-                <IconChevronDown size={16} />
+        {showHeaderAction && (
+          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
+            {showReviewButton && (
+              <Button className="w-full sm:w-auto" onPress={handleWriteReview}>
+                Write a Review
               </Button>
+            )}
+            {showEditButton && (
+              <Button className="w-full sm:w-auto" onPress={handleEditReview}>
+                Edit Review
+              </Button>
+            )}
+          </div>
+        )}
+      </header>
 
-              <Dropdown.Popover>
-                <Dropdown.Menu
-                  selectionMode="single"
-                  selectedKeys={new Set([sortBy])}
-                  onAction={(key) => setSortBy(key as ReviewSortOption)}
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <Dropdown.Item key={option} id={option} textValue={option}>
-                      <Dropdown.ItemIndicator />
-                      <Label>{option}</Label>
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown.Popover>
-            </Dropdown>
+      <div className="mt-6 grid min-w-0 items-start gap-4 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[22rem_minmax(0,1fr)]">
+        <aside
+          className="grid min-w-0 gap-4 md:grid-cols-2 lg:grid-cols-1"
+          aria-label="Apartment details and rating summary"
+        >
+          {aptHeader ? (
+            <RatingsListingCard
+              name={aptHeader.name}
+              status={aptHeader.status}
+              address={aptAddress}
+              landlordName={aptHeader.landlordName}
+              type={aptHeader.type}
+              coverImage={aptHeader.coverImage}
+              listingHref={listingHref}
+            />
+          ) : aptHeaderError ? (
+            <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+              <p className="text-sm text-muted-foreground">{aptHeaderError}</p>
+            </Card>
+          ) : (
+            <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+              <p className="text-sm text-muted-foreground">Loading apartment details…</p>
+            </Card>
           )}
-        </div>
-      </div>
 
-      {error ? (
-        <ErrorBanner message={error}>
-          <Button size="sm" variant="outline" onPress={refresh}>Retry</Button>
-        </ErrorBanner>
-      ) : totalReviews === 0 ? (
-        <Card className="mt-5 rounded-3xl border border-border bg-card shadow-none">
-          <Card.Content className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
-            <span className="rounded-full bg-muted p-5">
-              <IconMessage size={36} className="text-muted-foreground" />
-            </span>
-            <div className="space-y-1">
-              <p className="font-nunito text-lg font-bold">
-                No reviews yet. Be the first to share your experience!
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Your review helps other tenants find their place to thrive.
-              </p>
-            </div>
-
-            {showReviewButton && <Button onPress={handleWriteReview}>Write a Review</Button>}
-            {showEditButton && <Button onPress={handleEditReview}>Edit Review</Button>}
-          </Card.Content>
-        </Card>
-      ) : (
-        <div className="mt-5 columns-1 gap-3 md:columns-2">
-          {reviews.map((review) => (
-            <div key={review.id} className="mb-3 break-inside-avoid">
-              <ReviewCard
-                reviewerName={review.name}
-                reviewerAvatar={review.profilePictureUrl}
-                reviewDate={formatReviewDate(review.date)}
-                reviewText={review.review}
-                stayPeriod={review.stayPeriod}
-                rating={review.rating}
-                images={review.images}
+          {error ? null : totalReviews > 0 ? (
+            <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+              <RatingBreakdown
+                layout="stacked"
+                overallRate={overallRating}
+                totalReviews={totalReviews}
+                no5Star={countFor(5)}
+                no4Star={countFor(4)}
+                no3Star={countFor(3)}
+                no2Star={countFor(2)}
+                no1Star={countFor(1)}
               />
+            </Card>
+          ) : (
+            <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
+              <div className="flex flex-col items-center gap-3 px-2 py-6 text-center">
+                <span className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <IconStar size={28} aria-hidden="true" />
+                </span>
+                <div className="space-y-1">
+                  <p className="font-nunito text-base font-semibold text-card-foreground">
+                    No ratings yet
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Ratings will appear after tenants review this apartment.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+        </aside>
+
+        <section className="flex min-w-0 flex-col gap-4" aria-labelledby="tenant-reviews-heading">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
+              <h2
+                id="tenant-reviews-heading"
+                className="font-nunito text-lg font-semibold"
+              >
+                Tenant Reviews
+              </h2>
+              {totalReviews > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+                </span>
+              )}
             </div>
-          ))}
-        </div>
-      )}
+
+            {totalReviews > 0 && (
+              <Dropdown>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full"
+                  aria-label={`Sort reviews: ${sortBy}`}
+                >
+                  {sortBy}
+                  <IconChevronDown size={16} aria-hidden="true" />
+                </Button>
+
+                <Dropdown.Popover>
+                  <Dropdown.Menu
+                    aria-label="Sort reviews"
+                    selectionMode="single"
+                    selectedKeys={new Set([sortBy])}
+                    onAction={(key) => setSortBy(key as ReviewSortOption)}
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <Dropdown.Item key={option} id={option} textValue={option}>
+                        <Dropdown.ItemIndicator />
+                        <Label>{option}</Label>
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
+            )}
+          </div>
+
+          {error ? (
+            <ErrorBanner message={error}>
+              <Button size="sm" variant="outline" onPress={refresh}>
+                Retry
+              </Button>
+            </ErrorBanner>
+          ) : totalReviews === 0 ? (
+            <Card className="rounded-3xl border border-border bg-card shadow-none">
+              <Card.Content className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
+                <span className="rounded-full bg-muted p-5">
+                  <IconMessage size={36} className="text-muted-foreground" aria-hidden="true" />
+                </span>
+                <div className="space-y-1">
+                  <p className="font-nunito text-lg font-bold">
+                    No reviews yet. Be the first to share your experience!
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Your review helps other tenants find their place to thrive.
+                  </p>
+                </div>
+
+                {showReviewButton && <Button onPress={handleWriteReview}>Write a Review</Button>}
+                {showEditButton && <Button onPress={handleEditReview}>Edit Review</Button>}
+              </Card.Content>
+            </Card>
+          ) : (
+            <div className="flex min-w-0 flex-col gap-3">
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  reviewerName={review.name}
+                  reviewerAvatar={review.profilePictureUrl}
+                  reviewDate={formatReviewDate(review.date)}
+                  reviewText={review.review}
+                  stayPeriod={review.stayPeriod}
+                  rating={review.rating}
+                  images={review.images}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
 
       <RateApartmentModal
         apartmentId={apartmentId}

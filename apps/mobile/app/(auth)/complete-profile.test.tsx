@@ -48,6 +48,8 @@ describe("CompleteProfile screen (email sign-up)", () => {
   it("shows required errors, including the passwords, and creates no account", async () => {
     render(<CompleteProfile />);
 
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
     fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getAllByText("This field is required").length).toBeGreaterThan(2));
@@ -59,6 +61,8 @@ describe("CompleteProfile screen (email sign-up)", () => {
 
     fireEvent.changeText(screen.getByPlaceholderText("Create a password"), "Passw0rd!");
     fireEvent.changeText(screen.getByPlaceholderText("Confirm your password"), "Different1!");
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
     fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getByText("Passwords do not match")).toBeTruthy());

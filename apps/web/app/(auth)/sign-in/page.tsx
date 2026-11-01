@@ -59,7 +59,7 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
             src="/logo/logo-name.svg"
             alt="APT Logo"
             width={150}
-            height={100}
+            height={69}
           />
         </div>
       </aside>

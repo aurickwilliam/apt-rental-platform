@@ -20,6 +20,7 @@ function load(file, extra = {}) {
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
+    "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
     "@/service/signOutService": { signOut: () => {} },
     "./SidebarLinkPending": { default: () => null },
@@ -265,6 +266,7 @@ test("Property reviews link prefetches on pointer and keyboard intent", () => {
 test("Shared rating breakdown keeps its default layout while supporting a stacked landlord summary", () => {
   const { default: Breakdown } = load("browse/[apartmentId]/components/RatingBreakdown.tsx", {
     "@heroui/react": { Meter: compound("Meter", ["Track", "Fill"]) },
+    "@/app/components/display/StarRating": { default: "StarRating" },
   });
   const props = { overallRate: 4, totalReviews: 1, no5Star: 0, no4Star: 1, no3Star: 0, no2Star: 0, no1Star: 0 };
   assert.ok(Breakdown(props).props.className.includes("sm:flex-row"));
@@ -415,6 +417,6 @@ test("opening mobile menu warms only opted-in routes; selection uses client navi
   drawer.props.state.onOpenChange(true);
   assert.deepEqual(harness.prefetched, ["/landlord/dashboard", "/landlord/properties", "/landlord/applications", "/landlord/maintenance-requests", "/landlord/payments"]);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  elements.find(node => node.type === "button" && labelOf(node) === "My Properties").props.onClick();
+  elements.find(node => node.type === "Button" && node.props.className?.includes("button--bare") && labelOf(node) === "My Properties").props.onClick();
   assert.deepEqual(harness.pushed, ["/landlord/properties"]);
 });

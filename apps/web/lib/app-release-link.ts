@@ -59,6 +59,49 @@ export async function checkDownloadLink(
   return { state: "unreachable" };
 }
 
+/** A web page (or other text) is never an APK: the link points at a release page, not the file. */
+function isTextResponse(response: Response): boolean {
+  const type = response.headers.get("content-type")?.toLowerCase() ?? "";
+  return type.startsWith("text/") || type.includes("html") || type.includes("json");
+}
+
+/**
+ * Opens the file behind a published link for streaming to a visitor. Follows
+ * redirects hop by hop under the same public-https rule as the link check;
+ * null when the file cannot be reached or the link serves a web page instead.
+ */
+export async function openDownloadStream(
+  link: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Response | null> {
+  let current = parseCheckableUrl(link);
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    if (!current) return null;
+    try {
+      const response = await fetchImpl(current, {
+        method: "GET",
+        redirect: "manual",
+        cache: "no-store",
+        signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
+      });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        current = location ? parseCheckableUrl(new URL(location, current).toString()) : null;
+        continue;
+      }
+      if (!response.ok || !response.body) return null;
+      if (isTextResponse(response)) {
+        await response.body.cancel();
+        return null;
+      }
+      return response;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 export function formatBytes(bytes: number): string {
   return bytes >= BYTES_PER_MB ? `${Math.round(bytes / BYTES_PER_MB)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }

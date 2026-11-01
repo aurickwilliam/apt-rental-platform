@@ -187,28 +187,28 @@ export default function NotificationDrawer({
 
             <div className="flex items-center gap-1 border-b border-divider px-4 py-2">
               {(["all", "unread"] as const).map((value) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={value}
-                  type="button"
                   onClick={() => setFilter(value)}
                   aria-pressed={filter === value}
-                  className={`cursor-pointer rounded-full px-3 py-1.5 font-nunito text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`button--bare cursor-pointer rounded-full px-3 py-1.5 font-nunito text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary ${
                     filter === value
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
                   }`}
                 >
                   {value === "all" ? "All" : "Unread"}
-                </button>
+                </Button>
               ))}
               {unreadCount > 0 && (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => void markVisibleRead()}
-                  className="ml-auto cursor-pointer font-nunito text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+                  className="button--bare ml-auto cursor-pointer font-nunito text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   Mark all read
-                </button>
+                </Button>
               )}
             </div>
 
@@ -261,13 +261,13 @@ export default function NotificationDrawer({
             </Drawer.Body>
             {hasCustomPlacement ? (
               <div className="flex justify-center border-t border-divider px-4 py-2">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={resetBellPosition}
-                  className="cursor-pointer font-nunito text-xs font-semibold text-muted-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+                  className="button--bare cursor-pointer font-nunito text-xs font-semibold text-muted-foreground hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   Reset bell position
-                </button>
+                </Button>
               </div>
             ) : null}
           </Drawer.Dialog>

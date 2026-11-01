@@ -29,7 +29,7 @@ export default function RecoveryLayout({ children }: RecoveryLayoutProps) {
         style={{ backgroundImage: "url('/building-bg2.jpg')" }}
       >
         <div className="relative z-10 flex h-full w-full flex-col items-end justify-between p-5">
-          <Image src="/logo/logo-name.svg" alt="APT Logo" width={150} height={100} />
+          <Image src="/logo/logo-name.svg" alt="APT Logo" width={150} height={69} />
         </div>
       </aside>
     </main>

@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import * as policyRules from "./registration-policies.ts";
+const accepted = { ...policyRules.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 import test from "node:test";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
-import { PH_MOBILE_PREFIXES } from "../../../packages/constants/src/user/ph-mobile-prefixes.ts";
 import { validateBirthDate } from "./birth-date.ts";
 import { addressConstants, addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
@@ -20,11 +21,16 @@ const ui = {
   DatePicker: Object.assign(() => {}, { Popover: "DatePopover", Trigger: "DateTrigger", TriggerIndicator: "DateTriggerIndicator" }),
   DateField: { Group: "Group", Input: "DateInput", Suffix: "Suffix" },
   Calendar: Object.assign(() => {}, Object.fromEntries(["Header", "YearPickerTrigger", "YearPickerTriggerHeading", "YearPickerTriggerIndicator", "NavButton", "Grid", "GridHeader", "GridBody", "YearPickerGrid", "YearPickerGridBody"].map(key => [key, key]))),
+  ComboBox: Object.assign(() => {}, { InputGroup: "ComboBoxInputGroup", Trigger: "ComboBoxTrigger", Popover: "ComboBoxPopover" }),
+  InputGroup: Object.assign(() => {}, { Input: "InputGroupInput", Suffix: "InputGroupSuffix" }),
+  Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }),
   useOverlayState: () => ({ isOpen: false, open() {}, close() {} }),
 };
-const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [] };
+const { validatePHMobile, formatPHMobileInput } = compile("../../packages/constants/src/user/ph-mobile.ts");
+const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [], validatePHMobile, formatPHMobileInput };
+const icons = { IconInfoCircle: "IconInfoCircle" };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
 }).default;
 
 function fieldHarness(initial = empty) {
@@ -32,7 +38,7 @@ function fieldHarness(initial = empty) {
   const render = (errors = {}) => fields({ value, onChange: next => { value = next; }, errors });
   const field = name => nodes(render()).find(node => node.props?.name === name);
   return { render, field, value: () => value,
-    change(name, text) { field(name).props.onChange(text); },
+    change(name, text) { const { onSelectionChange, onChange } = field(name).props; (onSelectionChange ?? onChange)(text); },
     options(name) { return nodes(field(name)).filter(node => node.type === "Item").map(node => node.props.id); },
   };
 }
@@ -41,13 +47,16 @@ test("shared selectors use exactly the regular signup data and enforce province 
   const h = fieldHarness();
   assert.deepEqual(h.options("stateProvince"), [...addressConstants.PROVINCES]);
   assert.equal(h.field("city").props.isDisabled, true);
-  assert.equal(h.field("city").props.placeholder, "Select a province first");
+  const placeholder = name => nodes(h.field(name)).find(node => node.type === "Input").props.placeholder;
+  assert.equal(placeholder("city"), "Select a province first");
+  assert.equal(placeholder("stateProvince"), "Search or select your state/province");
   assert.equal(h.field("barangay").props.isDisabled, true);
   h.change("stateProvince", "Metro Manila");
   assert.equal(h.field("city").props.isDisabled, false);
   assert.deepEqual(h.options("city"), addressConstants.getCitiesByProvince("Metro Manila"));
   h.change("city", "Navotas");
   assert.equal(h.field("barangay").props.isDisabled, false);
+  assert.equal(placeholder("barangay"), "Search or select your barangay");
   assert.deepEqual(h.options("barangay"), addressConstants.getBarangaysByCity("Navotas"));
   h.change("barangay", validAddress.barangay);
   h.change("stateProvince", "Cebu");
@@ -56,18 +65,65 @@ test("shared selectors use exactly the regular signup data and enforce province 
   assert.ok(h.options("city").includes("Cebu City"));
 });
 
-test("changing city clears incompatible barangays but retaining compatible selections does not discard user input", () => {
+test("province, city and barangay are searchable combo boxes that stay controlled by the selected key", () => {
+  const h = fieldHarness(validAddress);
+  for (const [name, key] of [["stateProvince", validAddress.province], ["city", validAddress.city], ["barangay", validAddress.barangay]]) {
+    const props = h.field(name).props;
+    assert.equal(props.selectedKey, key, name);
+    assert.equal(props.menuTrigger, "focus", name);
+    assert.equal(nodes(h.field(name)).some(node => node.type === "ComboBoxTrigger"), true, name);
+  }
+  const empty = fieldHarness();
+  assert.equal(empty.field("city").props.selectedKey, null);
+  empty.field("stateProvince").props.onSelectionChange(null);
+  assert.equal(empty.value().province, "");
+});
+
+test("changing the province empties everything after it, but re-picking the same one or a first pick keeps typed text", () => {
   const h = fieldHarness(validAddress);
   h.change("stateProvince", "Metro Manila");
-  assert.equal(h.value().city, "Navotas"); assert.equal(h.value().barangay, validAddress.barangay);
-  const incompatible = addressConstants.getBarangaysByCity("Navotas").find(value => !addressConstants.getBarangaysByCity("Valenzuela").includes(value));
-  h.change("barangay", incompatible);
+  assert.deepEqual(plain(h.value()), validAddress);
+  h.change("stateProvince", "Cebu");
+  assert.deepEqual(plain(h.value()), { ...empty, province: "Cebu" });
+  assert.ok(h.options("city").includes("Cebu City"));
+
+  const cleared = fieldHarness(validAddress);
+  cleared.change("stateProvince", "");
+  assert.deepEqual(plain(cleared.value()), plain(empty));
+
+  const firstPick = fieldHarness({ ...empty, streetAddress: "Typed first", postalCode: "1485" });
+  firstPick.change("stateProvince", "Metro Manila");
+  assert.deepEqual(plain(firstPick.value()), { ...empty, province: "Metro Manila", streetAddress: "Typed first", postalCode: "1485" });
+});
+
+test("changing the city empties barangay, street and postal code, but keeps the province", () => {
+  const h = fieldHarness(validAddress);
+  h.change("city", "Navotas");
+  assert.deepEqual(plain(h.value()), validAddress);
   h.change("city", "Valenzuela");
-  assert.equal(h.value().barangay, "");
+  assert.deepEqual(plain(h.value()), { ...empty, province: "Metro Manila", city: "Valenzuela" });
   assert.deepEqual(h.options("barangay"), addressConstants.getBarangaysByCity("Valenzuela"));
-  h.change("stateProvince", "");
-  assert.equal(h.value().city, ""); assert.equal(h.value().barangay, "");
-  assert.equal(h.value().streetAddress, validAddress.streetAddress); assert.equal(h.value().postalCode, "1485");
+
+  const cleared = fieldHarness(validAddress);
+  cleared.change("city", "");
+  assert.deepEqual(plain(cleared.value()), { ...empty, province: "Metro Manila" });
+});
+
+test("changing the barangay empties street and postal code, but keeps province and city", () => {
+  const h = fieldHarness(validAddress);
+  h.change("barangay", validAddress.barangay);
+  assert.deepEqual(plain(h.value()), validAddress);
+  const other = addressConstants.getBarangaysByCity("Navotas").find(name => name !== validAddress.barangay);
+  h.change("barangay", other);
+  assert.deepEqual(plain(h.value()), { ...plain(empty), province: validAddress.province, city: validAddress.city, barangay: other });
+
+  const cleared = fieldHarness(validAddress);
+  cleared.change("barangay", "");
+  assert.deepEqual(plain(cleared.value()), { ...plain(empty), province: validAddress.province, city: validAddress.city });
+
+  const firstPick = fieldHarness({ ...validAddress, barangay: "", streetAddress: "Typed first", postalCode: "1485" });
+  firstPick.change("barangay", validAddress.barangay);
+  assert.deepEqual(plain(firstPick.value()), { ...validAddress, streetAddress: "Typed first" });
 });
 
 test("saved selector labels and safely equivalent legacy labels prefill, but unknown IDs/labels never guess locations", () => {
@@ -95,11 +151,33 @@ test("required and tampered address values are rejected independently of the sel
     { ...validAddress, barangay: "pasted fake barangay" },
     { ...validAddress, postalCode: "14a5" },
     { ...validAddress, postalCode: "0001" },
-    { ...validAddress, postalCode: "9999" },
     { ...validAddress, streetAddress: "   " },
   ]) assert.ok(Object.keys(validate(value)).length > 0);
   const forged = change(validAddress, "city", "Cebu City");
   assert.equal(forged.city, ""); assert.equal(forged.barangay, "");
+});
+
+test("a well-formed ZIP we do not recognize for the city is a warning, not an error", () => {
+  const unfamiliar = { ...validAddress, postalCode: "9999" };
+  assert.equal(validate(unfamiliar).postalCode, undefined);
+  assert.equal(addressRules.getRegistrationZipWarning(unfamiliar), `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`);
+  assert.equal(addressRules.getRegistrationZipWarning(validAddress), null);
+  assert.equal(addressRules.getRegistrationZipWarning({ ...validAddress, postalCode: "14a5" }), null);
+});
+
+test("an unrecognized ZIP shows an info icon whose tooltip carries the note, not text under the field", () => {
+  const warning = `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`;
+  const h = fieldHarness({ ...validAddress, postalCode: "9999" });
+  const parts = nodes(h.field("postalCode"));
+  assert.equal(parts.find(node => node.type === "TooltipContent")?.props.children, warning);
+  assert.ok(parts.some(node => node.type === "InputGroupSuffix"));
+  assert.equal(parts.some(node => node.type === "p"), false);
+  const recognized = nodes(fieldHarness(validAddress).field("postalCode"));
+  assert.equal(recognized.some(node => node.type === "TooltipContent" || node.type === "InputGroupSuffix"), false);
+  const html = renderToStaticMarkup(compile("app/(auth)/components/RegistrationAddressFields.tsx", {
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  }).default({ value: { ...validAddress, postalCode: "9999" }, onChange() {} }));
+  assert.match(html, /aria-label="About this postal code"/);
 });
 
 test("street and ZIP remain editable, user-entered valid ZIPs are not auto-replaced, and geographic coverage stays nationwide", () => {
@@ -129,7 +207,7 @@ test("shared fields preserve ordered two-column desktop / stacked mobile layout 
 
 test("installed HeroUI provides input error association and disabled dependent selectors", () => {
   const nativeFields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
   }).default;
   const html = renderToStaticMarkup(nativeFields({ value: empty, onChange() {}, errors: validate(empty) }));
   assert.match(html, /aria-invalid="true"/);
@@ -142,9 +220,11 @@ test("installed HeroUI provides input error association and disabled dependent s
 function formHarness(kind, role, initialAddress = undefined) {
   const runtime = hookRuntime();
   const shared = {
-    react: { ...runtime.react, useActionState: () => [{}, () => {}, false] },
+    react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
+    "@/lib/registration-policies": policyRules,
+    "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "next/link": { default: "Link" },
@@ -159,11 +239,11 @@ function formHarness(kind, role, initialAddress = undefined) {
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null },
     "../../actions/send-otp": { sendEmailOtp: async () => ({}) },
-  }, { FormData: class { get() { return "2000-01-01"; } } }).default;
+  }, { FormData: class { get(name) { return name === "birth_date" ? "2000-01-01" : null; } } }).default;
   const render = () => runtime.render(() => component({ email: "test@example.com", firstName: "Test", lastName: "User", role, initialAddress }));
   const addressNode = () => nodes(render()).find(node => node.type === "RegistrationAddressFields");
   return { render, addressNode, fields: () => fields(addressNode().props),
-    change(name, value) { nodes(fields(addressNode().props)).find(node => node.props?.name === name).props.onChange(value); },
+    change(name, value) { const { onSelectionChange, onChange } = nodes(fields(addressNode().props)).find(node => node.props?.name === name).props; (onSelectionChange ?? onChange)(value); },
     submit() { const form = nodes(render()).find(node => node.type === (complete ? "form" : "Form")); return form.props.onSubmit({ preventDefault() {}, currentTarget: {} }); },
   };
 }
@@ -195,11 +275,11 @@ test("Complete Profile seeds valid saved values once and marks unsafe legacy loc
   assert.equal(unknown.addressNode().props.value.streetAddress, validAddress.streetAddress);
 });
 
-const { validatePHMobile } = compile("../../packages/constants/src/user/ph-mobile.ts", { "./ph-mobile-prefixes": { PH_MOBILE_PREFIXES } });
-const serverConstants = { ...constants, validatePHMobile };
+const serverConstants = constants;
 const year = new Date().getFullYear() - 25;
 function submission(address = validAddress, role = "tenant") {
   const data = new FormData();
+  policyRules.writeRegistrationAcceptance(data, accepted);
   for (const [key, value] of Object.entries({ first_name: "Test", last_name: "User", birth_date: `${year}-01-01`, gender: GENDERS[0], mobile_number: "09171234567", role,
     province: address.province, city: address.city, barangay: address.barangay, street_address: address.streetAddress, postal_code: address.postalCode, user_id: "attacker" })) data.set(key, value);
   return data;
@@ -219,7 +299,17 @@ function actionHarness(options = {}) {
   const { completeProfile } = compile("app/(auth)/actions/complete-profile.ts", {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
-    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate }, "@/lib/registration-address": addressRules,
+    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "@/service/registrationService": { completeWebRegistration: async (client, details, role, acceptance, source) => {
+      // Eligibility is transaction-owned so completed requests can be retried.
+      // Model its rejection here; actual RLS/replay behavior has a DB suite.
+      if (profile && (profile.roles.includes("admin") || profile.mobile_number || profile.account_status !== "unverified")) {
+        rpcs.push(["complete_web_registration", { role, acceptance, source }]);
+        return { error: { code: "P0001", message: "Profile setup is no longer available for this account." } };
+      }
+      writes.push(details); rpcs.push(["complete_web_registration", { role, acceptance, source }]); return { error: null };
+    } },
   }, { process: { env: { NODE_ENV: "test" } } });
   return { completeProfile, writes, selects, rpcs };
 }
@@ -244,8 +334,11 @@ test("valid Tenant/Landlord payloads retain existing column names, caller owners
     assert.equal(row.province, validAddress.province); assert.equal(row.city, validAddress.city); assert.equal(row.barangay, validAddress.barangay);
     assert.equal(row.street_address, validAddress.streetAddress); assert.equal(row.postal_code, 1485);
     assert.equal(row.stateProvince, undefined); assert.equal(row.streetAddress, undefined);
-    if (!profile) { assert.equal(row.user_id, "caller"); assert.equal(row.email, "caller@example.com"); assert.deepEqual(plain(row.roles), [role]); }
-    else { assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller")); assert.equal(h.rpcs[0][0], "set_onboarding_role"); }
+    assert.equal(row.user_id, undefined); assert.equal(row.email, undefined); assert.equal(row.roles, undefined);
+    const registration = h.rpcs.find(([name]) => name === "complete_web_registration");
+    assert.equal(registration[1].role, role);
+    assert.deepEqual(plain(registration[1].acceptance), accepted);
+    assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller"));
   }
 });
 

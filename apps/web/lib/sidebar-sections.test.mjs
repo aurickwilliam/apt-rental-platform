@@ -85,19 +85,25 @@ test("mobile drawer renders one group per section, split by separators, then the
   assert.deepEqual(groups, ["Overview", "Rentals", "Finance", "Account"]);
   assert.equal(all.filter(node => node.type === "Separator").length >= 3, true);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  const rows = all.filter(node => node.type === "button" && sectioned.some(item => item.label === labelOf(node)));
+  const rows = all.filter(node => node.type === "Button" && node.props.className?.includes("button--bare") && sectioned.some(item => item.label === labelOf(node)));
   assert.equal(rows.length, sectioned.length);
 });
 
 function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pushed = [] }) {
   const item = compile("../app/components/layout/SidebarNotificationsItem.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@heroui/react": { Button: "Button", Tooltip: Object.assign(() => {}, { Trigger: "Tooltip.Trigger", Content: "Tooltip.Content" }) },
     "@tabler/icons-react": { IconBell: "IconBell" },
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry, drawerSide: "right" } }) },
     "@/hooks/use-notifications": { useNotifications: () => ({ unreadCount }) },
   }, { window: { location: { href: "http://localhost/landlord/dashboard?tab=1#top" }, history: { pushState: (_state, _title, url) => pushed.push(url) } }, URL });
-  return item.default({ activePortal: "landlord", collapsed });
+  const root = item.default({ activePortal: "landlord", collapsed });
+  if (!root) return null;
+  // The button sits inside a Tooltip that names it on the collapsed rail.
+  const [trigger, content] = root.props.children;
+  const button = trigger.props.children;
+  return Object.assign(button, { tooltip: content.props.children, tooltipDisabled: root.props.isDisabled });
 }
 
 test("Notifications tab is hidden while the floating bell is the chosen entry point", () => {
@@ -107,10 +113,20 @@ test("Notifications tab is hidden while the floating bell is the chosen entry po
 test("Notifications tab opens the drawer through the shared query param", () => {
   const pushed = [];
   const button = renderNotificationsItem({ entry: "sidebar", pushed });
-  assert.equal(button.type, "button");
+  assert.equal(button.type, "Button");
   assert.equal(button.props["aria-haspopup"], "dialog");
   button.props.onClick();
   assert.deepEqual(pushed, ["/landlord/dashboard?tab=1&notifications=open#top"]);
+});
+
+test("Notifications tab starts at the sidebar's left edge like the nav links", () => {
+  const expanded = renderNotificationsItem({ entry: "sidebar" });
+  // HeroUI's `.button` base centers its content; the expanded row must opt
+  // back into the nav links' flex-start alignment.
+  assert.match(expanded.props.className, /\bjustify-start\b/);
+  assert.doesNotMatch(expanded.props.className, /\bjustify-center\b/);
+  const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
+  assert.match(collapsed.props.className, /\bjustify-center\b/);
 });
 
 test("Notifications tab shows a red count badge capped at 9+ and a label-only collapsed rail", () => {
@@ -122,6 +138,8 @@ test("Notifications tab shows a red count badge capped at 9+ and a label-only co
   assert.equal([unread.props.children].flat(Infinity).some(child => /size-2 rounded-full/.test(child?.props?.className ?? "")), false);
   assert.equal(badge(renderNotificationsItem({ entry: "sidebar", unreadCount: 0 })), undefined);
   const collapsed = renderNotificationsItem({ entry: "sidebar", collapsed: true });
-  assert.equal(collapsed.props.title, "Notifications");
+  assert.equal(collapsed.tooltip, "Notifications");
+  assert.equal(collapsed.tooltipDisabled, false);
+  assert.equal(renderNotificationsItem({ entry: "sidebar" }).tooltipDisabled, true);
   assert.equal([collapsed.props.children].flat(Infinity).some(child => child?.type === "span" && child.props.children === "Notifications"), false);
 });

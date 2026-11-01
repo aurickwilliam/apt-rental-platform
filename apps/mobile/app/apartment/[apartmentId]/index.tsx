@@ -20,19 +20,18 @@ import {
   IconShare2,
 } from "@tabler/icons-react-native";
 
-import {
-  ApartmentHeroSection,
-  ApartmentDescriptionSection,
-  PerksSection,
-  MapPreviewSection,
-  RatingsSection,
-  LandlordSection,
-  LeaseAgreementSection,
-  MoveInCostFooter,
-  ApartmentSkeleton,
-  ApartmentDetailsSection,
+import ApartmentHeroSection, {
   APARTMENT_HERO_HEIGHT,
-} from "./components";
+} from "./components/sections/ApartmentHeroSection";
+import ApartmentDescriptionSection from "./components/sections/ApartmentDescriptionSection";
+import PerksSection from "./components/sections/PerksSection";
+import MapPreviewSection from "./components/sections/MapPreviewSection";
+import RatingsSection from "./components/sections/RatingsSection";
+import LandlordSection from "./components/sections/LandlordSection";
+import LeaseAgreementSection from "./components/sections/LeaseAgreementSection";
+import MoveInCostFooter from "./components/sections/MoveInCostFooterSection";
+import ApartmentSkeleton from "./components/ApartmentSkeleton";
+import ApartmentDetailsSection from "./components/sections/ApartmentDetailsSection";
 
 import { useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
@@ -43,6 +42,7 @@ import { useCurrentUserId } from "@/hooks/auth";
 import { getInquiryConversationId } from "@/service/chat/chatRoutes";
 import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
 import { getApplyDisabledReason } from "@/service/apartments/applyEligibility";
+import { orderCoverFirst } from "@/service/apartments/coverImage";
 
 import { Button } from "heroui-native";
 
@@ -78,11 +78,11 @@ export default function ApartmentScreen() {
     reviewableTenancyId,
   } = useReviewEligibility(apartmentId);
 
-  const apartmentImages =
-    apartment?.apartment_images.map((image) => ({
-      id: image.id,
-      image: { uri: image.url },
-    })) ?? [];
+  // Cover first, so the hero photo matches the listing cards.
+  const apartmentImages = orderCoverFirst(apartment?.apartment_images).map((image) => ({
+    id: image.id,
+    image: { uri: image.url },
+  }));
 
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;

@@ -50,12 +50,12 @@ export default function ValidIdCard({
         </div>
 
         <div className="relative">
-          <button
-            type="button"
-            disabled={!current?.url}
+          <Button
+            variant="ghost"
+            isDisabled={!current?.url}
             onClick={() => current && onOpenViewer(current.label)}
             aria-label={`Enlarge the ${(current?.label ?? "Front").toLowerCase()} of your ID`}
-            className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-muted enabled:cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
+            className="button--bare relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-muted enabled:cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
           >
             {current?.url ? (
               <Image
@@ -74,7 +74,7 @@ export default function ValidIdCard({
                 Preview unavailable
               </span>
             )}
-          </button>
+          </Button>
 
           {back ? (
             <>

@@ -8,7 +8,11 @@
     "packages/*"
   ],
   "scripts": {
+    "db:mobile-registration:test": "node --experimental-strip-types --test scripts/mobile-registration/*.test.mjs",
+    "db:web-registration:test": "node --experimental-strip-types --test scripts/web-registration/*.test.mjs",
     "db:billing:test": "node --experimental-strip-types --test scripts/billing/*.test.mjs",
+    "db:tenant-reviews:test": "node --experimental-strip-types --test scripts/tenant-reviews/*.test.mjs",
+    "db:landlord-gate:test": "node --experimental-strip-types --test scripts/verified-landlord/*.test.mjs",
     "web": "pnpm --filter web dev",
     "mobile": "pnpm --filter mobile start",
     "db:populate": "node --experimental-strip-types --import ./scripts/db-populate/register.mjs scripts/db-populate.mjs",

@@ -22,11 +22,9 @@ export default async function SignUpFormPage({
       <div className="min-h-screen w-full bg-card">
         <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-[clamp(1rem,4vw,2rem)] py-[clamp(1rem,3vh,2rem)]">
           <section className="flex min-w-0 flex-1 flex-col">
-            {/* Back button left, logo centered on the same row */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center">
-              <div className="justify-self-start">
-                <BackBtn />
-              </div>
+            {/* Back link, with the logo underneath, both on the left */}
+            <div className="flex flex-col items-start gap-4">
+              <BackBtn />
               <Image
                 src="/logo/logo.svg"
                 alt="APT Logo"
@@ -34,7 +32,6 @@ export default async function SignUpFormPage({
                 height={64}
                 priority
               />
-              <div aria-hidden />
             </div>
 
             {/* Title Description */}

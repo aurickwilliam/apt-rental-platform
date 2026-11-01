@@ -42,6 +42,7 @@ import type { TenantApplicationPresentation } from "@/service/tenant-application
 import type { PresentationSeed } from "@/service/presentation-seed";
 import { matchesPresentationSeed } from "@/service/presentation-seed";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 function formatLongDate(d: string) {
   try {
@@ -179,7 +180,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
           <div className="overflow-hidden rounded-3xl border border-border bg-card">
             <div className="relative h-64 md:h-[360px]">
               {cover ? (
-                <Image src={cover} alt={apartment?.name ?? "Apartment"} fill unoptimized className="object-cover" />
+                <Image src={cover} alt={apartment?.name ?? "Apartment"} fill sizes="(max-width: 1280px) 100vw, 45vw" unoptimized={!canOptimizePublicApartmentImage(cover)} className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">No image</div>
               )}

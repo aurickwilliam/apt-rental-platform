@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
+import { OTHER_PET, minimumPetCount } from "@repo/constants";
 import { useCurrentUser, CURRENT_USER_QUERY_KEY } from "@/hooks/auth/useCurrentUser";
 import { parsePreferences, type TenantPreferences } from "@/hooks/preferences/useUserPreferences";
 
@@ -11,7 +12,8 @@ const DEFAULT_PREFS: TenantPreferences = {
   bedroomCount: null,
   householdSize: null,
   hasPets: false,
-  kindOfPets: "",
+  kindOfPets: [],
+  noOfPets: 1,
   nameOfPets: null,
   hasParking: false,
   noOfParkingSpots: 1,
@@ -36,7 +38,8 @@ export function useRentalPreferencesForm() {
   const [bedroomCount, setBedroomCount] = useState<string | null>(initialPrefs.bedroomCount);
   const [householdSize, setHouseholdSize] = useState<string | null>(initialPrefs.householdSize);
   const [hasPets, setHasPets] = useState(initialPrefs.hasPets);
-  const [kindOfPets, setKindOfPets] = useState(initialPrefs.kindOfPets);
+  const [kindOfPets, setKindOfPets] = useState<string[]>(initialPrefs.kindOfPets);
+  const [noOfPets, setNoOfPets] = useState(initialPrefs.noOfPets);
   const [nameOfPets, setNameOfPets] = useState<string | null>(initialPrefs.nameOfPets);
   const [hasParking, setHasParking] = useState(initialPrefs.hasParking);
   const [noOfParkingSpots, setNoOfParkingSpots] = useState(initialPrefs.noOfParkingSpots);
@@ -54,6 +57,7 @@ export function useRentalPreferencesForm() {
     setHouseholdSize(initialPrefs.householdSize);
     setHasPets(initialPrefs.hasPets);
     setKindOfPets(initialPrefs.kindOfPets);
+    setNoOfPets(initialPrefs.noOfPets);
     setNameOfPets(initialPrefs.nameOfPets);
     setHasParking(initialPrefs.hasParking);
     setNoOfParkingSpots(initialPrefs.noOfParkingSpots);
@@ -71,6 +75,7 @@ export function useRentalPreferencesForm() {
       householdSize,
       hasPets,
       kindOfPets,
+      noOfPets,
       nameOfPets,
       hasParking,
       noOfParkingSpots,
@@ -86,6 +91,7 @@ export function useRentalPreferencesForm() {
       householdSize,
       hasPets,
       kindOfPets,
+      noOfPets,
       nameOfPets,
       hasParking,
       noOfParkingSpots,
@@ -108,7 +114,8 @@ export function useRentalPreferencesForm() {
   const setPetsEnabled = useCallback((val: boolean) => {
     setHasPets(val);
     if (!val) {
-      setKindOfPets("");
+      setKindOfPets([]);
+      setNoOfPets(1);
       setNameOfPets(null);
     }
   }, []);
@@ -118,10 +125,11 @@ export function useRentalPreferencesForm() {
     if (!val) setListOfVehicles([]);
   }, []);
 
-  const handleSelectPetKind = useCallback((val: string | null) => {
-    const v = val ?? "";
-    setKindOfPets(v);
-    if (v !== "Other") setNameOfPets(null);
+  const handleSelectPetKinds = useCallback((kinds: string[]) => {
+    setKindOfPets(kinds);
+    // Never fewer pets than kinds: raise the count as kinds are added.
+    setNoOfPets((count) => Math.max(count, minimumPetCount(kinds.length)));
+    if (!kinds.includes(OTHER_PET)) setNameOfPets(null);
   }, []);
 
   const save = useCallback(async () => {
@@ -144,6 +152,7 @@ export function useRentalPreferencesForm() {
     setHouseholdSize(initialPrefs.householdSize);
     setHasPets(initialPrefs.hasPets);
     setKindOfPets(initialPrefs.kindOfPets);
+    setNoOfPets(initialPrefs.noOfPets);
     setNameOfPets(initialPrefs.nameOfPets);
     setHasParking(initialPrefs.hasParking);
     setNoOfParkingSpots(initialPrefs.noOfParkingSpots);
@@ -162,6 +171,7 @@ export function useRentalPreferencesForm() {
     householdSize,
     hasPets,
     kindOfPets,
+    noOfPets,
     nameOfPets,
     hasParking,
     noOfParkingSpots,
@@ -180,7 +190,8 @@ export function useRentalPreferencesForm() {
     setBedroomCount,
     setHouseholdSize,
     setHasPets: setPetsEnabled,
-    setKindOfPets: handleSelectPetKind,
+    setKindOfPets: handleSelectPetKinds,
+    setNoOfPets,
     setNameOfPets,
     setHasParking: setParkingEnabled,
     setNoOfParkingSpots,

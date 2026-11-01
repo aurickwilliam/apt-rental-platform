@@ -128,7 +128,7 @@ export default function AppNavbar() {
                 src="/logo/logo-name-transparent.svg"
                 alt="APT Logo"
                 width={100}
-                height={40}
+                height={46}
                 className="max-w-[45vw] object-contain sm:max-w-none"
               />
             </Link>
@@ -279,19 +279,20 @@ export default function AppNavbar() {
             <div className="flex flex-col gap-4">
               <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
               <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-              <button
-                type="button"
-                className="text-foreground font-medium text-left"
+              <Button
+                variant="ghost"
+                className="button--bare text-foreground font-medium text-left"
                 onClick={() => { openSettings(); setIsMenuOpen(false); }}
               >
                 Settings
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
-                className="text-danger font-medium text-left"
+                className="button--bare text-danger font-medium text-left"
               >
                 Log Out
-              </button>
+              </Button>
             </div>
           ) : !loading ? (
             <>

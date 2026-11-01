@@ -13,7 +13,7 @@ import {
 
 import { IconAlertTriangle, IconFileInfo } from "@tabler/icons-react-native";
 
-import { DOCUMENT_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
+import { PASSPORT_UPLOADABLE_DOC_TYPES, PASSPORT_GOV_ID_DOC_TYPES } from "@repo/constants";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -23,18 +23,28 @@ import UploadDocumentField, {
 import DateField from "@/components/inputs/DateField";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import AppDialog from "@/components/display/AppDialog";
-import { getDocumentTypeIcon } from "./utils/documentTypeIcons";
+import { getDocumentTypeIcon } from "@/utils/documents/documentTypeIcons";
 
 import { useColors } from "@/hooks/useTheme";
-import { useUploadPassportDocument } from "@/hooks/passport";
 import {
+  usePassportDocuments,
+  useReplacePassportDocument,
+  useUploadPassportDocument,
+} from "@/hooks/passport";
+import {
+  findSupportingDocumentOfType,
   getDocumentTypeDescription,
   toExpiryDateString,
   validateExpiryDate,
 } from "@repo/passport";
 
 export default function Upload() {
-  const { docType } = useLocalSearchParams<{ docType?: string | string[] }>();
+  const { docType, replaceId } = useLocalSearchParams<{
+    docType?: string | string[];
+    replaceId?: string | string[];
+  }>();
+  const resolvedReplaceId = Array.isArray(replaceId) ? replaceId[0] : replaceId;
+  const isReplace = !!resolvedReplaceId;
   const resolvedDocType = Array.isArray(docType)
     ? (docType[0] ?? "Document")
     : (docType ?? "Document");
@@ -46,11 +56,18 @@ export default function Upload() {
   const [expiryDate, setExpiryDate] = useState<Date | null>(null);
   const expiryError = validateExpiryDate(expiryDate);
 
-  const { mutate: upload, isPending, error } = useUploadPassportDocument();
+  const { documents } = usePassportDocuments();
+  const { mutate: upload, isPending: isUploading, error: uploadError } = useUploadPassportDocument();
+  const { mutate: replace, isPending: isReplacing, error: replaceError } = useReplacePassportDocument();
+  const isPending = isUploading || isReplacing;
+  const error = isReplace ? replaceError : uploadError;
   const [showError, setShowError] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
-  const isUploadableDocType = DOCUMENT_TYPES.includes(resolvedDocType);
+  const isUploadableDocType = PASSPORT_UPLOADABLE_DOC_TYPES.includes(resolvedDocType);
   const isIdentityDoc = PASSPORT_GOV_ID_DOC_TYPES.includes(resolvedDocType);
+  // Each type holds one document: adding a second means replacing the first.
+  const isAlreadyAdded =
+    !isReplace && findSupportingDocumentOfType(documents, resolvedDocType) !== null;
 
   const handleAddDocument = () => {
     if (
@@ -73,20 +90,20 @@ export default function Upload() {
             mimeType: document.asset.mimeType ?? "application/octet-stream",
           };
 
-    upload(
-      {
-        docType: resolvedDocType,
-        asset,
-        expiresAt: expiryDate ? toExpiryDateString(expiryDate) : null,
-      },
-      {
-        onSuccess: () => router.replace("/document-id"),
-        onError: () => setShowError(true),
-      },
-    );
+    const expiresAt = expiryDate ? toExpiryDateString(expiryDate) : null;
+    const callbacks = {
+      onSuccess: () => router.replace("/document-id"),
+      onError: () => setShowError(true),
+    };
+
+    if (resolvedReplaceId) {
+      replace({ id: resolvedReplaceId, asset, expiresAt }, callbacks);
+    } else {
+      upload({ docType: resolvedDocType, asset, expiresAt }, callbacks);
+    }
   };
 
-  if (!isUploadableDocType) {
+  if (!isUploadableDocType || isAlreadyAdded) {
     return (
       <ScreenWrapper
         header={<StandardHeader title="Upload Document" />}
@@ -94,24 +111,36 @@ export default function Upload() {
       >
         <View className="flex-1 justify-center gap-4">
           <Text className="text-foreground text-xl font-nunitoBold">
-            {isIdentityDoc ? "Verify your ID" : "Choose a document type"}
+            {isAlreadyAdded
+              ? "Already added"
+              : isIdentityDoc
+                ? "Verify your ID"
+                : "Choose a document type"}
           </Text>
           <Text className="text-muted text-base font-inter leading-relaxed">
-            {isIdentityDoc
+            {isAlreadyAdded
+              ? `You already added a ${resolvedDocType}. Open it from your Passport to replace the file.`
+              : isIdentityDoc
               ? "Identity documents use live ID capture and a selfie in Verify Account. Once approved, your ID is added to your APT Passport automatically."
               : "This document type is not available for Passport uploads. Choose a type from the list instead."}
           </Text>
           <Button
             onPress={() =>
               router.replace(
-                isIdentityDoc
-                  ? "/(auth)/verify-account"
-                  : "/document-id/select-document",
+                isAlreadyAdded
+                  ? "/document-id"
+                  : isIdentityDoc
+                    ? "/(auth)/verify-account"
+                    : "/document-id/select-document",
               )
             }
           >
             <Button.Label>
-              {isIdentityDoc ? "Go to ID verification" : "Choose document type"}
+              {isAlreadyAdded
+                ? "Back to Passport"
+                : isIdentityDoc
+                  ? "Go to ID verification"
+                  : "Choose document type"}
             </Button.Label>
           </Button>
         </View>
@@ -122,9 +151,15 @@ export default function Upload() {
   return (
     <ScreenWrapper
       scrollable
-      header={<StandardHeader title="Upload Document" />}
+      header={<StandardHeader title={isReplace ? "Replace Document" : "Upload Document"} />}
       className="p-5"
     >
+      {isReplace ? (
+        <Text className="text-muted text-sm font-inter mb-3">
+          Replacing this document sets it back to not verified. You&apos;ll need to
+          request verification again.
+        </Text>
+      ) : null}
       <View className="flex gap-1.5">
         {/* Name of Document */}
         <View className="flex-row items-center gap-2">
@@ -222,7 +257,7 @@ export default function Upload() {
           <Spinner size="sm" color="#FFFFFF" />
         ) : (
           <Button.Label className="text-white font-nunitoSemiBold">
-            Add Document
+            {isReplace ? "Replace Document" : "Add Document"}
           </Button.Label>
         )}
       </Button>

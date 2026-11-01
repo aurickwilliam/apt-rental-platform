@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   View,
   FlatList,
@@ -8,27 +9,31 @@ import {
 } from "react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
-import TypingIndicator from "@/components/display/TypingIndicator";
 import AIHeader from "./components/AIHeader";
-import { SuggestionChipScroll } from "./components/SuggestionChip";
+import AvaThinking from "./components/AvaThinking";
+import StarterSuggestions, { type StarterSuggestion } from "./components/StarterSuggestions";
 import EmptyChatState from "./components/EmptyChatState";
 import MessageBubble from "./components/MessageBubble";
 import MessageComposer from "./components/MessageComposer";
 import ScrollToBottomButton from "./components/ScrollToBottomButton";
 
 import { useAIChat, type AIChatMessage } from "hooks/chat";
+import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 
-const SUGGESTION_CHIPS = [
-  "2BR under ₱15k",
-  "Near Malabon",
-  "With parking",
-  "Pet friendly",
+const STARTER_SUGGESTIONS: readonly StarterSuggestion[] = [
+  { title: "2 bedrooms", detail: "under ₱15,000", message: "2BR under ₱15k" },
+  { title: "Near Malabon", detail: "any budget", message: "Apartments in Malabon" },
+  { title: "With parking", detail: "for a car", message: "A place with parking" },
+  { title: "Pet friendly", detail: "for dogs or cats", message: "Pet friendly apartment" },
 ];
 
 const SCROLL_BOTTOM_THRESHOLD = 150;
 
 export default function AISearchScreen() {
-  const { input, setInput, messages, isLoading, sendMessage } = useAIChat();
+  const router = useRouter();
+  const { input, setInput, messages, isLoading, sendMessage, resetChat } = useAIChat();
+  const { isFavorite } = useFavorites();
+  const { toggleFavoriteWithToast } = useFavoriteToggle();
 
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<RNTextInput>(null);
@@ -77,11 +82,29 @@ export default function AISearchScreen() {
     [sendMessage]
   );
 
+  const handleListingPress = useCallback(
+    (apartmentId: string) => router.push(`/apartment/${apartmentId}` as never),
+    [router]
+  );
+
+  const handleToggleFavorite = useCallback(
+    (apartmentId: string) => {
+      void toggleFavoriteWithToast(apartmentId);
+    },
+    [toggleFavoriteWithToast]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: AIChatMessage }) => (
-      <MessageBubble message={item} onQuickReplyPress={handleSuggestionPress} />
+      <MessageBubble
+        message={item}
+        onQuickReplyPress={handleSuggestionPress}
+        onListingPress={handleListingPress}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+      />
     ),
-    [handleSuggestionPress]
+    [handleSuggestionPress, handleListingPress, isFavorite, handleToggleFavorite]
   );
 
   return (
@@ -89,7 +112,7 @@ export default function AISearchScreen() {
       dismissKeyboardOnTouch={false}
       header={
         <View onLayout={handleHeaderLayout}>
-          <AIHeader />
+          <AIHeader onNewChat={resetChat} canStartNewChat={messages.length > 0} />
         </View>
       }
     >
@@ -108,23 +131,23 @@ export default function AISearchScreen() {
             contentContainerStyle={
               messages.length === 0
                 ? { flexGrow: 1, justifyContent: "center" }
-                : { flexGrow: 1, padding: 16, paddingBottom: 10 }
+                : { flexGrow: 1, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }
             }
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             nestedScrollEnabled
             ListEmptyComponent={messages.length === 0 ? <EmptyChatState /> : null}
-            ListFooterComponent={isLoading ? <TypingIndicator /> : null}
+            ListFooterComponent={isLoading ? <AvaThinking /> : null}
             onContentSizeChange={handleContentSizeChange}
             onScroll={handleScroll}
             scrollEventThrottle={16}
           />
 
-          {/* Suggestion chips — static row above input */}
-          {!isLoading && messages.length <= 2 && (
-            <SuggestionChipScroll
-              suggestions={SUGGESTION_CHIPS}
+          {/* Starters only before the chat starts; Ava's replies bring their own chips */}
+          {messages.length === 0 && (
+            <StarterSuggestions
+              suggestions={STARTER_SUGGESTIONS}
               onSelect={handleSuggestionPress}
             />
           )}

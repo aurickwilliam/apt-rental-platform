@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@heroui/react";
-
 import RatingBreakdown from "./RatingBreakdown";
+import RatingsHeader from "./RatingsHeader";
 import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface RatingSectionProps {
@@ -25,18 +24,7 @@ export default function RatingSection({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-nunito text-lg font-semibold">Ratings & Reviews</h3>
-
-        <Button
-          size="sm"
-          variant="ghost"
-          onPress={() => router.push(`${basePath}/${apartmentId}/ratings`)}
-          className="-mr-3 text-brand"
-        >
-          See all reviews
-        </Button>
-      </div>
+      <RatingsHeader onSeeAll={() => router.push(`${basePath}/${apartmentId}/ratings`)} />
 
       {loading ? (
         <p className="text-sm text-default-500">Loading ratings…</p>

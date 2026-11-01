@@ -12,6 +12,7 @@ import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import ApplicationGuidelinesModal from "./ApplicationGuidelinesModal";
 import ApplicationIssues from "./ApplicationIssues";
 import PassportNotice from "./PassportNotice";
+import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 export interface ApplyStartViewer {
   /** Internal `public.users.id`. */
@@ -69,7 +70,7 @@ export default function ApplyStartModal({ isOpen, onOpenChange, apartment, viewe
                     alt={apartment.name ?? "Apartment"}
                     fill
                     sizes="672px"
-                    unoptimized
+                    unoptimized={!canOptimizePublicApartmentImage(apartment.coverUrl)}
                     className="object-cover"
                   />
                 </div>

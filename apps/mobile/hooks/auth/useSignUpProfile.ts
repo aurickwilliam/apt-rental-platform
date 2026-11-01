@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import type { usePasswordValidation } from "@repo/hooks";
@@ -9,6 +9,7 @@ import type { Portal } from "@/service/auth/portalPreference";
 import { useRegistrationStore } from "@/stores/useRegistrationStore";
 
 import type { ProfileDetailsForm } from "./useProfileDetailsForm";
+import { useRegistrationAcceptance } from "./useRegistrationAcceptance";
 
 interface UseSignUpProfileOptions {
   form: ProfileDetailsForm;
@@ -23,19 +24,28 @@ interface UseSignUpProfileOptions {
 export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUpProfileOptions) {
   const router = useRouter();
   const { setData, reset } = useRegistrationStore();
+  const policies = useRegistrationAcceptance();
+  const pending = useRef(false);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current += 1; }, []);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
   const submit = async () => {
+    if (pending.current) return;
+    if (!policies.validate()) return;
     if (!form.validate(passwords.isPasswordValid ? [] : ["password"])) return;
 
+    pending.current = true;
+    const requestGeneration = generation.current;
     setLoading(true);
 
     try {
       await requestSignUpCode({
         email,
+        acceptance: policies.value,
         password: passwords.password,
         fullName: joinFullName({
           firstName: form.values.firstName,
@@ -44,6 +54,7 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
         }),
       });
 
+      if (requestGeneration !== generation.current) return;
       setData({
         ...form.values,
         email,
@@ -51,23 +62,30 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
         password: passwords.password,
         mobileNumber: form.mobileNumber,
         userSide,
+        acceptance: { ...policies.value },
+        profileDetails: form.toRow(),
       });
 
       router.push({ pathname: "/(auth)/otp-verification", params: { email } });
     } catch (err) {
+      if (requestGeneration !== generation.current) return;
+      if (policies.handleError(err)) return;
       setError(getEmailCodeRequestError(err instanceof Error ? err.message : undefined));
       setErrorDialogOpen(true);
     } finally {
-      setLoading(false);
+      pending.current = false;
+      if (requestGeneration === generation.current) setLoading(false);
     }
   };
 
   const goBack = () => {
+    generation.current += 1;
     reset();
     router.back();
   };
 
   return {
+    policies,
     submit,
     goBack,
     loading,

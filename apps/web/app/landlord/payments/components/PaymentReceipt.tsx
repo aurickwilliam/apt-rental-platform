@@ -16,6 +16,7 @@ import type { PaymentStatus } from "@/app/tenant/payment/types";
 import { statusVariant } from "@/app/tenant/payment/utils";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
 import { receiptData, type ReceiptTone } from "../lib/receiptData";
+import { Button } from "@heroui/react";
 
 type StatusIcon = ComponentType<{ size?: number; className?: string }>;
 
@@ -66,14 +67,14 @@ function CopyReference({ value, display }: { value: string; display: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className="select-all break-all font-mono text-[13px] tracking-wide">{display}</span>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={() => void copy()}
         aria-label={copied ? "Reference copied" : "Copy reference"}
-        className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+        className="button--bare flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
       >
         {copied ? <IconCheck size={15} className="text-green-600" aria-hidden /> : <IconCopy size={15} aria-hidden />}
-      </button>
+      </Button>
     </span>
   );
 }

@@ -168,7 +168,7 @@ export default function Footer() {
 
         <div className="flex items-center justify-center mt-5">
           <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
-            Terms of Service
+            Terms and Conditions
           </LegalPolicyLink>
           <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
             Privacy Policy
@@ -191,7 +191,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center justify-center">
               <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
-                Terms of Service
+                Terms and Conditions
               </LegalPolicyLink>
               <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
                 Privacy Policy
@@ -210,7 +210,7 @@ export default function Footer() {
             src="/logo/logo-name.svg"
             alt="APT Rental Platform Logo"
             width={120}
-            height={40}
+            height={56}
           />
 
           <div>

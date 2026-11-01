@@ -113,7 +113,7 @@ export default function HelpTab({
           href="/tos"
           className={linkClassName}
         >
-          {isAdmin ? "Terms and conditions" : "Terms of Service"}
+          Terms and Conditions
         </Link>
         <Link
           href="/pap"

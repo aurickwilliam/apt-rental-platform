@@ -9,8 +9,10 @@ import {
   type GoogleLatLngLiteral,
   type GoogleMapInstance,
   type GoogleMapMouseEvent,
-  type GoogleMarkerInstance,
 } from "@/lib/google-maps-loader";
+import { createMapPickerPin, type MapPickerPin } from "@/lib/map-picker-pin";
+import { centerMapOnUser } from "@/lib/map-locate";
+import MapControls from "@/app/browse/map/components/MapControls";
 
 const DEFAULT_CENTER = { lat: 14.665, lng: 120.967 };
 
@@ -27,6 +29,14 @@ interface Props {
   showHeader?: boolean;
   mapHeightClass?: string;
   readOnly?: boolean;
+  /** Prints the coordinates under the map (the pin picker's default). */
+  showCoordinates?: boolean;
+  /** Replaces the rounded border around the map, for callers that supply their own frame. */
+  frameClassName?: string;
+  /** Swaps Google's controls for the map search's (zoom, locate, optional expand). */
+  appControls?: boolean;
+  /** Adds the expand button to the app controls. */
+  onExpand?: () => void;
 }
 
 type Status = "loading" | "ready" | "missing-key" | "error";
@@ -39,11 +49,15 @@ export default function GoogleMapPicker({
   showHeader = true,
   mapHeightClass = "h-80",
   readOnly = false,
+  showCoordinates = true,
+  frameClassName,
+  appControls = false,
+  onExpand,
 }: Props) {
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
-  const markerRef = useRef<GoogleMarkerInstance | null>(null);
+  const pinRef = useRef<MapPickerPin | null>(null);
   const onPickRef = useRef(onPick);
   const coordinatesRef = useRef({ latitude, longitude });
   const savedViewRef = useRef<MapView | null>(null);
@@ -90,6 +104,7 @@ export default function GoogleMapPicker({
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
+          ...(appControls ? { disableDefaultUI: true } : {}),
         });
         mapRef.current = map;
 
@@ -99,19 +114,13 @@ export default function GoogleMapPicker({
         });
 
         if (coords.latitude != null && coords.longitude != null) {
-          const marker = new maps.Marker({
+          const pin = createMapPickerPin(maps, {
             position: { lat: coords.latitude, lng: coords.longitude },
-            map,
             draggable: !readOnly,
+            onDragEnd: ({ lat, lng }) => onPickRef.current?.(lat, lng),
           });
-          if (!readOnly) {
-            marker.addListener("dragend", () => {
-              const pos = marker.getPosition();
-              if (!pos) return;
-              onPickRef.current?.(pos.lat(), pos.lng());
-            });
-          }
-          markerRef.current = marker;
+          pin.setMap(map);
+          pinRef.current = pin;
         }
 
         setStatus("ready");
@@ -136,25 +145,23 @@ export default function GoogleMapPicker({
         maps?.event.clearInstanceListeners(map);
         mapRef.current = null;
       }
-      if (markerRef.current) {
-        maps?.event.clearInstanceListeners(markerRef.current);
-        markerRef.current.setMap(null);
-        markerRef.current = null;
+      if (pinRef.current) {
+        pinRef.current.setMap(null);
+        pinRef.current = null;
       }
     };
-  }, [apiKey, resolvedTheme, readOnly]);
+  }, [apiKey, resolvedTheme, readOnly, appControls]);
 
   useEffect(() => {
     const maps = getGoogleMaps();
     const map = mapRef.current;
     if (!maps || !map || status !== "ready") return;
 
-    const marker = markerRef.current;
+    const pin = pinRef.current;
     if (latitude == null || longitude == null) {
-      if (marker) {
-        maps.event.clearInstanceListeners(marker);
-        marker.setMap(null);
-        markerRef.current = null;
+      if (pin) {
+        pin.setMap(null);
+        pinRef.current = null;
       }
       return;
     }
@@ -162,18 +169,16 @@ export default function GoogleMapPicker({
     const position: GoogleLatLngLiteral = { lat: latitude, lng: longitude };
     map.setCenter(position);
 
-    if (marker) {
-      marker.setPosition(position);
+    if (pin) {
+      pin.setPosition(position);
     } else {
-      const next = new maps.Marker({ position, map, draggable: !readOnly });
-      if (!readOnly) {
-        next.addListener("dragend", () => {
-          const pos = next.getPosition();
-          if (!pos) return;
-          onPickRef.current?.(pos.lat(), pos.lng());
-        });
-      }
-      markerRef.current = next;
+      const next = createMapPickerPin(maps, {
+        position,
+        draggable: !readOnly,
+        onDragEnd: ({ lat, lng }) => onPickRef.current?.(lat, lng),
+      });
+      next.setMap(map);
+      pinRef.current = next;
     }
   }, [latitude, longitude, readOnly, status]);
 
@@ -190,6 +195,11 @@ export default function GoogleMapPicker({
     return () => clearTimeout(timer);
   }, [status, latitude, longitude]);
 
+  const zoomBy = (step: number) => {
+    const map = mapRef.current;
+    if (map) map.setZoom((map.getZoom() ?? 15) + step);
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
       {showHeader && (
@@ -204,8 +214,8 @@ export default function GoogleMapPicker({
       )}
 
       <div
-        className={`relative w-full ${mapHeightClass} overflow-hidden rounded-3xl border transition ${
-          error ? "border-danger" : "border-border"
+        className={`relative w-full ${mapHeightClass} overflow-hidden ${
+          frameClassName ?? `rounded-3xl border transition ${error ? "border-danger" : "border-border"}`
         }`}
       >
         {status === "missing-key" ? (
@@ -228,11 +238,22 @@ export default function GoogleMapPicker({
               <div className="w-full h-full bg-muted animate-pulse" aria-label="Loading map" />
             )}
             <div ref={containerRef} className="w-full h-full" />
+            {appControls && status === "ready" && (
+              <MapControls
+                onToggleExpand={onExpand}
+                expandOnPhones
+                onZoomIn={() => zoomBy(1)}
+                onZoomOut={() => zoomBy(-1)}
+                onLocate={() => {
+                  if (mapRef.current) centerMapOnUser(mapRef.current);
+                }}
+              />
+            )}
           </>
         )}
       </div>
 
-      {latitude != null && longitude != null && (
+      {showCoordinates && latitude != null && longitude != null && (
         <p className="text-xs text-muted-foreground">
           📍 {latitude.toFixed(6)}, {longitude.toFixed(6)}
         </p>

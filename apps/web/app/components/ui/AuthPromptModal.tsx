@@ -34,7 +34,7 @@ export default function AuthPromptModal({
                 <Modal.Header>
                   <Modal.Heading>{title}</Modal.Heading>
                 </Modal.Header>
-                <Modal.Body className="text-sm text-muted">
+                <Modal.Body className="text-sm text-muted-foreground">
                   {description}
                 </Modal.Body>
                 <Modal.Footer className="flex-col gap-2">

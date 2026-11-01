@@ -14,7 +14,7 @@ import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 
-import { Button, Separator } from 'heroui-native'
+import { Button, Separator, useToast } from 'heroui-native'
 
 import {
   IconUser,
@@ -35,14 +35,18 @@ import { useLandlordTenancy, getLandlordTenancyQueryKey } from 'hooks/tenancy'
 import { useProfile } from 'hooks/auth'
 
 import { formatDate } from '@repo/utils';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 export default function Index() {
   const router = useRouter()
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
   const { colors } = useColors();
+  const { toast } = useToast();
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
+  // Set once the lease has ended, so the landlord can rate the tenant who just left.
+  const [tenantToRate, setTenantToRate] = useState<{ id: string; name: string } | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
   const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
@@ -75,6 +79,7 @@ export default function Index() {
         .eq('id', apartmentId)
 
       setIsVacateDialogOpen(false)
+      if (tenant) setTenantToRate({ id: tenant.id, name: tenant.fullName })
       refetch()
       if (profile?.id) {
         void queryClient.invalidateQueries({
@@ -90,6 +95,15 @@ export default function Index() {
       console.error('Error vacating unit:', err)
       setIsVacateDialogOpen(false)
     }
+  }
+
+  const handleRateFormerTenant = () => {
+    if (!tenantToRate) return
+    router.push({
+      pathname: '/profile/tenant/[tenantId]',
+      params: { tenantId: tenantToRate.id, apartmentId },
+    })
+    setTenantToRate(null)
   }
 
   const handleRemoveUnit = async () => {
@@ -108,6 +122,12 @@ export default function Index() {
     } catch (err) {
       console.error('Error removing unit:', err)
       setIsRemoveDialogOpen(false)
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it instead of closing silently.
+      toast.show({
+        variant: 'danger',
+        label: getErrorMessage(err, 'Could not remove this property. Please try again.'),
+      })
     }
   }
 
@@ -388,6 +408,19 @@ export default function Index() {
         description="Are you sure you want to mark this unit as vacant? The current tenant's lease will be ended and the unit will be listed as available."
         confirmLabel="Vacate"
         onConfirm={handleConfirmVacate}
+      />
+
+      <ConfirmDialog
+        isOpen={tenantToRate !== null}
+        onOpenChange={(open) => {
+          if (!open) setTenantToRate(null)
+        }}
+        title="Rate your tenant?"
+        description={`The lease has ended. You can now rate ${tenantToRate?.name ?? 'your tenant'} from their profile.`}
+        confirmLabel="Rate Tenant"
+        confirmVariant="primary"
+        cancelLabel="Maybe later"
+        onConfirm={handleRateFormerTenant}
       />
     </View>
   );

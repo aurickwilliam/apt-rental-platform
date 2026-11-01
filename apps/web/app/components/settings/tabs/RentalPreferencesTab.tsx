@@ -17,17 +17,22 @@ import {
   IconSmoking,
   IconUser,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import { CAMANAVA_CITIES, OTHER_PET, PETS, VEHICLE_OPTIONS } from "@repo/constants";
 
 import type { RentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import {
   BEDROOM_OPTIONS,
   HOUSEHOLD_OPTIONS,
   PARKING_SPOT_OPTIONS,
+  PET_COUNT_OPTIONS,
+  optionToPetCount,
+  petCountToOption,
+  validatePets,
 } from "@/lib/tenant-preferences";
 import BudgetRangeField, {
   type BudgetRangeFieldHandle,
 } from "@/app/components/preferences/BudgetRangeField";
+import SettingsMultiSelect from "../SettingsMultiSelect";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
 
@@ -71,6 +76,7 @@ export default function RentalPreferencesTab({
   form: RentalPreferencesForm;
 }) {
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
+  const petsError = validatePets(form);
 
   const handleSave = async () => {
     // Flush any in-progress custom-range typing first; an invalid entry
@@ -245,18 +251,32 @@ export default function RentalPreferencesTab({
             {form.hasPets && (
               <div className="flex flex-col gap-3 rounded-xl bg-muted/40 p-3">
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Pet type</Label>}
+                  label={<Label className="text-sm text-foreground">Number of pets</Label>}
                   control={
                     <SettingsSelect
-                      label="Kind of pet"
+                      label="Number of pets"
+                      value={petCountToOption(form.noOfPets)}
+                      options={PET_COUNT_OPTIONS.map((count) => ({ value: count, label: count }))}
+                      onChange={(value) => form.setNoOfPets(optionToPetCount(value))}
+                      isInvalid={form.kindOfPets.length > 0 && petsError !== null}
+                      className="w-32"
+                    />
+                  }
+                />
+                <ControlRow
+                  label={<Label className="text-sm text-foreground">Pet types</Label>}
+                  control={
+                    <SettingsMultiSelect
+                      label="Kinds of pets"
                       value={form.kindOfPets}
                       options={PETS.map((pet) => ({ value: pet, label: pet }))}
                       onChange={form.setKindOfPets}
+                      placeholder="Select"
                       className="w-44"
                     />
                   }
                 />
-                {form.kindOfPets === "Other" && (
+                {form.kindOfPets.includes(OTHER_PET) && (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="settings-pet-name">Please specify</Label>
                     <Input

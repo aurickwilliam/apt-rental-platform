@@ -4,7 +4,7 @@ import { IconChevronRight } from "@tabler/icons-react-native";
 import { SkeletonGroup } from "heroui-native";
 import ApartmentCard from "components/cards/ApartmentCard";
 import { useColors } from "hooks/useTheme";
-import type { SearchSection as SearchSectionType } from "./useSearchSections";
+import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
 
 const CARD_WIDTH = 180;
 const CARD_GAP = 12;

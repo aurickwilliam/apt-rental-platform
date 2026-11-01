@@ -55,6 +55,29 @@ describe("useProfileDetailsForm", () => {
     expect(result.current.cityOptions).toContain("Caloocan");
   });
 
+  it("offers every municipality of a province, not a short list", () => {
+    const { result } = setup();
+
+    act(() => result.current.setProvince("Bulacan"));
+
+    expect(result.current.cityOptions).toEqual(expect.arrayContaining(["Baliwag", "Marilao", "Malolos"]));
+    expect(result.current.cityOptions.length).toBeGreaterThanOrEqual(24);
+  });
+
+  it("offers the barangays of the picked province's city when several provinces share the name", () => {
+    const { result } = setup();
+
+    act(() => result.current.setProvince("Pampanga"));
+    act(() => result.current.setCity("San Fernando"));
+    expect(result.current.barangayOptions).toContain("Alasas");
+    expect(result.current.barangayOptions).not.toContain("Abut");
+
+    act(() => result.current.setProvince("La Union"));
+    act(() => result.current.setCity("San Fernando"));
+    expect(result.current.barangayOptions).toContain("Abut");
+    expect(result.current.barangayOptions).not.toContain("Alasas");
+  });
+
   it("shows required errors only after a submit attempt", () => {
     const { result } = setup();
     expect(result.current.getError("firstName")).toBeUndefined();
@@ -128,10 +151,35 @@ describe("useProfileDetailsForm", () => {
     expect(result.current.postal.error).toBeTruthy();
   });
 
+  it("warns, without blocking, about a well-formed ZIP we do not recognize for the city", () => {
+    const { result } = setup();
+    fillValid(() => result.current);
+    expect(result.current.postal.warning).toBeNull();
+
+    act(() => result.current.postal.onChange("1200"));
+    expect(result.current.postal.warning).toBe("This ZIP isn't one we recognize for Caloocan. Double-check it.");
+
+    let valid = false;
+    act(() => { valid = result.current.validate(); });
+    expect(valid).toBe(true);
+    expect(result.current.postal.error).toBeNull();
+  });
+
+  it("spaces the mobile number as it is typed and refuses a +63 number", () => {
+    const { result } = setup();
+    act(() => result.current.mobile.onChange("09171234567"));
+    expect(result.current.mobile.value).toBe("0917 123 4567");
+    expect(result.current.mobile.errorMessage).toBeNull();
+
+    act(() => result.current.mobile.onChange("+639171234567"));
+    expect(result.current.mobile.value).toBe("6391 712 3456");
+    expect(result.current.mobile.errorMessage).toBe("Enter a valid mobile number, like 0917 123 4567.");
+  });
+
   it("builds the users row with blanks as null and the formatted mobile number", () => {
     const { result } = setup();
     fillValid(() => result.current);
-    act(() => result.current.mobile.onChange("+639171234567"));
+    act(() => result.current.mobile.onChange("0917 123 4567"));
 
     expect(result.current.toRow()).toEqual({
       first_name: "Ana",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { createBrowserClient } from "@repo/supabase";
+import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import { getTenantContext } from "@/service/favoritesService";
 import { isReviewStayEligible } from "@/service/reviewsService";
