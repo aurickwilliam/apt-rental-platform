@@ -26,7 +26,8 @@
 .public-navbar .landing-menu-toggle {
   display: flex;
 }
-/* Keep the 5rem header bar and its 1px border above a scrollable landing menu. */
+/* Keep the header bar and its 1px border above a scrollable landing menu. The
+   desktop bar is shorter, and the landing menu stays reachable until xl. */
 .public-navbar .landing-mobile-menu {
   max-height: calc(100dvh - 5rem - 1px);
   overflow-y: auto;
@@ -34,6 +35,11 @@
 }
 .public-navbar .landing-mobile-menu > * {
   flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .public-navbar .landing-mobile-menu {
+    max-height: calc(100dvh - 72px - 1px);
+  }
 }
 @media (min-width: 1280px) {
   .public-navbar .landing-menu-toggle {

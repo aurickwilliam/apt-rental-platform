@@ -31,6 +31,7 @@ import PassportNotice from "../PassportNotice";
 
 interface ReviewStepProps {
   apartment: ApplyApartmentContext;
+  accountStatus: string | null;
   form: ApplicationForm;
   totalMoveIn: number;
   readiness: {
@@ -75,6 +76,7 @@ const SECTION_TRIGGER = "flex w-full cursor-pointer items-center justify-between
 
 export default function ReviewStep({
   apartment,
+  accountStatus,
   form,
   totalMoveIn,
   readiness,
@@ -206,7 +208,7 @@ export default function ReviewStep({
 
         <div className="mt-5 space-y-3">
           {!readiness.loading && !readiness.isPassportIncomplete ? <PassportNotice /> : null}
-          {!readiness.loading ? <ApplicationIssues issues={readiness.issues} /> : null}
+          {!readiness.loading ? <ApplicationIssues issues={readiness.issues} accountStatus={accountStatus} /> : null}
         </div>
 
         <div className="mt-6 flex gap-3">

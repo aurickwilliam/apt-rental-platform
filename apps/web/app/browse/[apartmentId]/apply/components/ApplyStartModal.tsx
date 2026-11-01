@@ -161,7 +161,7 @@ function ApplyStartContent({ apartment, viewer, basePath, onCancel, onOpenGuidel
             </Button>
           </div>
         ) : (
-          <ApplicationIssues issues={readiness.issues} />
+          <ApplicationIssues issues={readiness.issues} accountStatus={viewer.accountStatus} />
         )}
       </Modal.Body>
 

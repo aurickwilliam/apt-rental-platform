@@ -104,9 +104,9 @@ export default function AppNavbar() {
   const avatarSrc = profile?.avatar_url?.trim() || user?.user_metadata?.avatar_url?.trim() || undefined;
 
   return (
-    <header className="public-navbar sticky top-0 z-40 w-full min-w-0 border-b border-divider bg-background/95 backdrop-blur-md">
+    <header className="public-navbar sticky top-0 z-40 w-full min-w-0 border-b border-divider bg-background/80 backdrop-blur-lg backdrop-saturate-150">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="flex min-h-20 items-center justify-between gap-3">
+        <div className="flex min-h-20 items-center justify-between gap-3 md:min-h-[72px]">
 
           {/* Left: hamburger + logo */}
           <div className="flex min-w-0 flex-1 items-center gap-3">

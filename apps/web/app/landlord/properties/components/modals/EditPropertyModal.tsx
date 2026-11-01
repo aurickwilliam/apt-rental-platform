@@ -81,9 +81,16 @@ type Props = {
   property: Property;
   onClose: () => void;
   onSaved: (updated: Property) => void;
+  /**
+   * DOM layer that owns this dialog. A dialog opened from inside another modal
+   * layer (the Property Details drawer) must mount inside that layer's overlay:
+   * the parent's `ariaHideOutside` pass keeps everything inside its own layer
+   * visible, while still hiding the layer behind this dialog.
+   */
+  portalContainer?: HTMLElement | null;
 };
 
-export default function EditPropertyModal({ isOpen, property, onClose, onSaved }: Props) {
+export default function EditPropertyModal({ isOpen, property, onClose, onSaved, portalContainer }: Props) {
   const [form, setForm] = useState<Partial<Property>>({ ...property });
   const [depositMonths, setDepositMonths] = useState<number | null>(() => initialDepositMonths(property));
   const [advanceMonths, setAdvanceMonths] = useState<number | null>(() => initialAdvanceMonths(property));
@@ -241,7 +248,11 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved }
 
   return (
     <Modal>
-      <Modal.Backdrop isOpen={isOpen} onOpenChange={handleOpenChange}>
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={handleOpenChange}
+        UNSTABLE_portalContainer={portalContainer ?? undefined}
+      >
         <Modal.Container size="lg" scroll="inside">
           <Modal.Dialog className="edit-property-modal">
             {({ close }) => (

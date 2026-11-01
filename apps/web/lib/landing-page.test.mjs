@@ -577,7 +577,15 @@ test("landing anchors still close the menu before measuring and scrolling the se
 test("only the landing menu gets a dynamic viewport cap and non-shrinking scrollable controls", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.public-navbar \.landing-mobile-menu\s*\{\s*max-height: calc\(100dvh - 5rem - 1px\);\s*overflow-y: auto;\s*overscroll-behavior-y: contain;/);
+  assert.match(css, /@media \(min-width: 768px\) \{\s*\.public-navbar \.landing-mobile-menu\s*\{\s*max-height: calc\(100dvh - 72px - 1px\);/);
   assert.match(css, /\.public-navbar \.landing-mobile-menu > \*\s*\{\s*flex-shrink: 0;/);
+});
+
+test("desktop public navbar trims only its height, keeps its content width and stays lightly glassy", () => {
+  const navbar = readFileSync(new URL("../app/components/layout/AppNavbar.tsx", import.meta.url), "utf8");
+  assert.match(navbar, /mx-auto max-w-7xl px-6/);
+  assert.match(navbar, /flex min-h-20 items-center justify-between gap-3 md:min-h-\[72px\]/);
+  assert.match(navbar, /bg-background\/80 backdrop-blur-lg backdrop-saturate-150/);
 });
 
 for (const [options, state] of [[{ empty: true }, "empty"], [{ error: new Error("query failed") }, "error"]]) {
@@ -663,7 +671,7 @@ test("only listings suspend; the root route reuses public chrome without the sha
   assert.equal(region.props.children.type, "FeaturedApartments");
   const layout = readFileSync(new URL("../app/(landing)/layout.tsx", import.meta.url), "utf8");
   assert.match(layout, /import AppNavbar from "\.\.\/components\/layout\/AppNavbar"/);
-  assert.match(layout, /box-content h-20 border-b border-transparent/);
+  assert.match(layout, /box-content h-20 md:h-\[72px\] border-b border-transparent/);
   assert.match(layout, /<Footer \/>/);
   assert.match(layout, /<SettingsOverlay \/>/);
   const rootPage = readFileSync(new URL("../app/(landing)/page.tsx", import.meta.url), "utf8");
