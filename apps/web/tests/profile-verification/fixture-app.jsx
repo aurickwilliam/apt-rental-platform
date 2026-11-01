@@ -1,6 +1,5 @@
 import { StrictMode, useState } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
-import { renderToString } from "react-dom/server";
 import { Button } from "@heroui/react";
 import ApplyStartModal from "../../app/browse/[apartmentId]/apply/components/ApplyStartModal";
 import PassportProfileCard from "../../app/components/passport/PassportProfileCard";
@@ -26,7 +25,12 @@ function Fixture() {
   if (pathname === "/verify/mobile") {
     const params = new URLSearchParams(location.search);
     const returnTo = verificationApartmentPath(params.get("returnTo"));
-    return <main className="mobile-verification-page"><MobileVerifyClient key={params.get("token")} token={params.get("token")} returnTo={returnTo} />{returnTo ? <a href={returnTo} className="mobile-verification-return">Return to apartment</a> : null}</main>;
+    return <main className="mobile-verification-page">
+      <MobileVerifyClient key={params.get("token")} token={params.get("token")} returnTo={returnTo} />
+      {returnTo ? <a href={returnTo} className="mobile-verification-return">Return to apartment</a> : null}
+      {/* Test-only diagnostic: React text escaping, never HTML insertion. */}
+      <output hidden data-testid="requested-return-destination">{params.get("returnTo") ?? ""}</output>
+    </main>;
   }
   if (pathname === "/confirmation") {
     const params = new URLSearchParams(location.search);
@@ -44,7 +48,8 @@ function Fixture() {
 const root = document.getElementById("root");
 if (location.pathname === "/hydration") {
   const tree = <StrictMode><VerifyClient siteUrl="https://apt.test" accountStatus="unverified" hasPending={false} /></StrictMode>;
-  root.innerHTML = renderToString(tree);
+  // The builder renders the production neutral state on Node. Hydrate that
+  // existing server markup rather than inserting an HTML string in the browser.
   window.fixtureServerHTML = root.innerHTML;
   hydrateRoot(root, tree, { onRecoverableError: error => { window.fixtureHydrationErrors = [...(window.fixtureHydrationErrors || []), error.message]; } });
 } else {

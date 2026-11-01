@@ -24,6 +24,7 @@ $env:VERIFICATION_AXE_PATH = "$tools/node_modules/axe-core"
 $env:VERIFICATION_BROWSER_OUTPUT = "$env:TEMP/opencode/profile-verification-preview"
 node apps/web/tests/profile-verification/build-fixture.mjs "$env:VERIFICATION_BROWSER_OUTPUT"
 node apps/web/tests/profile-verification/navigation.browser.mjs
+node apps/web/tests/profile-verification/security.browser.mjs
 node apps/web/tests/profile-verification/device.browser.mjs
 node apps/web/tests/profile-verification/camera.browser.mjs
 node apps/web/tests/profile-verification/responsive.browser.mjs
@@ -89,3 +90,16 @@ checks WCAG A/AA rules on introduction, ID selection, camera-denied and preview
 screens. Screenshots are written to the temporary fixture output directory.
 The existing desktop navigation suite still exercises its supported ID upload;
 mobile tests assert that no file-picker fallback is reintroduced.
+
+`security.browser.mjs` sends malicious return destinations through the real
+fixture: URL schemes, protocol-relative URLs, encoded tricks, backslashes,
+control characters, malformed paths and HTML/script payloads. It asserts that
+invalid values create no return link, query diagnostics are escaped React text,
+no script or external navigation occurs, and valid listing links still work.
+The pure path tests share the same attack cases and run in the normal web suite.
+
+The builder now renders the production neutral verification state on Node with
+fixed props into `index.html`; `/hydration` hydrates that existing server markup.
+No query value enters the generated HTML, and the browser fixture performs no
+HTML-string insertion. The extra `hydration.cjs` build artifact stays in the
+temporary output directory and is not served to browsers.

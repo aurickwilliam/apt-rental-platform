@@ -11,19 +11,22 @@ if (!output || !process.env.VERIFICATION_ESBUILD_PATH) throw new Error("Provide 
 const require = createRequire(path.join(web, "package.json"));
 const { build } = require(process.env.VERIFICATION_ESBUILD_PATH);
 await mkdir(output, { recursive: true });
-await build({
-  entryPoints: [path.join(here, "fixture-app.jsx")], outfile: path.join(output, "fixture.js"),
-  bundle: true, platform: "browser", format: "esm", jsx: "automatic",
+const common = {
+  bundle: true, jsx: "automatic",
   define: {
     "process.env.NODE_ENV": '"development"',
     "process.env.NEXT_PUBLIC_ANDROID_APK_URL": '"https://apt.test/app.apk"',
     "process.env.NEXT_PUBLIC_SITE_URL": '"https://apt.test"',
   },
   nodePaths: [path.join(web, "node_modules"), path.resolve(web, "../../node_modules")],
-  plugins: [{ name: "verification-transports-only", setup(plugin) {
+};
+function fixturePlugin(server = false) {
+  return { name: "verification-transports-only", setup(plugin) {
     plugin.onResolve({ filter: /^next\/(navigation|link|image)$/ }, ({ path: source }) => ({ path: source, namespace: "next-fixture" }));
     plugin.onLoad({ filter: /.*/, namespace: "next-fixture" }, ({ path: source }) => ({
-      contents: source === "next/navigation"
+      contents: server
+        ? 'export function useRouter() { return { push() {}, refresh() {} }; } export function useSearchParams() { return new URLSearchParams(); } export function usePathname() { return "/hydration"; } export default function FixtureElement() { return null; }'
+        : source === "next/navigation"
         ? `export { useRouter, useSearchParams, usePathname } from ${JSON.stringify(path.join(here, "fixture-next.jsx"))}`
         : `export { ${source === "next/link" ? "FixtureLink" : "FixtureImage"} as default } from ${JSON.stringify(path.join(here, "fixture-next.jsx"))}`,
       loader: "js", resolveDir: here,
@@ -36,8 +39,26 @@ await build({
       if (!resolved) throw new Error(`Unresolved fixture import: ${source}`);
       return { path: resolved };
     });
-  } }],
+  } };
+}
+await build({
+  ...common,
+  entryPoints: [path.join(here, "fixture-app.jsx")], outfile: path.join(output, "fixture.js"),
+  platform: "browser", format: "esm", plugins: [fixturePlugin()],
 });
+// Render the actual production neutral state with fixed props on Node. Query
+// parameters never enter this markup; browser hydration is still tested fully.
+const hydrationFile = path.join(output, "hydration.cjs");
+await build({
+  ...common, outfile: hydrationFile, platform: "node", format: "cjs", plugins: [fixturePlugin(true)],
+  stdin: {
+    contents: `import { StrictMode } from "react"; import { renderToString } from "react-dom/server";
+      import VerifyClient from ${JSON.stringify(path.join(web, "app/verify/components/VerifyClient.tsx"))};
+      export const html = renderToString(<StrictMode><VerifyClient siteUrl="https://apt.test" accountStatus="unverified" hasPending={false} /></StrictMode>);`,
+    loader: "jsx", resolveDir: web,
+  },
+});
+const { html: hydrationHtml } = require(hydrationFile);
 const { compile } = createRequire(require.resolve("@tailwindcss/postcss"))("@tailwindcss/node");
 const cssPath = path.join(web, "app/globals.css");
 const routeCss = await readFile(path.join(web, "app/verify/mobile/verification.css"), "utf8");
@@ -62,5 +83,5 @@ for (const file of [
   }
 }
 await writeFile(path.join(output, "styles.css"), compiler.build([...candidates]));
-await writeFile(path.join(output, "index.html"), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/styles.css"></head><body><div id="root"></div><script type="module" src="/fixture.js"></script></body></html>');
+await writeFile(path.join(output, "index.html"), `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/styles.css"></head><body><div id="root">${hydrationHtml}</div><script type="module" src="/fixture.js"></script></body></html>`);
 console.log(`Verification fixture built: ${output}`);

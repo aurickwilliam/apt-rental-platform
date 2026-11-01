@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 import { profileVerificationHref, verificationApartmentPath } from "./profile-verification-navigation.ts";
+import { maliciousVerificationReturns } from "./test-support/verification-security-cases.mjs";
 
 test("verification intent targets tenant profile and retains only the apartment detail path", () => {
   for (const prefix of ["/browse", "/tenant/browse"]) {
@@ -22,6 +23,35 @@ test("return paths reject external URLs, unrelated routes, queries, hashes and e
     assert.equal(verificationApartmentPath(path), null, String(path));
     assert.equal(profileVerificationHref(path), "/tenant/profile?openVerification=true");
   }
+});
+
+test("security: return navigation rejects URL schemes, encodings, separators, controls and malformed IDs", () => {
+  for (const value of [null, undefined, "", ...maliciousVerificationReturns]) {
+    assert.equal(verificationApartmentPath(value), null, JSON.stringify(value));
+    const fallback = new URL(profileVerificationHref(value), "https://apt.test");
+    assert.equal(fallback.origin, "https://apt.test");
+    assert.equal(fallback.pathname, "/tenant/profile");
+    assert.equal(fallback.searchParams.has("returnTo"), false);
+  }
+});
+
+test("security: accepted listing IDs produce canonical local routes, never an arbitrary URL", () => {
+  for (const id of ["12345678-1234-4321-8123-123456789abc", "apartment-1", "A1-B2", "a".repeat(128)]) {
+    for (const prefix of ["/browse", "/tenant/browse"]) {
+      for (const suffix of ["", "/apply"]) {
+        const result = verificationApartmentPath(`${prefix}/${id}${suffix}`);
+        assert.equal(result, `${prefix}/${id}`);
+        assert.equal(new URL(result, "https://apt.test").origin, "https://apt.test");
+      }
+    }
+  }
+});
+
+test("security: the browser fixture has no HTML-insertion sink and hydrates existing server markup", () => {
+  const fixture = readFileSync(new URL("../tests/profile-verification/fixture-app.jsx", import.meta.url), "utf8");
+  assert.doesNotMatch(fixture, /\.innerHTML\s*=|dangerouslySetInnerHTML|insertAdjacentHTML|document\.write|renderToString/);
+  assert.match(fixture, /hydrateRoot\(root, tree/);
+  assert.match(fixture, /verificationApartmentPath\(params\.get\("returnTo"\)\)/);
 });
 
 function issuesTree(accountStatus, issues = [{ code: "unverified", message: "Verify your identity." }]) {

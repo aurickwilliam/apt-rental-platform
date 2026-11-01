@@ -77,6 +77,14 @@ single-use consumption, private storage access, server-side required-file
 checks and admin review are unchanged. No schema migration is needed. Nothing
 automatically approves verification or submits a rental application.
 
+Return navigation is limited to `/browse/:id` and `/tenant/browse/:id` listing
+details. An originating `/apply` route is reduced to its listing. The shared
+validator rejects encoded path syntax, URL schemes, protocol-relative URLs,
+backslashes, controls, queries, fragments and unsupported path shapes. It
+builds a new URL from a fixed internal route and one validated, encoded ID
+segment rather than returning a substring of the supplied URL. Invalid values
+omit the return link; the normal profile/mobile verification flow still works.
+
 ## Local verification and device testing
 
 The network-isolated browser fixture in
