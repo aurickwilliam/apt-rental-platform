@@ -57,4 +57,5 @@ export const common: Record<keyof typeof enCommon, string> = {
   "common.searchPlaceholder": "Maghanap...",
   "common.noResultsFound": "Walang nahanap",
   "common.noOptions": "Walang available na option",
+  "common.viewAria": "Tingnan ang {name}",
 };

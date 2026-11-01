@@ -9,6 +9,7 @@ import { IconBed as BedDouble, IconBath as Bath, IconMaximize as Expand, IconHea
 
 import { formatPesoDisplay } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { FavoriteApartment } from "@/service/favoritesService";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
@@ -29,6 +30,8 @@ export default function FavoriteListCard({
   onFavoritePress,
   href,
 }: FavoriteListCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className="favorite-list-card">
       <Card.Content>
@@ -60,25 +63,29 @@ export default function FavoriteListCard({
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <BedDouble size={16} aria-hidden="true" />
-                {apartment.no_bedrooms ?? 0} {apartment.no_bedrooms === 1 ? "bedroom" : "bedrooms"}
+                {apartment.no_bedrooms === 1
+                  ? t("favorites.card.bedroom", { count: apartment.no_bedrooms ?? 0 })
+                  : t("favorites.card.bedroomPlural", { count: apartment.no_bedrooms ?? 0 })}
               </span>
               <span className="inline-flex items-center gap-1">
                 <Bath size={16} aria-hidden="true" />
-                {apartment.no_bathrooms ?? 0} {apartment.no_bathrooms === 1 ? "bathroom" : "bathrooms"}
+                {apartment.no_bathrooms === 1
+                  ? t("favorites.card.bathroom", { count: apartment.no_bathrooms ?? 0 })
+                  : t("favorites.card.bathroomPlural", { count: apartment.no_bathrooms ?? 0 })}
               </span>
               <span className="inline-flex items-center gap-1">
                 <Expand size={16} aria-hidden="true" />
-                {apartment.area_sqm ?? 0} sqm
+                {t("favorites.card.sqm", { count: apartment.area_sqm ?? 0 })}
               </span>
             </div>
             <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-border pt-4">
               <p className="font-nunito text-xl font-bold text-primary">
                 {formatPesoDisplay(apartment.monthly_rent ?? 0)}
-                <span className="ml-1 font-inter text-xs font-normal text-muted-foreground">/ month</span>
+                <span className="ml-1 font-inter text-xs font-normal text-muted-foreground">{t("favorites.card.perMonth")}</span>
               </p>
               <span className="inline-flex items-center gap-1 text-sm text-card-foreground">
                 <IconStarFilled size={16} className="text-rating" aria-hidden="true" />
-                {apartment.average_rating ? apartment.average_rating : "No ratings yet"}
+                {apartment.average_rating ? apartment.average_rating : t("favorites.card.noRatings")}
               </span>
             </div>
           </div>
@@ -86,7 +93,7 @@ export default function FavoriteListCard({
       </Card.Content>
       <Link
         href={href}
-        aria-label={`View ${apartment.name}`}
+        aria-label={t("common.viewAria", { name: apartment.name })}
         className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
       />
       <div className="absolute right-3 top-3 z-20">
@@ -94,7 +101,7 @@ export default function FavoriteListCard({
           isIconOnly
           variant="ghost"
           className="favorite-list-heart"
-          aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+          aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
           isPending={isFavoriteLoading}
           onPress={onFavoritePress}
         >

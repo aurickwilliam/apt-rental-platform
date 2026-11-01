@@ -58,4 +58,5 @@ export const common = {
   "common.searchPlaceholder": "Search...",
   "common.noResultsFound": "No results found",
   "common.noOptions": "No options available",
+  "common.viewAria": "View {name}",
 } as const;

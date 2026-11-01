@@ -6,6 +6,7 @@ import { Button, Card, toast } from "@heroui/react";
 import { IconAlertCircle, IconArrowRight, IconHeart, IconLayoutGrid as LayoutGrid, IconLayoutList as LayoutList } from "@tabler/icons-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useFavoritePresentation } from "@/hooks/use-favorite-presentation";
 import type { FavoriteCursor, FavoritePresentationScope } from "@/lib/favorite-resource";
 import type { FavoriteApartment } from "@/service/favoritesService";
@@ -16,6 +17,7 @@ import { FavoritesCardsSkeleton } from "./FavoritesSkeleton";
 
 export default function FavoritesClient(scope: FavoritePresentationScope) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const [cursors, setCursors] = useState<(FavoriteCursor | null)[]>([null]);
@@ -43,21 +45,21 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
         const nextValue = await toggleFavorite(id);
 
         if (nextValue) {
-          toast.success("Saved to favorites");
+          toast.success(t("favorites.saved"));
         } else {
-          toast("Removed from favorites");
+          toast(t("favorites.removed"));
         }
         
       } catch (err: unknown) {
 
         const error = err as { message?: string };
-        toast.danger(error?.message ?? "Unable to update favorites");
+        toast.danger(error?.message ?? t("favorites.updateFailed"));
 
       } finally {
         setActiveFavoriteId(null);
       }
     },
-    [toggleFavorite],
+    [t, toggleFavorite],
   );
 
   const isLoading = loading;
@@ -69,24 +71,34 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
 
       {hasData && error ? (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-sm">
-          <span>Couldn&apos;t refresh your favorites. Showing the last loaded shortlist.</span>
-          <Button variant="secondary" size="sm" onPress={() => void refreshFavorites()}>Try again</Button>
+          <span>{t("favorites.refreshFailed")}</span>
+          <Button variant="secondary" size="sm" onPress={() => void refreshFavorites()}>{t("favorites.tryAgain")}</Button>
         </div>
       ) : null}
-      {refreshing ? <span role="status" className="sr-only">Refreshing favorites</span> : null}
+      {refreshing ? <span role="status" className="sr-only">{t("favorites.refreshing")}</span> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
         <p className="font-nunito text-sm font-semibold text-card-foreground" aria-live="polite">
-          {isLoading ? "Loading saved apartments…" : combinedError ? "Saved apartments" : `${apartments.length} saved ${apartments.length === 1 ? "apartment" : "apartments"}${nextCursor || cursors.length > 1 ? " on this page" : ""}`}
+          {isLoading
+            ? t("favorites.loadingSaved")
+            : combinedError
+              ? t("favorites.savedApartments")
+              : nextCursor || cursors.length > 1
+                ? apartments.length === 1
+                  ? t("favorites.countPage", { count: apartments.length })
+                  : t("favorites.countPagePlural", { count: apartments.length })
+                : apartments.length === 1
+                  ? t("favorites.count", { count: apartments.length })
+                  : t("favorites.countPlural", { count: apartments.length })}
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 rounded-full border border-border bg-background p-1" role="group" aria-label="Favorites view">
+          <div className="flex items-center gap-1 rounded-full border border-border bg-background p-1" role="group" aria-label={t("favorites.viewGroupAria")}>
             <Button
               isIconOnly
               size="sm"
               variant={viewMode === "grid" ? "primary" : "ghost"}
               onPress={() => setViewMode("grid")}
-              aria-label="Grid view"
+              aria-label={t("favorites.gridView")}
               aria-pressed={viewMode === "grid"}
             >
               <LayoutGrid size={16} aria-hidden="true" />
@@ -96,7 +108,7 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
               size="sm"
               variant={viewMode === "list" ? "primary" : "ghost"}
               onPress={() => setViewMode("list")}
-              aria-label="List view"
+              aria-label={t("favorites.listView")}
               aria-pressed={viewMode === "list"}
             >
               <LayoutList size={16} aria-hidden="true" />
@@ -104,7 +116,7 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
           </div>
           {apartments.length > 0 && !combinedError && (
             <Button variant="secondary" size="sm" onPress={() => router.push("/tenant/browse")}>
-              Browse apartments
+              {t("favorites.browse")}
               <IconArrowRight size={16} aria-hidden="true" />
             </Button>
           )}
@@ -118,10 +130,10 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
           <Card.Content className="items-center gap-4 px-4 py-10 text-center">
             <IconAlertCircle size={32} className="text-danger" aria-hidden="true" />
             <div className="space-y-1">
-              <h2 className="font-nunito text-lg font-bold text-card-foreground">Couldn&apos;t load your favorites</h2>
+              <h2 className="font-nunito text-lg font-bold text-card-foreground">{t("favorites.loadTitle")}</h2>
               <p className="text-sm text-muted-foreground" role="alert">{combinedError}</p>
             </div>
-            <Button variant="secondary" onPress={() => void refreshFavorites()}>Try again</Button>
+            <Button variant="secondary" onPress={() => void refreshFavorites()}>{t("favorites.tryAgain")}</Button>
           </Card.Content>
         </Card>
       ) : apartments.length === 0 ? (
@@ -131,11 +143,15 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
               <IconHeart size={32} aria-hidden="true" />
             </span>
             <div className="max-w-sm space-y-2">
-              <h2 className="font-nunito text-xl font-bold text-card-foreground">{cursors.length > 1 || nextCursor ? "No available saved apartments on this page" : "Your shortlist starts here"}</h2>
-              <p className="text-sm text-muted-foreground">{cursors.length > 1 || nextCursor ? "Some saved listings may no longer be available. Try another page or browse more apartments." : "Tap the heart on an apartment to save it here and return to it whenever you're ready."}</p>
+              <h2 className="font-nunito text-xl font-bold text-card-foreground">
+                {cursors.length > 1 || nextCursor ? t("favorites.emptyPageTitle") : t("favorites.emptyTitle")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {cursors.length > 1 || nextCursor ? t("favorites.emptyPageBody") : t("favorites.emptyBody")}
+              </p>
             </div>
             <Button onPress={() => router.push("/tenant/browse")}>
-              Browse apartments
+              {t("favorites.browse")}
               <IconArrowRight size={16} aria-hidden="true" />
             </Button>
           </Card.Content>
@@ -178,10 +194,10 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
         </div>
       )}
       {cursors.length > 1 || nextCursor ? (
-        <nav aria-label="Favorites pages" className="flex items-center justify-end gap-3">
-          <Button variant="secondary" size="sm" isDisabled={cursors.length === 1} onPress={() => setCursors((current) => current.slice(0, -1))}>Previous</Button>
-          <span className="text-sm text-muted-foreground">Page {cursors.length}</span>
-          <Button variant="secondary" size="sm" isDisabled={!nextCursor || isLoading} onPress={() => { if (nextCursor) setCursors((current) => [...current, nextCursor]); }}>Next</Button>
+        <nav aria-label={t("favorites.pagesAria")} className="flex items-center justify-end gap-3">
+          <Button variant="secondary" size="sm" isDisabled={cursors.length === 1} onPress={() => setCursors((current) => current.slice(0, -1))}>{t("favorites.previous")}</Button>
+          <span className="text-sm text-muted-foreground">{t("favorites.page", { count: cursors.length })}</span>
+          <Button variant="secondary" size="sm" isDisabled={!nextCursor || isLoading} onPress={() => { if (nextCursor) setCursors((current) => [...current, nextCursor]); }}>{t("favorites.next")}</Button>
         </nav>
       ) : null}
     </FavoritesPageShell>

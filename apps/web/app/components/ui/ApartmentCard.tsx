@@ -10,6 +10,7 @@ import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled } fro
 
 import { formatPesoDisplay } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 // Shown when a listing has no photo or its file no longer resolves, so a card
@@ -47,6 +48,7 @@ export default function ApartmentCard({
   priority = false,
   sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: ApartmentCardProps) {
+  const { t } = useTranslation();
   const showFavoriteButton = Boolean(onFavoritePress);
   // Track the URL that failed rather than a boolean, so a new thumbnail for the
   // same card position retries the real image instead of keeping the fallback.
@@ -67,7 +69,7 @@ export default function ApartmentCard({
         }
       }}
       tabIndex={onPress ? 0 : undefined}
-      aria-label={`View ${name}`}
+      aria-label={t("common.viewAria", { name })}
       role="button"
     >
       <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-full h-full relative p-0">
@@ -128,7 +130,7 @@ export default function ApartmentCard({
             variant="ghost"
             className="bg-white/75"
             isIconOnly
-            aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+            aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
             isPending={isFavoriteLoading}
             onPress={() => {
               onFavoritePress?.();

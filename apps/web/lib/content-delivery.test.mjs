@@ -90,6 +90,12 @@ test("public card and rental hero preserve source selection, geometry, null fall
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => String(value) },
     "@heroui/react": { Card: { Footer: "Card.Footer" }, Button: "Button" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
   };
   const Card = compile("app/components/ui/ApartmentCard.tsx", common).default;
   const card = nodes(Card({ thumbnailUrl: publicPhoto.replace(".jpg", "_thumb.jpg"), name: "Unit", price: 5000, rating: 0, priority: true }));
