@@ -19,10 +19,18 @@ const draw = (props: Partial<React.ComponentProps<typeof ZigzagEdge>>) => {
 };
 
 describe("ZigzagEdge", () => {
-  it("cuts notches into the card by default: the path starts at the bottom and peaks at the top", () => {
+  it("cuts notches into the card by default, starting in a valley at the corner", () => {
     const [fill, path] = draw({ cutColor: "#376BF5" }).split("|");
     expect(fill).toBe("#376BF5");
-    expect(path.startsWith("M0,10 L10,0 L20,10")).toBe(true);
+    expect(path.startsWith("M0,10 L0,0 L10,10 L20,0")).toBe(true);
+  });
+
+  it("leaves whole teeth at both ends of the card instead of half teeth stuck to the corners", () => {
+    const path = draw({}).split("|")[1];
+    expect(path.endsWith("L90,10 L100,0 L100,10 Z")).toBe(true);
+    // five card teeth across 100px: their tips are at the middle of each 20px segment
+    const tips = [...path.matchAll(/L(\d+),10 /g)].map((match) => Number(match[1])).slice(0, -1);
+    expect(tips).toEqual([10, 30, 50, 70, 90]);
   });
 
   it("hangs paper-colored teeth below the card when asked: the path starts at the top and points down", () => {
