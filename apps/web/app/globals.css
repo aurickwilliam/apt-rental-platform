@@ -1363,6 +1363,30 @@ body[data-scroll-locked] [role="option"] {
   color: var(--muted-foreground);
 }
 
+/* HeroUI's default close icon uses text-muted (a pale fill token here).
+   Keep the profile editor's close control readable without changing other overlays. */
+.edit-profile-close-control {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.edit-profile-close-control svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.edit-profile-close-control:is(:hover, [data-hovered="true"]):not(:disabled) {
+  background-color: var(--border);
+}
+
+.edit-profile-close-control:is(:focus-visible, [data-focus-visible="true"]) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .create-listing-amenities-search .search-field__clear-button {
   width: 1.75rem;
   height: 1.75rem;

@@ -117,6 +117,31 @@ try {
       await page.evaluate((value) => document.documentElement.classList.toggle("dark", value), dark);
       await edit.click();
       await settle();
+      const close = dialog.getByRole("button", { name: "Close edit profile" });
+      const closeBox = await close.boundingBox();
+      assert.ok(closeBox.width >= 44 && closeBox.height >= 44, "close target is at least 44px");
+      const contrast = await close.evaluate((element) => {
+        const style = getComputedStyle(element);
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 1;
+        const context = canvas.getContext("2d");
+        const luminance = (color) => {
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = getComputedStyle(element.closest('[role="dialog"]')).backgroundColor;
+          context.fillRect(0, 0, 1, 1);
+          context.fillStyle = color;
+          context.fillRect(0, 0, 1, 1);
+          const channels = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map((value) => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        };
+        const foreground = luminance(style.color);
+        const background = luminance(style.backgroundColor);
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      assert.ok(contrast >= 3, `close icon contrasts against its surface (${contrast.toFixed(2)}:1), ${await close.evaluate((element) => [getComputedStyle(element).color, getComputedStyle(element).backgroundColor].join(" / "))}`);
       const box = await dialog.boundingBox();
       if (width === 1280) assert.ok(box.width >= 700, "desktop modal keeps wide two-column form");
       assert.ok(box.x >= 0 && box.x + box.width <= width + 1, "modal fits viewport");

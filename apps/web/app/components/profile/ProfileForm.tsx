@@ -27,6 +27,7 @@ import {
   IconPencil,
   IconPhone,
   IconUser,
+  IconX,
 } from "@tabler/icons-react";
 
 import {
@@ -1089,7 +1090,13 @@ export default function ProfileForm({
         >
           <Modal.Container placement="center" size="lg" scroll="inside">
             <Modal.Dialog className="max-w-3xl! rounded-3xl bg-card text-card-foreground">
-              <Modal.CloseTrigger aria-label="Close edit profile" isDisabled={isPending || isUploadingPhotos} />
+              <Modal.CloseTrigger
+                aria-label="Close edit profile"
+                className="edit-profile-close-control"
+                isDisabled={isPending || isUploadingPhotos}
+              >
+                <IconX size={20} aria-hidden="true" />
+              </Modal.CloseTrigger>
               <Modal.Header className="pr-12">
                 <Modal.Heading className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
                   <IconPencil size={20} className="shrink-0" aria-hidden="true" />
