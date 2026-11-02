@@ -246,6 +246,13 @@ export default function PaymentCheckout() {
         setCashErrors(errors);
         return;
       }
+      if (!currentUser?.id) {
+        setPaymentError({
+          message: "We could not load your profile. Please try again.",
+          title: "Profile Not Loaded",
+        });
+        return;
+      }
 
       setIsProcessing(true);
       try {
@@ -253,7 +260,7 @@ export default function PaymentCheckout() {
           referenceId,
           amount: totalDue,
           date: toIsoDate(cashPaymentDate ?? new Date()),
-          tenantId: currentUser?.id ?? tenancy.id,
+          tenantId: currentUser.id,
           apartmentId: apartment.id,
           tenancyId: tenancy.id,
           periodStart: period.periodStart,

@@ -1,11 +1,16 @@
-import { View, Text } from 'react-native'
+import { View, Text, Linking } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Spinner } from 'heroui-native'
 
 import ErrorDialog from '@/components/display/ErrorDialog'
-import { cancelCheckoutSession, getCheckoutSessionStatus, PaymongoError } from '@/service/payments/paymongoService'
+import {
+  cancelCheckoutSession,
+  getCheckoutSessionDetails,
+  PaymongoError,
+  type PaymongoSessionStatus,
+} from '@/service/payments/paymongoService'
 
 export default function PaymentVerify() {
   const router = useRouter()
@@ -22,17 +27,31 @@ export default function PaymentVerify() {
   const [isVerifying, setIsVerifying] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isCancelled, setIsCancelled] = useState(false)
+  // Still open at PayMongo and unpaid: the tenant can resume or cancel it.
+  const [isPending, setIsPending] = useState(false)
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
   const verifyingRef = useRef(false)
 
+  // `cancel` asks the backend to close the session first; either way its
+  // verdict (never the link) decides what the tenant sees.
   const verifyPayment = useCallback(
-    async (sessionIdValue: string) => {
+    async (sessionIdValue: string, cancel: boolean) => {
       if (verifyingRef.current) return
       verifyingRef.current = true
       setIsVerifying(true)
       setErrorMessage(null)
+      setIsPending(false)
 
       try {
-        const status = backedOut ? await cancelCheckoutSession(sessionIdValue) : await getCheckoutSessionStatus(sessionIdValue)
+        let status: PaymongoSessionStatus
+        let resumeUrl: string | null = null
+        if (cancel) {
+          status = await cancelCheckoutSession(sessionIdValue)
+        } else {
+          const details = await getCheckoutSessionDetails(sessionIdValue)
+          status = details.status
+          resumeUrl = details.checkoutUrl
+        }
 
         if (status === 'paid') {
           const successReferenceId =
@@ -41,14 +60,15 @@ export default function PaymentVerify() {
           return
         }
 
-        if (backedOut && (status === 'failed' || status === 'expired')) {
+        if (cancel && (status === 'failed' || status === 'expired')) {
           setIsCancelled(true)
         } else if (status === 'failed') {
           setErrorMessage('Your payment was declined or cancelled. Please try again.')
         } else if (status === 'expired') {
           setErrorMessage('This payment session has expired. Please start a new payment.')
         } else {
-          setErrorMessage('We could not confirm your payment yet. Please try again.')
+          setCheckoutUrl(resumeUrl)
+          setIsPending(true)
         }
       } catch (error) {
         setErrorMessage(error instanceof PaymongoError ? error.reason : 'We could not confirm your payment. Please try again.')
@@ -57,14 +77,14 @@ export default function PaymentVerify() {
         setIsVerifying(false)
       }
     },
-    [router, referenceId, backedOut]
+    [router, referenceId]
   )
 
   useEffect(() => {
     if (typeof sessionId === 'string' && sessionId.length > 0) {
       const pendingId = sessionId;
       queueMicrotask(() => {
-        void verifyPayment(pendingId);
+        void verifyPayment(pendingId, backedOut);
       });
     } else {
       queueMicrotask(() => {
@@ -72,10 +92,18 @@ export default function PaymentVerify() {
         setErrorMessage('Missing payment session. Please start a new payment.')
       });
     }
-  }, [sessionId, verifyPayment])
+  }, [sessionId, backedOut, verifyPayment])
 
   const handleRetry = () => {
-    if (typeof sessionId === 'string') void verifyPayment(sessionId)
+    if (typeof sessionId === 'string') void verifyPayment(sessionId, false)
+  }
+
+  const handleCancelPayment = () => {
+    if (typeof sessionId === 'string') void verifyPayment(sessionId, true)
+  }
+
+  const handleContinueCheckout = () => {
+    if (checkoutUrl) void Linking.openURL(checkoutUrl)
   }
 
   const handleGoBack = () => {
@@ -99,6 +127,29 @@ export default function PaymentVerify() {
           <Button variant="secondary" size="sm" onPress={handleGoBack} className="bg-white">
             <Button.Label className="text-primary">Back to payment</Button.Label>
           </Button>
+        </View>
+      ) : isPending ? (
+        <View className="items-center gap-4">
+          <Text className="text-white text-center text-lg font-nunitoSemiBold">Payment not completed yet</Text>
+          <Text className="text-white text-center text-base font-inter">
+            Your checkout is still open and nothing has been charged. Continue it, check again, or cancel it to start over.
+          </Text>
+          <View className="gap-3 self-stretch">
+            {checkoutUrl ? (
+              <Button variant="secondary" size="sm" onPress={handleContinueCheckout} className="bg-white">
+                <Button.Label className="text-primary">Continue checkout</Button.Label>
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" onPress={handleRetry} className="border border-white">
+              <Button.Label className="text-white">Check again</Button.Label>
+            </Button>
+            <Button variant="ghost" size="sm" onPress={handleCancelPayment} className="border border-white">
+              <Button.Label className="text-white">Cancel this payment</Button.Label>
+            </Button>
+            <Button variant="ghost" size="sm" onPress={handleGoBack}>
+              <Button.Label className="text-white">Go Back</Button.Label>
+            </Button>
+          </View>
         </View>
       ) : errorMessage ? (
         <View className="items-center gap-4">

@@ -29,11 +29,8 @@ export type PaymongoCardPaymentResult = {
   failureReason: string | null
 }
 
-// Typed error codes surfaced by the paymongo edge function (server-side
-// eligibility checks in createRefund): REFUND_NOT_SUPPORTED,
-// REFUND_ALREADY_PENDING, PAYMENT_NOT_FOUND, PAYMENT_NOT_OWNED,
-// PAYMENT_NOT_PAID, REFUND_INVALID_AMOUNT, REFUND_EXCEEDS_AMOUNT. Code is null
-// for transport/unknown failures.
+// Error codes surfaced by the paymongo edge function (for example
+// configuration_error or not_found). Code is null for transport/unknown failures.
 export class PaymongoError extends Error {
   reason: string
   code: string | null
@@ -118,15 +115,28 @@ function toSessionStatus(status: string): PaymongoSessionStatus {
   }
 }
 
+export type PaymongoSessionDetails = {
+  status: PaymongoSessionStatus
+  // Only present while the session is still open, so it can be resumed.
+  checkoutUrl: string | null
+}
+
 // The backend is the source of truth for payment status. Deep-link params
 // never determine the outcome — only this endpoint's verdict is trusted.
-export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
+export async function getCheckoutSessionDetails(sessionId: string): Promise<PaymongoSessionDetails> {
   const response = await invoke<PaymongoEnvelope<{
     id: string
-    attributes: { status: string }
+    attributes: { status: string; checkout_url?: string }
   }>>('getCheckoutSessionStatus', { sessionId })
 
-  return toSessionStatus(response.data.attributes.status)
+  return {
+    status: toSessionStatus(response.data.attributes.status),
+    checkoutUrl: response.data.attributes.checkout_url ?? null,
+  }
+}
+
+export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
+  return (await getCheckoutSessionDetails(sessionId)).status
 }
 
 // The tenant backed out of the hosted checkout: ask the backend to close the
@@ -158,31 +168,5 @@ export async function createCardPayment(params: {
   return {
     status: response.data.attributes.status === 'succeeded' ? 'succeeded' : 'failed',
     failureReason: response.data.attributes.failure_reason,
-  }
-}
-
-export type RefundRequestResult = {
-  status: 'processing' | 'succeeded' | 'failed'
-}
-
-// Full-amount refund for a paid, refundable payment. The backend checks
-// eligibility (method + PayMongo rail) and inserts the pending refund row
-// before calling PayMongo — duplicate requests fail with REFUND_ALREADY_PENDING.
-export async function requestRefund(params: {
-  paymentId: string
-  amount: number
-}): Promise<RefundRequestResult> {
-  const response = await invoke<PaymongoEnvelope<{
-    id: string
-    attributes: { status: string }
-  }>>('createRefund', {
-    paymentId: params.paymentId,
-    amount: params.amount,
-    reason: 'requested_by_customer',
-  })
-
-  const status = response.data.attributes.status
-  return {
-    status: status === 'succeeded' ? 'succeeded' : status === 'failed' ? 'failed' : 'processing',
   }
 }
