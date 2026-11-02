@@ -37,7 +37,7 @@ import { buildConversationKey } from '@/service/chat/chatService';
 
 import { Button } from 'heroui-native';
 
-import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
+import { findPendingOnlinePayment, formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
@@ -316,6 +316,7 @@ export default function Rentals() {
             periodYear={formatDate(rent.periodStart, "year")}
             status={rent.status}
             totalRent={rent.monthlyRent + (tenancy.bill ? 0 : legacyFeesTotal)}
+            hasPendingPayment={tenancy.bill ? Boolean(tenancy.bill.pendingPayment) : findPendingOnlinePayment(paymentsQuery.data ?? [], rent.periodStart) !== null}
             feesTotal={tenancy.bill ? tenancy.bill.fees.reduce((sum, fee) => sum + fee.amount, 0) : legacyFeesTotal}
             dueDate={formatDate(rent.dueDate, "medium")}
             onPayNowPress={handlePayNow}

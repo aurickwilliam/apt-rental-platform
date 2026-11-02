@@ -16,8 +16,7 @@ function props(selectedMethod: PaymentMethod | null = null) {
     selectedMethod, acceptedMethods: ALL_METHODS, methodsLoading: false, methodsError: null as string | null,
     onRetryMethods: jest.fn(), amount: 15000, selectedBank: null as BankCode | null, onBankChange: jest.fn(),
     onPaymentMethodChange: jest.fn(),
-    cardInformation: { cardNumber: "", expiryDate: "", cardholderName: "", cvv: "", isCardNumberValid: false },
-    onCardInformationChange: jest.fn(), cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
+    cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
   };
 }
 
@@ -64,10 +63,11 @@ it("offers nothing when the accepted methods fail to load and lets the tenant re
   expect(options.onRetryMethods).toHaveBeenCalledTimes(1);
 });
 
-it("still requires new card details when Card is chosen", () => {
+it("has no in-app card form: card is entered on PayMongo's hosted page", () => {
   render(<PaymentMethodSelector {...props("Debit/Credit-Card")} />);
-  expect(screen.getByText("Card Details")).toBeTruthy();
-  expect(screen.getByPlaceholderText("**** **** **** ****").props.value).toBe("");
+  expect(screen.getByLabelText("Debit/Credit Card").props.accessibilityState.selected).toBe(true);
+  expect(screen.queryByText("Card Details")).toBeNull();
+  expect(screen.queryByPlaceholderText("**** **** **** ****")).toBeNull();
 });
 
 it("shows the banks for Bank Transfer and disables one over its limit with the reason", () => {

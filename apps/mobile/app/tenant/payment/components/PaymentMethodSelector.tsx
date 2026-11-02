@@ -4,11 +4,10 @@ import { IconBuildingBank, IconCash } from '@tabler/icons-react-native'
 import { Button, Card, Spinner } from 'heroui-native'
 import PaymentMethodButton from './PaymentMethodButton'
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
-import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
 import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
 import BankTransferPicker from './BankTransferPicker'
 import type { BankCode } from '@repo/constants'
-import { paymentMethodLabel, type CardFormErrors, type PaymentMethod } from '@repo/utils'
+import { paymentMethodLabel, type PaymentMethod } from '@repo/utils'
 export type { PaymentMethod } from '@repo/utils'
 
 const METHODS: Record<PaymentMethod, {
@@ -49,9 +48,6 @@ const METHODS: Record<PaymentMethod, {
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod | null
   onPaymentMethodChange: (method: PaymentMethod) => void
-  cardInformation: CardInformation
-  onCardInformationChange: (patch: Partial<CardInformation>) => void
-  cardErrors?: CardFormErrors
   cashPaymentDate: Date | null
   onCashPaymentDateChange: (date: Date) => void
   cashErrors?: CashPaymentErrors
@@ -70,9 +66,6 @@ interface PaymentMethodSelectorProps {
 export default function PaymentMethodSelector({
   selectedMethod,
   onPaymentMethodChange,
-  cardInformation,
-  onCardInformationChange,
-  cardErrors,
   cashPaymentDate,
   onCashPaymentDateChange,
   cashErrors,
@@ -131,14 +124,6 @@ export default function PaymentMethodSelector({
               selectedBank={selectedBank}
               onBankChange={onBankChange}
               error={bankError}
-            />
-          )}
-
-          {selectedMethod === 'Debit/Credit-Card' && (
-            <CardPaymentForm
-              value={cardInformation}
-              onChange={onCardInformationChange}
-              errors={cardErrors}
             />
           )}
 

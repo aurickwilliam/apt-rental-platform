@@ -3,20 +3,15 @@
 import { Button, Card, Radio, RadioGroup } from "@heroui/react";
 import { IconBuildingBank, IconCashBanknote, IconClockHour4, IconCreditCard } from "@tabler/icons-react";
 import type { BankCode } from "@repo/constants";
-import type { CardFormErrors } from "@repo/utils";
 
 import { PAYMENT_METHODS } from "../constants";
-import type { CardInformation, CashPaymentErrors, PaymentMethod } from "../types";
+import type { CashPaymentErrors, PaymentMethod } from "../types";
 import BankTransferPicker from "./BankTransferPicker";
-import CardPaymentForm from "./CardPaymentForm";
 import CashPaymentForm from "./CashPaymentForm";
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod | null;
   onPaymentMethodChange: (method: PaymentMethod) => void;
-  cardInformation: CardInformation;
-  onCardInformationChange: (patch: Partial<CardInformation>) => void;
-  cardErrors?: CardFormErrors;
   cashPaymentDate: Date | null;
   onCashPaymentDateChange: (date: Date) => void;
   cashErrors?: CashPaymentErrors;
@@ -73,7 +68,7 @@ function PaymentMethodOption({ method, isDisabled = false }: { method: PaymentMe
       : method === "Bank Transfer"
         ? "Pay from your bank account (test mode)."
       : method === "Debit/Credit-Card"
-        ? "Pay using your card."
+        ? "Pay using your card on PayMongo's secure page."
         : `Pay using ${label}.`;
 
   return (
@@ -99,9 +94,6 @@ function PaymentMethodOption({ method, isDisabled = false }: { method: PaymentMe
 export default function PaymentMethodSelector({
   selectedMethod,
   onPaymentMethodChange,
-  cardInformation,
-  onCardInformationChange,
-  cardErrors,
   cashPaymentDate,
   onCashPaymentDateChange,
   cashErrors,
@@ -115,7 +107,6 @@ export default function PaymentMethodSelector({
   onBankChange,
   bankError,
 }: PaymentMethodSelectorProps) {
-  const showCardForm = selectedMethod === "Debit/Credit-Card";
   const showCashForm = selectedMethod === "Cash";
   const showBankPicker = selectedMethod === "Bank Transfer";
   const offered = PAYMENT_METHODS.filter((method) => acceptedMethods.includes(method.key));
@@ -167,7 +158,6 @@ export default function PaymentMethodSelector({
           )}
 
           {showBankPicker && <BankTransferPicker amount={amount} selectedBank={selectedBank} onBankChange={onBankChange} error={bankError} />}
-          {showCardForm && <CardPaymentForm value={cardInformation} onChange={onCardInformationChange} errors={cardErrors} />}
           {showCashForm && <CashPaymentForm paymentDate={cashPaymentDate} onPaymentDateChange={onCashPaymentDateChange} errors={cashErrors} />}
         </Card.Content>
       </Card>

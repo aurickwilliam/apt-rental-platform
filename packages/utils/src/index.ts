@@ -51,6 +51,7 @@ export {
   isPaymentMethod,
   paymentMethodLabel,
 } from './paymentMethods';
+export { findPendingOnlinePayment, type PendingOnlinePaymentCandidate } from './pendingOnlinePayment';
 export {
   ACCEPTED_METHODS_REQUIRED_MESSAGE,
   ACCEPTED_METHOD_VALUES,
@@ -136,15 +137,6 @@ export {
   validateApartmentPricing,
 } from './apartmentPricing';
 export * from './authErrors';
-export {
-  formatCardNumber,
-  luhnCheck,
-  validateCardNumber,
-  formatExpiryDate,
-  isValidExpiryDate,
-  type CardFormErrors,
-  validateCardInfo,
-} from './validateCardNumber';
 export {
   type PasswordErrorReason,
   PasswordError,

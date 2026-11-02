@@ -14,14 +14,13 @@ import { useColors } from "@/hooks/useTheme";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentFooter from "./components/PaymentFooter";
-import { type CardInformation } from "./components/CardPaymentForm";
 import {
   validateCashPayment,
   type CashPaymentErrors,
 } from "./components/CashPaymentForm";
 
 import {
-  createCardPayment,
+  cancelCheckoutSession,
   createCheckoutSession,
   PaymongoError,
 } from "@/service/payments/paymongoService";
@@ -35,16 +34,8 @@ import { useTenancy } from "@/hooks/tenancy/useTenancy";
 import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
 import { useAcceptedPaymentMethods } from "@/hooks/payments/useAcceptedPaymentMethods";
 
-import { generatePaymentReference, getCurrentRentStatus, isMethodAccepted, validateCardInfo, type CardFormErrors, type PaymentMethod } from "@repo/utils";
+import { findPendingOnlinePayment, generatePaymentReference, getCurrentRentStatus, isMethodAccepted, type PaymentMethod } from "@repo/utils";
 import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
-
-const INITIAL_CARD: CardInformation = {
-  cardNumber: "",
-  expiryDate: "",
-  cardholderName: "",
-  cvv: "",
-  isCardNumberValid: false,
-};
 
 const toIsoDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -68,9 +59,6 @@ export default function PaymentCheckout() {
   const router = useRouter();
   const { colors } = useColors();
 
-  const [cardInformation, setCardInformation] =
-    useState<CardInformation>(INITIAL_CARD);
-  const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
   const [cashPaymentDate, setCashPaymentDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [paymentError, setPaymentError] = useState<{
@@ -119,17 +107,16 @@ export default function PaymentCheckout() {
   // Full-amount policy: rent is always billed whole. A fully paid period
   // cannot be paid again (prevents double-payment/overpay).
   const period = getCurrentRentStatus(tenancy, paymentsQuery.data ?? []);
+  // A tenancy on the server bill reports its own pending payment (bill.pendingPayment). Others
+  // find an unfinished online checkout in the payment list: leaving PayMongo's page without
+  // paying leaves it pending. Starting a new payment closes it, so Pay stays available.
+  const unfinishedCheckout = bill ? null : findPendingOnlinePayment(paymentsQuery.data ?? [], period.periodStart);
+  const [isCancellingCheckout, setIsCancellingCheckout] = useState(false);
   const { monthlyRent, isFullyPaid: isPeriodFullyPaid } = period;
   const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
   const yearLabel = period.periodStart.slice(0, 4);
 
-  const clearCardError = () => setCardErrors({});
   const clearCashErrors = () => setCashErrors({});
-
-  const handleCardInformationChange = (patch: Partial<CardInformation>) => {
-    setCardInformation((prev) => ({ ...prev, ...patch }));
-    clearCardError();
-  };
 
   const handleGoToSuccess = (referenceId: string) => {
     router.push(`/tenant/payment/success?referenceId=${referenceId}`);
@@ -137,6 +124,25 @@ export default function PaymentCheckout() {
 
   const handleGoHome = () => {
     router.replace("/(tabs)/(tenant)/rentals");
+  };
+
+  const handleCancelCheckout = async () => {
+    const referenceId = unfinishedCheckout?.reference_id;
+    if (!referenceId || isCancellingCheckout) return;
+    setIsCancellingCheckout(true);
+    try {
+      // PayMongo's answer decides: a payment that actually went through is shown as paid.
+      const status = await cancelCheckoutSession(referenceId);
+      if (status === "paid") handleGoToSuccess(referenceId);
+    } catch (error) {
+      setPaymentError({
+        message: error instanceof PaymongoError ? error.reason : "Unable to cancel your payment. Please try again.",
+      });
+    } finally {
+      setIsCancellingCheckout(false);
+      void paymentsQuery.refetch();
+      void refetch();
+    }
   };
 
   const handlePay = async () => {
@@ -172,7 +178,8 @@ export default function PaymentCheckout() {
       activePaymentMethod === "GCash" ||
       activePaymentMethod === "Maya" ||
       activePaymentMethod === "QRPh" ||
-      activePaymentMethod === "Bank Transfer"
+      activePaymentMethod === "Bank Transfer" ||
+      activePaymentMethod === "Debit/Credit-Card"
     ) {
       if (activePaymentMethod === "Bank Transfer") {
         const bank = getBankTransferBank(selectedBank);
@@ -182,11 +189,12 @@ export default function PaymentCheckout() {
       }
       setIsProcessing(true);
       try {
-        const methodMap: Record<string, "gcash" | "maya" | "qrph" | "bank_transfer"> = {
+        const methodMap: Record<string, "gcash" | "maya" | "qrph" | "bank_transfer" | "card"> = {
           GCash: "gcash",
           Maya: "maya",
           QRPh: "qrph",
           "Bank Transfer": "bank_transfer",
+          "Debit/Credit-Card": "card",
         };
         const session = await createCheckoutSession({
           referenceId,
@@ -197,7 +205,8 @@ export default function PaymentCheckout() {
           ...(activePaymentMethod === "Bank Transfer" && selectedBank ? { bankCode: selectedBank } : {}),
           ...periodFields,
         });
-        // Directly open PayMongo hosted page — no intermediate e-wallet-redirect screen.
+        // Directly open PayMongo's hosted page: the tenant enters their wallet, bank or card
+        // details there, never in APT.
         // PayMongo will redirect back to /tenant/payment/verify?sessionId=...
         // where verify.tsx (blue + Spinner) handles verification.
         try {
@@ -218,50 +227,7 @@ export default function PaymentCheckout() {
       } finally {
         setIsProcessing(false);
         void refetch();
-      }
-    } else if (activePaymentMethod === "Debit/Credit-Card") {
-      const errors = validateCardInfo(cardInformation);
-      if (Object.keys(errors).length > 0) {
-        setCardErrors(errors);
-        return;
-      }
-
-      const [expMonth, expYear] = cardInformation.expiryDate.split("/");
-
-      setIsProcessing(true);
-      try {
-        const result = await createCardPayment({
-          referenceId,
-          amount: totalDue,
-          description: paymentDescription,
-          card: {
-            number: cardInformation.cardNumber.replace(/\s/g, ""),
-            expMonth: Number(expMonth),
-            expYear: Number(`20${expYear}`),
-            cvc: cardInformation.cvv,
-            name: cardInformation.cardholderName,
-          },
-          ...periodFields,
-        });
-
-        if (result.status === "succeeded") {
-          handleGoToSuccess(referenceId);
-        } else {
-          setPaymentError({
-            message:
-              result.failureReason ?? "Your payment could not be completed.",
-          });
-        }
-      } catch (error) {
-        setPaymentError({
-          message:
-            error instanceof PaymongoError
-              ? error.reason
-              : "Payment failed. Please try again.",
-        });
-      } finally {
-        setIsProcessing(false);
-        void refetch();
+        void paymentsQuery.refetch();
       }
     } else if (activePaymentMethod === "Cash") {
       const errors = validateCashPayment({ paymentDate: cashPaymentDate });
@@ -406,12 +372,21 @@ export default function PaymentCheckout() {
           : `/tenant/payment/verify?sessionId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`)}><Button.Label>Check payment</Button.Label></Button> : null}
       </View> : null}
 
+      {unfinishedCheckout ? <View className="gap-3 mb-4">
+        <Text className="text-foreground font-inter">
+          You have an unfinished payment. Check it, cancel it, or start a new payment and it will be replaced.
+        </Text>
+        <Button onPress={() => router.push(`/tenant/payment/verify?sessionId=${encodeURIComponent(unfinishedCheckout.reference_id!)}`)}>
+          <Button.Label>Check payment</Button.Label>
+        </Button>
+        <Button variant="secondary" isDisabled={isCancellingCheckout} onPress={() => { void handleCancelCheckout(); }}>
+          <Button.Label>{isCancellingCheckout ? "Cancelling…" : "Cancel payment"}</Button.Label>
+        </Button>
+      </View> : null}
+
       <PaymentMethodSelector
         selectedMethod={activePaymentMethod}
         onPaymentMethodChange={setActivePaymentMethod}
-        cardInformation={cardInformation}
-        onCardInformationChange={handleCardInformationChange}
-        cardErrors={cardErrors}
         cashPaymentDate={cashPaymentDate}
         onCashPaymentDateChange={(date) => {
           setCashPaymentDate(date);

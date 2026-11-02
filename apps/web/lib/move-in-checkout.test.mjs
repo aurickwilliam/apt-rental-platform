@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(readFileSync(new URL("../../../supabase/func
 
 // Exercise the actual Edge Function handler with a fake provider/database.
 // SQL validation itself is exercised by db:billing:test, not reimplemented here.
-function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false, provider, rows = [], accountStatus = "verified", acceptedMethods = null } = {}) {
+function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false, provider, rows = [], accountStatus = "verified", acceptedMethods = null, insertError = null } = {}) {
   const payments = [...rows];
   const events = [];
   let handler;
@@ -18,19 +18,24 @@ function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false
     constructor(table) { this.table = table; this.filters = []; }
     select() { return this; }
     eq(key, value) { this.filters.push(row => row[key] === value); return this; }
+    neq(key, value) { this.filters.push(row => row[key] !== value); return this; }
     is(key, value) { return this.eq(key, value); }
     order() { return this; }
     limit() { return this; }
     insert(value) { this.insertValue = value; return this; }
     update(value) { this.updateValue = value; return this; }
-    async execute() {
+    async execute(single = false) {
       if (this.table === "users") return { data: { id: "tenant-1", account_status: accountStatus }, error: null };
       if (this.table === "landlord_payment_settings") return { data: acceptedMethods ? { accepted_methods: acceptedMethods } : null, error: null };
       if (this.table === "tenancies") return { data: { id: "lease-1", apartment_id: "apt-1", monthly_rent: 15000, apartment: { landlord_id: "owner-1" } }, error: null };
       assert.equal(this.table, "payment");
       if (this.insertValue) {
         events.push("reserve");
-        if (rejectInsert || payments.some(p => p.status === "pending")) return { data: null, error: { message: "Bill validation failed or payment already pending." } };
+        if (insertError) return { data: null, error: insertError };
+        // Mirrors payment_one_pending_online_idx: one pending online payment per tenancy and period.
+        const duplicate = payments.some(p => p.status === "pending" && p.method !== "cash" && this.insertValue.method !== "cash"
+          && p.tenancy_id === this.insertValue.tenancy_id && (p.period_start ?? null) === (this.insertValue.period_start ?? null));
+        if (rejectInsert || duplicate) return { data: null, error: { message: "Bill validation failed or payment already pending." } };
         const row = { id: `payment-${payments.length + 1}`, ...this.insertValue };
         payments.push(row);
         return { data: row, error: null };
@@ -40,11 +45,11 @@ function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false
         events.push(`update:${this.updateValue.status ?? "metadata"}`);
         matched.forEach(row => Object.assign(row, this.updateValue));
       }
-      return { data: matched[0] ?? null, error: null };
+      return { data: single ? matched[0] ?? null : matched, error: null };
     }
-    single() { return this.execute(); }
-    maybeSingle() { return this.execute(); }
-    then(resolve, reject) { return this.execute().then(resolve, reject); }
+    single() { return this.execute(true); }
+    maybeSingle() { return this.execute(true); }
+    then(resolve, reject) { return this.execute(false).then(resolve, reject); }
   }
   const db = {
     auth: { getUser: async () => ({ data: { user: { id: "auth-1" } }, error: null }) },
@@ -81,17 +86,20 @@ test("online checkout reserves the complete move-in amount before contacting Pay
   assert.equal(h.payments[0].amount, 45000);
   assert.equal(h.payments[0].status, "pending");
   assert.equal(h.payments[0].paymongo_session_id, "cs_provider");
+  // The first checkout is still open at PayMongo, so a second attempt is refused and reserves nothing.
   const duplicate = await h.invoke("createCheckoutSession", { ...h.checkout, referenceId: "pay_second" });
   assert.equal(duplicate.status, 409);
-  assert.equal(h.events.filter(event => event === "provider").length, 1);
+  assert.equal(duplicate.body.errors[0].code, "payment_in_progress");
+  assert.equal(h.events.filter(event => event === "reserve").length, 1);
+  assert.equal(h.payments.length, 1);
 });
 
 test("a non-test PayMongo key is refused before any payment is saved or the provider is called", async () => {
   // APT is a simulation: only sk_test_ keys may run, so no real money can move.
   for (const secretKey of ["sk_live_fake", "pk_test_fake", "fake-key"]) {
     const h = harness({ secretKey });
-    for (const action of ["createCheckoutSession", "createCardPayment"]) {
-      const response = await h.invoke(action, { ...h.checkout, card: { number: "4343434343434345", expMonth: 12, expYear: 2030, cvc: "123", name: "Test" } });
+    for (const method of ["gcash", "card"]) {
+      const response = await h.invoke("createCheckoutSession", { ...h.checkout, method });
       assert.equal(response.status, 500);
       assert.equal(response.body.errors[0].code, "configuration_error");
     }
@@ -200,18 +208,38 @@ test("backing out of checkout closes the session and releases the bill, but neve
   assert.equal(h.payments[3].status, "pending");
 });
 
-test("a card verification error after charge attachment cannot release the bill for another charge", async () => {
-  const h = harness({ provider: async (url) => {
-    if (url.endsWith("/payment_methods")) return Response.json({ data: { id: "pm_card", attributes: { type: "card" } } });
-    if (url.endsWith("/payment_intents")) return Response.json({ data: { id: "pi_card", attributes: { status: "awaiting_payment_method" } } });
-    if (url.endsWith("/attach")) return Response.json({ data: { id: "pi_card", attributes: { status: "succeeded" } } });
-    return Response.json({ errors: [{ code: "rate_limit", detail: "Please retry later" }] }, { status: 429 });
+test("card is paid on PayMongo's hosted page: the session offers only the card type and no card data is sent", async () => {
+  let providerBody;
+  const h = harness({ provider: async (_url, options) => {
+    providerBody = JSON.parse(options.body);
+    return Response.json({ data: { id: "cs_card", attributes: { status: "active", checkout_url: "https://checkout.paymongo.com/test" } } });
   } });
-  const response = await h.invoke("createCardPayment", { ...h.checkout, card: { number: "test-card", expMonth: 12, expYear: 2030, cvc: "test", name: "Test" } });
-  assert.equal(response.status, 429);
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 200);
+  assert.equal(h.payments[0].method, "card");
   assert.equal(h.payments[0].status, "pending");
-  assert.equal(h.payments[0].paymongo_intent_id, "pi_card");
-  assert.equal(h.events.includes("update:failed"), false);
+  assert.deepEqual(providerBody.data.attributes.payment_method_types, ["card"]);
+  assert.equal(JSON.stringify(providerBody).includes("card_number"), false);
+  assert.equal(h.payments[0].paymongo_session_id, "cs_card");
+});
+
+test("the old in-app card action is gone: a stale client's card numbers are refused before anything is saved", async () => {
+  const h = harness();
+  const response = await h.invoke("createCardPayment", { ...h.checkout, card: { number: "4343434343434345", expMonth: 12, expYear: 2030, cvc: "123", name: "Test" } });
+  assert.equal(response.status, 400);
+  assert.match(response.body.errors[0].detail, /Unknown action/);
+  assert.equal(h.payments.length, 0);
+  assert.equal(h.events.length, 0);
+});
+
+test("a mock card checkout is confirmed only through the owned status lookup, like every hosted method", async () => {
+  const h = harness({ real: false });
+  const created = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(created.status, 200);
+  assert.equal(h.payments[0].method, "card");
+  assert.equal(h.payments[0].status, "pending");
+  const status = await h.invoke("getCheckoutSessionStatus", { sessionId: "pay_test" });
+  assert.equal(status.body.data.attributes.status, "paid");
 });
 
 test("removing provider configuration cannot turn a real pending payment into a mock success", async () => {
@@ -277,4 +305,89 @@ test("a landlord who never limited methods allows every method", async () => {
   const h = harness();
   const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "qrph" });
   assert.equal(response.status, 200);
+});
+
+// --- Closing an unfinished online attempt when a new one starts ---------------------------
+
+const OLD = { id: "old", tenant_id: "tenant-1", tenancy_id: "lease-1", reference_id: "old-ref", status: "pending", method: "card", period_start: "2026-10-01", paymongo_session_id: "cs_old" };
+
+function sessionProvider({ sessionStatus, paid = false, log }) {
+  return async (url, options = {}) => {
+    log?.push(`${options.method ?? "GET"} ${url.replace("https://api.paymongo.com", "")}`);
+    if (url.endsWith("/expire")) return Response.json({ data: { id: "cs_old", attributes: { status: "expired" } } });
+    if (url.includes("/checkout_sessions/cs_old")) {
+      return Response.json({ data: { id: "cs_old", attributes: { status: sessionStatus, payments: paid ? [{ id: "pay_old", attributes: { status: "paid", type: "card" } }] : [] } } });
+    }
+    return Response.json({ data: { id: "cs_new", attributes: { status: "active", checkout_url: "https://checkout.paymongo.com/test" } } });
+  };
+}
+
+test("starting a new payment closes the tenant's unfinished online attempt first, then creates the new one", async () => {
+  const log = [];
+  const h = harness({ rows: [{ ...OLD }], provider: sessionProvider({ sessionStatus: "expired", log }) });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 200);
+  assert.equal(h.payments.find(row => row.id === "old").status, "failed");
+  const fresh = h.payments.find(row => row.reference_id === "pay_test");
+  assert.equal(fresh.status, "pending");
+  assert.equal(fresh.paymongo_session_id, "cs_new");
+  // Order: the old hosted session is expired and settled before the new row is reserved.
+  assert.ok(log[0].endsWith("/checkout_sessions/cs_old/expire"));
+  assert.ok(h.events.indexOf("update:failed") < h.events.indexOf("reserve"));
+});
+
+test("an old attempt that turns out to be paid is kept and the new payment is refused, so nobody pays twice", async () => {
+  const h = harness({ rows: [{ ...OLD }], provider: sessionProvider({ sessionStatus: "active", paid: true }) });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 409);
+  assert.equal(response.body.errors[0].code, "already_paid");
+  assert.equal(h.payments.length, 1);
+  assert.equal(h.payments[0].status, "paid");
+  assert.equal(h.events.includes("reserve"), false);
+});
+
+test("an attempt PayMongo still reports open is never released on a guess, and nothing new is reserved", async () => {
+  const h = harness({ rows: [{ ...OLD }], provider: sessionProvider({ sessionStatus: "active" }) });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 409);
+  assert.equal(response.body.errors[0].code, "payment_in_progress");
+  assert.equal(h.payments.length, 1);
+  assert.equal(h.payments[0].status, "pending");
+  assert.equal(h.events.includes("reserve"), false);
+});
+
+test("a pending attempt with no provider session has an unknown outcome and blocks a new payment", async () => {
+  const h = harness({ rows: [{ ...OLD, paymongo_session_id: null }] });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 409);
+  assert.equal(response.body.errors[0].code, "payment_in_progress");
+  assert.equal(h.payments[0].status, "pending");
+  assert.equal(h.events.includes("provider"), false);
+});
+
+test("attempts for another period, another tenant or cash are left alone", async () => {
+  const h = harness({ rows: [
+    { ...OLD, id: "other-period", period_start: "2026-09-01" },
+    { ...OLD, id: "other-tenant", tenant_id: "tenant-2", tenancy_id: "lease-2" },
+    { ...OLD, id: "cash", method: "cash", paymongo_session_id: null },
+  ], provider: sessionProvider({ sessionStatus: "expired" }) });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "gcash" });
+  assert.equal(response.status, 200);
+  for (const id of ["other-period", "other-tenant", "cash"]) assert.equal(h.payments.find(row => row.id === id).status, "pending");
+});
+
+test("in mock mode an unfinished mock attempt is simply closed", async () => {
+  const h = harness({ real: false, rows: [{ ...OLD, paymongo_session_id: "cs_mock_old-ref" }] });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "card" });
+  assert.equal(response.status, 200);
+  assert.equal(h.payments.find(row => row.id === "old").status, "failed");
+  assert.equal(h.payments.find(row => row.reference_id === "pay_test").status, "pending");
+});
+
+test("a concurrent second attempt that hits the database's one-pending-online rule gets a clear message", async () => {
+  const h = harness({ insertError: { code: "23505", message: 'duplicate key value violates unique constraint "payment_one_pending_online_idx"' } });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "gcash" });
+  assert.equal(response.status, 409);
+  assert.equal(response.body.errors[0].code, "payment_in_progress");
+  assert.equal(h.events.includes("provider"), false);
 });

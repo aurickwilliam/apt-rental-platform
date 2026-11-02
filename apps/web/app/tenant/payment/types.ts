@@ -47,14 +47,6 @@ export interface TenancyMock {
   };
 }
 
-export type CardInformation = {
-  cardNumber: string;
-  expiryDate: string;
-  cardholderName: string;
-  cvv: string;
-  isCardNumberValid?: boolean;
-};
-
 export type CashPaymentErrors = {
   paymentDate?: string;
 };

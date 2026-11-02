@@ -125,3 +125,12 @@ it("shows no fee note when there are no fees, when paid, or when the whole bill 
   expect(screen.getByText("Maintenance fees")).toBeTruthy();
   expect(screen.queryByText(/Includes/)).toBeNull();
 });
+
+it("tells the tenant an unfinished payment is waiting while the amount is pending", () => {
+  const { rerender } = render(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80000} hasPendingPayment dueDate="Dec 5, 2026" />);
+  expect(screen.getByText("A payment is waiting for confirmation. Tap Pay Now to check it.")).toBeTruthy();
+  rerender(<PaymentSummaryCard status="Paid" periodMonth="December" periodYear="2026" totalRent={80000} hasPendingPayment />);
+  expect(screen.queryByText(/waiting for confirmation/)).toBeNull();
+  rerender(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80000} />);
+  expect(screen.queryByText(/waiting for confirmation/)).toBeNull();
+});
