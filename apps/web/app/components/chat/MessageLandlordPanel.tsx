@@ -4,9 +4,6 @@ import { useMemo } from "react";
 
 import dynamic from "next/dynamic";
 
-import { Button, Separator } from "@heroui/react";
-import { IconX } from "@tabler/icons-react";
-
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import type { Contact } from "@/app/tenant/messages/components/types";
 
@@ -75,26 +72,18 @@ export default function MessageLandlordPanel({
   if (!activeContact) return null;
 
   return (
+    // A Messenger / Instagram style chat window docked to the bottom-right
+    // corner (full screen on phones). The thread's own header carries the close button.
     <div
       data-fab-clearance="message-panel"
-      className="fixed bottom-6 right-6 z-40 flex max-h-[calc(100vh-3rem)] w-[360px] max-w-[90vw] flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-lg"
+      className="fixed bottom-0 right-6 z-40 flex h-[min(520px,calc(100dvh-5rem))] w-[340px] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-border bg-card text-card-foreground shadow-[0_0_24px_rgba(0,0,0,0.2)] max-sm:inset-0 max-sm:h-dvh max-sm:w-full max-sm:rounded-none max-sm:border-0"
     >
-      <div className="flex shrink-0 flex-row items-center justify-between gap-3 p-4">
-        <h3 className="text-base font-semibold text-foreground">Message</h3>
-        <Button isIconOnly variant="tertiary" size="sm" aria-label="Close message" onPress={() => onOpenChange(false)}>
-          <IconX size={18} />
-        </Button>
-      </div>
-
-      <Separator className="shrink-0" />
-
-      <div className="flex h-[450px] min-h-0 flex-col overflow-hidden">
-        <ConversationView
-          activeContact={activeContact}
-          currentUserId={currentUserId}
-          apartmentId={apartmentId}
-        />
-      </div>
+      <ConversationView
+        activeContact={activeContact}
+        currentUserId={currentUserId}
+        apartmentId={apartmentId}
+        onClose={() => onOpenChange(false)}
+      />
     </div>
   );
 }

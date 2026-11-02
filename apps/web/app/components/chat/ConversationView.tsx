@@ -42,6 +42,11 @@ interface ConversationViewProps {
   onBack?: () => void;
   /** Layout overrides, used for the mobile master-detail swap. */
   className?: string;
+  /**
+   * Renders the thread as a floating chat window: a slim header with a close
+   * button and the apartment under the name, and no separate apartment row.
+   */
+  onClose?: () => void;
 }
 
 /**
@@ -103,6 +108,7 @@ export default function ConversationView({
   apartmentId,
   onBack,
   className = "",
+  onClose,
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
   const [unsendTargetId, setUnsendTargetId] = useState<string | null>(null);
@@ -359,8 +365,12 @@ export default function ConversationView({
           empty right end of this row on the messages route — pinned and never
           draggable, so it cannot cover the thread; `data-fab-clearance` still
           keeps it off this row on routes that offer no dock. */}
-      <ConversationHeader contact={activeContact} onBack={onBack} />
-      <ConversationApartmentRow apartment={apartment} hasApartmentId={Boolean(activeContact.apartmentId)} loading={contextLoading} />
+      <ConversationHeader
+        contact={activeContact}
+        onBack={onBack}
+        popup={onClose ? { subtitle: apartment?.title ?? activeContact.apartment, subtitleHref: apartment?.href, onClose } : undefined}
+      />
+      {onClose ? null : <ConversationApartmentRow apartment={apartment} hasApartmentId={Boolean(activeContact.apartmentId)} loading={contextLoading} />}
 
       {/* Chat History */}
       {/* The jump control stays within the history pane, above the composer. */}
