@@ -14,6 +14,7 @@ import { useColors } from "@/hooks/useTheme";
 import PaymentSummaryCard from "./components/PaymentSummaryCard";
 import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentFooter from "./components/PaymentFooter";
+import CheckPaymentDialog from "./components/CheckPaymentDialog";
 import {
   validateCashPayment,
   type CashPaymentErrors,
@@ -118,6 +119,8 @@ export default function PaymentCheckout() {
   }, [refetchPayments]));
   const unfinishedCheckout = bill ? null : findPendingOnlinePayment(paymentsQuery.data ?? [], period.periodStart);
   const [isCancellingCheckout, setIsCancellingCheckout] = useState(false);
+  // Reference of the unfinished online payment whose "Check payment" dialog is open.
+  const [checkingReference, setCheckingReference] = useState<string | null>(null);
   const { monthlyRent, isFullyPaid: isPeriodFullyPaid } = period;
   const monthLabel = periodMonthLabel(period.dueDate ?? period.periodStart);
   const yearLabel = period.periodStart.slice(0, 4);
@@ -373,16 +376,20 @@ export default function PaymentCheckout() {
       {bill?.pendingPayment ? <View className="gap-3 mb-4">
         <Text className="text-foreground font-inter">A payment is awaiting confirmation. Check it before starting another payment.</Text>
         <Button variant="secondary" onPress={() => { void refetch(); }}><Button.Label>Refresh bill</Button.Label></Button>
-        {bill.pendingPayment.referenceId ? <Button onPress={() => router.push(bill.pendingPayment!.method === "cash"
-          ? `/tenant/payment/success?referenceId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`
-          : `/tenant/payment/verify?sessionId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`)}><Button.Label>Check payment</Button.Label></Button> : null}
+        {bill.pendingPayment.referenceId ? <Button onPress={() => {
+          if (bill.pendingPayment!.method === "cash") {
+            router.push(`/tenant/payment/success?referenceId=${encodeURIComponent(bill.pendingPayment!.referenceId!)}`);
+          } else {
+            setCheckingReference(bill.pendingPayment!.referenceId!);
+          }
+        }}><Button.Label>Check payment</Button.Label></Button> : null}
       </View> : null}
 
       {unfinishedCheckout ? <View className="gap-3 mb-4">
         <Text className="text-foreground font-inter">
           You have an unfinished payment. Check it, cancel it, or start a new payment and it will be replaced.
         </Text>
-        <Button onPress={() => router.push(`/tenant/payment/verify?sessionId=${encodeURIComponent(unfinishedCheckout.reference_id!)}`)}>
+        <Button onPress={() => setCheckingReference(unfinishedCheckout.reference_id!)}>
           <Button.Label>Check payment</Button.Label>
         </Button>
         <Button variant="secondary" isDisabled={isCancellingCheckout} onPress={() => { void handleCancelCheckout(); }}>
@@ -407,6 +414,13 @@ export default function PaymentCheckout() {
         selectedBank={selectedBank}
         onBankChange={(bank) => { setSelectedBank(bank); setBankError(undefined); }}
         bankError={bankError}
+      />
+
+      <CheckPaymentDialog
+        referenceId={checkingReference}
+        isOpen={checkingReference !== null}
+        onOpenChange={(open) => { if (!open) setCheckingReference(null); }}
+        onPaid={handleGoToSuccess}
       />
 
       <ErrorDialog
