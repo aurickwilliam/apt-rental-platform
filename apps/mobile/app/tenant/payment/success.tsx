@@ -1,10 +1,15 @@
+import { useEffect, useRef } from 'react'
 import { View, Text, ScrollView } from 'react-native'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Button, Spinner } from 'heroui-native'
 
 import { useColors } from '@/hooks/useTheme'
 import { usePaymentByReference } from '@/hooks/payments'
+import { useCurrentUserId } from '@/hooks/auth'
+import { getTenancyQueryKey, useTenancy } from '@/hooks/tenancy/useTenancy'
+import { settleMaintenanceFees } from '@/service/tenancy/tenancyService'
 import {
   formatReferenceId,
   methodLabel,
@@ -32,6 +37,30 @@ export default function Success() {
   const isLoading =
     paymentQuery.isLoading ||
     (payment?.status === 'pending' && payment.method !== 'cash')
+
+  // A tenancy without a server bill settles its maintenance fees here: once this rent is
+  // confirmed paid, the fees raised before it (which the checkout added to the total) are
+  // marked paid. Once per reference; a failed settle only leaves them pending for next time.
+  // A server bill settles its own fees in the database.
+  const queryClient = useQueryClient()
+  const tenantId = useCurrentUserId()
+  const settledReference = useRef<string | null>(null)
+  const { tenancy } = useTenancy()
+  const paidTenancyId = payment?.status === 'paid' && !payment.billing_kind ? tenancy?.id ?? null : null
+  const paidAt = payment?.created_at ?? null
+  useEffect(() => {
+    if (!referenceId || !tenantId || !paidTenancyId || !paidAt) return
+    if (settledReference.current === referenceId) return
+    settledReference.current = referenceId
+    settleMaintenanceFees(paidTenancyId, tenantId, paidAt)
+      .then((settled) => {
+        if (settled > 0) void queryClient.invalidateQueries({ queryKey: getTenancyQueryKey(tenantId) })
+      })
+      .catch((error) => {
+        settledReference.current = null
+        console.warn('Could not settle maintenance fees:', error instanceof Error ? error.message : error)
+      })
+  }, [referenceId, tenantId, paidTenancyId, paidAt, queryClient])
 
   const handleGoHome = () => {
     router.replace('/(tabs)/(tenant)/rentals')

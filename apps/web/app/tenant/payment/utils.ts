@@ -35,6 +35,7 @@ export function methodLabel(method: string | null | undefined): string {
   if (method === "gcash") return "GCash";
   if (method === "maya") return "Maya";
   if (method === "qrph") return "QRPh";
+  if (method === "bank_transfer") return "Bank Transfer";
   if (method === "card") return "Debit/Credit Card";
   if (method === "cash") return "Cash";
   return method;

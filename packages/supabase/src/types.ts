@@ -866,32 +866,14 @@ export type Database = {
           },
         ]
       }
-      payment_method_preferences: {
-        Row: {
-          created_at: string
-          default_method: string | null
-          saved_methods: string[]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          default_method?: string | null
-          saved_methods?: string[]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          default_method?: string | null
-          saved_methods?: string[]
-          updated_at?: string
-          user_id?: string
-        }
+      landlord_payment_settings: {
+        Row: { landlord_id: string; accepted_methods: string[]; created_at: string; updated_at: string }
+        Insert: { landlord_id: string; accepted_methods: string[] }
+        Update: { accepted_methods?: string[]; updated_at?: string }
         Relationships: [
           {
-            foreignKeyName: "payment_method_preferences_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "landlord_payment_settings_landlord_id_fkey"
+            columns: ["landlord_id"]
             isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -2155,6 +2137,14 @@ export type Database = {
       waive_maintenance_fee: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      get_landlord_accepted_methods: {
+        Args: { p_tenancy_id: string }
+        Returns: string[] | null
+      }
+      get_apartment_accepted_methods: {
+        Args: { p_apartment_id: string }
+        Returns: string[] | null
       }
     }
     Enums: {

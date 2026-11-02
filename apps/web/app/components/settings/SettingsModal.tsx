@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   IconBell,
+  IconCreditCard,
   IconGlobe,
   IconHelpCircle,
   IconHome,
@@ -21,8 +22,9 @@ import LanguageRegionTab from "./tabs/LanguageRegionTab";
 import NotificationsTab from "./tabs/NotificationsTab";
 import HelpTab from "./tabs/HelpTab";
 import RentalPreferencesTab from "./tabs/RentalPreferencesTab";
+import PaymentMethodsTab from "./tabs/PaymentMethodsTab";
 
-type TabId = "general" | "security" | "language" | "notifications" | "help" | "rental";
+type TabId = "general" | "security" | "language" | "notifications" | "help" | "rental" | "payments";
 
 const TAB_META = [
   { id: "general", label: "General", icon: IconSun },
@@ -33,6 +35,7 @@ const TAB_META = [
 ] as const;
 
 const RENTAL_TAB = { id: "rental", label: "Rental Preferences", icon: IconHome } as const;
+const PAYMENTS_TAB = { id: "payments", label: "Payment Methods", icon: IconCreditCard } as const;
 
 export default function SettingsModal({
   open,
@@ -68,6 +71,7 @@ export default function SettingsModal({
   const roles = profileLoading ? (initialRoles ?? []) : (profile?.roles ?? []);
   const isAdmin = roles.includes("admin");
   const isTenant = roles.includes("tenant");
+  const isLandlord = roles.includes("landlord");
   // Active portal from the live route (client navigation) with the layout
   // prop as fallback for the first paint before the router hydrates.
   const routePortal =
@@ -96,9 +100,12 @@ export default function SettingsModal({
   // Rental Preferences sits second for tenants; everyone else keeps the
   // same relative order without it. Landlord/admin portals never list it,
   // so a stale "rental" selection safely falls back to General below.
-  const visibleTabs = canShowRental
+  const baseTabs = canShowRental
     ? [TAB_META[0], RENTAL_TAB, ...TAB_META.slice(1)]
     : TAB_META;
+  // Payment Methods (which methods tenants may use) is landlord-portal-only.
+  const canShowPayments = isLandlord && resolvedPortal === "landlord";
+  const visibleTabs = canShowPayments ? [...baseTabs.slice(0, 2), PAYMENTS_TAB, ...baseTabs.slice(2)] : baseTabs;
   const activeId: TabId = visibleTabs.some((t) => t.id === tab) ? tab : "general";
 
   // Whether roles are still resolving without server-known seeds: reserve
@@ -202,6 +209,7 @@ export default function SettingsModal({
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
                   {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}
                   {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} /> : null}
+                  {activeId === "payments" && canShowPayments ? <PaymentMethodsTab /> : null}
                 </section>
               </div>
             </Modal.Body>

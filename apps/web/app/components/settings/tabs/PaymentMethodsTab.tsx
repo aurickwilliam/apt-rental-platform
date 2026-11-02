@@ -1,0 +1,128 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@heroui/react";
+import { IconBuildingBank, IconCash, IconCreditCard, IconDeviceMobile, IconQrcode, IconWallet } from "@tabler/icons-react";
+import {
+  PAYMENT_METHOD_TYPES,
+  paymentMethodLabel,
+  toggleAcceptedMethod,
+  validateAcceptedMethods,
+  type PaymentMethod,
+} from "@repo/utils";
+
+import { useLandlordPaymentMethods } from "@/hooks/use-landlord-payment-methods";
+import { useUser } from "@/hooks/use-user";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
+import SettingsRow from "../SettingsRow";
+import ToggleSwitch from "../ToggleSwitch";
+
+const METHOD_ICONS: Record<PaymentMethod, React.ReactNode> = {
+  GCash: <IconDeviceMobile size={20} aria-hidden="true" />,
+  Maya: <IconWallet size={20} aria-hidden="true" />,
+  QRPh: <IconQrcode size={20} aria-hidden="true" />,
+  "Bank Transfer": <IconBuildingBank size={20} aria-hidden="true" />,
+  "Debit/Credit-Card": <IconCreditCard size={20} aria-hidden="true" />,
+  Cash: <IconCash size={20} aria-hidden="true" />,
+};
+
+interface PaymentMethodsFormProps {
+  initialMethods: PaymentMethod[];
+  onSave: (methods: PaymentMethod[]) => Promise<PaymentMethod[]>;
+}
+
+// The draft is seeded once, so a background refresh never overwrites unsaved toggles.
+function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps) {
+  const [draft, setDraft] = useState(initialMethods);
+  const [baseline, setBaseline] = useState(initialMethods);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(baseline);
+  const validation = validateAcceptedMethods(draft);
+
+  const submit = async () => {
+    if (isSaving || !dirty || validation) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const result = await onSave(draft);
+      setDraft(result);
+      setBaseline(result);
+      setSaved(true);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Couldn't save your payment methods. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="mt-3 divide-y divide-border">
+        {PAYMENT_METHOD_TYPES.map((method) => (
+          <SettingsRow
+            key={method}
+            icon={METHOD_ICONS[method]}
+            title={paymentMethodLabel(method)}
+            suffix={
+              <ToggleSwitch
+                isSelected={draft.includes(method)}
+                onValueChange={() => {
+                  setDraft((previous) => toggleAcceptedMethod(previous, method));
+                  setError(null);
+                  setSaved(false);
+                }}
+                disabled={isSaving}
+                aria-label={`Accept ${paymentMethodLabel(method)}`}
+              />
+            }
+          />
+        ))}
+      </div>
+
+      {validation ? (
+        <p role="alert" className="mt-3 px-4 text-sm text-danger">{validation}</p>
+      ) : null}
+      {error ? <ErrorBanner message={error} /> : null}
+
+      <div className="mt-4 flex items-center justify-end gap-3 px-4">
+        {saved && !dirty ? <span role="status" className="text-sm text-muted-foreground">Saved</span> : null}
+        <Button
+          variant="primary"
+          className="cursor-pointer"
+          isDisabled={isSaving || !dirty || validation !== null}
+          onPress={() => void submit()}
+        >
+          {isSaving ? "Saving…" : "Save methods"}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export default function PaymentMethodsTab() {
+  const { profile } = useUser();
+  const methods = useLandlordPaymentMethods(profile?.id ?? null);
+
+  return (
+    <>
+      <h2 className="font-nunito text-lg font-bold text-primary">Payment Methods</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Choose how tenants may pay you. This applies to all your listings. Turning a method off never changes payments already made or pending. APT stores method names only, never account numbers.
+      </p>
+      {methods.loading ? (
+        <p className="mt-4 px-4 text-sm text-muted-foreground" role="status">Loading your payment methods…</p>
+      ) : methods.error ? (
+        <div className="mt-4 px-4">
+          <ErrorBanner message={methods.error} />
+          <Button variant="secondary" size="sm" className="mt-3 cursor-pointer" onPress={() => void methods.refresh()}>
+            Retry
+          </Button>
+        </div>
+      ) : (
+        <PaymentMethodsForm key={profile?.id} initialMethods={methods.data} onSave={methods.save} />
+      )}
+    </>
+  );
+}

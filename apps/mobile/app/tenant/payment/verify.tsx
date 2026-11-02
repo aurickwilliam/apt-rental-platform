@@ -1,5 +1,6 @@
 import { View, Text, Linking } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Spinner } from 'heroui-native'
@@ -15,6 +16,7 @@ import {
 
 export default function PaymentVerify() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const insets = useSafeAreaInsets()
   const { sessionId, referenceId, cancelled } = useLocalSearchParams<{
     sessionId?: string
@@ -80,9 +82,14 @@ export default function PaymentVerify() {
       } finally {
         verifyingRef.current = false
         setIsVerifying(false)
+        // Cancelling or checking may have changed the payment row. Mark the cached payment list
+        // and tenancy stale so the checkout and Rentals screens never keep showing an
+        // "unfinished payment" that was just closed (the cache otherwise lives for 30 seconds).
+        void queryClient.invalidateQueries({ queryKey: ['payments'] })
+        void queryClient.invalidateQueries({ queryKey: ['tenancy'] })
       }
     },
-    [router, referenceId]
+    [router, referenceId, queryClient]
   )
 
   useEffect(() => {

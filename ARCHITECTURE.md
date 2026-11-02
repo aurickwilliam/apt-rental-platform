@@ -81,7 +81,7 @@ apt-rental-platform/
 |---|---|
 | `@repo/supabase` | Both apps need Supabase clients with **different session storage** (cookies on web, AsyncStorage on mobile) plus one generated type source for the database (`Database`) so queries are type-checked on both platforms |
 | `@repo/constants` | Domain values (apartment types, payment statuses, PH provinces/cities/barangays, postal codes, user attributes) must be identical across platforms and are far too large to duplicate |
-| `@repo/utils` | Pure formatting/validation (PHPeso display, PH addresses, card validation, relative time) reused by both apps |
+| `@repo/utils` | Pure formatting/validation (PHPeso display, PH addresses, relative time) reused by both apps |
 | `@repo/hooks` | Validation hooks for PH phone numbers, postal codes, and password strength — duplicated logic that started on mobile and is available to web |
 
 **Notable absences.** No `apps/web/app/api/` routes, no `supabase/migrations/`, no `supabase/functions/`, no tests, no CI, no formatter config. The database schema lives only in the linked Supabase project; the repo's reference for it is the generated types in `packages/supabase/src/types.ts`.
@@ -405,7 +405,7 @@ flowchart LR
 
 ## 7. Payment Architecture
 
-> **PayMongo Test-Mode Hybrid (no disbursement).** Tenant selects method (GCash/Maya/QRPh/Card/Cash) → `paymongo` edge function `POST /v2/checkout_sessions` inserts `payment` `pending` + `paymongo_session_id` → returns `checkout_url` → `e-wallet-redirect` opens PayMongo hosted page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. When `PAYMONGO_SECRET_KEY` is unset, edge function returns `simulation://` mocks (reference `-fail`/`-expired`, card `0002` etc) so local dev still works. Cash stays `pending` awaiting landlord `landlord_update_payment_status`; no payout disbursement.
+> **PayMongo Test-Mode Hybrid (no disbursement).** Tenant selects method (GCash/Maya/QRPh/Bank Transfer/Card/Cash, limited to the methods the landlord accepts via `landlord_payment_settings`) → `paymongo` edge function `POST /v2/checkout_sessions` inserts `payment` `pending` + `paymongo_session_id` → returns `checkout_url` → `e-wallet-redirect` opens PayMongo hosted page via `Linking.openURL` → Pay button → deep link `?sessionId=cs_...` → `getCheckoutSessionStatus` + `paymongo-webhook` (`checkout_session.payment.paid` / `payment.paid` HMAC-verified) flips `pending` → `paid`. When `PAYMONGO_SECRET_KEY` is unset, edge function returns `simulation://` mocks (reference `-fail`/`-expired`, card `0002` etc) so local dev still works. Cash stays `pending` awaiting landlord `landlord_update_payment_status`; no payout disbursement.
 
 ```mermaid
 sequenceDiagram
@@ -417,12 +417,10 @@ sequenceDiagram
     participant RT as Realtime (tenancy-live)
     participant L as Landlord
 
-    T->>C: choose method + credentials (validateCardInfo)
+    T->>C: choose method (card, wallet and bank details are entered on PayMongo's page, never in APT)
     alt Cash
         C->>DB: createCashPayment() INSERT pending
-    else Card failure suffix (0002/0018/0017/0007)
-        C->>PF: createCardPayment() -> failed reason
-    else GCash/Maya/QRPh/Card success
+    else GCash/Maya/QRPh/Bank Transfer/Card
         C->>PF: createCheckoutSession/reference -> INSERT pending
         PF-->>C: checkout_url (paymongo.com or simulation://)
         C->>PF: Linking.openURL(checkoutUrl) -> Pay button
@@ -435,11 +433,11 @@ sequenceDiagram
 
 **Current implementation (hybrid, no disbursement):**
 
-Payment-method preferences are shared across platforms through `public.payment_method_preferences`, keyed by the internal `users.id`. `@repo/utils/paymentMethodPreferences.ts` defines the supported types and credential-free row conversions used by Web and Mobile. Mobile's `usePaymentMethodPreferences` shares one account-keyed React Query read with the standard 30-second freshness window; focus refetches stale data only and reuses an in-flight read. A successful save writes the returned row into the existing cache without a follow-up fetch. Saves use column-scoped insert/update (never upsert of the protected owner column), or an account-scoped delete to clear preferences. Account generations and query-instance checks reject late saves after account changes, cache clearing or unmount. The editor draft and checkout choice stay local: a saved default is inherited until the tenant explicitly chooses a method for that checkout, and a preference edit never overwrites that manual choice. No payment record, provider token or card/wallet credential is created by preference reads or writes.
+Checkout offers the payment methods the tenant's landlord accepts (`landlord_payment_settings`, read through `get_landlord_accepted_methods`); there are no saved per-tenant preferences or defaults, and nothing is preselected. `@repo/utils/paymentMethods.ts` defines the method names and their database values; `acceptedPaymentMethods.ts` holds the landlord-setting helpers. The accepted list fails closed: until it has loaded, or if the read fails, no method is offered and Pay stays disabled with a retry. The old `payment_method_preferences` table was dropped (`20261102150000`).
 
 | Piece | Status | Evidence |
 |---|---|---|
-| Mobile payment screens (method selection, card/cash forms, e-wallet redirect, success, history) | Hybrid — PayMongo hosted checkout in test mode, simulation fallback | `apps/mobile/app/tenant/payment/*` |
+| Mobile payment screens (method selection, cash form, hosted-checkout redirect, success, history) | Hybrid — PayMongo hosted checkout in test mode, simulation fallback | `apps/mobile/app/tenant/payment/*` |
 | Receipt generation | From persisted `payment` row by `reference_id` | `apps/mobile/app/tenant/payment/success.tsx` (`usePaymentByReference`), `components/ReceiptCard.tsx` |
 | Card validation | Real (Luhn, expiry, CVV) + suffix-triggered declines | `packages/utils/src/validateCardNumber.ts`, `service/payments/paymongoService.ts` |
 | E-wallet redirect | `Linking.openURL(checkoutUrl)` + `getCheckoutSessionStatus` verify + deep-link handler | `apps/mobile/app/tenant/payment/e-wallet-redirect.tsx` |

@@ -1,6 +1,8 @@
 # Plan: Online banking ("bank transfer") rent payments
 
-Status: proposed, not started. Nothing in this plan is implemented.
+Status: implemented. The migration is applied to the hosted database (remote version `20261102050130`, after a rollback dry-run on 2026-11-02) and the `paymongo` edge function is deployed (version 19, JWT check on). The code is not committed. Step 0 is answered: hosted Checkout accepts bank types in test mode, one per bank (`dob` shows BPI Online, `dob_ubp` shows UnionBank Online; confirmed on 2026-11-02, so Option A is used). Mock mode works end to end.
+
+Product decisions (2026-11-02): this stays a simulation with no fees and no real money. Banks: BPI and UnionBank (the two PayMongo lists as available). Fee: none, APT absorbs nothing and adds nothing. Name: Bank Transfer. Rent above a bank's limit: the bank is shown disabled with the reason. Landlord methods: one setting per landlord. Cash may be turned off (at least one method must stay on).
 
 ## Goal
 
@@ -53,7 +55,7 @@ There are two sizes of landlord control; this plan includes only the first:
 
 ### Database (one migration, applied to hosted only after approval)
 - Add `bank_transfer` (name open, see questions) to `payment_method_check` on `public.payment` (pattern: `20260824000001_payment_method_qrph.sql`).
-- Add it to `payment_method_preferences` allowed values if that table has its own check (`20261016052235_add_payment_method_preferences.sql`; confirm when starting).
+- (Tenant payment preferences were later removed; the table is unused by clients.)
 - No refund or payout changes (those tables do not exist today).
 
 ### Edge function `paymongo`
@@ -70,11 +72,11 @@ There are two sizes of landlord control; this plan includes only the first:
 ### Mobile (`apps/mobile`)
 - `PaymentMethodSelector` and `PaymentMethodButton`: new option plus bank picker if more than one bank; add logos to `constants/images.ts` (WebP, per app-size rules).
 - Payment screen `app/tenant/payment/index.tsx`: map the method, call the new checkout, reuse the verify screen.
-- `PaymentMethodChip`, `paymentService.ts` display labels, saved-methods screen.
+- `PaymentMethodChip`, `paymentService.ts` display labels.
 - Update the Jest tests that enumerate methods (`PaymentMethodSelector.test.tsx`, `PaymentMethodChip.test.tsx`, preferences tests).
 
 ### Web (`apps/web`)
-- Tenant payment page, `app/tenant/payment/constants.ts` / `utils.ts`, `PaymentMethodChip`, `paymongoService.ts`, `paymentService.ts` types, Settings payment preferences.
+- Tenant payment page, `app/tenant/payment/constants.ts` / `utils.ts`, `PaymentMethodChip`, `paymongoService.ts`, `paymentService.ts` types.
 - Reuse HeroUI components for the bank picker (per AGENTS.md).
 
 ### Other
@@ -83,7 +85,7 @@ There are two sizes of landlord control; this plan includes only the first:
 
 ## Part 2: Landlord accepted payment methods (included)
 
-A landlord chooses which methods tenants may use to pay rent. Method names only: no account numbers, no credentials (same rule as `payment_method_preferences`). Payout accounts stay out of scope.
+A landlord chooses which methods tenants may use to pay rent. Method names only: no account numbers, no credentials (the same credential-free rule the removed tenant preferences followed). Payout accounts stay out of scope.
 
 ### Rules
 - Scope: one setting per landlord (their internal `users.id`), applied to all their listings. Per-listing override is a possible later step (question 5).
