@@ -1,6 +1,6 @@
 -- One portal per person for chats with no apartment (public.get_portal_conversations,
 -- app_private.chat_inquirer_portal and the recipientPortal in notify_chat_message /
--- notify_chat_reaction), from 20261102090000_dual_role_chat_portals.sql.
+-- notify_chat_reaction), from 20261102020631_dual_role_chat_portals.sql.
 --
 -- Run in an isolated test database or transaction (rolls back). Requires pgtap.
 -- Never run this against production records: it inserts fixture users, an
