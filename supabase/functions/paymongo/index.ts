@@ -139,13 +139,25 @@ class PayMongoApiError extends Error {
   }
 }
 
+// APT runs on PayMongo test mode only (no real money). Every read of the secret
+// key goes through here, so a live key makes the function refuse to run instead
+// of charging real money. An unset key still means mock mode.
+function paymongoSecretKey(): string | undefined {
+  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  if (secretKey && !secretKey.startsWith('sk_test_')) {
+    console.error('paymongo: PAYMONGO_SECRET_KEY is not a test key (sk_test_...); refusing to run.')
+    throw new PayMongoApiError(500, 'configuration_error', 'Payments are only available in test mode right now.')
+  }
+  return secretKey
+}
+
 type PayMongoResource<T> = { data: { id: string; type: string; attributes: T } }
 
 // PayMongo uses HTTP Basic auth with the secret key as the username and an
 // empty password. Errors are returned in PayMongo's real shape
 // ({ errors: [{ detail }] }) so client-side reason parsing stays identical.
 async function paymongoFetch<T>(url: string, init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<PayMongoResource<T>> {
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) throw new PayMongoApiError(500, 'configuration_error', 'PayMongo is not configured.')
 
   const res = await fetch(url, {
@@ -311,7 +323,7 @@ async function createCheckoutSession(req: Request, payload: CheckoutSessionPaylo
     return badRequest('referenceId, amount, and redirectBaseUrl are required.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
     const sessionId = `cs_mock_${referenceId}`
@@ -406,7 +418,7 @@ async function getCheckoutSessionStatus(req: Request, { sessionId }: { sessionId
   // service-role endpoint, including while using mock online payments.
   if (payment.method === 'cash') return json({ data: { id: sessionId, attributes: { status: 'pending' } } })
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     if (!payment.paymongo_session_id?.startsWith('cs_mock_')) {
       throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
@@ -514,7 +526,7 @@ async function createCardPayment(req: Request, payload: CardPaymentPayload) {
     return badRequest('referenceId and complete card details are required.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     const paymentId = await reservePayment(req, payload, 'card')
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
@@ -751,7 +763,7 @@ async function createRefund(req: Request, payload: RefundPayload): Promise<Respo
     throw new PayMongoApiError(500, 'database_error', 'Could not record the refund.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     // Mock — mirrors the other mock branches; payment ids ending in "-fail"
     // produce a failed refund.
@@ -829,7 +841,7 @@ async function createRefund(req: Request, payload: RefundPayload): Promise<Respo
 function getTransferStatus({ transferId }: { transferId: string }) {
   if (!transferId) return badRequest('transferId is required.')
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     return json({
       data: {
