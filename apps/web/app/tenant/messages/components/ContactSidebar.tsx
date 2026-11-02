@@ -13,7 +13,9 @@ import { useConversationSearch } from "@/hooks/use-conversation-search";
 import { filterConversationContacts } from "@/lib/conversation-search";
 
 interface ContactSidebarProps {
+  /** The current landlord(s), always pinned on top (shown even before any message). */
   myLandlord: Contact[];
+  /** Every other conversation, pinned ones first. */
   pastInquiries: Contact[];
   activeContact: Contact | null;
   onSelectContact: (contact: Contact) => void;
@@ -28,8 +30,12 @@ export default function ContactSidebar({ myLandlord, pastInquiries, activeContac
   const [showArchived, setShowArchived] = useState(false);
   const { query, setQuery, recent, remember, clearRecent } = useConversationSearch();
   const isSearching = query.trim() !== "";
+  // One list like mobile, with no section labels: the current landlord, then
+  // the conversations you pinned, a divider, then everything else.
   const visibleLandlord = filterConversationContacts(myLandlord, query);
   const visibleInquiries = filterConversationContacts(pastInquiries, query);
+  const pinnedRows = [...visibleLandlord, ...visibleInquiries.filter((contact) => contact.isPinned)];
+  const otherRows = visibleInquiries.filter((contact) => !contact.isPinned);
   // Opening a result from a search keeps that search in the recents.
   const selectContact = (contact: Contact) => {
     if (isSearching) remember(query);
@@ -53,19 +59,22 @@ export default function ContactSidebar({ myLandlord, pastInquiries, activeContac
               <h2 className="font-nunito text-3xl font-bold text-primary">Messages</h2>
               <ArchiveToggleButton count={archivedContacts.length} onPress={() => setShowArchived(true)} />
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">Your rental conversations, in one place.</p>
             <div className="mt-3">
               <ConversationSearchField query={query} onQueryChange={setQuery} recent={recent} onRemember={remember} onClearRecent={clearRecent} />
             </div>
           </div>
           <ScrollShadow className="min-h-0 flex-1 overflow-y-auto p-2" visibility="none">
-            {isSearching && visibleLandlord.length === 0 && visibleInquiries.length === 0 ? (
-              <ConversationListEmpty icon={IconSearch} title="No matches" description={`No conversation matches “${query.trim()}”.`} />
+            {pinnedRows.length === 0 && otherRows.length === 0 ? (
+              isSearching ? (
+                <ConversationListEmpty icon={IconSearch} title="No matches" description={`No conversation matches “${query.trim()}”.`} />
+              ) : (
+                <ConversationListEmpty icon={IconMessageQuestion} title="No messages yet" description="Start a conversation with a landlord to see your messages here." />
+              )
             ) : (
               <>
-                {visibleLandlord.length > 0 && <><h3 className="px-3 pb-2 pt-3 font-nunito text-xs font-bold text-brand">My Landlord</h3>{visibleLandlord.map((contact) => row(contact, true))}</>}
-                {(!isSearching || visibleInquiries.length > 0) && <h3 className="px-3 pb-2 pt-5 font-nunito text-xs font-bold text-muted-foreground">Past Inquiries</h3>}
-                {visibleInquiries.length > 0 ? visibleInquiries.map((contact) => row(contact, false)) : !isSearching && <ConversationListEmpty icon={IconMessageQuestion} title="No past inquiries yet" description="Landlords you contact about a listing will appear here." />}
+                {pinnedRows.map((contact) => row(contact, myLandlord.includes(contact)))}
+                {pinnedRows.length > 0 && otherRows.length > 0 ? <div role="separator" className="mx-3 my-2 border-t border-border" /> : null}
+                {otherRows.map((contact) => row(contact, false))}
               </>
             )}
           </ScrollShadow>
