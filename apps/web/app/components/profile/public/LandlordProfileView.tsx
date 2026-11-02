@@ -285,8 +285,8 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
           landlordId={identity.id}
           landlordName={identity.displayName}
           landlordAvatarUrl={identity.avatarUrl}
-          apartmentId={null}
-          apartmentName={null}
+          apartmentId={data.messageApartment?.id ?? null}
+          apartmentName={data.messageApartment?.name ?? null}
         />
       ) : null}
     </div>

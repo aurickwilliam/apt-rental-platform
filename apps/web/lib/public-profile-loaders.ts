@@ -242,19 +242,46 @@ async function loadProfileReviews(
 }
 
 /**
+ * The listing a visitor came from, kept only when it is this landlord's own,
+ * visible listing, so a hand-edited `?apartmentId=` can never attach a message
+ * to someone else's apartment. Looked up directly rather than in the capped
+ * listing page. RLS still decides what the viewer can read.
+ */
+async function loadMessageApartment(
+  supabase: LandlordContext["supabase"],
+  landlordId: string,
+  apartmentId: string | null,
+): Promise<{ id: string; name: string } | null> {
+  if (!apartmentId) return null;
+  const { data } = await supabase
+    .from("apartments")
+    .select("id, name")
+    .eq("id", apartmentId)
+    .eq("landlord_id", landlordId)
+    .eq("is_hidden_by_admin", false)
+    .is("deleted_at", null)
+    .maybeSingle();
+  return data ? { id: data.id as string, name: data.name as string } : null;
+}
+
+/**
  * Landlord profile for any viewer. Signed-out visitors get the display fields and
  * listings only; contact details are read (and shown) for signed-in viewers.
  * Returns null when the id is not a landlord, so the route can 404.
  */
-export async function loadLandlordProfile(landlordId: string): Promise<LandlordProfileData | null> {
+export async function loadLandlordProfile(
+  landlordId: string,
+  messageApartmentId: string | null = null,
+): Promise<LandlordProfileData | null> {
   const context = await loadLandlordContext(landlordId);
   if (!context) return null;
 
   const { supabase, landlord, isSignedIn, apartments } = context;
-  const [reviews, ratingSummary, ownershipDocuments] = await Promise.all([
+  const [reviews, ratingSummary, ownershipDocuments, messageApartment] = await Promise.all([
     loadProfileReviews(context),
     loadRatingSummary(supabase, context.apartmentIds),
     fetchLandlordOwnershipDocuments(supabase, landlord.id),
+    loadMessageApartment(supabase, landlord.id, messageApartmentId),
   ]);
 
   const listedApartments = apartments.filter((apartment) =>
@@ -280,6 +307,7 @@ export async function loadLandlordProfile(landlordId: string): Promise<LandlordP
     listedTotal: verification.total,
     listings: listedApartments.slice(0, PROFILE_LISTING_LIMIT).map(toListing),
     reviews,
+    messageApartment,
   };
 }
 

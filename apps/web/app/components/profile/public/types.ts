@@ -64,6 +64,12 @@ export interface LandlordProfileData {
   listedTotal: number;
   listings: PublicProfileListing[];
   reviews: PublicProfileReview[];
+  /**
+   * The listing the visitor came from, when it is one of this landlord's visible
+   * listings: the Message button then continues that apartment's conversation.
+   * Null starts a general inquiry.
+   */
+  messageApartment: { id: string; name: string } | null;
 }
 
 /** One page of a landlord's reviews, with the summary its aside repeats. */

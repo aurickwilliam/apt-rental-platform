@@ -7,6 +7,7 @@ import {
   formatDurationMonths,
   formatStayRange,
   landlordProfileHref,
+  parseProfileApartmentId,
   landlordReviewsHref,
   memberSinceYear,
   ownTenantRatingsByTenancy,
@@ -34,6 +35,22 @@ test("profile links follow the viewer's portal and encode the id", () => {
   assert.equal(apartmentHref("landlord", "x"), "/landlord/browse/x");
   assert.equal(landlordProfileHref("landlord", "abc"), "/landlord/landlords/abc");
   assert.equal(landlordReviewsHref("landlord", "abc"), "/landlord/landlords/abc/reviews");
+});
+
+test("a profile link can carry the listing the visitor came from", () => {
+  const apartment = "1b4e28ba-2fa1-4d3c-9d4e-5b1c2a3d4e5f";
+  assert.equal(landlordProfileHref("tenant", "abc", apartment), `/tenant/landlords/abc?apartmentId=${apartment}`);
+  assert.equal(landlordProfileHref("public", "abc", null), "/browse/landlords/abc");
+  // The reviews page never inherits it.
+  assert.equal(landlordReviewsHref("tenant", "abc"), "/tenant/landlords/abc/reviews");
+});
+
+test("only a single well-formed apartment id is read from the profile URL", () => {
+  const apartment = "1b4e28ba-2fa1-4d3c-9d4e-5b1c2a3d4e5f";
+  assert.equal(parseProfileApartmentId(apartment), apartment);
+  assert.equal(parseProfileApartmentId(undefined), null);
+  assert.equal(parseProfileApartmentId("not-a-uuid"), null);
+  assert.equal(parseProfileApartmentId([apartment, apartment]), null);
 });
 
 test("display name and location fall back cleanly", () => {

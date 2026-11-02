@@ -42,7 +42,7 @@ export default function LandlordChatPanel({
         name={landlordName}
         avatarUrl={landlordAvatarUrl}
         isVerified={isVerifiedLandlord}
-        profileHref={landlordId ? landlordProfileHref(profilePortal, landlordId) : undefined}
+        profileHref={landlordId ? landlordProfileHref(profilePortal, landlordId, apartmentId) : undefined}
         onMessagePress={() => setIsPanelOpen(true)}
         isMessageDisabled={isMissingLandlord}
         messageDisabledReason={
