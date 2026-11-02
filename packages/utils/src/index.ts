@@ -33,6 +33,7 @@ export { getReplyCaption } from './replyCaption';
 export { USER_REPORT_REASONS, USER_REPORT_DETAILS_MAX_LENGTH, type UserReportReason } from './userReport';
 export * from './landlordFinance';
 export * from './landlordPayments';
+export { filterPaymentHistory } from './paymentHistory';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
 export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';

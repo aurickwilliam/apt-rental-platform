@@ -44,6 +44,12 @@ type PaymongoEnvelope<T> = {
   data: T;
 };
 
+export const NETWORK_ERROR_CODE = "network_error";
+const NETWORK_ERROR_REASON =
+  "We could not reach the server. Check your connection and try again. If you already paid, your payment is safe.";
+// Delays before retrying a dropped connection (up to 3 attempts in all).
+const NETWORK_RETRY_DELAYS_MS = [1000, 2000];
+
 async function extractError(error: unknown): Promise<{ reason: string; code: string | null }> {
   const response = (error as { context?: Response }).context;
   if (response) {
@@ -55,6 +61,11 @@ async function extractError(error: unknown): Promise<{ reason: string; code: str
     } catch {
       // Response body was not JSON — fall through to the generic message.
     }
+  }
+  // The request never reached the function (e.g. the connection dropped).
+  // Nothing is known about the payment.
+  if ((error as { name?: string }).name === "FunctionsFetchError") {
+    return { reason: NETWORK_ERROR_REASON, code: NETWORK_ERROR_CODE };
   }
   return {
     reason: (error as { message?: string }).message ?? "Payment failed. Please try again.",
@@ -74,6 +85,20 @@ async function invoke<T>(action: string, payload: Record<string, unknown>): Prom
   }
 
   return data as T;
+}
+
+// Only for calls that are safe to repeat (status checks, cancelling): a brief
+// network drop should not look like a failed payment.
+async function invokeRepeatable<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await invoke<T>(action, payload);
+    } catch (error) {
+      const delay = NETWORK_RETRY_DELAYS_MS[attempt];
+      if (!(error instanceof PaymongoError) || error.code !== NETWORK_ERROR_CODE || delay === undefined) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 export async function createCheckoutSession(params: {
@@ -105,26 +130,39 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
   return (await getCheckoutSessionDetails(sessionId)).status;
 }
 
+function toSessionStatus(status: string): PaymongoSessionStatus {
+  switch (status) {
+    case "paid":
+      return "paid";
+    case "failed":
+    case "cancelled":
+      return "failed";
+    case "expired":
+      return "expired";
+    default:
+      return "pending";
+  }
+}
+
 export async function getCheckoutSessionDetails(sessionId: string): Promise<{ status: PaymongoSessionStatus; checkoutUrl: string | null }> {
-  const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
+  const response = await invokeRepeatable<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
     "getCheckoutSessionStatus",
     { sessionId },
   );
 
   const attributes = response.data.attributes;
-  let status: PaymongoSessionStatus;
-  switch (attributes.status) {
-    case "paid":
-      status = "paid"; break;
-    case "failed":
-    case "cancelled":
-      status = "failed"; break;
-    case "expired":
-      status = "expired"; break;
-    default:
-      status = "pending";
-  }
-  return { status, checkoutUrl: attributes.checkout_url ?? null };
+  return { status: toSessionStatus(attributes.status), checkoutUrl: attributes.checkout_url ?? null };
+}
+
+// The tenant backed out of the hosted checkout: ask the backend to close the
+// session so it can't be paid later. Its verdict is what counts ("paid" if the
+// payment went through first, "pending" if the session could not be closed).
+export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invokeRepeatable<PaymongoEnvelope<{ id: string; attributes: { status: string } }>>(
+    "cancelCheckoutSession",
+    { sessionId },
+  );
+  return toSessionStatus(response.data.attributes.status);
 }
 
 export async function createCardPayment(params: {

@@ -173,6 +173,8 @@ const STATUS_LABELS: Record<string, PaymentStatus> = {
   paid: 'Paid',
   pending: 'Pending',
   unpaid: 'Unpaid',
+  failed: 'Failed',
+  rejected: 'Rejected',
 }
 
 export function paymentStatusLabel(status: string): PaymentStatus {

@@ -5,6 +5,8 @@ import { IconFilter2, IconReceipt } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
+import { filterPaymentHistory } from '@repo/utils'
+
 import { useColors } from '@/hooks/useTheme'
 import { usePayments } from '@/hooks/payments'
 import { useTenancy } from '@/hooks/tenancy/useTenancy'
@@ -53,12 +55,11 @@ export default function History() {
   const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
   const paymentsQuery = usePayments(tenancy?.id ?? null)
 
+  // Failed attempts (backed out or abandoned checkouts) only show under the Failed filter.
+  const showFailed = filters.statuses.includes('Failed')
   const allPayments = useMemo<FlatPayment[]>(
-    () =>
-      (paymentsQuery.data ?? [])
-        .filter((payment) => payment.status !== 'pending')
-        .map(toHistoryItem),
-    [paymentsQuery.data]
+    () => filterPaymentHistory(paymentsQuery.data ?? [], showFailed).map(toHistoryItem),
+    [paymentsQuery.data, showFailed]
   )
 
   const availableYears = useMemo(

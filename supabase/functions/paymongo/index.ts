@@ -34,8 +34,8 @@
 // The acting user is resolved from the forwarded JWT and their tenancy is
 // verified server-side so no one can pay another tenant's rent.
 //
-// Future actions (refunds, recurring payments, payment verification) are added
-// as new cases in the dispatch switch below without restructuring.
+// Refunds and payouts do not exist in this simulation (their tables were
+// dropped). Future actions are added as new cases in the dispatch switch below.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -118,13 +118,6 @@ type CardPaymentPayload = {
   dueDate?: string | null
 }
 
-type RefundPayload = {
-  paymentId: string
-  amount: number
-  reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'others'
-  notes?: string
-}
-
 // --- Real PayMongo plumbing -------------------------------------------------
 
 class PayMongoApiError extends Error {
@@ -139,13 +132,25 @@ class PayMongoApiError extends Error {
   }
 }
 
+// APT runs on PayMongo test mode only (no real money). Every read of the secret
+// key goes through here, so a live key makes the function refuse to run instead
+// of charging real money. An unset key still means mock mode.
+function paymongoSecretKey(): string | undefined {
+  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  if (secretKey && !secretKey.startsWith('sk_test_')) {
+    console.error('paymongo: PAYMONGO_SECRET_KEY is not a test key (sk_test_...); refusing to run.')
+    throw new PayMongoApiError(500, 'configuration_error', 'Payments are only available in test mode right now.')
+  }
+  return secretKey
+}
+
 type PayMongoResource<T> = { data: { id: string; type: string; attributes: T } }
 
 // PayMongo uses HTTP Basic auth with the secret key as the username and an
 // empty password. Errors are returned in PayMongo's real shape
 // ({ errors: [{ detail }] }) so client-side reason parsing stays identical.
 async function paymongoFetch<T>(url: string, init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<PayMongoResource<T>> {
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) throw new PayMongoApiError(500, 'configuration_error', 'PayMongo is not configured.')
 
   const res = await fetch(url, {
@@ -293,6 +298,30 @@ async function reservePayment(req: Request, payload: CheckoutSessionPayload | Ca
     amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
 }
 
+// Name, email and phone for PayMongo's hosted checkout form, so the tenant
+// does not retype them. Prefill is a convenience: any failure just leaves the
+// form empty and never blocks the payment. Never logged.
+async function loadBillingDetails(paymentId: string): Promise<{ name?: string; email?: string; phone?: string } | undefined> {
+  const { data: payment } = await dbClient.from('payment').select('tenant_id').eq('id', paymentId).maybeSingle()
+  if (!payment?.tenant_id) return undefined
+
+  const { data: user } = await dbClient
+    .from('users')
+    .select('first_name, last_name, email, mobile_number')
+    .eq('id', payment.tenant_id)
+    .maybeSingle()
+  if (!user) return undefined
+
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  // Profiles store the local 11-digit form (09XXXXXXXXX); PayMongo's form shows +63.
+  const phone = /^0\d{10}$/.test(user.mobile_number ?? '') ? `+63${user.mobile_number.slice(1)}` : undefined
+  return {
+    ...(name ? { name } : {}),
+    ...(user.email ? { email: user.email } : {}),
+    ...(phone ? { phone } : {}),
+  }
+}
+
 async function failDefiniteProviderRejection(id: string, error: unknown): Promise<never> {
   // Network errors / 5xx have uncertain outcomes: keep the reservation pending
   // for webhook/status reconciliation, never allow a second charge blindly.
@@ -311,7 +340,7 @@ async function createCheckoutSession(req: Request, payload: CheckoutSessionPaylo
     return badRequest('referenceId, amount, and redirectBaseUrl are required.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
     const sessionId = `cs_mock_${referenceId}`
@@ -337,6 +366,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
   const { referenceId, amount, description, redirectBaseUrl } = payload
 
   const paymentId = await reservePayment(req, payload, payload.method ?? 'gcash')
+  const billing = await loadBillingDetails(paymentId)
 
   try {
   const { data: session } = await paymongoFetch<{
@@ -360,11 +390,14 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
           // otherwise preselect the first listed one, while the payment row
           // already records the chosen method.
           payment_method_types: [CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']],
+          ...(billing && Object.keys(billing).length > 0 ? { billing } : {}),
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.
           success_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
-          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
+          // `cancelled=1` only picks which screen the app shows; the outcome is
+          // still read from the backend, never from this link.
+          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}&cancelled=1`,
           reference_number: referenceId,
         },
       },
@@ -406,7 +439,7 @@ async function getCheckoutSessionStatus(req: Request, { sessionId }: { sessionId
   // service-role endpoint, including while using mock online payments.
   if (payment.method === 'cash') return json({ data: { id: sessionId, attributes: { status: 'pending' } } })
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     if (!payment.paymongo_session_id?.startsWith('cs_mock_')) {
       throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
@@ -468,7 +501,7 @@ async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string
   const hasPaidPayment = payments.some((payment) => payment.attributes?.status === 'paid')
 
   // FIX 1 — capture the PayMongo payment resource id + the exact rail used
-  // (payment method type) so refund eligibility metadata exists even when the
+  // (payment method type) so the rail is recorded even when the
   // webhook misses. Never clobber a value the webhook already captured.
   const firstPaid = payments.find((payment) => payment.attributes?.status === 'paid') ?? payments[0]
   if (firstPaid?.id?.startsWith('pay_')) {
@@ -507,6 +540,42 @@ async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string
   })
 }
 
+// The tenant backed out of the hosted checkout (its cancel_url). Close the
+// session at PayMongo so it can no longer be paid, then settle the row from the
+// provider's own answer: expired -> failed, paid -> paid, anything else stays
+// pending. Never marks a row failed on the caller's word alone.
+async function cancelCheckoutSession(req: Request, { sessionId }: { sessionId: string }) {
+  if (!sessionId) return badRequest('sessionId is required.')
+
+  const tenantId = await resolveTenantId(req)
+  if (!tenantId) throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to cancel a payment.')
+  let query = dbClient.from('payment').select('id, status, method, paymongo_session_id').eq('tenant_id', tenantId)
+  query = sessionId.startsWith('cs_') ? query.eq('paymongo_session_id', sessionId) : query.eq('reference_id', sessionId)
+  const { data: payment, error } = await query.maybeSingle()
+  if (error || !payment) throw new PayMongoApiError(404, 'not_found', 'Payment not found.')
+
+  const respond = (status: CheckoutSessionStatus) => json({ data: { id: sessionId, attributes: { status } } })
+  if (payment.status !== 'pending') return respond(payment.status === 'paid' ? 'paid' : 'failed')
+  // Cash is settled by the landlord, never by the tenant's app.
+  if (payment.method === 'cash') return respond('pending')
+  if (!payment.paymongo_session_id) return respond('pending')
+
+  const secretKey = paymongoSecretKey()
+  if (!secretKey) {
+    if (!payment.paymongo_session_id.startsWith('cs_mock_')) {
+      throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
+    }
+    await updatePayment(payment.id, { status: 'failed' })
+    return respond('failed')
+  }
+
+  // The session may already be paid or expired, which makes this call fail;
+  // the status lookup below is the verdict either way.
+  await paymongoFetch(`${PAYMONGO_API_V1}/checkout_sessions/${payment.paymongo_session_id}/expire`, { method: 'POST' })
+    .catch((error) => console.error('paymongo: expire session failed:', error instanceof Error ? error.message : error))
+  return getRealCheckoutSessionStatus(payment.paymongo_session_id, payment.id)
+}
+
 async function createCardPayment(req: Request, payload: CardPaymentPayload) {
   const { referenceId, card } = payload
 
@@ -514,7 +583,7 @@ async function createCardPayment(req: Request, payload: CardPaymentPayload) {
     return badRequest('referenceId and complete card details are required.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     const paymentId = await reservePayment(req, payload, 'card')
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
@@ -669,194 +738,6 @@ async function createRealCardPayment(req: Request, payload: CardPaymentPayload):
   }
 }
 
-// --- Refunds (tenant payouts) ------------------------------------------------
-//
-// FIX 1 — server-side eligibility, typed errors only (never a raw PayMongo
-// 4xx). Refundable rails are card + standard e-wallet checkout (gcash /
-// paymaya); QR Ph, direct online banking and OTC payments are refunded
-// manually. The pending refund row is inserted BEFORE calling PayMongo; the
-// one_active_refund_per_payment partial unique index closes the double-tap /
-// two-device race — the losing INSERT (23505) surfaces as REFUND_ALREADY_PENDING.
-
-async function createRefund(req: Request, payload: RefundPayload): Promise<Response> {
-  const { paymentId, amount, reason = 'requested_by_customer', notes } = payload
-
-  if (!paymentId || !amount) {
-    return badRequest('paymentId and amount are required.')
-  }
-
-  const tenantId = await resolveTenantId(req)
-  if (!tenantId) {
-    throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to request a refund.')
-  }
-
-  const { data: paymentRow, error: paymentError } = await dbClient
-    .from('payment')
-    .select(
-      'id, tenant_id, status, amount, is_refundable, paymongo_payment_id'
-    )
-    .eq('id', paymentId)
-    .maybeSingle()
-  if (paymentError || !paymentRow) {
-    throw new PayMongoApiError(404, 'PAYMENT_NOT_FOUND', 'Payment not found.')
-  }
-
-  if (paymentRow.tenant_id !== tenantId) {
-    throw new PayMongoApiError(403, 'PAYMENT_NOT_OWNED', 'This payment does not belong to your account.')
-  }
-  if (paymentRow.status !== 'paid') {
-    throw new PayMongoApiError(400, 'PAYMENT_NOT_PAID', 'Only completed payments can be refunded.')
-  }
-  if (!paymentRow.is_refundable) {
-    throw new PayMongoApiError(
-      400,
-      'REFUND_NOT_SUPPORTED',
-      'This payment method cannot be refunded online. Cash, QR and over-the-counter payments are refunded manually.',
-    )
-  }
-  if (amount < 1) {
-    throw new PayMongoApiError(400, 'REFUND_INVALID_AMOUNT', 'The minimum refund is ₱1.00.')
-  }
-
-  const { data: refundRows } = await dbClient
-    .from('refund')
-    .select('amount')
-    .eq('payment_id', paymentId)
-    .in('status', ['pending', 'processing', 'succeeded'])
-
-  const refunded = (refundRows ?? []).reduce((sum, row) => sum + Number(row.amount), 0)
-  const remaining = Number(paymentRow.amount ?? 0) - refunded
-  if (amount > remaining) {
-    throw new PayMongoApiError(400, 'REFUND_EXCEEDS_AMOUNT', 'The refund amount exceeds what can be refunded for this payment.')
-  }
-
-  const { data: refundRow, error: insertError } = await dbClient
-    .from('refund')
-    .insert({
-      payment_id: paymentId,
-      user_id: tenantId,
-      amount,
-      reason,
-      created_by: tenantId,
-      status: 'pending',
-    })
-    .select('id')
-    .single()
-
-  if (insertError) {
-    if (insertError.code === '23505') {
-      throw new PayMongoApiError(409, 'REFUND_ALREADY_PENDING', 'A refund is already being processed for this payment.')
-    }
-    console.error('createRefund insert:', insertError)
-    throw new PayMongoApiError(500, 'database_error', 'Could not record the refund.')
-  }
-
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
-  if (!secretKey) {
-    // Mock — mirrors the other mock branches; payment ids ending in "-fail"
-    // produce a failed refund.
-    const mockSucceeded = !paymentId.endsWith('-fail')
-    const mockStatus = mockSucceeded ? 'succeeded' : 'failed'
-    await dbClient
-      .from('refund')
-      .update({
-        status: mockStatus,
-        ...(mockSucceeded
-          ? { completed_at: new Date().toISOString() }
-          : { failure_reason: 'Mock refund declined.' }),
-      })
-      .eq('id', refundRow.id)
-
-    return json({
-      data: {
-        id: refundRow.id,
-        type: 'refund',
-        attributes: { status: mockStatus, failure_reason: mockSucceeded ? null : 'Mock refund declined.' },
-      },
-    })
-  }
-
-  try {
-    const { data: refund } = await paymongoFetch<{
-      status: string
-      failure_reason?: string | null
-    }>(`${PAYMONGO_API_V1}/refunds`, {
-      method: 'POST',
-      body: {
-        data: {
-          attributes: {
-            amount: Math.round(amount * 100),
-            payment_id: paymentRow.paymongo_payment_id,
-            reason,
-            ...(notes ? { notes } : {}),
-          },
-        },
-      },
-    })
-
-    await dbClient
-      .from('refund')
-      .update({ status: 'processing', paymongo_refund_id: refund.id })
-      .eq('id', refundRow.id)
-
-    return json({
-      data: {
-        id: refund.id,
-        type: 'refund',
-        attributes: { status: 'processing' },
-      },
-    })
-  } catch (err) {
-    const detail = err instanceof PayMongoApiError
-      ? err.message
-      : 'Refund could not be processed.'
-    await dbClient
-      .from('refund')
-      .update({ status: 'failed', failure_reason: detail })
-      .eq('id', refundRow.id)
-    throw err instanceof PayMongoApiError
-      ? err
-      : new PayMongoApiError(500, 'refund_error', detail)
-  }
-}
-
-// --- Transfer status (fallback poll) -----------------------------------------
-//
-// The webhook (transfer.outward.*) is the primary settlement path; this
-// endpoint is the manual/fallback poll. PayMongo transfer event/status names
-// are verified against the dashboard catalog at go-live.
-
-function getTransferStatus({ transferId }: { transferId: string }) {
-  if (!transferId) return badRequest('transferId is required.')
-
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
-  if (!secretKey) {
-    return json({
-      data: {
-        id: transferId,
-        type: 'transfer',
-        attributes: { status: transferId.endsWith('-fail') ? 'failed' : 'successful' },
-      },
-    })
-  }
-
-  return getRealTransferStatus(transferId)
-}
-
-async function getRealTransferStatus(transferId: string): Promise<Response> {
-  const { data: transfer } = await paymongoFetch<{ status: string }>(
-    `${PAYMONGO_API_V2}/transfers/${transferId}`
-  )
-
-  return json({
-    data: {
-      id: transferId,
-      type: 'transfer',
-      attributes: { status: transfer.attributes.status },
-    },
-  })
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -870,12 +751,10 @@ Deno.serve(async (req) => {
         return await createCheckoutSession(req, payload)
       case 'getCheckoutSessionStatus':
         return await getCheckoutSessionStatus(req, payload)
+      case 'cancelCheckoutSession':
+        return await cancelCheckoutSession(req, payload)
       case 'createCardPayment':
         return await createCardPayment(req, payload)
-      case 'createRefund':
-        return await createRefund(req, payload)
-      case 'getTransferStatus':
-        return getTransferStatus(payload)
       default:
         return badRequest(`Unknown action: ${action}`)
     }

@@ -69,6 +69,17 @@ export default function Success() {
           <Text className='text-white text-base font-inter text-center'>
             {payment ? 'Confirming your payment…' : 'Loading your receipt…'}
           </Text>
+          {/* A pending online payment can take a while (or never settle): always leave a way out. */}
+          {payment ? (
+            <View className='gap-3 self-stretch'>
+              <Button onPress={() => router.replace('/tenant/payment')} className='bg-white'>
+                <Button.Label className='text-primary'>Back to payment</Button.Label>
+              </Button>
+              <Button variant='ghost' onPress={handleGoHome} className='border border-white'>
+                <Button.Label className='text-white'>Go to Home</Button.Label>
+              </Button>
+            </View>
+          ) : null}
         </View>
       </View>
     )
