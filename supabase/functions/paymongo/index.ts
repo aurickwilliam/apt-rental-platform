@@ -305,6 +305,30 @@ async function reservePayment(req: Request, payload: CheckoutSessionPayload | Ca
     amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
 }
 
+// Name, email and phone for PayMongo's hosted checkout form, so the tenant
+// does not retype them. Prefill is a convenience: any failure just leaves the
+// form empty and never blocks the payment. Never logged.
+async function loadBillingDetails(paymentId: string): Promise<{ name?: string; email?: string; phone?: string } | undefined> {
+  const { data: payment } = await dbClient.from('payment').select('tenant_id').eq('id', paymentId).maybeSingle()
+  if (!payment?.tenant_id) return undefined
+
+  const { data: user } = await dbClient
+    .from('users')
+    .select('first_name, last_name, email, mobile_number')
+    .eq('id', payment.tenant_id)
+    .maybeSingle()
+  if (!user) return undefined
+
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  // Profiles store the local 11-digit form (09XXXXXXXXX); PayMongo's form shows +63.
+  const phone = /^0\d{10}$/.test(user.mobile_number ?? '') ? `+63${user.mobile_number.slice(1)}` : undefined
+  return {
+    ...(name ? { name } : {}),
+    ...(user.email ? { email: user.email } : {}),
+    ...(phone ? { phone } : {}),
+  }
+}
+
 async function failDefiniteProviderRejection(id: string, error: unknown): Promise<never> {
   // Network errors / 5xx have uncertain outcomes: keep the reservation pending
   // for webhook/status reconciliation, never allow a second charge blindly.
@@ -349,6 +373,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
   const { referenceId, amount, description, redirectBaseUrl } = payload
 
   const paymentId = await reservePayment(req, payload, payload.method ?? 'gcash')
+  const billing = await loadBillingDetails(paymentId)
 
   try {
   const { data: session } = await paymongoFetch<{
@@ -372,6 +397,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
           // otherwise preselect the first listed one, while the payment row
           // already records the chosen method.
           payment_method_types: [CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']],
+          ...(billing && Object.keys(billing).length > 0 ? { billing } : {}),
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.
