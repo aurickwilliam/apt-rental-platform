@@ -52,7 +52,17 @@ type UseChatChannelOptions = {
   onReactionChange?: (reaction: ReactionBroadcast) => void;
   /** The other user read this conversation up to a message's created_at. */
   onMessagesRead?: (readUpTo: string) => void;
+  /**
+   * The database recorded a message from the other user in this conversation.
+   * A message only reaches the new_message Broadcast when the sender's app
+   * sends one (the web composer does not), so this is the delivery guarantee.
+   * It can fire for a message the Broadcast already delivered; callers dedupe by id.
+   */
+  onMessageInserted?: (messageId: string) => void;
 };
+
+type InsertedChatRow = { id?: string; receiver_id?: string; apartment_id?: string | null };
+type InsertEvent = { new: InsertedChatRow };
 
 type BroadcastEvent = { payload: BroadcastPayload };
 type DeletePayload = { id: string; apartment_id: string | null };
@@ -71,6 +81,7 @@ export function useChatChannel({
   onMessageDeleted,
   onReactionChange,
   onMessagesRead,
+  onMessageInserted,
 }: UseChatChannelOptions) {
   const msgChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSubscribedRef = useRef(false);
@@ -79,6 +90,7 @@ export function useChatChannel({
   const onMessageDeletedRef = useRef(onMessageDeleted);
   const onReactionChangeRef = useRef(onReactionChange);
   const onMessagesReadRef = useRef(onMessagesRead);
+  const onMessageInsertedRef = useRef(onMessageInserted);
 
   useEffect(() => {
     onNewMessageRef.current = onNewMessage;
@@ -99,6 +111,10 @@ export function useChatChannel({
   useEffect(() => {
     onMessagesReadRef.current = onMessagesRead;
   }, [onMessagesRead]);
+
+  useEffect(() => {
+    onMessageInsertedRef.current = onMessageInserted;
+  }, [onMessageInserted]);
 
   const teardown = useCallback(() => {
     if (msgChannelRef.current) {
@@ -218,6 +234,18 @@ export function useChatChannel({
           } else if (payload.apartment_id != null) return;
           onMessagesReadRef.current?.(payload.read_up_to);
         })
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'chat', filter: `sender_id=eq.${otherUserId}` },
+          ({ new: row }: InsertEvent) => {
+            if (!row?.id || row.receiver_id !== currentUserId) return;
+            const matchesApartment = apartmentId
+              ? row.apartment_id === apartmentId
+              : row.apartment_id == null;
+            if (!matchesApartment) return;
+            onMessageInsertedRef.current?.(row.id);
+          }
+        )
         .on('broadcast', { event: 'typing' }, ({ payload }: TypingEvent) => {
           if (!payload || payload.userId === currentUserId) return;
           const isTyping = payload.isTyping === true;

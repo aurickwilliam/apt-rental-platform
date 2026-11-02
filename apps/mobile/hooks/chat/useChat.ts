@@ -104,6 +104,26 @@ export function useChat({
     [handleIncomingMessage]
   );
 
+  // A message the database recorded but no Broadcast delivered (e.g. one sent
+  // from the web). Reads the newest page so media, quotes and reactions are
+  // resolved like any loaded message, then adds only what is missing.
+  const handleMessageInserted = useCallback(
+    async (messageId: string) => {
+      if (!myId || messagesRef.current.some((message) => message.id === messageId)) return;
+      try {
+        const page = await fetchMessagePage({ currentUserId: myId, otherUserId, apartmentId });
+        const known = new Set(messagesRef.current.map((message) => message.id));
+        const missing = page.messages.filter((message) => !message.isSent && !known.has(message.id));
+        if (missing.length === 0) return;
+        setMessages((prev) => mergeChatMessages(prev, missing, 'newest'));
+        handleIncomingMessage();
+      } catch (error) {
+        console.error('[chat] Failed to load the new message:', error);
+      }
+    },
+    [apartmentId, handleIncomingMessage, myId, otherUserId]
+  );
+
   const handleOtherUserTypingChange = useCallback((isTyping: boolean) => {
     setOtherUserIsTyping((prev) => (prev === isTyping ? prev : isTyping));
   }, []);
@@ -146,6 +166,7 @@ export function useChat({
     onMessageDeleted: handleMessageDeleted,
     onReactionChange: handleReactionChange,
     onMessagesRead: handleMessagesRead,
+    onMessageInserted: handleMessageInserted,
   });
 
   useEffect(() => {

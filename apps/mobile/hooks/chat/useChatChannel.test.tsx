@@ -155,13 +155,15 @@ describe('useChatChannel', () => {
 
     const events = mockChannels[0].handlerEvents;
     // new_message, message_deleted, message_reacted, reaction_removed,
-    // messages_read, typing — all Broadcast on the one channel.
+    // messages_read, typing — all Broadcast on the one channel — plus the
+    // database INSERT that delivers messages sent without a Broadcast.
     expect(events).toEqual([
       'new_message',
       'message_deleted',
       'message_reacted',
       'reaction_removed',
       'messages_read',
+      'INSERT',
       'typing',
     ]);
     expect(events.find((event) => event === 'presence')).toBeUndefined();
@@ -210,11 +212,35 @@ describe('useChatChannel', () => {
     expect(staleMsg.on).not.toHaveBeenCalled();
     // The fresh channel carries the full Broadcast binding set.
     const freshEvents = mockChannels[0].handlerEvents;
-    expect(freshEvents).toHaveLength(6);
+    expect(freshEvents).toHaveLength(7);
     expect(freshEvents).toContain('typing');
     expect(freshEvents.find((e) => e === 'presence')).toBeUndefined();
 
     unmount();
+  });
+
+  it('reports a database insert from the other user in this conversation, and ignores the rest', () => {
+    const onMessageInserted = jest.fn();
+    renderHook(() => useChatChannel({ ...baseProps, onMessageInserted }));
+
+    const channel = mockChannels[0];
+    const insert = handlerFor(channel, 'INSERT') as unknown as (event: { new: object }) => void;
+    const row = { id: 'row-1', receiver_id: CURRENT_USER_ID, apartment_id: APARTMENT_ID };
+
+    // Only rows from the other user reach the binding: its filter says so.
+    expect(channel.on).toHaveBeenCalledWith(
+      'postgres_changes',
+      expect.objectContaining({ table: 'chat', filter: `sender_id=eq.${OTHER_USER_ID}` }),
+      expect.any(Function)
+    );
+
+    act(() => insert({ new: row }));
+    expect(onMessageInserted).toHaveBeenCalledWith('row-1');
+
+    act(() => insert({ new: { ...row, id: 'row-2', receiver_id: 'someone-else' } }));
+    act(() => insert({ new: { ...row, id: 'row-3', apartment_id: 'another-apartment' } }));
+    act(() => insert({ new: { ...row, id: 'row-4', apartment_id: null } }));
+    expect(onMessageInserted).toHaveBeenCalledTimes(1);
   });
 
   /** Validates: StrictMode-style unmount/remount on the same conversation
