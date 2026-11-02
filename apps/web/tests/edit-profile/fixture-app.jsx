@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { Card, Toast } from "@heroui/react";
 import ProfileForm from "../../app/components/profile/ProfileForm";
+import EditableCover from "../../app/components/profile/EditableCover";
 
 const initial = {
   email: "preview@example.com",
@@ -18,12 +19,19 @@ const initial = {
   postal_code: 1401,
 };
 window.fixtureWrites = [];
+window.fixturePhotoWrites = [];
 const standalone = new URLSearchParams(location.search).has("standalone");
+const cover = new URLSearchParams(location.search).has("cover");
+const empty = new URLSearchParams(location.search).has("empty");
 createRoot(document.getElementById("root")).render(
   <main className="mx-auto w-full max-w-7xl p-4">
     <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
       <div data-testid="profile-details">
-        <ProfileForm initial={initial} initialMode={standalone ? "edit" : "view"} />
+        {cover ? (
+          <EditableCover authUserId="preview-user" initialUrl={empty ? null : `${location.origin}/initial.png`} />
+        ) : (
+          <ProfileForm initial={initial} initialMode={standalone ? "edit" : "view"} />
+        )}
       </div>
     </Card>
     <Toast.Provider />

@@ -28,11 +28,13 @@ await build({
     setup(plugin) {
       plugin.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "navigation", namespace: "fixture" }));
       plugin.onResolve({ filter: /update-profile$/ }, () => ({ path: "action", namespace: "fixture" }));
-      // Photo editing is not part of the consumer details modal.
-      plugin.onResolve({ filter: /(@repo\/supabase\/browser|avatar-upload|\.\/Profile(Avatar|Background|PhotoErrorDialog))$/ }, () => ({ path: "photos", namespace: "fixture" }));
+      plugin.onResolve({ filter: /^next\/image$/ }, () => ({ path: path.join(here, "fixture-photos.jsx") }));
+      plugin.onResolve({ filter: /^@repo\/supabase\/browser$/ }, () => ({ path: path.join(here, "fixture-photos.jsx") }));
+      // Standalone admin photo children are outside the consumer modal tests.
+      plugin.onResolve({ filter: /\.\/Profile(Avatar|Background|PhotoErrorDialog)$/ }, () => ({ path: "photos", namespace: "fixture" }));
       plugin.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path: source }) => ({
         contents: source === "navigation"
-          ? "export const useRouter = () => ({ push: (href) => { window.fixtureRedirect = href; } });"
+          ? "export const useRouter = () => ({ push: (href) => { window.fixtureRedirect = href; }, refresh: () => {} });"
           : source === "action"
             ? `export async function updateProfile(_, data) {
                 window.fixtureWrites.push(Object.fromEntries(data));
@@ -56,6 +58,9 @@ const sources = await Promise.all([
   path.join(here, "fixture-app.jsx"),
   path.join(web, "app/components/profile/ProfileForm.tsx"),
   path.join(web, "app/components/profile/ProfileSaveSuccessDialog.tsx"),
+  path.join(web, "app/components/profile/EditableCover.tsx"),
+  path.join(web, "app/components/profile/RemovePhotoConfirmModal.tsx"),
+  path.join(web, "app/components/display/ErrorBanner.tsx"),
 ].map((file) => readFile(file, "utf8")));
 // Include production utilities, including the conditional form layout strings.
 const candidates = sources.flatMap((source) => [...source.matchAll(/"([^"\n]+)"/g)]

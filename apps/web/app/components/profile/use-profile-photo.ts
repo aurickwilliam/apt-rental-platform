@@ -30,7 +30,7 @@ const KIND_LABEL: Record<ProfilePhotoKind, string> = {
   cover: "Cover photo",
 };
 
-// In-place photo editor state machine: idle → preview → saving, plus a
+// Shared photo editor state machine: idle → preview → saving, plus a
 // modal remove confirm owned by the caller. Upload only happens on Save;
 // Cancel revokes the preview and restores the saved image. Removal only
 // clears the displayed image after the storage + row update succeeds.
@@ -47,6 +47,7 @@ export function useProfilePhotoUpload(
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
   const revokePreview = useCallback(() => {
@@ -63,10 +64,12 @@ export function useProfilePhotoUpload(
       if (!file || isSaving || isRemoving) return;
       const validationError = validateAvatarFile(file);
       if (validationError) {
+        setError(validationError);
         toast.danger(validationError, { timeout: 0 });
         return;
       }
       revokePreview();
+      setError(null);
       const objectUrl = URL.createObjectURL(file);
       previewUrlRef.current = objectUrl;
       setPendingFile(file);
@@ -79,11 +82,13 @@ export function useProfilePhotoUpload(
     revokePreview();
     setPendingFile(null);
     setPreviewUrl(null);
+    setError(null);
   }, [revokePreview]);
 
   const save = useCallback(async () => {
-    if (!pendingFile || isSaving) return;
+    if (!pendingFile || isSaving || isRemoving) return false;
     setIsSaving(true);
+    setError(null);
     try {
       const supabase = createBrowserClient();
       const publicUrl =
@@ -106,23 +111,25 @@ export function useProfilePhotoUpload(
       );
       notifyProfilePhotoUpdated();
       router.refresh();
+      return true;
     } catch (e) {
       const message =
         e instanceof Error ? e.message : "Upload failed. Please try again.";
-      toast.danger(
-        /permission denied|row-level security/i.test(message)
-          ? `Couldn't save your ${kind === "avatar" ? "photo" : "cover"} due to a permissions issue. Please try again later.`
-          : message,
-        { timeout: 0 },
-      );
+      const friendlyMessage = /permission denied|row-level security/i.test(message)
+        ? `Couldn't save your ${kind === "avatar" ? "photo" : "cover"} due to a permissions issue. Please try again later.`
+        : message;
+      setError(friendlyMessage);
+      toast.danger(friendlyMessage, { timeout: 0 });
+      return false;
     } finally {
       setIsSaving(false);
     }
-  }, [pendingFile, isSaving, authUserId, kind, cancel, router]);
+  }, [pendingFile, isSaving, isRemoving, authUserId, kind, cancel, router]);
 
   const remove = useCallback(async () => {
-    if (isSaving || isRemoving) return;
+    if (isSaving || isRemoving) return false;
     setIsRemoving(true);
+    setError(null);
     try {
       const supabase = createBrowserClient();
       if (kind === "avatar") await removeAvatar(supabase, authUserId);
@@ -135,10 +142,13 @@ export function useProfilePhotoUpload(
       );
       notifyProfilePhotoUpdated();
       router.refresh();
+      return true;
     } catch (e) {
       const message =
         e instanceof Error ? e.message : "Couldn't remove the photo. Please try again.";
       toast.danger(message, { timeout: 0 });
+      setError(message);
+      return false;
     } finally {
       setIsRemoving(false);
     }
@@ -151,6 +161,7 @@ export function useProfilePhotoUpload(
     isSaving,
     isRemoving,
     isBusy: isSaving || isRemoving,
+    error,
     selectFile,
     cancel,
     save,

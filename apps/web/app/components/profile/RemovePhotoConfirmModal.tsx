@@ -2,6 +2,7 @@
 
 import { Button, Modal, Spinner } from "@heroui/react";
 import { IconTrash as Trash2 } from "@tabler/icons-react";
+import ErrorBanner from "@/app/components/display/ErrorBanner";
 
 type RemovePhotoConfirmModalProps = {
   isOpen: boolean;
@@ -13,6 +14,8 @@ type RemovePhotoConfirmModalProps = {
   isRemoving: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  portalContainer?: HTMLElement;
+  error?: string | null;
 };
 
 // Shared confirm dialog for avatar / cover removal. Removal only runs on
@@ -26,10 +29,13 @@ export default function RemovePhotoConfirmModal({
   isRemoving,
   onClose,
   onConfirm,
+  portalContainer,
+  error,
 }: RemovePhotoConfirmModalProps) {
   return (
     <Modal>
       <Modal.Backdrop
+        UNSTABLE_portalContainer={portalContainer}
         isOpen={isOpen}
         onOpenChange={(open) => {
           if (!open) onClose();
@@ -40,6 +46,7 @@ export default function RemovePhotoConfirmModal({
         <Modal.Container placement="center" size="sm">
           <Modal.Dialog className="rounded-2xl">
             <Modal.CloseTrigger
+              isDisabled={isRemoving}
               aria-label="Close remove confirmation"
               className="top-4 right-4 z-10 size-8 rounded-full bg-muted text-foreground hover:bg-muted-foreground/20 focus-visible:outline-2 focus-visible:outline-primary"
             />
@@ -51,6 +58,7 @@ export default function RemovePhotoConfirmModal({
             </Modal.Header>
             <Modal.Body>
               <p className="text-sm text-muted-foreground">{description}</p>
+              {error ? <ErrorBanner message={error} /> : null}
             </Modal.Body>
             <Modal.Footer className="flex justify-end gap-2">
               <Button
