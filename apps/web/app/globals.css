@@ -1363,9 +1363,10 @@ body[data-scroll-locked] [role="option"] {
   color: var(--muted-foreground);
 }
 
-/* Touch controls stay visible; pointer users reveal cover editing on hover
+/* Touch controls stay visible; pointer users reveal photo editing on hover
    or keyboard focus, without removing the button from the tab order. */
-.profile-cover-trigger {
+.profile-cover-trigger,
+.profile-avatar-view-trigger {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1376,13 +1377,19 @@ body[data-scroll-locked] [role="option"] {
   transform: none;
 }
 
-.profile-cover-trigger:is(:focus-visible, [data-focus-visible="true"]) {
+.profile-avatar-view-trigger {
+  border-radius: 9999px;
+}
+
+.profile-cover-trigger:is(:focus-visible, [data-focus-visible="true"]),
+.profile-avatar-view-trigger:is(:focus-visible, [data-focus-visible="true"]) {
   outline: 2px solid var(--primary);
   outline-offset: -4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .profile-cover-banner .profile-cover-toolbar {
+  .profile-cover-banner .profile-cover-toolbar,
+  .profile-avatar-photo:not(:hover, :focus-within) .profile-avatar-edit-trigger {
     opacity: 0;
   }
 

@@ -22,8 +22,8 @@ type ProfileHeaderProps = {
 
 // Own-profile header, same layout as the admin profile header: cover banner,
 // circular avatar overlapping its bottom edge, then name, role and
-// verification chips and the join date. EditableAvatar previews in place;
-// EditableCover keeps its draft in a modal until saved.
+// verification chips and the join date. Avatar and cover editing keep their
+// drafts in separate modals until saved; photo clicks open read-only viewers.
 export default function ProfileHeader({
   authUserId,
   displayName,

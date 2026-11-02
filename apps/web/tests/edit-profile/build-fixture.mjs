@@ -59,6 +59,8 @@ const sources = await Promise.all([
   path.join(web, "app/components/profile/ProfileForm.tsx"),
   path.join(web, "app/components/profile/ProfileSaveSuccessDialog.tsx"),
   path.join(web, "app/components/profile/EditableCover.tsx"),
+  path.join(web, "app/components/profile/EditableAvatar.tsx"),
+  path.join(web, "app/components/profile/UserAvatar.tsx"),
   path.join(web, "app/components/profile/RemovePhotoConfirmModal.tsx"),
   path.join(web, "app/components/display/ErrorBanner.tsx"),
   path.join(web, "app/components/display/PhotoGalleryModal.tsx"),

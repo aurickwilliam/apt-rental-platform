@@ -17,6 +17,7 @@ $env:PROFILE_PLAYWRIGHT_PATH='C:/temporary/tools/node_modules/playwright'
 $env:PROFILE_BROWSER_OUTPUT='C:/temporary/profile-preview'
 node apps/web/tests/edit-profile/modal.browser.mjs
 node apps/web/tests/edit-profile/cover.browser.mjs
+node apps/web/tests/edit-profile/avatar.browser.mjs
 ```
 
 Uses installed Microsoft Edge in headless mode. Covers unchanged saved details,
@@ -31,3 +32,10 @@ The cover suite additionally checks file selection and preview without changing
 the page banner, cancellation and reopening, invalid file errors, JPEG output,
 save and removal failures/retries, dismissal locks, nested confirmation, the
 empty-cover fallback and responsive light/dark layouts.
+
+The avatar suite checks the saved photo's view-only modal, mouse/touch/keyboard
+activation and focus restoration, separate camera-modal editing, local preview
+isolation and cancellation, file validation and JPEG compression, failed-save
+and removal retries, busy-state dismissal locks, nested removal confirmation,
+the non-selectable initials fallback and responsive light/dark layouts. Viewing
+never writes or uploads.
