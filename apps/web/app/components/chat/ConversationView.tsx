@@ -9,6 +9,8 @@ import {
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "@/app/components/chat/MessageInput";
+import ChatBlockedNotice from "@/app/components/chat/ChatBlockedNotice";
+import useBlockStatus from "@/app/components/chat/useBlockStatus";
 import type { ConversationContact } from "@/lib/conversation-contacts";
 import ConversationHeader from "@/app/components/chat/ConversationHeader";
 import ConversationThreadSkeleton from "@/app/components/chat/ConversationThreadSkeleton";
@@ -107,6 +109,12 @@ export default function ConversationView({
   const { context, loading: contextLoading } = useConversationContext(activeContact?.id ?? null, activeContact?.apartmentId ?? null, portal, currentUserId);
   const apartment = conversationApartmentPresentation(activeContact?.apartmentId ?? null, context.apartment, portal);
 
+  const { blockedByMe, blockedMe, revalidate: revalidateBlockStatus } = useBlockStatus(
+    activeContact?.id ?? null
+  );
+
+  const isBlocked = blockedByMe || blockedMe;
+
   const {
     supabase,
     conversationId,
@@ -133,8 +141,11 @@ export default function ConversationView({
     otherUserId: activeContact?.id ?? null,
     apartmentId,
     onConversationRead,
-    onSendError: (message) =>
-      setSendError({ key: activeContact?.conversationKey ?? "", message }),
+    onSendError: (message) => {
+      setSendError({ key: activeContact?.conversationKey ?? "", message });
+      // A refused send may mean a block started while this thread was open.
+      void revalidateBlockStatus();
+    },
   });
 
   // Realtime: incoming messages, read receipts for sent ones, the contact's
@@ -358,7 +369,7 @@ export default function ConversationView({
         ref={scrollRef}
         data-chat-scroll
         onScroll={handleThreadScroll}
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4"
+        className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 pt-4 ${isBlocked ? "pb-32" : "pb-4"}`}
         visibility="none"
       >
         {hasEarlierMessages && (
@@ -433,37 +444,40 @@ export default function ConversationView({
           variant="ghost"
           onClick={jumpToLatest}
           aria-label="Jump to latest messages"
-          className="button--bare absolute bottom-4 left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className={`button--bare absolute ${isBlocked ? "bottom-32" : "bottom-4"} left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         >
           <IconArrowDown size={20} aria-hidden="true" />
         </Button>
       )}
+      {isBlocked ? <ChatBlockedNotice otherUserName={activeContact.name} blockedByMe={blockedByMe} /> : null}
       </div>
 
-      {sendError?.key === activeContact.conversationKey ? (
+      {sendError?.key === activeContact.conversationKey && !isBlocked ? (
         <div className="px-4">
           <ErrorBanner message={sendError.message} />
         </div>
       ) : null}
 
-      <MessageInput
-        onSend={handleSend}
-        onTypingChange={handleTypingChange}
-        onSendAttachments={sendAttachments}
-        onSendGif={sendGif}
-        onError={(message) =>
-          setSendError({ key: activeContact?.conversationKey ?? "", message })
-        }
-        replyTarget={replyTarget}
-        replyLabel={
-          replyTarget
-            ? replyTarget.sender_id === currentUserId
-              ? "yourself"
-              : activeContact.name
-            : undefined
-        }
-        onClearReply={clearReply}
-      />
+      {isBlocked ? null : (
+        <MessageInput
+          onSend={handleSend}
+          onTypingChange={handleTypingChange}
+          onSendAttachments={sendAttachments}
+          onSendGif={sendGif}
+          onError={(message) =>
+            setSendError({ key: activeContact?.conversationKey ?? "", message })
+          }
+          replyTarget={replyTarget}
+          replyLabel={
+            replyTarget
+              ? replyTarget.sender_id === currentUserId
+                ? "yourself"
+                : activeContact.name
+              : undefined
+          }
+          onClearReply={clearReply}
+        />
+      )}
 
       {contextMenu && (
         <MessageContextMenu
