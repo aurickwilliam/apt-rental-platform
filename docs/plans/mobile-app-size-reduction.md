@@ -4,6 +4,16 @@
 
 Reduce the Android app download and install size from the current **229 MB APK** to roughly **35–45 MB** without removing user-facing features, while keeping iOS lean as a side effect. The work is staged so each tier can be built, measured, and reverted independently.
 
+## Implementation status
+
+Implemented on branch `refactor/reduce-file-size` (not yet built as an APK):
+
+- **Tier 1:** `expo-build-properties` with `buildArchs: ["arm64-v8a"]`, R8 minify, resource shrinking and `useLegacyPackaging`. Changed from the first draft: the architecture list is the same for every build, never read from `EAS_BUILD_PROFILE`, because the OTA fingerprint hashes it and `eas update` runs outside a build profile (the fingerprint is identical with and without `EAS_BUILD_PROFILE`). The Android emulator needs an arm64 image.
+- **Tier 2:** MapLibre removed (no-key map shows a "Map unavailable" card), `react-native-pdf-thumbnail` replaces `react-native-pdf`/`react-native-blob-util`, and the 7 unused packages are gone.
+- **Tier 3:** 13 bundled images converted to WebP (onboarding 5.3 MB → 0.36 MB). Three payment logos stayed PNG because WebP was larger. Font subsetting was skipped (`pyftsubset` not installed).
+- **Tier 4:** `babel-plugins/tabler-per-icon.js`. Measured with `expo export`: Hermes bundle 14.6 MB → 9.7 MB, Tabler modules 6,189 → 236. `babel.config.js` uses `api.cache.using(...)` (the draft's `api.env('test')` throws after `api.cache(true)`).
+- **Still to do:** build a `preview` APK, record the size, and run the device smoke tests below (R8 behaviour, QR scan, GIFs, PDF previews, receipt save, notifications, OTA).
+
 ## Current state and measurements
 
 Measured from `apps/mobile/build-preview.apk` (229,263,536 bytes = 229 MB / 218.6 MiB), the current universal preview APK breaks down as follows.
@@ -49,7 +59,7 @@ Other findings:
 ## Scope and decisions
 
 - **Android first**, with the same dependency/asset removals benefiting iOS.
-- **arm64-only** APKs for `preview` and `production`. Development and local builds keep `arm64-v8a + x86_64` so emulators still work. 32-bit support is explicitly not required.
+- **arm64-only** APKs for every Android build, with one fixed architecture list so the OTA fingerprint never depends on the build environment. x86 emulators and 32-bit devices are explicitly not supported.
 - **Remove MapLibre** (`@maplibre/maplibre-react-native`). The OpenStreetMap fallback only runs when the Google Maps key is absent; production builds already require the key. Replace the fallback with a simple “map unavailable” card that links to Google Maps.
 - **Replace `react-native-pdf` with `react-native-pdf-thumbnail`** for first-page PDF previews. Remove `react-native-pdf` and `react-native-blob-util`. The new library uses Android’s `PdfRenderer` and iOS PDFKit instead of bundling PDFium. Remote signed PDFs must be downloaded to the cache with `expo-file-system` before thumbnail generation; verify the library’s API during implementation.
 - **Remove unused packages** listed above.
@@ -68,10 +78,7 @@ Other findings:
    - Add the plugin to `apps/mobile/app.config.js`.
 
 2. **Build one architecture for shipping profiles.**
-   - Compute `buildArchs` from the build context:
-     - `EAS_BUILD_PROFILE === "development"` or a local build: `["arm64-v8a", "x86_64"]`
-     - `preview` / `production`: `["arm64-v8a"]`
-   - Pass it to `expo-build-properties` under `android.buildArchs`.
+   - Set `android.buildArchs: ["arm64-v8a"]` in `expo-build-properties`, identically for every build profile (see Implementation status).
 
 3. **Enable release code and resource shrinking.**
    - `enableMinifyInReleaseBuilds: true`

@@ -32,7 +32,7 @@ jest.mock("expo-image", () => {
 
 jest.mock("react-native-image-viewing", () => () => null);
 
-jest.mock("react-native-pdf", () => {
+jest.mock("@/components/display/PdfThumbnail", () => {
   const React = jest.requireActual<typeof import("react")>("react");
   const { View } =
     jest.requireActual<typeof import("react-native")>("react-native");

@@ -1,6 +1,6 @@
 export const IMAGES = {
   logo: require("../assets/images/logo.png"),
-  googleLogo: require("../assets/images/third-party-logos/google.png"),
+  googleLogo: require("../assets/images/third-party-logos/google.webp"),
   houseCheck: require("../assets/images/house-check.png"),
   lockReset: require("../assets/images/lock.png"),
   shield: require("../assets/images/shield.png"),
@@ -15,10 +15,10 @@ export const EMPTY_STATE_IMAGES = {
 }
 
 export const SAMPLE_IMAGES = {
-  sampleNationalID: require("../assets/images/sample-national-id.png"),
-  sampleBirthCertificate: require("../assets/images/sample-birth-certificate.jpg"),
-  sampleProofOfIncome: require("../assets/images/sample-proof-income.jpg"),
-  sampleProofOfResidency: require("../assets/images/sample-proof-residency.jpg"),
+  sampleNationalID: require("../assets/images/sample-national-id.webp"),
+  sampleBirthCertificate: require("../assets/images/sample-birth-certificate.webp"),
+  sampleProofOfIncome: require("../assets/images/sample-proof-income.webp"),
+  sampleProofOfResidency: require("../assets/images/sample-proof-residency.webp"),
 }
 
 export const DEFAULT_IMAGES = {
@@ -28,10 +28,10 @@ export const DEFAULT_IMAGES = {
 
 export const PAYMENT_METHOD_LOGOS = {
   gcash: require("../assets/images/payment-logos/gcash-logo.png"),
-  gcashBig: require("../assets/images/payment-logos/gcash-big-logo.png"),
-  maya: require("../assets/images/payment-logos/maya-logo.png"),
-  mayaBig: require("../assets/images/payment-logos/maya-big-logo.jpg"),
-  visa: require("../assets/images/payment-logos/visa-logo.png"),
+  gcashBig: require("../assets/images/payment-logos/gcash-big-logo.webp"),
+  maya: require("../assets/images/payment-logos/maya-logo.webp"),
+  mayaBig: require("../assets/images/payment-logos/maya-big-logo.webp"),
+  visa: require("../assets/images/payment-logos/visa-logo.webp"),
   mastercard: require("../assets/images/payment-logos/mastercard-logo.png"),
   qrph: require("../assets/images/payment-logos/qrph-logo.png"),
   qrphBig: require("../assets/images/payment-logos/qrph-logo.png"),

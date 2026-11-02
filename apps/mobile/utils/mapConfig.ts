@@ -1,12 +1,12 @@
 import Constants from 'expo-constants';
 
 /**
- * Central map feature flags. Keep MapLibre fallback for one release.
- * - EXPO_PUBLIC_USE_GOOGLE_MAPS=0 forces OSM fallback (rollback)
+ * Central map feature flags.
+ * - EXPO_PUBLIC_USE_GOOGLE_MAPS=0 turns the map off (screens show a "map unavailable" hint)
  * - EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is the Google Maps key (also via app.json ${} substitution)
  * - EXPO_PUBLIC_ENABLE_PLACES=1 enables Places Autocomplete on create-apartment pin screen only
  *
- * Default: Google ON, Places ON (when key present). During EAS dev build without key, fallback still renders OSM.
+ * Default: Google ON, Places ON (when key present). Without a key the map hint is shown instead.
  */
 
 function readExtraString(key: string): string | undefined {
@@ -41,7 +41,7 @@ export function getGoogleMapsApiKey(): string | undefined {
 export function isGoogleMapsEnabled(): boolean {
   const flag = readEnv('EXPO_PUBLIC_USE_GOOGLE_MAPS');
   if (flag === '0' || flag === 'false') return false;
-  // If no key, fall back to MapLibre so dev without EAS secret still renders
+  // No key: the map is off (the native Maps SDK would render blank tiles)
   const key = getGoogleMapsApiKey();
   if (!key || key.trim().length < 10) return false;
   return true;
