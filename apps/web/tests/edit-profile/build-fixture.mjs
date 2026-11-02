@@ -61,6 +61,7 @@ const sources = await Promise.all([
   path.join(web, "app/components/profile/EditableCover.tsx"),
   path.join(web, "app/components/profile/RemovePhotoConfirmModal.tsx"),
   path.join(web, "app/components/display/ErrorBanner.tsx"),
+  path.join(web, "app/components/display/PhotoGalleryModal.tsx"),
 ].map((file) => readFile(file, "utf8")));
 // Include production utilities, including the conditional form layout strings.
 const candidates = sources.flatMap((source) => [...source.matchAll(/"([^"\n]+)"/g)]

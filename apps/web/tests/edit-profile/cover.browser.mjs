@@ -35,16 +35,47 @@ try {
   await page.goto(`${origin}/?cover=1`);
   await page.waitForLoadState("networkidle");
   const open = page.getByRole("button", { name: "Edit cover photo", exact: true });
+  const coverTrigger = page.getByRole("button", { name: "View cover photo", exact: true });
+  const viewer = page.getByRole("dialog", { name: "Profile · Cover photo", exact: true });
   const dialog = page.getByRole("dialog", { name: "Edit Cover Photo", exact: true });
   const save = dialog.getByRole("button", { name: "Save Changes", exact: true });
   const banner = page.getByTestId("profile-details").locator("img");
   const preview = dialog.getByAltText("Cover photo preview");
+  const toolbar = page.locator(".profile-cover-toolbar");
+  const toolbarOpacity = () => toolbar.evaluate((element) => getComputedStyle(element).opacity);
+  assert.equal(await toolbarOpacity(), "0", "desktop button is hidden away from cover");
+  await page.locator(".profile-cover-banner").hover({ position: { x: 8, y: 80 } });
+  assert.equal(await toolbarOpacity(), "1", "hover anywhere on cover reveals editing");
+  await page.mouse.move(0, 0);
+  assert.equal(await toolbarOpacity(), "0", "leaving cover hides editing");
+  await page.keyboard.press("Tab");
+  assert.equal(await coverTrigger.evaluate((element) => document.activeElement === element), true);
+  assert.equal(await toolbarOpacity(), "1", "keyboard focus reveals editing");
+  await coverTrigger.blur();
   const settle = async () => {
     await page.locator('[data-slot="modal-backdrop"]').first().evaluate(async (element) => {
       await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => {})));
     });
   };
   const closed = () => page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 0);
+  await coverTrigger.click({ position: { x: 8, y: 80 } });
+  await settle();
+  await viewer.waitFor();
+  assert.equal(await viewer.getByRole("img", { name: "Profile Cover photo", exact: true }).getAttribute("src"), `${origin}/initial.png`);
+  assert.equal(await viewer.getByRole("button", { name: /Save|Choose|Remove|Cancel/ }).count(), 0, "viewing has no editing controls");
+  assert.equal(await dialog.count(), 0, "banner does not open editor");
+  assert.equal(await page.evaluate(() => window.fixturePhotoWrites.length), 0, "viewing never writes");
+  await page.keyboard.press("Escape");
+  await closed();
+  assert.equal(await coverTrigger.evaluate((element) => document.activeElement === element), true, "banner click restores focus to banner");
+  for (const key of ["Enter", "Space"]) {
+    await coverTrigger.focus();
+    await page.keyboard.press(key);
+    await settle();
+    await viewer.getByRole("button", { name: "Close photo gallery", exact: true }).click();
+    await closed();
+    assert.equal(await coverTrigger.evaluate((element) => document.activeElement === element), true, "keyboard activation restores banner focus");
+  }
   const file = {
     name: "cover.png", mimeType: "image/png",
     buffer: Buffer.from(await page.evaluate(() => {
@@ -121,6 +152,7 @@ try {
   assert.equal(await confirm.isVisible(), true, "cannot dismiss removal while busy");
   await closed();
   assert.equal(await banner.count(), 0, "successful removal restores fallback");
+  assert.equal(await coverTrigger.count(), 0, "no viewer trigger without a saved photo");
   assert.equal(await page.evaluate(() => window.fixturePhotoWrites.at(-1).values.background_url), null);
 
   for (const dark of [false, true]) {
@@ -149,6 +181,14 @@ try {
   await page.locator('[data-slot="modal-backdrop"]').click({ position: { x: 4, y: 4 } });
   await closed();
   assert.deepEqual(errors, []);
+  const touchPage = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await touchPage.route("**/*", (route) => route.request().url().startsWith(`${origin}/`) ? route.continue() : route.abort());
+  await touchPage.goto(`${origin}/?cover=1`);
+  await touchPage.waitForLoadState("networkidle");
+  assert.equal(await touchPage.locator(".profile-cover-toolbar").evaluate((element) => getComputedStyle(element).opacity), "1", "touch devices retain visible editing");
+  await touchPage.getByRole("button", { name: "View cover photo", exact: true }).tap({ position: { x: 8, y: 80 } });
+  await touchPage.getByRole("dialog", { name: "Profile · Cover photo", exact: true }).waitFor();
+  await touchPage.close();
   console.log("PASS: cover modal, chooser/local preview, saved banner isolation, cancellation, file validation, compression, save/failure/retry, save lock, nested removal/failure/retry, empty state, light/dark responsive layouts and focus restoration.");
 } finally {
   await browser?.close();

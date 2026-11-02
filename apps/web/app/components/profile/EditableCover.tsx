@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 
 import { Button, Modal, Spinner } from "@heroui/react";
-import { IconChevronDown, IconPhoto, IconTrash, IconUpload, IconX } from "@tabler/icons-react";
+import { IconPhoto, IconTrash, IconUpload, IconX } from "@tabler/icons-react";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import RemovePhotoConfirmModal from "./RemovePhotoConfirmModal";
 import { useProfilePhotoUpload } from "./use-profile-photo";
 
@@ -19,6 +20,7 @@ interface EditableCoverProps {
 export default function EditableCover({ authUserId, initialUrl }: EditableCoverProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isRemoveOpen, setIsRemoveOpen] = useState(false);
   const [overlay, setOverlay] = useState<HTMLDivElement | null>(null);
   const {
@@ -56,7 +58,7 @@ export default function EditableCover({ authUserId, initialUrl }: EditableCoverP
 
   return (
     <>
-      <div className="relative h-28 w-full overflow-hidden rounded-t-3xl bg-muted sm:h-32">
+      <div className="profile-cover-banner relative h-28 w-full overflow-hidden rounded-t-3xl bg-muted sm:h-32">
         {savedUrl ? (
           <Image src={savedUrl} alt="" fill unoptimized className="object-cover" />
         ) : null}
@@ -64,7 +66,18 @@ export default function EditableCover({ authUserId, initialUrl }: EditableCoverP
           className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/50 to-transparent"
           aria-hidden="true"
         />
-        <div className="absolute top-3 right-3 rounded-full border border-white/20 bg-black/55 p-1 shadow-lg backdrop-blur-sm">
+        {savedUrl ? (
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label="View cover photo"
+            aria-haspopup="dialog"
+            className="button--bare profile-cover-trigger"
+            isDisabled={isBusy}
+            onPress={() => setIsViewerOpen(true)}
+          />
+        ) : null}
+        <div className="profile-cover-toolbar absolute top-3 right-3 rounded-full border border-white/20 bg-black/55 p-1 shadow-lg backdrop-blur-sm">
           <Button
             type="button"
             size="sm"
@@ -77,10 +90,21 @@ export default function EditableCover({ authUserId, initialUrl }: EditableCoverP
           >
             <IconPhoto size={16} aria-hidden="true" />
             Edit cover
-            <IconChevronDown size={14} aria-hidden="true" className="opacity-80" />
           </Button>
         </div>
       </div>
+
+      {savedUrl ? (
+        <PhotoGalleryModal
+          name="Profile"
+          photos={[{ url: savedUrl }]}
+          labels={["Cover photo"]}
+          isOpen={isViewerOpen}
+          onOpenChange={setIsViewerOpen}
+          activeIndex={0}
+          onActiveIndexChange={() => undefined}
+        />
+      ) : null}
 
       <Modal>
         <Modal.Backdrop
