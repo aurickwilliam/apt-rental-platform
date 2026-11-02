@@ -5,9 +5,7 @@ import {
   Input,
   Label,
   FieldError,
-  Description,
-  Checkbox,
-  ControlField
+  Description
 } from 'heroui-native'
 
 import {
@@ -21,7 +19,6 @@ export type CardInformation = {
   expiryDate: string
   cardholderName: string
   cvv: string
-  isPaymentSaved: boolean
   isCardNumberValid?: boolean
 }
 
@@ -119,22 +116,6 @@ export default function CardPaymentForm({
             3-digit code at the back of your card.
           </Description>
         </TextField>
-
-        {/* Checkbox for saving the card payment method */}
-        <ControlField
-          isSelected={value.isPaymentSaved}
-          onSelectedChange={() => onChange({ isPaymentSaved: !value.isPaymentSaved })}
-          className='mt-5'
-        >
-          <ControlField.Indicator>
-            <Checkbox className="size-5 border border-border shadow-none" />
-          </ControlField.Indicator>
-          <Label>
-            <Label.Text>
-              Save this card for future use?
-            </Label.Text>
-          </Label>
-        </ControlField>
       </View>
     </View>
   )

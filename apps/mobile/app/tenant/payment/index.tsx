@@ -43,7 +43,6 @@ const INITIAL_CARD: CardInformation = {
   expiryDate: "",
   cardholderName: "",
   cvv: "",
-  isPaymentSaved: false,
   isCardNumberValid: false,
 };
 

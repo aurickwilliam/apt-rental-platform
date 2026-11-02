@@ -16,7 +16,7 @@ function props(selectedMethod: PaymentMethod | null = null) {
     selectedMethod, acceptedMethods: ALL_METHODS, methodsLoading: false, methodsError: null as string | null,
     onRetryMethods: jest.fn(), amount: 15000, selectedBank: null as BankCode | null, onBankChange: jest.fn(),
     onPaymentMethodChange: jest.fn(),
-    cardInformation: { cardNumber: "", expiryDate: "", cardholderName: "", cvv: "", isPaymentSaved: false, isCardNumberValid: false },
+    cardInformation: { cardNumber: "", expiryDate: "", cardholderName: "", cvv: "", isCardNumberValid: false },
     onCardInformationChange: jest.fn(), cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
   };
 }
