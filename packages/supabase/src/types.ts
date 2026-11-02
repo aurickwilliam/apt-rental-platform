@@ -866,6 +866,20 @@ export type Database = {
           },
         ]
       }
+      landlord_payment_settings: {
+        Row: { landlord_id: string; accepted_methods: string[]; created_at: string; updated_at: string }
+        Insert: { landlord_id: string; accepted_methods: string[] }
+        Update: { accepted_methods?: string[]; updated_at?: string }
+        Relationships: [
+          {
+            foreignKeyName: "landlord_payment_settings_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_preferences: {
         Row: {
           created_at: string
@@ -2155,6 +2169,10 @@ export type Database = {
       waive_maintenance_fee: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      get_landlord_accepted_methods: {
+        Args: { p_tenancy_id: string }
+        Returns: string[] | null
       }
     }
     Enums: {

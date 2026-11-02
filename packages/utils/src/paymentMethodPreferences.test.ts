@@ -7,10 +7,10 @@ import {
   type PaymentMethodPreference,
 } from "./paymentMethodPreferences";
 
-it("round-trips all five payment types using Web's database values", () => {
+it("round-trips all six payment types using Web's database values", () => {
   const preferences: PaymentMethodPreference = { savedMethods: [...PAYMENT_METHOD_TYPES], defaultMethod: "Debit/Credit-Card" };
   const row = paymentMethodPreferencesToRow(preferences);
-  expect(row).toEqual({ saved_methods: ["gcash", "maya", "qrph", "card", "cash"], default_method: "card" });
+  expect(row).toEqual({ saved_methods: ["gcash", "maya", "qrph", "bank_transfer", "card", "cash"], default_method: "card" });
   expect(paymentMethodPreferencesFromRow(row)).toEqual(preferences);
 });
 

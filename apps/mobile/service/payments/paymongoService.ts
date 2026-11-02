@@ -1,4 +1,5 @@
 import { supabase } from '@repo/supabase'
+import type { BankCode } from '@repo/constants'
 
 // Client for the `paymongo` Supabase Edge Function. The function holds the
 // PayMongo secret key; the client only sends data the app already has.
@@ -109,7 +110,8 @@ export async function createCheckoutSession(params: {
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya' | 'qrph'
+  method?: 'gcash' | 'maya' | 'qrph' | 'bank_transfer'
+  bankCode?: BankCode
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null

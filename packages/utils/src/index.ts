@@ -59,6 +59,16 @@ export {
   togglePreferredPaymentMethod,
 } from './paymentMethodPreferences';
 export {
+  ACCEPTED_METHODS_REQUIRED_MESSAGE,
+  ACCEPTED_METHOD_VALUES,
+  acceptedMethodsToRow,
+  isMethodAccepted,
+  normalizeAcceptedMethods,
+  resolveAcceptedMethod,
+  toggleAcceptedMethod,
+  validateAcceptedMethods,
+} from './acceptedPaymentMethods';
+export {
   type MaintenanceFeeStatus,
   normalizeMaintenanceFeeStatus,
   getMaintenanceFeeError,

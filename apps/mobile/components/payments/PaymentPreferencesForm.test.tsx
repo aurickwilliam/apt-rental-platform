@@ -18,10 +18,10 @@ function props(initialPreferences = EMPTY) {
   return { initialPreferences, onSave: jest.fn(async (next: PaymentMethodPreference) => next), onCancel: jest.fn(), isSaving: false, loadError: null, onRetry: jest.fn() };
 }
 
-it("offers all five preferred types and a default without collecting credentials", async () => {
+it("offers all six preferred types and a default without collecting credentials", async () => {
   const options = props();
   render(<PaymentPreferencesForm {...options} />);
-  expect(screen.getAllByRole("checkbox")).toHaveLength(5);
+  expect(screen.getAllByRole("checkbox")).toHaveLength(6);
   expect(screen.queryAllByRole("radio")).toHaveLength(0);
   fireEvent.press(screen.getByLabelText("Prefer Debit/Credit Card"));
   expect(screen.getByLabelText("Default Debit/Credit Card").props.accessibilityState.checked).toBe(true);

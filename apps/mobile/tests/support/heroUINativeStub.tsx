@@ -74,10 +74,11 @@ const RadioContext = createContext<Omit<RadioGroupStubProps, "children">>({ onVa
 function RadioGroupStub({ children, ...props }: RadioGroupStubProps) {
   return <RadioContext.Provider value={props}><View>{children}</View></RadioContext.Provider>;
 }
-function RadioItemStub({ children, value, accessibilityLabel }: ChildrenProps & { value: string; accessibilityLabel?: string }) {
+function RadioItemStub({ children, value, accessibilityLabel, isDisabled }: ChildrenProps & { value: string; accessibilityLabel?: string; isDisabled?: boolean }) {
   const group = useContext(RadioContext);
-  return <Pressable accessibilityRole="radio" accessibilityLabel={accessibilityLabel} disabled={group.isDisabled}
-    accessibilityState={{ checked: group.value === value, disabled: !!group.isDisabled }}
+  const disabled = !!group.isDisabled || !!isDisabled;
+  return <Pressable accessibilityRole="radio" accessibilityLabel={accessibilityLabel} disabled={disabled}
+    accessibilityState={{ checked: group.value === value, disabled }}
     onPress={() => group.onValueChange(value)}>{children}</Pressable>;
 }
 export const RadioGroup = Object.assign(RadioGroupStub, { Item: RadioItemStub });

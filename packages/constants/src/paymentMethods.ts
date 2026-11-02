@@ -1,4 +1,4 @@
-export type PaymentMethodKey = 'gcash' | 'maya' | 'qrph' | 'card' | 'cash';
+export type PaymentMethodKey = 'gcash' | 'maya' | 'qrph' | 'bank_transfer' | 'card' | 'cash';
 
 export type PaymentMethodColors = { backgroundColor: string; textColor: string; borderColor: string };
 
@@ -17,6 +17,10 @@ export const PAYMENT_METHOD_COLORS: Record<PaymentMethodKey, { light: PaymentMet
     light: { backgroundColor: '#EDE9FE', textColor: '#5B21B6', borderColor: '#C4B5FD' },
     dark: { backgroundColor: '#4C1D95', textColor: '#DDD6FE', borderColor: '#8B5CF6' },
   },
+  bank_transfer: {
+    light: { backgroundColor: '#E0E7FF', textColor: '#3730A3', borderColor: '#A5B4FC' },
+    dark: { backgroundColor: '#312E81', textColor: '#C7D2FE', borderColor: '#6366F1' },
+  },
   card: {
     light: { backgroundColor: '#FAE8FF', textColor: '#86198F', borderColor: '#F0ABFC' },
     dark: { backgroundColor: '#701A75', textColor: '#F5D0FE', borderColor: '#D946EF' },
@@ -30,7 +34,8 @@ export const PAYMENT_METHOD_COLORS: Record<PaymentMethodKey, { light: PaymentMet
 /** Maps a stored method name ("gcash", "Debit/Credit-Card", ...) to its key; unknown methods have none. */
 export function paymentMethodKey(method: string | null | undefined): PaymentMethodKey | null {
   const value = (method ?? '').trim().toLowerCase();
-  if (value === 'gcash' || value === 'maya' || value === 'qrph' || value === 'cash') return value;
+  if (value === 'gcash' || value === 'maya' || value === 'qrph' || value === 'cash' || value === 'bank_transfer') return value;
+  if (value === 'bank transfer') return 'bank_transfer';
   if (value === 'card' || value === 'debit/credit-card') return 'card';
   return null;
 }

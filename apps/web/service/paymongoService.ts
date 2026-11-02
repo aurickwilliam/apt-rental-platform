@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import type { BankCode } from "@repo/constants";
 
 // Web twin of mobile service/payments/paymongoService.ts (read-only study, not modified).
 // Proxies PayMongo through the `paymongo` edge function so the secret never
@@ -106,7 +107,8 @@ export async function createCheckoutSession(params: {
   amount: number;
   description: string;
   redirectBaseUrl: string;
-  method?: "gcash" | "maya" | "qrph";
+  method?: "gcash" | "maya" | "qrph" | "bank_transfer";
+  bankCode?: BankCode;
   tenancyId?: string;
   periodStart?: string | null;
   periodEnd?: string | null;

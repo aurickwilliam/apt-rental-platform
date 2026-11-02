@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, toast, useOverlayState } from "@heroui/react";
 import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
-import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod } from "@repo/utils";
+import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod, resolveAcceptedMethod } from "@repo/utils";
+import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
 import { formatLeaseDate, periodMonthLabel } from "./utils";
@@ -24,6 +25,7 @@ import PaymentPreferencesModal from "./components/PaymentPreferencesModal";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
 import { usePaymentMethodPreferences } from "@/hooks/use-payment-method-preferences";
+import { useAcceptedPaymentMethods } from "@/hooks/use-accepted-payment-methods";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
@@ -41,7 +43,9 @@ function toIsoDate(date: Date): string {
 }
 
 function PaymentContent() {
-  const [activeMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
+  const [requestedMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
+  const [selectedBank, setSelectedBank] = useState<BankCode | null>(null);
+  const [bankError, setBankError] = useState<string | undefined>();
   const [cardInfo, setCardInfo] = useState<CardInformation>(INITIAL_CARD);
   const [cardErrors, setCardErrors] = useState<CardFormErrors>({});
   const [cashDate, setCashDate] = useState<Date | null>(null);
@@ -71,6 +75,7 @@ function PaymentContent() {
     refetch,
   } = useTenancy();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
+  const { acceptedMethods } = useAcceptedPaymentMethods(tenancy?.id ?? null);
 
   const apartment = tenancy?.apartment ?? null;
   const bill = tenancy?.bill ?? null;
@@ -147,9 +152,14 @@ function PaymentContent() {
 
   // Apply the account default only before the tenant has chosen a checkout
   // method on this visit. A per-payment choice always wins over the default.
-  if (activeMethod === null && paymentPreferences.data.defaultMethod) {
+  if (requestedMethod === null && paymentPreferences.data.defaultMethod) {
     setActiveMethod(paymentPreferences.data.defaultMethod);
   }
+  // A saved or default method the landlord turned off falls back to one they accept.
+  const activeMethod =
+    requestedMethod && !acceptedMethods.includes(requestedMethod)
+      ? resolveAcceptedMethod(acceptedMethods, requestedMethod)
+      : requestedMethod;
 
   const handlePay = async () => {
     if (isProcessing || isPeriodPaid || pendingPayment || paymentsQuery.error) return;
@@ -183,13 +193,20 @@ function PaymentContent() {
       dueDate: period.dueDate,
     };
 
-    if (activeMethod === "GCash" || activeMethod === "Maya" || activeMethod === "QRPh") {
+    if (activeMethod === "GCash" || activeMethod === "Maya" || activeMethod === "QRPh" || activeMethod === "Bank Transfer") {
+      if (activeMethod === "Bank Transfer") {
+        const bank = getBankTransferBank(selectedBank);
+        const bankProblem = !bank ? "Choose a bank to continue." : getBankLimitError(bank, amount);
+        setBankError(bankProblem ?? undefined);
+        if (bankProblem) return;
+      }
       setIsProcessing(true);
       try {
-        const methodMap: Record<string, "gcash" | "maya" | "qrph"> = {
+        const methodMap: Record<string, "gcash" | "maya" | "qrph" | "bank_transfer"> = {
           GCash: "gcash",
           Maya: "maya",
           QRPh: "qrph",
+          "Bank Transfer": "bank_transfer",
         };
         const session = await createCheckoutSession({
           referenceId,
@@ -197,6 +214,7 @@ function PaymentContent() {
           description: paymentDescription,
           redirectBaseUrl: `${window.location.origin}/tenant/payment/verify`,
           method: methodMap[activeMethod],
+          ...(activeMethod === "Bank Transfer" && selectedBank ? { bankCode: selectedBank } : {}),
           ...periodFields,
         });
         window.location.href = session.checkoutUrl;
@@ -454,6 +472,14 @@ function PaymentContent() {
               preferencesLoading={paymentPreferences.loading}
               onManagePreferences={() => setIsPreferenceModalOpen(true)}
               isCashPaymentPending={isCashPaymentPending}
+              acceptedMethods={acceptedMethods}
+              amount={totalDue}
+              selectedBank={selectedBank}
+              onBankChange={(bank) => {
+                setSelectedBank(bank);
+                setBankError(undefined);
+              }}
+              bankError={bankError}
             />
           </div>
         </div>

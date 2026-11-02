@@ -7,13 +7,14 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
-import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth'
+import { usePortalStore } from '@/stores/usePortalStore'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -53,6 +54,7 @@ export default function Index() {
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
   const { data: passwordSignInStatus } = usePasswordSignInStatus();
   const { data: emailChangeEligibility } = useEmailChangeEligibility();
+  const isLandlordPortal = usePortalStore((state) => state.portal) === 'landlord';
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
@@ -128,6 +130,12 @@ export default function Index() {
             </View>
           ),
         },
+        ...(isLandlordPortal ? [{
+          icon: IconCreditCard,
+          title: 'Payment Methods',
+          onPress: () => router.push('/landlord/payment-methods'),
+          suffix: <IconChevronRight size={16} color={colors.gray500} />,
+        }] : []),
         {
           icon: IconGlobe,
           title: 'Language & Region',

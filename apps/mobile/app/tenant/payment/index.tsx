@@ -35,8 +35,10 @@ import { useTenancy } from "@/hooks/tenancy/useTenancy";
 import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
 import { usePaymentMethodPreferences } from "@/hooks/payments/usePaymentMethodPreferences";
 import { useCheckoutPaymentMethod } from "@/hooks/payments/useCheckoutPaymentMethod";
+import { useAcceptedPaymentMethods } from "@/hooks/payments/useAcceptedPaymentMethods";
 
-import { generatePaymentReference, getCurrentRentStatus, validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { generatePaymentReference, getCurrentRentStatus, resolveAcceptedMethod, validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
 
 const INITIAL_CARD: CardInformation = {
   cardNumber: "",
@@ -79,10 +81,12 @@ export default function PaymentCheckout() {
     title?: string;
   } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedBank, setSelectedBank] = useState<BankCode | null>(null);
+  const [bankError, setBankError] = useState<string | undefined>();
 
   const { data: currentUser } = useCurrentUser();
   const paymentPreferences = usePaymentMethodPreferences(currentUser?.id ?? null);
-  const { method: activePaymentMethod, selectMethod: setActivePaymentMethod } = useCheckoutPaymentMethod(
+  const { method: requestedPaymentMethod, selectMethod: setActivePaymentMethod } = useCheckoutPaymentMethod(
     currentUser?.id ?? null, paymentPreferences.preferences.defaultMethod,
   );
   const {
@@ -92,6 +96,12 @@ export default function PaymentCheckout() {
     refetch,
   } = useTenancy();
   useMaintenanceFocusRefresh(tenancy?.apartment.id, currentUser?.id);
+  const { acceptedMethods } = useAcceptedPaymentMethods(currentUser?.id ?? null, tenancy?.id ?? null);
+  // A saved or default method the landlord turned off falls back to one they accept.
+  const activePaymentMethod =
+    requestedPaymentMethod && !acceptedMethods.includes(requestedPaymentMethod)
+      ? resolveAcceptedMethod(acceptedMethods, requestedPaymentMethod)
+      : requestedPaymentMethod;
   // Kept only for the already-paid guard — rent is always billed in full.
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
@@ -157,14 +167,22 @@ export default function PaymentCheckout() {
     if (
       activePaymentMethod === "GCash" ||
       activePaymentMethod === "Maya" ||
-      activePaymentMethod === "QRPh"
+      activePaymentMethod === "QRPh" ||
+      activePaymentMethod === "Bank Transfer"
     ) {
+      if (activePaymentMethod === "Bank Transfer") {
+        const bank = getBankTransferBank(selectedBank);
+        const error = !bank ? "Choose a bank to continue." : getBankLimitError(bank, totalDue);
+        setBankError(error ?? undefined);
+        if (error) return;
+      }
       setIsProcessing(true);
       try {
-        const methodMap: Record<string, "gcash" | "maya" | "qrph"> = {
+        const methodMap: Record<string, "gcash" | "maya" | "qrph" | "bank_transfer"> = {
           GCash: "gcash",
           Maya: "maya",
           QRPh: "qrph",
+          "Bank Transfer": "bank_transfer",
         };
         const session = await createCheckoutSession({
           referenceId,
@@ -172,6 +190,7 @@ export default function PaymentCheckout() {
           description: paymentDescription,
           redirectBaseUrl: Linking.createURL("/tenant/payment/verify"),
           method: methodMap[activePaymentMethod],
+          ...(activePaymentMethod === "Bank Transfer" && selectedBank ? { bankCode: selectedBank } : {}),
           ...periodFields,
         });
         // Directly open PayMongo hosted page — no intermediate e-wallet-redirect screen.
@@ -399,6 +418,11 @@ export default function PaymentCheckout() {
           clearCashErrors();
         }}
         cashErrors={cashErrors}
+        acceptedMethods={acceptedMethods}
+        amount={totalDue}
+        selectedBank={selectedBank}
+        onBankChange={(bank) => { setSelectedBank(bank); setBankError(undefined); }}
+        bankError={bankError}
       />
 
       <ErrorDialog

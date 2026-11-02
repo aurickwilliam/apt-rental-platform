@@ -3,6 +3,7 @@
 import type { ComponentType, CSSProperties } from "react";
 import { Chip } from "@heroui/react";
 import {
+  IconBuildingBank,
   IconCash,
   IconCreditCard,
   IconDeviceMobile,
@@ -16,6 +17,7 @@ const METHOD_ICONS: Record<PaymentMethodKey, ComponentType<{ size?: number; "ari
   gcash: IconDeviceMobile,
   maya: IconWallet,
   qrph: IconQrcode,
+  bank_transfer: IconBuildingBank,
   card: IconCreditCard,
   cash: IconCash,
 };

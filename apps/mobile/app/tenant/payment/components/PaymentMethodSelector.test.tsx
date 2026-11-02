@@ -1,16 +1,20 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import type { BankCode } from "@repo/constants";
 import type { PaymentMethod, PaymentMethodPreference } from "@repo/utils";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 
 jest.mock("heroui-native", () => jest.requireActual("../../../../tests/support/heroUINativeStub"));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
 jest.mock("hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
-jest.mock("@tabler/icons-react-native", () => ({ IconCash: () => null, IconSettings: () => null, IconCircleCheckFilled: () => null }));
+jest.mock("@tabler/icons-react-native", () => ({ IconBuildingBank: () => null, IconCash: () => null, IconSettings: () => null, IconCircleCheckFilled: () => null }));
 jest.mock("./CashPaymentForm", () => () => null);
+
+const ALL_METHODS: PaymentMethod[] = ["GCash", "Maya", "QRPh", "Bank Transfer", "Debit/Credit-Card", "Cash"];
 
 function props(preferences: PaymentMethodPreference = { savedMethods: [], defaultMethod: null }, selectedMethod: PaymentMethod | null = null) {
   return {
-    preferences, selectedMethod, preferencesLoading: false, preferencesError: null as string | null,
+    preferences, selectedMethod, acceptedMethods: ALL_METHODS, amount: 15000, selectedBank: null as BankCode | null,
+    onBankChange: jest.fn(), preferencesLoading: false, preferencesError: null as string | null,
     onRetryPreferences: jest.fn(), onManagePreferences: jest.fn(), onPaymentMethodChange: jest.fn(),
     cardInformation: { cardNumber: "", expiryDate: "", cardholderName: "", cvv: "", isPaymentSaved: false, isCardNumberValid: false },
     onCardInformationChange: jest.fn(), cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
@@ -20,7 +24,7 @@ function props(preferences: PaymentMethodPreference = { savedMethods: [], defaul
 it("shows preferred types first, labels the default, and keeps all other types available", () => {
   const options = props({ savedMethods: ["GCash", "Maya"], defaultMethod: "Maya" }, "Maya");
   render(<PaymentMethodSelector {...options} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
+  expect(screen.getAllByRole("radio")).toHaveLength(6);
   expect(screen.getByText("Preferred payment")).toBeTruthy();
   expect(screen.getByText("Other payment methods")).toBeTruthy();
   expect(screen.getByLabelText("Maya, default").props.accessibilityState.selected).toBe(true);
@@ -35,7 +39,7 @@ it("shows preferred types first, labels the default, and keeps all other types a
 it("allows manual checkout and retry when preferences fail to load", () => {
   const options = { ...props(), preferencesError: "Couldn't load your payment preferences. Please try again." };
   render(<PaymentMethodSelector {...options} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
+  expect(screen.getAllByRole("radio")).toHaveLength(6);
   fireEvent.press(screen.getByLabelText("GCash"));
   expect(options.onPaymentMethodChange).toHaveBeenCalledWith("GCash");
   fireEvent.press(screen.getByText("Retry preferences"));
@@ -51,7 +55,26 @@ it("still requires new card details when Card is the preferred default", () => {
 });
 
 it("does not duplicate methods when every type is preferred", () => {
-  render(<PaymentMethodSelector {...props({ savedMethods: ["GCash", "Maya", "QRPh", "Debit/Credit-Card", "Cash"], defaultMethod: "Cash" }, "Cash")} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
+  render(<PaymentMethodSelector {...props({ savedMethods: ALL_METHODS, defaultMethod: "Cash" }, "Cash")} />);
+  expect(screen.getAllByRole("radio")).toHaveLength(6);
   expect(screen.queryByText("Other payment methods")).toBeNull();
+});
+
+it("offers only the methods the landlord accepts, including in the preferred list", () => {
+  const options = { ...props({ savedMethods: ["GCash", "Cash"], defaultMethod: "GCash" }, "Cash"), acceptedMethods: ["Maya", "Cash"] as PaymentMethod[] };
+  render(<PaymentMethodSelector {...options} />);
+  expect(screen.getAllByRole("radio")).toHaveLength(2);
+  expect(screen.queryByLabelText("GCash, default")).toBeNull();
+  expect(screen.getByLabelText("Maya")).toBeTruthy();
+  expect(screen.getByLabelText("Cash")).toBeTruthy();
+});
+
+it("shows the banks for Bank Transfer and disables one over its limit with the reason", () => {
+  const options = { ...props({ savedMethods: [], defaultMethod: null }, "Bank Transfer"), amount: 80000 };
+  render(<PaymentMethodSelector {...options} />);
+  expect(screen.getByText("Choose your bank")).toBeTruthy();
+  expect(screen.getByLabelText("BPI, unavailable. BPI allows up to ₱50,000 per payment.").props.accessibilityState.disabled).toBe(true);
+  expect(screen.getByLabelText("UnionBank").props.accessibilityState.disabled).toBe(false);
+  fireEvent.press(screen.getByLabelText("UnionBank"));
+  expect(options.onBankChange).toHaveBeenCalledWith("ubp");
 });

@@ -1,11 +1,13 @@
 "use client";
 
 import { Button, Card, Radio, RadioGroup } from "@heroui/react";
-import { IconCashBanknote, IconClockHour4, IconCreditCard, IconSettings } from "@tabler/icons-react";
+import { IconBuildingBank, IconCashBanknote, IconClockHour4, IconCreditCard, IconSettings } from "@tabler/icons-react";
+import type { BankCode } from "@repo/constants";
 import type { CardFormErrors } from "@repo/utils";
 
 import { PAYMENT_METHODS } from "../constants";
 import type { CardInformation, CashPaymentErrors, PaymentMethod, PaymentMethodPreference } from "../types";
+import BankTransferPicker from "./BankTransferPicker";
 import CardPaymentForm from "./CardPaymentForm";
 import CashPaymentForm from "./CashPaymentForm";
 
@@ -22,12 +24,21 @@ interface PaymentMethodSelectorProps {
   preferencesLoading: boolean;
   onManagePreferences: () => void;
   isCashPaymentPending: boolean;
+  /** Methods the landlord accepts; the others are not offered. */
+  acceptedMethods: PaymentMethod[];
+  amount: number;
+  selectedBank: BankCode | null;
+  onBankChange: (bank: BankCode) => void;
+  bankError?: string;
 }
 
 function PaymentMethodLogo({ method }: { method: PaymentMethod }) {
   const entry = PAYMENT_METHODS.find((item) => item.key === method);
   if (method === "Cash") {
     return <IconCashBanknote size={26} className="text-success-text" aria-hidden="true" />;
+  }
+  if (method === "Bank Transfer") {
+    return <IconBuildingBank size={26} className="text-primary" aria-hidden="true" />;
   }
   if (!entry) return null;
 
@@ -64,6 +75,8 @@ function PaymentMethodOption({
   const description =
     method === "Cash"
       ? "Pay over the counter."
+      : method === "Bank Transfer"
+        ? "Pay from your bank account (test mode)."
       : method === "Debit/Credit-Card"
         ? "Pay using your card."
         : `Pay using ${label}.`;
@@ -104,12 +117,20 @@ export default function PaymentMethodSelector({
   preferencesLoading,
   onManagePreferences,
   isCashPaymentPending,
+  acceptedMethods,
+  amount,
+  selectedBank,
+  onBankChange,
+  bankError,
 }: PaymentMethodSelectorProps) {
   const showCardForm = selectedMethod === "Debit/Credit-Card";
   const showCashForm = selectedMethod === "Cash";
   const defaultMethod = preferences.defaultMethod ?? preferences.savedMethods[0] ?? null;
-  const savedMethods = preferences.savedMethods;
-  const otherMethods = PAYMENT_METHODS.filter((method) => !savedMethods.includes(method.key));
+  const savedMethods = preferences.savedMethods.filter((method) => acceptedMethods.includes(method));
+  const otherMethods = PAYMENT_METHODS.filter(
+    (method) => acceptedMethods.includes(method.key) && !savedMethods.includes(method.key),
+  );
+  const showBankPicker = selectedMethod === "Bank Transfer";
 
   return (
     <section aria-labelledby="payment-method-heading">
@@ -211,6 +232,7 @@ export default function PaymentMethodSelector({
             </div>
           )}
 
+          {showBankPicker && <BankTransferPicker amount={amount} selectedBank={selectedBank} onBankChange={onBankChange} error={bankError} />}
           {showCardForm && <CardPaymentForm value={cardInformation} onChange={onCardInformationChange} errors={cardErrors} />}
           {showCashForm && <CashPaymentForm paymentDate={cashPaymentDate} onPaymentDateChange={onCashPaymentDateChange} errors={cashErrors} />}
         </Card.Content>

@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(readFileSync(new URL("../../../supabase/func
 
 // Exercise the actual Edge Function handler with a fake provider/database.
 // SQL validation itself is exercised by db:billing:test, not reimplemented here.
-function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false, provider, rows = [], accountStatus = "verified" } = {}) {
+function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false, provider, rows = [], accountStatus = "verified", acceptedMethods = null } = {}) {
   const payments = [...rows];
   const events = [];
   let handler;
@@ -25,6 +25,7 @@ function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false
     update(value) { this.updateValue = value; return this; }
     async execute() {
       if (this.table === "users") return { data: { id: "tenant-1", account_status: accountStatus }, error: null };
+      if (this.table === "landlord_payment_settings") return { data: acceptedMethods ? { accepted_methods: acceptedMethods } : null, error: null };
       if (this.table === "tenancies") return { data: { id: "lease-1", apartment_id: "apt-1", monthly_rent: 15000, apartment: { landlord_id: "owner-1" } }, error: null };
       assert.equal(this.table, "payment");
       if (this.insertValue) {
@@ -217,4 +218,48 @@ test("removing provider configuration cannot turn a real pending payment into a 
   const h = harness({ real: false, rows: [{ id: "real", tenant_id: "tenant-1", reference_id: "real-ref", status: "pending", method: "gcash", paymongo_session_id: "cs_real" }] });
   assert.equal((await h.invoke("getCheckoutSessionStatus", { sessionId: "real-ref" })).status, 503);
   assert.equal(h.payments[0].status, "pending");
+});
+
+test("bank transfer is checked against the bank's limit before anything is reserved", async () => {
+  const h = harness();
+  const missing = await h.invoke("createCheckoutSession", { ...h.checkout, method: "bank_transfer" });
+  assert.equal(missing.status, 400);
+  const tooMuch = await h.invoke("createCheckoutSession", { ...h.checkout, method: "bank_transfer", bankCode: "bpi", amount: 80000 });
+  assert.equal(tooMuch.status, 400);
+  assert.match(tooMuch.body.errors[0].detail, /BPI allows up to ₱50,000/);
+  assert.equal(h.payments.length, 0);
+  assert.equal(h.events.length, 0);
+});
+
+test("bank transfer starts a checkout for the online banking method and charges no fee", async () => {
+  let providerBody;
+  const h = harness({ provider: async (_url, options) => {
+    providerBody = JSON.parse(options.body);
+    return Response.json({ data: { id: "cs_bank", attributes: { status: "active", checkout_url: "https://checkout.paymongo.com/test" } } });
+  } });
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "bank_transfer", bankCode: "ubp", amount: 80000 });
+  assert.equal(response.status, 200);
+  assert.equal(h.payments[0].method, "bank_transfer");
+  assert.equal(h.payments[0].amount, 80000);
+  assert.deepEqual(providerBody.data.attributes.payment_method_types, ["dob"]);
+  assert.equal(providerBody.data.attributes.line_items[0].amount, 8000000);
+  assert.equal(providerBody.data.attributes.line_items.length, 1);
+});
+
+test("a method the landlord turned off is refused before any payment is saved", async () => {
+  const h = harness({ acceptedMethods: ["cash", "maya"] });
+  const refused = await h.invoke("createCheckoutSession", { ...h.checkout, method: "gcash" });
+  assert.equal(refused.status, 409);
+  assert.equal(refused.body.errors[0].code, "method_not_accepted");
+  assert.match(refused.body.errors[0].detail, /does not accept GCash/);
+  assert.equal(h.payments.length, 0);
+  assert.equal(h.events.length, 0);
+  const allowed = await h.invoke("createCheckoutSession", { ...h.checkout, method: "maya" });
+  assert.equal(allowed.status, 200);
+});
+
+test("a landlord who never limited methods allows every method", async () => {
+  const h = harness();
+  const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "qrph" });
+  assert.equal(response.status, 200);
 });

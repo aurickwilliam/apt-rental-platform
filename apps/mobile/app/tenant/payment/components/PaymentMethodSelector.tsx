@@ -1,11 +1,13 @@
 import { View, Text, type ImageSourcePropType } from 'react-native'
 import { type ReactNode } from 'react'
-import { IconCash, IconSettings } from '@tabler/icons-react-native'
+import { IconBuildingBank, IconCash, IconSettings } from '@tabler/icons-react-native'
 import { Button, Card, Separator, Spinner } from 'heroui-native'
 import PaymentMethodButton from './PaymentMethodButton'
 import { PAYMENT_METHOD_LOGOS } from '@/constants/images'
 import CardPaymentForm, { type CardInformation } from './CardPaymentForm'
 import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
+import BankTransferPicker from './BankTransferPicker'
+import type { BankCode } from '@repo/constants'
 import { paymentMethodLabel, type CardFormErrors, type PaymentMethod, type PaymentMethodPreference } from '@repo/utils'
 import { useColors } from '@/hooks/useTheme'
 export type { PaymentMethod } from '@repo/utils'
@@ -27,6 +29,11 @@ const METHODS: Record<PaymentMethod, {
   QRPh: {
     method: 'QRPh',
     imageSource: PAYMENT_METHOD_LOGOS.qrphBig,
+  },
+  'Bank Transfer': {
+    method: 'Bank Transfer',
+    label: 'Bank Transfer',
+    icon: <IconBuildingBank size={30} color='#4F46E5' />,
   },
   'Debit/Credit-Card': {
     method: 'Debit/Credit-Card',
@@ -54,6 +61,12 @@ interface PaymentMethodSelectorProps {
   cashPaymentDate: Date | null
   onCashPaymentDateChange: (date: Date) => void
   cashErrors?: CashPaymentErrors
+  // Methods the landlord accepts; the others are not offered.
+  acceptedMethods: PaymentMethod[]
+  amount: number
+  selectedBank: BankCode | null
+  onBankChange: (bank: BankCode) => void
+  bankError?: string
 }
 
 export default function PaymentMethodSelector({
@@ -70,9 +83,17 @@ export default function PaymentMethodSelector({
   cashPaymentDate,
   onCashPaymentDateChange,
   cashErrors,
+  acceptedMethods,
+  amount,
+  selectedBank,
+  onBankChange,
+  bankError,
 }: PaymentMethodSelectorProps) {
   const { colors } = useColors()
-  const otherMethods = Object.values(METHODS).filter((entry) => !preferences.savedMethods.includes(entry.method))
+  const savedMethods = preferences.savedMethods.filter((method) => acceptedMethods.includes(method))
+  const otherMethods = Object.values(METHODS).filter(
+    (entry) => acceptedMethods.includes(entry.method) && !savedMethods.includes(entry.method),
+  )
 
   return (
     <View>
@@ -91,13 +112,13 @@ export default function PaymentMethodSelector({
 
       <Card className='shadow-none rounded-3xl'>
         <Card.Body>
-          {preferences.savedMethods.length > 0 && (
+          {savedMethods.length > 0 && (
             <View className='flex mb-2'>
               <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
                 Preferred payment
               </Text>
               <View className='flex-row flex-wrap justify-between gap-y-3'>
-                {preferences.savedMethods.map((method) => (
+                {savedMethods.map((method) => (
                   <PaymentMethodButton
                     key={method}
                     variant='tile'
@@ -122,15 +143,15 @@ export default function PaymentMethodSelector({
             <Text accessibilityRole='alert' className='text-danger text-sm font-inter'>{preferencesError}</Text>
             <Button variant='tertiary' size='sm' onPress={onRetryPreferences}><Button.Label>Retry preferences</Button.Label></Button>
           </View>}
-          {!preferencesLoading && !preferencesError && preferences.savedMethods.length === 0 && (
+          {!preferencesLoading && !preferencesError && savedMethods.length === 0 && (
             <Text className='text-muted text-sm font-inter mb-3'>No preferred payment method yet. Manage preferences to choose a default.</Text>
           )}
-          {preferences.savedMethods.length > 0 && otherMethods.length > 0 && <Separator className='my-4' />}
+          {savedMethods.length > 0 && otherMethods.length > 0 && <Separator className='my-4' />}
 
           {otherMethods.length > 0 && (
             <View className='flex'>
               <Text className='text-foreground text-base font-nunitoSemiBold mb-3'>
-                {preferences.savedMethods.length > 0 ? 'Other payment methods' : 'Payment methods'}
+                {savedMethods.length > 0 ? 'Other payment methods' : 'Payment methods'}
               </Text>
 
               <View className="flex-row flex-wrap justify-between gap-y-3">
@@ -148,6 +169,15 @@ export default function PaymentMethodSelector({
                 ))}
               </View>
             </View>
+          )}
+
+          {selectedMethod === 'Bank Transfer' && (
+            <BankTransferPicker
+              amount={amount}
+              selectedBank={selectedBank}
+              onBankChange={onBankChange}
+              error={bankError}
+            />
           )}
 
           {selectedMethod === 'Debit/Credit-Card' && (

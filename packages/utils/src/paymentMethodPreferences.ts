@@ -1,4 +1,4 @@
-export const PAYMENT_METHOD_TYPES = ["GCash", "Maya", "QRPh", "Debit/Credit-Card", "Cash"] as const;
+export const PAYMENT_METHOD_TYPES = ["GCash", "Maya", "QRPh", "Bank Transfer", "Debit/Credit-Card", "Cash"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHOD_TYPES)[number];
 
 export interface PaymentMethodPreference {
@@ -13,8 +13,8 @@ export interface PaymentPreferenceRow {
 
 export const EMPTY_PAYMENT_METHOD_PREFERENCES: PaymentMethodPreference = { savedMethods: [], defaultMethod: null };
 
-const DATABASE_METHODS: Record<PaymentMethod, string> = {
-  GCash: "gcash", Maya: "maya", QRPh: "qrph", "Debit/Credit-Card": "card", Cash: "cash",
+export const DATABASE_METHODS: Record<PaymentMethod, string> = {
+  GCash: "gcash", Maya: "maya", QRPh: "qrph", "Bank Transfer": "bank_transfer", "Debit/Credit-Card": "card", Cash: "cash",
 };
 
 export function isPaymentMethod(value: string): value is PaymentMethod {

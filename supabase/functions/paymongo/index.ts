@@ -15,7 +15,8 @@
 //     "0002" are declined, everything else succeeds.
 //
 // REAL MODE (PAYMONGO_SECRET_KEY set)
-//   - createCheckoutSession     - v2 hosted checkout session (GCash/Maya).
+//   - createCheckoutSession     - v2 hosted checkout session (GCash/Maya/QR Ph and
+//                                 Bank Transfer, PayMongo direct online banking).
 //                                 Records a pending payment row, returns the
 //                                 session id + checkout_url.
 //   - getCheckoutSessionStatus  - v1 session lookup (create is v2, retrieve is
@@ -82,19 +83,42 @@ const mockStatusForReference = (referenceId: string): CheckoutSessionStatus =>
       ? 'failed'
       : 'paid'
 
-// PayMongo's name for each method the app offers (Maya is `paymaya` there).
+// PayMongo's name for each method the app offers (Maya is `paymaya` there, and
+// Bank Transfer is `dob`, direct online banking).
 const CHECKOUT_PAYMENT_METHOD_TYPES = {
   gcash: 'gcash',
   maya: 'paymaya',
   qrph: 'qrph',
+  bank_transfer: 'dob',
 } as const
+
+type CheckoutMethod = keyof typeof CHECKOUT_PAYMENT_METHOD_TYPES
+
+// Banks offered for Bank Transfer and their per-payment limits in pesos. Mirrors
+// BANK_TRANSFER_BANKS in packages/constants/src/bankTransfer.ts (an edge function
+// cannot import workspace packages); apps/web/lib/bank-transfer-sync.test.mjs
+// fails when the two drift. Simulation only: no fee is added.
+const BANK_TRANSFER_LIMITS: Record<string, { name: string; maxAmount: number }> = {
+  bpi: { name: 'BPI', maxAmount: 50000 },
+  ubp: { name: 'UnionBank', maxAmount: 100000 },
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  gcash: 'GCash',
+  maya: 'Maya',
+  qrph: 'QRPh',
+  bank_transfer: 'Bank Transfer',
+  card: 'Debit/Credit Card',
+  cash: 'Cash',
+}
 
 type CheckoutSessionPayload = {
   referenceId: string
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya' | 'qrph'
+  method?: CheckoutMethod
+  bankCode?: string
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null
@@ -250,7 +274,7 @@ type PaymentRecord = {
   tenantId: string
   tenancy: TenancyContext
   referenceId: string
-  method: 'gcash' | 'maya' | 'qrph' | 'card'
+  method: CheckoutMethod | 'card'
   amount: number
   periodStart?: string | null
   periodEnd?: string | null
@@ -293,9 +317,37 @@ async function reservePayment(req: Request, payload: CheckoutSessionPayload | Ca
   if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
     throw new PayMongoApiError(400, 'validation_error', 'Enter a valid payment amount.')
   }
+  if (method === 'bank_transfer') validateBankTransfer(payload as CheckoutSessionPayload)
   const { tenantId, tenancy } = await resolveTenancy(req, payload.tenancyId)
+  await assertLandlordAcceptsMethod(tenancy.landlord_id, method)
   return recordPayment({ tenantId, tenancy, referenceId: payload.referenceId, method,
     amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
+}
+
+// The bank must be one we offer and the amount within its limit. Checked here as
+// well as in the app, so the client check is only feedback.
+function validateBankTransfer(payload: CheckoutSessionPayload) {
+  const bank = payload.bankCode ? BANK_TRANSFER_LIMITS[payload.bankCode] : undefined
+  if (!bank) throw new PayMongoApiError(400, 'validation_error', 'Choose a bank for Bank Transfer.')
+  if (payload.amount > bank.maxAmount) {
+    throw new PayMongoApiError(400, 'validation_error', `${bank.name} allows up to ₱${bank.maxAmount.toLocaleString('en-PH')} per payment.`)
+  }
+}
+
+// A landlord may turn payment methods off. No saved setting means all are allowed.
+// Client inserts are covered by a restrictive policy on payment; this edge function
+// writes as service role, which bypasses it, so it checks the same rule.
+async function assertLandlordAcceptsMethod(landlordId: string | null, method: string): Promise<void> {
+  if (!landlordId) return
+  const { data, error } = await dbClient
+    .from('landlord_payment_settings')
+    .select('accepted_methods')
+    .eq('landlord_id', landlordId)
+    .maybeSingle()
+  if (error) throw new PayMongoApiError(500, 'database_error', 'Could not check which payment methods your landlord accepts.')
+  if (data && !data.accepted_methods.includes(method)) {
+    throw new PayMongoApiError(409, 'method_not_accepted', `Your landlord does not accept ${PAYMENT_METHOD_LABELS[method] ?? method} payments. Choose another method.`)
+  }
 }
 
 // Name, email and phone for PayMongo's hosted checkout form, so the tenant

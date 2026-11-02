@@ -1,6 +1,8 @@
 # Plan: Online banking ("bank transfer") rent payments
 
-Status: proposed, not started. Nothing in this plan is implemented.
+Status: implemented. The migration is applied to the hosted database (remote version `20261102050130`, after a rollback dry-run on 2026-11-02) and the `paymongo` edge function is deployed (version 19, JWT check on). The code is not committed. Step 0 (PayMongo `dob` in hosted checkout) is still unverified; mock mode works end to end.
+
+Product decisions (2026-11-02): this stays a simulation with no fees and no real money. Banks: BPI and UnionBank (the two PayMongo lists as available). Fee: none, APT absorbs nothing and adds nothing. Name: Bank Transfer. Rent above a bank's limit: the bank is shown disabled with the reason. Landlord methods: one setting per landlord. Cash may be turned off (at least one method must stay on).
 
 ## Goal
 
