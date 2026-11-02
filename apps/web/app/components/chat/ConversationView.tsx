@@ -369,7 +369,7 @@ export default function ConversationView({
         ref={scrollRef}
         data-chat-scroll
         onScroll={handleThreadScroll}
-        className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 pt-4 ${isBlocked ? "pb-32" : "pb-4"}`}
+        className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4 ${isBlocked ? "pb-32" : ""}`}
         visibility="none"
       >
         {hasEarlierMessages && (
