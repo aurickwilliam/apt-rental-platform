@@ -28,7 +28,9 @@ interface EmojiInsertPanelProps {
  * normal document flow it inflated the composer to roughly half the viewport
  * and crushed the message thread, which broke the thread's scroll geometry.
  * Anchored above the composer it changes no layout at all, so opening the
- * picker never moves the message list.
+ * picker never moves the message list. It is sized from the composer, not the
+ * viewport (both edges inset, capped at 22rem), so it always fits a narrow
+ * container such as the floating inquiry chat window.
  *
  * Layout follows the mobile panel: search, Recently Used, the grouped
  * catalogue, and a category jump bar that scrolls *this panel's own*
@@ -105,7 +107,7 @@ export default function EmojiInsertPanel({
       ref={panelRef}
       role="dialog"
       aria-label="Insert emoji"
-      className="absolute bottom-full left-2 sm:left-3 z-30 mb-2 flex max-h-[22rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
+      className="absolute inset-x-2 bottom-full z-30 mb-2 flex max-h-[22rem] max-w-[22rem] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg sm:inset-x-3"
     >
       <div className="flex items-center gap-1.5 border-b border-border px-2 py-2">
         <IconSearch size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -115,7 +117,7 @@ export default function EmojiInsertPanel({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search emoji"
           aria-label="Search emoji"
-          className="flex-1"
+          className="min-w-0 flex-1"
         />
         <Button
           variant="ghost"
