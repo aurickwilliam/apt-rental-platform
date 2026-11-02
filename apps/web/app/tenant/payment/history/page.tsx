@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, Chip, useOverlayState } from "@heroui/react";
+import { filterPaymentHistory } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
@@ -92,10 +93,12 @@ function HistoryContent() {
   const closeReceipt = () => router.replace("/tenant/payment/history");
 
   const currentYear = String(new Date().getFullYear());
-  // Mobile parity: history hides pending rows (pending lives in verify/success flow).
+  // Mobile parity (shared rule): pending rows live in the verify/success flow, and failed
+  // attempts (backed out or abandoned checkouts) only show under the Failed filter.
+  const showFailed = filters.statuses.includes("Failed");
   const visiblePayments = useMemo(
-    () => (paymentsQuery.data ?? []).filter((p) => paymentStatusLabel(p.status) !== "Pending"),
-    [paymentsQuery.data],
+    () => filterPaymentHistory(paymentsQuery.data ?? [], showFailed),
+    [paymentsQuery.data, showFailed],
   );
   const availableYears = useMemo(
     () => [...new Set(visiblePayments.map(toYear))].sort((a, b) => Number(b) - Number(a)),
