@@ -4,11 +4,10 @@ import {
   acceptedMethodsToRow,
   isMethodAccepted,
   normalizeAcceptedMethods,
-  resolveAcceptedMethod,
   toggleAcceptedMethod,
   validateAcceptedMethods,
 } from "./acceptedPaymentMethods";
-import { PAYMENT_METHOD_TYPES } from "./paymentMethodPreferences";
+import { PAYMENT_METHOD_TYPES } from "./paymentMethods";
 
 it("allows every method when no setting is saved", () => {
   expect(normalizeAcceptedMethods(null)).toEqual([...PAYMENT_METHOD_TYPES]);
@@ -30,12 +29,10 @@ it("refuses an empty list and toggles a method without touching the input", () =
   expect(accepted).toEqual(["GCash", "Cash"]);
 });
 
-it("falls back to the first allowed method when the preferred one is off", () => {
+it("says whether a method is allowed", () => {
   expect(isMethodAccepted(["Cash"], "GCash")).toBe(false);
-  expect(resolveAcceptedMethod(["Maya", "Cash"], "Cash")).toBe("Cash");
-  expect(resolveAcceptedMethod(["Maya", "Cash"], "GCash")).toBe("Maya");
-  expect(resolveAcceptedMethod(["Maya", "Cash"], null)).toBe("Maya");
-  expect(resolveAcceptedMethod([], "GCash")).toBeNull();
+  expect(isMethodAccepted(["Maya", "Cash"], "Cash")).toBe(true);
+  expect(isMethodAccepted([], "Cash")).toBe(false);
 });
 
 it("disables a bank over its limit with the reason, and never hides it", () => {

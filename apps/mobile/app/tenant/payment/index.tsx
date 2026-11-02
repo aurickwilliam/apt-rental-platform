@@ -33,11 +33,9 @@ import { usePayments } from "@/hooks/payments";
 import { useCurrentUser } from "@/hooks/auth";
 import { useTenancy } from "@/hooks/tenancy/useTenancy";
 import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
-import { usePaymentMethodPreferences } from "@/hooks/payments/usePaymentMethodPreferences";
-import { useCheckoutPaymentMethod } from "@/hooks/payments/useCheckoutPaymentMethod";
 import { useAcceptedPaymentMethods } from "@/hooks/payments/useAcceptedPaymentMethods";
 
-import { generatePaymentReference, getCurrentRentStatus, resolveAcceptedMethod, validateCardInfo, type CardFormErrors } from "@repo/utils";
+import { generatePaymentReference, getCurrentRentStatus, isMethodAccepted, validateCardInfo, type CardFormErrors, type PaymentMethod } from "@repo/utils";
 import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
 
 const INITIAL_CARD: CardInformation = {
@@ -85,10 +83,8 @@ export default function PaymentCheckout() {
   const [bankError, setBankError] = useState<string | undefined>();
 
   const { data: currentUser } = useCurrentUser();
-  const paymentPreferences = usePaymentMethodPreferences(currentUser?.id ?? null);
-  const { method: requestedPaymentMethod, selectMethod: setActivePaymentMethod } = useCheckoutPaymentMethod(
-    currentUser?.id ?? null, paymentPreferences.preferences.defaultMethod,
-  );
+  // Nothing is preselected: the tenant picks a method for each payment.
+  const [selectedPaymentMethod, setActivePaymentMethod] = useState<PaymentMethod | null>(null);
   const {
     tenancy,
     loading: tenancyLoading,
@@ -96,12 +92,15 @@ export default function PaymentCheckout() {
     refetch,
   } = useTenancy();
   useMaintenanceFocusRefresh(tenancy?.apartment.id, currentUser?.id);
-  const { acceptedMethods } = useAcceptedPaymentMethods(currentUser?.id ?? null, tenancy?.id ?? null);
-  // A saved or default method the landlord turned off falls back to one they accept.
+  const {
+    acceptedMethods,
+    loading: methodsLoading,
+    error: methodsError,
+    refetch: refetchMethods,
+  } = useAcceptedPaymentMethods(currentUser?.id ?? null, tenancy?.id ?? null);
+  // A choice the landlord has since turned off no longer counts.
   const activePaymentMethod =
-    requestedPaymentMethod && !acceptedMethods.includes(requestedPaymentMethod)
-      ? resolveAcceptedMethod(acceptedMethods, requestedPaymentMethod)
-      : requestedPaymentMethod;
+    selectedPaymentMethod && isMethodAccepted(acceptedMethods, selectedPaymentMethod) ? selectedPaymentMethod : null;
   // Kept only for the already-paid guard — rent is always billed in full.
   const paymentsQuery = usePayments(tenancy?.id ?? null);
 
@@ -365,7 +364,7 @@ export default function PaymentCheckout() {
           totalPayment={totalDue}
           onPayPress={handlePay}
           isProcessing={isProcessing}
-          isDisabled={!!bill?.pendingPayment}
+          isDisabled={!!bill?.pendingPayment || methodsLoading || methodsError !== null}
         />
       }
       className="p-5"
@@ -410,11 +409,6 @@ export default function PaymentCheckout() {
 
       <PaymentMethodSelector
         selectedMethod={activePaymentMethod}
-        preferences={paymentPreferences.preferences}
-        preferencesLoading={paymentPreferences.loading}
-        preferencesError={paymentPreferences.error}
-        onRetryPreferences={() => { void paymentPreferences.refetch(); }}
-        onManagePreferences={() => router.push('/tenant/payment/saved-methods')}
         onPaymentMethodChange={setActivePaymentMethod}
         cardInformation={cardInformation}
         onCardInformationChange={handleCardInformationChange}
@@ -426,6 +420,9 @@ export default function PaymentCheckout() {
         }}
         cashErrors={cashErrors}
         acceptedMethods={acceptedMethods}
+        methodsLoading={methodsLoading}
+        methodsError={methodsError}
+        onRetryMethods={() => { void refetchMethods(); }}
         amount={totalDue}
         selectedBank={selectedBank}
         onBankChange={(bank) => { setSelectedBank(bank); setBankError(undefined); }}

@@ -1,5 +1,5 @@
 import type { PaymentMethod } from "@repo/utils";
-export type { PaymentMethod, PaymentMethodPreference } from "@repo/utils";
+export type { PaymentMethod } from "@repo/utils";
 
 export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid" | "Rejected";
 

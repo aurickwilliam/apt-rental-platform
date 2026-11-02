@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Modal, toast, useOverlayState } from "@heroui/react";
+import { Button, Card, Modal, useOverlayState } from "@heroui/react";
 import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
-import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod, resolveAcceptedMethod } from "@repo/utils";
+import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod, isMethodAccepted } from "@repo/utils";
 import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
 import { validateCardInfo, type CardFormErrors } from "@repo/utils";
 import type { CardInformation, PaymentMethod } from "./types";
@@ -21,10 +21,8 @@ import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import { PaymentPageHeader, PaymentPageShell } from "./components/PaymentPageLayout";
 import PaymentPageSkeleton from "./components/PaymentPageSkeleton";
 import PaymentFooter from "./components/PaymentFooter";
-import PaymentPreferencesModal from "./components/PaymentPreferencesModal";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
-import { usePaymentMethodPreferences } from "@/hooks/use-payment-method-preferences";
 import { useAcceptedPaymentMethods } from "@/hooks/use-accepted-payment-methods";
 
 const INITIAL_CARD: CardInformation = {
@@ -43,6 +41,7 @@ function toIsoDate(date: Date): string {
 }
 
 function PaymentContent() {
+  // Nothing is preselected: the tenant picks a method for each payment.
   const [requestedMethod, setActiveMethod] = useState<PaymentMethod | null>(null);
   const [selectedBank, setSelectedBank] = useState<BankCode | null>(null);
   const [bankError, setBankError] = useState<string | undefined>();
@@ -51,7 +50,6 @@ function PaymentContent() {
   const [cashDate, setCashDate] = useState<Date | null>(null);
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
   const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null);
   const errorState = useOverlayState({
     isOpen: paymentError !== null,
@@ -62,7 +60,6 @@ function PaymentContent() {
   const router = useRouter();
 
   const { profile } = useUser();
-  const paymentPreferences = usePaymentMethodPreferences(profile?.id ?? null);
   const {
     tenancy,
     currentPayment,
@@ -75,7 +72,12 @@ function PaymentContent() {
     refetch,
   } = useTenancy();
   const paymentsQuery = usePayments(tenancy?.id ?? null);
-  const { acceptedMethods } = useAcceptedPaymentMethods(tenancy?.id ?? null);
+  const {
+    acceptedMethods,
+    loading: methodsLoading,
+    error: methodsError,
+    refresh: refreshMethods,
+  } = useAcceptedPaymentMethods(tenancy?.id ?? null);
 
   const apartment = tenancy?.apartment ?? null;
   const bill = tenancy?.bill ?? null;
@@ -150,16 +152,8 @@ function PaymentContent() {
     apartment?.apartment_images?.[0]?.url ??
     null;
 
-  // Apply the account default only before the tenant has chosen a checkout
-  // method on this visit. A per-payment choice always wins over the default.
-  if (requestedMethod === null && paymentPreferences.data.defaultMethod) {
-    setActiveMethod(paymentPreferences.data.defaultMethod);
-  }
-  // A saved or default method the landlord turned off falls back to one they accept.
-  const activeMethod =
-    requestedMethod && !acceptedMethods.includes(requestedMethod)
-      ? resolveAcceptedMethod(acceptedMethods, requestedMethod)
-      : requestedMethod;
+  // A choice the landlord has since turned off no longer counts.
+  const activeMethod = requestedMethod && isMethodAccepted(acceptedMethods, requestedMethod) ? requestedMethod : null;
 
   const handlePay = async () => {
     if (isProcessing || isPeriodPaid || pendingPayment || paymentsQuery.error) return;
@@ -468,11 +462,11 @@ function PaymentContent() {
                 setCashErrors({});
               }}
               cashErrors={cashErrors}
-              preferences={paymentPreferences.data}
-              preferencesLoading={paymentPreferences.loading}
-              onManagePreferences={() => setIsPreferenceModalOpen(true)}
               isCashPaymentPending={isCashPaymentPending}
               acceptedMethods={acceptedMethods}
+              methodsLoading={methodsLoading}
+              methodsError={methodsError}
+              onRetryMethods={() => void refreshMethods()}
               amount={totalDue}
               selectedBank={selectedBank}
               onBankChange={(bank) => {
@@ -488,7 +482,7 @@ function PaymentContent() {
             parity). `data-fab-clearance` keeps the floating notifications
             bell off the Pay button. */}
         <div data-fab-clearance="payment-footer" className="sticky bottom-4 z-20 mt-4">
-          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || !!pendingPayment || (activeMethod === "Cash" && isCashPaymentPending)} />
+          <PaymentFooter totalPayment={totalDue} onPayPress={() => void handlePay()} isProcessing={isProcessing} isDisabled={isPeriodPaid || !!pendingPayment || methodsLoading || methodsError !== null || (activeMethod === "Cash" && isCashPaymentPending)} />
         </div>
       </PaymentPageShell>
 
@@ -512,24 +506,6 @@ function PaymentContent() {
           </Modal.Container>
         </Modal.Backdrop>
       </Modal.Root>
-
-      <PaymentPreferencesModal
-        isOpen={isPreferenceModalOpen}
-        onOpenChange={setIsPreferenceModalOpen}
-        preferences={paymentPreferences.data}
-        isSaving={paymentPreferences.loading}
-        onSave={async (preferences) => {
-          try {
-            const saved = await paymentPreferences.save(preferences);
-            if (saved.defaultMethod) setActiveMethod(saved.defaultMethod);
-            toast.success("Payment preferences saved.");
-            setIsPreferenceModalOpen(false);
-          } catch (error) {
-            console.error("Couldn't save payment preferences:", error);
-            toast.danger("Couldn't save your payment preferences. Please try again.");
-          }
-        }}
-      />
     </>
   );
 }

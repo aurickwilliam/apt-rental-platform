@@ -47,24 +47,16 @@ export {
 } from './birthDate';
 export {
   PAYMENT_METHOD_TYPES,
-  EMPTY_PAYMENT_METHOD_PREFERENCES,
   type PaymentMethod,
-  type PaymentMethodPreference,
-  type PaymentPreferenceRow,
   isPaymentMethod,
   paymentMethodLabel,
-  normalizePaymentMethodPreferences,
-  paymentMethodPreferencesFromRow,
-  paymentMethodPreferencesToRow,
-  togglePreferredPaymentMethod,
-} from './paymentMethodPreferences';
+} from './paymentMethods';
 export {
   ACCEPTED_METHODS_REQUIRED_MESSAGE,
   ACCEPTED_METHOD_VALUES,
   acceptedMethodsToRow,
   isMethodAccepted,
   normalizeAcceptedMethods,
-  resolveAcceptedMethod,
   toggleAcceptedMethod,
   validateAcceptedMethods,
 } from './acceptedPaymentMethods';

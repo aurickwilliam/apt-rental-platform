@@ -11,7 +11,6 @@ import {
   IconHeart,
   IconFileText,
   IconClock,
-  IconCreditCard,
   IconSettings,
   IconLogout,
   IconLock,
@@ -105,11 +104,6 @@ export default function Profile() {
       title: 'Payment History',
       icon: IconClock,
       onPress: () => router.push('/tenant/payment/history')
-    },
-    {
-      title: 'Payment Preferences',
-      icon: IconCreditCard,
-      onPress: () => router.push('/tenant/payment/saved-methods')
     },
     {
       title: 'Settings',

@@ -2,7 +2,7 @@ import {
   DATABASE_METHODS,
   PAYMENT_METHOD_TYPES,
   type PaymentMethod,
-} from "./paymentMethodPreferences";
+} from "./paymentMethods";
 
 // A landlord chooses which methods tenants may use to pay. Only method names are stored
 // (`landlord_payment_settings.accepted_methods`), never account numbers or credentials.
@@ -33,10 +33,4 @@ export function validateAcceptedMethods(methods: readonly PaymentMethod[]): stri
 
 export function toggleAcceptedMethod(accepted: readonly PaymentMethod[], method: PaymentMethod): PaymentMethod[] {
   return PAYMENT_METHOD_TYPES.filter((type) => (type === method ? !accepted.includes(type) : accepted.includes(type)));
-}
-
-/** The method to preselect: the tenant's choice when the landlord allows it, else the first allowed one. */
-export function resolveAcceptedMethod(accepted: readonly PaymentMethod[], preferred: PaymentMethod | null): PaymentMethod | null {
-  if (preferred && accepted.includes(preferred)) return preferred;
-  return accepted[0] ?? null;
 }
