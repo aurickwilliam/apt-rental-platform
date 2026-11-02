@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -214,6 +214,10 @@ export default function ProfileForm({
   const submitAttemptedRef = useRef(false);
   const discardModal = useOverlayState();
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
+  const [editOverlay, setEditOverlay] = useState<HTMLDivElement | null>(null);
+  // Standalone admin editing keeps its existing page; consumer profiles edit
+  // in an overlay without replacing the saved details underneath.
+  const usesEditModal = initialMode === "view";
 
   const fieldsDirty =
     normalizePHMobile(mobileNumber) !== baseline.mobile_number ||
@@ -241,7 +245,7 @@ export default function ProfileForm({
         // Resync the baseline so Cancel/dirty-checks never revert to
         // pre-save data, and store the normalized mobile that was saved.
         const savedMobile = normalizePHMobile(mobileNumber);
-        setMobileNumber(savedMobile);
+        setMobileNumber(formatPHMobileInput(savedMobile));
         setBaseline({
           gender,
           mobile_number: savedMobile,
@@ -277,8 +281,8 @@ export default function ProfileForm({
 
   // Move focus to the first editable field when entering edit mode.
   useEffect(() => {
-    if (mode === "edit") mobileInputRef.current?.focus();
-  }, [mode]);
+    if (mode === "edit" && !usesEditModal) mobileInputRef.current?.focus();
+  }, [mode, usesEditModal]);
 
   // Browser-level unsaved-changes guard (tab close/refresh). In-app route
   // changes can't be intercepted in App Router, so Cancel/Escape go through
@@ -440,6 +444,13 @@ export default function ProfileForm({
   const handleBlur = (key: FieldKey) => setFieldError(key, validateField(key));
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // Explicit dispatch keeps a failed save from resetting the modal's draft.
+    if (usesEditModal) e.preventDefault();
+    if (isPending) {
+      e.preventDefault();
+      return;
+    }
+    const formData = new FormData(e.currentTarget);
     const next: Record<string, string> = {};
     for (const key of FIELD_KEYS) {
       const message = validateField(key);
@@ -489,7 +500,9 @@ export default function ProfileForm({
       } finally {
         setIsUploadingPhotos(false);
       }
+      return;
     }
+    if (usesEditModal) startTransition(() => action(formData));
   };
 
   const fullName = [
@@ -503,13 +516,13 @@ export default function ProfileForm({
     .join(" ");
 
   const missingLabels: string[] = [];
-  if (!gender.trim()) missingLabels.push("gender");
-  if (!mobileNumber.trim()) missingLabels.push("mobile number");
-  if (!streetAddress.trim()) missingLabels.push("street address");
-  if (!barangay.trim()) missingLabels.push("barangay");
-  if (!city.trim()) missingLabels.push("city");
-  if (!province.trim()) missingLabels.push("province");
-  if (!postalCode.trim()) missingLabels.push("postal code");
+  if (!baseline.gender.trim()) missingLabels.push("gender");
+  if (!baseline.mobile_number.trim()) missingLabels.push("mobile number");
+  if (!baseline.street_address.trim()) missingLabels.push("street address");
+  if (!baseline.barangay.trim()) missingLabels.push("barangay");
+  if (!baseline.city.trim()) missingLabels.push("city");
+  if (!baseline.province.trim()) missingLabels.push("province");
+  if (!baseline.postal_code.trim()) missingLabels.push("postal code");
 
   // Province -> city -> barangay cascade, as on mobile. A saved value that is
   // not in the shared lists (older free-text data) stays selectable.
@@ -555,8 +568,7 @@ export default function ProfileForm({
   const displayName =
     fullName || initial.email || "User";
 
-  if (mode === "view") {
-    return (
+  const profileDetails = (
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 font-nunito text-lg font-bold text-primary">
@@ -605,27 +617,26 @@ export default function ProfileForm({
             label="Date of birth"
             value={formatBirthDate(initial.birth_date)}
           />
-          <DetailRow label="Gender" value={gender} />
-          <DetailRow label="Mobile number" value={mobileNumber} />
+          <DetailRow label="Gender" value={baseline.gender} />
+          <DetailRow label="Mobile number" value={formatPHMobileInput(baseline.mobile_number)} />
           <div aria-hidden="true" className="border-t border-border md:col-span-2" />
           <div className="min-w-0 md:col-span-2">
             <DetailRow label="Email address" value={initial.email ?? ""} />
           </div>
           <div aria-hidden="true" className="border-t border-border md:col-span-2" />
           <div className="min-w-0 md:col-span-2">
-            <DetailRow label="Home address" value={formatFullAddress([streetAddress, barangay, city, province, postalCode])} />
+            <DetailRow label="Home address" value={formatFullAddress([baseline.street_address, baseline.barangay, baseline.city, baseline.province, baseline.postal_code])} />
           </div>
         </div>
       </div>
-    );
-  }
+  );
 
-  return (
+  const editForm = (
     <form
       ref={formRef}
-      action={action}
+      action={usesEditModal ? undefined : action}
       onSubmit={handleSubmit}
-      onKeyDown={handleCardKeyDown}
+      onKeyDown={usesEditModal ? undefined : handleCardKeyDown}
       className={
         align === "left"
           ? "flex flex-col gap-5 w-full"
@@ -642,6 +653,7 @@ export default function ProfileForm({
           onClose={() => setPhotoError(null)}
         />
       ) : null}
+      <fieldset disabled={usesEditModal && (isPending || isUploadingPhotos)} className="contents">
       {photoEditing ? (
         <div>
           <div className="-m-4 sm:-m-5">
@@ -665,7 +677,7 @@ export default function ProfileForm({
           </div>
         </div>
       ) : null}
-      {showEditHeading ? (
+      {showEditHeading && !usesEditModal ? (
         <h2 className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
           <IconPencil
             size={20}
@@ -792,6 +804,7 @@ export default function ProfileForm({
             <Label>Mobile Number</Label>
             <Input
               ref={mobileInputRef}
+              autoFocus={usesEditModal}
               inputMode="tel"
               placeholder="09XX XXX XXXX"
               maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
@@ -1019,40 +1032,75 @@ export default function ProfileForm({
         </Button>
       </div>
 
-      <Modal isOpen={discardModal.isOpen} onOpenChange={discardModal.setOpen}>
-        <Modal.Backdrop>
-          <Modal.Container size="sm">
-            <Modal.Dialog>
-              <Modal.Header>
-                <Modal.Heading>Discard changes?</Modal.Heading>
+      </fieldset>
+      {(!usesEditModal || editOverlay) ? (
+        <Modal isOpen={discardModal.isOpen} onOpenChange={discardModal.setOpen}>
+          <Modal.Backdrop UNSTABLE_portalContainer={usesEditModal ? editOverlay ?? undefined : undefined}>
+            <Modal.Container size="sm">
+              <Modal.Dialog>
+                <Modal.Header>
+                  <Modal.Heading>Discard changes?</Modal.Heading>
+                </Modal.Header>
+                <Modal.Body>
+                  <p className="text-sm text-muted-foreground">
+                    Your unsaved changes will be lost if you leave now. Are you
+                    sure you want to cancel?
+                  </p>
+                </Modal.Body>
+                <Modal.Footer className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onPress={() => discardModal.setOpen(false)}
+                  >
+                    Keep Editing
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                    onPress={doCancel}
+                  >
+                    Discard
+                  </Button>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      ) : null}
+    </form>
+  );
+
+  if (!usesEditModal) return mode === "edit" ? editForm : profileDetails;
+
+  return (
+    <>
+      {profileDetails}
+      <Modal>
+        <Modal.Backdrop
+          ref={setEditOverlay}
+          isOpen={mode === "edit"}
+          onOpenChange={(open) => {
+            if (!open) handleCancelRequest();
+          }}
+          isDismissable={!isPending && !isUploadingPhotos}
+          isKeyboardDismissDisabled={isPending || isUploadingPhotos}
+        >
+          <Modal.Container placement="center" size="lg" scroll="inside">
+            <Modal.Dialog className="max-w-3xl! rounded-3xl bg-card text-card-foreground">
+              <Modal.CloseTrigger aria-label="Close edit profile" isDisabled={isPending || isUploadingPhotos} />
+              <Modal.Header className="pr-12">
+                <Modal.Heading className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+                  <IconPencil size={20} className="shrink-0" aria-hidden="true" />
+                  Edit Profile
+                </Modal.Heading>
               </Modal.Header>
-              <Modal.Body>
-                <p className="text-sm text-muted-foreground">
-                  Your unsaved changes will be lost if you leave now. Are you
-                  sure you want to cancel?
-                </p>
-              </Modal.Body>
-              <Modal.Footer className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() => discardModal.setOpen(false)}
-                >
-                  Keep Editing
-                </Button>
-                <Button
-                  variant="tertiary"
-                  size="sm"
-                  className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-                  onPress={doCancel}
-                >
-                  Discard
-                </Button>
-              </Modal.Footer>
+              <Modal.Body>{editForm}</Modal.Body>
             </Modal.Dialog>
           </Modal.Container>
         </Modal.Backdrop>
       </Modal>
-    </form>
+    </>
   );
 }
