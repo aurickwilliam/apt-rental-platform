@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(13);
 
 -- Bank Transfer is a valid method (20261102120000)
 select ok(
@@ -70,6 +70,15 @@ select ok(
             and policyname = 'Accepted payment methods only'
             and cmd = 'INSERT' and permissive = 'RESTRICTIVE'),
   'client payment inserts must use a method the landlord accepts'
+);
+
+-- Public apartment read (20261102140000): names only, open to signed-out visitors, and the
+-- settings table itself stays closed to them.
+select ok(
+  has_function_privilege('anon', 'public.get_apartment_accepted_methods(uuid)', 'execute')
+    and has_function_privilege('authenticated', 'public.get_apartment_accepted_methods(uuid)', 'execute')
+    and not has_table_privilege('anon', 'public.landlord_payment_settings', 'select'),
+  'anyone can read a listing''s accepted methods through the function, but not the table'
 );
 
 select * from finish();

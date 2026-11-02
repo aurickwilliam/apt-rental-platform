@@ -2174,6 +2174,10 @@ export type Database = {
         Args: { p_tenancy_id: string }
         Returns: string[] | null
       }
+      get_apartment_accepted_methods: {
+        Args: { p_apartment_id: string }
+        Returns: string[] | null
+      }
     }
     Enums: {
       [_ in never]: never

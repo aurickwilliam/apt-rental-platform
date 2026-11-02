@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from "heroui-native"
 
-import { formatPesoDisplay } from '@repo/utils';
+import { formatPesoDisplay, type PaymentMethod } from '@repo/utils';
+import AcceptedPaymentMethods from '@/components/display/AcceptedPaymentMethods';
 import AppDialog from '@/components/display/AppDialog';
 import MoveInCostBreakdown from '@/components/display/MoveInCostBreakdown';
 
@@ -12,6 +13,8 @@ type MoveInCostFooterProps = {
   monthlyRent: number;
   securityDeposit?: number | null;
   advanceRent?: number | null;
+  /** The landlord's accepted payment methods, shown under the total; omitted until known. */
+  acceptedMethods?: PaymentMethod[] | null;
   onApplyNow: () => void;
   applyDisabledReason?: string | null;
 };
@@ -20,6 +23,7 @@ export default function MoveInCostFooterSection({
   monthlyRent,
   securityDeposit,
   advanceRent,
+  acceptedMethods,
   onApplyNow,
   applyDisabledReason,
 }: MoveInCostFooterProps) {
@@ -80,6 +84,11 @@ export default function MoveInCostFooterSection({
           securityDeposit={securityDeposit}
           advanceRent={advanceRent}
         />
+        {acceptedMethods && acceptedMethods.length > 0 ? (
+          <View className='mt-4 pt-4 border-t border-border'>
+            <AcceptedPaymentMethods methods={acceptedMethods} />
+          </View>
+        ) : null}
       </AppDialog>
     </>
   );

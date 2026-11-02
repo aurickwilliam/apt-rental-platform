@@ -43,3 +43,13 @@ export async function saveLandlordAcceptedMethods(landlordId: string, methods: r
   if (error) throw error;
   return normalizeAcceptedMethods(data.accepted_methods);
 }
+
+// Public read for an apartment page: the methods the listing's landlord accepts (every method
+// when none is limited), or null when the listing is not publicly readable. Names only.
+export async function fetchAcceptedMethodsForApartment(apartmentId: string, signal?: AbortSignal): Promise<PaymentMethod[] | null> {
+  const query = supabase.rpc("get_apartment_accepted_methods", { p_apartment_id: apartmentId });
+  if (signal) query.abortSignal(signal);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data === null ? null : normalizeAcceptedMethods(data);
+}
