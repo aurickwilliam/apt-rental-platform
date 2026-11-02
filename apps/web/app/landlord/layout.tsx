@@ -20,7 +20,7 @@ const LANDLORD_NAV = [
   { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, section: "Rentals" },
   { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, section: "Rentals" },
   { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/messages", label: "Messages", icon: "Messages", activityKey: "messages", section: "Rentals" },
+  { href: "/landlord/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages", section: "Rentals" },
   { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, section: "Finance" },
   { href: ANALYTICS_HREF, label: "Profit & planning", icon: "ChartBar", prefetchOnIntent: true, section: "Finance" },
   { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport", section: "Verification" },
