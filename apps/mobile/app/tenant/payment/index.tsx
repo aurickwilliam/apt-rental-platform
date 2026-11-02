@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
-import { useState } from "react";
-import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import { Button, Spinner } from "heroui-native";
 import { IconCircleCheckFilled } from "@tabler/icons-react-native";
@@ -110,6 +110,12 @@ export default function PaymentCheckout() {
   // A tenancy on the server bill reports its own pending payment (bill.pendingPayment). Others
   // find an unfinished online checkout in the payment list: leaving PayMongo's page without
   // paying leaves it pending. Starting a new payment closes it, so Pay stays available.
+  // Returning to this screen (for example from PayMongo's cancel page) shows the current
+  // payment list, not the one cached before the attempt was closed.
+  const refetchPayments = paymentsQuery.refetch;
+  useFocusEffect(useCallback(() => {
+    void refetchPayments({ cancelRefetch: false });
+  }, [refetchPayments]));
   const unfinishedCheckout = bill ? null : findPendingOnlinePayment(paymentsQuery.data ?? [], period.periodStart);
   const [isCancellingCheckout, setIsCancellingCheckout] = useState(false);
   const { monthlyRent, isFullyPaid: isPeriodFullyPaid } = period;
