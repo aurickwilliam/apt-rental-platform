@@ -104,15 +104,8 @@ export async function createCheckoutSession(params: {
   }
 }
 
-// The backend is the source of truth for payment status. Deep-link params
-// never determine the outcome — only this endpoint's verdict is trusted.
-export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
-  const response = await invoke<PaymongoEnvelope<{
-    id: string
-    attributes: { status: string }
-  }>>('getCheckoutSessionStatus', { sessionId })
-
-  switch (response.data.attributes.status) {
+function toSessionStatus(status: string): PaymongoSessionStatus {
+  switch (status) {
     case 'paid':
       return 'paid'
     case 'failed':
@@ -123,6 +116,29 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
     default:
       return 'pending'
   }
+}
+
+// The backend is the source of truth for payment status. Deep-link params
+// never determine the outcome — only this endpoint's verdict is trusted.
+export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invoke<PaymongoEnvelope<{
+    id: string
+    attributes: { status: string }
+  }>>('getCheckoutSessionStatus', { sessionId })
+
+  return toSessionStatus(response.data.attributes.status)
+}
+
+// The tenant backed out of the hosted checkout: ask the backend to close the
+// session so it can't be paid later. Its verdict is what counts ('paid' if the
+// payment went through first, 'pending' if the session could not be closed).
+export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invoke<PaymongoEnvelope<{
+    id: string
+    attributes: { status: string }
+  }>>('cancelCheckoutSession', { sessionId })
+
+  return toSessionStatus(response.data.attributes.status)
 }
 
 export async function createCardPayment(params: {

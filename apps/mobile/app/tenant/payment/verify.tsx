@@ -5,18 +5,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Spinner } from 'heroui-native'
 
 import ErrorDialog from '@/components/display/ErrorDialog'
-import { getCheckoutSessionStatus, PaymongoError } from '@/service/payments/paymongoService'
+import { cancelCheckoutSession, getCheckoutSessionStatus, PaymongoError } from '@/service/payments/paymongoService'
 
 export default function PaymentVerify() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { sessionId, referenceId } = useLocalSearchParams<{
+  const { sessionId, referenceId, cancelled } = useLocalSearchParams<{
     sessionId?: string
     referenceId?: string
+    cancelled?: string
   }>()
+  // Set by the checkout's cancel link (the back arrow). Only picks the screen:
+  // the backend still decides what happened to the payment.
+  const backedOut = cancelled === '1'
 
   const [isVerifying, setIsVerifying] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isCancelled, setIsCancelled] = useState(false)
   const verifyingRef = useRef(false)
 
   const verifyPayment = useCallback(
@@ -27,7 +32,7 @@ export default function PaymentVerify() {
       setErrorMessage(null)
 
       try {
-        const status = await getCheckoutSessionStatus(sessionIdValue)
+        const status = backedOut ? await cancelCheckoutSession(sessionIdValue) : await getCheckoutSessionStatus(sessionIdValue)
 
         if (status === 'paid') {
           const successReferenceId =
@@ -36,7 +41,9 @@ export default function PaymentVerify() {
           return
         }
 
-        if (status === 'failed') {
+        if (backedOut && (status === 'failed' || status === 'expired')) {
+          setIsCancelled(true)
+        } else if (status === 'failed') {
           setErrorMessage('Your payment was declined or cancelled. Please try again.')
         } else if (status === 'expired') {
           setErrorMessage('This payment session has expired. Please start a new payment.')
@@ -50,7 +57,7 @@ export default function PaymentVerify() {
         setIsVerifying(false)
       }
     },
-    [router, referenceId]
+    [router, referenceId, backedOut]
   )
 
   useEffect(() => {
@@ -85,6 +92,14 @@ export default function PaymentVerify() {
           <Spinner size="lg" color="#FFFFFF" />
           <Text className="text-white mt-4 font-inter text-base">Verifying payment...</Text>
         </>
+      ) : isCancelled ? (
+        <View className="items-center gap-4">
+          <Text className="text-white text-center text-lg font-nunitoSemiBold">Payment cancelled</Text>
+          <Text className="text-white text-center text-base font-inter">You were not charged. You can pay again whenever you are ready.</Text>
+          <Button variant="secondary" size="sm" onPress={handleGoBack} className="bg-white">
+            <Button.Label className="text-primary">Back to payment</Button.Label>
+          </Button>
+        </View>
       ) : errorMessage ? (
         <View className="items-center gap-4">
           <Text className="text-white text-center text-base font-inter">{errorMessage}</Text>

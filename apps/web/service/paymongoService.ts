@@ -105,6 +105,20 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
   return (await getCheckoutSessionDetails(sessionId)).status;
 }
 
+function toSessionStatus(status: string): PaymongoSessionStatus {
+  switch (status) {
+    case "paid":
+      return "paid";
+    case "failed":
+    case "cancelled":
+      return "failed";
+    case "expired":
+      return "expired";
+    default:
+      return "pending";
+  }
+}
+
 export async function getCheckoutSessionDetails(sessionId: string): Promise<{ status: PaymongoSessionStatus; checkoutUrl: string | null }> {
   const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
     "getCheckoutSessionStatus",
@@ -112,19 +126,18 @@ export async function getCheckoutSessionDetails(sessionId: string): Promise<{ st
   );
 
   const attributes = response.data.attributes;
-  let status: PaymongoSessionStatus;
-  switch (attributes.status) {
-    case "paid":
-      status = "paid"; break;
-    case "failed":
-    case "cancelled":
-      status = "failed"; break;
-    case "expired":
-      status = "expired"; break;
-    default:
-      status = "pending";
-  }
-  return { status, checkoutUrl: attributes.checkout_url ?? null };
+  return { status: toSessionStatus(attributes.status), checkoutUrl: attributes.checkout_url ?? null };
+}
+
+// The tenant backed out of the hosted checkout: ask the backend to close the
+// session so it can't be paid later. Its verdict is what counts ("paid" if the
+// payment went through first, "pending" if the session could not be closed).
+export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string } }>>(
+    "cancelCheckoutSession",
+    { sessionId },
+  );
+  return toSessionStatus(response.data.attributes.status);
 }
 
 export async function createCardPayment(params: {

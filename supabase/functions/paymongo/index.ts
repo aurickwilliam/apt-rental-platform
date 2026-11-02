@@ -402,7 +402,9 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.
           success_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
-          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
+          // `cancelled=1` only picks which screen the app shows; the outcome is
+          // still read from the backend, never from this link.
+          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}&cancelled=1`,
           reference_number: referenceId,
         },
       },
@@ -543,6 +545,42 @@ async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string
       },
     },
   })
+}
+
+// The tenant backed out of the hosted checkout (its cancel_url). Close the
+// session at PayMongo so it can no longer be paid, then settle the row from the
+// provider's own answer: expired -> failed, paid -> paid, anything else stays
+// pending. Never marks a row failed on the caller's word alone.
+async function cancelCheckoutSession(req: Request, { sessionId }: { sessionId: string }) {
+  if (!sessionId) return badRequest('sessionId is required.')
+
+  const tenantId = await resolveTenantId(req)
+  if (!tenantId) throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to cancel a payment.')
+  let query = dbClient.from('payment').select('id, status, method, paymongo_session_id').eq('tenant_id', tenantId)
+  query = sessionId.startsWith('cs_') ? query.eq('paymongo_session_id', sessionId) : query.eq('reference_id', sessionId)
+  const { data: payment, error } = await query.maybeSingle()
+  if (error || !payment) throw new PayMongoApiError(404, 'not_found', 'Payment not found.')
+
+  const respond = (status: CheckoutSessionStatus) => json({ data: { id: sessionId, attributes: { status } } })
+  if (payment.status !== 'pending') return respond(payment.status === 'paid' ? 'paid' : 'failed')
+  // Cash is settled by the landlord, never by the tenant's app.
+  if (payment.method === 'cash') return respond('pending')
+  if (!payment.paymongo_session_id) return respond('pending')
+
+  const secretKey = paymongoSecretKey()
+  if (!secretKey) {
+    if (!payment.paymongo_session_id.startsWith('cs_mock_')) {
+      throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
+    }
+    await updatePayment(payment.id, { status: 'failed' })
+    return respond('failed')
+  }
+
+  // The session may already be paid or expired, which makes this call fail;
+  // the status lookup below is the verdict either way.
+  await paymongoFetch(`${PAYMONGO_API_V1}/checkout_sessions/${payment.paymongo_session_id}/expire`, { method: 'POST' })
+    .catch((error) => console.error('paymongo: expire session failed:', error instanceof Error ? error.message : error))
+  return getRealCheckoutSessionStatus(payment.paymongo_session_id, payment.id)
 }
 
 async function createCardPayment(req: Request, payload: CardPaymentPayload) {
@@ -908,6 +946,8 @@ Deno.serve(async (req) => {
         return await createCheckoutSession(req, payload)
       case 'getCheckoutSessionStatus':
         return await getCheckoutSessionStatus(req, payload)
+      case 'cancelCheckoutSession':
+        return await cancelCheckoutSession(req, payload)
       case 'createCardPayment':
         return await createCardPayment(req, payload)
       case 'createRefund':
