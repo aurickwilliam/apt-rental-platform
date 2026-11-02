@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(readFileSync(new URL("../../../supabase/func
 
 // Exercise the actual Edge Function handler with a fake provider/database.
 // SQL validation itself is exercised by db:billing:test, not reimplemented here.
-function harness({ real = true, rejectInsert = false, provider, rows = [], accountStatus = "verified" } = {}) {
+function harness({ real = true, secretKey = "sk_test_fake", rejectInsert = false, provider, rows = [], accountStatus = "verified" } = {}) {
   const payments = [...rows];
   const events = [];
   let handler;
@@ -52,7 +52,7 @@ function harness({ real = true, rejectInsert = false, provider, rows = [], accou
   vm.runInNewContext(compiled, {
     exports: {},
     require: name => { assert.equal(name, "jsr:@supabase/supabase-js@2"); return { createClient: () => db }; },
-    Deno: { env: { get: name => name === "PAYMONGO_SECRET_KEY" && real ? "fake-test-key" : undefined }, serve: fn => { handler = fn; } },
+    Deno: { env: { get: name => name === "PAYMONGO_SECRET_KEY" && real ? secretKey : undefined }, serve: fn => { handler = fn; } },
     Response, Request, URL, console: { error() {}, warn() {} },
     btoa: value => Buffer.from(value).toString("base64"),
     fetch: async (url, options) => {
@@ -83,6 +83,20 @@ test("online checkout reserves the complete move-in amount before contacting Pay
   const duplicate = await h.invoke("createCheckoutSession", { ...h.checkout, referenceId: "pay_second" });
   assert.equal(duplicate.status, 409);
   assert.equal(h.events.filter(event => event === "provider").length, 1);
+});
+
+test("a non-test PayMongo key is refused before any payment is saved or the provider is called", async () => {
+  // APT is a simulation: only sk_test_ keys may run, so no real money can move.
+  for (const secretKey of ["sk_live_fake", "pk_test_fake", "fake-key"]) {
+    const h = harness({ secretKey });
+    for (const action of ["createCheckoutSession", "createCardPayment"]) {
+      const response = await h.invoke(action, { ...h.checkout, card: { number: "4343434343434345", expMonth: 12, expYear: 2030, cvc: "123", name: "Test" } });
+      assert.equal(response.status, 500);
+      assert.equal(response.body.errors[0].code, "configuration_error");
+    }
+    assert.equal(h.payments.length, 0);
+    assert.equal(h.events.length, 0);
+  }
 });
 
 test("paying an active tenancy never depends on the account's verification status", async () => {
