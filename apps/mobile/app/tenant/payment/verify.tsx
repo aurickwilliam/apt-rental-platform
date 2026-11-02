@@ -8,6 +8,7 @@ import ErrorDialog from '@/components/display/ErrorDialog'
 import {
   cancelCheckoutSession,
   getCheckoutSessionDetails,
+  NETWORK_ERROR_CODE,
   PaymongoError,
   type PaymongoSessionStatus,
 } from '@/service/payments/paymongoService'
@@ -26,6 +27,8 @@ export default function PaymentVerify() {
 
   const [isVerifying, setIsVerifying] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  // A dropped connection says nothing about the payment, so it is not "Payment Failed".
+  const [errorTitle, setErrorTitle] = useState('Payment Failed')
   const [isCancelled, setIsCancelled] = useState(false)
   // Still open at PayMongo and unpaid: the tenant can resume or cancel it.
   const [isPending, setIsPending] = useState(false)
@@ -40,6 +43,7 @@ export default function PaymentVerify() {
       verifyingRef.current = true
       setIsVerifying(true)
       setErrorMessage(null)
+      setErrorTitle('Payment Failed')
       setIsPending(false)
 
       try {
@@ -71,6 +75,7 @@ export default function PaymentVerify() {
           setIsPending(true)
         }
       } catch (error) {
+        if (error instanceof PaymongoError && error.code === NETWORK_ERROR_CODE) setErrorTitle('Connection problem')
         setErrorMessage(error instanceof PaymongoError ? error.reason : 'We could not confirm your payment. Please try again.')
       } finally {
         verifyingRef.current = false
@@ -165,7 +170,7 @@ export default function PaymentVerify() {
         </View>
       ) : null}
 
-      <ErrorDialog isOpen={errorMessage !== null} onClose={() => setErrorMessage(null)} message={errorMessage ?? ''} title="Payment Failed" />
+      <ErrorDialog isOpen={errorMessage !== null} onClose={() => setErrorMessage(null)} message={errorMessage ?? ''} title={errorTitle} />
     </View>
   )
 }

@@ -47,6 +47,12 @@ type PaymongoEnvelope<T> = {
   data: T
 }
 
+export const NETWORK_ERROR_CODE = 'network_error'
+const NETWORK_ERROR_REASON =
+  'We could not reach the server. Check your connection and try again. If you already paid, your payment is safe.'
+// Delays before retrying a dropped connection (up to 3 attempts in all).
+const NETWORK_RETRY_DELAYS_MS = [1000, 2000]
+
 const extractError = async (error: unknown): Promise<{ reason: string; code: string | null }> => {
   const response = (error as { context?: Response }).context
   if (response) {
@@ -58,6 +64,11 @@ const extractError = async (error: unknown): Promise<{ reason: string; code: str
     } catch {
       // Response body was not JSON — fall through to the generic message.
     }
+  }
+  // The request never reached the function (e.g. the connection dropped while
+  // the app returned from the browser). Nothing is known about the payment.
+  if ((error as { name?: string }).name === 'FunctionsFetchError') {
+    return { reason: NETWORK_ERROR_REASON, code: NETWORK_ERROR_CODE }
   }
   return {
     reason: (error as { message?: string }).message ?? 'Payment failed. Please try again.',
@@ -76,6 +87,21 @@ const invoke = async <T>(action: string, payload: Record<string, unknown>): Prom
   }
 
   return data as T
+}
+
+// Only for calls that are safe to repeat (status checks, cancelling): a brief
+// network drop, common when returning from the browser, should not look like a
+// failed payment.
+async function invokeRepeatable<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await invoke<T>(action, payload)
+    } catch (error) {
+      const delay = NETWORK_RETRY_DELAYS_MS[attempt]
+      if (!(error instanceof PaymongoError) || error.code !== NETWORK_ERROR_CODE || delay === undefined) throw error
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+  }
 }
 
 export async function createCheckoutSession(params: {
@@ -124,7 +150,7 @@ export type PaymongoSessionDetails = {
 // The backend is the source of truth for payment status. Deep-link params
 // never determine the outcome — only this endpoint's verdict is trusted.
 export async function getCheckoutSessionDetails(sessionId: string): Promise<PaymongoSessionDetails> {
-  const response = await invoke<PaymongoEnvelope<{
+  const response = await invokeRepeatable<PaymongoEnvelope<{
     id: string
     attributes: { status: string; checkout_url?: string }
   }>>('getCheckoutSessionStatus', { sessionId })
@@ -143,7 +169,7 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
 // session so it can't be paid later. Its verdict is what counts ('paid' if the
 // payment went through first, 'pending' if the session could not be closed).
 export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
-  const response = await invoke<PaymongoEnvelope<{
+  const response = await invokeRepeatable<PaymongoEnvelope<{
     id: string
     attributes: { status: string }
   }>>('cancelCheckoutSession', { sessionId })
