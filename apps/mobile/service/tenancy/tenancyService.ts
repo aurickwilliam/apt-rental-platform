@@ -45,8 +45,18 @@ export interface TenancyPayment {
   due_date: string | null;
 }
 
+// A pending maintenance fee that rides on the next rent. Only tenancies without a
+// server bill (billing_version null) carry these, because a server bill already
+// lists its own fees.
+export interface TenancyFee {
+  id: string;
+  title: string;
+  amount: number;
+}
+
 export interface CurrentTenancy {
   bill?: TenancyBill | null;
+  legacyFees?: TenancyFee[];
   id: string;
   lease_start: string;
   lease_end: string | null;
@@ -106,13 +116,48 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
 
   if (paymentError) throw paymentError;
 
+  const legacyFees = bill ? [] : await fetchPendingMaintenanceFees(tenancyData.id, tenantId);
+
   const { apartment: apartmentRow, ...tenancy } = tenancyData as unknown as TenancyRow;
   const { apartment_images: apartmentImages, ...apartment } = apartmentRow;
 
   return {
     ...tenancy,
     bill: bill as unknown as TenancyBill | null,
+    legacyFees,
     apartment: { ...apartment, cover_url: coverImageUrl(apartmentImages, "full") },
     currentPayment: paymentData as TenancyPayment | null,
   };
+}
+
+// Pending fees for a tenancy without a server bill. Fees belong to the tenancy that
+// raised them: a re-let to the same tenant never inherits an older tenancy's balance.
+export async function fetchPendingMaintenanceFees(tenancyId: string, tenantId: string): Promise<TenancyFee[]> {
+  const { data, error } = await supabase
+    .from("maintenance_request")
+    .select("id, title, fee_amount")
+    .eq("tenancy_id", tenancyId)
+    .eq("tenant_id", tenantId)
+    .eq("fee_status", "pending");
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter((row) => Number(row.fee_amount ?? 0) > 0)
+    .map((row) => ({ id: row.id, title: row.title, amount: Number(row.fee_amount) }));
+}
+
+// Marks a tenancy's pending fees as paid once the rent payment they rode on is `paid`.
+// `paidBeforeIso` bounds it to fees raised before that payment began, so a fee added
+// afterwards stays pending for the next one. A server bill settles its own fees.
+export async function settleMaintenanceFees(tenancyId: string, tenantId: string, paidBeforeIso: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("maintenance_request")
+    .update({ fee_status: "paid" })
+    .eq("tenancy_id", tenancyId)
+    .eq("tenant_id", tenantId)
+    .eq("fee_status", "pending")
+    .lte("created_at", paidBeforeIso)
+    .select("id");
+  if (error) throw error;
+  return (data ?? []).length;
 }

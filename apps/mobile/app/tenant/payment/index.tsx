@@ -107,7 +107,11 @@ export default function PaymentCheckout() {
 
   const apartment = tenancy?.apartment ?? null;
   const bill = tenancy?.bill ?? null;
-  const totalDue = bill?.totalDue ?? tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0;
+  // A tenancy without a server bill has no bill-listed fees: its pending maintenance fees
+  // ride on this rent, as on the web checkout.
+  const legacyFees = bill ? [] : tenancy?.legacyFees ?? [];
+  const legacyFeesTotal = legacyFees.reduce((sum, fee) => sum + fee.amount, 0);
+  const totalDue = bill?.totalDue ?? (tenancy?.monthly_rent ?? apartment?.monthly_rent ?? 0) + legacyFeesTotal;
   const landlord = tenancy?.landlord ?? null;
   const landlordName =
     landlord?.first_name || landlord?.last_name
@@ -156,7 +160,9 @@ export default function PaymentCheckout() {
     }
 
     const referenceId = generatePaymentReference();
-    const paymentDescription = bill?.kind === "move_in" ? `Move-in payment - ${apartment.name}` : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}`;
+    const paymentDescription = bill?.kind === "move_in"
+      ? `Move-in payment - ${apartment.name}`
+      : `Rent payment for ${monthLabel} ${yearLabel} - ${apartment.name}${legacyFeesTotal > 0 ? " (incl. maintenance fees)" : ""}`;
     const periodFields = {
       tenancyId: tenancy.id,
       periodStart: period.periodStart,
@@ -391,6 +397,7 @@ export default function PaymentCheckout() {
         dueDate={period.dueDate}
         monthlyRent={monthlyRent}
         bill={bill}
+        fees={legacyFees}
       />
 
       {bill?.pendingPayment ? <View className="gap-3 mb-4">
