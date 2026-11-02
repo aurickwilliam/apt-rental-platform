@@ -241,9 +241,24 @@ test("bank transfer starts a checkout for the online banking method and charges 
   assert.equal(response.status, 200);
   assert.equal(h.payments[0].method, "bank_transfer");
   assert.equal(h.payments[0].amount, 80000);
-  assert.deepEqual(providerBody.data.attributes.payment_method_types, ["dob"]);
+  assert.deepEqual(providerBody.data.attributes.payment_method_types, ["dob_ubp"]);
   assert.equal(providerBody.data.attributes.line_items[0].amount, 8000000);
   assert.equal(providerBody.data.attributes.line_items.length, 1);
+});
+
+test("the bank the tenant picked decides which bank PayMongo's checkout offers", async () => {
+  const typesFor = async (bankCode) => {
+    let types;
+    const h = harness({ provider: async (_url, options) => {
+      types = JSON.parse(options.body).data.attributes.payment_method_types;
+      return Response.json({ data: { id: "cs_bank", attributes: { status: "active", checkout_url: "https://checkout.paymongo.com/test" } } });
+    } });
+    const response = await h.invoke("createCheckoutSession", { ...h.checkout, method: "bank_transfer", bankCode, amount: 40000 });
+    assert.equal(response.status, 200);
+    return types;
+  };
+  assert.deepEqual(await typesFor("bpi"), ["dob"]);
+  assert.deepEqual(await typesFor("ubp"), ["dob_ubp"]);
 });
 
 test("a method the landlord turned off is refused before any payment is saved", async () => {

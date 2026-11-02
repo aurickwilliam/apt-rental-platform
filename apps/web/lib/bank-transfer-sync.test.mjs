@@ -17,6 +17,10 @@ const edgeBanks = edgeBlock
       .map((match) => ({ code: match[1], name: match[2], maxAmount: Number(match[3]) }))
   : [];
 
+// Every offered bank has its own checkout type on the edge function.
+const checkoutBlock = edge.match(/const BANK_TRANSFER_CHECKOUT_TYPES[^{]*\{([\s\S]*?)\n\}/);
+const checkoutBankCodes = checkoutBlock ? [...checkoutBlock[1].matchAll(/([a-z]+):\s*'[a-z_]+'/g)].map((match) => match[1]) : [];
+
 // Method names the database accepts in the migration, the shared list and the edge function.
 const migration = read("../../../supabase/migrations/20261102120000_bank_transfer_and_accepted_payment_methods.sql");
 const methodsCheck = migration.match(/payment_method_check\s+check \(method in \(([^)]*)\)\)/);
@@ -28,6 +32,10 @@ test("both bank lists were found", () => {
 
 test("the edge function offers the same banks and limits as the shared list", () => {
   assert.deepEqual(edgeBanks, sharedBanks);
+});
+
+test("the edge function has a checkout type for every bank in the shared list", () => {
+  assert.deepEqual(checkoutBankCodes, sharedBanks.map((bank) => bank.code));
 });
 
 test("the database accepts bank_transfer as a payment method", () => {

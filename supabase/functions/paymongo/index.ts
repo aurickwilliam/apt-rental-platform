@@ -103,6 +103,20 @@ const BANK_TRANSFER_LIMITS: Record<string, { name: string; maxAmount: number }> 
   ubp: { name: 'UnionBank', maxAmount: 100000 },
 }
 
+// PayMongo's hosted checkout takes one type per bank: plain `dob` is BPI Online (the page
+// lists no other bank for it), so UnionBank needs its own type. The bank the tenant picked
+// in the app decides which one is offered. Confirmed in test mode (2026-11-02): `dob` offers
+// BPI Online and `dob_ubp` offers UnionBank Online on PayMongo's hosted page.
+const BANK_TRANSFER_CHECKOUT_TYPES: Record<string, string> = {
+  bpi: 'dob',
+  ubp: 'dob_ubp',
+}
+
+const checkoutPaymentMethodType = (payload: CheckoutSessionPayload): string =>
+  payload.method === 'bank_transfer'
+    ? BANK_TRANSFER_CHECKOUT_TYPES[payload.bankCode ?? ''] ?? CHECKOUT_PAYMENT_METHOD_TYPES.bank_transfer
+    : CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']
+
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   gcash: 'GCash',
   maya: 'Maya',
@@ -438,10 +452,10 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
               quantity: 1,
             },
           ],
-          // Offer only the method the tenant picked: the hosted page would
-          // otherwise preselect the first listed one, while the payment row
-          // already records the chosen method.
-          payment_method_types: [CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']],
+          // Offer only the method (and, for Bank Transfer, the bank) the tenant picked:
+          // the hosted page would otherwise preselect the first listed one, while the
+          // payment row already records the chosen method.
+          payment_method_types: [checkoutPaymentMethodType(payload)],
           ...(billing && Object.keys(billing).length > 0 ? { billing } : {}),
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
