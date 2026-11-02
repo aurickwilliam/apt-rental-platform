@@ -82,6 +82,13 @@ const mockStatusForReference = (referenceId: string): CheckoutSessionStatus =>
       ? 'failed'
       : 'paid'
 
+// PayMongo's name for each method the app offers (Maya is `paymaya` there).
+const CHECKOUT_PAYMENT_METHOD_TYPES = {
+  gcash: 'gcash',
+  maya: 'paymaya',
+  qrph: 'qrph',
+} as const
+
 type CheckoutSessionPayload = {
   referenceId: string
   amount: number
@@ -349,7 +356,10 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
               quantity: 1,
             },
           ],
-          payment_method_types: payload.method === 'qrph' ? ['qrph'] : ['gcash', 'paymaya'],
+          // Offer only the method the tenant picked: the hosted page would
+          // otherwise preselect the first listed one, while the payment row
+          // already records the chosen method.
+          payment_method_types: [CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']],
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.
