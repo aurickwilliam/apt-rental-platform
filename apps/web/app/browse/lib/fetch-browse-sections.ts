@@ -4,7 +4,9 @@ import type { BrowseApartment } from "./fetch-browse-results";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
-const SECTION_LIMIT = 8;
+// Keep equal to RECOMMENDATION_LIMIT (lib/recommendations.ts): every Browse
+// row, fixed or personalized, holds the same number of apartments.
+const SECTION_LIMIT = 15;
 const DEFAULT_THUMBNAIL = "/default/default-thumbnail.jpeg";
 
 export interface BrowseSection {

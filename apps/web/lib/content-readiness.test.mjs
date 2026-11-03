@@ -14,7 +14,7 @@ test("discovery needs one RPC and no count; count-dependent callers retain their
     rpc: async (name, args) => {
       rpcs++;
       assert.equal(name, "get_search_sections");
-      assert.deepEqual(plain(args), { p_city: "CAMANAVA", p_limit: 8 });
+      assert.deepEqual(plain(args), { p_city: "CAMANAVA", p_limit: 15 });
       return { data: { sections: [raw, { id: "empty", apartments: [] }] }, error: null };
     },
     from(table) {

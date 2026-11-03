@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import {
+  buildFillerRowSpecs,
+  buildPersonalizedRowSpecs,
+  MIN_BROWSE_ROWS,
+  selectBrowseRows,
   hasMeaningfulPreferences,
   rankCandidates,
   RECOMMENDATION_DEFAULT_BUDGET_MAX,
@@ -14,6 +19,12 @@ import {
   PREFERENCE_BUDGET_MIN,
   parseTenantPreferences,
 } from "./tenant-preferences.ts";
+
+test("every Browse row holds 15 apartments, fixed rows included", () => {
+  assert.equal(RECOMMENDATION_LIMIT, 15);
+  const fixed = readFileSync(new URL("../app/browse/lib/fetch-browse-sections.ts", import.meta.url), "utf8");
+  assert.match(fixed, /const SECTION_LIMIT = 15;/);
+});
 
 test("default budget constants match the shared preferences contract", () => {
   assert.equal(RECOMMENDATION_DEFAULT_BUDGET_MIN, PREFERENCE_BUDGET_MIN);
@@ -200,4 +211,151 @@ test("ranking is score desc, rating desc, id asc; bounded and deduped", () => {
 
   const excluded = rankCandidates([listing({ id: "y", city: "Malabon" })], prefs({ selectedCities: ["Caloocan"] }), 8);
   assert.equal(excluded.length, 0);
+});
+
+test("skipped or empty preferences build no personalized rows", () => {
+  assert.deepEqual(buildPersonalizedRowSpecs(null), []);
+  assert.deepEqual(buildPersonalizedRowSpecs(undefined), []);
+  assert.deepEqual(buildPersonalizedRowSpecs({ ...DEFAULT_TENANT_PREFERENCES }), []);
+});
+
+test("one row per answered preference, in display order", () => {
+  const rows = buildPersonalizedRowSpecs(
+    prefs({
+      selectedCities: ["Caloocan", "Malabon"],
+      budgetMin: 15000,
+      budgetMax: 29999,
+      bedroomCount: "2-4 Bedrooms",
+      hasPets: true,
+      hasParking: true,
+    }),
+  );
+  assert.deepEqual(
+    rows.map((row) => row.id),
+    ["city:Caloocan", "city:Malabon", "budget", "bedrooms", "pets", "parking"],
+  );
+  assert.equal(rows[0].title, "Apartments in Caloocan");
+  assert.deepEqual(rows[0].params, { locations: "Caloocan" });
+});
+
+test("chosen cities gate every non-city row; no cities leaves them open", () => {
+  const gated = buildPersonalizedRowSpecs(
+    prefs({ selectedCities: ["Caloocan", "Malabon"], hasPets: true, bedroomCount: "4+ Bedrooms" }),
+  );
+  for (const id of ["pets", "bedrooms"]) {
+    const row = gated.find((r) => r.id === id);
+    assert.equal(row.params.locations, "Caloocan,Malabon");
+    assert.match(row.seeAllQuery ?? "locations=Caloocan%2CMalabon", /locations=Caloocan%2CMalabon/);
+  }
+  const open = buildPersonalizedRowSpecs(prefs({ hasParking: true }));
+  assert.deepEqual(open.map((row) => row.id), ["parking"]);
+  assert.deepEqual(open[0].params, { amenities: "parking" });
+});
+
+test("a default budget builds no budget row; a chosen one reuses the filter-drawer params", () => {
+  const none = buildPersonalizedRowSpecs(prefs({ selectedCities: ["Caloocan"] }));
+  assert.ok(!none.some((row) => row.id === "budget"));
+  const [budget] = buildPersonalizedRowSpecs(prefs({ budgetMin: 15000, budgetMax: 29999 }));
+  assert.equal(budget.id, "budget");
+  assert.deepEqual(budget.params, { price_min: "15000", price_max: "29999" });
+  assert.equal(budget.seeAllQuery, "price_min=15000&price_max=29999");
+  assert.equal(budget.subtitle, "₱15,000 – ₱29,999 a month.");
+});
+
+test("bedroom rows keep the saved range; only 4+ has a See All twin", () => {
+  const range = (bedroomCount) =>
+    buildPersonalizedRowSpecs(prefs({ bedroomCount })).find((row) => row.id === "bedrooms");
+  assert.deepEqual(range("1-2 Bedrooms").bedroomRange, { min: 1, max: 2 });
+  assert.deepEqual(range("2-4 Bedrooms").bedroomRange, { min: 2, max: 4 });
+  assert.deepEqual(range("4+ Bedrooms").bedroomRange, { min: 4, max: null });
+  assert.equal(range("1-2 Bedrooms").seeAllQuery, null);
+  assert.equal(range("4+ Bedrooms").seeAllQuery, "bedrooms=4%2B");
+  assert.equal(range("1-2 Bedrooms").title, "1-2 Bedrooms");
+});
+
+test("an unknown saved bedroom option builds no bedroom row", () => {
+  const rows = buildPersonalizedRowSpecs(prefs({ bedroomCount: "Penthouse", hasPets: true }));
+  assert.ok(!rows.some((row) => row.id === "bedrooms"));
+});
+
+test("pet and parking rows use the web amenity identifiers", () => {
+  const rows = buildPersonalizedRowSpecs(prefs({ hasPets: true, hasParking: true }));
+  assert.equal(rows.find((row) => row.id === "pets").params.amenities, "petfriendly");
+  assert.equal(rows.find((row) => row.id === "parking").params.amenities, "parking");
+});
+
+test("Browse tries personalized rows first and falls back to the fixed rows", () => {
+  const source = readFileSync(new URL("../app/browse/components/BrowseDiscoveryContent.tsx", import.meta.url), "utf8");
+  const personalized = source.indexOf("await fetchPersonalizedSections(supabase, preferences, basePath)");
+  const fixed = source.indexOf("await fetchDiscoverySections(supabase, basePath)");
+  assert.ok(personalized > -1 && fixed > personalized);
+  assert.match(source, /isPersonalized\s*\?\s*personalized/);
+  assert.match(source, /fillBrowseSections\(supabase, base, isPersonalized \? preferences : null/);
+});
+
+test("the default page holds at least 9 rows", () => {
+  assert.equal(MIN_BROWSE_ROWS, 9);
+});
+
+const ids = (rows) => rows.map((row) => row.id);
+
+test("filler gives enough distinct rows to reach the minimum from one personal row", () => {
+  const filler = buildFillerRowSpecs(prefs({ hasDisability: true }), { includeCore: true });
+  assert.equal(new Set(ids(filler)).size, filler.length, "filler ids are unique");
+  assert.ok(1 + filler.length >= MIN_BROWSE_ROWS);
+});
+
+test("without core rows the filler is the extras the fixed rows lack", () => {
+  const extras = buildFillerRowSpecs(null, { includeCore: false });
+  assert.deepEqual(ids(extras), ["family", "furnished", "pets", "parking", "mid_range"]);
+  assert.equal(6 + 3 <= 6 + extras.length, true, "six fixed rows plus extras reach 9");
+});
+
+test("chosen cities gate every filler row; no cities leaves them open", () => {
+  const gated = buildFillerRowSpecs(prefs({ selectedCities: ["Caloocan", "Valenzuela"] }), { includeCore: true });
+  for (const row of gated) assert.equal(row.params.locations, "Caloocan,Valenzuela", row.id);
+  const open = buildFillerRowSpecs(null, { includeCore: true });
+  for (const row of open) assert.equal(row.params.locations, undefined, row.id);
+});
+
+test("a See All link never points at the bare default page", () => {
+  for (const row of buildFillerRowSpecs(null, { includeCore: true })) {
+    assert.notEqual(row.seeAllQuery, "", row.id);
+  }
+  const newest = buildFillerRowSpecs(null, { includeCore: true }).find((row) => row.id === "newest");
+  assert.equal(newest.seeAllQuery, null);
+  const gated = buildFillerRowSpecs(prefs({ selectedCities: ["Caloocan"] }), { includeCore: true });
+  assert.equal(gated.find((row) => row.id === "newest").seeAllQuery, "locations=Caloocan");
+});
+
+test("filler rows keep the filter-drawer vocabulary", () => {
+  const rows = Object.fromEntries(buildFillerRowSpecs(null, { includeCore: true }).map((row) => [row.id, row]));
+  assert.equal(rows.top_rated.minRating, 4.5);
+  assert.deepEqual(rows.verified.params, { verified: "1" });
+  assert.deepEqual(rows.under_10k.params, { price_max: "10000" });
+  assert.deepEqual(rows.studio.params, { apt_types: "Studio" });
+  assert.deepEqual(rows.spacious.params, { size_min: "60" });
+  assert.deepEqual(rows.furnished.params, { furnishing: "Fully Furnished" });
+  assert.deepEqual(rows.family.bedroomRange, { min: 3, max: null });
+});
+
+test("selectBrowseRows keeps every base row, skips duplicates and stops at the minimum", () => {
+  const row = (id) => ({ id });
+  const base = [row("for_you"), row("pets")];
+  const filler = ["top_rated", "pets", "verified", "newest", "under_10k", "studio", "spacious", "family", "furnished", "parking"].map(row);
+  const result = selectBrowseRows(base, filler);
+  assert.equal(result.length, 9);
+  assert.deepEqual(ids(result).slice(0, 2), ["for_you", "pets"]);
+  assert.equal(new Set(ids(result)).size, 9);
+
+  const many = Array.from({ length: 12 }, (_, i) => row(`personal-${i}`));
+  assert.equal(selectBrowseRows(many, filler).length, 12, "base rows are never trimmed");
+  assert.deepEqual(ids(selectBrowseRows([], [row("a")])), ["a"], "fewer rows than the minimum when nothing more exists");
+});
+
+test("both Browse pages pad their rows to the minimum", () => {
+  const tenant = readFileSync(new URL("../app/browse/components/BrowseDiscoveryContent.tsx", import.meta.url), "utf8");
+  const publicPage = readFileSync(new URL("../app/browse/page.tsx", import.meta.url), "utf8");
+  assert.match(tenant, /fillBrowseSections\(/);
+  assert.match(publicPage, /fillBrowseSections\(supabase, fixedSections, null, \{ includeCore: false \}\)/);
 });

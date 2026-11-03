@@ -4,7 +4,7 @@ import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import { fetchBrowseResults } from "../lib/fetch-browse-results";
 import { fetchDiscoverySections } from "../lib/fetch-browse-sections";
-import { buildRecommendedSection } from "../lib/fetch-recommended";
+import { fetchPersonalizedSections, fillBrowseSections } from "../lib/fetch-personalized-sections";
 import BrowseResultsBar from "./BrowseResultsBar";
 import BrowseSectionsList from "./BrowseSectionsList";
 import RenderApartments from "./RenderApartments";
@@ -14,27 +14,39 @@ type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 interface BrowseDiscoveryContentProps {
   supabase: ServerSupabaseClient;
   basePath?: string;
-  /** Portal tenant preferences; re-ranks the fetched pool only. */
+  /** Portal tenant preferences; null or skipped shows the fixed rows. */
   preferences?: TenantPreferences | null;
 }
 
 /**
- * The slow half of Browse: curated discovery sections, or the flat grid when
- * the sections RPC returns nothing. Kept as its own async server component so
- * the authorized page shell can render while these reads are still running.
- * Personalized sections reuse the already-fetched pool (no extra query).
+ * The slow half of Browse: rows built from the tenant's saved preferences, or
+ * the fixed discovery rows when there are none, or the flat grid when both
+ * come back empty. Kept as its own async server component so the authorized
+ * page shell can render while these reads are still running.
  */
 export default async function BrowseDiscoveryContent({
   supabase,
   basePath = "/browse",
   preferences = null,
 }: BrowseDiscoveryContentProps) {
-  const sections = await fetchDiscoverySections(supabase, basePath);
-  const recommended = buildRecommendedSection(sections, preferences);
-  const sectionsWithRecommended = recommended ? [recommended, ...sections] : sections;
+  // Saved preferences replace the fixed rows; skipped or empty personalization
+  // falls back to them.
+  const personalized = await fetchPersonalizedSections(supabase, preferences, basePath);
+  const isPersonalized = personalized.length > 0;
+  const base = isPersonalized
+    ? personalized
+    : await fetchDiscoverySections(supabase, basePath);
+  // Pad to the minimum row count; only rows that have apartments count.
+  const sections =
+    base.length > 0
+      ? await fillBrowseSections(supabase, base, isPersonalized ? preferences : null, {
+          includeCore: isPersonalized,
+          basePath,
+        })
+      : base;
 
-  if (sectionsWithRecommended.length > 0) {
-    return <BrowseSectionsList sections={sectionsWithRecommended} basePath={basePath} />;
+  if (sections.length > 0) {
+    return <BrowseSectionsList sections={sections} basePath={basePath} />;
   }
 
   // Empty/failed sections fall back to the filtered grid, exactly like the

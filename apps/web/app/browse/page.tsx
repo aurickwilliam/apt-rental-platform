@@ -8,6 +8,7 @@ import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
 import { fetchBrowseSections } from "./lib/fetch-browse-sections";
+import { fillBrowseSections } from "./lib/fetch-personalized-sections";
 import { isDefaultBrowseParams } from "./lib/browse-params";
 
 type PageProps = {
@@ -28,9 +29,14 @@ export default async function BrowsePage({ searchParams }: PageProps) {
   // sections. Anything filtered, searched, or paged shows the flat grid.
   // An empty/failed sections RPC falls back to the grid.
   const showSections = isDefaultBrowseParams(params);
-  const { sections, totalCount: sectionsTotal } = showSections
+  const { sections: fixedSections, totalCount: sectionsTotal } = showSections
     ? await fetchBrowseSections(supabase, "/browse")
     : { sections: [], totalCount: 0 };
+  // Pad the fixed rows to the minimum row count (no preferences when signed out).
+  const sections =
+    fixedSections.length > 0
+      ? await fillBrowseSections(supabase, fixedSections, null, { includeCore: false })
+      : fixedSections;
   const useSections = showSections && sections.length > 0;
 
   const { apartments: mapped, page, totalCount, pageSize } = useSections
