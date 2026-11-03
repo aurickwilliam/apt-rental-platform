@@ -163,6 +163,7 @@ const METHOD_LABELS: Record<string, string> = {
   card: 'Debit/Credit Card',
   cash: 'Cash',
   qrph: 'QR Ph',
+  bank_transfer: 'Bank Transfer',
 }
 
 export function methodLabel(method: string | null): string {

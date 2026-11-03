@@ -26,6 +26,7 @@ export default function LandlordLayout() {
       <Stack.Screen name="budget-category" />
       <Stack.Screen name="property-performance" />
       <Stack.Screen name="payments" />
+      <Stack.Screen name="payment-methods" />
     </Stack>
     </LandlordVerificationGate>
   );

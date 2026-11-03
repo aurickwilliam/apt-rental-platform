@@ -1,57 +1,81 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import type { PaymentMethod, PaymentMethodPreference } from "@repo/utils";
+import type { BankCode } from "@repo/constants";
+import type { PaymentMethod } from "@repo/utils";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 
 jest.mock("heroui-native", () => jest.requireActual("../../../../tests/support/heroUINativeStub"));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
 jest.mock("hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
-jest.mock("@tabler/icons-react-native", () => ({ IconCash: () => null, IconSettings: () => null, IconCircleCheckFilled: () => null }));
+jest.mock("@tabler/icons-react-native", () => ({ IconBuildingBank: () => null, IconCash: () => null, IconCircleCheckFilled: () => null }));
 jest.mock("./CashPaymentForm", () => () => null);
 
-function props(preferences: PaymentMethodPreference = { savedMethods: [], defaultMethod: null }, selectedMethod: PaymentMethod | null = null) {
+const ALL_METHODS: PaymentMethod[] = ["GCash", "Maya", "QRPh", "Bank Transfer", "Debit/Credit-Card", "Cash"];
+
+function props(selectedMethod: PaymentMethod | null = null) {
   return {
-    preferences, selectedMethod, preferencesLoading: false, preferencesError: null as string | null,
-    onRetryPreferences: jest.fn(), onManagePreferences: jest.fn(), onPaymentMethodChange: jest.fn(),
-    cardInformation: { cardNumber: "", expiryDate: "", cardholderName: "", cvv: "", isPaymentSaved: false, isCardNumberValid: false },
-    onCardInformationChange: jest.fn(), cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
+    selectedMethod, acceptedMethods: ALL_METHODS, methodsLoading: false, methodsError: null as string | null,
+    onRetryMethods: jest.fn(), amount: 15000, selectedBank: null as BankCode | null, onBankChange: jest.fn(),
+    onPaymentMethodChange: jest.fn(),
+    cashPaymentDate: null, onCashPaymentDateChange: jest.fn(),
   };
 }
 
-it("shows preferred types first, labels the default, and keeps all other types available", () => {
-  const options = props({ savedMethods: ["GCash", "Maya"], defaultMethod: "Maya" }, "Maya");
+it("lists every method the landlord accepts as one choice list with nothing preselected", () => {
+  const options = props();
   render(<PaymentMethodSelector {...options} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
-  expect(screen.getByText("Preferred payment")).toBeTruthy();
-  expect(screen.getByText("Other payment methods")).toBeTruthy();
-  expect(screen.getByLabelText("Maya, default").props.accessibilityState.selected).toBe(true);
-  expect(screen.getByText("Default")).toBeTruthy();
-  expect(screen.getByText("Default").props.className).toContain("mb-2");
+  const radios = screen.getAllByRole("radio");
+  expect(radios).toHaveLength(6);
+  expect(radios.every((radio) => !radio.props.accessibilityState.selected)).toBe(true);
   fireEvent.press(screen.getByLabelText("Cash"));
   expect(options.onPaymentMethodChange).toHaveBeenCalledWith("Cash");
-  fireEvent.press(screen.getByText("Manage preferences"));
-  expect(options.onManagePreferences).toHaveBeenCalledTimes(1);
+  // Preferences are gone: no preferred section, default badge or manage button.
+  expect(screen.queryByText("Manage preferences")).toBeNull();
+  expect(screen.queryByText("Preferred payment")).toBeNull();
+  expect(screen.queryByText("Default")).toBeNull();
 });
 
-it("allows manual checkout and retry when preferences fail to load", () => {
-  const options = { ...props(), preferencesError: "Couldn't load your payment preferences. Please try again." };
+it("marks the method the tenant chose", () => {
+  render(<PaymentMethodSelector {...props("Maya")} />);
+  expect(screen.getByLabelText("Maya").props.accessibilityState.selected).toBe(true);
+  expect(screen.getByLabelText("GCash").props.accessibilityState.selected).toBe(false);
+});
+
+it("offers only the methods the landlord accepts", () => {
+  render(<PaymentMethodSelector {...props()} acceptedMethods={["Maya", "Cash"]} />);
+  expect(screen.getAllByRole("radio")).toHaveLength(2);
+  expect(screen.queryByLabelText("GCash")).toBeNull();
+  expect(screen.getByLabelText("Maya")).toBeTruthy();
+  expect(screen.getByLabelText("Cash")).toBeTruthy();
+});
+
+it("offers nothing while the accepted methods load, instead of guessing", () => {
+  render(<PaymentMethodSelector {...props()} acceptedMethods={[]} methodsLoading />);
+  expect(screen.queryAllByRole("radio")).toHaveLength(0);
+  expect(screen.getByText("Loading payment methods…")).toBeTruthy();
+});
+
+it("offers nothing when the accepted methods fail to load and lets the tenant retry", () => {
+  const options = { ...props(), acceptedMethods: [] as PaymentMethod[], methodsError: "Couldn't load the payment methods your landlord accepts. Please try again." };
   render(<PaymentMethodSelector {...options} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
-  fireEvent.press(screen.getByLabelText("GCash"));
-  expect(options.onPaymentMethodChange).toHaveBeenCalledWith("GCash");
-  fireEvent.press(screen.getByText("Retry preferences"));
-  expect(options.onRetryPreferences).toHaveBeenCalledTimes(1);
+  expect(screen.queryAllByRole("radio")).toHaveLength(0);
+  expect(screen.getByText(options.methodsError)).toBeTruthy();
+  fireEvent.press(screen.getByText("Retry"));
+  expect(options.onRetryMethods).toHaveBeenCalledTimes(1);
 });
 
-it("still requires new card details when Card is the preferred default", () => {
-  render(<PaymentMethodSelector {...props({ savedMethods: ["Debit/Credit-Card"], defaultMethod: "Debit/Credit-Card" }, "Debit/Credit-Card")} />);
-  expect(screen.getByText("Card Details")).toBeTruthy();
-  expect(screen.getByPlaceholderText("**** **** **** ****").props.value).toBe("");
-  expect(screen.queryByText(/Visa ••/)).toBeNull();
-  expect(screen.queryByText(/Mastercard ••/)).toBeNull();
+it("has no in-app card form: card is entered on PayMongo's hosted page", () => {
+  render(<PaymentMethodSelector {...props("Debit/Credit-Card")} />);
+  expect(screen.getByLabelText("Debit/Credit Card").props.accessibilityState.selected).toBe(true);
+  expect(screen.queryByText("Card Details")).toBeNull();
+  expect(screen.queryByPlaceholderText("**** **** **** ****")).toBeNull();
 });
 
-it("does not duplicate methods when every type is preferred", () => {
-  render(<PaymentMethodSelector {...props({ savedMethods: ["GCash", "Maya", "QRPh", "Debit/Credit-Card", "Cash"], defaultMethod: "Cash" }, "Cash")} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(5);
-  expect(screen.queryByText("Other payment methods")).toBeNull();
+it("shows the banks for Bank Transfer and disables one over its limit with the reason", () => {
+  const options = { ...props("Bank Transfer"), amount: 80000 };
+  render(<PaymentMethodSelector {...options} />);
+  expect(screen.getByText("Choose your bank")).toBeTruthy();
+  expect(screen.getByLabelText("BPI, unavailable. BPI allows up to ₱50,000 per payment.").props.accessibilityState.disabled).toBe(true);
+  expect(screen.getByLabelText("UnionBank").props.accessibilityState.disabled).toBe(false);
+  fireEvent.press(screen.getByLabelText("UnionBank"));
+  expect(options.onBankChange).toHaveBeenCalledWith("ubp");
 });

@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Chip } from "heroui-native";
 import {
+  IconBuildingBank,
   IconCash,
   IconCreditCard,
   IconDeviceMobile,
@@ -20,6 +21,7 @@ const METHOD_ICONS: Record<PaymentMethodKey, MethodIcon> = {
   gcash: IconDeviceMobile,
   maya: IconWallet,
   qrph: IconQrcode,
+  bank_transfer: IconBuildingBank,
   card: IconCreditCard,
   cash: IconCash,
 };

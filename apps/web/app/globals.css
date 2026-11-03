@@ -1363,6 +1363,65 @@ body[data-scroll-locked] [role="option"] {
   color: var(--muted-foreground);
 }
 
+/* Touch controls stay visible; pointer users reveal photo editing on hover
+   or keyboard focus, without removing the button from the tab order. */
+.profile-cover-trigger,
+.profile-avatar-view-trigger {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  cursor: pointer;
+  background-color: transparent;
+  transform: none;
+}
+
+.profile-avatar-view-trigger {
+  border-radius: 9999px;
+}
+
+.profile-cover-trigger:is(:focus-visible, [data-focus-visible="true"]),
+.profile-avatar-view-trigger:is(:focus-visible, [data-focus-visible="true"]) {
+  outline: 2px solid var(--primary);
+  outline-offset: -4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-cover-banner .profile-cover-toolbar,
+  .profile-avatar-photo:not(:hover, :focus-within) .profile-avatar-edit-trigger {
+    opacity: 0;
+  }
+
+  .profile-cover-banner:is(:hover, :focus-within) .profile-cover-toolbar {
+    opacity: 1;
+  }
+}
+
+/* HeroUI's default close icon uses text-muted (a pale fill token here).
+   Keep the profile editor's close control readable without changing other overlays. */
+.edit-profile-close-control {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.edit-profile-close-control svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.edit-profile-close-control:is(:hover, [data-hovered="true"]):not(:disabled) {
+  background-color: var(--border);
+}
+
+.edit-profile-close-control:is(:focus-visible, [data-focus-visible="true"]) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .create-listing-amenities-search .search-field__clear-button {
   width: 1.75rem;
   height: 1.75rem;

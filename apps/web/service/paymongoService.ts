@@ -1,19 +1,14 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import type { BankCode } from "@repo/constants";
 
-// Web twin of mobile service/payments/paymongoService.ts (read-only study, not modified).
+// Web twin of mobile service/payments/paymongoService.ts.
 // Proxies PayMongo through the `paymongo` edge function so the secret never
-// reaches the browser. Mock mode applies server-side while PAYMONGO_SECRET_KEY
-// is unset (-fail/-expired simulation, card 0002 decline).
-
-export type PaymongoCard = {
-  number: string;
-  expMonth: number;
-  expYear: number;
-  cvc: string;
-  name: string;
-};
+// reaches the browser. Every method (wallets, bank transfer and card) is paid on
+// PayMongo's hosted page, so no account, wallet or card number goes through the app.
+// Mock mode applies server-side while PAYMONGO_SECRET_KEY is unset (-fail/-expired
+// simulation).
 
 export type PaymongoCheckoutSession = {
   id: string;
@@ -22,11 +17,6 @@ export type PaymongoCheckoutSession = {
 };
 
 export type PaymongoSessionStatus = "paid" | "failed" | "expired" | "pending";
-
-export type PaymongoCardPaymentResult = {
-  status: "succeeded" | "failed";
-  failureReason: string | null;
-};
 
 export class PaymongoError extends Error {
   reason: string;
@@ -106,7 +96,8 @@ export async function createCheckoutSession(params: {
   amount: number;
   description: string;
   redirectBaseUrl: string;
-  method?: "gcash" | "maya" | "qrph";
+  method?: "gcash" | "maya" | "qrph" | "bank_transfer" | "card";
+  bankCode?: BankCode;
   tenancyId?: string;
   periodStart?: string | null;
   periodEnd?: string | null;
@@ -163,25 +154,4 @@ export async function cancelCheckoutSession(sessionId: string): Promise<Paymongo
     { sessionId },
   );
   return toSessionStatus(response.data.attributes.status);
-}
-
-export async function createCardPayment(params: {
-  referenceId: string;
-  amount: number;
-  description: string;
-  card: PaymongoCard;
-  tenancyId?: string;
-  periodStart?: string | null;
-  periodEnd?: string | null;
-  dueDate?: string | null;
-}): Promise<PaymongoCardPaymentResult> {
-  const response = await invoke<PaymongoEnvelope<{ attributes: { status: string; failure_reason: string | null } }>>(
-    "createCardPayment",
-    params,
-  );
-
-  return {
-    status: response.data.attributes.status === "succeeded" ? "succeeded" : "failed",
-    failureReason: response.data.attributes.failure_reason,
-  };
 }

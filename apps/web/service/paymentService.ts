@@ -7,7 +7,7 @@ import type { PaymentAllocation } from "@repo/utils";
 // Same `payment` table contract: lowercase DB values, display mapping in
 // app/tenant/payment/utils.ts. Tenants insert cash `pending` only — never flip status.
 
-export type PaymentMethodDb = "gcash" | "maya" | "card" | "cash" | "qrph";
+export type PaymentMethodDb = "gcash" | "maya" | "card" | "cash" | "qrph" | "bank_transfer";
 
 export type PaymentStatusDb = "pending" | "paid" | "partial" | "unpaid";
 

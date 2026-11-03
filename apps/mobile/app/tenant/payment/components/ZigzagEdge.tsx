@@ -35,13 +35,23 @@ export default function ZigzagEdge({
   const teeth = Math.max(1, Math.round(width / toothWidth))
   const tooth = width / teeth
 
-  let d = hanging ? 'M0,0 ' : `M0,${depth} `
-  for (let i = 0; i < teeth; i++) {
-    const midX = i * tooth + tooth / 2
-    const endX = (i + 1) * tooth
-    d += hanging ? `L${midX},${depth} L${endX},0 ` : `L${midX},0 L${endX},${depth} `
+  let d: string
+  if (hanging) {
+    d = 'M0,0 '
+    for (let i = 0; i < teeth; i++) {
+      d += `L${i * tooth + tooth / 2},${depth} L${(i + 1) * tooth},0 `
+    }
+    d += 'Z'
+  } else {
+    // The card's own teeth point down at the middle of each segment, so its two ends are
+    // valleys: the notch there is half a triangle against the page background and reads as
+    // a clean edge, not as a half tooth stuck to the corner.
+    d = `M0,${depth} L0,0 `
+    for (let i = 0; i < teeth; i++) {
+      d += `L${i * tooth + tooth / 2},${depth} L${(i + 1) * tooth},0 `
+    }
+    d += `L${width},${depth} Z`
   }
-  d += 'Z'
 
   // Notches cut into the card overlay its bottom edge; hanging teeth sit in the flow
   // right below it, which is where paper-colored teeth have to be to show at all.

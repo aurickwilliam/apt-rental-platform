@@ -37,7 +37,7 @@ import { buildConversationKey } from '@/service/chat/chatService';
 
 import { Button } from 'heroui-native';
 
-import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
+import { findPendingOnlinePayment, formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
@@ -223,6 +223,8 @@ export default function Rentals() {
   if (view === 'tenancy' && tenancy) {
     const { apartment, landlord } = tenancy;
     const rent = getCurrentRentStatus(tenancy, paymentsQuery.data ?? []);
+    // A tenancy without a server bill carries its pending maintenance fees on the tenancy.
+    const legacyFeesTotal = (tenancy.legacyFees ?? []).reduce((sum, fee) => sum + fee.amount, 0);
     const pendingApplicationCount = applications.filter(
       (application) => application.status === 'pending',
     ).length;
@@ -313,7 +315,9 @@ export default function Rentals() {
             periodMonth={formatDate(rent.periodStart, "month")}
             periodYear={formatDate(rent.periodStart, "year")}
             status={rent.status}
-            totalRent={rent.monthlyRent}
+            totalRent={rent.monthlyRent + (tenancy.bill ? 0 : legacyFeesTotal)}
+            hasPendingPayment={tenancy.bill ? Boolean(tenancy.bill.pendingPayment) : findPendingOnlinePayment(paymentsQuery.data ?? [], rent.periodStart) !== null}
+            feesTotal={tenancy.bill ? tenancy.bill.fees.reduce((sum, fee) => sum + fee.amount, 0) : legacyFeesTotal}
             dueDate={formatDate(rent.dueDate, "medium")}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}

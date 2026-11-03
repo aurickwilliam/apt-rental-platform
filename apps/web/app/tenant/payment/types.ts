@@ -1,5 +1,5 @@
 import type { PaymentMethod } from "@repo/utils";
-export type { PaymentMethod, PaymentMethodPreference } from "@repo/utils";
+export type { PaymentMethod } from "@repo/utils";
 
 export type PaymentStatus = "Paid" | "Pending" | "Failed" | "Unpaid" | "Rejected";
 
@@ -46,14 +46,6 @@ export interface TenancyMock {
     due_date: string;
   };
 }
-
-export type CardInformation = {
-  cardNumber: string;
-  expiryDate: string;
-  cardholderName: string;
-  cvv: string;
-  isCardNumberValid?: boolean;
-};
 
 export type CashPaymentErrors = {
   paymentDate?: string;

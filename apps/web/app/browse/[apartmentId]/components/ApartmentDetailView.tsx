@@ -22,6 +22,7 @@ import {
 import ApartmentReviewsPreview from "./ApartmentReviewsPreview";
 import RelatedApartments from "./RelatedApartments";
 import PriceCard from "./PriceCard";
+import AcceptedPaymentMethods from "./AcceptedPaymentMethods";
 import ShareBtn from "./ShareBtn";
 import FavoriteBtn from "./FavoriteBtn";
 import LandlordChatPanel from "./LandlordChatPanel";
@@ -83,7 +84,7 @@ export default async function ApartmentDetailView({
           .eq("status", "pending").limit(1)
       : { data: null },
   );
-  const [profileResult, landlordResult, relatedResult, pendingResult, verifiedLandlordIds] = await Promise.all([
+  const [profileResult, landlordResult, relatedResult, pendingResult, verifiedLandlordIds, acceptedMethodsResult] = await Promise.all([
     profilePromise,
     apartment.landlord_id
       ? supabase
@@ -106,6 +107,8 @@ export default async function ApartmentDetailView({
       .limit(1, { referencedTable: "apartment_images" }),
     pendingPromise,
     fetchVerifiedLandlordIds(supabase, apartment.landlord_id ? [apartment.landlord_id] : []),
+    // Method names only; a failed read just leaves the card out.
+    supabase.rpc("get_apartment_accepted_methods", { p_apartment_id: apartmentId }),
   ]);
 
   const { data: currentUser } = profileResult;
@@ -284,6 +287,8 @@ export default async function ApartmentDetailView({
             apartmentName={apartment.name ?? ""}
             profilePortal={basePath === "/tenant/browse" ? "tenant" : basePath === "/landlord/browse" ? "landlord" : "public"}
           />
+
+          <AcceptedPaymentMethods methods={acceptedMethodsResult.error ? null : acceptedMethodsResult.data} />
         </div>
       </div>
 

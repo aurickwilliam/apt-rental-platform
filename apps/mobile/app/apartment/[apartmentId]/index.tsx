@@ -33,7 +33,7 @@ import MoveInCostFooter from "./components/sections/MoveInCostFooterSection";
 import ApartmentSkeleton from "./components/ApartmentSkeleton";
 import ApartmentDetailsSection from "./components/sections/ApartmentDetailsSection";
 
-import { useApartmentDetails } from "@/hooks/apartments";
+import { useApartmentAcceptedMethods, useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 import { useLightStatusBar } from "@/hooks/useLightStatusBar";
@@ -65,6 +65,7 @@ export default function ApartmentScreen() {
     refetch,
     refetchReviews,
   } = useApartmentDetails(apartmentId);
+  const { data: acceptedMethods } = useApartmentAcceptedMethods(apartmentId ?? null);
   const currentUserId = useCurrentUserId();
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const ratingsOffsetY = useRef(0);
@@ -271,6 +272,7 @@ export default function ApartmentScreen() {
         monthlyRent={apartment?.monthly_rent ?? 0}
         securityDeposit={apartment?.security_deposit}
         advanceRent={apartment?.advance_rent}
+        acceptedMethods={acceptedMethods}
         onApplyNow={handleApplyNow}
         applyDisabledReason={applyDisabledReason}
       />

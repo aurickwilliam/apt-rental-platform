@@ -1,20 +1,15 @@
 import { supabase } from '@repo/supabase'
+import type { BankCode } from '@repo/constants'
 
 // Client for the `paymongo` Supabase Edge Function. The function holds the
 // PayMongo secret key; the client only sends data the app already has.
 //
+// Every method (wallets, bank transfer and card) is paid on PayMongo's hosted page, so no
+// account, wallet or card number ever goes through the app or the edge function.
+//
 // Mock mode: while PAYMONGO_SECRET_KEY is unset on the edge function, all calls
-// return PayMongo-shaped mock responses. For e-wallet sessions, a reference id
-// ending in "-fail" or "-expired" simulates a failed/expired session; card
-// numbers ending in "0002" are declined.
-
-export type PaymongoCard = {
-  number: string
-  expMonth: number
-  expYear: number
-  cvc: string
-  name: string
-}
+// return PayMongo-shaped mock responses. A reference id ending in "-fail" or
+// "-expired" simulates a failed/expired session.
 
 export type PaymongoCheckoutSession = {
   id: string
@@ -23,11 +18,6 @@ export type PaymongoCheckoutSession = {
 }
 
 export type PaymongoSessionStatus = 'paid' | 'failed' | 'expired' | 'pending'
-
-export type PaymongoCardPaymentResult = {
-  status: 'succeeded' | 'failed'
-  failureReason: string | null
-}
 
 // Error codes surfaced by the paymongo edge function (for example
 // configuration_error or not_found). Code is null for transport/unknown failures.
@@ -109,7 +99,8 @@ export async function createCheckoutSession(params: {
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya' | 'qrph'
+  method?: 'gcash' | 'maya' | 'qrph' | 'bank_transfer' | 'card'
+  bankCode?: BankCode
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null
@@ -175,24 +166,4 @@ export async function cancelCheckoutSession(sessionId: string): Promise<Paymongo
   }>>('cancelCheckoutSession', { sessionId })
 
   return toSessionStatus(response.data.attributes.status)
-}
-
-export async function createCardPayment(params: {
-  referenceId: string
-  amount: number
-  description: string
-  card: PaymongoCard
-  tenancyId?: string
-  periodStart?: string | null
-  periodEnd?: string | null
-  dueDate?: string | null
-}): Promise<PaymongoCardPaymentResult> {
-  const response = await invoke<PaymongoEnvelope<{
-    attributes: { status: string; failure_reason: string | null }
-  }>>('createCardPayment', params)
-
-  return {
-    status: response.data.attributes.status === 'succeeded' ? 'succeeded' : 'failed',
-    failureReason: response.data.attributes.failure_reason,
-  }
 }
