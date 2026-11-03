@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
+import { Button, Card, Disclosure, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
-import { IconTool as Wrench } from "@tabler/icons-react";
+import { IconTool as Wrench, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
 import { useMaintenancePhotoUrls } from "@/hooks/use-maintenance-photo-urls";
@@ -50,8 +50,14 @@ export default function MaintenanceHistory({
   onRetry,
 }: MaintenanceHistoryProps) {
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const isHistory = kind === "history";
   const cancelDialog = useOverlayState();
-  const photos = useMaintenancePhotoUrls(!loading && !error ? requests.flatMap((request) => request.image_paths ?? []) : []);
+  const photos = useMaintenancePhotoUrls(!loading && !error
+    ? requests.filter((request) => !isHistory || expandedIds.has(request.id)).flatMap((request) => request.image_paths ?? [])
+    : []);
+  const RequestContainer = isHistory ? Disclosure : "div";
+  const DetailsContainer = isHistory ? Disclosure.Content : "div";
 
   const openCancel = (id: string) => {
     setPendingCancelId(id);
@@ -72,21 +78,21 @@ export default function MaintenanceHistory({
 
   return (
     <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <Card.Content className="p-6 sm:p-8">
+      <Card.Content style={{ padding: 4 }}>
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
           <h2 className="text-base font-nunito font-semibold text-card-foreground">
             {kind === "active" ? "Active maintenance requests" : "Maintenance request history"}
           </h2>
         </div>
-        <p className="font-inter text-sm text-muted-foreground mb-4">
+        <p className={`font-inter text-sm text-muted-foreground ${isHistory ? "mb-4" : "mb-3"}`}>
           {kind === "active" ? "Track your pending and in-progress requests." : "Review your resolved and cancelled requests."}
         </p>
         {photos.loading ? <p role="status" className="text-xs text-muted-foreground">Loading request photos…</p> : null}
         {photos.error ? <p role="alert" className="text-xs text-danger">{photos.error}</p> : null}
 
         {loading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-4">
             <Spinner color="accent" />
           </div>
         ) : error ? (
@@ -95,24 +101,34 @@ export default function MaintenanceHistory({
             {onRetry ? <Button variant="outline" size="sm" onPress={onRetry}>Retry requests</Button> : null}
           </div>
         ) : requests.length === 0 ? (
-          <p className="font-inter text-sm text-muted-foreground text-center py-6">
+          <p className="font-inter text-sm text-muted-foreground text-center py-2">
             {kind === "active" ? "No active maintenance requests. Need a repair? Select Request Maintenance above." : "No resolved or cancelled requests yet."}
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className={isHistory ? "flex flex-col gap-2" : "flex flex-col gap-3"}>
             {requests.map((request) => {
               const imageUrls = request.image_paths?.length
                 ? request.image_paths.map((path) => photos.urls[path]).filter((url): url is string => !!url)
                 : request.image_urls;
               const urgencyStyle = URGENCY_STYLE[request.urgency] ?? URGENCY_STYLE.medium;
               const cancellable = canCancelMaintenanceRequest(request.status);
+              const expanded = !isHistory || expandedIds.has(request.id);
               return (
-                <div
+                <RequestContainer
                   key={request.id}
-                  className="rounded-xl border border-border p-4"
+                  className={isHistory ? "rounded-xl border border-border px-3 py-2.5" : "rounded-xl border border-border p-4"}
+                  {...(isHistory ? {
+                    isExpanded: expanded,
+                    onExpandedChange: (open: boolean) => setExpandedIds((previous) => {
+                      const next = new Set(previous);
+                      if (open) next.add(request.id);
+                      else next.delete(request.id);
+                      return next;
+                    }),
+                  } : {})}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
+                  <div className={isHistory ? "flex flex-wrap items-center justify-between gap-2" : "flex flex-wrap items-start justify-between gap-2"}>
+                    <div className={isHistory ? "min-w-0 flex-1 basis-48" : "min-w-0"}>
                       <p className="font-nunito text-sm font-semibold text-card-foreground truncate">
                         {request.title}
                       </p>
@@ -121,7 +137,7 @@ export default function MaintenanceHistory({
                         {new Date(request.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <StatusChip
                         size="sm"
                         tone={urgencyStyle.tone}
@@ -132,9 +148,24 @@ export default function MaintenanceHistory({
                       <StatusChip size="sm" tone={statusChipColor(request.status)} className="font-nunito font-semibold">
                         {request.status}
                       </StatusChip>
+                      {isHistory ? (
+                        <Disclosure.Heading>
+                          <Disclosure.Trigger
+                            aria-label={`${expanded ? "Hide" : "View"} details for ${request.title}`}
+                            className="rounded-lg px-2 py-1.5 font-nunito text-sm font-semibold text-primary"
+                          >
+                            <span className="flex items-center gap-1">
+                              {expanded ? "Hide details" : "View details"}
+                              {expanded ? <IconChevronUp size={16} aria-hidden="true" /> : <IconChevronDown size={16} aria-hidden="true" />}
+                            </span>
+                          </Disclosure.Trigger>
+                        </Disclosure.Heading>
+                      ) : null}
                     </div>
                   </div>
 
+                  <DetailsContainer>
+                  {expanded ? <div>
                   <p className="font-inter text-sm text-muted-foreground mt-2 whitespace-pre-line">
                     {request.message}
                   </p>
@@ -186,7 +217,9 @@ export default function MaintenanceHistory({
                       </Button>
                     </div>
                   )}
-                </div>
+                  </div> : null}
+                  </DetailsContainer>
+                </RequestContainer>
               );
             })}
           </div>

@@ -16,19 +16,19 @@ interface MaintenanceOverviewProps {
 export default function MaintenanceOverview({ data, loading, error, onRetry }: MaintenanceOverviewProps) {
   return (
     <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <Card.Content className="space-y-5 p-6">
+      <Card.Content className="space-y-3" style={{ padding: 4 }}>
         <h2 className="font-nunito text-base font-semibold text-card-foreground">Overview</h2>
-        <dl className="space-y-5">
+        <dl className="space-y-3">
           <div>
             <dt className="flex items-center gap-2 text-sm text-muted-foreground"><IconTool size={18} aria-hidden="true" />Active requests</dt>
-            <dd className="mt-2 font-nunito text-3xl font-bold text-primary">
+            <dd className="mt-1 font-nunito text-3xl font-bold text-primary">
               {loading ? <Skeleton className="h-9 w-16 rounded-lg bg-skeleton!" aria-label="Loading active request count" /> : data ? data.activeCount : "—"}
             </dd>
             <dd className="mt-1 text-xs text-muted-foreground">Pending and in progress</dd>
           </div>
-          <div className="border-t border-border pt-5">
+          <div className="border-t border-border pt-3">
             <dt className="flex items-center gap-2 text-sm text-muted-foreground"><IconReceipt size={18} aria-hidden="true" />Unpaid maintenance fees</dt>
-            <dd className="mt-2 break-words font-nunito text-3xl font-bold text-primary">
+            <dd className="mt-1 break-words font-nunito text-3xl font-bold text-primary">
               {loading ? <Skeleton className="h-9 w-32 rounded-lg bg-skeleton!" aria-label="Loading unpaid maintenance fees" /> : data ? formatPesoDisplay(data.unpaidFees) : "—"}
             </dd>
             <dd className="mt-1 text-xs text-muted-foreground">All outstanding fees for your current tenancy, including previous months. Paid and waived fees are excluded.</dd>

@@ -4,13 +4,13 @@ function Sk({ className }: { className: string }) {
   return <Skeleton className={`bg-skeleton! ${className}`} />;
 }
 
-function RequestListSkeleton() {
+function RequestListSkeleton({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-6 sm:p-8">
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
       <Sk className="h-5 w-56 max-w-full rounded-lg" />
       <Sk className="h-4 w-72 max-w-full rounded-lg" />
-      <Sk className="h-32 w-full rounded-xl" />
-      <Sk className="h-32 w-full rounded-xl" />
+      <Sk className={`${compact ? "h-16" : "h-32"} w-full rounded-xl`} />
+      <Sk className={`${compact ? "h-16" : "h-32"} w-full rounded-xl`} />
     </div>
   );
 }
@@ -32,18 +32,18 @@ export default function MaintenancePageSkeleton({ showHeader = true }: { showHea
       ) : null}
       <div className="grid items-start gap-4 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-2"><RequestListSkeleton /></div>
-        <div className="space-y-5 rounded-2xl border border-border bg-card p-6">
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
           <Sk className="h-5 w-24 rounded-lg" />
           <Sk className="h-4 w-32 rounded-lg" />
           <Sk className="h-9 w-16 rounded-lg" />
-          <div className="space-y-3 border-t border-border pt-5">
+          <div className="space-y-3 border-t border-border pt-3">
             <Sk className="h-4 w-48 max-w-full rounded-lg" />
             <Sk className="h-9 w-32 rounded-lg" />
             <Sk className="h-12 w-full rounded-lg" />
           </div>
         </div>
       </div>
-      <RequestListSkeleton />
+      <RequestListSkeleton compact />
     </div>
   );
 }
