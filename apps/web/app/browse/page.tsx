@@ -54,7 +54,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
         <SearchContainer
           mapHref="/browse/map"
           filterButton={
-            <FilterDrawerButton resultCount={totalCount} basePath="/browse" />
+            <FilterDrawerButton resultCount={totalCount} basePath="/browse" variant="ghost" size="md" />
           }
         />
       </Suspense>

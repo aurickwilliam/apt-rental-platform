@@ -1,24 +1,18 @@
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import {
+  IconHeart,
   IconLayoutGrid,
   IconLayoutRows,
-  IconHeart,
   IconMap,
-  IconMapPinFilled,
   IconSparkles,
 } from '@tabler/icons-react-native';
-
-import DropdownButton from 'components/buttons/DropdownButton';
 
 import { Button } from 'heroui-native';
 
 import { useColors } from 'hooks/useTheme';
 
 type SearchHeaderProps = {
-  cities: string[];
-  selectedCity: string;
-  onSelectCity: (city: string) => void;
   isGridView: boolean;
   onToggleView: () => void;
   onFavoritesPress: () => void;
@@ -27,10 +21,10 @@ type SearchHeaderProps = {
   onAskAvaPress?: () => void;
 };
 
+// Title row of the Explore tab: Ava, Favorites and the map at the right. The
+// search field and filters sit in one bar below (SearchFiltersBar), and the city
+// switch is the chip row under it.
 export default function SearchHeader({
-  cities,
-  selectedCity,
-  onSelectCity,
   isGridView,
   onToggleView,
   onFavoritesPress,
@@ -42,18 +36,13 @@ export default function SearchHeader({
 
   return (
     <View className='flex-row items-center justify-between mb-3 px-5'>
-      <View className='flex-row gap-2'>
-        <IconMapPinFilled size={30} color={colors.primary} />
-
-        <DropdownButton
-          label='Select Location'
-          options={cities}
-          value={selectedCity}
-          onSelect={onSelectCity}
-          textClassName='text-xl text-foreground font-nunitoBold leading-[34px]'
-          buttonClassName='bg-transparent flex-row items-center justify-center gap-1'
-        />
-      </View>
+      <Text
+        className='flex-1 pr-3 text-2xl text-primary font-nunitoBold'
+        numberOfLines={1}
+        accessibilityRole='header'
+      >
+        Find your next home
+      </Text>
 
       <View className='flex-row items-center gap-4'>
         {onAskAvaPress && (

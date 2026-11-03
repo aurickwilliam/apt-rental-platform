@@ -49,6 +49,7 @@ describe("useBrowseRowPage", () => {
     await act(async () => {
       await result.current.fetchNextPage();
     });
+    await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
     expect(recorder.has(recorder.calls[1], "range", 10, 19)).toBe(true);
     expect(result.current.data?.pages.flat()).toHaveLength(BROWSE_ROW_PAGE_SIZE + 4);
     expect(result.current.hasNextPage).toBe(false);

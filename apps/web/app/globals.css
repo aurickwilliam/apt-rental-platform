@@ -2016,3 +2016,37 @@ html.apt-reduce-motion *::after {
 
 /* Dashboard occupancy meter: brand fill on the neutral card. */
 .occupancy-meter { --progress-bar-fill: var(--primary); }
+
+/* Browse hover preview: grows out of the card it covers (--hover-from-scale is
+   that card's size relative to the preview) and shrinks back into it on exit. */
+.apt-hover-preview {
+  transform-origin: center;
+  animation: apt-hover-preview-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.apt-hover-preview[data-closing="true"] {
+  animation: apt-hover-preview-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+@keyframes apt-hover-preview-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--hover-from-scale, 0.9));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes apt-hover-preview-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(var(--hover-from-scale, 0.95));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apt-hover-preview,
+  .apt-hover-preview[data-closing="true"] { animation: none; }
+}

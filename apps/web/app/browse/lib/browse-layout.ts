@@ -9,16 +9,21 @@ export function browseFrameClass(fullWidth: boolean): string {
   return `px-4 sm:px-6 py-4 overflow-x-clip ${fullWidth ? "w-full" : "max-w-7xl mx-auto"}`;
 }
 
-// Primary-colored search hero. Below md the banner copy is hidden and only the
-// search pill remains.
-export const BROWSE_HERO_CLASS =
-  "w-full min-w-0 md:min-h-52 bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-3 md:px-4 py-3 md:py-10 md:text-center";
+// Search header: a short heading, one search bar that holds the filter, map and
+// Ava entries, and the city chips. No banner. Below md the heading is hidden and
+// the bar leads (mirrors the mobile app, which opens straight into search).
+export const BROWSE_HEADER_CLASS = "flex w-full min-w-0 flex-col gap-3";
 
-// Search pill (+ mobile filter entry) row inside the hero.
-export const BROWSE_SEARCH_ROW_CLASS =
-  "flex flex-row items-center gap-2 w-full max-w-xl mt-2 mx-auto min-w-0";
+// The bar is one pill: border and focus ring live here, so the input inside it
+// is borderless. Fixed height so the loading placeholder matches exactly.
+export const BROWSE_SEARCH_BAR_CLASS =
+  "relative flex h-12 w-full min-w-0 items-center gap-1 rounded-full border border-gray-300 bg-surface pl-1 pr-1.5 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15";
 
-// Results area under the hero: optional filter rail beside the content.
+// One line of city chips; it scrolls sideways on narrow screens instead of wrapping.
+export const BROWSE_CITY_CHIPS_CLASS =
+  "flex min-w-0 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+// Results area under the header: optional filter rail beside the content.
 export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";
 
 // Apartment results grid, shared by the loaded grid and its skeleton so the

@@ -6,8 +6,10 @@ import type { BrowseApartment } from "../lib/fetch-browse-results";
 
 const HOVER_EXPAND_DELAY_MS = 450;
 const HOVER_COLLAPSE_DELAY_MS = 150;
+// Matches the exit animation in globals.css (.apt-hover-preview[data-closing]).
+const PREVIEW_EXIT_MS = 160;
 const PREVIEW_WIDTH = 320;
-const PREVIEW_ESTIMATED_HEIGHT = 388;
+const PREVIEW_ESTIMATED_HEIGHT = 308;
 const VIEWPORT_MARGIN = 8;
 
 export interface HoveredCardRect {
@@ -29,11 +31,15 @@ function canHoverPreview(): boolean {
   );
 }
 
-export function previewPosition(rect: HoveredCardRect): {
+export interface PreviewPlacement {
   left: number;
   top: number;
   width: number;
-} {
+  /** Size of the covered card relative to the preview: the scale it grows from. */
+  fromScale: number;
+}
+
+export function previewPosition(rect: HoveredCardRect): PreviewPlacement {
   const left = Math.min(
     Math.max(rect.left + rect.width / 2 - PREVIEW_WIDTH / 2, VIEWPORT_MARGIN),
     Math.max(window.innerWidth - PREVIEW_WIDTH - VIEWPORT_MARGIN, VIEWPORT_MARGIN),
@@ -42,7 +48,7 @@ export function previewPosition(rect: HoveredCardRect): {
     Math.max(rect.top + rect.height / 2 - PREVIEW_ESTIMATED_HEIGHT / 2, VIEWPORT_MARGIN),
     Math.max(window.innerHeight - PREVIEW_ESTIMATED_HEIGHT - VIEWPORT_MARGIN, VIEWPORT_MARGIN),
   );
-  return { left, top, width: PREVIEW_WIDTH };
+  return { left, top, width: PREVIEW_WIDTH, fromScale: Math.min(rect.width / PREVIEW_WIDTH, 1) };
 }
 
 // Shared Netflix-style hover-preview intent: expand after a dwell so casual
@@ -51,14 +57,26 @@ export function previewPosition(rect: HoveredCardRect): {
 // synchronously in an effect body.
 export function useHoverPreview() {
   const [preview, setPreview] = useState<HoveredCard | null>(null);
+  // True while the exit animation plays; the preview stays mounted until it ends.
+  const [isPreviewClosing, setIsPreviewClosing] = useState(false);
   const expandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimers = () => {
     if (expandTimer.current) clearTimeout(expandTimer.current);
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
+    if (exitTimer.current) clearTimeout(exitTimer.current);
     expandTimer.current = null;
     collapseTimer.current = null;
+    exitTimer.current = null;
+  };
+
+  // Hovering again while the preview is leaving brings it back.
+  const cancelExit = () => {
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    exitTimer.current = null;
+    setIsPreviewClosing(false);
   };
 
   const handleHoverCard = useCallback(
@@ -68,6 +86,7 @@ export function useHoverPreview() {
       collapseTimer.current = null;
       if (expandTimer.current) clearTimeout(expandTimer.current);
       expandTimer.current = setTimeout(() => {
+        cancelExit();
         setPreview({ apartment, rect });
       }, HOVER_EXPAND_DELAY_MS);
     },
@@ -79,18 +98,25 @@ export function useHoverPreview() {
     expandTimer.current = null;
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
     collapseTimer.current = setTimeout(() => {
-      setPreview(null);
+      setIsPreviewClosing(true);
+      exitTimer.current = setTimeout(() => {
+        setPreview(null);
+        setIsPreviewClosing(false);
+      }, PREVIEW_EXIT_MS);
     }, HOVER_COLLAPSE_DELAY_MS);
   }, []);
 
   const handleKeepPreview = useCallback(() => {
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
     collapseTimer.current = null;
+    cancelExit();
   }, []);
 
+  // Immediate: scroll, resize, Escape and navigation have nothing to animate back to.
   const dismissPreview = useCallback(() => {
     clearTimers();
     setPreview(null);
+    setIsPreviewClosing(false);
   }, []);
 
   // Dismissal subscriptions only: scroll (captured, covers row swipes),
@@ -114,6 +140,7 @@ export function useHoverPreview() {
 
   return {
     preview,
+    isPreviewClosing,
     handleHoverCard,
     handleLeaveCard,
     handleKeepPreview,

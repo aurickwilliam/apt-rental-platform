@@ -46,9 +46,9 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     return (
       <BrowseShell
         basePath={BASE_PATH}
-        assistantButton={<AskAvaButton basePath={BASE_PATH} />}
+        assistantButton={<AskAvaButton basePath={BASE_PATH} variant="ghost" size="md" />}
         // No total is loaded in discovery, so the drawer omits the count.
-        filterButton={<FilterDrawerButton basePath={BASE_PATH} />}
+        filterButton={<FilterDrawerButton basePath={BASE_PATH} variant="ghost" size="md" />}
         fallback={
           <div className="w-full min-w-0 flex-1 rounded-lg p-0">
             <BrowseSectionsSkeleton />
@@ -73,7 +73,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   return (
     <BrowseShell
       basePath={BASE_PATH}
-      assistantButton={<AskAvaButton basePath={BASE_PATH} />}
+      assistantButton={<AskAvaButton basePath={BASE_PATH} variant="ghost" size="md" />}
       filterButton={
         <Suspense fallback={<FilterEntrySkeleton />}>
           <BrowseFilterEntry supabase={supabase} params={params} />
@@ -95,7 +95,7 @@ async function BrowseFilterEntry({
   params: Record<string, string>;
 }) {
   const { totalCount } = await loadBrowseResults(supabase, params);
-  return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} />;
+  return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} variant="ghost" size="md" />;
 }
 
 async function BrowseGridContent({

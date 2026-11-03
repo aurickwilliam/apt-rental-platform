@@ -111,6 +111,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const {
     preview,
+    isPreviewClosing,
     handleHoverCard,
     handleLeaveCard,
     handleKeepPreview,
@@ -253,12 +254,13 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           key={preview.apartment.id}
           apartment={preview.apartment}
           style={previewPosition(preview.rect)}
+          isClosing={isPreviewClosing}
           isFavorite={isFavorite(preview.apartment.id)}
           isFavoriteLoading={activeFavoriteId === preview.apartment.id}
           onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
-          onMouseLeave={dismissPreview}
+          onMouseLeave={handleLeaveCard}
         />
       )}
 
