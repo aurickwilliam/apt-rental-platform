@@ -95,7 +95,7 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
                 notify them right away and keep you posted on the status.
               </p>
             </div>
-            <Button variant="primary" onPress={() => setRequestOpen(true)} isDisabled={tenancyLoading || !!tenancyError || !tenancy || !apartmentId}>
+            <Button variant="primary" className="ml-auto self-end" onPress={() => setRequestOpen(true)} isDisabled={tenancyLoading || !!tenancyError || !tenancy || !apartmentId}>
               <IconPlus size={18} aria-hidden="true" />
               Request Maintenance
             </Button>
@@ -117,11 +117,11 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
             </div>
           ) : (
             <>
-              <div className="grid items-start gap-4 lg:grid-cols-3">
-                <div className="min-w-0 lg:col-span-2">
+              <div className="grid items-start gap-4 lg:grid-cols-3 lg:items-stretch">
+                <div className="min-w-0 lg:col-span-2 lg:grid">
                   <MaintenanceHistory requests={activeRequests} loading={historyLoading} error={historyError} cancellingId={cancellingId} onCancel={handleCancel} kind="active" onRetry={() => { void revalidate(); }} />
                 </div>
-                <aside className="min-w-0" aria-label="Maintenance overview">
+                <aside className="min-w-0 lg:grid" aria-label="Maintenance overview">
                   <MaintenanceOverview data={overview.data} loading={overview.loading} error={overview.error} onRetry={() => { void overview.refresh(); }} />
                 </aside>
               </div>

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+import { sortActiveMaintenanceRequests } from "./maintenance-featured-request.ts";
 
 const jsx = (type, props) => ({ type, props });
 const Disclosure = Object.assign(() => {}, { Heading: "DisclosureHeading", Trigger: "DisclosureTrigger", Content: "DisclosureContent" });
@@ -18,8 +19,12 @@ function fixture(kind = "history", selectedRequests = requests) {
     react: runtime.react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }), Disclosure, Modal: Object.assign(() => {}, { Backdrop: "Backdrop", Container: "Container", Dialog: "Dialog", Header: "Header", Heading: "Heading", Body: "Body", Footer: "Footer" }), Spinner: "Spinner", useOverlayState: () => ({ isOpen: false }), toast: {} },
-    "@tabler/icons-react": { IconTool: "IconTool", IconChevronDown: "ChevronDown", IconChevronUp: "ChevronUp" },
+    "@tabler/icons-react": { IconTool: "IconTool", IconChevronRight: "ChevronRight", IconChevronUp: "ChevronUp", IconStack: "IconStack", IconCalendarEvent: "IconCalendarEvent", IconBolt: "IconBolt", IconLeaf: "IconLeaf", IconCircleCheck: "IconCircleCheck", IconCircleX: "IconCircleX" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
+    "./ActiveMaintenanceRequestCard": { default: "ActiveMaintenanceRequestCard" },
+    "./ActiveMaintenanceRequestsModal": { default: "ActiveMaintenanceRequestsModal" },
+    "@/lib/maintenance-featured-request": { sortActiveMaintenanceRequests },
+    "@/service/maintenanceService": { MAINTENANCE_HISTORY_LIMIT: 100 },
     "../data/maintenance-data": { CATEGORIES: [{ id: "plumbing", label: "Plumbing" }] },
     "@/hooks/use-maintenance-photo-urls": { useMaintenancePhotoUrls: (paths) => { photoPaths = Array.from(paths); return { urls: { "tenant/tap": "https://example.test/tap" }, loading: false, error: null }; } },
     "@/hooks/use-maintenance-request-history": { canCancelMaintenanceRequest: (status) => status === "Pending" || status === "In Progress" },
@@ -38,9 +43,17 @@ test("history starts as compact summary rows, retaining labels/statuses but hidi
   const rows = nodes(tree).filter((node) => node.type === Disclosure);
   assert.equal(rows.length, 2);
   assert.ok(rows.every((row) => !row.props.isExpanded));
-  assert.ok(rows.every((row) => row.props.className.includes("py-2.5")));
+  assert.ok(rows.every((row) => row.props.className.includes("p-4")));
   assert.equal(nodes(tree).find((node) => node.type === "CardContent").props.style.padding, 4);
-  assert.equal(nodes(tree).filter((node) => node.type === "DisclosureTrigger").length, 2);
+  const triggers = nodes(tree).filter((node) => node.type === "Button" && node.props.slot === "trigger");
+  assert.equal(triggers.length, 2);
+  assert.ok(triggers.every((node) => node.props.variant === "secondary"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconStack"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconCalendarEvent"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconCircleCheck"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconCircleX"));
+  assert.ok(nodes(tree).some((node) => node.type === "ChevronRight"));
+  assert.ok(nodes(tree).some((node) => node.props?.className?.includes("h-6 w-1.5 shrink-0 rounded-full bg-primary")));
 });
 
 test("expanding one history request shows its full details and only signs its own photos; closing hides them again", () => {
@@ -53,18 +66,29 @@ test("expanding one history request shows its full details and only signs its ow
   assert.match(text(expanded), /Replaced the seal/);
   assert.doesNotMatch(text(expanded), /Bulb is broken/);
   assert.equal(nodes(expanded).find((node) => node.type === "img").props.src, "https://example.test/tap");
-  assert.ok(nodes(expanded).some((node) => node.type === "DisclosureTrigger" && node.props["aria-label"] === "Hide details for Leaking tap"));
+  assert.ok(nodes(expanded).some((node) => node.type === "Button" && node.props.slot === "trigger" && node.props["aria-label"] === "Hide details for Leaking tap"));
   nodes(expanded).find((node) => node.type === Disclosure).props.onExpandedChange(false);
   assert.doesNotMatch(text(h.render()), /Water leaks under the sink/);
   assert.deepEqual(h.paths(), []);
 });
 
-test("active request presentation keeps details visible and batch photo reads without disclosure controls, using compact outer padding", () => {
-  const h = fixture("active");
+test("active request presentation features one request, and only loads hidden photos when View all is opened", () => {
+  const h = fixture("active", requests.map((request) => ({ ...request, status: "Pending" })));
   const tree = h.render();
-  assert.match(text(tree), /Water leaks under the sink/);
-  assert.match(text(tree), /Replaced the seal/);
+  const activeCard = nodes(tree).find((node) => node.type === "ActiveMaintenanceRequestCard");
+  assert.equal(activeCard.props.request.message, "Water leaks under the sink.");
+  assert.equal(activeCard.props.request.resolution_notes, "Replaced the seal.");
+  assert.deepEqual(Array.from(activeCard.props.imageUrls), ["https://example.test/tap"]);
+  assert.deepEqual(h.paths(), ["tenant/tap"]);
+  assert.equal(nodes(tree).filter((node) => node.type === "ActiveMaintenanceRequestCard").length, 1);
+  const viewAll = nodes(tree).find((node) => node.type === "Button" && text(node) === "View all active requests (2)");
+  assert.ok(viewAll);
+  assert.ok(viewAll.props.className.includes("ml-auto"));
+  assert.ok(nodes(tree).indexOf(viewAll) < nodes(tree).indexOf(activeCard), "View all belongs above the featured card");
+  viewAll.props.onPress();
+  const opened = h.render();
   assert.deepEqual(h.paths(), ["tenant/tap", "tenant/light"]);
+  assert.equal(nodes(opened).find((node) => node.type === "ActiveMaintenanceRequestsModal").props.isOpen, true);
   assert.equal(nodes(tree).filter((node) => node.type === "DisclosureTrigger").length, 0);
   assert.equal(nodes(tree).find((node) => node.type === "CardContent").props.style.padding, 4);
 });
@@ -76,12 +100,12 @@ test("an empty active list uses compact message spacing rather than a tall empty
   assert.equal(nodes(tree).find((node) => node.type === "CardContent").props.style.padding, 4);
 });
 
-test("overview tightens padding and section gaps while preserving values, typography and errors", () => {
+test("HeroUI overview uses two inset panels with right-aligned values while preserving totals and errors", () => {
   let retried = false;
   const Overview = compile("app/tenant/maintenance/components/MaintenanceOverview.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }), Skeleton: "Skeleton" },
-    "@tabler/icons-react": { IconReceipt: "IconReceipt", IconTool: "IconTool" },
+    "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }), Separator: "Separator", Skeleton: "Skeleton" },
+    "@tabler/icons-react": { IconReceipt: "IconReceipt", IconTool: "IconTool", IconChartBar: "IconChartBar" },
     "@repo/utils": { formatPesoDisplay: (amount) => `₱${amount}` },
     "@/app/components/display/ErrorBanner": { default: "ErrorBanner" },
   }).default;
@@ -89,9 +113,12 @@ test("overview tightens padding and section gaps while preserving values, typogr
   const tree = Overview(props);
   const content = nodes(tree).find((node) => node.type === "CardContent");
   assert.equal(content.props.style.padding, 4);
-  assert.equal(content.props.className, "space-y-3");
-  assert.equal(nodes(tree).find((node) => node.type === "dl").props.className, "space-y-3");
-  assert.ok(nodes(tree).some((node) => node.props?.className === "border-t border-border pt-3"));
+  const panels = nodes(tree).filter((node) => node.props?.style?.gridTemplateColumns);
+  assert.equal(panels.length, 2);
+  assert.ok(panels.every((node) => node.props.style.display === "grid" && node.props.style.gridTemplateColumns.endsWith("fit-content(50%)")));
+  assert.equal(nodes(tree).filter((node) => node.type === "Separator").length, 0);
+  assert.equal(nodes(tree).filter((node) => node.type === "dd" && node.props.className?.includes("rounded-xl bg-primary/10")).length, 2);
+  assert.ok(nodes(tree).some((node) => node.type === "IconChartBar"));
   assert.ok(nodes(tree).some((node) => node.type === "dd" && node.props.children === 3 && node.props.className.includes("text-3xl")));
   assert.match(text(tree), /₱750/);
   assert.match(text(tree), /including previous months/);
@@ -99,4 +126,40 @@ test("overview tightens padding and section gaps while preserving values, typogr
   assert.equal(nodes(failed).find((node) => node.type === "ErrorBanner").props.message, "Unavailable");
   nodes(failed).find((node) => node.type === "Button").props.onPress();
   assert.equal(retried, true);
+});
+
+test("active HeroUI request card keeps metadata, photos and the bottom-right cancellation action", () => {
+  let cancelled = false;
+  const ActiveCard = compile("app/tenant/maintenance/components/ActiveMaintenanceRequestCard.tsx", {
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }) },
+    "@tabler/icons-react": { IconCalendarEvent: "IconCalendarEvent", IconStack: "IconStack", IconFlag: "IconFlag", IconClock: "IconClock", IconProgress: "IconProgress", IconTrash: "IconTrash" },
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
+  }).default;
+  const props = { request: { ...requests[0], status: "Pending" }, category: "Plumbing", imageUrls: ["https://example.test/tap"], urgencyTone: "warning", statusTone: "warning", cancellable: true, cancelling: false, onCancel: () => { cancelled = true; } };
+  const tree = ActiveCard(props);
+  assert.match(text(tree), /Leaking tap/);
+  assert.match(text(tree), /Water leaks under the sink/);
+  assert.equal(nodes(tree).find((node) => node.type === "time").props.dateTime, props.request.created_at);
+  assert.ok(nodes(tree).some((node) => node.type === "IconStack"));
+  assert.equal(nodes(tree).find((node) => node.type === "a").props.href, "https://example.test/tap");
+  assert.match(nodes(tree).find((node) => node.type === "a").props.className, /size-24 shrink-0.*sm:size-32/);
+  const button = nodes(tree).find((node) => node.type === "Button");
+  assert.ok(nodes(tree).some((node) => node.props?.className?.includes("sm:grid-cols-[8rem_minmax(0,1fr)]")));
+  assert.ok(nodes(tree).some((node) => node.props?.className === "mt-3 flex justify-end"));
+  assert.match(text(tree), /Description/);
+  assert.ok(nodes(tree).some((node) => node.type === "IconTrash"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconFlag"));
+  assert.ok(nodes(tree).some((node) => node.type === "IconClock"));
+  button.props.onPress();
+  assert.equal(cancelled, true);
+  const saving = ActiveCard({ ...props, cancelling: true });
+  assert.equal(nodes(saving).find((node) => node.type === "Button").props.isDisabled, true);
+  const photoFree = ActiveCard({ ...props, imageUrls: [] });
+  assert.equal(nodes(photoFree).filter((node) => node.type === "img").length, 0);
+  assert.equal(nodes(photoFree).filter((node) => node.type === "Button").length, 1);
+  assert.ok(!nodes(photoFree).some((node) => node.props?.className?.includes("sm:grid-cols-[8rem_minmax(0,1fr)]")));
+  const multiplePhotos = ActiveCard({ ...props, imageUrls: ["https://example.test/one", "https://example.test/two"] });
+  assert.equal(nodes(multiplePhotos).filter((node) => node.type === "img").length, 2);
+  assert.ok(!nodes(multiplePhotos).some((node) => node.props?.className?.includes("sm:grid-cols-[8rem_minmax(0,1fr)]")));
 });

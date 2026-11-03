@@ -1,5 +1,6 @@
 import { createClient } from "@repo/supabase/browser";
-import { fetchMaintenanceRequestHistory } from "./maintenanceService";
+import { fetchMaintenanceRequestHistory, MAINTENANCE_HISTORY_LIMIT } from "./maintenanceService";
+import { sortActiveMaintenanceRequests } from "../lib/maintenance-featured-request";
 
 const FEE_PAGE_SIZE = 200;
 
@@ -10,11 +11,12 @@ export interface MaintenanceOverview {
 
 /** Separate bounded lists keep recent closed requests from hiding open ones. */
 export async function fetchTenantMaintenanceRequests(apartmentId: string, tenantId: string, supabase = createClient()) {
-  const [active, history] = await Promise.all([
-    fetchMaintenanceRequestHistory(apartmentId, tenantId, false, supabase, ["pending", "in_progress"]),
+  const [progress, pending, history] = await Promise.all([
+    fetchMaintenanceRequestHistory(apartmentId, tenantId, false, supabase, ["in_progress"], true),
+    fetchMaintenanceRequestHistory(apartmentId, tenantId, false, supabase, ["pending"]),
     fetchMaintenanceRequestHistory(apartmentId, tenantId, false, supabase, ["resolved", "cancelled"]),
   ]);
-  return [...active, ...history];
+  return [...sortActiveMaintenanceRequests([...progress, ...pending]).slice(0, MAINTENANCE_HISTORY_LIMIT), ...history];
 }
 
 /** No month filter: unpaid fees belong only to the tenancy that raised them. */

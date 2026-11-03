@@ -43,6 +43,7 @@ function database(rows, failure) {
   const service = compile("../service/tenantMaintenanceService.ts", {
     "@repo/supabase/browser": { createClient: () => client },
     "./maintenanceService": maintenance,
+    "../lib/maintenance-featured-request": compile("../lib/maintenance-featured-request.ts", {}),
   });
   return { service, calls };
 }
@@ -84,15 +85,21 @@ test("empty overview is a real zero; read failures reject rather than publishing
 });
 
 test("dashboard reads active and closed lists independently with stable ordering, bounded payloads, caller scope and no signing", async () => {
-  const h = database([row("01", { status: "pending" }), row("02", { status: "in_progress" }), row("03"), row("04", { status: "cancelled" }), row("05", { tenant_id: "other" })]);
+  const h = database([row("01", { status: "pending" }), row("02", { status: "in_progress", updated_at: "2026-11-03T09:00:00Z" }), row("03"), row("04", { status: "cancelled" }), row("05", { tenant_id: "other" })]);
   const result = await h.service.fetchTenantMaintenanceRequests("apartment-a", "tenant-a");
-  assert.deepEqual(plain(result.map((request) => request.status)), ["Pending", "In Progress", "Resolved", "Cancelled"]);
-  assert.equal(h.calls.length, 2);
+  assert.deepEqual(plain(result.map((request) => request.status)), ["In Progress", "Pending", "Resolved", "Cancelled"]);
+  assert.equal(h.calls.length, 3);
+  assert.equal(result[0].updated_at, "2026-11-03T09:00:00Z");
   for (const call of h.calls) {
     assert.equal(call.limit, 100);
     assert.ok(call.filters.some(([field, value]) => field === "tenant_id" && value === "tenant-a"));
     assert.ok(call.filters.some(([field, value]) => field === "apartment_id" && value === "apartment-a"));
-    assert.deepEqual(plain(call.orders), [["created_at", { ascending: false }], ["id", { ascending: false }]]);
+    const progress = call.filters.some(([key, value]) => key === "status" && Array.isArray(value) && value.includes("in_progress"));
+    assert.deepEqual(plain(call.orders), [
+      ...(progress ? [["updated_at", { ascending: false, nullsFirst: false }]] : []),
+      ["created_at", { ascending: false }], ["id", { ascending: false }],
+    ]);
+    assert.match(call.fields, /updated_at/);
   }
 });
 
