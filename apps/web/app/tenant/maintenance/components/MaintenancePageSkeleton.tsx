@@ -49,27 +49,31 @@ export default function MaintenancePageSkeleton({ showHeader = true }: { showHea
             <Sk className="h-4 w-full max-w-md rounded-lg" />
           </div>
 
-          <FieldSkeleton />
-          <FieldSkeleton />
+           <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+             <div className="min-w-0 md:col-span-7"><FieldSkeleton /></div>
+             <div className="min-w-0 md:col-span-5"><FieldSkeleton /></div>
+           </div>
 
           <div className="space-y-1.5">
             <Sk className="h-4 w-32 rounded-lg" />
             <Sk className="h-24 w-full rounded-xl" />
           </div>
 
-          <div className="space-y-2">
+           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+           <div className="min-w-0 space-y-2 lg:col-span-7">
             <Sk className="h-4 w-40 rounded-lg" />
-            <div className="flex flex-wrap gap-2">
-              <Sk className="h-8 w-20 rounded-full" />
-              <Sk className="h-8 w-20 rounded-full" />
-              <Sk className="h-8 w-20 rounded-full" />
+            <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))" }}>
+              <Sk className="h-20 w-full rounded-xl" />
+              <Sk className="h-20 w-full rounded-xl" />
+              <Sk className="h-20 w-full rounded-xl" />
             </div>
           </div>
 
-          <div className="space-y-1.5">
+           <div className="min-w-0 space-y-1.5 lg:col-span-5 lg:border-l lg:border-border lg:pl-6">
             <Sk className="h-4 w-24 rounded-lg" />
-            <Sk className="h-24 w-full rounded-xl" />
-          </div>
+             <Sk className="h-24 w-full rounded-xl" />
+           </div>
+           </div>
 
           <Sk className="h-12 w-full rounded-full" />
         </div>
