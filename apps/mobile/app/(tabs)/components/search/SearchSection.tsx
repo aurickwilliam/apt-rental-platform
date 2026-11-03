@@ -29,16 +29,29 @@ export default function SearchSection({ section, isFavorite, onToggleFavorite, o
   const handleSeeAll = () => {
     router.push({
       pathname: "/search/section/[sectionId]",
-      params: { sectionId: section.id, title: section.title },
+      // A row built from a spec lists itself from its criteria; the fixed rows
+      // and Recommended are listed by their id.
+      params: {
+        sectionId: section.id,
+        title: section.title,
+        ...(section.spec ? { spec: JSON.stringify(section.spec) } : {}),
+      },
     } as any);
   };
 
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between px-5">
-        <Text className="text-foreground text-lg font-nunitoBold">
-          {section.title}
-        </Text>
+        <View className="flex-1 pr-3">
+          <Text className="text-foreground text-lg font-nunitoBold" numberOfLines={1}>
+            {section.title}
+          </Text>
+          {section.subtitle ? (
+            <Text className="text-muted text-sm" numberOfLines={1}>
+              {section.subtitle}
+            </Text>
+          ) : null}
+        </View>
 
         {SECTIONS_WITHOUT_SEE_ALL.includes(section.id) ? null : (
           <Pressable

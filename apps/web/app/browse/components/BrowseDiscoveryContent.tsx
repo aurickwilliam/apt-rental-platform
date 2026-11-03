@@ -3,8 +3,7 @@ import { createClient } from "@repo/supabase/server";
 import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import { fetchBrowseResults } from "../lib/fetch-browse-results";
-import { fetchDiscoverySections } from "../lib/fetch-browse-sections";
-import { fetchPersonalizedSections, fillBrowseSections } from "../lib/fetch-personalized-sections";
+import { loadDiscoverySections } from "../lib/fetch-browse-discovery";
 import BrowseResultsBar from "./BrowseResultsBar";
 import BrowseSectionsList from "./BrowseSectionsList";
 import RenderApartments from "./RenderApartments";
@@ -29,21 +28,7 @@ export default async function BrowseDiscoveryContent({
   basePath = "/browse",
   preferences = null,
 }: BrowseDiscoveryContentProps) {
-  // Saved preferences replace the fixed rows; skipped or empty personalization
-  // falls back to them.
-  const personalized = await fetchPersonalizedSections(supabase, preferences, basePath);
-  const isPersonalized = personalized.length > 0;
-  const base = isPersonalized
-    ? personalized
-    : await fetchDiscoverySections(supabase, basePath);
-  // Pad to the minimum row count; only rows that have apartments count.
-  const sections =
-    base.length > 0
-      ? await fillBrowseSections(supabase, base, isPersonalized ? preferences : null, {
-          includeCore: isPersonalized,
-          basePath,
-        })
-      : base;
+  const sections = await loadDiscoverySections(supabase, preferences, basePath);
 
   if (sections.length > 0) {
     return <BrowseSectionsList sections={sections} basePath={basePath} />;

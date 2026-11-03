@@ -26,7 +26,11 @@ test("discovery needs one RPC and no count; count-dependent callers retain their
       return query;
     },
   };
-  const h = compile("app/browse/lib/fetch-browse-sections.ts", { "@repo/supabase/server": {} });
+  const h = compile("app/browse/lib/fetch-browse-sections.ts", {
+    "@repo/supabase/server": {},
+    "@repo/utils": { BROWSE_ROW_LIMIT: 15 },
+    "./browse-apartment": compile("app/browse/lib/browse-apartment.ts", {}),
+  });
   const sections = await h.fetchDiscoverySections(client, "/tenant/browse");
   assert.equal(rpcs, 1); assert.equal(counts, 0);
   assert.equal(sections.length, 1);

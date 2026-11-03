@@ -1,13 +1,10 @@
 import { createClient } from "@repo/supabase/server";
+import { BROWSE_ROW_LIMIT } from "@repo/utils";
 
-import type { BrowseApartment } from "./fetch-browse-results";
+import { toBrowseApartment, type BrowseApartment, type BrowseApartmentRow } from "./browse-apartment";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
-// Keep equal to RECOMMENDATION_LIMIT (lib/recommendations.ts): every Browse
-// row, fixed or personalized, holds the same number of apartments.
-const SECTION_LIMIT = 15;
-const DEFAULT_THUMBNAIL = "/default/default-thumbnail.jpeg";
 
 export interface BrowseSection {
   id: string;
@@ -24,27 +21,12 @@ export interface BrowseSectionsResult {
   totalCount: number;
 }
 
-interface SectionRow {
-  id: string;
-  name: string;
-  barangay?: string | null;
-  city?: string | null;
+interface SectionRow extends Omit<BrowseApartmentRow, "monthly_rent"> {
   monthly_rent?: number | null;
-  average_rating?: number | null;
-  is_verified?: boolean | null;
-  no_bedrooms?: number | null;
-  no_bathrooms?: number | null;
-  area_sqm?: number | null;
-  amenities?: string[] | null;
-  apartment_images?: Array<{
-    url?: string | null;
-    url_thumb?: string | null;
-    is_cover?: boolean | null;
-  }> | null;
 }
 
 // Cohort → filtered-grid mapping for See All. Cohorts without a filter
-// equivalent (near_you, all_results) return null and render no chevron.
+// equivalent (near_you, top_rated, all_results) return null and render no chevron.
 function seeAllQuery(sectionId: string): string | null {
   switch (sectionId) {
     case "verified":
@@ -53,33 +35,13 @@ function seeAllQuery(sectionId: string): string | null {
       return "price_max=10000";
     case "studio":
       return "apt_types=Studio";
-    case "top_rated":
-      return "sort=most_popular";
+    // Top rated has no match in the drawer: it has no rating filter, and its
+    // most-popular sort puts unrated listings first.
     case "spacious":
       return "size_min=60";
     default:
       return null;
   }
-}
-
-function mapRow(apt: SectionRow): BrowseApartment {
-  const images = apt.apartment_images ?? [];
-  const cover = images.find((img) => img.is_cover) ?? images[0];
-  return {
-    id: apt.id,
-    name: apt.name,
-    location: [apt.barangay, apt.city].filter((v): v is string => Boolean(v)).join(", "),
-    price: apt.monthly_rent ?? 0,
-    rating: apt.average_rating ?? 0,
-    isVerified: apt.is_verified ?? false,
-    // Cards render small: prefer the thumbnail tier, fall back to full-size.
-    image: cover?.url_thumb ?? cover?.url ?? DEFAULT_THUMBNAIL,
-    bedrooms: apt.no_bedrooms ?? undefined,
-    bathrooms: apt.no_bathrooms ?? undefined,
-    areaSqm: apt.area_sqm ?? undefined,
-    city: apt.city ?? undefined,
-    amenities: apt.amenities ?? undefined,
-  };
 }
 
 // Curated discovery sections via the batched get_search_sections RPC (one
@@ -110,7 +72,7 @@ export async function fetchDiscoverySections(
 ): Promise<BrowseSection[]> {
   const sectionsRes = await supabase.rpc("get_search_sections", {
     p_city: "CAMANAVA",
-    p_limit: SECTION_LIMIT,
+    p_limit: BROWSE_ROW_LIMIT,
   });
 
   if (sectionsRes.error) {
@@ -126,7 +88,9 @@ export async function fetchDiscoverySections(
       return {
         id: section.id,
         title: section.title,
-        apartments: (section.apartments ?? []).map(mapRow),
+        apartments: (section.apartments ?? []).map((apt) =>
+          toBrowseApartment({ ...apt, monthly_rent: apt.monthly_rent ?? 0 }),
+        ),
         seeAllHref: query ? `${basePath}?${query}` : null,
       };
     })

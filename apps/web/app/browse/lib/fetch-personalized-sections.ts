@@ -1,19 +1,24 @@
 import { createClient } from "@repo/supabase/server";
 
 import {
-  buildFillerRowSpecs,
+  BROWSE_ROW_LIMIT,
   buildPersonalizedRowSpecs,
   hasMeaningfulPreferences,
-  MIN_BROWSE_ROWS,
   rankCandidates,
-  RECOMMENDATION_LIMIT,
-  selectBrowseRows,
   type BrowseRowSpec,
-} from "@/lib/recommendations";
+} from "@repo/utils";
+
 import type { TenantPreferences } from "@/lib/tenant-preferences";
 
-import { toBrowseApartment, type BrowseApartment } from "./browse-apartment";
-import { applyBrowseFilters } from "./browse-query";
+import { BROWSE_CARD_COLUMNS, toBrowseApartment, type BrowseApartment } from "./browse-apartment";
+import {
+  applyBrowseFilters,
+  applyBrowseSort,
+  applyCoverImageOrder,
+  applyVisibleListings,
+  type BrowseQuery,
+} from "./browse-query";
+import { toDrawerRow } from "./browse-row-drawer";
 import type { BrowseSection } from "./fetch-browse-sections";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -22,25 +27,18 @@ export const RECOMMENDED_SECTION_ID = "for_you";
 export const RECOMMENDED_SECTION_TITLE = "Recommended for You";
 export const RECOMMENDED_SECTION_SUBTITLE = "Based on your rental preferences.";
 
-/** Candidates scored for the Recommended row; the best RECOMMENDATION_LIMIT survive. */
-const RECOMMENDATION_POOL_SIZE = 200;
+/**
+ * Listings scored for the Recommended row. Scoring reads only a few light
+ * columns, so the pool is wide enough that a good match is not lost to a
+ * rating cut; only the winners are fetched with photos.
+ */
+const RECOMMENDATION_POOL_SIZE = 1000;
+const POOL_COLUMNS = "id, city, monthly_rent, no_bedrooms, amenities, is_verified, average_rating";
 
-const ROW_COLUMNS = `id, name, barangay, city, monthly_rent, average_rating,
-  no_bedrooms, no_bathrooms, area_sqm, is_verified, amenities,
-  apartment_images(url, url_thumb, is_cover, created_at)`;
-
-// Same visibility and cover-image rules as fetchBrowseResults, so a row card
-// and a grid card for one listing look identical.
-function listingsQuery(supabase: ServerSupabaseClient) {
-  return supabase
-    .from("apartments")
-    .select(ROW_COLUMNS)
-    .is("deleted_at", null)
-    .eq("is_hidden_by_admin", false)
-    .in("status", ["available", "unverified"])
-    .order("is_cover", { foreignTable: "apartment_images", ascending: false })
-    .order("created_at", { foreignTable: "apartment_images", ascending: true })
-    .limit(1, { foreignTable: "apartment_images" });
+function cardQuery(supabase: ServerSupabaseClient) {
+  return applyCoverImageOrder(
+    applyVisibleListings(supabase.from("apartments").select(BROWSE_CARD_COLUMNS)),
+  );
 }
 
 function toSection(
@@ -51,20 +49,28 @@ function toSection(
   return { id: spec.id, title: spec.title, subtitle: spec.subtitle, apartments, seeAllHref };
 }
 
-// Unrated listings sort last, unlike the grid's "most popular" order.
-function sortRow<Q extends { order(column: string, options?: { ascending?: boolean; nullsFirst?: boolean }): Q }>(
-  query: Q,
-  sort: BrowseRowSpec["sort"] = "rating",
-): Q {
+function withApartments(sections: (BrowseSection | null)[]): BrowseSection[] {
+  return sections.filter(
+    (section): section is BrowseSection => section !== null && section.apartments.length > 0,
+  );
+}
+
+// Reuses the grid's sorts where they match; unrated listings sort last for
+// ratings, unlike the grid's "most popular" order.
+function sortRow<Q extends BrowseQuery<Q>>(query: Q, sort: BrowseRowSpec["sort"]): Q {
   switch (sort) {
     case "newest":
-      return query.order("created_at", { ascending: false });
+      return applyBrowseSort(query, {});
     case "price_asc":
-      return query.order("monthly_rent", { ascending: true });
+      return applyBrowseSort(query, { sort: "price_asc" });
     case "size_desc":
-      return query.order("area_sqm", { ascending: false, nullsFirst: false });
+      return query
+        .order("area_sqm", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true });
     default:
-      return query.order("average_rating", { ascending: false, nullsFirst: false });
+      return query
+        .order("average_rating", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true });
   }
 }
 
@@ -73,16 +79,18 @@ async function fetchRow(
   spec: BrowseRowSpec,
   basePath: string,
 ): Promise<BrowseSection | null> {
-  let query = applyBrowseFilters(listingsQuery(supabase), spec.params);
-  if (spec.bedroomRange) {
-    query = query.gte("no_bedrooms", spec.bedroomRange.min);
-    if (spec.bedroomRange.max !== null) query = query.lte("no_bedrooms", spec.bedroomRange.max);
+  const row = toDrawerRow(spec);
+  let query = applyBrowseFilters(cardQuery(supabase), row.params);
+  if (row.bedroomRange) {
+    query = query.gte("no_bedrooms", row.bedroomRange.min);
+    if (row.bedroomRange.max !== null) query = query.lte("no_bedrooms", row.bedroomRange.max);
   }
-  if (spec.minRating !== undefined) query = query.gte("average_rating", spec.minRating);
+  if (row.priceRange) {
+    query = query.gte("monthly_rent", row.priceRange.min).lte("monthly_rent", row.priceRange.max);
+  }
+  if (row.minRating !== undefined) query = query.gte("average_rating", row.minRating);
 
-  const { data, error } = await sortRow(query, spec.sort)
-    .order("id", { ascending: true })
-    .limit(RECOMMENDATION_LIMIT);
+  const { data, error } = await sortRow(query, spec.sort).limit(BROWSE_ROW_LIMIT);
   if (error) {
     console.error(error);
     return null;
@@ -91,7 +99,7 @@ async function fetchRow(
   return toSection(
     spec,
     (data ?? []).map(toBrowseApartment),
-    spec.seeAllQuery ? `${basePath}?${spec.seeAllQuery}` : null,
+    row.seeAllQuery ? `${basePath}?${row.seeAllQuery}` : null,
   );
 }
 
@@ -99,12 +107,11 @@ async function fetchRecommendedRow(
   supabase: ServerSupabaseClient,
   prefs: TenantPreferences,
 ): Promise<BrowseSection | null> {
-  let query = listingsQuery(supabase);
+  let poolQuery = applyVisibleListings(supabase.from("apartments").select(POOL_COLUMNS));
   // Chosen cities are a hard gate in scoreListing, so only pull those cities.
-  if (prefs.selectedCities.length > 0) query = query.in("city", prefs.selectedCities);
+  if (prefs.selectedCities.length > 0) poolQuery = poolQuery.in("city", prefs.selectedCities);
 
-  const { data, error } = await query
-    .order("average_rating", { ascending: false, nullsFirst: false })
+  const { data: pool, error } = await poolQuery
     .order("id", { ascending: true })
     .limit(RECOMMENDATION_POOL_SIZE);
   if (error) {
@@ -112,12 +119,20 @@ async function fetchRecommendedRow(
     return null;
   }
 
-  const pool = data ?? [];
-  const ranked = rankCandidates(pool, prefs, RECOMMENDATION_LIMIT);
-  const byId = new Map(pool.map((row) => [row.id, row]));
-  const apartments = ranked
-    .map((scored) => byId.get(scored.candidate.id))
-    .filter((row): row is (typeof pool)[number] => row !== undefined)
+  const ids = rankCandidates(pool ?? [], prefs, BROWSE_ROW_LIMIT).map((s) => s.candidate.id);
+  if (ids.length === 0) return null;
+
+  const { data: cards, error: cardError } = await cardQuery(supabase).in("id", ids);
+  if (cardError) {
+    console.error(cardError);
+    return null;
+  }
+
+  // The card read has no order: restore the ranking.
+  const byId = new Map((cards ?? []).map((card) => [card.id, card]));
+  const apartments = ids
+    .map((id) => byId.get(id))
+    .filter((card): card is NonNullable<typeof card> => card !== undefined)
     .map(toBrowseApartment);
   if (apartments.length === 0) return null;
 
@@ -146,37 +161,22 @@ export async function fetchPersonalizedSections(
 ): Promise<BrowseSection[]> {
   if (!prefs || !hasMeaningfulPreferences(prefs)) return [];
 
-  const [recommended, ...rows] = await Promise.all([
-    fetchRecommendedRow(supabase, prefs),
-    ...buildPersonalizedRowSpecs(prefs).map((spec) => fetchRow(supabase, spec, basePath)),
-  ]);
-
-  return [recommended, ...rows].filter(
-    (section): section is BrowseSection => section !== null && section.apartments.length > 0,
+  return withApartments(
+    await Promise.all([
+      fetchRecommendedRow(supabase, prefs),
+      ...buildPersonalizedRowSpecs(prefs).map((spec) => fetchRow(supabase, spec, basePath)),
+    ]),
   );
 }
 
 /**
- * Pads `sections` up to MIN_BROWSE_ROWS with filler rows (see
- * buildFillerRowSpecs), so the default page never looks sparse. `prefs` only
- * supplies chosen cities to gate the extra rows. Pass `includeCore: true`
- * when `sections` came from preferences and false when they are the fixed
- * rows, which already cover the core cohorts. Never trims or reorders
- * `sections`; an empty or failed filler row is simply skipped.
+ * Runs filler rows (see buildFillerRowSpecs) in parallel. An empty or failed
+ * row is skipped, so callers can count the result toward the row minimum.
  */
-export async function fillBrowseSections(
+export async function fetchFillerSections(
   supabase: ServerSupabaseClient,
-  sections: BrowseSection[],
-  prefs: TenantPreferences | null | undefined,
-  { includeCore, basePath = "/browse" }: { includeCore: boolean; basePath?: string },
+  specs: BrowseRowSpec[],
+  basePath = "/browse",
 ): Promise<BrowseSection[]> {
-  if (sections.length >= MIN_BROWSE_ROWS) return sections;
-
-  const rows = await Promise.all(
-    buildFillerRowSpecs(prefs, { includeCore }).map((spec) => fetchRow(supabase, spec, basePath)),
-  );
-  const filler = rows.filter(
-    (section): section is BrowseSection => section !== null && section.apartments.length > 0,
-  );
-  return selectBrowseRows(sections, filler);
+  return withApartments(await Promise.all(specs.map((spec) => fetchRow(supabase, spec, basePath))));
 }

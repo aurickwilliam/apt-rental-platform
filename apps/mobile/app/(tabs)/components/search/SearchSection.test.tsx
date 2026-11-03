@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import SearchSection from "./SearchSection";
 import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
 
-jest.mock("expo-router", () => ({ useRouter: () => ({ push: jest.fn() }) }));
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock("@tabler/icons-react-native", () => ({ IconChevronRight: () => null }));
 jest.mock("heroui-native", () => ({ SkeletonGroup: () => null }));
 jest.mock("components/cards/ApartmentCard", () => () => null);
@@ -14,7 +15,6 @@ function buildSection(id: string): SearchSectionType {
     id,
     title: id === "all_results" ? "All Results" : "Verified",
     apartments: [{ id: "apt-1" } as never],
-    rawApartments: [],
   };
 }
 
@@ -32,5 +32,48 @@ describe("SearchSection", () => {
     );
     expect(screen.queryByLabelText("See all All Results")).toBeNull();
     expect(screen.getByText("All Results")).toBeTruthy();
+  });
+
+  beforeEach(() => mockPush.mockClear());
+
+  it("shows the subtitle under the title", () => {
+    render(
+      <SearchSection
+        section={{ ...buildSection("pets"), title: "Pet-Friendly Homes", subtitle: "Because you have pets." }}
+        isFavorite={() => false}
+        onToggleFavorite={jest.fn()}
+        onPressApartment={jest.fn()}
+      />,
+    );
+    expect(screen.getByText("Pet-Friendly Homes")).toBeTruthy();
+    expect(screen.getByText("Because you have pets.")).toBeTruthy();
+  });
+
+  it("opens a fixed row by its id alone", () => {
+    render(
+      <SearchSection section={buildSection("verified")} isFavorite={() => false} onToggleFavorite={jest.fn()} onPressApartment={jest.fn()} />,
+    );
+    fireEvent.press(screen.getByLabelText("See all Verified"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/search/section/[sectionId]",
+      params: { sectionId: "verified", title: "Verified" },
+    });
+  });
+
+  it("opens a spec-built row with its spec so See All can list the whole row", () => {
+    const spec = { id: "pets", title: "Pet-Friendly Homes", subtitle: "", criteria: { amenities: ["petfriendly"] }, sort: "rating" as const };
+    render(
+      <SearchSection
+        section={{ ...buildSection("pets"), title: "Pet-Friendly Homes", spec }}
+        isFavorite={() => false}
+        onToggleFavorite={jest.fn()}
+        onPressApartment={jest.fn()}
+      />,
+    );
+    fireEvent.press(screen.getByLabelText("See all Pet-Friendly Homes"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/search/section/[sectionId]",
+      params: { sectionId: "pets", title: "Pet-Friendly Homes", spec: JSON.stringify(spec) },
+    });
   });
 });

@@ -8,8 +8,9 @@ import RenderApartments from "./components/RenderApartments";
 import SearchContainer from "./components/SearchContainer";
 import { fetchBrowseResults } from "./lib/fetch-browse-results";
 import { fetchBrowseSections } from "./lib/fetch-browse-sections";
-import { fillBrowseSections } from "./lib/fetch-personalized-sections";
+import { fetchFixedRowExtras } from "./lib/fetch-browse-discovery";
 import { isDefaultBrowseParams } from "./lib/browse-params";
+import { selectBrowseRows } from "@repo/utils";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;
@@ -29,14 +30,16 @@ export default async function BrowsePage({ searchParams }: PageProps) {
   // sections. Anything filtered, searched, or paged shows the flat grid.
   // An empty/failed sections RPC falls back to the grid.
   const showSections = isDefaultBrowseParams(params);
-  const { sections: fixedSections, totalCount: sectionsTotal } = showSections
-    ? await fetchBrowseSections(supabase, "/browse")
-    : { sections: [], totalCount: 0 };
-  // Pad the fixed rows to the minimum row count (no preferences when signed out).
+  // The padding rows do not depend on the fixed rows, so they load beside them
+  // (no preferences when signed out).
+  const [{ sections: fixedSections, totalCount: sectionsTotal }, extras] = showSections
+    ? await Promise.all([
+        fetchBrowseSections(supabase, "/browse"),
+        fetchFixedRowExtras(supabase, "/browse"),
+      ])
+    : [{ sections: [], totalCount: 0 }, []];
   const sections =
-    fixedSections.length > 0
-      ? await fillBrowseSections(supabase, fixedSections, null, { includeCore: false })
-      : fixedSections;
+    fixedSections.length > 0 ? selectBrowseRows(fixedSections, extras) : fixedSections;
   const useSections = showSections && sections.length > 0;
 
   const { apartments: mapped, page, totalCount, pageSize } = useSections
