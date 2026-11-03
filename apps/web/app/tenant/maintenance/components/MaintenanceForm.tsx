@@ -1,7 +1,7 @@
 "use client";
 
 // apps/web/app/(main)/tenant/maintenance/components/MaintenanceForm.tsx
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Key } from "@heroui/react";
 import {
   Button,
@@ -56,10 +56,12 @@ type FormErrors = {
 
 type MaintenanceFormProps = {
   apartmentId: string;
-  onSubmitted?: () => void;
+  onSubmitted?: () => void | Promise<void>;
+  onSubmittingChange?: (submitting: boolean) => void;
+  embedded?: boolean;
 };
 
-export default function MaintenanceForm({ apartmentId, onSubmitted }: MaintenanceFormProps) {
+export default function MaintenanceForm({ apartmentId, onSubmitted, onSubmittingChange, embedded = false }: MaintenanceFormProps) {
   const [title, setTitle] = useState("");
   const [categoryKey, setCategoryKey] = useState<Key | null>(null);
   const [description, setDescription] = useState("");
@@ -69,6 +71,13 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
   const [errors, setErrors] = useState<FormErrors>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { submit, isSubmitting } = useSubmitMaintenanceRequest();
+  const [reconciling, setReconciling] = useState(false);
+  const submissionLock = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   const clearError = (field: keyof FormErrors) => {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -128,6 +137,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submissionLock.current) return;
 
     const nextErrors = validateForm();
     setErrors(nextErrors);
@@ -142,6 +152,9 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
       return;
     }
 
+    submissionLock.current = true;
+    onSubmittingChange?.(true);
+    try {
     const result = await submit({
       apartmentId,
       form: {
@@ -152,6 +165,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
       },
       files,
     });
+    if (!mounted.current) return;
 
     if (!result.success) {
       toast.danger(result.error);
@@ -166,12 +180,20 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
     setFiles([]);
     setFileError(null);
     setErrors({});
-    onSubmitted?.();
+    setReconciling(true);
+    await onSubmitted?.();
+    } finally {
+      submissionLock.current = false;
+      if (mounted.current) {
+        setReconciling(false);
+        onSubmittingChange?.(false);
+      }
+    }
   };
 
   return (
-    <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <Card.Content className="p-6 sm:p-8">
+    <Card className="rounded-2xl border border-border bg-card shadow-sm" style={embedded ? { border: 0, boxShadow: "none", background: "transparent" } : undefined}>
+      <Card.Content className="p-6 sm:p-8" style={embedded ? { padding: 0 } : undefined}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
           <p className="text-lg font-nunito font-semibold text-card-foreground mb-1">
@@ -370,8 +392,8 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="h-12 w-full rounded-full font-nunito text-base font-bold mt-2" isDisabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Request"}
+        <Button type="submit" className="h-12 w-full rounded-full font-nunito text-base font-bold mt-2" isDisabled={isSubmitting || reconciling}>
+          {isSubmitting || reconciling ? "Submitting..." : "Submit Request"}
         </Button>
       </form>
       </Card.Content>

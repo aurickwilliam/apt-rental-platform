@@ -13,6 +13,7 @@ test("Maintenance matches the Passport title, icon tile and description placemen
   assert.equal(iconTileClass(maintenance), iconTileClass(passport));
   assert.equal(descriptionClass(maintenance), descriptionClass(passport));
   assert.match(maintenance, /<Wrench size=\{28\} aria-hidden="true"/);
-  assert.match(maintenance, /Request Maintenance\s*<\/h1>/);
+  assert.match(maintenance, /Maintenance\s*<\/h1>/);
+  assert.match(maintenance, /Request Maintenance\s*<\/Button>/);
   assert.match(maintenance, /Let your landlord know about an issue with your unit\./);
 });

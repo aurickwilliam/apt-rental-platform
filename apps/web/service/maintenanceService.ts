@@ -175,14 +175,18 @@ export async function fetchMaintenanceRequestHistory(
   tenantId: string,
   includePhotos = true,
   supabase = createClient(),
+  statuses?: readonly MaintenanceStatusDb[],
 ): Promise<MaintenanceRequest[]> {
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("maintenance_request")
     .select(SELECT_FIELDS)
     .eq("apartment_id", apartmentId)
-    .eq("tenant_id", tenantId)
+    .eq("tenant_id", tenantId);
+  if (statuses) query = query.in("status", [...statuses]);
+  const { data, error } = await query
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(MAINTENANCE_HISTORY_LIMIT);
 
   if (error) throw error;

@@ -36,6 +36,8 @@ type MaintenanceHistoryProps = {
   error: string | null;
   cancellingId: string | null;
   onCancel: (requestId: string) => Promise<{ success: boolean; error?: string }>;
+  kind?: "active" | "history";
+  onRetry?: () => void;
 };
 
 export default function MaintenanceHistory({
@@ -44,6 +46,8 @@ export default function MaintenanceHistory({
   error,
   cancellingId,
   onCancel,
+  kind = "active",
+  onRetry,
 }: MaintenanceHistoryProps) {
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
   const cancelDialog = useOverlayState();
@@ -72,11 +76,11 @@ export default function MaintenanceHistory({
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
           <h2 className="text-base font-nunito font-semibold text-card-foreground">
-            Your requests
+            {kind === "active" ? "Active maintenance requests" : "Maintenance request history"}
           </h2>
         </div>
         <p className="font-inter text-sm text-muted-foreground mb-4">
-          Track status and cancel open requests. Photos load via short-lived signed URLs.
+          {kind === "active" ? "Track your pending and in-progress requests." : "Review your resolved and cancelled requests."}
         </p>
         {photos.loading ? <p role="status" className="text-xs text-muted-foreground">Loading request photos…</p> : null}
         {photos.error ? <p role="alert" className="text-xs text-danger">{photos.error}</p> : null}
@@ -86,10 +90,13 @@ export default function MaintenanceHistory({
             <Spinner color="accent" />
           </div>
         ) : error ? (
-          <p className="font-inter text-sm text-red-600">{error}</p>
+          <div className="space-y-3" role="alert">
+            <p className="font-inter text-sm text-danger">{error}</p>
+            {onRetry ? <Button variant="outline" size="sm" onPress={onRetry}>Retry requests</Button> : null}
+          </div>
         ) : requests.length === 0 ? (
           <p className="font-inter text-sm text-muted-foreground text-center py-6">
-            No maintenance requests yet.
+            {kind === "active" ? "No active maintenance requests. Need a repair? Select Request Maintenance above." : "No resolved or cancelled requests yet."}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
@@ -184,6 +191,10 @@ export default function MaintenanceHistory({
             })}
           </div>
         )}
+
+        {requests.length >= 100 && !loading && !error ? (
+          <p className="mt-4 text-xs text-muted-foreground">Showing the latest 100 {kind === "active" ? "active" : "resolved and cancelled"} requests.</p>
+        ) : null}
 
         <Modal isOpen={cancelDialog.isOpen} onOpenChange={cancelDialog.setOpen}>
           <Modal.Backdrop>

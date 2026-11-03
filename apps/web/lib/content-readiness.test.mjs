@@ -91,6 +91,7 @@ test("rental maintenance summary reuses scoped identity and skips signing, while
   const resource = compile("hooks/use-async-resource.ts", { react: runtime.react });
   const { useMaintenanceRequestHistory } = compile("hooks/use-maintenance-request-history.ts", {
     react: runtime.react,
+    "@/service/tenantMaintenanceService": {},
     "@/hooks/use-async-resource": resource,
     "@/service/favoritesService": { getTenantContext: async () => { contexts++; return { tenantId: "tenant-a" }; } },
     "@/service/maintenanceService": {
