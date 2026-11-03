@@ -12,32 +12,38 @@ const faqs = [
   {
     id: 1,
     question: "How do I pay my rent?",
-    answer: "You can pay your rent through the app by going to Rentals > Pay Rent and selecting your preferred payment method (GCash, Maya, or card).",
+    answer:
+      "Open My Rental and choose Pay now on your current bill, then pick your payment method. Online checkout currently runs in test mode and does not process real money, and cash payments stay pending until your property owner confirms them.",
   },
   {
     id: 2,
     question: "How do I submit a maintenance request?",
-    answer: "Go to your Rentals page and click 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
+    answer:
+      "Open Maintenance from My Rental, choose Request Maintenance, describe the issue, and set how urgent it is. Your landlord can review and respond inside APT.",
   },
   {
     id: 3,
     question: "How do I view my lease agreement?",
-    answer: "Go to your Rentals page and click 'View Lease'. You can view and download your lease agreement from there.",
+    answer:
+      "Once your landlord has uploaded it, open Signed lease in My Rental to view the current document and confirm that you have read it.",
   },
   {
     id: 4,
     question: "How do I contact my landlord?",
-    answer: "You can message your landlord directly through the Chat page or by clicking 'Chat Landlord' in your Rentals quick actions.",
+    answer:
+      "Use Messages to contact your landlord. Apartment-related conversations keep questions and updates about that property in one thread.",
   },
   {
     id: 5,
     question: "How do I list my property?",
-    answer: "As a landlord, go to the Units page and click the '+' button to add a new apartment listing. Fill in the required details across the steps.",
+    answer:
+      "From My Properties in the landlord portal, add a new listing with the CAMANAVA address, rent and deposit terms, amenities, and photos, then publish it for review.",
   },
   {
     id: 6,
     question: "How do I verify my account?",
-    answer: "Go to your Profile page and click on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
+    answer:
+      "Open your profile and choose Verify Account. Phones and tablets capture your government ID and a selfie right in the browser; on a desktop you can scan a QR code to continue on your phone or use your webcam.",
   },
 ];
 

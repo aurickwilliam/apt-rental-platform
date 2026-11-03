@@ -52,23 +52,21 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
       <Card.Content className="p-0 flex flex-col">
         {/* Photo */}
         <div
-          className="w-full rounded-t-xl overflow-hidden flex items-end justify-center"
+          className="relative w-full rounded-t-xl overflow-hidden"
           style={{ height: "275px" }}
         >
-          <div className={`relative w-full ${member.imageHeight}`}>
-            <Image
-              src={member.image}
-              alt={member.name}
-              fill
-              className="object-contain object-bottom"
-            />
-          </div>
+          <Image
+            src={member.image}
+            alt={member.name}
+            fill
+            className="object-cover"
+          />
         </div>
 
         {/* Info */}
         <div className="p-5 flex flex-col">
-          <p className="font-poppinsSemiBold text-sm">{member.name}</p>
-          <p className="text-xs text-primary font-poppinsMedium mt-0.5 mb-2">
+          <p className="font-nunito font-semibold text-sm">{member.name}</p>
+          <p className="text-xs text-primary font-nunito font-medium mt-0.5 mb-2">
             {member.role}
           </p>
 
