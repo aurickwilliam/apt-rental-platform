@@ -49,6 +49,8 @@ import AmenitiesModal from "../../components/modals/AmenitiesModal";
 import EditPropertyModal from "../../components/modals/EditPropertyModal";
 import DeletePropertyModal from "../../components/modals/DeletePropertyModal";
 import EmptyState from "@/app/components/display/EmptyState";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
+import PropertyVisibilityAction from "./PropertyVisibilityAction";
 
 function buildAddress(apartment: LandlordUnitApartment): string {
   const parts = [
@@ -142,7 +144,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
     { label: "Monthly Rent", value: formatPesoDisplay(apartment.monthly_rent), icon: Banknote, primary: true },
     { label: "Average Rating", value: apartment.average_rating != null ? String(apartment.average_rating) : "—", icon: Star, primary: false },
     { label: "Total Reviews", value: String(apartment.no_ratings ?? 0), icon: FileText, primary: false },
-    { label: "Status", value: apartment.status, icon: CircleCheck, primary: false, capitalize: true },
+    { label: "Status", value: propertyStatusLabel(apartment.status), icon: CircleCheck, primary: false, capitalize: true },
   ];
 
   const handleViewLease = async () => {
@@ -230,7 +232,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 {apartment.is_verified && <BadgeCheck size={20} className="text-primary shrink-0" />}
               </h1>
               <StatusChip size="sm" tone={STATUS_COLOR[apartment.status] ?? "neutral"} className="capitalize">
-                {apartment.status}
+                {propertyStatusLabel(apartment.status)}
               </StatusChip>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -538,6 +540,16 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
             <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
               Property Actions
             </p>
+            <PropertyVisibilityAction
+              key={apartment.id}
+              apartmentId={apartment.id}
+              status={apartment.status}
+              hasActiveTenancy={Boolean(tenant)}
+              onStatusChanged={(status) => {
+                setApartment((previous) => ({ ...previous, status }));
+                router.refresh();
+              }}
+            />
             {isOccupied && (
               <div className="flex flex-col gap-2 pb-4">
                 <p className="text-sm text-muted-foreground">End the current tenancy and make this unit available.</p>

@@ -278,11 +278,12 @@ test("Shared rating breakdown keeps its default layout while supporting a stacke
 });
 
 test("Property rows prefetch on hover and keyboard focus without changing row activation", () => {
-  const property = { id: "unit-1", name: "Test apartment" };
+  const property = { id: "unit-1", name: "Test apartment", status: "available" };
   const intended = [];
   const opened = [];
   const tree = load("landlord/properties/components/PropertiesTable.tsx", {
     "./propertyConstants": { STATUS_COLOR: {} },
+    "@/lib/property-listing-visibility": { propertyStatusLabel: status => status },
     "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
   }).default({ properties: [property], onRowIntent: item => intended.push(item.id), onRowClick: item => opened.push(item.id) });
