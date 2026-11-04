@@ -6,6 +6,10 @@ export const USER_REPORT_REASON_LABELS: Record<string, string> = {
   inappropriate: "Inappropriate content",
   fake_profile: "Fake profile or listing",
   other: "Something else",
+  fake_listing: "Fake or misleading listing",
+  incorrect_info: "Wrong price or details",
+  unavailable: "Already rented",
+  inappropriate_photos: "Inappropriate photos",
 };
 
 export const USER_REPORT_STATUSES = ["open", "resolved", "dismissed"] as const;
@@ -37,3 +41,23 @@ export function formatReportPerson(
     "Unnamed user"
   );
 }
+
+export const USER_REPORT_TARGET_TYPES = ["user", "apartment", "landlord", "tenant"] as const;
+export type UserReportTargetTypeFilter = (typeof USER_REPORT_TARGET_TYPES)[number] | "all";
+
+/** Type filter from `?type=`; every kind of report by default. */
+export function parseReportTypeFilter(
+  value: string | string[] | undefined,
+): UserReportTargetTypeFilter {
+  const type = Array.isArray(value) ? value[0] : value;
+  return (USER_REPORT_TARGET_TYPES as readonly string[]).includes(type ?? "")
+    ? (type as UserReportTargetTypeFilter)
+    : "all";
+}
+
+/** What an admin did about a report (`user_reports.action_taken`). */
+export const REPORT_ACTION_LABELS: Record<string, string> = {
+  warned: "Warning sent",
+  listing_hidden: "Listing hidden",
+  user_suspended: "Account suspended",
+};

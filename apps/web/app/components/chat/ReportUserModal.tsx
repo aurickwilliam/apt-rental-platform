@@ -3,20 +3,35 @@
 import { useState } from "react";
 import { Button, Description, Label, Modal, Radio, RadioGroup, Spinner, TextArea } from "@heroui/react";
 import { IconFlag } from "@tabler/icons-react";
-import { USER_REPORT_DETAILS_MAX_LENGTH, USER_REPORT_REASONS, type UserReportReason } from "@repo/utils";
+import { USER_REPORT_DETAILS_MAX_LENGTH, USER_REPORT_REASONS } from "@repo/utils";
+
+export interface ReportReasonOption {
+  value: string;
+  label: string;
+  description: string;
+}
 
 interface ReportUserModalProps {
-  /** The person being reported, or null when closed. */
+  /** The person or listing being reported, or null when closed. */
   name: string | null;
+  /** Reasons to choose from; people reasons by default. */
+  reasons?: readonly ReportReasonOption[];
   isSubmitting: boolean;
   error: string | null;
   onClose: () => void;
-  onSubmit: (reason: UserReportReason, details: string) => void;
+  onSubmit: (reason: string, details: string) => void;
 }
 
 /** Report a person from the Messages list (mobile's `ReportUserDialog`). */
-export default function ReportUserModal({ name, isSubmitting, error, onClose, onSubmit }: ReportUserModalProps) {
-  const [reason, setReason] = useState<UserReportReason | null>(null);
+export default function ReportUserModal({
+  name,
+  reasons = USER_REPORT_REASONS,
+  isSubmitting,
+  error,
+  onClose,
+  onSubmit,
+}: ReportUserModalProps) {
+  const [reason, setReason] = useState<string | null>(null);
   const [details, setDetails] = useState("");
 
   // Each open starts clean: the draft never outlives the dialog.
@@ -52,10 +67,10 @@ export default function ReportUserModal({ name, isSubmitting, error, onClose, on
               <RadioGroup
                 aria-label="Reason for reporting"
                 value={reason ?? ""}
-                onChange={(value) => setReason(value as UserReportReason)}
+                onChange={(value) => setReason(String(value))}
                 isDisabled={isSubmitting}
               >
-                {USER_REPORT_REASONS.map((option) => (
+                {reasons.map((option) => (
                   <Radio key={option.value} value={option.value}>
                     <Radio.Control>
                       <Radio.Indicator />

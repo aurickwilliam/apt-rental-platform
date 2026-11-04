@@ -1,6 +1,6 @@
 import { IconFlag } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
-import { parseReportStatusFilter } from "@/lib/user-reports";
+import { parseReportStatusFilter, parseReportTypeFilter } from "@/lib/user-reports";
 import { requireAdmin } from "../_lib/require-admin";
 import ReportsClient from "./ReportsClient";
 import type { AdminUserReport } from "./lib/report-types";
@@ -15,27 +15,29 @@ function one<T>(value: T | T[] | null): T | null {
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; type?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const status = parseReportStatusFilter(params.status);
+  const type = parseReportTypeFilter(params.type);
   const supabase = await createClient();
 
   // user_reports has three FKs to users, so each join names its constraint.
   let query = supabase
     .from("user_reports")
     .select(
-      `id, reason, details, status, resolution_note, created_at, resolved_at,
+      `id, reason, details, status, resolution_note, created_at, resolved_at, target_type, action_taken,
        reporter:users!user_reports_reporter_id_fkey(id, first_name, last_name, email),
        reported:users!user_reports_reported_user_id_fkey(id, first_name, last_name, email, is_suspended),
-       apartment:apartments!user_reports_apartment_id_fkey(id, name)`,
+       apartment:apartments!user_reports_apartment_id_fkey(id, name, is_hidden_by_admin)`,
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (status !== "all") query = query.eq("status", status);
+  if (type !== "all") query = query.eq("target_type", type);
 
   const { data, error, count } = await query;
   if (error) console.error("Admin reports failed to load", error);
@@ -65,14 +67,15 @@ export default async function ReportsPage({
           Reports
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          People reported from Messages. Review the account, then resolve or dismiss.
+          Reports on apartments, landlords, tenants and chats. Review the report, then warn, hide the listing, suspend the account, or dismiss it.
         </p>
       </div>
       <ReportsClient
-        key={`${status}-${page}`}
+        key={`${status}-${type}-${page}`}
         reports={reports}
         error={Boolean(error)}
         status={status}
+        type={type}
         page={page}
         totalCount={count ?? 0}
         pageSize={PAGE_SIZE}

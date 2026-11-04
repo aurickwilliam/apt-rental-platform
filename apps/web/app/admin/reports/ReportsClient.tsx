@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pagination, Spinner } from "@heroui/react";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
 import type { FilterOption } from "../_components/filters/types";
-import type { UserReportStatusFilter } from "@/lib/user-reports";
+import type { UserReportStatusFilter, UserReportTargetTypeFilter } from "@/lib/user-reports";
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
 import type { AdminUserReport } from "./lib/report-types";
@@ -19,10 +19,19 @@ const STATUS_OPTIONS: readonly FilterOption<UserReportStatusFilter>[] = [
   { id: "all", label: "All" },
 ];
 
+const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
+  { id: "all", label: "All" },
+  { id: "apartment", label: "Apartments" },
+  { id: "landlord", label: "Landlords" },
+  { id: "tenant", label: "Tenants" },
+  { id: "user", label: "Chats" },
+];
+
 interface ReportsClientProps {
   reports: AdminUserReport[];
   error: boolean;
   status: UserReportStatusFilter;
+  type: UserReportTargetTypeFilter;
   page: number;
   totalCount: number;
   pageSize: number;
@@ -32,6 +41,7 @@ export default function ReportsClient({
   reports,
   error,
   status,
+  type,
   page,
   totalCount,
   pageSize,
@@ -45,9 +55,9 @@ export default function ReportsClient({
     (_, index) => firstVisiblePage + index,
   );
 
-  function navigate(nextStatus: UserReportStatusFilter, nextPage: number) {
+  function navigate(nextStatus: UserReportStatusFilter, nextType: UserReportTargetTypeFilter, nextPage: number) {
     startTransition(() => {
-      router.push(`/admin/reports?status=${nextStatus}&page=${nextPage}`);
+      router.push(`/admin/reports?status=${nextStatus}&type=${nextType}&page=${nextPage}`);
     });
   }
 
@@ -58,7 +68,14 @@ export default function ReportsClient({
         selectionMode="single"
         options={STATUS_OPTIONS}
         value={status}
-        onChange={(nextStatus) => navigate(nextStatus, 1)}
+        onChange={(nextStatus) => navigate(nextStatus, type, 1)}
+      />
+      <FilterPillGroup
+        label="Type"
+        selectionMode="single"
+        options={TYPE_OPTIONS}
+        value={type}
+        onChange={(nextType) => navigate(status, nextType, 1)}
       />
 
       {error ? (
@@ -87,7 +104,7 @@ export default function ReportsClient({
               <EmptyState
                 icon={IconFlag}
                 title={status === "open" ? "No open reports" : "No reports here"}
-                description="Reports people send from Messages will appear here for review."
+                description="Reports about apartments, landlords, tenants and chats will appear here for review."
               />
             )}
           </div>
@@ -99,7 +116,7 @@ export default function ReportsClient({
                   <Pagination.Item>
                     <Pagination.Previous
                       isDisabled={page <= 1}
-                      onPress={() => navigate(status, page - 1)}
+                      onPress={() => navigate(status, type, page - 1)}
                       className="font-nunito text-primary"
                     >
                       <Pagination.PreviousIcon />
@@ -110,7 +127,7 @@ export default function ReportsClient({
                     <Pagination.Item key={number}>
                       <Pagination.Link
                         isActive={number === page}
-                        onPress={() => navigate(status, number)}
+                        onPress={() => navigate(status, type, number)}
                       >
                         {number}
                       </Pagination.Link>
@@ -119,7 +136,7 @@ export default function ReportsClient({
                   <Pagination.Item>
                     <Pagination.Next
                       isDisabled={page >= totalPages}
-                      onPress={() => navigate(status, page + 1)}
+                      onPress={() => navigate(status, type, page + 1)}
                       className="font-nunito text-primary"
                     >
                       <span>Next</span>

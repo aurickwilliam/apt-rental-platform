@@ -7,6 +7,7 @@ import MapLocation from "./MapLocation";
 import { Separator } from "@heroui/react";
 
 import { fetchVerifiedLandlordIds } from "@/lib/verified-landlord";
+import ReportButton from "@/app/components/reports/ReportButton";
 
 import {
   IconHome,
@@ -289,6 +290,16 @@ export default async function ApartmentDetailView({
           />
 
           <AcceptedPaymentMethods methods={acceptedMethodsResult.error ? null : acceptedMethodsResult.data} />
+
+          <ReportButton
+            target={{
+              kind: "apartment",
+              apartmentId: apartment.id,
+              ownerId: apartment.landlord_id ?? null,
+              name: apartment.name ?? "this listing",
+            }}
+            className="self-start"
+          />
         </div>
       </div>
 

@@ -31,7 +31,13 @@ export default function UserTrustSafety({
       <dl className="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <InfoField
           label="Account status"
-          value={user.is_suspended ? "Suspended" : "Active"}
+          value={
+            user.is_suspended
+              ? user.suspended_until
+                ? `Suspended until ${joinedFormatter.format(new Date(user.suspended_until))}`
+                : "Suspended (permanent)"
+              : "Active"
+          }
         />
         <InfoField
           label="Account age"

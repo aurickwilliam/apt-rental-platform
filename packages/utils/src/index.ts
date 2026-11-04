@@ -32,7 +32,15 @@ export {
 } from './chatAttachments';
 export { isSameChatDay, getChatDayKey, formatChatDayLabel } from './chatDay';
 export { getReplyCaption } from './replyCaption';
-export { USER_REPORT_REASONS, USER_REPORT_DETAILS_MAX_LENGTH, type UserReportReason } from './userReport';
+export {
+  USER_REPORT_REASONS,
+  USER_REPORT_DETAILS_MAX_LENGTH,
+  APARTMENT_REPORT_REASONS,
+  USER_REPORT_TARGET_LABELS,
+  type UserReportReason,
+  type ApartmentReportReason,
+  type UserReportTargetType,
+} from './userReport';
 export * from './landlordFinance';
 export * from './landlordPayments';
 export { filterPaymentHistory } from './paymentHistory';

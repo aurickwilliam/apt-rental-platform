@@ -190,7 +190,7 @@ export function useConversationActions(portal: "tenant" | "landlord", onMarkedRe
         isSubmitting={isReporting}
         error={reportError}
         onClose={() => setReportTarget(null)}
-        onSubmit={(reason, details) => void submitReport(reason, details)}
+        onSubmit={(reason, details) => void submitReport(reason as UserReportReason, details)}
       />
       <RemovePhotoConfirmModal
         isOpen={blockTarget !== null}

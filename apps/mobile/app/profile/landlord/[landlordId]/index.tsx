@@ -22,6 +22,9 @@ import { Button, SkeletonGroup } from "heroui-native"
 import { usePublicLandlordProfile, useLandlordOwnershipDocuments } from 'hooks/profiles'
 import { useColors } from 'hooks/useTheme'
 import { getInquiryConversationId } from '@/service/chat/chatRoutes'
+import { useReportDialog } from '@/hooks/reports'
+import { useCurrentUserId } from '@/hooks/auth'
+import ReportUserDialog from '@/app/(tabs)/components/chat/ReportUserDialog'
 
 import {
   IconFlag,
@@ -90,10 +93,11 @@ export default function PublicLandlordProfile() {
     ? listings
     : listings.slice(0, VISIBLE_LISTING_LIMIT);
 
-  // TODO: Implement function to handle report landlord
-  const handleReportLandlord = () => {
-    console.log("Report Landlord Pressed");
-  }
+  const currentUserId = useCurrentUserId();
+  const report = useReportDialog(
+    resolvedLandlordId ? { kind: 'profile', userId: resolvedLandlordId, role: 'landlord' } : null,
+  );
+  const canReport = Boolean(resolvedLandlordId) && resolvedLandlordId !== currentUserId;
 
   const handleMessageLandlord = () => {
     if (!resolvedLandlordId) return;
@@ -318,14 +322,25 @@ export default function PublicLandlordProfile() {
       </View>
 
       {/* Report Button */}
-      <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
-        <Button variant="tertiary" size="md" onPress={handleReportLandlord}>
-          <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-nunitoSemiBold">
-            Report {firstName}
-          </Button.Label>
-        </Button>
-      </View>
+      {canReport ? (
+        <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
+          <Button variant="tertiary" size="md" onPress={report.open}>
+            <IconFlag size={20} color={colors.danger} />
+            <Button.Label className="text-danger font-nunitoSemiBold">
+              Report {firstName}
+            </Button.Label>
+          </Button>
+        </View>
+      ) : null}
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={fullName}
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
     </ScreenWrapper>
   );
 }

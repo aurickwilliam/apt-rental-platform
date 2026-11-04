@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Table } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
-import { formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
+import { USER_REPORT_TARGET_LABELS } from "@repo/utils";
+import { REPORT_ACTION_LABELS, formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
 import {
   reportDateFormatter,
   reportStatusColor,
@@ -19,7 +20,7 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
         <Table.ScrollContainer>
           <Table.Content aria-label="User reports">
             <Table.Header className="text-foreground! [&_th]:text-foreground!">
-              <Table.Column isRowHeader>Reported user</Table.Column>
+              <Table.Column isRowHeader>Reported</Table.Column>
               <Table.Column>Reason</Table.Column>
               <Table.Column>Reported by</Table.Column>
               <Table.Column>Status</Table.Column>
@@ -40,8 +41,18 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
                     {report.reported?.is_suspended ? (
                       <p className="text-xs text-danger">Suspended</p>
                     ) : null}
+                    <p className="text-xs text-muted-foreground">
+                      {USER_REPORT_TARGET_LABELS[report.target_type] ?? "Report"}
+                    </p>
                     {report.apartment ? (
-                      <p className="text-xs text-muted-foreground">About {report.apartment.name}</p>
+                      <p className="text-xs">
+                        <Link href={`/admin/apartments/${report.apartment.id}`} className={LINK_CLASSES}>
+                          {report.apartment.name}
+                        </Link>
+                        {report.apartment.is_hidden_by_admin ? (
+                          <span className="text-danger"> · Hidden</span>
+                        ) : null}
+                      </p>
                     ) : null}
                   </Table.Cell>
                   <Table.Cell className="max-w-72 text-sm">
@@ -69,9 +80,14 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
                   </Table.Cell>
                   <Table.Cell className="text-sm">
                     {report.status === "open" ? (
-                      <ReportActions reportId={report.id} />
+                      <ReportActions report={report} />
                     ) : (
-                      <span className="text-muted-foreground">{report.resolution_note ?? "—"}</span>
+                      <div className="text-muted-foreground">
+                        {REPORT_ACTION_LABELS[report.action_taken] ? (
+                          <p className="font-semibold text-foreground">{REPORT_ACTION_LABELS[report.action_taken]}</p>
+                        ) : null}
+                        <p>{report.resolution_note ?? "—"}</p>
+                      </div>
                     )}
                   </Table.Cell>
                 </Table.Row>

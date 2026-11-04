@@ -188,7 +188,7 @@ export default async function AdminUserDetailPage({
 
   type UserBase = Omit<
     AdminUserDetail,
-    "is_suspended" | "suspension_reason" | "suspended_at" | "suspended_by"
+    "is_suspended" | "suspension_reason" | "suspended_at" | "suspended_by" | "suspended_until"
   >;
   const userBase = userData as unknown as UserBase | null;
   if (!userBase) {
@@ -201,16 +201,17 @@ export default async function AdminUserDetailPage({
   let suspensionSupported = false;
   let suspension: Pick<
     AdminUserDetail,
-    "is_suspended" | "suspension_reason" | "suspended_at" | "suspended_by"
+    "is_suspended" | "suspension_reason" | "suspended_at" | "suspended_by" | "suspended_until"
   > = {
     is_suspended: false,
     suspension_reason: null,
     suspended_at: null,
     suspended_by: null,
+    suspended_until: null,
   };
   const { data: suspensionData, error: suspensionError } = await supabase
     .from("users")
-    .select("is_suspended, suspension_reason, suspended_at, suspended_by")
+    .select("is_suspended, suspension_reason, suspended_at, suspended_by, suspended_until")
     .eq("id", id)
     .single();
   if (!suspensionError && suspensionData) {
@@ -220,6 +221,7 @@ export default async function AdminUserDetailPage({
       suspension_reason: row.suspension_reason ?? null,
       suspended_at: row.suspended_at ?? null,
       suspended_by: row.suspended_by ?? null,
+      suspended_until: row.suspended_until ?? null,
     };
     suspensionSupported = true;
   }
