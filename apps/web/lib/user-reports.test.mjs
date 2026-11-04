@@ -18,3 +18,33 @@ test("report status filter defaults to open", () => {
   assert.equal(parseReportStatusFilter("all"), "all");
   assert.equal(parseReportStatusFilter("dismissed"), "dismissed");
 });
+
+test("report search drops characters that change a database filter and caps the length", async () => {
+  const { parseReportSearch, REPORT_SEARCH_MAX_LENGTH } = await import("./user-reports.ts");
+  assert.equal(parseReportSearch(undefined), "");
+  assert.equal(parseReportSearch("  Irene's   Housing "), "Irene's Housing");
+  assert.equal(parseReportSearch("a%b,c(d)e*f\\g"), "a b c d e f g");
+  assert.equal(parseReportSearch(["Maria", "ignored"]), "Maria");
+  assert.equal(parseReportSearch("x".repeat(500)).length, REPORT_SEARCH_MAX_LENGTH);
+});
+
+test("report filter params leave defaults out of the URL", async () => {
+  const { reportFilterParams, parseReportFilters } = await import("./user-reports.ts");
+  assert.deepEqual(reportFilterParams({ q: "", status: "open", type: "all" }, 1), {
+    q: null,
+    status: null,
+    type: null,
+    page: null,
+  });
+  assert.deepEqual(reportFilterParams({ q: "irene", status: "resolved", type: "apartment" }, 3), {
+    q: "irene",
+    status: "resolved",
+    type: "apartment",
+    page: 3,
+  });
+  assert.deepEqual(parseReportFilters({ q: "irene", status: "bogus", type: "tenant" }), {
+    q: "irene",
+    status: "open",
+    type: "tenant",
+  });
+});

@@ -1,13 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Pagination, Spinner } from "@heroui/react";
 import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
+import AdminFilterToolbar from "../_components/filters/AdminFilterToolbar";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
 import FilterPopover from "../_components/filters/FilterPopover";
 import type { ActiveFilterTag, FilterOption } from "../_components/filters/types";
-import type { UserReportStatusFilter, UserReportTargetTypeFilter } from "@/lib/user-reports";
+import { useListFilters } from "../_components/filters/use-list-filters";
+import {
+  reportFilterParams,
+  type ReportFilters,
+  type UserReportStatusFilter,
+  type UserReportTargetTypeFilter,
+} from "@/lib/user-reports";
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
 import type { AdminUserReport } from "./lib/report-types";
@@ -30,16 +36,12 @@ const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
 ];
 
 // Open reports of every kind are what the page shows with no filter applied.
-const DEFAULT_FILTERS: { status: UserReportStatusFilter; type: UserReportTargetTypeFilter } = {
-  status: "open",
-  type: "all",
-};
+const DEFAULT_FILTERS = { status: "open", type: "all" } as const;
 
 interface ReportsClientProps {
   reports: AdminUserReport[];
   error: boolean;
-  status: UserReportStatusFilter;
-  type: UserReportTargetTypeFilter;
+  filters: ReportFilters;
   page: number;
   totalCount: number;
   pageSize: number;
@@ -48,15 +50,21 @@ interface ReportsClientProps {
 export default function ReportsClient({
   reports,
   error,
-  status,
-  type,
-  page,
+  filters: appliedFilters,
+  page: appliedPage,
   totalCount,
   pageSize,
 }: ReportsClientProps) {
-  const router = useRouter();
-  const [isNavigating, startTransition] = useTransition();
-  const [draft, setDraft] = useState({ status, type });
+  const list = useListFilters({
+    pathname: "/admin/reports",
+    filters: appliedFilters,
+    page: appliedPage,
+    toParams: reportFilterParams,
+  });
+  const { filters, page } = list;
+  const { status, type } = filters;
+  const isNavigating = list.isPending;
+  const [draft, setDraft] = useState({ status: filters.status, type: filters.type });
 
   const activeTags: ActiveFilterTag[] = [];
   if (status !== DEFAULT_FILTERS.status) {
@@ -72,6 +80,13 @@ export default function ReportsClient({
     });
   }
 
+  function removeTags(ids: string[]) {
+    list.apply({
+      ...(ids.includes("status") ? { status: DEFAULT_FILTERS.status } : {}),
+      ...(ids.includes("type") ? { type: DEFAULT_FILTERS.type } : {}),
+    });
+  }
+
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const firstVisiblePage = Math.max(1, Math.min(page - 2, totalPages - 4));
   const visiblePages = Array.from(
@@ -79,29 +94,24 @@ export default function ReportsClient({
     (_, index) => firstVisiblePage + index,
   );
 
-  function navigate(nextStatus: UserReportStatusFilter, nextType: UserReportTargetTypeFilter, nextPage: number) {
-    startTransition(() => {
-      router.push(`/admin/reports?status=${nextStatus}&type=${nextType}&page=${nextPage}`);
-    });
-  }
-
-  function removeTags(ids: string[]) {
-    navigate(
-      ids.includes("status") ? DEFAULT_FILTERS.status : status,
-      ids.includes("type") ? DEFAULT_FILTERS.type : type,
-      1,
-    );
-  }
-
   return (
     <div className="space-y-5">
       <div className="space-y-3">
-        <div className="flex justify-end">
+        <AdminFilterToolbar
+          searchLabel="Search reports"
+          searchPlaceholder="Search by name or apartment"
+          searchValue={list.search}
+          onSearchChange={list.changeSearch}
+          onSearchSubmit={list.submitSearch}
+          onSearchClear={list.clearSearch}
+          refreshLabel="Refresh reports"
+          onRefresh={list.refresh}
+        >
           <FilterPopover
             activeCount={activeTags.length}
             onOpen={() => setDraft({ status, type })}
-            onReset={() => setDraft(DEFAULT_FILTERS)}
-            onApply={() => navigate(draft.status, draft.type, 1)}
+            onReset={() => setDraft({ ...DEFAULT_FILTERS })}
+            onApply={() => list.apply({ status: draft.status, type: draft.type })}
           >
             <FilterPillGroup
               label="Status"
@@ -118,11 +128,11 @@ export default function ReportsClient({
               onChange={(nextType) => setDraft((current) => ({ ...current, type: nextType }))}
             />
           </FilterPopover>
-        </div>
+        </AdminFilterToolbar>
         <ActiveFilterTags
           tags={activeTags}
           onRemove={removeTags}
-          onClearAll={() => navigate(DEFAULT_FILTERS.status, DEFAULT_FILTERS.type, 1)}
+          onClearAll={() => list.apply({ ...DEFAULT_FILTERS })}
         />
       </div>
 
@@ -151,7 +161,7 @@ export default function ReportsClient({
             ) : (
               <EmptyState
                 icon={IconFlag}
-                title={status === "open" ? "No open reports" : "No reports here"}
+                title={filters.q ? "No matching reports" : status === "open" ? "No open reports" : "No reports here"}
                 description="Reports about apartments, landlords, tenants and chats will appear here for review."
               />
             )}
@@ -164,7 +174,7 @@ export default function ReportsClient({
                   <Pagination.Item>
                     <Pagination.Previous
                       isDisabled={page <= 1}
-                      onPress={() => navigate(status, type, page - 1)}
+                      onPress={() => list.goToPage(page - 1)}
                       className="font-nunito text-primary"
                     >
                       <Pagination.PreviousIcon />
@@ -175,7 +185,7 @@ export default function ReportsClient({
                     <Pagination.Item key={number}>
                       <Pagination.Link
                         isActive={number === page}
-                        onPress={() => navigate(status, type, number)}
+                        onPress={() => list.goToPage(number)}
                       >
                         {number}
                       </Pagination.Link>
@@ -184,7 +194,7 @@ export default function ReportsClient({
                   <Pagination.Item>
                     <Pagination.Next
                       isDisabled={page >= totalPages}
-                      onPress={() => navigate(status, type, page + 1)}
+                      onPress={() => list.goToPage(page + 1)}
                       className="font-nunito text-primary"
                     >
                       <span>Next</span>

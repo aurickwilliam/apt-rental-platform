@@ -61,3 +61,39 @@ export const REPORT_ACTION_LABELS: Record<string, string> = {
   listing_hidden: "Listing hidden",
   user_suspended: "Account suspended",
 };
+
+export interface ReportFilters {
+  q: string;
+  status: UserReportStatusFilter;
+  type: UserReportTargetTypeFilter;
+}
+
+export const REPORT_SEARCH_MAX_LENGTH = 80;
+
+/** Search text from `?q=`, trimmed, capped and without characters that change a PostgREST filter. */
+export function parseReportSearch(value: string | string[] | undefined): string {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return (raw ?? "").replace(/[%,()*\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, REPORT_SEARCH_MAX_LENGTH);
+}
+
+export function parseReportFilters(params: {
+  q?: string | string[];
+  status?: string | string[];
+  type?: string | string[];
+}): ReportFilters {
+  return {
+    q: parseReportSearch(params.q),
+    status: parseReportStatusFilter(params.status),
+    type: parseReportTypeFilter(params.type),
+  };
+}
+
+/** URL params for the list; defaults are left out so the plain URL is the default view. */
+export function reportFilterParams(filters: ReportFilters, page: number) {
+  return {
+    q: filters.q || null,
+    status: filters.status === "open" ? null : filters.status,
+    type: filters.type === "all" ? null : filters.type,
+    page: page > 1 ? page : null,
+  };
+}

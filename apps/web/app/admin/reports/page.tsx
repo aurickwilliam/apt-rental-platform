@@ -1,6 +1,6 @@
 import { IconFlag } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/server";
-import { parseReportStatusFilter, parseReportTypeFilter } from "@/lib/user-reports";
+import { parseReportFilters } from "@/lib/user-reports";
 import { requireAdmin } from "../_lib/require-admin";
 import ReportsClient from "./ReportsClient";
 import type { AdminUserReport } from "./lib/report-types";
@@ -15,13 +15,13 @@ function one<T>(value: T | T[] | null): T | null {
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; status?: string; type?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; status?: string; type?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
-  const status = parseReportStatusFilter(params.status);
-  const type = parseReportTypeFilter(params.type);
+  const filters = parseReportFilters(params);
+  const { status, type } = filters;
   const supabase = await createClient();
 
   // user_reports has three FKs to users, so each join names its constraint.
@@ -38,6 +38,28 @@ export default async function ReportsPage({
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (status !== "all") query = query.eq("status", status);
   if (type !== "all") query = query.eq("target_type", type);
+
+  // Search matches the reported person, the reporter or the listing by name.
+  if (filters.q) {
+    const term = `%${filters.q}%`;
+    const [{ data: people }, { data: listings }] = await Promise.all([
+      supabase
+        .from("users")
+        .select("id")
+        .or(`first_name.ilike.${term},last_name.ilike.${term},email.ilike.${term}`)
+        .limit(100),
+      supabase.from("apartments").select("id").ilike("name", term).limit(100),
+    ]);
+    const personIds = (people ?? []).map((person) => person.id).join(",");
+    const listingIds = (listings ?? []).map((listing) => listing.id).join(",");
+    const conditions = [
+      personIds && `reported_user_id.in.(${personIds})`,
+      personIds && `reporter_id.in.(${personIds})`,
+      listingIds && `apartment_id.in.(${listingIds})`,
+    ].filter(Boolean);
+    // No match: a condition no row can satisfy, so the page shows the empty state.
+    query = query.or(conditions.length ? conditions.join(",") : "id.eq.00000000-0000-0000-0000-000000000000");
+  }
 
   const { data, error, count } = await query;
   if (error) console.error("Admin reports failed to load", error);
@@ -71,11 +93,9 @@ export default async function ReportsPage({
         </p>
       </div>
       <ReportsClient
-        key={`${status}-${type}-${page}`}
         reports={reports}
         error={Boolean(error)}
-        status={status}
-        type={type}
+        filters={filters}
         page={page}
         totalCount={count ?? 0}
         pageSize={PAGE_SIZE}
