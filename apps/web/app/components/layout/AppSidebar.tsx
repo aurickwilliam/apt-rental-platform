@@ -768,7 +768,8 @@ type MobileSidebarNavigationProps = {
 };
 
 const DRAWER_ROW_CLASS =
-  "flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-nunito text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary";
+  // justify-start: HeroUI buttons center their content, so rows must say where it starts.
+  "flex min-h-11 w-full cursor-pointer items-center justify-start gap-3 rounded-xl px-3 py-2.5 text-left font-nunito text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary";
 
 function drawerRowClass(active: boolean) {
   return `${DRAWER_ROW_CLASS} ${

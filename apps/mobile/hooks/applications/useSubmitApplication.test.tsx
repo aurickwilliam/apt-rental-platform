@@ -87,12 +87,37 @@ const billing: PassportDocumentRow = {
   storage_path: 'tenant-1/passport/residency.pdf',
 }
 
-function mockApartment(landlordId: string, insert = jest.fn().mockResolvedValue({ error: null })) {
-  mockFrom.mockImplementation((table: string) =>
-    table === 'apartments'
-      ? { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
-      : { insert }
-  )
+const savedPreferences = {
+  selectedCities: ['Caloocan'],
+  budgetMin: 5000,
+  budgetMax: 20000,
+  bedroomCount: null,
+  householdSize: null,
+  hasPets: true,
+  kindOfPets: ['Dog'],
+  noOfPets: 1,
+  nameOfPets: 'Max',
+  hasParking: false,
+  noOfParkingSpots: 1,
+  listOfVehicles: [],
+  hasSmoker: false,
+  hasDisability: true,
+}
+
+function mockApartment(
+  landlordId: string,
+  insert = jest.fn().mockResolvedValue({ error: null }),
+  preferences: unknown = null,
+) {
+  mockFrom.mockImplementation((table: string) => {
+    if (table === 'apartments') {
+      return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
+    }
+    if (table === 'users') {
+      return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { preferences }, error: null }) }) }) }
+    }
+    return { insert }
+  })
   return insert
 }
 
@@ -126,6 +151,35 @@ it('attaches passport documents by reference without uploading', async () => {
     })
   )
   expect(mockResetForm).toHaveBeenCalled()
+})
+
+it('stores no preference snapshot when the tenant has no saved preferences', async () => {
+  const insert = mockApartment('landlord-1')
+
+  expect(await submitApplication()).toEqual({ success: true })
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ tenant_preferences: null }))
+})
+
+it('copies the saved preference details the tenant confirms into the application', async () => {
+  mockStoreState.rentalPreferences.hasPets = true
+  try {
+    const insert = mockApartment('landlord-1', undefined, savedPreferences)
+
+    expect(await submitApplication()).toEqual({ success: true })
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenant_preferences: {
+          version: 1,
+          pets: { has: true, kinds: ['Dog'], count: 1, names: 'Max' },
+          parking: { needed: false },
+          smoker: false,
+          householdDisability: true,
+        },
+      })
+    )
+  } finally {
+    mockStoreState.rentalPreferences.hasPets = false
+  }
 })
 
 it('omits the ID back when the attached ID is not verification-linked', async () => {

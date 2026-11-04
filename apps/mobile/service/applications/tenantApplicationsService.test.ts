@@ -91,6 +91,23 @@ describe("fetchTenantApplications", () => {
     expect("gov_id_url" in applications[0]!).toBe(false);
   });
 
+  it("reads the saved-preference snapshot without leaking the raw column", async () => {
+    const snapshot = { version: 1, pets: { has: true, kinds: ['Dog'], count: 2 }, parking: { needed: false }, smoker: false, householdDisability: true };
+    const query = createApplicationsQuery();
+    query.order.mockResolvedValue({
+      data: [{ ...applicationRow, tenant_preferences: snapshot }, applicationRow],
+      error: null,
+    });
+    mockFrom.mockReturnValue(query);
+
+    const applications = await fetchTenantApplications("tenant-1");
+
+    expect(applications[0].preferences).toEqual(snapshot);
+    expect(applications[1].preferences).toBeNull();
+    expect(applications[0]).not.toHaveProperty("tenant_preferences");
+    expect(query.select).toHaveBeenCalledWith(expect.stringContaining("tenant_preferences"));
+  });
+
   it("lists the ID back as its own document when the application has one", async () => {
     mockFrom.mockReturnValue(
       (() => {

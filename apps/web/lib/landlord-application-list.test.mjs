@@ -52,7 +52,7 @@ test("Applications query retrieves one cover-first thumbnail per property and re
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const context = { exports: {}, require: name => {
     if (name === "@repo/supabase/browser") return { createClient: () => ({ from: table => { calls.push(["from", table]); return query; } }) };
-    if (name === "@repo/utils") return { formatAddress: () => "Address" };
+    if (name === "@repo/utils") return { formatAddress: () => "Address", parseApplicationPreferenceSnapshot: () => null };
     throw new Error(`Unexpected import: ${name}`);
   } };
   vm.runInNewContext(compiled, context);

@@ -60,35 +60,45 @@ function nodes(node) {
   return [node, ...nodes(child)];
 }
 
-test("See All keeps all loaded cards during pending, cancelled and failed navigation", () => {
+test("See All shows the filtered results skeleton while its navigation is pending", () => {
   let pending = false;
   let dismissed = 0;
+  const pushed = [];
   const dependencies = {
-    "next/link": { default: "Link", useLinkStatus: () => ({ pending }) },
-    "next/navigation": { useRouter: () => ({ push() {} }) },
+    react: { ...base.react, useTransition: () => [pending, callback => callback()] },
+    "next/link": { default: "Link" },
+    "next/navigation": { useRouter: () => ({ push: href => pushed.push(href) }) },
     "next/dynamic": { default: () => "HoverPreview" },
     "../../components/ui/ApartmentCard": { default: "ApartmentCard" },
     "@/app/components/ui/AuthPromptModal": { default: "AuthPromptModal" },
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
     "@/hooks/use-recent-apartment-searches": { useRememberRecentApartment: () => () => {} },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
+    "./BrowsePageSkeleton": { BrowseResultsGridSkeleton: "ResultsSkeleton", BrowseFilterRailSkeleton: "RailSkeleton" },
   };
   const Browse = compile("app/browse/components/BrowseSectionsList.tsx", dependencies).default;
   const sections = [{ id: "verified", title: "Verified", seeAllHref: "/browse?verified=1", apartments: [{ id: "one", name: "One" }, { id: "two", name: "Two" }] }];
   const render = () => nodes(Browse({ sections }));
+
   const link = render().find(node => node.type === "Link");
   assert.equal(link.props.href, "/browse?verified=1");
-  assert.equal(link.props.onClick, undefined, "native Link modifier/history behavior stays intact");
-  link.props.onNavigate();
+  let prevented = 0;
+  link.props.onNavigate({ preventDefault() { prevented++; } });
+  assert.equal(prevented, 1, "the click is routed through a transition so its pending state is observable");
   assert.equal(dismissed, 1);
-  for (const nextPending of [true, false, true, false]) {
+  assert.deepEqual(pushed, ["/browse?verified=1"]);
+
+  for (const nextPending of [false, true, false, true]) {
     pending = nextPending;
     const tree = render();
-    assert.equal(tree.filter(node => node.type === "ApartmentCard").length, 2);
-    assert.equal(tree.filter(node => node.type === "Skeleton").length, 0);
-    assert.equal(tree.some(node => node.props.role === "status"), pending);
+    assert.equal(tree.filter(node => node.type === "ApartmentCard").length, nextPending ? 0 : 2);
+    assert.equal(tree.filter(node => node.type === "ResultsSkeleton").length, nextPending ? 1 : 0);
+    assert.equal(tree.filter(node => node.type === "RailSkeleton").length, nextPending ? 1 : 0, "the filtered page's filter rail is held in place");
+    assert.equal(tree.some(node => node.props.role === "status" && node.props["aria-busy"]), nextPending);
   }
-  assert.doesNotMatch(source("app/browse/components/BrowseSectionsList.tsx"), /navigatingHref|BrowseCardsSkeleton|setNavigatingHref|useSearchParams/);
+  const list = source("app/browse/components/BrowseSectionsList.tsx");
+  assert.doesNotMatch(list, /Opening…|BrowseSeeAllPending|useLinkStatus/);
+  assert.equal(existsSync(path.join(root, "app/browse/components/BrowseSeeAllPending.tsx")), false);
 });
 
 test("tenant form and reviews boundaries override the parent gallery with Back, title and accessible status", () => {

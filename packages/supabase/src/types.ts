@@ -1082,6 +1082,7 @@ export type Database = {
           rejected_reason: string | null
           status: string
           tenant_id: string
+          tenant_preferences: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -1108,6 +1109,7 @@ export type Database = {
           rejected_reason?: string | null
           status?: string
           tenant_id: string
+          tenant_preferences?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -1134,6 +1136,7 @@ export type Database = {
           rejected_reason?: string | null
           status?: string
           tenant_id?: string
+          tenant_preferences?: Json | null
           updated_at?: string | null
         }
         Relationships: [

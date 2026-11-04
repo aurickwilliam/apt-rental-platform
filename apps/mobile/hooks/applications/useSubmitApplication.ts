@@ -5,6 +5,9 @@ import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
 import { evaluateApplicationReadiness } from '@repo/passport'
+import { buildApplicationPreferenceSnapshot } from '@repo/utils'
+import type { Json } from '@repo/supabase'
+import { parsePreferences } from '@/hooks/preferences/useUserPreferences'
 
 type SubmitArgs = {
   apartmentId: string
@@ -91,6 +94,24 @@ export function useSubmitApplication() {
           return fail('Your APT Passport is missing required documents.')
         }
 
+        // Fresh read, so the copy shared with the landlord matches what the
+        // tenant has saved right now, not what the app cached earlier.
+        const { data: preferenceRow, error: preferenceError } = await supabase
+          .from('users')
+          .select('preferences')
+          .eq('id', tenantId)
+          .maybeSingle()
+        if (preferenceError) return fail(preferenceError.message)
+
+        const preferenceSnapshot = buildApplicationPreferenceSnapshot(
+          parsePreferences(preferenceRow?.preferences),
+          {
+            hasPets: rentalPreferences.hasPets ?? false,
+            isSmoker: rentalPreferences.isSmoker ?? false,
+            needParking: rentalPreferences.needParking ?? false,
+          },
+        )
+
         const { error: insertError } = await supabase.from('rental_application').insert({
           tenant_id: tenantId,
           apartment_id: apartmentId,
@@ -112,6 +133,8 @@ export function useSubmitApplication() {
           proof_of_income_url: docs.proofOfIncome?.storage_path ?? null,
           proof_of_billing_url: docs.proofOfBilling.storage_path,
           nbi_clearance_url: docs.nbiClearance?.storage_path ?? null,
+          // A plain JSON object; the snapshot interface has no index signature.
+          tenant_preferences: preferenceSnapshot as unknown as Json,
           status: 'pending',
         })
 

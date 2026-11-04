@@ -113,8 +113,10 @@ export default function SearchSectionsList({
           onRefresh={onRefresh}
         />
       }
+      // Only while refreshing: even an empty header gets a wrapper view, and the
+      // list's gap would then put 16pt of space above the first section.
       ListHeaderComponent={
-        <PullToRefreshIndicator refreshing={isFetching && !isLoading} />
+        isFetching && !isLoading ? <PullToRefreshIndicator refreshing /> : null
       }
     />
   );

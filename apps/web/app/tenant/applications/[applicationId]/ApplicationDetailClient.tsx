@@ -23,7 +23,7 @@ import {
   IconMapPin as MapPin,
 } from "@tabler/icons-react";
 import { toast } from "@heroui/react";
-import { formatPesoDisplay } from "@repo/utils";
+import { describeApplicationPreferences, formatPesoDisplay } from "@repo/utils";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import { useApplicantPersonalInfo } from "@/hooks/use-applicant-personal-info";
 import { useVisitRequest } from "@/hooks/use-visit-request";
@@ -295,9 +295,18 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
                     value={new Date(application.move_in_date).toLocaleDateString()}
                   />
                   <DetailField label="No. of Occupants" value={`${application.no_occupants} Person(s)`} />
-                  <DetailField label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
-                  <DetailField label="Smoker" value={application.has_smoker ? "Yes" : "No"} />
-                  <DetailField label="Needs Parking" value={application.need_parking ? "Yes" : "No"} />
+                  {application.preferences ? (
+                    // What the landlord sees: the details copied from your saved preferences when you applied.
+                    describeApplicationPreferences(application.preferences).map((line) => (
+                      <DetailField key={line.label} label={line.label} value={line.value} />
+                    ))
+                  ) : (
+                    <>
+                      <DetailField label="Has Pets" value={application.has_pets ? "Yes" : "No"} />
+                      <DetailField label="Smoker" value={application.has_smoker ? "Yes" : "No"} />
+                      <DetailField label="Needs Parking" value={application.need_parking ? "Yes" : "No"} />
+                    </>
+                  )}
                   <div className="md:col-span-2">
                     <DetailField label="Message" value={application.message} />
                   </div>

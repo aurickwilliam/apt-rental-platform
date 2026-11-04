@@ -29,6 +29,8 @@ const YES_NO_QUESTIONS: { field: YesNoField; title: string }[] = [
 
 interface PreferencesStepProps extends ApplicationStepProps {
   maxOccupants: number | null;
+  /** The yes/no answers started from the tenant's saved rental preferences. */
+  isPrefilled?: boolean;
   onBack: () => void;
   onNext: () => void;
 }
@@ -39,6 +41,7 @@ export default function PreferencesStep({
   onChange,
   clearError,
   maxOccupants,
+  isPrefilled = false,
   onBack,
   onNext,
 }: PreferencesStepProps) {
@@ -82,6 +85,12 @@ export default function PreferencesStep({
         </TextField>
 
         <Separator />
+
+        {isPrefilled ? (
+          <p className="-mb-2 text-xs text-muted-foreground">
+            Filled in from your saved rental preferences. Change any answer for this application.
+          </p>
+        ) : null}
 
         {YES_NO_QUESTIONS.map(({ field, title }) => {
           const value = form[field];
