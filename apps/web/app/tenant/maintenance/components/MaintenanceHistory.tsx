@@ -36,6 +36,7 @@ type MaintenanceHistoryProps = {
   error: string | null;
   cancellingId: string | null;
   onCancel: (requestId: string) => Promise<{ success: boolean; error?: string }>;
+  requestAction?: React.ReactNode;
 };
 
 export default function MaintenanceHistory({
@@ -44,6 +45,7 @@ export default function MaintenanceHistory({
   error,
   cancellingId,
   onCancel,
+  requestAction,
 }: MaintenanceHistoryProps) {
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
   const cancelDialog = useOverlayState();
@@ -68,7 +70,7 @@ export default function MaintenanceHistory({
 
   return (
     <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <Card.Content className="p-6 sm:p-8">
+      <Card.Content className="p-4 sm:p-8">
         <div className="flex items-center gap-2 mb-1">
           <Wrench size={18} className="text-primary" />
           <h2 className="text-base font-nunito font-semibold text-card-foreground">
@@ -76,7 +78,7 @@ export default function MaintenanceHistory({
           </h2>
         </div>
         <p className="font-inter text-sm text-muted-foreground mb-4">
-          Track status and cancel open requests. Photos load via short-lived signed URLs.
+          Review your requests across your rentals, landlord updates and photos. You can cancel an open request.
         </p>
         {photos.loading ? <p role="status" className="text-xs text-muted-foreground">Loading request photos…</p> : null}
         {photos.error ? <p role="alert" className="text-xs text-danger">{photos.error}</p> : null}
@@ -88,9 +90,11 @@ export default function MaintenanceHistory({
         ) : error ? (
           <p className="font-inter text-sm text-red-600">{error}</p>
         ) : requests.length === 0 ? (
-          <p className="font-inter text-sm text-muted-foreground text-center py-6">
-            No maintenance requests yet.
-          </p>
+          <div className="space-y-3 py-6 text-center">
+            <h3 className="font-nunito font-semibold">No maintenance requests yet</h3>
+            <p className="font-inter text-sm text-muted-foreground">Need something repaired? Submit a request and keep track of its progress here.</p>
+            {requestAction}
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
             {requests.map((request) => {
@@ -102,13 +106,15 @@ export default function MaintenanceHistory({
               return (
                 <div
                   key={request.id}
-                  className="rounded-xl border border-border p-4"
+                  id={`request-${request.id}`}
+                  className="min-w-0 scroll-mt-20 rounded-xl border border-border p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-nunito text-sm font-semibold text-card-foreground truncate">
+                      <p className="break-words font-nunito text-sm font-semibold text-card-foreground">
                         {request.title}
                       </p>
+                      <p className="mt-1 break-words text-xs text-muted-foreground">{request.apartment_name ?? "Rental apartment"}</p>
                       <p className="font-inter text-xs text-muted-foreground mt-0.5">
                         {categoryLabel(request.category)} ·{" "}
                         {new Date(request.created_at).toLocaleString()}
@@ -128,9 +134,10 @@ export default function MaintenanceHistory({
                     </div>
                   </div>
 
-                  <p className="font-inter text-sm text-muted-foreground mt-2 whitespace-pre-line">
+                  <p className="break-words font-inter text-sm text-muted-foreground mt-2 whitespace-pre-line">
                     {request.message}
                   </p>
+                  {request.status === "Pending" ? <p className="mt-2 text-xs text-muted-foreground">Submitted · awaiting landlord response</p> : null}
 
                   {imageUrls.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -153,10 +160,10 @@ export default function MaintenanceHistory({
                     </div>
                   )}
 
-                  {request.resolved_at && (
+                  {(request.resolved_at || request.resolution_notes) && (
                     <div className="mt-3 rounded-lg bg-muted p-3">
                       <p className="font-inter text-xs text-muted-foreground">
-                        Resolved {new Date(request.resolved_at).toLocaleString()}
+                        {request.resolved_at ? `Resolved ${new Date(request.resolved_at).toLocaleString()}` : "Landlord update"}
                       </p>
                       {request.resolution_notes && (
                         <p className="font-inter text-sm text-card-foreground mt-1">

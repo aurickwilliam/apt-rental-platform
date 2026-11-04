@@ -24,7 +24,7 @@ import {
 
 export default function Search() {
   const router = useRouter();
-  const { preferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
+  const { preferences, recommendationPreferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
   const { profile } = useProfile();
   const { recent, remember, clear: clearRecent } = useRecentApartmentSearches(profile?.user_id);
@@ -66,7 +66,7 @@ export default function Search() {
     committedSearch.trim() === "" && activeFilterCount === 0 && selectedCity === initialCity;
   const isNetflixBrowse = isDefaultBrowse;
 
-  const preferencesForSections = isDefaultBrowse && hasPrefs ? preferences : null;
+  const preferencesForSections = isDefaultBrowse && hasPrefs ? recommendationPreferences : null;
   const isGateLoading = prefsLoading && !preferences && isDefaultBrowse;
 
   const {
@@ -80,6 +80,7 @@ export default function Search() {
     committedSearch,
     enabled: true,
     preferences: preferencesForSections,
+    accountId: profile?.user_id,
   });
 
   // Degrade to the bounded legacy list when the batched section RPC fails.

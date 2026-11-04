@@ -11,6 +11,7 @@ import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled } fro
 import { formatPesoDisplay } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import type { RecommendationReason } from "@/lib/recommendations";
 
 // Shown when a listing has no photo or its file no longer resolves, so a card
 // never renders an empty/broken box.
@@ -27,6 +28,11 @@ interface ApartmentCardProps {
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
+  onPreviewHover?: (element: HTMLElement) => void;
+  onPreviewLeave?: () => void;
+  onFavoriteInteraction?: () => void;
+  /** Only personalized rows pass this; [] reserves the same space without a claim. */
+  recommendationReasons?: readonly RecommendationReason[];
   /** Above-the-fold cards only: disables lazy loading for faster LCP. */
   priority?: boolean;
   /** Rendered-width hint so the browser picks a fitting file. */
@@ -44,6 +50,10 @@ export default function ApartmentCard({
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
+  onPreviewHover,
+  onPreviewLeave,
+  onFavoriteInteraction,
+  recommendationReasons,
   priority = false,
   sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: ApartmentCardProps) {
@@ -56,21 +66,16 @@ export default function ApartmentCard({
   const canOptimizeThumbnail = canOptimizePublicApartmentImage(thumbnailSrc);
 
   return (
-    <div
-      className="w-full min-w-0 cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-      onClick={onPress}
-      onKeyDown={(event) => {
-        if (event.target !== event.currentTarget || !onPress) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onPress();
-        }
-      }}
-      tabIndex={onPress ? 0 : undefined}
-      aria-label={`View ${name}`}
-      role="button"
-    >
+    <div className="h-full w-full min-w-0 rounded-xl">
       <Card className="bg-surface border border-transparent hover:border-primary transition-all duration-200 rounded-xl overflow-hidden w-full h-full relative p-0">
+        {onPress ? (
+          <Button variant="ghost" className="button--bare absolute inset-0 z-10 h-full w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+            aria-label={`View ${name}`} onPress={onPress}
+            onMouseEnter={(event) => {
+              if (event.currentTarget instanceof HTMLElement) onPreviewHover?.(event.currentTarget);
+            }}
+            onMouseLeave={onPreviewLeave} />
+        ) : null}
         <div className="min-w-0">
           <Image
             src={thumbnailSrc}
@@ -90,23 +95,39 @@ export default function ApartmentCard({
             <h3 className="text-[15px] font-semibold truncate">{name}</h3>
 
             <div className="flex items-center gap-1">
-              <p data-slot="apartment-card-location" className="bg-surface-variant text-xs">
+              <p data-slot="apartment-card-location" className={`bg-surface-variant text-xs ${recommendationReasons !== undefined ? "truncate" : ""}`}>
                 {location}
               </p>
             </div>
+            {recommendationReasons !== undefined ? (
+              <div data-slot="apartment-card-recommendations" className="mt-1 min-h-8 sm:min-h-4">
+                {recommendationReasons.length > 0 ? (
+                  <ul aria-label="Matches your preferences" className="flex flex-wrap content-start gap-0.5">
+                    {recommendationReasons.slice(0, 2).map((reason) => (
+                      <li key={reason} className="rounded-full bg-secondary px-1 py-px text-[10px] leading-3 font-medium text-secondary-foreground">
+                        {reason}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <Card.Footer className="p-2 flex justify-between items-center">
-          <p data-slot="apartment-card-price" className="text-[15px] font-medium text-primary">
-            {formatPesoDisplay(price)}
-          </p>
-
-          <div className="flex items-center gap-1">
-            <IconStarFilled size={18} className="text-yellow-400" />
-            <p className="text-sm">
-              {rating === 0 ? "-" : rating}
-            </p>
+        <Card.Footer className="mt-auto p-2">
+          <div className="w-full min-w-0">
+            <div className="flex items-center justify-between">
+              <p data-slot="apartment-card-price" className="text-[15px] font-medium text-primary">
+                {formatPesoDisplay(price)}
+              </p>
+              <div className="flex items-center gap-1">
+                <IconStarFilled size={18} className="text-yellow-400" />
+                <p className="text-sm">
+                  {rating === 0 ? "-" : rating}
+                </p>
+              </div>
+            </div>
           </div>
         </Card.Footer>
 
@@ -121,7 +142,10 @@ export default function ApartmentCard({
 
         {showFavoriteButton ? (
           <span
-            className="absolute top-2 right-2"
+            data-apartment-favorite
+            className="absolute top-2 right-2 z-20"
+            onMouseEnter={onFavoriteInteraction}
+            onFocus={onFavoriteInteraction}
             onClick={(e) => e.stopPropagation()}
           >
           <Button
@@ -131,6 +155,7 @@ export default function ApartmentCard({
             aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
             isPending={isFavoriteLoading}
             onPress={() => {
+              onFavoriteInteraction?.();
               onFavoritePress?.();
             }}
           >

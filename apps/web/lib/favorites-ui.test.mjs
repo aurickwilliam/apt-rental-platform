@@ -126,17 +126,64 @@ test("empty, error and loading states offer the right next step without a false 
   assert.ok(nodes(skeleton.type(skeleton.props)).some(node => node.props["aria-busy"] === "true"));
 });
 
-test("shared apartment card keyboard handling opens only the card, not its nested favorite control", () => {
+test("shared apartment card uses independent native controls for navigation and favorites, without a preview button", () => {
   let opened = 0;
-  let prevented = 0;
+  let favorited = 0;
   const Card = loadComponent("components/ui/ApartmentCard.tsx");
-  const tree = Card({ name: apartment.name, location: "Malanday, Valenzuela", price: 15000, rating: 5, thumbnailUrl: "/photo.jpg", onPress: () => opened++ });
-  assert.equal(tree.props.tabIndex, 0);
-  const target = {};
-  for (const key of ["Enter", " "]) tree.props.onKeyDown({ key, target, currentTarget: target, preventDefault: () => prevented++ });
-  tree.props.onKeyDown({ key: "Enter", target: {}, currentTarget: target, preventDefault: () => prevented++ });
-  assert.equal(opened, 2);
-  assert.equal(prevented, 2);
+  const tree = Card({ name: apartment.name, location: "Malanday, Valenzuela", price: 15000, rating: 5, thumbnailUrl: "/photo.jpg", onPress: () => opened++, onFavoritePress: () => favorited++ });
+  assert.equal(tree.props.role, undefined, "no interactive card wrapper containing buttons");
+  const buttons = nodes(tree).filter(node => node.type === "Button");
+  const navigation = buttons.find(node => node.props["aria-label"] === `View ${apartment.name}`);
+  const favorite = buttons.find(node => node.props["aria-label"] === "Save to favorites");
+  assert.equal(buttons.length, 2);
+  favorite.props.onPress();
+  assert.equal(favorited, 1);
+  assert.equal(opened, 0);
+  navigation.props.onPress();
+  assert.equal(opened, 1);
+  for (const button of buttons) assert.equal(nodes(button).filter(node => node.type === "Button").length, 1);
+});
+
+test("default recommendation cards reserve equal chip space for zero/one/two matches, never for generic cards", () => {
+  const Card = loadComponent("components/ui/ApartmentCard.tsx");
+  const props = { name: apartment.name, location: "Malanday, Valenzuela", price: 15000, rating: 5, thumbnailUrl: "/photo.jpg" };
+  let reservedClass;
+  for (const reasons of [[], ["Preferred city"], ["Preferred city", "Within budget"], ["Preferred city", "Within budget", "Bedroom match"]]) {
+    const all = nodes(Card({ ...props, recommendationReasons: reasons }));
+    const reserved = all.find(node => node.props["data-slot"] === "apartment-card-recommendations");
+    const details = all.find(node => node.props["data-slot"] === "apartment-card-details");
+    assert.ok(nodes(details).includes(reserved), "chips belong to descriptive information");
+    const locationIndex = all.findIndex(node => node.props["data-slot"] === "apartment-card-location");
+    const priceIndex = all.findIndex(node => node.props["data-slot"] === "apartment-card-price");
+    assert.ok(locationIndex < all.indexOf(reserved) && all.indexOf(reserved) < priceIndex);
+    reservedClass ??= reserved.props.className;
+    assert.equal(reserved.props.className, reservedClass);
+    const labels = all.filter(node => node.type === "li");
+    assert.deepEqual(labels.map(node => node.props.children), reasons.slice(0, 2));
+    assert.equal(all.filter(node => node.type === "ul").length, reasons.length ? 1 : 0, "no empty match list announced");
+  }
+  assert.equal(nodes(Card(props)).some(node => node.props["data-slot"] === "apartment-card-recommendations"), false);
+});
+
+test("Favorite hover, focus and press suppress preview intent without activating card navigation", () => {
+  let suppressed = 0;
+  let favorited = 0;
+  let opened = 0;
+  const Card = loadComponent("components/ui/ApartmentCard.tsx");
+  const tree = Card({ name: "One", location: "Longos, Malabon", price: 10000, rating: 4,
+    thumbnailUrl: "/photo.jpg", onPress: () => opened++, onFavoritePress: () => favorited++,
+    onFavoriteInteraction: () => suppressed++, isFavoriteLoading: true });
+  const all = nodes(tree);
+  const hitArea = all.find(node => node.props["data-apartment-favorite"]);
+  const favorite = all.find(node => node.type === "Button" && node.props["aria-label"] === "Save to favorites");
+  assert.equal(tree.props.onMouseEnter, undefined, "the containing card must not trigger hover for its heart child");
+  hitArea.props.onMouseEnter();
+  hitArea.props.onFocus();
+  favorite.props.onPress();
+  assert.equal(suppressed, 3);
+  assert.equal(favorited, 1);
+  assert.equal(opened, 0);
+  assert.equal(favorite.props.isPending, true);
 });
 
 test("warm/background refreshes retain cards; failed background refresh offers Retry without a full-page error or skeleton", () => {

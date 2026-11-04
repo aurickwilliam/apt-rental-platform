@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import * as maintenanceEligibility from "./tenant-maintenance.ts";
 
 const plain = (value) => JSON.parse(JSON.stringify(value));
 function compile(file, modules) {
@@ -38,7 +39,7 @@ function database(results) {
   return { client, calls };
 }
 
-const active = { id: "lease-a", apartment: { id: "apt-a", name: "Unit A" }, status: "active" };
+const active = { id: "lease-a", apartment: { id: "apt-a", name: "Unit A" }, status: "active", lease_start: "2020-01-01", lease_end: null };
 function tenancyService(client) {
   return compile("../service/tenancyService.ts", {
     "@repo/supabase/browser": { createClient: () => client },
@@ -47,8 +48,7 @@ function tenancyService(client) {
 }
 
 test("maintenance context reads only the caller-scoped active tenancy, never billing or payment history", async () => {
-  const { client, calls } = database({ tenancies: { data: active, error: null } });
-  const service = tenancyService(client);
+  const { client, calls } = database({ tenancies: { data: [active], error: null } });
   let load;
   const hook = compile("../hooks/use-maintenance-tenancy.ts", {
     react: { useCallback: (fn) => fn },
@@ -56,13 +56,15 @@ test("maintenance context reads only the caller-scoped active tenancy, never bil
     "@/service/favoritesService": { getTenantContext: async () => ({ tenantId: "tenant-a" }) },
     "@/hooks/use-async-resource": { useAsyncResource: (loader) => {
       load = loader;
-      return { data: { tenancy: active, tenantId: "tenant-a" }, loading: false, error: null };
+      return { data: { tenancy: active, tenancies: [active], tenantId: "tenant-a" }, loading: false, error: null };
     } },
-    "@/service/tenancyService": service,
+    "@/service/tenancy-context": compile("../service/tenancy-context.ts", {}),
+    "@repo/supabase/browser": { createClient: () => client },
+    "@/lib/tenant-maintenance": maintenanceEligibility,
   });
   const state = hook.useMaintenanceTenancy();
   assert.equal(state.tenantId, "tenant-a");
-  assert.deepEqual(plain(await load()), { tenancy: active, tenantId: "tenant-a" });
+  assert.deepEqual(plain(await load()), { tenancy: active, tenancies: [active], tenantId: "tenant-a" });
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].filters, [["tenant_id", "tenant-a"], ["status", "active"]]);
   assert.match(calls[0].fields, /landlord:users!tenancies_landlord_id_fkey/);
@@ -80,12 +82,14 @@ test("maintenance hides old context while identity/context changes and never que
         load = loader;
         return { data: { tenancy: active, tenantId: "old-tenant" }, loading: true, error: null };
       } },
-      "@/service/tenancyService": { fetchActiveTenancy: () => assert.fail("Must not query") },
+      "@/service/tenancy-context": { fetchMaintenanceTenanciesWith: () => assert.fail("Must not query") },
+      "@repo/supabase/browser": { createClient: () => assert.fail("Must not query") },
+      "@/lib/tenant-maintenance": maintenanceEligibility,
     });
     const result = hook.useMaintenanceTenancy();
     assert.equal(result.tenancy, null);
     assert.equal(result.tenantId, null);
-    assert.deepEqual(plain(await load()), { tenancy: null, tenantId: null });
+    assert.deepEqual(plain(await load()), { tenancy: null, tenantId: null, tenancies: [] });
   }
 });
 
@@ -98,14 +102,17 @@ test("active-tenancy absence and RLS/query failures never become usable property
 
 test("Maintenance page uses the independent context and shares its tenant identity with history while retaining loading/error states", () => {
   for (const state of [
-    { tenancy: active, tenantId: "tenant-a", loading: false, error: null },
-    { tenancy: null, tenantId: "tenant-a", loading: true, error: null },
-    { tenancy: null, tenantId: "tenant-a", loading: false, error: "Rental unavailable" },
+    { tenancy: active, tenancies: [active], tenantId: "tenant-a", loading: false, error: null },
+    { tenancy: null, tenancies: [], tenantId: "tenant-a", loading: true, error: null },
+    { tenancy: null, tenancies: [], tenantId: "tenant-a", loading: false, error: "Rental unavailable" },
   ]) {
     const historyReads = [];
     const jsx = (type, props) => ({ type, props });
     const page = compile("../app/tenant/maintenance/MaintenanceClient.tsx", {
       "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+      "next/link": { default: "Link" },
+      "next/navigation": { useSearchParams: () => new URLSearchParams() },
+      "@/app/components/settings/SettingsSelect": { default: "SettingsSelect" },
       "@tabler/icons-react": { IconTool: "Tool" },
       "./components/PropertyContextCard": { default: "PropertyContextCard" },
       "./components/MaintenanceForm": { default: "MaintenanceForm" },
@@ -120,7 +127,7 @@ test("Maintenance page uses the independent context and shares its tenant identi
     const boundary = page.default({ initial: {} });
     const content = boundary.props.children(undefined);
     const tree = nodes(content.type(content.props));
-    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false, undefined]]);
+    assert.deepEqual(historyReads, [[null, "tenant-a", false, undefined, true]], "one caller-bound history read includes historical rentals");
     assert.equal(tree.some((node) => node.type === "MaintenancePageSkeleton"), state.loading);
     assert.equal(tree.some((node) => node.type === "ErrorBanner"), !!state.error);
     assert.equal(tree.some((node) => node.type === "PropertyContextCard"), !!state.tenancy);

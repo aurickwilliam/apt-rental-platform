@@ -12,11 +12,13 @@ export function browseFrameClass(fullWidth: boolean): string {
 // Primary-colored search hero. Below md the banner copy is hidden and only the
 // search pill remains.
 export const BROWSE_HERO_CLASS =
-  "w-full min-w-0 md:min-h-52 bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-3 md:px-4 py-3 md:py-10 md:text-center";
+  "@container w-full min-w-0 md:min-h-52 bg-primary rounded-xl flex items-stretch justify-center flex-col gap-2 sm:gap-3 px-3 md:px-4 py-3 md:py-10 md:text-center";
 
-// Search pill (+ mobile filter entry) row inside the hero.
+// At 336px of usable hero width, compact 4px gaps leave a 192px pill beside
+// three 44px actions. Smaller containers keep the full-width pill above them.
+// sm+ retains the existing desktop row independently of container sizing.
 export const BROWSE_SEARCH_ROW_CLASS =
-  "flex flex-row items-center gap-2 w-full max-w-xl mt-2 mx-auto min-w-0";
+  "grid w-full max-w-xl min-w-0 grid-cols-1 items-center gap-2 mt-2 mx-auto @[336px]:flex @[336px]:flex-row @[336px]:max-sm:gap-1 sm:flex sm:flex-row";
 
 // Results area under the hero: optional filter rail beside the content.
 export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";

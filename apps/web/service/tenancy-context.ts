@@ -62,11 +62,7 @@ export interface InitialRentalContext {
   applications?: Promise<PresentationSeed<TenantApplication[]>>;
 }
 
-/** Fresh caller-bound read; the internal tenant id is a filter, never authorization. */
-export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Database>, "from">, tenantId: string): Promise<ActiveTenancy | null> {
-  const { data, error } = await supabase
-    .from("tenancies")
-    .select(`
+const ACTIVE_TENANCY_SELECT = `
       id,
       lease_start,
       lease_end,
@@ -105,7 +101,13 @@ export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Datab
         mobile_number,
         avatar_url
       )
-    `)
+    `;
+
+/** Fresh caller-bound read; the internal tenant id is a filter, never authorization. */
+export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Database>, "from">, tenantId: string): Promise<ActiveTenancy | null> {
+  const { data, error } = await supabase
+    .from("tenancies")
+    .select(ACTIVE_TENANCY_SELECT)
     .eq("tenant_id", tenantId)
     .eq("status", "active")
     .maybeSingle();
@@ -113,4 +115,13 @@ export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Datab
   const tenancy = data as ActiveTenancy | null;
   // A hidden/unreadable apartment must never become usable rental context.
   return tenancy?.apartment ? tenancy : null;
+}
+
+/** Maintenance needs a choice, not maybeSingle(), for multi-rental accounts. */
+export async function fetchMaintenanceTenanciesWith(supabase: Pick<SupabaseClient<Database>, "from">, tenantId: string): Promise<ActiveTenancy[]> {
+  const { data, error } = await supabase.from("tenancies").select(ACTIVE_TENANCY_SELECT)
+    .eq("tenant_id", tenantId).eq("status", "active").order("lease_start", { ascending: false }).limit(51);
+  if (error) throw new Error(error.message);
+  if ((data?.length ?? 0) > 50) throw new Error("Too many active rentals to display. Please contact support.");
+  return (data as ActiveTenancy[] | null ?? []).filter(tenancy => !!tenancy.apartment);
 }

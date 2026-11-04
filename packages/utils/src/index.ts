@@ -1,4 +1,5 @@
 export { getRelativeTime } from './getRelativeTime';
+export * from './recommendations';
 export { isReviewStayEligible } from './reviewEligibility';
 export { formatReviewStayLabel, formatStayRange } from './reviewStayLabel';
 export {

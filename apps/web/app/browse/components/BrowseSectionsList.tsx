@@ -15,8 +15,9 @@ import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searche
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
 import BrowseSeeAllPending from "./BrowseSeeAllPending";
+import RecommendationNotice from "./RecommendationNotice";
 import {
-  previewPosition,
+  previewAnchor,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
@@ -36,6 +37,7 @@ interface SectionRowProps {
   onPressApartment: (apartmentId: string) => void;
   onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect) => void;
   onLeaveCard: () => void;
+  onSuppressPreview: () => void;
   activeFavoriteId: string | null;
 }
 
@@ -51,6 +53,7 @@ const SectionRow = memo(function SectionRow({
   onPressApartment,
   onHoverCard,
   onLeaveCard,
+  onSuppressPreview,
   activeFavoriteId,
 }: SectionRowProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -103,17 +106,8 @@ const SectionRow = memo(function SectionRow({
         {section.apartments.map((apt, i) => (
           <div
             key={apt.id}
+            data-preview-card={apt.id}
             className="w-44 shrink-0 sm:w-56"
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              onHoverCard(apt, {
-                left: rect.left,
-                top: rect.top,
-                width: rect.width,
-                height: rect.height,
-              });
-            }}
-            onMouseLeave={onLeaveCard}
           >
             <ApartmentCard
               name={apt.name}
@@ -128,6 +122,10 @@ const SectionRow = memo(function SectionRow({
                 onToggleFavorite(apt.id);
               }}
               onPress={() => onPressApartment(apt.id)}
+              onPreviewHover={(element) => onHoverCard(apt, previewAnchor(element))}
+              onPreviewLeave={onLeaveCard}
+              onFavoriteInteraction={onSuppressPreview}
+              recommendationReasons={section.id === "for_you" ? section.recommendationReasons?.[apt.id] ?? [] : undefined}
               sizes="(max-width: 640px) 176px, 224px"
               priority={sectionIndex === 0 && i < 4}
             />
@@ -224,8 +222,13 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
     [handleFavoriteToggle],
   );
 
+  // Supplementary previews use current listing data; reasons stay on default cards.
+  const previewSection = preview && sections.find((section) =>
+    section.apartments.some((apartment) => apartment.id === preview.apartment.id));
+  const previewApartment = previewSection?.apartments.find((apartment) => apartment.id === preview?.apartment.id);
+
   return (
-    <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
+    <div data-browse-preview-bounds className="flex min-w-0 flex-col gap-6 sm:gap-8">
       {sections.map((section, sectionIndex) => (
         <section key={section.id} aria-label={section.title} className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
@@ -234,7 +237,7 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
                 {section.title}
               </h3>
               {section.subtitle ? (
-                <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   {section.subtitle}
                 </p>
               ) : null}
@@ -253,7 +256,9 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
             ) : null}
           </div>
 
-          <SectionRow
+          {section.id === "for_you" && section.recommendationStatus && section.recommendationStatus !== "ready" ? (
+            <RecommendationNotice status={section.recommendationStatus} basePath={basePath} />
+          ) : <SectionRow
             section={section}
             sectionIndex={sectionIndex}
             isFavorite={isFavorite}
@@ -261,22 +266,24 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
             onPressApartment={handlePressApartment}
             onHoverCard={handleHoverCard}
             onLeaveCard={handleLeaveCard}
+            onSuppressPreview={dismissPreview}
             activeFavoriteId={activeFavoriteId}
-          />
+          />}
         </section>
       ))}
 
-      {preview && (
+      {preview && previewApartment && (
         <ApartmentHoverPreview
           key={preview.apartment.id}
-          apartment={preview.apartment}
-          style={previewPosition(preview.rect)}
+          apartment={previewApartment}
+          anchor={preview.rect}
+          onDismiss={dismissPreview}
           isFavorite={isFavorite(preview.apartment.id)}
           isFavoriteLoading={activeFavoriteId === preview.apartment.id}
           onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
-          onMouseLeave={dismissPreview}
+          onMouseLeave={handleLeaveCard}
         />
       )}
 

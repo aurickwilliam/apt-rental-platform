@@ -1,6 +1,9 @@
 "use client";
 
 import { IconTool as Wrench } from "@tabler/icons-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
@@ -10,11 +13,11 @@ import { useMaintenanceRequestHistory } from "@/hooks/use-maintenance-request-hi
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import PresentationBoundary from "@/app/components/display/PresentationBoundary";
 import type { PresentationSeed } from "@/service/presentation-seed";
-import type { InitialRentalContext } from "@/service/tenancy-context";
+import type { MaintenanceRentalContext } from "@/hooks/use-maintenance-tenancy";
 import type { MaintenanceRequest } from "@/service/maintenanceService";
 
 export interface MaintenancePresentation {
-  context: InitialRentalContext;
+  context: MaintenanceRentalContext;
   history: PresentationSeed<MaintenanceRequest[]>;
 }
 
@@ -23,7 +26,8 @@ export default function MaintenanceClient({ initial }: { initial: PresentationSe
 }
 
 function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) {
-  const { tenancy, tenantId, loading: tenancyLoading, error: tenancyError } = useMaintenanceTenancy(initial?.context);
+  const searchParams = useSearchParams();
+  const { tenancy, tenancies, tenantId, loading: tenancyLoading, error: tenancyError } = useMaintenanceTenancy(initial?.context, searchParams.get("tenancyId") ?? undefined);
   const apartmentId = tenancy?.apartment.id ?? null;
   const {
     requests,
@@ -32,7 +36,13 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
     refresh,
     cancelRequest,
     cancellingId,
-  } = useMaintenanceRequestHistory(apartmentId, tenantId, false, initial?.history);
+  } = useMaintenanceRequestHistory(null, tenantId, false, initial?.history, true);
+
+  const chooseRental = (id: string) => {
+    const query = new URLSearchParams(searchParams.toString());
+    query.set("tenancyId", id);
+    window.history.replaceState(null, "", `/tenant/maintenance?${query}#new-request`);
+  };
 
   const apartment = tenancy?.apartment ?? null;
   const landlord = tenancy?.landlord ?? null;
@@ -68,6 +78,14 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
             </p>
           </div>
 
+          {!tenancyLoading && !tenancyError && (tenancies.length > 1 || (!tenancy && tenancies.length > 0)) ? (
+            <div className="max-w-lg rounded-2xl border border-border bg-card p-4">
+              <p className="mb-2 text-sm text-muted-foreground">Choose the rental you want to report an issue for.</p>
+              <SettingsSelect label="Rental for maintenance" className="w-full min-w-0" value={tenancy?.id ?? ""} placeholder="Choose your rental" onChange={chooseRental}
+                options={tenancies.map(item => ({ value: item.id, label: `${item.apartment.name} · ${item.apartment.barangay}, ${item.apartment.city}` }))} />
+            </div>
+          ) : null}
+
           {tenancyLoading ? (
             <MaintenancePageSkeleton showHeader={false} />
           ) : tenancyError ? (
@@ -75,26 +93,24 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
           ) : !tenancy || !apartmentId ? (
             <div className="rounded-2xl border border-border bg-card p-6 text-center">
               <p className="font-nunito text-sm font-semibold text-card-foreground">
-                No active lease found
+                {tenancies.length > 0 ? "Choose a rental to request maintenance" : "No current active rental"}
               </p>
               <p className="font-inter text-sm text-muted-foreground mt-1">
-                Maintenance requests are linked to your current rental. Once you have an
-                active tenancy, you can submit requests here.
+                 Maintenance reporting is available for a current active tenancy, not a pending or approved application. Your previous requests remain below.
               </p>
             </div>
           ) : (
             <>
               <PropertyContextCard apartmentName={apartmentName} address={address} landlordName={landlordName} imageUrl={cover} />
-              <MaintenanceForm apartmentId={apartmentId} onSubmitted={refresh} />
-              <MaintenanceHistory
-                requests={requests}
-                loading={historyLoading}
-                error={historyError}
-                cancellingId={cancellingId}
-                onCancel={cancelRequest}
-              />
+              <div id="new-request" className="scroll-mt-20">
+                <MaintenanceForm key={tenancy.id} apartmentId={apartmentId} tenancyId={tenancy.id} onSubmitted={refresh} />
+              </div>
             </>
           )}
+          <div id="requests" className="scroll-mt-20">
+            <MaintenanceHistory requests={requests} loading={historyLoading} error={historyError} cancellingId={cancellingId} onCancel={cancelRequest}
+              requestAction={tenancy && !tenancyError ? <Link href="#new-request" className="button button--primary">Request maintenance</Link> : undefined} />
+          </div>
         </div>
       </div>
     </div>

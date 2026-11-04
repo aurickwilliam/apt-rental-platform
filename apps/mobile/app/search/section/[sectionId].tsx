@@ -10,11 +10,12 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard from "components/cards/ApartmentCard";
 import EmptyState from "components/display/EmptyState";
-import { supabase } from "@repo/supabase";
 import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
-import { transformApartments, scorePreferences } from "@/hooks/search/useSearchSections";
+import { transformApartments } from "@/hooks/search/useSearchSections";
+import { fetchPersonalizedCandidates } from "@/service/search/recommendations";
+import { hasMeaningfulPreferences, rankCandidates, normalizedRecommendationCity, recommendationPreferenceIssue, RECOMMENDATION_CANDIDATE_LIMIT, RECOMMENDATION_MESSAGES } from "@repo/utils/recommendations";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 
 
@@ -32,51 +33,20 @@ export default function SectionDetail() {
 
   const selectedCity = (city as string) ?? "CAMANAVA";
   const searchQuery = (search as string) ?? "";
-  const { preferences } = useUserPreferences();
+  const { recommendationPreferences: preferences, profile } = useUserPreferences();
 
   const isPersonalizedSection = sectionId === "for_you" || sectionId === "in_city";
 
   const personalizedQuery = useQuery({
-    enabled: isPersonalizedSection,
-    queryKey: ["searchSectionDetail", sectionId, selectedCity, searchQuery, preferences ? JSON.stringify(preferences) : null],
+    enabled: isPersonalizedSection && !!profile?.user_id && hasMeaningfulPreferences(preferences),
+    queryKey: ["searchSectionDetail", profile?.user_id, sectionId, selectedCity, searchQuery, preferences ? JSON.stringify(preferences) : null],
     queryFn: async ({ signal }) => {
-      // Personalized sections (for_you, in_city) don't exist server-side: score a pooled result client-side.
-      const { data, error } = await supabase
-        .rpc("get_search_sections", {
-          p_city: selectedCity,
-          p_search: searchQuery || undefined,
-          p_filters: {} as any,
-          p_limit: 50,
-        })
-        .abortSignal(signal as any);
-      if (error) throw error;
-      const sections = (data as any)?.sections ?? [];
-      // Pool all raw apartments from all sections, score by preferences if available
-      const seen = new Set<string>();
-      const pool: any[] = [];
-      for (const s of sections) {
-        for (const raw of s.apartments ?? []) {
-          if (!seen.has(raw.id)) {
-            seen.add(raw.id);
-            pool.push(raw);
-          }
-        }
-      }
-      if (preferences) {
-        const scored = pool
-          .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
-          .filter((s: any) => s.score > 0)
-          .sort((a: any, b: any) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
-        let rawList = scored.map((s: any) => s.raw);
-        if (sectionId === "in_city") {
-          rawList = rawList.filter((r: any) => r.city === selectedCity);
-        }
-        return transformApartments(rawList);
-      }
-      // No preferences: For you fallback to top rated pool
-      let rawList = pool;
-      if (sectionId === "in_city") rawList = rawList.filter((r: any) => r.city === selectedCity);
-      return transformApartments(rawList);
+      if (!preferences || !hasMeaningfulPreferences(preferences)) return [];
+      const candidates = await fetchPersonalizedCandidates(preferences, signal);
+      // The detail page lists every eligible candidate, not just the carousel's 8.
+      let rows = rankCandidates(candidates, preferences, RECOMMENDATION_CANDIDATE_LIMIT, { accessibilitySignal: true }).map((item) => item.candidate);
+      if (sectionId === "in_city") rows = rows.filter((raw) => normalizedRecommendationCity(raw.city) === normalizedRecommendationCity(selectedCity));
+      return transformApartments(rows);
     },
     staleTime: 30_000,
   });
@@ -187,11 +157,11 @@ export default function SectionDetail() {
           <EmptyState
             variant="tenant"
             icon={<IconSearchOff size={64} color={colors.primary} />}
-            title="Nothing here yet"
-            description="This section has no listings."
+            title={isPersonalizedSection ? !hasMeaningfulPreferences(preferences) ? "Set your rental preferences" : personalizedQuery.isError ? RECOMMENDATION_MESSAGES.error.title : preferences && recommendationPreferenceIssue(preferences) ? RECOMMENDATION_MESSAGES.invalid.title : RECOMMENDATION_MESSAGES.empty.title : "Nothing here yet"}
+            description={isPersonalizedSection ? personalizedQuery.isError ? RECOMMENDATION_MESSAGES.error.description : "Update your rental preferences or browse the other apartment sections." : "This section has no listings."}
             action={
-              <Button onPress={() => router.back()} size="sm" variant="secondary">
-                <Button.Label>Go Back</Button.Label>
+              <Button onPress={isPersonalizedSection ? personalizedQuery.isError ? () => { void personalizedQuery.refetch(); } : () => router.push("/settings/preferences") : () => router.back()} size="sm" variant="secondary">
+                <Button.Label>{isPersonalizedSection ? personalizedQuery.isError ? "Try again" : "Update preferences" : "Go Back"}</Button.Label>
               </Button>
             }
           />

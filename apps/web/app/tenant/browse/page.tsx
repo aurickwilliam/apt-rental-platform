@@ -19,7 +19,6 @@ import {
   type BrowseResults,
 } from "@/app/browse/lib/fetch-browse-results";
 import { isDefaultBrowseParams } from "@/app/browse/lib/browse-params";
-import { parseTenantPreferences } from "@/lib/tenant-preferences";
 
 type PageProps = {
   searchParams: Promise<Record<string, string>>;
@@ -59,9 +58,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
         <BrowseDiscoveryContent
           supabase={supabase}
           basePath={BASE_PATH}
-          preferences={parseTenantPreferences(
-            (profile as unknown as { preferences?: unknown } | null)?.preferences ?? null,
-          )}
+          preferences={(profile as unknown as { preferences?: unknown } | null)?.preferences ?? null}
         />
       </BrowseShell>
     );

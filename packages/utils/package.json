@@ -6,7 +6,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./birth-date": "./src/birthDate.ts"
+    "./birth-date": "./src/birthDate.ts",
+    "./recommendations": "./src/recommendations.ts"
   },
   "dependencies": {
     "@repo/constants": "workspace:*"

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import * as maintenanceLinks from "./tenant-maintenance.ts";
 
 const componentSource = name => readFileSync(new URL(`../app/tenant/my-rental/${name}`, import.meta.url), "utf8");
 const nodes = element => !element || typeof element !== "object" ? [] :
@@ -14,7 +15,7 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [], 
   const noOp = () => {};
   const tenancy = {
     bill,
-    id: "tenancy", lease_start: "2026-10-20", lease_end: "2027-10-20", rent_due_day: 5,
+    id: "tenancy", status: "active", lease_start: "2026-10-20", lease_end: "2027-10-20", rent_due_day: 5,
     signed_lease_path: null,
     apartment: { id: "apartment", name: "Cozy Cove", apartment_images: [] },
     landlord: { first_name: "Test", last_name: "Owner" },
@@ -47,6 +48,7 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [], 
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
     "../maintenance/data/maintenance-data": { CATEGORIES: [] },
+    "@/lib/tenant-maintenance": maintenanceLinks,
     "./ApplicationsList": { default: "./components/ApplicationsList" },
     "./TenancyEmptyState": { default: "./components/TenancyEmptyState" },
   };
@@ -189,7 +191,7 @@ test("quick action links and button fill the same equal-height grid cells", () =
   assert.equal(typeof tiles[1].props.onClick, "function");
   assert.equal(tiles[0].props.href, "/tenant/browse/apartment");
   assert.equal(tiles[2].props.href, "/tenant/payment/history");
-  assert.equal(tiles[3].props.href, "/tenant/maintenance");
+  assert.equal(tiles[3].props.href, "/tenant/maintenance?tenancyId=tenancy#new-request");
   for (const tile of tiles) {
     assert.match(tile.props.className, /h-full min-h-20 w-full min-w-0/);
     assert.match(tile.props.className, /focus-visible:outline-2/);
@@ -222,7 +224,7 @@ test("Maintenance and Signed lease share the Quick actions/Landlord tracks while
     const [maintenance, lease] = supportingRow.props.children;
     assert.equal(maintenance.type, "./components/DashboardCard");
     assert.ok(content(nodes(maintenance)).includes("Maintenance"));
-    assert.ok(nodes(maintenance).some(node => node.type === "Link" && node.props.href === "/tenant/maintenance"));
+    assert.ok(nodes(maintenance).some(node => node.type === "Link" && node.props.href === "/tenant/maintenance?tenancyId=tenancy#requests"));
     assert.equal(lease.type, "./components/SignedLeaseCard", "lease follows Maintenance in desktop and stacked reading order");
     assert.equal(lease.props.tenancyId, "tenancy");
     assert.equal(typeof lease.props.onView, "function");

@@ -1,10 +1,11 @@
 import { View, Text, FlatList, Pressable, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { IconChevronRight } from "@tabler/icons-react-native";
-import { SkeletonGroup } from "heroui-native";
+import { Button, SkeletonGroup } from "heroui-native";
 import ApartmentCard from "components/cards/ApartmentCard";
 import { useColors } from "hooks/useTheme";
 import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
+import { RECOMMENDATION_MESSAGES } from "@repo/utils/recommendations";
 
 const CARD_WIDTH = 180;
 const CARD_GAP = 12;
@@ -18,12 +19,26 @@ type Props = {
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void | Promise<void>;
   onPressApartment: (id: string) => void;
+  onRecommendationRetry?: () => void;
 };
 
-export default function SearchSection({ section, isFavorite, onToggleFavorite, onPressApartment }: Props) {
+export default function SearchSection({ section, isFavorite, onToggleFavorite, onPressApartment, onRecommendationRetry }: Props) {
   const router = useRouter();
   const { colors } = useColors();
 
+  if (section.recommendationStatus === "loading") return <SearchSectionSkeleton />;
+  if (section.recommendationStatus && section.recommendationStatus !== "ready") {
+    const status = section.recommendationStatus;
+    const message = RECOMMENDATION_MESSAGES[status];
+    return <View className="px-5 gap-2">
+      <Text className="text-foreground text-lg font-nunitoBold">{section.title}</Text>
+      <Text className="text-foreground font-nunitoSemiBold">{message.title}</Text>
+      <Text className="text-muted text-sm">{message.description}</Text>
+      <Button variant="secondary" size="sm" onPress={status === "error" ? onRecommendationRetry : () => router.push("/settings/preferences")}>
+        <Button.Label>{status === "error" ? "Try again" : "Update preferences"}</Button.Label>
+      </Button>
+    </View>;
+  }
   if (!section.apartments.length) return null;
 
   const handleSeeAll = () => {

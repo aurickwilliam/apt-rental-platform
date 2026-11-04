@@ -19,6 +19,8 @@ function TenancySkeleton() {
 
       <Sk className="h-64 w-full rounded-3xl md:h-80" />
 
+      <Sk className="h-36 w-full rounded-2xl sm:h-28" />
+
       <RentFinanceSkeleton />
 
       <div className="grid min-w-0 gap-3 @min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">

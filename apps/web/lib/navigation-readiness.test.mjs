@@ -368,13 +368,15 @@ test("My Rental streams applications without blocking tenancy or seeding authori
 });
 
 test("Tenant Maintenance's initial active rental and history settle without client identity or history reads", async () => {
-  const context = { authUserId: "auth-a", tenantId: "owner-a", tenancy: { id: "lease-a", apartment: { id: "apt-a" } }, error: null };
+  const context = { authUserId: "auth-a", tenantId: "owner-a", tenancy: { id: "lease-a", status: "active", lease_start: "2020-01-01", lease_end: null, apartment: { id: "apt-a" } }, error: null };
   const runtime = hookRuntime(), resource = compile("hooks/use-async-resource.ts", { react: runtime.react });
   let identity = { authUserId: "auth-a", generation: 0 }, reads = 0;
   const hook = compile("hooks/use-maintenance-tenancy.ts", {
     react: runtime.react, "@/hooks/use-async-resource": resource, "@/hooks/use-auth-identity": { useAuthIdentity: () => identity },
     "@/service/favoritesService": { getTenantContext: async () => ({ tenantId: "owner-b" }) },
-    "@/service/tenancyService": { fetchActiveTenancy: async owner => { reads++; return { id: `${owner}-lease` }; } },
+    "@/service/tenancy-context": { fetchMaintenanceTenanciesWith: async (_client, owner) => { reads++; return [{ ...context.tenancy, id: `${owner}-lease` }]; } },
+    "@repo/supabase/browser": { createClient: () => ({}) },
+    "@/lib/tenant-maintenance": { canRequestMaintenance: item => item.status === "active" },
   }).useMaintenanceTenancy;
   const render = () => runtime.render(() => hook(context));
   assert.equal(render().tenancy.id, "lease-a"); runtime.flush(); await settle(); assert.equal(reads, 0);

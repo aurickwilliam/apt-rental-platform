@@ -64,7 +64,7 @@ export default function SearchSectionsList({
     );
   }
 
-  if (!sections.length || sections.every((s) => s.apartments.length === 0)) {
+  if (!sections.length || sections.every((s) => s.apartments.length === 0 && !s.recommendationStatus)) {
     return (
       <View className="flex-1 px-5">
         <EmptyState
@@ -92,6 +92,7 @@ export default function SearchSectionsList({
           isFavorite={isFavorite}
           onToggleFavorite={onToggleFavorite}
           onPressApartment={onPressApartment}
+          onRecommendationRetry={onRefresh}
         />
       )}
       style={{ flex: 1 }}

@@ -36,6 +36,7 @@ export type MaintenanceRequest = {
   apartment_id: string;
   tenant_id: string;
   landlord_id: string | null;
+  apartment_name?: string;
 };
 
 const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceStatusDisplay> = {
@@ -46,9 +47,10 @@ const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceStatusDisplay> = {
 };
 
 const SELECT_FIELDS =
-  "id, title, category, message, urgency, status, image_urls, created_at, resolved_at, resolution_notes, cancelled_at, apartment_id, tenant_id, landlord_id";
+  "id, title, category, message, urgency, status, image_urls, created_at, resolved_at, resolution_notes, cancelled_at, apartment_id, tenant_id, landlord_id, apartment:apartments(name)";
 
 type MaintenanceRow = {
+  apartment?: { name: string } | null;
   id: string;
   title: string;
   category: string;
@@ -167,25 +169,27 @@ function mapRow(row: MaintenanceRow, urls: Record<string, string | null>): Maint
     apartment_id: row.apartment_id,
     tenant_id: row.tenant_id,
     landlord_id: row.landlord_id,
+    apartment_name: row.apartment?.name,
   };
 }
 
 export async function fetchMaintenanceRequestHistory(
-  apartmentId: string,
+  apartmentId: string | null,
   tenantId: string,
   includePhotos = true,
   supabase = createClient(),
 ): Promise<MaintenanceRequest[]> {
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("maintenance_request")
-    .select(SELECT_FIELDS)
-    .eq("apartment_id", apartmentId)
+    .select(SELECT_FIELDS);
+  if (apartmentId) query = query.eq("apartment_id", apartmentId);
+  const { data, error } = await query
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
     .limit(MAINTENANCE_HISTORY_LIMIT);
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   const rows = (data ?? []) as unknown as MaintenanceRow[];
   // Text-only consumers don't need signed photo URLs. Full history keeps its
@@ -283,6 +287,7 @@ export async function fetchLatestMaintenanceRequest(
 }
 
 export type InsertMaintenanceRequestPayload = {
+  tenancy_id?: string;
   tenant_id: string;
   apartment_id: string;
   landlord_id: string | null;
@@ -301,6 +306,7 @@ export async function insertMaintenanceRequest(
   const { data, error } = await supabase
     .from("maintenance_request")
     .insert({
+      ...(payload.tenancy_id ? { tenancy_id: payload.tenancy_id } : {}),
       tenant_id: payload.tenant_id,
       apartment_id: payload.apartment_id,
       landlord_id: payload.landlord_id,
@@ -314,7 +320,7 @@ export async function insertMaintenanceRequest(
     .select("id")
     .single();
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   return { id: (data as { id: string }).id };
 }

@@ -1,6 +1,7 @@
 import { createClient } from "@repo/supabase/server";
 
 import type { BrowseApartment } from "./fetch-browse-results";
+import type { RecommendationReason, RecommendationStatus } from "@/lib/recommendations";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -12,6 +13,9 @@ export interface BrowseSection {
   title: string;
   /** Short supporting copy rendered under the title when present. */
   subtitle?: string | null;
+  /** Present only on the personalized section, never on generic listing data. */
+  recommendationReasons?: Record<string, RecommendationReason[]>;
+  recommendationStatus?: RecommendationStatus;
   apartments: BrowseApartment[];
   /** Filtered-grid URL for See All, or null when no filter matches the cohort. */
   seeAllHref: string | null;

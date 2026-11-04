@@ -17,7 +17,12 @@ test("Tenant Browse authorizes first, then streams discovery and filtered result
   assert.ok(discovery > shell);
   assert.ok(!/await fetchBrowseSections/.test(page));
   assert.match(page, /<BrowseSectionsSkeleton \/>/);
-  assert.match(source("app/browse/components/BrowseDiscoveryContent.tsx"), /await fetchDiscoverySections\(supabase, basePath\)/);
+  const discoveryContent = source("app/browse/components/BrowseDiscoveryContent.tsx");
+  // Generic discovery and recommendations are independent reads, awaited
+  // together inside the streamed component (never on the page itself).
+  assert.match(discoveryContent, /await Promise\.all\(\[/);
+  assert.match(discoveryContent, /fetchDiscoverySections\(supabase, basePath\)/);
+  assert.match(discoveryContent, /loadRecommendedSection\(/);
 
   // Filtered/search/paged state streams the filter entry and grid from the
   // same request-scoped result query.

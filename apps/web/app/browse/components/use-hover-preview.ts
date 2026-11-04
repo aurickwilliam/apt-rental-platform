@@ -3,18 +3,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { BrowseApartment } from "../lib/fetch-browse-results";
+import type { PreviewAnchor } from "@/lib/browse-preview-position";
 
 const HOVER_EXPAND_DELAY_MS = 450;
 const HOVER_COLLAPSE_DELAY_MS = 150;
-const PREVIEW_WIDTH = 320;
-const PREVIEW_ESTIMATED_HEIGHT = 388;
-const VIEWPORT_MARGIN = 8;
 
-export interface HoveredCardRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
+export type HoveredCardRect = PreviewAnchor;
+
+export function previewAnchor(element: HTMLElement): HoveredCardRect {
+  const card = element.closest<HTMLElement>("[data-preview-card]") ?? element;
+  const rect = card.getBoundingClientRect();
+  const bounds = card.closest("[data-browse-preview-bounds]")?.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    bounds: bounds ? { left: bounds.left, right: bounds.right } : undefined,
+  };
 }
 
 export interface HoveredCard {
@@ -27,22 +33,6 @@ function canHoverPreview(): boolean {
     typeof window !== "undefined" &&
     window.matchMedia("(hover: hover) and (pointer: fine)").matches
   );
-}
-
-export function previewPosition(rect: HoveredCardRect): {
-  left: number;
-  top: number;
-  width: number;
-} {
-  const left = Math.min(
-    Math.max(rect.left + rect.width / 2 - PREVIEW_WIDTH / 2, VIEWPORT_MARGIN),
-    Math.max(window.innerWidth - PREVIEW_WIDTH - VIEWPORT_MARGIN, VIEWPORT_MARGIN),
-  );
-  const top = Math.min(
-    Math.max(rect.top + rect.height / 2 - PREVIEW_ESTIMATED_HEIGHT / 2, VIEWPORT_MARGIN),
-    Math.max(window.innerHeight - PREVIEW_ESTIMATED_HEIGHT - VIEWPORT_MARGIN, VIEWPORT_MARGIN),
-  );
-  return { left, top, width: PREVIEW_WIDTH };
 }
 
 // Shared Netflix-style hover-preview intent: expand after a dwell so casual
@@ -75,6 +65,7 @@ export function useHoverPreview() {
   );
 
   const handleLeaveCard = useCallback(() => {
+    if (document.activeElement?.closest("[data-browse-preview]")) return;
     if (expandTimer.current) clearTimeout(expandTimer.current);
     expandTimer.current = null;
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
@@ -94,20 +85,18 @@ export function useHoverPreview() {
   }, []);
 
   // Dismissal subscriptions only: scroll (captured, covers row swipes),
-  // resize (position would be stale), Escape.
+  // resize (position would be stale). The panel owns Escape dismissal.
   useEffect(() => {
-    const onScroll = () => dismissPreview();
-    const onResize = () => dismissPreview();
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismissPreview();
+    const onScroll = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest("[data-browse-preview]")) return;
+      dismissPreview();
     };
+    const onResize = () => dismissPreview();
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onResize);
-    window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("keydown", onKeyDown);
       clearTimers();
     };
   }, [dismissPreview]);

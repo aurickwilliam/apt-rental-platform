@@ -29,6 +29,8 @@ import RentalApplications from "./components/RentalApplications";
 import MyRentalSkeleton from "./components/MyRentalSkeleton";
 import RentFinanceSkeleton from "./components/RentFinanceSkeleton";
 import PaymentHistorySkeleton from "./components/PaymentHistorySkeleton";
+import MaintenanceEntryCard from "./components/MaintenanceEntryCard";
+import { canRequestMaintenance, maintenanceHref } from "@/lib/tenant-maintenance";
 import type { InitialRentalContext } from "@/service/tenancy-context";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -254,6 +256,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
               <Button onPress={() => void refetch()}>
                 Try Again
               </Button>
+              <Link href="/tenant/maintenance" className="text-sm text-primary">View maintenance requests</Link>
             </div>
           </DashboardCard>
         </div>
@@ -380,9 +383,9 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
       tint: "purple",
     },
     {
-      label: "Maintenance",
+      label: canRequestMaintenance(tenancy) ? "Request maintenance" : "Maintenance",
       icon: Wrench,
-      href: "/tenant/maintenance",
+      href: maintenanceHref(tenancy.id, canRequestMaintenance(tenancy) ? "new-request" : "requests"),
       tint: "orange",
     },
   ];
@@ -447,6 +450,8 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
           imageUrl={cover}
           descriptionHref={`/tenant/browse/${apartment.id}`}
         />
+
+        <MaintenanceEntryCard tenancy={tenancy} />
 
         {financeLoading ? (
           <RentFinanceSkeleton />
@@ -757,7 +762,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
                 <StatusChip className="font-nunito text-[11px] font-semibold" tone="warning">
                   {openMaintenanceCount} open
                 </StatusChip>
-                <Link href="/tenant/maintenance" className="text-xs font-medium text-primary hover:underline no-underline">
+                 <Link href={maintenanceHref(tenancy.id, "requests")} className="text-xs font-medium text-primary hover:underline no-underline">
                   View all
                 </Link>
               </div>

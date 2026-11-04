@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { normalizeKindOfPets } from "@repo/constants";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import type { PersonalizationState } from "@/stores/usePersonalizationStore";
+import { parseRecommendationPreferences, hasMeaningfulPreferences } from "@repo/utils/recommendations";
 
 export type TenantPreferences = PersonalizationState;
 
@@ -67,8 +68,7 @@ export function toFilterState(prefs: TenantPreferences) {
   if (prefs.hasParking) amenities.push("parking");
   if (prefs.hasDisability) amenities.push("wheelchair");
   if (prefs.hasSmoker) {
-    // Prefer non-smoking listings
-    amenities.push("nonsmoking");
+    amenities.push("smoking");
   }
 
   return { budget, bedrooms, amenities, bedroomCount: prefs.bedroomCount };
@@ -76,15 +76,15 @@ export function toFilterState(prefs: TenantPreferences) {
 
 export function useUserPreferences() {
   const { data: profile, isLoading, error } = useCurrentUser();
-
-  const preferences = useMemo<TenantPreferences | null>(() => {
-    if (!profile?.preferences) return null;
-    const parsed = parsePreferences(profile.preferences);
-    return parsed;
-  }, [profile?.preferences]);
+  const savedPreferences = profile?.preferences;
+  const preferences = useMemo(
+    () => parsePreferences(savedPreferences),
+    [savedPreferences],
+  );
+  const recommendationPreferences = useMemo(() => parseRecommendationPreferences(savedPreferences), [savedPreferences]);
 
   const isTenant = (profile?.roles ?? []).includes("tenant");
-  const hasPrefs = isTenant && hasPersonalization(preferences);
+  const hasPrefs = isTenant && hasMeaningfulPreferences(recommendationPreferences);
   const personalizedCity = preferences?.selectedCities[0] ?? "CAMANAVA";
   const extraCitiesCount = Math.max(0, (preferences?.selectedCities.length ?? 0) - 1);
   const prefsHash = preferences ? JSON.stringify(preferences) : null;
@@ -92,6 +92,7 @@ export function useUserPreferences() {
   return {
     profile,
     preferences,
+    recommendationPreferences,
     isTenant,
     hasPrefs,
     personalizedCity,

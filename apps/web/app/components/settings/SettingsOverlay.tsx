@@ -23,6 +23,8 @@ export default function SettingsOverlay({
 }) {
   const searchParams = useSearchParams();
   const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
+  // Deep-link intent for the tenant tab, cleared with the dialog below.
+  const requestedRental = searchParams.get("settingsTab") === "rental";
   // Stay mounted after the first open so reopening is instant and the
   // dialog can play its exit animation instead of being torn down.
   const [hasOpened, setHasOpened] = useState(open);
@@ -39,6 +41,7 @@ export default function SettingsOverlay({
   const close = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete("settings");
+    url.searchParams.delete("settingsTab");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
@@ -59,6 +62,7 @@ export default function SettingsOverlay({
         onClose={close}
         initialRoles={initialRoles}
         activePortal={activePortal}
+        requestedRental={requestedRental}
         onChangePassword={openChangePassword}
         onChangeEmail={openChangeEmail}
       />

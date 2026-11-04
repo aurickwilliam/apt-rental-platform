@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   Button,
@@ -43,6 +43,11 @@ import type { PresentationSeed } from "@/service/presentation-seed";
 import { matchesPresentationSeed } from "@/service/presentation-seed";
 import { useApplicationDocumentUrls } from "@/hooks/use-application-document-urls";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import {
+  applicationBackTarget,
+  readApplicationReturn,
+  safeApplicationReturnPath,
+} from "@/lib/application-navigation";
 
 function formatLongDate(d: string) {
   try {
@@ -65,7 +70,19 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
   const searchParams = useSearchParams();
   const router = useRouter();
   const applicationId = params.applicationId;
-  const apartmentIdParam = searchParams.get("apartmentId") ?? "";
+  const from = searchParams.get("from");
+  const handleBack = () => {
+    const target = applicationBackTarget({
+      applicationId,
+      from,
+      marker: readApplicationReturn(),
+      // A card opened in a new tab copies sessionStorage but keeps only one
+      // history entry; use the validated `from` target there instead.
+      canGoBack: typeof window !== "undefined" && window.history.length > 1,
+    });
+    if (target.kind === "history") router.back();
+    else router.push(target.href);
+  };
 
   const { applications, tenantId, loading: appsLoading, error: appsError } = useTenantApplications(initial?.application.profileId, applicationId, false, initial?.application);
   const { personalInfo, loading: profileLoading } = useApplicantPersonalInfo(tenantId, initial?.personalInfo);
@@ -95,7 +112,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
         <h1 className="text-xl font-nunito font-bold">Application Details</h1>
         <p className="text-muted-foreground">{appsError ?? visitError ?? "Application not found."}</p>
         <ReconciliationNotice pending={action.pending} error={action.error ?? visitError} onRetry={() => void action.retry()} />
-        <Button variant="outline" className="mt-4" onPress={() => router.back()}>
+        <Button variant="outline" className="mt-4" onPress={handleBack}>
           <ArrowLeft size={16} /> Back
         </Button>
       </div>
@@ -104,7 +121,8 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
 
   const style = getApplicationStatusStyle(application.status);
   const StatusIcon = style.Icon;
-  const effectiveApartmentId = apartmentIdParam || application.apartment_id;
+  // Navigation follows the caller-owned application, never a hand-edited URL.
+  const effectiveApartmentId = application.apartment_id;
   const apartment = application.apartments;
   const cover =
     apartment?.apartment_images?.find((img) => img.is_cover)?.url ??
@@ -120,6 +138,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
   const showRequestVisit = !visitRequest && !visitError && !action.blocked && application.status === "pending";
 
   const handleConfirmCancel = async () => {
+    if (actionsBlocked || application.status !== "pending") return;
     const result = await action.run(async () => {
       const { error } = await cancelApplication(applicationId, visitRequest?.id);
       return !error;
@@ -129,7 +148,10 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
     } else if (result === "confirmed") {
       cancelDialog.setOpen(false);
       toast.success("Application cancelled");
-      router.push("/tenant/my-rental");
+      // Reuse the return target only when it belongs to this application.
+      const marker = readApplicationReturn();
+      const target = from ?? (marker?.applicationId === applicationId ? marker.href : null);
+      router.push(safeApplicationReturnPath(target));
     }
   };
 
@@ -154,46 +176,55 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
     );
 
   return (
-    <div className="px-4 py-8 space-y-6">
-      <Button variant="outline" size="sm" onPress={() => router.back()}>
+    <div className="tenant-application-details w-full min-w-0 px-4 py-6 sm:py-8 space-y-5">
+      <Button variant="outline" size="sm" onPress={handleBack}>
         <ArrowLeft size={16} /> Back
       </Button>
 
       <ReconciliationNotice pending={action.pending} error={action.error ?? visitError} onRetry={() => void action.retry()} />
 
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-inter text-muted-foreground">Applied for</p>
-          <h1 className="truncate text-2xl font-nunito font-bold text-primary">{apartment?.name ?? "Listing"}</h1>
-          <p className="mt-1 text-sm font-inter text-muted-foreground">Submitted {formatLongDate(application.created_at)}</p>
+      <div className="min-w-0">
+        <p className="text-sm font-inter text-muted-foreground">Applied for</p>
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="min-w-0 max-w-full break-words text-2xl font-nunito font-bold text-primary">
+            {apartment?.name ?? "Listing"}
+          </h1>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <StatusChip tone={style.chipColor} className="px-2.5 py-1 text-sm">
+              <span className="flex items-center gap-1 font-nunito font-semibold">
+                <StatusIcon size={16} aria-hidden="true" />
+                {style.label}
+              </span>
+            </StatusChip>
+            {style.summary && (
+              <span className="text-sm font-inter text-muted-foreground">{style.summary}</span>
+            )}
+          </div>
         </div>
-        <StatusChip tone={style.chipColor} className="px-2.5 py-1 text-sm">
-          <span className="flex items-center gap-1 font-nunito font-semibold">
-            <StatusIcon size={16} aria-hidden="true" />
-            {style.label}
-          </span>
-        </StatusChip>
+        <p className="mt-1.5 text-sm font-inter text-muted-foreground">
+          Submitted {formatLongDate(application.created_at)}
+        </p>
       </div>
 
-      <div className="grid items-start gap-6 xl:items-stretch xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="min-w-0 space-y-4">
           <div className="overflow-hidden rounded-3xl border border-border bg-card">
-            <div className="relative h-64 md:h-[360px]">
+            <div className="relative aspect-[16/10] w-full bg-muted">
               {cover ? (
                 <Image src={cover} alt={apartment?.name ?? "Apartment"} fill sizes="(max-width: 1280px) 100vw, 45vw" unoptimized={!canOptimizePublicApartmentImage(cover)} className="object-cover" />
               ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">No image</div>
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">No image</div>
               )}
             </div>
           </div>
 
-          <Card className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-none">
-            <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <Card className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-none sm:p-5">
+            <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0">
                 <p className="text-xs font-nunito font-semibold text-muted-foreground">Location</p>
                 <p className="mt-1 flex items-start gap-1 text-sm font-inter text-card-foreground">
                   <MapPin size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <span>{fullAddress ?? "—"}</span>
+                  <span className="min-w-0 break-words">{fullAddress ?? "—"}</span>
                 </p>
               </div>
               <div>
@@ -204,11 +235,11 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
               </div>
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button variant="outline" size="sm" className="flex-1" onPress={() => router.push(`/browse/${effectiveApartmentId}`)}>
-                View Description
+              <Button variant="outline" size="sm" className="min-h-11 flex-1" onPress={() => router.push(`/browse/${effectiveApartmentId}`)}>
+                View apartment details
               </Button>
               {showRequestVisit && (
-                <Button size="sm" className="flex-1" onPress={handleRequestAgain}>
+                <Button size="sm" className="min-h-11 flex-1" onPress={handleRequestAgain}>
                   Request a Visit
                 </Button>
               )}
@@ -235,14 +266,14 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
               onCancel={handleDecline}
               onAccept={handleAccept}
               onDecline={handleDecline}
-              onRequestAgain={handleRequestAgain}
+              onRequestAgain={application.status === "pending" ? handleRequestAgain : undefined}
               actionLoading={actionsBlocked}
             />
           )}
         </div>
 
-        <div className="space-y-4 xl:flex xl:flex-col">
-      <Card className="border border-border bg-card text-card-foreground p-5 rounded-2xl shadow-none xl:flex xl:h-full xl:flex-col">
+        <div className="min-w-0 space-y-4">
+      <Card className="min-w-0 border border-border bg-card text-card-foreground p-4 sm:p-5 rounded-2xl shadow-none">
         <h3 className="text-lg font-nunito font-semibold text-card-foreground">Application Details</h3>
         <p className="mb-5 mt-1 text-sm font-inter text-muted-foreground">
           These are the details you provided when you submitted your application.
@@ -250,7 +281,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
 
         <Accordion className="flex flex-col gap-3">
           <AccordionItem id="personal" className="overflow-hidden rounded-xl border border-border bg-card">
-            <AccordionTrigger className="flex w-full items-center justify-between p-4 text-card-foreground">
+            <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-4 text-left text-card-foreground">
               <span className="flex items-center gap-3 text-base font-nunito font-semibold">
                 Personal Information
               </span>
@@ -258,7 +289,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="border-t border-border px-4 pb-5 pt-4">
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                   <DetailField label="Full Name" value={personalInfo.fullName.trim() ? personalInfo.fullName : "—"} />
                   <DetailField label="Email" value={personalInfo.email.trim() ? personalInfo.email : "—"} />
                   <DetailField label="Date of Birth" value={formatBirthDate(personalInfo.dateOfBirth)} />
@@ -267,8 +298,8 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
                     <DetailField label="Current Address" value={personalInfo.currentAddress.trim() ? personalInfo.currentAddress : "—"} />
                   </div>
                 </div>
-                <Separator className="my-5" />
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <Separator className="my-4" />
+                <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                   <DetailField label="Occupation" value={application.occupation.trim() ? application.occupation : "—"} />
                   <DetailField label="Employer" value={application.employer_name.trim() ? application.employer_name : "—"} />
                   <DetailField label="Employment Type" value={application.employment_type || "—"} />
@@ -281,7 +312,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
           </AccordionItem>
 
           <AccordionItem id="rental" className="overflow-hidden rounded-xl border border-border bg-card">
-            <AccordionTrigger className="flex w-full items-center justify-between p-4 text-card-foreground">
+            <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-4 text-left text-card-foreground">
               <span className="flex items-center gap-3 text-base font-nunito font-semibold">
                 Rental Preferences
               </span>
@@ -289,7 +320,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="border-t border-border px-4 pb-5 pt-4">
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                   <DetailField
                     label="Move-in Date"
                     value={new Date(application.move_in_date).toLocaleDateString()}
@@ -307,7 +338,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
           </AccordionItem>
 
           <AccordionItem id="docs" className="overflow-hidden rounded-xl border border-border bg-card">
-            <AccordionTrigger className="flex w-full items-center justify-between p-4 text-card-foreground">
+            <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-4 text-left text-card-foreground">
               <span className="flex items-center gap-3 text-base font-nunito font-semibold">
                 Submitted Documents
               </span>
@@ -333,7 +364,7 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
           </AccordionItem>
 
           <AccordionItem id="status" className="overflow-hidden rounded-xl border border-border bg-card after:content-['']!">
-            <AccordionTrigger className="flex w-full items-center justify-between p-4 text-card-foreground">
+            <AccordionTrigger className="flex w-full items-center justify-between gap-3 p-4 text-left text-card-foreground">
               <span className="flex items-center gap-3 text-base font-nunito font-semibold">
                 Application Status
               </span>
@@ -341,11 +372,11 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
             </AccordionTrigger>
             <AccordionPanel>
               <AccordionBody className="border-t border-border px-4 pb-5 pt-4">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                   <DetailField label="Date Submitted" value={formatLongDate(application.created_at)} />
                   <DetailField label="Status" value={style.label} />
-                  <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground">{style.description}</p>
+                  <div className="sm:col-span-2">
+                    <p className="text-sm leading-relaxed text-muted-foreground">{style.description}</p>
                   </div>
                 </div>
               </AccordionBody>
@@ -374,30 +405,30 @@ function ApplicationDetailContent({ initial }: { initial?: TenantApplicationPres
         )}
 
         {application.status === "pending" && (
-          <div className="mt-auto pt-6">
+          <div className="mt-6 border-t border-border pt-5">
             <div className="flex gap-3">
-              <Button variant="danger" className="flex-1" isDisabled={actionsBlocked} onPress={() => cancelDialog.setOpen(true)}>
+              <Button variant="outline" className="tenant-application-cancel min-h-11" isDisabled={actionsBlocked} onPress={() => cancelDialog.setOpen(true)}>
                 <Ban size={16} /> Cancel Application
               </Button>
             </div>
-            <Modal isOpen={cancelDialog.isOpen} onOpenChange={cancelDialog.setOpen}>
-              <Modal.Backdrop>
+            <Modal isOpen={cancelDialog.isOpen} onOpenChange={(open) => { if (!actionsBlocked) cancelDialog.setOpen(open); }}>
+              <Modal.Backdrop isDismissable={!actionsBlocked} isKeyboardDismissDisabled={actionsBlocked}>
                 <Modal.Container size="sm">
                   <Modal.Dialog>
                     <Modal.Header>
-                      <Modal.Heading>Cancel Application</Modal.Heading>
+                      <Modal.Heading>Cancel this application?</Modal.Heading>
                     </Modal.Header>
                     <Modal.Body>
                       <p className="text-sm text-muted-foreground">
                         Are you sure you want to cancel your application for {apartment?.name ?? "this apartment"}? This cannot be undone.
                       </p>
                     </Modal.Body>
-                    <Modal.Footer className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onPress={() => cancelDialog.setOpen(false)}>
-                        Keep
+                    <Modal.Footer className="flex flex-wrap justify-end gap-2">
+                      <Button variant="outline" size="sm" isDisabled={actionsBlocked} onPress={() => cancelDialog.setOpen(false)}>
+                        Keep application
                       </Button>
                       <Button variant="danger" size="sm" isDisabled={actionsBlocked} onPress={handleConfirmCancel}>
-                        {action.pending ? "Cancelling…" : "Yes, Cancel"}
+                        {action.pending ? "Cancelling…" : "Cancel application"}
                       </Button>
                     </Modal.Footer>
                   </Modal.Dialog>

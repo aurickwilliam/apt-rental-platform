@@ -218,18 +218,24 @@ export async function cancelTenantApplication(
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error: appError } = await supabase
+  const { data: cancelled, error: appError } = await supabase
     .from("rental_application")
     .update({ status: "cancelled" })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
 
-  if (appError) throw appError;
+  if (appError) throw new Error(appError.message);
+  if (!cancelled) throw new Error("This application is no longer pending or is unavailable. Refresh the details before trying again.");
 
   if (visitRequestId) {
-    await supabase
+    const { error: visitError } = await supabase
       .from("visit_request")
       .update({ status: "cancelled" })
       .eq("id", visitRequestId)
+      .eq("application_id", applicationId)
       .in("status", ["pending", "approved", "rescheduled"]);
+    if (visitError) console.error("Application cancelled, but the related visit update could not be confirmed.");
   }
 }

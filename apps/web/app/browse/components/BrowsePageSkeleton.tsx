@@ -147,7 +147,11 @@ function BrowseHeroSkeleton({ withFilterEntry = false }: { withFilterEntry?: boo
       <Skeleton className="mx-auto hidden h-5 w-full max-w-lg rounded-md bg-white/20! md:block" />
       <div className={BROWSE_SEARCH_ROW_CLASS}>
         <Skeleton className="h-[38px] min-w-0 flex-1 rounded-full bg-white/60!" />
-        {withFilterEntry ? <FilterEntrySkeleton /> : null}
+        {withFilterEntry ? (
+          <div className="ml-auto flex shrink-0 items-center gap-2 @[336px]:max-sm:gap-1">
+            <FilterEntrySkeleton />
+          </div>
+        ) : null}
       </div>
     </div>
   );

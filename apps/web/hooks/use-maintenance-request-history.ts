@@ -20,11 +20,11 @@ export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]
   return status === "Pending" || status === "In Progress";
 }
 
-export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true, initial?: PresentationSeed<MaintenanceRequest[]>) {
+export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true, initial?: PresentationSeed<MaintenanceRequest[]>, allApartments = false) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
-    if (!apartmentId) return NO_REQUESTS;
+    if (!apartmentId && !allApartments) return NO_REQUESTS;
     // A caller with shared profile context needn't validate/read it a second time.
     // Omitted context preserves the existing behavior for other consumers.
     const resolvedTenantId = tenantId === undefined ? (await getTenantContext()).tenantId : tenantId;
@@ -32,7 +32,7 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     return includePhotos
       ? fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId)
       : fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId, false);
-  }, [apartmentId, tenantId, includePhotos]);
+  }, [apartmentId, tenantId, includePhotos, allApartments]);
   const {
     data: requests,
     loading,
@@ -40,7 +40,7 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     refresh,
     setData: setRequests,
   } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", {
-    initial: initial?.profileId === tenantId && initial?.resourceId === apartmentId && !includePhotos ? initial : undefined,
+    initial: initial?.profileId === tenantId && initial?.resourceId === (allApartments ? "all" : apartmentId) && !includePhotos ? initial : undefined,
     clearOnRevalidateError: true,
   });
 

@@ -37,20 +37,33 @@ function listing(overrides = {}) {
   };
 }
 
-test("exact budget match outranks out-of-range, near miss gets partial", () => {
+test("a saved budget is a strict inclusive eligibility gate", () => {
   const p = prefs({ selectedCities: [], budgetMin: 5000, budgetMax: 14999 });
-  const inside = scoreListing(listing({ monthly_rent: 10000 }), p);
-  const near = scoreListing(listing({ monthly_rent: 17000 }), p);
-  const far = scoreListing(listing({ monthly_rent: 40000 }), p);
-  assert.ok(inside > near, `inside (${inside}) should beat near (${near})`);
-  assert.ok(near > far, `near (${near}) should beat far (${far})`);
+  for (const rent of [5000, 7500, 10000, 14999]) {
+    assert.ok(
+      scoreListing(listing({ monthly_rent: rent }), p) > 0,
+      `${rent} should be eligible`,
+    );
+  }
+  for (const rent of [4999, 15000, 16000, 22000, 45000, 65000]) {
+    assert.equal(
+      scoreListing(listing({ monthly_rent: rent }), p),
+      0,
+      `${rent} must not be recommended`,
+    );
+  }
 });
 
-test("near-miss boundary is strict (<5000)", () => {
+test("missing or invalid rent and the default range fallback are safe", () => {
   const p = prefs({ selectedCities: [], budgetMin: 5000, budgetMax: 14999 });
-  const justInside = scoreListing(listing({ monthly_rent: 19998 }), p);
-  const exactly5000Away = scoreListing(listing({ monthly_rent: 19999 }), p);
-  assert.ok(justInside > exactly5000Away);
+  for (const monthly_rent of [null, undefined, NaN, Infinity, 0, -1]) {
+    assert.equal(scoreListing(listing({ monthly_rent }), p), 0);
+  }
+
+  // The full contract range doubles as "no explicit budget": it must not be
+  // enforced as an artificial cap.
+  const defaults = prefs();
+  assert.ok(scoreListing(listing({ monthly_rent: 65000 }), defaults) > 0);
 });
 
 test("selected-city mismatch excludes, multiple cities supported", () => {
@@ -106,9 +119,13 @@ test("supported amenity identifiers score; wheelchair is ignored", () => {
 
   const smoker = prefs({ selectedCities: [], hasSmoker: true });
   assert.ok(
-    scoreListing(listing({ amenities: ["nonsmoking"] }), smoker) >
+    scoreListing(listing({ amenities: ["smoking"] }), smoker) >
       scoreListing(listing({ amenities: [] }), smoker),
   );
+  // Explicit non-smoking listings are ineligible for a smoking household.
+  assert.equal(scoreListing(listing({ amenities: ["nonsmoking"] }), smoker), 0);
+  assert.equal(scoreListing(listing({ amenities: ["smoking", "nonsmoking"] }), smoker), 0);
+  assert.ok(scoreListing(listing({ amenities: ["nonsmoking"] }), prefs({ selectedCities: [] })) > 0);
 
   // No web wheelchair identifier: disability preference must not change score.
   const access = prefs({ selectedCities: [], hasDisability: true });

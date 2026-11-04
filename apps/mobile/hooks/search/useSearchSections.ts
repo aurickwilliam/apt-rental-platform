@@ -2,13 +2,15 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 import type { ApartmentCardProps } from "components/cards/ApartmentCard";
-import type { TenantPreferences } from "@/hooks/preferences/useUserPreferences";
+import { hasMeaningfulPreferences, normalizedRecommendationCity, rankCandidates, recommendationPreferenceIssue, scoreListing, type RecommendationPreferences, type RecommendationStatus } from "@repo/utils/recommendations";
+import { fetchPersonalizedCandidates } from "@/service/search/recommendations";
 
 export type SearchSection = {
   id: string;
   title: string;
   apartments: ApartmentCardProps[];
   rawApartments: any[];
+  recommendationStatus?: RecommendationStatus | "loading";
 };
 
 export const SECTION_DEFS = [
@@ -52,67 +54,14 @@ type UseSearchSectionsParams = {
   selectedCity: string;
   committedSearch: string;
   enabled?: boolean;
-  preferences?: TenantPreferences | null;
+  preferences?: RecommendationPreferences | null;
+  accountId?: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function matchesPreferences(raw: any, prefs: TenantPreferences): boolean {
-  if (prefs.selectedCities.length > 0 && !prefs.selectedCities.includes(raw.city)) return false;
-  const rent = raw.monthly_rent ?? 0;
-  if (rent < prefs.budgetMin || rent > prefs.budgetMax) return false;
-  if (prefs.bedroomCount === "1-2 Bedrooms") {
-    if (raw.no_bedrooms == null || raw.no_bedrooms < 1 || raw.no_bedrooms > 2) return false;
-  } else if (prefs.bedroomCount === "2-4 Bedrooms") {
-    if (raw.no_bedrooms == null || raw.no_bedrooms < 2 || raw.no_bedrooms > 4) return false;
-  } else if (prefs.bedroomCount === "4+ Bedrooms") {
-    if (raw.no_bedrooms == null || raw.no_bedrooms < 4) return false;
-  }
-  const amenities: string[] = raw.amenities ?? [];
-  if (prefs.hasPets && !amenities.includes("petfriendly")) return false;
-  if (prefs.hasParking && !amenities.includes("parking")) return false;
-  if (prefs.hasDisability && !amenities.includes("wheelchair")) return false;
-  if (prefs.hasSmoker && !amenities.includes("nonsmoking")) return false;
-  return true;
-}
+export const scorePreferences = (raw: Parameters<typeof scoreListing>[0], prefs: RecommendationPreferences) =>
+  scoreListing(raw, prefs, { accessibilitySignal: true });
 
-export function scorePreferences(raw: any, prefs: TenantPreferences): number {
-  let score = 0;
-  if (prefs.selectedCities.length > 0) {
-    if (prefs.selectedCities.includes(raw.city)) score += 3;
-    else return 0; // city is hard filter when cities set
-  } else {
-    score += 1; // no city pref, mild
-  }
-  const rent = raw.monthly_rent ?? 0;
-  if (rent >= prefs.budgetMin && rent <= prefs.budgetMax) score += 2;
-  else {
-    // Close to budget still partial
-    const dist = Math.min(Math.abs(rent - prefs.budgetMin), Math.abs(rent - prefs.budgetMax));
-    if (dist < 5000) score += 1;
-  }
-  if (prefs.bedroomCount === "1-2 Bedrooms") {
-    if (raw.no_bedrooms >= 1 && raw.no_bedrooms <= 2) score += 2;
-    else if (raw.no_bedrooms === 3) score += 1;
-  } else if (prefs.bedroomCount === "2-4 Bedrooms") {
-    if (raw.no_bedrooms >= 2 && raw.no_bedrooms <= 4) score += 2;
-    else if (raw.no_bedrooms === 1) score += 1;
-  } else if (prefs.bedroomCount === "4+ Bedrooms") {
-    if (raw.no_bedrooms >= 4) score += 3;
-    else if (raw.no_bedrooms === 3) score += 1;
-  } else {
-    score += 1;
-  }
-  const amenities: string[] = raw.amenities ?? [];
-  if (prefs.hasPets && amenities.includes("petfriendly")) score += 2;
-  else if (prefs.hasPets) score -= 1;
-  if (prefs.hasParking && amenities.includes("parking")) score += 1;
-  if (prefs.hasDisability && amenities.includes("wheelchair")) score += 1;
-  if (prefs.hasSmoker && amenities.includes("nonsmoking")) score += 1;
-  if (raw.is_verified) score += 1;
-  return score;
-}
-
-export function useSearchSections({ selectedCity, committedSearch, enabled = true, preferences = null }: UseSearchSectionsParams) {
+export function useSearchSections({ selectedCity, committedSearch, enabled = true, preferences = null, accountId }: UseSearchSectionsParams) {
   // Tenant preferences personalize client-side (below); `p_filters` is reserved for explicit search filters.
   const query = useQuery({
     queryKey: ["searchSections", selectedCity, committedSearch] as const,
@@ -139,39 +88,34 @@ export function useSearchSections({ selectedCity, committedSearch, enabled = tru
     enabled,
   });
 
-  // Personalized mixing: scored For you + In city on top of all base sections (optimized: single dedup + score sort)
+  const hasPreferences = hasMeaningfulPreferences(preferences);
+  const issue = preferences ? recommendationPreferenceIssue(preferences) : null;
+  const personalEnabled = enabled && hasPreferences && !issue && !!accountId;
+  const personalized = useQuery({
+    queryKey: ["recommendationCandidates", accountId, preferences ? JSON.stringify(preferences) : null],
+    queryFn: ({ signal }) => fetchPersonalizedCandidates(preferences!, signal),
+    enabled: personalEnabled,
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  // Personalized sections: strict eligibility, then optional ranking. Generic
+  // sections remain untouched and are never used as recommendation fallbacks.
   const sections = useMemo(() => {
     const baseSections = query.data ?? [];
-    if (!preferences) return baseSections;
+    if (!preferences || !hasPreferences) return baseSections;
 
-    // Keep all base sections as-is (generic) per decision 1 — personalization via added sections, not by blanking base
-    // Build scored pool from generic base for For you / In city (ensures For you appears even when strict filter would be 0)
-    const seen = new Set<string>();
-    const genericPool: any[] = [];
-    for (const s of baseSections) {
-      for (const raw of s.rawApartments) {
-        if (!seen.has(raw.id)) {
-          seen.add(raw.id);
-          genericPool.push(raw);
-        }
-      }
-    }
-
-    const scored = genericPool
-      .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
-      .filter((s) => s.score > 0)
-      .sort((a, b) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
-
-    const forYouRaw = scored.slice(0, SECTION_LIMIT).map((s) => s.raw);
-    const inCityRaw = scored.filter((s) => s.raw.city === selectedCity).slice(0, SECTION_LIMIT).map((s) => s.raw);
+    const forYouRaw = rankCandidates(personalized.data ?? [], preferences, SECTION_LIMIT, { accessibilitySignal: true }).map((item) => item.candidate);
+    const inCityRaw = forYouRaw.filter((raw) => normalizedRecommendationCity(raw.city) === normalizedRecommendationCity(selectedCity));
 
     const result: SearchSection[] = [];
-    if (forYouRaw.length > 0) {
+    {
       result.push({
         id: "for_you",
-        title: "Recommended for you",
+        title: "Recommended for You",
         rawApartments: forYouRaw,
         apartments: transformApartments(forYouRaw),
+        recommendationStatus: issue ? "invalid" : personalized.isError ? "error" : !accountId || personalized.isLoading ? "loading" : forYouRaw.length ? "ready" : "empty",
       });
     }
     if (selectedCity !== "CAMANAVA" && inCityRaw.length > 0) {
@@ -189,13 +133,13 @@ export function useSearchSections({ selectedCity, committedSearch, enabled = tru
       if (!result.some((r) => r.id === s.id)) result.push(s);
     }
     return result;
-  }, [query.data, preferences, selectedCity]);
+  }, [query.data, preferences, hasPreferences, selectedCity, personalized.data, personalized.isError, personalized.isLoading, issue, accountId]);
 
   return {
     sections,
     isLoading: query.isLoading,
-    isFetching: query.isFetching,
+    isFetching: query.isFetching || personalized.isFetching,
     error: (query.error as Error)?.message ?? null,
-    refetch: query.refetch,
+    refetch: () => Promise.all([query.refetch(), ...(personalEnabled ? [personalized.refetch()] : [])]),
   };
 }

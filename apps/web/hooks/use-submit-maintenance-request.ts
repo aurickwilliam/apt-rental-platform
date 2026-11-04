@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { canRequestMaintenance } from "@/lib/tenant-maintenance";
 
 import { MAINTENANCE_CATEGORIES } from "@repo/constants";
 
@@ -25,12 +26,15 @@ export type SubmitMaintenanceForm = {
 export function useSubmitMaintenanceRequest() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitting = useRef(false);
 
   const submit = async (args: {
     apartmentId: string;
+    tenancyId?: string;
     form: SubmitMaintenanceForm;
     files: File[];
   }) => {
+    if (submitting.current) return { success: false as const, error: "A request is already being submitted." };
     setError(null);
 
     const title = args.form.title.trim();
@@ -56,6 +60,7 @@ export function useSubmitMaintenanceRequest() {
       return { success: false as const, error: msg };
     }
 
+    submitting.current = true;
     setIsSubmitting(true);
     const uploadedSoFar: string[] = [];
 
@@ -68,12 +73,15 @@ export function useSubmitMaintenanceRequest() {
 
       const { createClient } = await import("@repo/supabase/browser");
       const supabase = createClient();
-      const { data: apartment, error: apartmentError } = await supabase
-        .from("apartments")
-        .select("landlord_id")
-        .eq("id", args.apartmentId)
-        .single();
-      if (apartmentError) throw apartmentError;
+      let query = supabase.from("tenancies").select("id, landlord_id, status")
+        .eq("tenant_id", tenantId).eq("apartment_id", args.apartmentId).eq("status", "active").limit(2);
+      if (args.tenancyId) query = query.eq("id", args.tenancyId);
+      const { data: rentals, error: rentalError } = await query;
+      if (rentalError) throw new Error(rentalError.message);
+      if (!rentals || rentals.length !== 1 || !canRequestMaintenance(rentals[0])) {
+        throw new Error("Choose a current active rental before submitting maintenance.");
+      }
+      const rental = rentals[0];
 
       if (args.files.length > 0) {
         const paths = await uploadMaintenanceImages(args.files, tenantId);
@@ -82,8 +90,9 @@ export function useSubmitMaintenanceRequest() {
 
       const { id } = await insertMaintenanceRequest({
         tenant_id: tenantId,
+        tenancy_id: rental.id,
         apartment_id: args.apartmentId,
-        landlord_id: (apartment as { landlord_id: string | null }).landlord_id,
+        landlord_id: rental.landlord_id,
         title,
         category: args.form.category,
         urgency: args.form.urgency,
@@ -99,6 +108,7 @@ export function useSubmitMaintenanceRequest() {
       await removeMaintenanceImages(uploadedSoFar);
       return { success: false as const, error: msg };
     } finally {
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };

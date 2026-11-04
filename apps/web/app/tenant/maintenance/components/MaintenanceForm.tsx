@@ -45,10 +45,11 @@ type FormErrors = {
 
 type MaintenanceFormProps = {
   apartmentId: string;
+  tenancyId?: string;
   onSubmitted?: () => void;
 };
 
-export default function MaintenanceForm({ apartmentId, onSubmitted }: MaintenanceFormProps) {
+export default function MaintenanceForm({ apartmentId, tenancyId, onSubmitted }: MaintenanceFormProps) {
   const [title, setTitle] = useState("");
   const [categoryKey, setCategoryKey] = useState<Key | null>(null);
   const [description, setDescription] = useState("");
@@ -133,6 +134,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
 
     const result = await submit({
       apartmentId,
+      tenancyId,
       form: {
         title: title.trim(),
         category: category.id,
@@ -160,7 +162,7 @@ export default function MaintenanceForm({ apartmentId, onSubmitted }: Maintenanc
 
   return (
     <Card className="rounded-2xl border border-border bg-card shadow-sm">
-      <Card.Content className="p-6 sm:p-8">
+      <Card.Content className="p-4 sm:p-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
           <p className="text-lg font-nunito font-semibold text-card-foreground mb-1">

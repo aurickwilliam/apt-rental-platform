@@ -84,12 +84,14 @@ test("public and tenant search share HeroUI colors without changing field geomet
     assert.ok(group);
     assert.doesNotMatch(group.props.className, /(?:^|\s)bg-white(?:\s|$)/);
     assert.doesNotMatch(group.props.className, /(?:^|\s)(?:bg-|text-)(?:black|white)(?:\s|$)/);
-    assert.match(group.props.className, /w-full rounded-full/);
+    assert.match(group.props.className, /(?:^|\s)w-full(?:\s|$)/);
+    assert.match(group.props.className, /(?:^|\s)rounded-full(?:\s|$)/);
+    assert.match(group.props.className, /(?:^|\s)overflow-hidden(?:\s|$)/, "pill clips the shrinking input");
     assert.ok(tree.some(node => node.props.className === "relative min-w-0 flex-1"), "pill wrapper keeps the flexible width");
     assert.match(group.props.className, /focus-within:border-\[#376BF5\]/);
     assert.ok(group.props.className.includes("[&_input::placeholder]:text-muted-foreground"));
     assert.doesNotMatch(group.props.className, /text-gray-400/);
-    assert.equal(input.props.placeholder, "Search by name or location...");
+    assert.equal(input.props.placeholder, "Search by apartment name, city, or barangay...");
     assert.equal(input.props.disabled, undefined, "existing enabled state is unchanged");
     assert.ok(tree.includes(filterButton));
     input.props.onChange({ target: { value: "Malabon" } });

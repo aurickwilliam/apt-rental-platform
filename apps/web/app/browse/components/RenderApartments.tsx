@@ -13,7 +13,7 @@ import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searche
 import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
-  previewPosition,
+  previewAnchor,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
@@ -40,6 +40,7 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
   onToggleFavorite,
   onHoverCard,
   onLeaveCard,
+  onSuppressPreview,
   priority,
 }: {
   apt: BrowseApartment;
@@ -49,21 +50,13 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
   onToggleFavorite: (apartmentId: string) => void;
   onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect) => void;
   onLeaveCard: () => void;
+  onSuppressPreview: () => void;
   priority: boolean;
 }) {
   return (
     <div
+      data-preview-card={apt.id}
       className="min-w-0"
-      onMouseEnter={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        onHoverCard(apt, {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        });
-      }}
-      onMouseLeave={onLeaveCard}
     >
       <ApartmentCard
         name={apt.name}
@@ -78,6 +71,9 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
           onToggleFavorite(apt.id);
         }}
         onPress={() => onPressApartment(apt.id)}
+        onPreviewHover={(element) => onHoverCard(apt, previewAnchor(element))}
+        onPreviewLeave={onLeaveCard}
+        onFavoriteInteraction={onSuppressPreview}
         sizes="(max-width: 1024px) 50vw, (max-width: 1280px) 25vw, 20vw"
         priority={priority}
       />
@@ -175,7 +171,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div data-browse-preview-bounds className="flex min-w-0 flex-col gap-4">
       {apartment.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 px-4 text-center text-default-400">
           <p className="text-lg font-medium">
@@ -195,6 +191,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
               onToggleFavorite={handleToggleFavorite}
               onHoverCard={handleHoverCard}
               onLeaveCard={handleLeaveCard}
+              onSuppressPreview={dismissPreview}
               priority={page === 1 && i < 4}
             />
           ))}
@@ -252,13 +249,14 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
         <ApartmentHoverPreview
           key={preview.apartment.id}
           apartment={preview.apartment}
-          style={previewPosition(preview.rect)}
+          anchor={preview.rect}
+          onDismiss={dismissPreview}
           isFavorite={isFavorite(preview.apartment.id)}
           isFavoriteLoading={activeFavoriteId === preview.apartment.id}
           onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
-          onMouseLeave={dismissPreview}
+          onMouseLeave={handleLeaveCard}
         />
       )}
 

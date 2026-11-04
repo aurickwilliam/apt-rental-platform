@@ -104,7 +104,7 @@ export default function SearchContainer({
         if (e.key === "Escape") setIsFocused(false);
       }}
     >
-      <InputGroup className="w-full rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
+      <InputGroup className="browse-search-pill relative w-full overflow-hidden rounded-full border border-gray-300 transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-muted-foreground">
         <InputGroup.Prefix>
           {isPending ? (
             <Spinner size="sm" color="current" className="text-grey-500" />
@@ -123,11 +123,23 @@ export default function SearchContainer({
         </InputGroup.Prefix>
         <InputGroup.Input
           ref={inputRef}
-          placeholder="Search by name or location..."
+          className="min-w-0"
+          placeholder="Search by apartment name, city, or barangay..."
+          aria-label="Search by apartment name, city, or barangay"
           value={search}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         />
+        {/* Narrow screens show a shorter hint than the native desktop
+            placeholder; only one of the two is ever painted (globals.css). */}
+        {search === "" ? (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-9 right-3 flex items-center truncate text-base text-muted-foreground sm:hidden"
+          >
+            <span className="min-w-0 truncate">Search by apartment name...</span>
+          </span>
+        ) : null}
         {search ? (
           <InputGroup.Suffix>
             <Button
@@ -237,23 +249,26 @@ export default function SearchContainer({
 
       {/* Search bar: pill, then the filter and map entries, centered at every
           size. The in-pill magnifier is the search trigger (plus Enter); no
-          separate button. */}
+          separate button. Only containers below 336px move the actions to
+          their own row, keeping a useful typing area and 44px buttons. */}
       <div className={BROWSE_SEARCH_ROW_CLASS}>
         {searchPill}
-        {filterButton}
-        {mapHref ? (
-          <Button
-            isIconOnly
-            variant="tertiary"
-            size="lg"
-            className="shrink-0 cursor-pointer"
-            onPress={openMap}
-            aria-label="Search on the map"
-          >
-            <IconMap2 size={18} />
-          </Button>
-        ) : null}
-        {assistantButton}
+        <div className="ml-auto flex shrink-0 items-center gap-2 @[336px]:max-sm:gap-1">
+          {filterButton}
+          {mapHref ? (
+            <Button
+              isIconOnly
+              variant="tertiary"
+              size="lg"
+              className="shrink-0 cursor-pointer"
+              onPress={openMap}
+              aria-label="Search on the map"
+            >
+              <IconMap2 size={18} />
+            </Button>
+          ) : null}
+          {assistantButton}
+        </div>
       </div>
     </div>
   );
