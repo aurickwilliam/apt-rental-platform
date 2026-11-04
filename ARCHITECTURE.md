@@ -361,7 +361,7 @@ Landlord demo finance is an independent versioned component (`scripts/db-populat
 |---|---|---|
 | `apartment-images` | `{apartmentId}/{ts}-{rand}.{ext}` (web) · `thumbnails/…`, `additional/…` (mobile publish) · `apartments/{apartmentId}/cover_{ts}.{ext}`, `photo_{ts}.{ext}` (mobile manage) | web + mobile; `upsert: true` in manage |
 | `lease-agreements` | `{apartmentId}/lease-agreement.{ext}` · `{apartmentId}/{ts}-{rand}.{ext}` (web) | web + mobile |
-| `signed-leases` | `{tenancyId}/{ts}.{ext}` | web only (landlord uploads, tenant reads) |
+| `signed-leases` | `{tenancyId}/{ts}.{ext}` | web + mobile landlord uploads; tenant confirmation on web |
 | `application-documents` | `{tenantId}/{applicationId}/{docKey}-{ts}.{ext}` | mobile only |
 | `chat-images` | `{senderId}/{id}.{ext}` · `{senderId}/thumb-{id}.jpg` | mobile only |
 | `avatars` / `background_photos` | `{userId}/{userId}.{ext}` (upsert) | mobile only |
@@ -375,7 +375,7 @@ Landlord demo finance is an independent versioned component (`scripts/db-populat
 3. Client uploads directly to the bucket with the anon key (storage is RLS-protected; uploads are scoped by bucket policies).
 4. Client stores **either** the storage path (private buckets) **or** a public URL from `getPublicUrl` (public buckets) in the relevant DB column; signed URLs are never persisted.
 5. On failure, some flows roll back (application documents delete all uploaded files; review photos clean up; web property-create deletes the apartment row) — others do not (chat attachments, apartment publish, maintenance) — see §21 debt D9.
-6. The executed (signed) lease is the one flow where a client does **not** write the row directly: the landlord's upload is recorded by the `set_tenancy_signed_lease` RPC and the tenant's confirmation by `acknowledge_signed_lease` (both `SECURITY DEFINER`, caller-bound), while a trigger rejects direct client writes to the lease columns. Its storage policies compare the tenancy folder as text, so upload/delete require that tenancy's landlord and an active tenancy, and reads allow its landlord or tenant (web only).
+6. The executed (signed) lease is the one flow where a client does **not** write the row directly: the landlord's upload is recorded by the `set_tenancy_signed_lease` RPC and the tenant's confirmation by `acknowledge_signed_lease` (both `SECURITY DEFINER`, caller-bound), while a trigger rejects direct client writes to the lease columns. Its storage policies compare the tenancy folder as text, so upload/delete require that tenancy's landlord and an active tenancy, and reads allow its landlord or tenant. Both platforms implement the landlord flow; tenant confirmation remains web-only. Mobile loads the lease path/upload/confirmation dates with the existing landlord tenancy request and refreshes on focus/foreground. Its service uploads cached-file binary, validates the web's 10 MB PDF/JPG/PNG/WebP contract, reconciles uncertain RPC outcomes before cleanup, and uses the account-bound private-media resolver for direct viewing (no third-party viewer). Drafts stay local, account/portal transitions retire callbacks, and a failed post-save refresh retries the read rather than the upload.
 
 ### 6.3 Download flow (private buckets)
 
