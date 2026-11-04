@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card, Disclosure, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
-import { IconTool as Wrench, IconChevronRight, IconChevronUp, IconStack, IconCalendarEvent, IconBolt, IconLeaf, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import { IconTool as Wrench, IconHistory, IconChevronRight, IconChevronUp, IconStack, IconCalendarEvent, IconBolt, IconLeaf, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
 import ActiveMaintenanceRequestCard from "./ActiveMaintenanceRequestCard";
@@ -93,7 +93,7 @@ export default function MaintenanceHistory({
       <Card.Content style={{ padding: 4 }}>
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Wrench size={24} aria-hidden="true" /></span>
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">{isHistory ? <IconHistory size={24} aria-hidden="true" /> : <Wrench size={24} aria-hidden="true" />}</span>
             <div className="min-w-0">
               <h2 className="font-nunito text-xl font-bold text-card-foreground">{isHistory ? "Maintenance request history" : "Active maintenance requests"}</h2>
               <p className="mt-1 font-inter text-sm text-muted-foreground">{isHistory ? "Review your resolved and cancelled requests." : "Track your pending and in-progress requests."}</p>

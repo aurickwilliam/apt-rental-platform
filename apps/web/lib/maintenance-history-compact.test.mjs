@@ -19,7 +19,7 @@ function fixture(kind = "history", selectedRequests = requests) {
     react: runtime.react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Button: "Button", Card: Object.assign(() => {}, { Content: "CardContent" }), Disclosure, Modal: Object.assign(() => {}, { Backdrop: "Backdrop", Container: "Container", Dialog: "Dialog", Header: "Header", Heading: "Heading", Body: "Body", Footer: "Footer" }), Spinner: "Spinner", useOverlayState: () => ({ isOpen: false }), toast: {} },
-    "@tabler/icons-react": { IconTool: "IconTool", IconChevronRight: "ChevronRight", IconChevronUp: "ChevronUp", IconStack: "IconStack", IconCalendarEvent: "IconCalendarEvent", IconBolt: "IconBolt", IconLeaf: "IconLeaf", IconCircleCheck: "IconCircleCheck", IconCircleX: "IconCircleX" },
+    "@tabler/icons-react": { IconTool: "IconTool", IconHistory: "IconHistory", IconChevronRight: "ChevronRight", IconChevronUp: "ChevronUp", IconStack: "IconStack", IconCalendarEvent: "IconCalendarEvent", IconBolt: "IconBolt", IconLeaf: "IconLeaf", IconCircleCheck: "IconCircleCheck", IconCircleX: "IconCircleX" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "./ActiveMaintenanceRequestCard": { default: "ActiveMaintenanceRequestCard" },
     "./ActiveMaintenanceRequestsModal": { default: "ActiveMaintenanceRequestsModal" },
@@ -36,6 +36,8 @@ function fixture(kind = "history", selectedRequests = requests) {
 test("history starts as compact summary rows, retaining labels/statuses but hiding details and skipping photo reads", () => {
   const h = fixture();
   const tree = h.render();
+  assert.ok(nodes(tree).some((node) => node.type === "IconHistory" && node.props.size === 24));
+  assert.ok(!nodes(tree).some((node) => node.type === "IconTool"));
   assert.deepEqual(h.paths(), []);
   assert.match(text(tree), /Leaking tap/);
   assert.match(text(tree), /Resolved/);
@@ -76,6 +78,8 @@ test("active request presentation features one request, and only loads hidden ph
   const h = fixture("active", requests.map((request) => ({ ...request, status: "Pending" })));
   const tree = h.render();
   const activeCard = nodes(tree).find((node) => node.type === "ActiveMaintenanceRequestCard");
+  assert.ok(nodes(tree).some((node) => node.type === "IconTool" && node.props.size === 24));
+  assert.ok(!nodes(tree).some((node) => node.type === "IconHistory"));
   assert.equal(activeCard.props.request.message, "Water leaks under the sink.");
   assert.equal(activeCard.props.request.resolution_notes, "Replaced the seal.");
   assert.deepEqual(Array.from(activeCard.props.imageUrls), ["https://example.test/tap"]);
