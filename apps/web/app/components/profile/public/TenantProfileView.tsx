@@ -10,6 +10,7 @@ import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import { apartmentHref, formatDurationMonths, landlordProfileHref, memberSinceYear } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
+import ReportButton from "@/app/components/reports/ReportButton";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
@@ -32,7 +33,17 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
       </div>
 
       <PublicProfileLayout
-        header={<PublicProfileHeader identity={identity} role="tenant" />}
+        header={
+          <PublicProfileHeader
+            identity={identity}
+            role="tenant"
+            actions={
+              <ReportButton
+                target={{ kind: "profile", userId: identity.id, role: "tenant", name: identity.displayName }}
+              />
+            }
+          />
+        }
         aside={
           <>
             <PublicProfileTagsCard

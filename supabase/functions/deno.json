@@ -11,12 +11,13 @@
     "singleQuote": true
   },
   "lint": {
-    "include": ["paymongo", "paymongo-webhook", "ai-search"]
+    "include": ["paymongo", "paymongo-webhook", "ai-search", "email-notify"]
   },
   "imports": {
-    "jsr:@supabase/supabase-js@2": "jsr:@supabase/supabase-js@2"
+    "jsr:@supabase/supabase-js@2": "jsr:@supabase/supabase-js@2",
+    "jsr:@std/assert@1": "jsr:@std/assert@1"
   },
   "tasks": {
-    "check": "deno check paymongo/index.ts paymongo-webhook/index.ts ai-search/index.ts"
+    "check": "deno check paymongo/index.ts paymongo-webhook/index.ts ai-search/index.ts email-notify/index.ts"
   }
 }

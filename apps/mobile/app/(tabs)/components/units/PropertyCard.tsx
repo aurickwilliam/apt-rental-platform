@@ -17,6 +17,8 @@ interface PropertyCardProps {
   city: string
   status: ApartmentStatus
   isVerified: boolean
+  /** Shows a "Hidden" chip: an admin hid the listing from public search. */
+  isHiddenByAdmin?: boolean
   thumbnailUrl: string | undefined
   onPress: () => void
   monthlyRent?: number
@@ -28,6 +30,7 @@ export default function PropertyCard({
   city,
   status,
   isVerified,
+  isHiddenByAdmin = false,
   thumbnailUrl,
   onPress,
   monthlyRent,
@@ -105,6 +108,17 @@ export default function PropertyCard({
             <Text className='text-sm font-nunitoSemiBold text-accent'>
               {monthlyRent ? formatPesoDisplay(monthlyRent) : 'N/A'}
             </Text>
+            <View className='flex-row items-center gap-1'>
+            {isHiddenByAdmin ? (
+              <View
+                className='px-2 py-1 rounded-full self-start border'
+                style={{ backgroundColor: colors.dangerLight, borderColor: colors.danger }}
+              >
+                <Text className='text-xs font-inter' style={{ color: colors.danger }}>
+                  Hidden
+                </Text>
+              </View>
+            ) : null}
             {/* Status chip */}
             <View
               className='px-2 py-1 rounded-full self-start border'
@@ -116,6 +130,7 @@ export default function PropertyCard({
               <Text className='text-xs font-inter' style={{ color: style.color }}>
                 {APARTMENT_STATUS_LABELS[status]}
               </Text>
+            </View>
             </View>
           </View>
         </Card.Body>

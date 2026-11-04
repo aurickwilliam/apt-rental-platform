@@ -6,6 +6,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconBuilding } from "@tabler/icons-react";
 
 import { STATUS_COLOR } from "./propertyConstants";
+import HiddenListingChip from "./HiddenListingChip";
 import type { Property } from "./propertyTypes";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import EmptyState from "@/app/components/display/EmptyState";
@@ -129,13 +130,16 @@ export default function PropertiesTable({
                 </Table.Cell>
 
                 <Table.Cell>
-                  <StatusChip
-                    size="sm"
-                    tone={STATUS_COLOR[property.status] ?? "neutral"}
-                    className="capitalize"
-                  >
-                    {property.status}
-                  </StatusChip>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusChip
+                      size="sm"
+                      tone={STATUS_COLOR[property.status] ?? "neutral"}
+                      className="capitalize"
+                    >
+                      {property.status}
+                    </StatusChip>
+                    <HiddenListingChip hidden={property.is_hidden_by_admin} />
+                  </div>
                 </Table.Cell>
 
                 <Table.Cell className="text-right">

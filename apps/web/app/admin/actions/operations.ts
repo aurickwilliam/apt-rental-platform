@@ -2,6 +2,7 @@
 
 import { createClient } from "@repo/supabase/server";
 import { revalidatePath } from "next/cache";
+import { suspensionEnd } from "@/lib/suspension-duration";
 import { requireAdmin } from "../_lib/require-admin";
 
 export interface OperationResult {
@@ -19,6 +20,13 @@ function input(formData: FormData): { id: string; reason: string } | OperationRe
   return { id, reason: reason.trim() };
 }
 
+/** End of a suspension from the form's `duration`; null = permanent. */
+function suspensionUntil(formData: FormData): { until: string | null } | OperationResult {
+  const until = suspensionEnd(formData.get("duration"));
+  if (until === undefined) return { error: "Choose how long the suspension lasts." };
+  return { until };
+}
+
 export async function setUserAccess(formData: FormData): Promise<OperationResult> {
   await requireAdmin();
   const parsed = input(formData);
@@ -27,11 +35,14 @@ export async function setUserAccess(formData: FormData): Promise<OperationResult
   if (suspend !== "suspend" && suspend !== "reactivate") return { error: "Invalid decision." };
 
   // The RPC authorizes the caller from auth.uid() and writes the audit row.
+  const end = suspend === "suspend" ? suspensionUntil(formData) : { until: null };
+  if (!("until" in end)) return end;
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_set_user_access", {
     p_target_id: parsed.id,
     p_suspend: suspend === "suspend",
     p_reason: parsed.reason,
+    p_until: end.until ?? undefined,
   });
   if (error) {
     console.error("Admin account access failed", error);
@@ -89,5 +100,41 @@ export async function resolveUserReport(formData: FormData): Promise<OperationRe
   }
   revalidatePath("/admin/reports");
   revalidatePath("/admin/activity");
+  return {};
+}
+
+export async function actOnUserReport(formData: FormData): Promise<OperationResult> {
+  await requireAdmin();
+  const parsed = input(formData);
+  if (!("id" in parsed)) return parsed;
+  const decision = formData.get("decision");
+  if (
+    decision !== "warn" &&
+    decision !== "hide_listing" &&
+    decision !== "suspend_user" &&
+    decision !== "restore_listing" &&
+    decision !== "keep_hidden"
+  )
+    return { error: "Invalid decision." };
+
+  const end = decision === "suspend_user" ? suspensionUntil(formData) : { until: null };
+  if (!("until" in end)) return end;
+
+  // One audited transaction: warn, hide the listing or suspend the account, and close the report.
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_act_on_report", {
+    p_report_id: parsed.id,
+    p_action: decision,
+    p_note: parsed.reason,
+    p_until: end.until ?? undefined,
+  });
+  if (error) {
+    console.error("Admin report action failed", error);
+    return { error: "The action could not be completed. Refresh and try again." };
+  }
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin/activity");
+  revalidatePath("/admin/apartments");
+  revalidatePath("/admin/users");
   return {};
 }

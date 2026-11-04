@@ -33,6 +33,7 @@ export interface AdminUserDetail extends AdminUser {
   background_url: string | null;
   suspension_reason: string | null;
   suspended_at: string | null;
+  suspended_until?: string | null;
   suspended_by: string | null;
   updated_at: string | null;
 }

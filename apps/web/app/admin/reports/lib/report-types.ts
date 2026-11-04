@@ -1,5 +1,6 @@
 import type { StatusTone } from "@/lib/status-tone";
 import type { UserReportStatus } from "@/lib/user-reports";
+import type { UserReportTargetType } from "@repo/utils";
 
 export interface ReportPerson {
   id: string;
@@ -16,9 +17,11 @@ export interface AdminUserReport {
   resolution_note: string | null;
   created_at: string;
   resolved_at: string | null;
+  target_type: UserReportTargetType;
+  action_taken: string;
   reporter: ReportPerson | null;
   reported: (ReportPerson & { is_suspended: boolean }) | null;
-  apartment: { id: string; name: string } | null;
+  apartment: { id: string; name: string; is_hidden_by_admin: boolean; hidden_reason: string | null } | null;
 }
 
 export const reportDateFormatter = new Intl.DateTimeFormat("en-PH", {

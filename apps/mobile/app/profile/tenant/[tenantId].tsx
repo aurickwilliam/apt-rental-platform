@@ -17,6 +17,8 @@ import { usePublicTenantProfile } from 'hooks/profiles'
 import { useCurrentUser } from 'hooks/auth'
 import { useTenantReviews } from '@/hooks/ratings'
 import { useColors } from 'hooks/useTheme'
+import { useReportDialog } from '@/hooks/reports'
+import ReportUserDialog from '@/app/(tabs)/components/chat/ReportUserDialog'
 
 import { formatStayRange } from '@repo/utils'
 
@@ -115,10 +117,9 @@ export default function PublicTenantProfile() {
     toast.show({ variant: 'default', label: 'Reporting ratings is coming soon' })
   }
 
-  // TODO: Implement function to handle report tenant
-  const handleReportTenant = () => {
-    console.log("Report Tenant Pressed");
-  }
+  const report = useReportDialog(
+    resolvedTenantId ? { kind: 'profile', userId: resolvedTenantId, role: 'tenant' } : null,
+  );
 
   return (
     <ScreenWrapper
@@ -324,14 +325,25 @@ export default function PublicTenantProfile() {
       </View>
 
       {/* Report Button */}
-      <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
-        <Button variant="tertiary" size="md" onPress={handleReportTenant}>
-          <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-nunitoSemiBold">
-            Report {firstName}
-          </Button.Label>
-        </Button>
-      </View>
+      {resolvedTenantId && resolvedTenantId !== viewerId ? (
+        <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
+          <Button variant="tertiary" size="md" onPress={report.open}>
+            <IconFlag size={20} color={colors.danger} />
+            <Button.Label className="text-danger font-nunitoSemiBold">
+              Report {firstName}
+            </Button.Label>
+          </Button>
+        </View>
+      ) : null}
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={profile?.fullName ?? 'this tenant'}
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
 
       {resolvedTenantId && (
         <RateTenantSheet

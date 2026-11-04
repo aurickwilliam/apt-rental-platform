@@ -222,6 +222,7 @@ function Units() {
                 thumbnailUrl={apt.coverUrl ?? undefined}
                 onPress={() => handlePropertyPress(apt.id)}
                 isVerified={apt.isVerified}
+                isHiddenByAdmin={apt.isHiddenByAdmin}
                 monthlyRent={apt.monthlyRent}
               />
             ))}

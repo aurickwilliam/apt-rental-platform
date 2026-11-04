@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { ReactNode } from "react";
 
 import { Card, Tooltip } from "@heroui/react";
 import { IconMapPin } from "@tabler/icons-react";
@@ -19,6 +20,8 @@ interface PublicProfileHeaderProps {
   role: "tenant" | "landlord";
   /** Landlord verification facts shown under the identity, never fabricated. */
   trustItems?: PublicProfileTrustItem[];
+  /** Optional actions aligned to the right of the identity (for example a report button). */
+  actions?: ReactNode;
 }
 
 const VERIFICATION_HINTS: Record<string, string> = {
@@ -30,7 +33,7 @@ const VERIFICATION_HINTS: Record<string, string> = {
 
 // Read-only sibling of ProfileHeader: same cover + overlapping avatar layout,
 // without the photo editing controls.
-export default function PublicProfileHeader({ identity, role, trustItems = [] }: PublicProfileHeaderProps) {
+export default function PublicProfileHeader({ identity, role, trustItems = [], actions }: PublicProfileHeaderProps) {
   const { displayName, avatarUrl, backgroundUrl, accountStatus, joinedAt, location } = identity;
   const verificationHint = VERIFICATION_HINTS[accountStatus ?? "unverified"] ?? VERIFICATION_HINTS.unverified;
 
@@ -81,6 +84,7 @@ export default function PublicProfileHeader({ identity, role, trustItems = [] }:
                 {joinedAt ? <span>Joined {joinedFormatter.format(new Date(joinedAt))}</span> : null}
               </div>
             </div>
+            {actions ? <div className="shrink-0 self-start">{actions}</div> : null}
           </div>
           {trustItems.length > 0 ? (
             <div className="mt-4 border-t border-border pt-3">
