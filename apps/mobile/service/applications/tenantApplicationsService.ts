@@ -1,4 +1,5 @@
 import { supabase } from '@repo/supabase';
+import { parseApplicationPreferenceSnapshot, type ApplicationPreferenceSnapshot } from '@repo/utils';
 
 import type { ApplicationStatus } from '@/hooks/applications';
 import { resolveApplicationDocumentUrls } from '@/service/media/privateMediaResolver';
@@ -31,6 +32,8 @@ export type TenantApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  // details copied from the saved preferences when the tenant applied; null when there were none
+  preferences: ApplicationPreferenceSnapshot | null;
   // uploaded documents, resolved to viewable signed URLs
   documents: ApplicationDocument[];
   apartments: {
@@ -77,6 +80,7 @@ type ApplicationRow = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  tenant_preferences: unknown;
   gov_id_url: string | null;
   gov_id_back_url: string | null;
   proof_of_income_url: string | null;
@@ -98,7 +102,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       `id, status, created_at, rejected_reason, apartment_id,
       occupation, employer_name, monthly_income, employment_type,
       prev_landlord_name, prev_landlord_contact,
-      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message, tenant_preferences,
       gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
       apartments(name, monthly_rent, barangay, city, apartment_images(url, url_thumb, is_cover, created_at))`
     )
@@ -129,6 +133,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
       proof_of_income_url,
       proof_of_billing_url,
       nbi_clearance_url,
+      tenant_preferences,
       apartments: { apartment_images, ...apartment },
       ...application
     } = item;
@@ -136,6 +141,7 @@ async function fetchTenantApplications(tenantId: string): Promise<TenantApplicat
     return {
       ...application,
       status: item.status as ApplicationStatus,
+      preferences: parseApplicationPreferenceSnapshot(tenant_preferences),
       documents,
       apartments: { ...apartment, thumbnail_url: coverImageUrl(apartment_images, 'thumb') },
     };

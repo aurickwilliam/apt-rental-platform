@@ -1,5 +1,11 @@
 import { createClient } from "@repo/supabase/browser";
+import type { Json } from "@repo/supabase";
+import {
+  parseApplicationPreferenceSnapshot,
+  type ApplicationPreferenceSnapshot,
+} from "@repo/utils";
 
+import { parseTenantPreferences, type TenantPreferences } from "@/lib/tenant-preferences";
 import {
   APPLICATION_DOCUMENT_PATH_KEYS,
   buildApplicationDocumentList,
@@ -34,6 +40,8 @@ export type TenantApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  /** Details copied from the tenant's saved preferences when they applied; null when there were none. */
+  preferences: ApplicationPreferenceSnapshot | null;
   documents: ApplicationDocument[];
   apartments: {
     name: string;
@@ -50,7 +58,7 @@ export type TenantApplication = {
 const APPLICATION_SELECT = `id, status, created_at, rejected_reason, apartment_id,
   occupation, employer_name, monthly_income, employment_type,
   prev_landlord_name, prev_landlord_contact,
-  move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+  move_in_date, no_occupants, has_pets, has_smoker, need_parking, message, tenant_preferences,
   gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
   apartments(name, monthly_rent, street_address, barangay, city, province, zip_code, apartment_images(url, is_cover))`;
 
@@ -73,8 +81,8 @@ export async function fetchTenantApplications(tenantId: string, options: TenantA
 
   const typed = (rows ?? []) as unknown as (Omit<
     TenantApplication,
-    "documents" | "apartments"
-  > &
+    "documents" | "apartments" | "preferences"
+  > & { tenant_preferences: unknown } &
     Record<ApplicationDocumentPathKey, string | null> & {
       apartments: TenantApplication["apartments"];
     })[];
@@ -108,6 +116,7 @@ export async function fetchTenantApplications(tenantId: string, options: TenantA
       has_smoker: item.has_smoker,
       need_parking: item.need_parking,
       message: item.message,
+      preferences: parseApplicationPreferenceSnapshot(item.tenant_preferences),
       apartments: item.apartments,
       documents,
     };
@@ -135,6 +144,8 @@ export type InsertTenantApplicationPayload = {
   proof_of_income_url: string | null;
   proof_of_billing_url: string;
   nbi_clearance_url: string | null;
+  /** Pet, parking, smoking and disability details copied from the saved preferences at submit time. */
+  tenant_preferences: ApplicationPreferenceSnapshot | null;
 };
 
 export async function insertTenantApplication(
@@ -144,7 +155,12 @@ export async function insertTenantApplication(
 
   const { data, error } = await supabase
     .from("rental_application")
-    .insert({ ...payload, status: "pending" })
+    .insert({
+      ...payload,
+      // A plain JSON object; the snapshot interface has no index signature.
+      tenant_preferences: payload.tenant_preferences as unknown as Json,
+      status: "pending",
+    })
     .select("id")
     .single();
 
@@ -163,6 +179,8 @@ export async function insertTenantApplication(
 export interface ApplicationSubmitContext {
   tenantId: string;
   accountStatus: string | null;
+  /** The applicant's saved rental preferences, read fresh at submit time; null when skipped. */
+  preferences: TenantPreferences | null;
   landlordId: string | null;
   hasActiveApplication: boolean;
 }
@@ -183,7 +201,7 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("id, account_status")
+    .select("id, account_status, preferences")
     .eq("user_id", user.id)
     .maybeSingle();
   if (profileError) throw new Error(profileError.message);
@@ -207,6 +225,7 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
   return {
     tenantId: profile.id,
     accountStatus: profile.account_status,
+    preferences: parseTenantPreferences(profile.preferences),
     landlordId: apartmentResult.data.landlord_id,
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
   };

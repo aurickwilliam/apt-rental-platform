@@ -20,7 +20,7 @@ import {
   type ApplicationIssue,
   type PassportApplicationSelection,
 } from "@repo/passport";
-import { formatPesoDisplay } from "@repo/utils";
+import { formatPesoDisplay, type ApplicationPreferenceLine } from "@repo/utils";
 
 import PassportStatusChip from "@/app/components/passport/PassportStatusChip";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
@@ -33,6 +33,8 @@ interface ReviewStepProps {
   apartment: ApplyApartmentContext;
   accountStatus: string | null;
   form: ApplicationForm;
+  /** The saved-preference details the landlord will see, or null when none are saved. */
+  sharedPreferences: ApplicationPreferenceLine[] | null;
   totalMoveIn: number;
   readiness: {
     issues: ApplicationIssue[];
@@ -78,6 +80,7 @@ export default function ReviewStep({
   apartment,
   accountStatus,
   form,
+  sharedPreferences,
   totalMoveIn,
   readiness,
   isSubmitting,
@@ -162,6 +165,19 @@ export default function ReviewStep({
                     <DetailRow label="Additional Notes" value={form.additionalNotes || "—"} />
                   </div>
                 </div>
+                {sharedPreferences ? (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="text-xs font-semibold text-card-foreground">Shared with the landlord</p>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      The details from your saved rental preferences. The landlord sees them with your application.
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {sharedPreferences.map((line) => (
+                        <DetailRow key={line.label} label={line.label} value={line.value} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </AccordionBody>
             </AccordionPanel>
           </AccordionItem>
