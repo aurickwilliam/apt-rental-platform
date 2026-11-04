@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  Button,
-  Card,
   Description,
   FieldError,
   Input,
@@ -13,6 +11,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@heroui/react";
+
+import FormStepActions from "@/app/components/layout/FormStepActions";
 
 import type { ApplicationForm, ApplicationStepProps } from "../../types";
 
@@ -46,8 +46,7 @@ export default function PreferencesStep({
   onNext,
 }: PreferencesStepProps) {
   return (
-    <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
-      <h2 className="mb-5 text-lg font-semibold text-card-foreground">Rental Preferences</h2>
+    <div>
       <div className="flex flex-col gap-5">
         <TextField
           isRequired
@@ -140,14 +139,7 @@ export default function PreferencesStep({
           </Description>
         </TextField>
       </div>
-      <div className="mt-8 flex gap-3">
-        <Button variant="outline" className="flex-1" onPress={onBack}>
-          Back
-        </Button>
-        <Button className="flex-1" onPress={onNext}>
-          Next
-        </Button>
-      </div>
-    </Card>
+      <FormStepActions isFirstStep={false} onBack={onBack} onContinue={onNext} />
+    </div>
   );
 }

@@ -7,5 +7,5 @@ export default async function ApplyPage({ params }: { params: Promise<{ apartmen
   const data = await loadApplyPage(apartmentId);
   if (!data) return <ApartmentNotFound />;
 
-  return <ApplyClient {...data} />;
+  return <ApplyClient {...data} stepperStickyClassName="top-20 md:top-[72px]" />;
 }

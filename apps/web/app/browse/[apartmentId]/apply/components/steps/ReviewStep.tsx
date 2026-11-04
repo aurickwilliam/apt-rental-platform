@@ -7,8 +7,7 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-  Button,
-  Card,
+  Separator,
   Spinner,
 } from "@heroui/react";
 import { IconMapPin } from "@tabler/icons-react";
@@ -22,6 +21,7 @@ import {
 } from "@repo/passport";
 import { formatPesoDisplay, type ApplicationPreferenceLine } from "@repo/utils";
 
+import FormStepActions from "@/app/components/layout/FormStepActions";
 import PassportStatusChip from "@/app/components/passport/PassportStatusChip";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
 
@@ -92,9 +92,9 @@ export default function ReviewStep({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-6">
+      <section>
         <p className="mb-1 text-xs tracking-widest text-muted-foreground uppercase">You are applying for</p>
-        <h2 className="text-xl font-bold text-card-foreground">{apartment.name}</h2>
+        <h2 className="font-nunito text-lg font-semibold text-foreground">{apartment.name}</h2>
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
           <IconMapPin size={14} /> {apartment.address}
         </p>
@@ -110,10 +110,12 @@ export default function ReviewStep({
           <DetailRow label="Total Move-In Cost" value={formatPesoDisplay(totalMoveIn) || "—"} />
           <DetailRow label="Rental Owner" value={apartment.landlordName ?? "—"} />
         </div>
-      </Card>
+      </section>
 
-      <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-6">
-        <h3 className="text-base font-semibold text-card-foreground">Summary of Application</h3>
+      <Separator />
+
+      <section>
+        <h2 className="font-nunito text-lg font-semibold text-foreground">Summary of Application</h2>
         <p className="mb-4 text-xs text-muted-foreground">
           Please review your details. Make sure everything is accurate before submitting.
         </p>
@@ -227,20 +229,24 @@ export default function ReviewStep({
           {!readiness.loading ? <ApplicationIssues issues={readiness.issues} accountStatus={accountStatus} /> : null}
         </div>
 
-        <div className="mt-6 flex gap-3">
-          <Button variant="outline" className="flex-1" isDisabled={isSubmitting} onPress={onBack}>
-            Back
-          </Button>
-          <Button
-            className="flex-1"
-            isDisabled={isSubmitting || readiness.loading || !readiness.isReady}
-            isPending={isSubmitting}
-            onPress={onSubmit}
-          >
-            {isSubmitting ? <Spinner size="sm" color="current" /> : null}
-            {isSubmitting ? "Submitting…" : "Submit Application"}
-          </Button>
-        </div>
+        <FormStepActions
+          isFirstStep={false}
+          onBack={onBack}
+          onContinue={onSubmit}
+          isBackDisabled={isSubmitting}
+          isContinueDisabled={isSubmitting || readiness.loading || !readiness.isReady}
+          isContinuePending={isSubmitting}
+          continueLabel={
+            isSubmitting ? (
+              <>
+                <Spinner size="sm" color="current" />
+                Submitting…
+              </>
+            ) : (
+              "Submit Application"
+            )
+          }
+        />
         {submitError ? (
           <p role="alert" className="mt-3 text-center text-sm text-danger">
             {submitError}
@@ -250,7 +256,7 @@ export default function ReviewStep({
             The landlord is notified as soon as you submit.
           </p>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

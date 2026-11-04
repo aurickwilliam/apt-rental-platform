@@ -1314,7 +1314,7 @@ body[data-scroll-locked] [role="option"] {
   }
 }
 
-.create-listing-actions > .button {
+.form-step-actions > .button {
   width: min(10rem, calc((100% - 1rem) / 2));
   padding-inline: 0.75rem;
 }
@@ -1496,9 +1496,9 @@ body[data-scroll-locked] [role="option"] {
   background-color: var(--muted);
 }
 
-/* Listing progress: keep HeroUI's keyboard/press handling, with the existing
+/* FormStepper: keep HeroUI's keyboard/press handling, with the existing
    circle-and-label layout. Override unlayered button defaults in this scope. */
-.button.create-listing-step {
+.button.form-stepper-step {
   --button-bg-hover: transparent;
   --button-bg-pressed: transparent;
   flex-direction: column;
@@ -1511,7 +1511,7 @@ body[data-scroll-locked] [role="option"] {
   transform: none;
 }
 
-.button.create-listing-step:disabled {
+.button.form-stepper-step:disabled {
   opacity: 1;
 }
 
