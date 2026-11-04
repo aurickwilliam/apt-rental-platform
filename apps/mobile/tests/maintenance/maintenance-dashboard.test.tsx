@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { FlatList, View } from "react-native";
-import { Button } from "heroui-native";
+import { FlatList, ScrollView, View } from "react-native";
+import { BottomSheet } from "heroui-native";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import MaintenanceHistory from "@/app/tenant/maintenance-history";
 import MaintenanceHistoryList from "@/app/tenant/maintenance-history-list";
@@ -28,9 +28,10 @@ jest.mock("heroui-native", () => {
   const Pass = ({ children }: { children: ReactNode }) => <View>{children}</View>;
   const Label = ({ children }: { children: ReactNode }) => <Text>{children}</Text>;
   const Sheet = ({ children, isOpen }: { children: ReactNode; isOpen: boolean }) => isOpen ? <View>{children}</View> : null;
-  return { ...stub, PressableFeedback: Object.assign(stub.Button, { Highlight: () => null }), BottomSheet: Object.assign(Sheet, { Portal: Pass, Overlay: () => null, Content: Pass, Title: Label, Description: Label }) };
+  return { ...stub, Select: jest.requireActual("../support/maintenanceSelectStub").default, PressableFeedback: Object.assign(stub.Button, { Highlight: () => null }), BottomSheet: Object.assign(Sheet, { Portal: Pass, Overlay: () => null, Content: Pass, Title: Label, Description: Label }) };
 });
 jest.mock("@gorhom/bottom-sheet", () => ({ BottomSheetScrollView: jest.requireActual("react-native").ScrollView }));
+jest.mock("react-native-gesture-handler", () => ({ ScrollView: jest.requireActual("react-native").ScrollView }));
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
 const request = (id: string, status = "Resolved") => ({ id, title: `Repair ${id}`, status, category: "plumbing", urgency: "low", created_at: "2026-11-04", apartment_id: "apartment", image_urls: [] });
@@ -188,7 +189,8 @@ it("applies filter drafts only on Apply, preserves selections on reopen, and res
   expect(screen.getByText("1 request matching your filters")).toBeTruthy();
   fireEvent.press(screen.getByLabelText("Filter maintenance history, 1 filter applied"));
   fireEvent.press(screen.getByLabelText("Urgency: High"));
-  fireEvent.press(screen.getByText("Close filters"));
+  expect(screen.queryByText("Close filters")).toBeNull();
+  act(() => { screen.UNSAFE_getByType(BottomSheet).props.onOpenChange(false); });
   expect(screen.getByText("Repair 1")).toBeTruthy();
   fireEvent.press(screen.getByLabelText("Filter maintenance history, 1 filter applied"));
   fireEvent.press(screen.getByText("Reset"));
@@ -196,27 +198,16 @@ it("applies filter drafts only on Apply, preserves selections on reopen, and res
   expect(screen.getByText("5 requests")).toBeTruthy();
 });
 
-it("keeps date pills at their natural size in two explicit rows and applies This year", () => {
+it("uses a single-select date dropdown with a full This year label", () => {
   render(<MaintenanceHistoryList />);
   fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  expect(screen.queryByText("This year")).toBeNull();
+  fireEvent.press(screen.getByLabelText("Reported date"));
   expect(screen.getByText("This year")).toBeTruthy();
-  const dateButtons = screen.UNSAFE_getAllByType(Button).filter((node) => node.props.accessibilityRole === "radio");
-  expect(dateButtons).toHaveLength(4);
-  const dateRows = screen.UNSAFE_getAllByType(View).filter((node) => node.props.style?.flexDirection === "row" && node.props.style?.gap === 8);
-  expect(dateRows).toHaveLength(2);
-  for (const row of dateRows) expect(row.props.children).toHaveLength(2);
-  for (const button of dateButtons) {
-    expect(button.props.style).toMatchObject({ flexShrink: 0, alignSelf: "flex-start" });
-    expect(button.props.size).toBe("sm");
-    expect(button.props.className).toContain("min-h-11");
-    expect(button.props.className).toContain("py-3");
-    expect(button.props.className).not.toContain("grow");
-    expect(button.props.className).toContain("h-auto");
-    expect(button.props.children.props.numberOfLines).toBe(1);
-    expect(button.props.children.props.style.flexShrink).toBe(0);
-    expect(button.props.children.props.className).toContain("text-center");
-  }
+  expect(screen.getAllByRole("radio")).toHaveLength(4);
   fireEvent.press(screen.getByLabelText("Reported date: This year"));
+  expect(screen.queryByLabelText("Reported date: This year")).toBeNull();
+  expect(screen.getByText("This year")).toBeTruthy();
   fireEvent.press(screen.getByText("Apply filters"));
   expect(screen.getByLabelText("Filter maintenance history, 1 filter applied")).toBeTruthy();
 });
@@ -224,12 +215,62 @@ it("keeps date pills at their natural size in two explicit rows and applies This
 it("shows a filtered empty state and clears filters without a new request", () => {
   render(<MaintenanceHistoryList />);
   fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Category"));
   fireEvent.press(screen.getByLabelText("Category: Appliances"));
+  fireEvent.press(screen.getByLabelText("Dismiss dropdown"));
   fireEvent.press(screen.getByText("Apply filters"));
   expect(screen.getByText("No requests match your filters.")).toBeTruthy();
   fireEvent.press(screen.getByText("Clear filters"));
   expect(screen.getByText("Repair 0")).toBeTruthy();
   expect(mockRefresh).not.toHaveBeenCalled();
+});
+
+it("keeps Category multi-select and resets both dropdowns with the rest of the draft", () => {
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Category"));
+  fireEvent.press(screen.getByLabelText("Category: Appliances"));
+  fireEvent.press(screen.getByLabelText("Category: Electrical & Lighting"));
+  expect(screen.getByLabelText("Category: Appliances").props.accessibilityState.checked).toBe(true);
+  expect(screen.getByLabelText("Category: Electrical & Lighting").props.accessibilityState.checked).toBe(true);
+  fireEvent.press(screen.getByLabelText("Dismiss dropdown"));
+  fireEvent.press(screen.getByLabelText("Reported date"));
+  fireEvent.press(screen.getByLabelText("Reported date: Last 7 days"));
+  fireEvent.press(screen.getByText("Reset"));
+  expect(screen.getByText("All categories")).toBeTruthy();
+  expect(screen.getByText("Any time")).toBeTruthy();
+  fireEvent.press(screen.getByText("Apply filters"));
+  expect(screen.getByLabelText("Filter maintenance history")).toBeTruthy();
+});
+
+it("dismisses any open dropdown with the filter sheet and reseeds the next opening", () => {
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Category"));
+  fireEvent.press(screen.getByLabelText("Category: Appliances"));
+  act(() => { screen.UNSAFE_getByType(BottomSheet).props.onOpenChange(false); });
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  expect(screen.queryByLabelText("Category: Appliances")).toBeNull();
+  expect(screen.getByText("All categories")).toBeTruthy();
+});
+
+it("lets the Category menu own scrolling and restores sheet scrolling after dismissal", () => {
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Category"));
+  const scrolls = screen.UNSAFE_getAllByType(ScrollView);
+  const menu = scrolls.find((node) => node.props.disallowInterruption === true);
+  expect(menu?.props.nestedScrollEnabled).toBe(true);
+  expect(menu?.props.style.maxHeight).toBe(260);
+  expect(scrolls.some((node) => node.props.scrollEnabled === false)).toBe(true);
+  const content = screen.UNSAFE_getByType(BottomSheet).props.children.props.children[1];
+  expect(content.props.enableContentPanningGesture).toBe(false);
+  fireEvent.press(screen.getByLabelText("Category: Safety & Security"));
+  expect(screen.getByLabelText("Category: Safety & Security").props.accessibilityState.checked).toBe(true);
+  fireEvent.press(screen.getByLabelText("Dismiss dropdown"));
+  const closedContent = screen.UNSAFE_getByType(BottomSheet).props.children.props.children[1];
+  expect(closedContent.props.enableContentPanningGesture).toBe(true);
+  expect(screen.UNSAFE_getAllByType(ScrollView).some((node) => node.props.scrollEnabled === false)).toBe(false);
 });
 
 it("retires filter drafts and applied filters when the account changes", () => {
