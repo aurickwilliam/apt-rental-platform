@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Modal, Radio, RadioGroup, Spinner, TextArea } from "@heroui/react";
-import { IconFlag } from "@tabler/icons-react";
+import { IconFlag, IconX } from "@tabler/icons-react";
 import { USER_REPORT_DETAILS_MAX_LENGTH, USER_REPORT_REASONS } from "@repo/utils";
 
 export interface ReportReasonOption {
@@ -57,7 +57,9 @@ export default function ReportUserModal({
       >
         <Modal.Container placement="center" size="md">
           <Modal.Dialog className="rounded-2xl">
-            <Modal.CloseTrigger aria-label="Close report dialog" />
+            <Modal.CloseTrigger className="maintenance-modal-close" aria-label="Close report dialog" isDisabled={isSubmitting}>
+              <IconX size={16} aria-hidden="true" />
+            </Modal.CloseTrigger>
             <Modal.Header className="pr-12">
               <Modal.Heading className="flex items-center gap-2 text-base font-semibold text-danger">
                 <IconFlag size={18} className="shrink-0" aria-hidden="true" />
@@ -101,8 +103,8 @@ export default function ReportUserModal({
               />
               {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
             </Modal.Body>
-            <Modal.Footer className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onPress={onClose} isDisabled={isSubmitting} className="rounded-full">
+            <Modal.Footer className="flex gap-2">
+              <Button variant="outline" size="sm" onPress={onClose} isDisabled={isSubmitting} className="flex-1 rounded-full">
                 Cancel
               </Button>
               <Button
@@ -110,7 +112,7 @@ export default function ReportUserModal({
                 size="sm"
                 onPress={() => reason && onSubmit(reason, details)}
                 isDisabled={!reason || (needsDetails && !details.trim()) || isSubmitting}
-                className="rounded-full"
+                className="flex-1 rounded-full"
               >
                 {isSubmitting ? (
                   <>
