@@ -137,7 +137,10 @@ export default function StepFive() {
                 kindOfPets={kindOfPets}
                 noOfPets={noOfPets}
                 nameOfPets={nameOfPets}
-                onCountChange={setNoOfPets}
+                onCountChange={(count, kinds) => {
+                  setNoOfPets(count);
+                  setKindOfPets(kinds);
+                }}
                 onKindsChange={setKindOfPets}
                 onNameChange={setNameOfPets}
                 error={petsError}
@@ -159,8 +162,10 @@ export default function StepFive() {
               <ParkingDetailsFields
                 noOfParkingSpots={noOfParkingSpots}
                 listOfVehicles={listOfVehicles}
-                onSpotsChange={setNoOfParkingSpots}
-                onVehiclesChange={setListOfVehicles}
+                onChange={(spots, vehicles) => {
+                  setNoOfParkingSpots(spots);
+                  setListOfVehicles(vehicles);
+                }}
               />
             )}
           </View>

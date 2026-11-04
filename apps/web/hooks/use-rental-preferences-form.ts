@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
+import { sortVehicles, spotsForVehicles, trimPetKinds, trimVehicles } from "@repo/utils";
 
 import {
   DEFAULT_TENANT_PREFERENCES,
@@ -92,7 +93,8 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       hasPets,
       kindOfPets,
       noOfPets,
-      nameOfPets,
+      // The custom name only applies while "Other" is picked.
+      nameOfPets: kindOfPets.includes("Other") ? nameOfPets : null,
       hasParking,
       noOfParkingSpots,
       listOfVehicles,
@@ -143,16 +145,17 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
 
   const setVehicles = useCallback((vehicles: string[]) => {
     setSaveError(null);
-    setListOfVehicles(vehicles);
+    const sorted = sortVehicles(vehicles);
+    setListOfVehicles(sorted);
     // Never fewer spots than kinds: raise the count as kinds are added.
-    setNoOfParkingSpots((count) => Math.max(count || 0, vehicles.length));
+    setNoOfParkingSpots((count) => spotsForVehicles(count, sorted));
   }, []);
 
   const setSpots = useCallback((value: number) => {
     setSaveError(null);
     setNoOfParkingSpots(value);
     // Lowering the count drops the vehicle kinds that no longer fit.
-    setListOfVehicles((prev) => prev.slice(0, value));
+    setListOfVehicles((prev) => trimVehicles(prev, value));
   }, []);
 
   // Conditional clearing mirrors mobile: disabling a parent option clears
@@ -179,12 +182,8 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setSaveError(null);
     setNoOfPetsRaw(value);
     // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
-    const kept = kindOfPets.slice(0, value);
-    if (kept.length !== kindOfPets.length) {
-      setKindOfPetsRaw(kept);
-      if (!kept.includes("Other")) setNameOfPets(null);
-    }
-  }, [kindOfPets]);
+    setKindOfPetsRaw((prev) => trimPetKinds(prev, value));
+  }, []);
 
   const setHasParking = useCallback((value: boolean) => {
     setSaveError(null);

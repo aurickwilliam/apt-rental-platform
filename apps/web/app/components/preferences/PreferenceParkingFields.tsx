@@ -2,6 +2,7 @@
 
 import { Label, ListBox, Select } from "@heroui/react";
 import { VEHICLE_OPTIONS } from "@repo/constants";
+import { sortVehicles, spotsForVehicles, trimVehicles } from "@repo/utils";
 
 import { PARKING_SPOT_OPTIONS } from "@/lib/tenant-preferences";
 
@@ -28,7 +29,7 @@ export default function PreferenceParkingFields({
         onChange={(key) => {
           const count = key ? Number(key) : 1;
           // Lowering the count drops the vehicle kinds that no longer fit.
-          onChange({ noOfParkingSpots: count, listOfVehicles: listOfVehicles.slice(0, count) });
+          onChange({ noOfParkingSpots: count, listOfVehicles: trimVehicles(listOfVehicles, count) });
         }}
       >
         <Label>If yes, how many cars or motorcycles do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
@@ -52,12 +53,11 @@ export default function PreferenceParkingFields({
         placeholder="Select the kinds of vehicles you have"
         value={listOfVehicles}
         onChange={(keys) => {
-          const picked = keys.map(String);
-          const next = VEHICLE_OPTIONS.filter((vehicle) => picked.includes(vehicle));
+          const next = sortVehicles(keys.map(String));
           // Never fewer spots than kinds: raise the count as kinds are added.
           onChange({
             listOfVehicles: next,
-            noOfParkingSpots: Math.max(noOfParkingSpots || 0, next.length),
+            noOfParkingSpots: spotsForVehicles(noOfParkingSpots, next),
           });
         }}
       >

@@ -2,6 +2,7 @@
 
 import { Input, Label, ListBox, Select } from "@heroui/react";
 import { OTHER_PET, PETS } from "@repo/constants";
+import { trimPetKinds } from "@repo/utils";
 
 import {
   PET_COUNT_OPTIONS,
@@ -42,7 +43,7 @@ export default function PreferencePetFields({
           onChange={(key) => {
             const count = key ? optionToPetCount(String(key)) : 1;
             // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
-            const kept = kindOfPets.slice(0, count);
+            const kept = trimPetKinds(kindOfPets, count);
             onChange({
               noOfPets: count,
               kindOfPets: kept,

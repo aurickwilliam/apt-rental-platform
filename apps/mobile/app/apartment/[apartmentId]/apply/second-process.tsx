@@ -307,8 +307,12 @@ export default function SecondProcess() {
                   noOfPets={rentalPreferences.noOfPets}
                   nameOfPets={rentalPreferences.nameOfPets}
                   error={errors.petDetails ? petsError : null}
-                  onCountChange={(count) => {
-                    updateRentalPreferences('noOfPets', count)
+                  onCountChange={(count, kinds) => {
+                    patchRentalPreferences({
+                      noOfPets: count,
+                      kindOfPets: kinds,
+                      nameOfPets: kinds.includes(OTHER_PET) ? rentalPreferences.nameOfPets : null,
+                    })
                     clearError('petDetails')
                   }}
                   onKindsChange={(kinds) => {
@@ -362,9 +366,8 @@ export default function SecondProcess() {
                   noOfParkingSpots={rentalPreferences.noOfParkingSpots}
                   listOfVehicles={rentalPreferences.listOfVehicles}
                   error={errors.parkingDetails}
-                  onSpotsChange={(spots) => updateRentalPreferences('noOfParkingSpots', spots)}
-                  onVehiclesChange={(vehicles) => {
-                    updateRentalPreferences('listOfVehicles', vehicles)
+                  onChange={(spots, vehicles) => {
+                    patchRentalPreferences({ noOfParkingSpots: spots, listOfVehicles: vehicles })
                     clearError('parkingDetails')
                   }}
                 />

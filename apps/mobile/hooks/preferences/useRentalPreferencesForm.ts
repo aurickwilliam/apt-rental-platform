@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 import { OTHER_PET, minimumPetCount } from "@repo/constants";
+import { sortVehicles, spotsForVehicles, trimPetKinds, trimVehicles } from "@repo/utils";
 import { useCurrentUser, CURRENT_USER_QUERY_KEY } from "@/hooks/auth/useCurrentUser";
 import { parsePreferences, type TenantPreferences } from "@/hooks/preferences/useUserPreferences";
 
@@ -76,7 +77,8 @@ export function useRentalPreferencesForm() {
       hasPets,
       kindOfPets,
       noOfPets,
-      nameOfPets,
+      // The custom name only applies while "Other" is picked.
+      nameOfPets: kindOfPets.includes(OTHER_PET) ? nameOfPets : null,
       hasParking,
       noOfParkingSpots,
       listOfVehicles,
@@ -108,29 +110,27 @@ export function useRentalPreferencesForm() {
   }, []);
 
   const toggleVehicle = useCallback((vehicle: string) => {
-    const next = listOfVehicles.includes(vehicle)
-      ? listOfVehicles.filter((v) => v !== vehicle)
-      : [...listOfVehicles, vehicle];
-    setListOfVehicles(next);
-    // Never fewer spots than kinds: raise the count as kinds are added.
-    setNoOfParkingSpots((count) => Math.max(count, next.length));
-  }, [listOfVehicles]);
+    setListOfVehicles((prev) => {
+      const next = sortVehicles(
+        prev.includes(vehicle) ? prev.filter((v) => v !== vehicle) : [...prev, vehicle],
+      );
+      // Never fewer spots than kinds: raise the count as kinds are added.
+      setNoOfParkingSpots((count) => spotsForVehicles(count, next));
+      return next;
+    });
+  }, []);
 
   const handleSetParkingSpots = useCallback((spots: number) => {
     setNoOfParkingSpots(spots);
     // Lowering the count drops the vehicle kinds that no longer fit.
-    setListOfVehicles((prev) => prev.slice(0, spots));
+    setListOfVehicles((prev) => trimVehicles(prev, spots));
   }, []);
 
   const handleSetPetCount = useCallback((count: number) => {
     setNoOfPets(count);
     // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
-    if (kindOfPets.length > count) {
-      const kept = kindOfPets.slice(0, count);
-      setKindOfPets(kept);
-      if (!kept.includes(OTHER_PET)) setNameOfPets(null);
-    }
-  }, [kindOfPets]);
+    setKindOfPets((prev) => trimPetKinds(prev, count));
+  }, []);
 
   const setPetsEnabled = useCallback((val: boolean) => {
     setHasPets(val);

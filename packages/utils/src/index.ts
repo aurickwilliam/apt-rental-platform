@@ -312,3 +312,9 @@ export {
   resolveChatAudiencesWith,
   resolveChatNotificationAudiences,
 } from './notificationAudience';
+export {
+  trimPetKinds,
+  sortVehicles,
+  trimVehicles,
+  spotsForVehicles,
+} from './preferenceLinking';

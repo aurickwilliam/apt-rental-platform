@@ -9,12 +9,14 @@ import {
   optionToPetCount,
   petCountToOption,
 } from "@repo/constants";
+import { trimPetKinds } from "@repo/utils";
 
 interface PetDetailsFieldsProps {
   kindOfPets: string[];
   noOfPets: number;
   nameOfPets: string | null;
-  onCountChange: (count: number) => void;
+  /** The new count together with the kinds that still fit it, so both change at once. */
+  onCountChange: (count: number, kinds: string[]) => void;
   onKindsChange: (kinds: string[]) => void;
   onNameChange: (name: string | null) => void;
   /** Pet rule message (`getPetsError`); shown once a kind is chosen. */
@@ -40,9 +42,8 @@ export default function PetDetailsFields({
         options={PET_COUNT_OPTIONS}
         onSelect={(value) => {
           const count = value ? optionToPetCount(value) : 1
-          onCountChange(count)
           // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
-          if (kindOfPets.length > count) onKindsChange(kindOfPets.slice(0, count))
+          onCountChange(count, trimPetKinds(kindOfPets, count))
         }}
         value={petCountToOption(noOfPets)}
         error={kindOfPets.length > 0 ? error ?? undefined : undefined}
