@@ -92,6 +92,24 @@ afterEach(async () => {
 });
 
 describe("useTenancy", () => {
+  it("reports failed confirmation refreshes without dropping loaded rental details", async () => {
+    const { client, QueryWrapper } = createWrapper();
+    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
+    mockFetchTenancy.mockRejectedValueOnce(new Error("Offline"));
+    let ok: boolean | undefined;
+    await act(async () => { ok = await result.current.revalidate(); });
+    expect(ok).toBe(false);
+    expect(result.current.tenancy?.id).toBe(TENANCY_ID);
+    expect(result.current.loading).toBe(false);
+    mockFetchTenancy.mockResolvedValueOnce({ id: TENANCY_ID, tenant_acknowledged_at: "2026-11-05" });
+    await act(async () => { ok = await result.current.revalidate(); });
+    expect(ok).toBe(true);
+    await waitFor(() => expect(result.current.tenancy?.tenant_acknowledged_at).toBe("2026-11-05"));
+    unmount();
+    client.clear();
+  });
+
   it("reloads a versioned bill after confirmation instead of retaining stale rent coverage", async () => {
     mockFetchTenancy.mockResolvedValueOnce({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: false, totalDue: 45000 } });
     mockFetchTenancy.mockResolvedValue({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: true, totalDue: 0 } });

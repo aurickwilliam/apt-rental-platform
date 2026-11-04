@@ -1,4 +1,4 @@
-import { signedLeaseOperationGuard, uploadSignedLease, viewSignedLease } from "./signedLeaseService";
+import { acknowledgeSignedLease, signedLeaseOperationGuard, uploadSignedLease, viewSignedLease } from "./signedLeaseService";
 
 const mockSession = jest.fn();
 const mockUpload = jest.fn();
@@ -130,4 +130,39 @@ it("does not open a private URL resolved for a retired account", async () => {
   });
   await expect(viewSignedLease(newPath, signedLeaseOperationGuard())).rejects.toThrow("session has changed");
   expect(mockBrowser).not.toHaveBeenCalled();
+});
+
+it("allows tenants to view through the same private viewer", async () => {
+  mockScope = { ...mockScope, portal: "tenant" };
+  mockResolve.mockResolvedValue({ urls: { [newPath]: "https://storage.example/private" }, error: null });
+  await viewSignedLease(newPath, signedLeaseOperationGuard("tenant"));
+  expect(mockBrowser).toHaveBeenCalledWith("https://storage.example/private");
+});
+
+it("confirms as the tenant through the existing caller-bound RPC only", async () => {
+  mockScope = { ...mockScope, portal: "tenant" };
+  await acknowledgeSignedLease("tenancy", signedLeaseOperationGuard("tenant"));
+  expect(mockRpc).toHaveBeenCalledWith("acknowledge_signed_lease", { p_tenancy_id: "tenancy" });
+  expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it("never permits landlord confirmation or tenant upload even with an otherwise valid scope guard", async () => {
+  await expect(acknowledgeSignedLease("tenancy", signedLeaseOperationGuard())).rejects.toThrow("session has changed");
+  mockScope = { ...mockScope, portal: "tenant" };
+  await expect(uploadSignedLease({ ...input(), isCurrent: signedLeaseOperationGuard("tenant") })).rejects.toThrow("session has changed");
+  expect(mockRpc).not.toHaveBeenCalled();
+  expect(mockUpload).not.toHaveBeenCalled();
+});
+
+it("surfaces a refused confirmation and rejects late account/portal results", async () => {
+  mockScope = { ...mockScope, portal: "tenant" };
+  const error = { message: "Only the tenant of this tenancy can confirm the lease." };
+  mockRpc.mockResolvedValueOnce({ error });
+  await expect(acknowledgeSignedLease("tenancy", signedLeaseOperationGuard("tenant"))).rejects.toEqual(error);
+  mockRpc.mockImplementationOnce(async () => {
+    mockScope = { ...mockScope, portal: "landlord" };
+    return { error: null };
+  });
+  await expect(acknowledgeSignedLease("tenancy", signedLeaseOperationGuard("tenant"))).rejects.toThrow("session has changed");
 });

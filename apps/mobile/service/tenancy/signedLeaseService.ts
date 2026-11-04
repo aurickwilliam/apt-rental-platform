@@ -10,21 +10,24 @@ import { signedLeaseContentType, signedLeaseUploadPath, validateSignedLeaseFile 
 const BUCKET = "signed-leases";
 
 /** Retire work on sign-out/account/portal transitions, including late callbacks. */
-export function signedLeaseOperationGuard() {
+export function signedLeaseOperationGuard(portal: "landlord" | "tenant" = "landlord") {
   const scope = usePortalStore.getState();
   const generation = getPrivateMediaCacheGeneration();
   return () => {
     const current = usePortalStore.getState();
-    return current === scope && !!scope.authUserId && scope.portal === "landlord" && !current.loading
+    return current === scope && !!scope.authUserId && scope.portal === portal && !current.loading
       && current.authUserId === scope.authUserId && current.portal === scope.portal
       && isPrivateMediaCacheGenerationCurrent(generation);
   };
 }
 
-async function assertSession(isCurrent: () => boolean) {
+async function assertSession(isCurrent: () => boolean, portal?: "landlord" | "tenant") {
   const { data, error } = await supabase.auth.getSession();
-  if (error || !isCurrent() || data.session?.user.id !== usePortalStore.getState().authUserId) {
-    throw new Error("Your session has changed. Reopen this property to continue.");
+  const scope = usePortalStore.getState();
+  if (error || !isCurrent() || data.session?.user.id !== scope.authUserId
+    || (portal && scope.portal !== portal)
+    || (scope.portal !== "tenant" && scope.portal !== "landlord")) {
+    throw new Error("Your session has changed. Reopen your rental or property to continue.");
   }
 }
 
@@ -45,20 +48,20 @@ export async function uploadSignedLease(input: {
   isCurrent: () => boolean;
 }): Promise<void> {
   const { tenancyId, asset, previousPath, isCurrent } = input;
-  await assertSession(isCurrent);
+  await assertSession(isCurrent, "landlord");
   // Read binary from the cached local file, never base64 or a React Native Blob.
   const file = new File(asset.uri);
   const candidate = { name: asset.name, type: asset.mimeType ?? "", size: file.size };
   const validation = validateSignedLeaseFile(candidate);
   if (validation) throw new Error(validation);
   const bytes = await file.arrayBuffer();
-  await assertSession(isCurrent);
+  await assertSession(isCurrent, "landlord");
   const path = signedLeaseUploadPath(tenancyId, asset.name, Date.now());
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
     contentType: signedLeaseContentType(candidate)!,
   });
   if (uploadError) throw new Error("Could not upload the signed lease. Please try again.");
-  await assertSession(isCurrent);
+  await assertSession(isCurrent, "landlord");
 
   try {
     const { error } = await supabase.rpc("set_tenancy_signed_lease", {
@@ -66,10 +69,10 @@ export async function uploadSignedLease(input: {
     });
     if (error) throw error;
   } catch (saveError) {
-    await assertSession(isCurrent);
+    await assertSession(isCurrent, "landlord");
     const { data, error } = await supabase.from("tenancies")
       .select("signed_lease_path").eq("id", tenancyId).maybeSingle();
-    await assertSession(isCurrent);
+    await assertSession(isCurrent, "landlord");
     // Unknown outcomes must retain the new object: a successful RPC may have
     // lost its response. Only a successful read of a different path is safe.
     if (error || !data) {
@@ -83,7 +86,7 @@ export async function uploadSignedLease(input: {
     }
   }
 
-  await assertSession(isCurrent);
+  await assertSession(isCurrent, "landlord");
   if (previousPath && previousPath !== path) await removeFile(previousPath, isCurrent);
 }
 
@@ -94,4 +97,12 @@ export async function viewSignedLease(path: string, isCurrent: () => boolean): P
   if (error || !urls[path]) throw new Error("Could not open the signed lease. Please try again.");
   // Do not forward a private contract URL to Google Docs or another viewer.
   await WebBrowser.openBrowserAsync(urls[path]);
+}
+
+/** Only the tenancy's tenant can confirm; ownership and idempotency are enforced by the RPC. */
+export async function acknowledgeSignedLease(tenancyId: string, isCurrent: () => boolean): Promise<void> {
+  await assertSession(isCurrent, "tenant");
+  const { error } = await supabase.rpc("acknowledge_signed_lease", { p_tenancy_id: tenancyId });
+  await assertSession(isCurrent, "tenant");
+  if (error) throw error;
 }

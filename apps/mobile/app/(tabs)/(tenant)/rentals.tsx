@@ -12,6 +12,7 @@ import QuickActionsSection from '@/app/(tabs)/components/rentals/QuickActionsSec
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceSection from '../components/rentals/MaintenanceSection';
+import TenantSignedLeaseCard from '@/components/tenancy/TenantSignedLeaseCard';
 import RentalHero, { useRentalHeroHeight } from '../components/rentals/RentalHero';
 import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
 import {
@@ -98,6 +99,7 @@ export default function Rentals() {
     loading: tenancyLoading,
     error: tenancyError,
     refetch: refetchTenancy,
+    revalidate: revalidateTenancy,
   } = useTenancy();
   const { profile } = useProfile();
   useMaintenanceFocusRefresh(tenancy?.apartment.id, profile?.id);
@@ -358,6 +360,16 @@ export default function Rentals() {
             onOpenRequest={handleOpenMaintenanceRequest}
             onViewAll={handleViewHistory}
             onRequestMaintenance={handleRequestMaintenance}
+          />
+        </View>
+        <View className="mt-3">
+          <TenantSignedLeaseCard
+            key={`${profile?.user_id}:${tenancy.id}:${tenancy.signed_lease_path ?? 'none'}`}
+            tenancyId={tenancy.id}
+            path={tenancy.signed_lease_path}
+            uploadedAt={tenancy.signed_lease_uploaded_at}
+            acknowledgedAt={tenancy.tenant_acknowledged_at}
+            onAcknowledged={revalidateTenancy}
           />
         </View>
       </TabScreen>
