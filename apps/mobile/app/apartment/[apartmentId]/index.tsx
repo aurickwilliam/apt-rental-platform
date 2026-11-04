@@ -17,6 +17,7 @@ import {
   IconHeart,
   IconHeartFilled,
   IconChevronLeft,
+  IconFlag,
   IconShare2,
 } from "@tabler/icons-react-native";
 
@@ -39,6 +40,9 @@ import { useColors } from "@/hooks/useTheme";
 import { useLightStatusBar } from "@/hooks/useLightStatusBar";
 import { useReviewEligibility } from "@/hooks/ratings";
 import { useCurrentUserId } from "@/hooks/auth";
+import { useReportDialog } from "@/hooks/reports";
+import { APARTMENT_REPORT_REASONS } from "@repo/utils";
+import ReportUserDialog from "@/app/(tabs)/components/chat/ReportUserDialog";
 import { getInquiryConversationId } from "@/service/chat/chatRoutes";
 import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
 import { getApplyDisabledReason } from "@/service/apartments/applyEligibility";
@@ -67,6 +71,9 @@ export default function ApartmentScreen() {
   } = useApartmentDetails(apartmentId);
   const { data: acceptedMethods } = useApartmentAcceptedMethods(apartmentId ?? null);
   const currentUserId = useCurrentUserId();
+  const report = useReportDialog(apartmentId ? { kind: "apartment", apartmentId } : null);
+  const ownerId = apartment?.landlord?.id ?? null;
+  const canReport = Boolean(apartment) && ownerId !== currentUserId;
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const ratingsOffsetY = useRef(0);
   const sectionsOffsetY = useRef(0);
@@ -265,8 +272,30 @@ export default function ApartmentScreen() {
               onWriteReview={handleWriteReview}
             />
           </View>
+
+          {canReport ? (
+            <View className="mt-6 mb-4 items-center">
+              <Button variant="tertiary" size="md" onPress={report.open}>
+                <IconFlag size={20} color={colors.danger} />
+                <Button.Label className="text-danger font-nunitoSemiBold">
+                  Report this listing
+                </Button.Label>
+              </Button>
+            </View>
+          ) : null}
         </View>
       </ScreenWrapper>
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={apartment?.name ?? "this listing"}
+        reasons={APARTMENT_REPORT_REASONS}
+        subject="listing"
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
 
       <MoveInCostFooter
         monthlyRent={apartment?.monthly_rent ?? 0}

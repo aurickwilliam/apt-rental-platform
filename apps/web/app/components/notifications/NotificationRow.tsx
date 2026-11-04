@@ -30,6 +30,9 @@ interface NotificationRowProps {
   onOpen: () => void;
   /** Expanded message members retain their own action but not sender identity. */
   compact?: boolean;
+  /** A notice with no page to open: pressing it shows the full text in place. */
+  expandable?: boolean;
+  expanded?: boolean;
 }
 
 /**
@@ -40,6 +43,8 @@ export default function NotificationRow({
   notification,
   onOpen,
   compact = false,
+  expandable = false,
+  expanded = false,
 }: NotificationRowProps) {
   const { action, preview } = getNotificationRowPresentation(
     notification, getNotificationPreview(notification.data),
@@ -58,7 +63,9 @@ export default function NotificationRow({
     <Button
       variant="ghost"
       onClick={onOpen}
-      aria-label={accessibleLabel}
+      // An expanded notice is read from its content; the short label would hide the full message.
+      aria-label={expanded ? undefined : accessibleLabel}
+      aria-expanded={expandable ? expanded : undefined}
       className={`button--bare ${compact ? "notification-feed-member" : "notification-feed-row"}`}
     >
       {!compact && <span aria-hidden="true" className="notification-feed-icon">
@@ -67,7 +74,19 @@ export default function NotificationRow({
         )}
       </span>}
       <span className="min-w-0 flex-1">
-        {!compact && (
+        {!compact && expanded ? (
+          <>
+            <span className="block break-words font-nunito text-sm font-semibold leading-5 text-foreground">
+              {notification.title}
+            </span>
+            {notification.message ? (
+              <span className="mt-0.5 block whitespace-pre-wrap break-words font-inter text-sm leading-5 text-foreground">
+                {notification.message}
+              </span>
+            ) : null}
+          </>
+        ) : null}
+        {!compact && !expanded && (
           <span className="notification-feed-primary">
             <span className={action ? "inline-block max-w-full truncate align-bottom font-semibold" : "font-semibold"}>
               {notification.title}
@@ -75,7 +94,7 @@ export default function NotificationRow({
             {action ? <> {action}</> : null}
           </span>
         )}
-        {displayedPreview ? (
+        {displayedPreview && !expanded ? (
           <span className={`notification-feed-preview ${compact ? "leading-4" : "leading-5"} ${compact && !notification.is_read ? "font-medium text-foreground" : "text-muted-foreground"}`}>
             {action ? `“${displayedPreview}”` : displayedPreview}
           </span>

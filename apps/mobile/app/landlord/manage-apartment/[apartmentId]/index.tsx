@@ -13,6 +13,7 @@ import PropertyOverview from './components/PropertyOverview'
 import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
+import HiddenListingBanner from 'components/apartment/HiddenListingBanner'
 import LandlordSignedLeaseCard from '@/components/tenancy/LandlordSignedLeaseCard';
 import { useLandlordTenancyRefresh } from '@/hooks/tenancy/useLandlordTenancyRefresh';
 import { usePortalStore } from '@/stores/usePortalStore';
@@ -182,6 +183,8 @@ export default function Index() {
           <PropertyOverviewSkeleton />
         ) : apartment ? (
           <>
+            <HiddenListingBanner apartmentId={apartmentId ?? null} />
+
             {/* Images + Specs */}
             <PropertyOverview
               name={apartment.name}

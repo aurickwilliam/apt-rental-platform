@@ -284,6 +284,7 @@ test("Property rows prefetch on hover and keyboard focus without changing row ac
   const tree = load("landlord/properties/components/PropertiesTable.tsx", {
     "./propertyConstants": { STATUS_COLOR: {} },
     "@/lib/property-listing-visibility": { propertyStatusLabel: status => status },
+    "./HiddenListingChip": { default: "HiddenListingChip" },
     "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
   }).default({ properties: [property], onRowIntent: item => intended.push(item.id), onRowClick: item => opened.push(item.id) });
@@ -295,6 +296,19 @@ test("Property rows prefetch on hover and keyboard focus without changing row ac
   assert.deepEqual(opened, []);
   elements.find(node => node.type === "Table.Content").props.onRowAction("unit-1");
   assert.deepEqual(opened, ["unit-1"]);
+});
+
+test("A listing an admin hid shows a Hidden chip next to its status", () => {
+  const load_ = hidden => load("landlord/properties/components/PropertiesTable.tsx", {
+    "./propertyConstants": { STATUS_COLOR: {} },
+    "@/lib/property-listing-visibility": { propertyStatusLabel: status => status },
+    "./HiddenListingChip": { default: "HiddenListingChip" },
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
+  }).default({ properties: [{ id: "u", name: "Test", status: "available", is_hidden_by_admin: hidden }], onRowIntent: () => {}, onRowClick: () => {} });
+  const chipFor = hidden => nodes(load_(hidden)).find(node => node.type === "HiddenListingChip");
+  assert.equal(chipFor(true).props.hidden, true);
+  assert.equal(chipFor(false).props.hidden, false);
 });
 
 function galleryHarness(initialImages) {

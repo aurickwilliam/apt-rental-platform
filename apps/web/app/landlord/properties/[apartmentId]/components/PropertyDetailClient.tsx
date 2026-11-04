@@ -51,6 +51,8 @@ import DeletePropertyModal from "../../components/modals/DeletePropertyModal";
 import EmptyState from "@/app/components/display/EmptyState";
 import { propertyStatusLabel } from "@/lib/property-listing-visibility";
 import PropertyVisibilityAction from "./PropertyVisibilityAction";
+import HiddenListingBanner from "./HiddenListingBanner";
+import HiddenListingChip from "../../components/HiddenListingChip";
 
 function buildAddress(apartment: LandlordUnitApartment): string {
   const parts = [
@@ -224,6 +226,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
           <ArrowLeft size={16} />
           All Properties
         </Button>
+        <HiddenListingBanner apartmentId={detail.apartment.id} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -234,6 +237,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               <StatusChip size="sm" tone={STATUS_COLOR[apartment.status] ?? "neutral"} className="capitalize">
                 {propertyStatusLabel(apartment.status)}
               </StatusChip>
+              <HiddenListingChip hidden={apartment.is_hidden_by_admin} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {buildAddress(apartment)} · {formatPesoDisplay(apartment.monthly_rent)}/month

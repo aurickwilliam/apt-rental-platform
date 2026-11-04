@@ -62,6 +62,8 @@ export default function NotificationDrawer({
   const [filter, setFilter] = useState<Filter>("all");
   // Keyed by group identity (conversation + sender + oldest member), so a
   // realtime arrival keeps an already-expanded group open.
+  // Notices with no page to open (a warning, a suspension) expand in place instead.
+  const [expandedNotices, setExpandedNotices] = useState<ReadonlySet<string>>(() => new Set());
   const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -71,10 +73,16 @@ export default function NotificationDrawer({
   if (previousPortal !== activePortal) {
     setPreviousPortal(activePortal);
     setExpandedGroups(new Set());
+    setExpandedNotices(new Set());
     setFilter("all");
   }
   const { notifications, unreadCount, loading, error, markOneRead, markManyRead, markVisibleRead } =
     useNotifications(activePortal);
+  // Where each row leads, worked out once per feed or portal change instead of on every render and press.
+  const targets = useMemo(
+    () => new Map(notifications.map((item) => [item.id, resolveNotificationTarget(item.data, activePortal)])),
+    [notifications, activePortal],
+  );
 
   // Keyboard-accessible bell-position reset (the bell itself also resets on
   // double-click). External store per repo convention — no effects.
@@ -130,11 +138,18 @@ export default function NotificationDrawer({
   // resolved route when the payload addresses one.
   const openNotification = (notification: FeedNotification) => {
     void markOneRead(notification.id);
-    const { href } = resolveNotificationTarget(notification.data, activePortal);
+    const { href } = targets.get(notification.id) ?? resolveNotificationTarget(notification.data, activePortal);
     if (href) {
       onClose();
       router.push(href);
+      return;
     }
+    setExpandedNotices((previous) => {
+      const next = new Set(previous);
+      if (next.has(notification.id)) next.delete(notification.id);
+      else next.add(notification.id);
+      return next;
+    });
   };
 
   // A group acknowledges its unread records in one batch, but only when the
@@ -243,6 +258,8 @@ export default function NotificationDrawer({
                             key={unit.id}
                             notification={unit.notification}
                             onOpen={() => openNotification(unit.notification)}
+                            expanded={expandedNotices.has(unit.notification.id)}
+                            expandable={!targets.get(unit.notification.id)?.href}
                           />
                         ) : (
                           <NotificationGroupRow

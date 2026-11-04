@@ -7,6 +7,7 @@ import { createClient } from "@repo/supabase/server";
 interface SuspensionStatus {
   suspended?: boolean;
   reason?: string | null;
+  until?: string | null;
 }
 
 // A suspended account can still authenticate, so it lands here with a session.
@@ -14,7 +15,7 @@ interface SuspensionStatus {
 export default async function SuspendedPage() {
   const supabase = await createClient();
   const { data: status } = await supabase.rpc("get_my_suspension_status");
-  const { suspended, reason } = (status ?? {}) as SuspensionStatus;
+  const { suspended, reason, until } = (status ?? {}) as SuspensionStatus;
 
   if (!suspended) redirect("/");
 
@@ -33,6 +34,15 @@ export default async function SuspendedPage() {
             </p>
             <p className="mt-1 text-sm text-foreground wrap-break-word">{reason}</p>
           </div>
+        ) : null}
+        {until ? (
+          <p className="text-sm text-muted-foreground">
+            This suspension ends on{" "}
+            {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Manila" }).format(
+              new Date(until),
+            )}
+            .
+          </p>
         ) : null}
         <p className="text-sm text-muted-foreground">
           Contact support if you think this is a mistake.
