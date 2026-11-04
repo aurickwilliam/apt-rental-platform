@@ -12,10 +12,10 @@ test("report type filter accepts the four kinds and defaults to all", () => {
   assert.equal(parseReportTypeFilter(["apartment", "tenant"]), "apartment");
 });
 
-test("report status filter defaults to open", () => {
-  assert.equal(parseReportStatusFilter(undefined), "open");
-  assert.equal(parseReportStatusFilter("bogus"), "open");
-  assert.equal(parseReportStatusFilter("all"), "all");
+test("report status filter defaults to all so resolved reports stay listed", () => {
+  assert.equal(parseReportStatusFilter(undefined), "all");
+  assert.equal(parseReportStatusFilter("bogus"), "all");
+  assert.equal(parseReportStatusFilter("open"), "open");
   assert.equal(parseReportStatusFilter("dismissed"), "dismissed");
 });
 
@@ -30,7 +30,7 @@ test("report search drops characters that change a database filter and caps the 
 
 test("report filter params leave defaults out of the URL", async () => {
   const { reportFilterParams, parseReportFilters } = await import("./user-reports.ts");
-  assert.deepEqual(reportFilterParams({ q: "", status: "open", type: "all" }, 1), {
+  assert.deepEqual(reportFilterParams({ q: "", status: "all", type: "all" }, 1), {
     q: null,
     status: null,
     type: null,
@@ -44,7 +44,7 @@ test("report filter params leave defaults out of the URL", async () => {
   });
   assert.deepEqual(parseReportFilters({ q: "irene", status: "bogus", type: "tenant" }), {
     q: "irene",
-    status: "open",
+    status: "all",
     type: "tenant",
   });
 });

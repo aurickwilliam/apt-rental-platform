@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pagination, Spinner } from "@heroui/react";
+import { Pagination } from "@heroui/react";
 import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
 import AdminFilterToolbar from "../_components/filters/AdminFilterToolbar";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
@@ -17,15 +17,16 @@ import {
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
 import ReportReviewModal from "./components/ReportReviewModal";
+import ReportsListSkeleton from "./components/ReportsListSkeleton";
 import type { AdminUserReport } from "./lib/report-types";
 import EmptyState from "@/app/components/display/EmptyState";
 import { IconFlag } from "@tabler/icons-react";
 
 const STATUS_OPTIONS: readonly FilterOption<UserReportStatusFilter>[] = [
+  { id: "all", label: "All" },
   { id: "open", label: "Open" },
   { id: "resolved", label: "Resolved" },
   { id: "dismissed", label: "Dismissed" },
-  { id: "all", label: "All" },
 ];
 
 const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
@@ -36,8 +37,8 @@ const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
   { id: "user", label: "Chats" },
 ];
 
-// Open reports of every kind are what the page shows with no filter applied.
-const DEFAULT_FILTERS = { status: "open", type: "all" } as const;
+// Every report, open or closed, is shown with no filter applied, so a report stays listed after it is handled.
+const DEFAULT_FILTERS = { status: "all", type: "all" } as const;
 
 interface ReportsClientProps {
   reports: AdminUserReport[];
@@ -146,30 +147,20 @@ export default function ReportsClient({
         </p>
       ) : (
         <>
-          <div aria-busy={isNavigating} className="relative">
-            {isNavigating ? (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/70">
-                <Spinner
-                  size="lg"
-                  color="current"
-                  className="text-primary"
-                  aria-label="Loading reports"
-                />
-              </div>
-            ) : null}
-            {reports.length ? (
-              <>
-                <ReportsTable reports={reports} onOpen={(report) => setOpenId(report.id)} />
-                <ReportCardList reports={reports} onOpen={(report) => setOpenId(report.id)} />
-              </>
-            ) : (
-              <EmptyState
-                icon={IconFlag}
-                title={filters.q ? "No matching reports" : status === "open" ? "No open reports" : "No reports here"}
-                description="Reports about apartments, landlords, tenants and chats will appear here for review."
-              />
-            )}
-          </div>
+          {isNavigating ? (
+            <ReportsListSkeleton />
+          ) : reports.length ? (
+            <>
+              <ReportsTable reports={reports} onOpen={(report) => setOpenId(report.id)} />
+              <ReportCardList reports={reports} onOpen={(report) => setOpenId(report.id)} />
+            </>
+          ) : (
+            <EmptyState
+              icon={IconFlag}
+              title={filters.q ? "No matching reports" : status === "open" ? "No open reports" : "No reports here"}
+              description="Reports about apartments, landlords, tenants and chats will appear here for review."
+            />
+          )}
 
           {totalPages > 1 ? (
             <nav aria-label="Reports pagination" className="flex justify-center">

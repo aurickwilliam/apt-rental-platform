@@ -20,15 +20,14 @@ export function getReportReasonLabel(reason: string): string {
   return USER_REPORT_REASON_LABELS[reason] ?? "Other";
 }
 
-/** Status filter from `?status=`; open reports by default. */
+/** Status filter from `?status=`; every report (open and closed) by default. */
 export function parseReportStatusFilter(
   value: string | string[] | undefined,
 ): UserReportStatusFilter {
   const status = Array.isArray(value) ? value[0] : value;
-  if (status === "all") return "all";
   return (USER_REPORT_STATUSES as readonly string[]).includes(status ?? "")
     ? (status as UserReportStatus)
-    : "open";
+    : "all";
 }
 
 export function formatReportPerson(
@@ -92,7 +91,7 @@ export function parseReportFilters(params: {
 export function reportFilterParams(filters: ReportFilters, page: number) {
   return {
     q: filters.q || null,
-    status: filters.status === "open" ? null : filters.status,
+    status: filters.status === "all" ? null : filters.status,
     type: filters.type === "all" ? null : filters.type,
     page: page > 1 ? page : null,
   };
