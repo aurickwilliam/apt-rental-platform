@@ -244,6 +244,7 @@ test("lease confirmation locks duplicate submissions and a failed refresh retrie
     react: runtime.react, "react/jsx-runtime": jsxRuntime,
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconFileText: "FileText", IconShieldCheck: "ShieldCheck" },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/ErrorBanner": { default: "ErrorBanner" },
     "@/app/tenant/payment/utils": { formatLeaseDate: value => value },
     "@/lib/signed-lease": { signedLeaseStatus: (path, ack) => !path ? "missing" : ack ? "acknowledged" : "pending" },
@@ -631,6 +632,7 @@ test("visit cancellation dialog awaits the actual result before closing and neve
   const { default: Card } = compile("app/tenant/applications/components/VisitRequestDetailsCard.tsx", {
     "react/jsx-runtime": jsxRuntime,
     "@heroui/react": { Card: "Card", Button: "Button", Separator: "Separator", Modal, useOverlayState: () => ({ isOpen: true, setOpen: () => closes++ }) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
   });
@@ -660,6 +662,7 @@ test("property payment history preserves its known shell during loading/error an
     "@/app/tenant/payment/utils": { paymentStatusLabel: value => value },
     "@/hooks/use-landlord-payments": { useLandlordPayments: () => query },
     "@/hooks/use-auth-identity": { useAuthIdentity: () => identity },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/tenant/payment/components/PaymentHistoryFilters": { default: "Filters" },
     "./PropertyPaymentHistoryShell": { default: Shell },

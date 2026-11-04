@@ -75,7 +75,7 @@ export default function ProfitTrendCard({ monthlyRevenue }: ProfitTrendCardProps
       <View className="mt-4 overflow-hidden" onLayout={handleLayout}>
         {!hasRevenue ? (
           <EmptyState
-            icon={<IconChartLine size={36} color={colors.gray500} />}
+            icon={IconChartLine}
             title="No earnings yet"
             description="Your profit trend will appear here once payments come in."
           />

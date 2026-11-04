@@ -62,6 +62,7 @@ function load(file, options = {}) {
     "@heroui/react": { Badge: "Badge", Skeleton: "Skeleton", Card, ComboBox, Input: "Input", ListBox, Popover, Table, Tabs, Button: "Button", Chip: "Chip" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => `₱${value}` },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/components/display/PaymentMethodChip": { default: "PaymentMethodChip" },
     "@/app/components/settings/SettingsSelect": { default: "SettingsSelect" },
@@ -86,7 +87,7 @@ function load(file, options = {}) {
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "PaymentsHeader", "PaymentsSkeleton", "PaymentsBodySkeleton", "NeedsAttentionSkeleton", "PaymentsContent",
+    "EmptyState", "Sk", "PaymentsHeader", "PaymentsSkeleton", "PaymentsBodySkeleton", "NeedsAttentionSkeleton", "PaymentsContent",
     "PaymentsSummary", "NeedsAttentionCard", "PaymentsTable", "PaymentStatusChip",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props ?? {}) : element.props?.children;

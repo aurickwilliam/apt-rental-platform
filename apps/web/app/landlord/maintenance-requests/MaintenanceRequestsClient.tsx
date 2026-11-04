@@ -14,7 +14,6 @@ import { useLandlordActionBadges } from "@/hooks/use-landlord-action-badges";
 import { MAINTENANCE_URGENCY_STYLE, maintenanceStatusChipColor, type LandlordMaintenanceStatus } from "./lib/maintenance-status";
 import { MAINTENANCE_DATE_OPTIONS, MAINTENANCE_SORT_OPTIONS, MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_URGENCY_OPTIONS, filterMaintenanceList, maintenancePropertyKey, maintenanceReportedAge, maintenanceSummary, sortMaintenanceList } from "./lib/maintenance-list";
 import useMaintenanceListFilters from "./lib/use-maintenance-list-filters";
-import MaintenanceEmptyState from "./components/MaintenanceEmptyState";
 import MaintenanceHeader from "./components/MaintenanceHeader";
 import MaintenanceSummary from "./components/MaintenanceSummary";
 import MaintenanceSkeleton, { MaintenanceCountSkeleton, MaintenanceResultsSkeleton } from "./components/MaintenanceSkeletons";
@@ -22,6 +21,7 @@ import PresentationBoundary from "@/app/components/display/PresentationBoundary"
 import type { PresentationSeed } from "@/service/presentation-seed";
 import type { LandlordMaintenanceRequest } from "@/service/landlordMaintenanceService";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function MaintenanceStatusIcon({ status }: { status: LandlordMaintenanceStatus }) {
   const Icon = status === "Resolved" ? IconCircleCheck : status === "Cancelled" ? IconX : IconClock;
@@ -99,7 +99,13 @@ function MaintenanceContent({ initial }: { initial?: PresentationSeed<LandlordMa
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col gap-3">
-            <MaintenanceEmptyState />
+            <EmptyState
+      framed
+      className="py-12"
+      icon={Hammer}
+      title="No maintenance requests"
+      description="New tenant requests will appear here."
+    />
             {activeFilterCount > 0 || search ? <Button variant="secondary" size="sm" className="self-center" onPress={clearFilters}>Clear Filters</Button> : null}
           </div>
         ) : (

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, InputGroup, Spinner } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconChevronUp as ChevronUp, IconSearch as Search } from "@tabler/icons-react";
+import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconChevronUp as ChevronUp, IconSearch as Search, IconCalendarCheck } from "@tabler/icons-react";
 import { formatFullName } from "@repo/utils";
 
 import { useLandlordVisitRequests, type LandlordVisitRequest } from "@/hooks/use-landlord-visit-requests";
@@ -13,6 +13,7 @@ import VisitRequestCard from "./components/VisitRequestCard";
 import VisitsCalendar from "./components/VisitsCalendar";
 import PresentationBoundary from "@/app/components/display/PresentationBoundary";
 import type { PresentationSeed } from "@/service/presentation-seed";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
@@ -206,10 +207,13 @@ function VisitRequestsContent({ initial }: { initial?: PresentationSeed<Landlord
           </Button>
         </div>
       ) : filteredApproved.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12 text-muted-foreground">
-          <p className="text-sm font-medium">No approved visits</p>
-          <p className="text-xs mt-1">Approved visit requests will appear here.</p>
-        </div>
+        <EmptyState
+          framed
+          className="py-12"
+          icon={IconCalendarCheck}
+          title="No approved visits"
+          description="Approved visit requests will appear here."
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {groups.map(({ group, requests }) =>

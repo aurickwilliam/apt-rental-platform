@@ -93,7 +93,7 @@ export default async function AdminProfilePage() {
             <UserActivityTimeline
               events={events}
               title="Recent activity"
-              emptyMessage="You have no recorded admin actions yet."
+              emptyMessage="Your admin actions will appear here once you take them."
             />
           )}
         </div>

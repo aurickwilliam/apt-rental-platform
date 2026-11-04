@@ -14,7 +14,7 @@ const apartment = {
 const nodes = element => {
   if (!element || typeof element !== "object") return [];
   const sharedLayout = typeof element.type === "function" && [
-    "FavoritesPageShell", "FavoritesPageHeader", "FavoritesCardsSkeleton", "FavoritesPageSkeleton", "FavoritesLoading",
+    "EmptyState", "FavoritesPageShell", "FavoritesPageHeader", "FavoritesCardsSkeleton", "FavoritesPageSkeleton", "FavoritesLoading",
   ].includes(element.type.name);
   const children = sharedLayout ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
@@ -33,6 +33,7 @@ function loadComponent(file, modules = {}, exportName = "default") {
     "next/link": { default: "Link" },
     "next/image": { default: "Image" },
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     ...modules,
   };

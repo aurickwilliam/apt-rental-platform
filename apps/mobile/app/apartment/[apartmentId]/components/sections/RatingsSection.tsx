@@ -15,6 +15,7 @@ import type { ReviewWithTenant } from 'hooks/apartments';
 import { formatDate } from '@repo/utils';
 
 import { Button, SkeletonGroup } from 'heroui-native';
+import EmptyState from "@/components/display/EmptyState";
 
 type RatingsSectionProps = {
   reviews: ReviewWithTenant[];
@@ -86,36 +87,20 @@ export default function RatingsSection({
             />
           ))
         ) : (
-          <View className='items-center py-5 px-6'>
-            <View
-              className='items-center justify-center rounded-full mb-3'
-              style={{ width: 52, height: 52, backgroundColor: colors.gray100 }}
-            >
-              <IconStarOff size={24} color={colors.gray400} strokeWidth={1.75} />
-            </View>
-
-            <Text className='font-nunitoSemiBold text-base text-foreground'>
-              No ratings yet
-            </Text>
-
-            <Text className='mt-1 text-sm text-gray-500 font-nunitoSemiBold text-center leading-5'>
-              This place hasn&apos;t been reviewed. Ratings will appear here once a tenant shares their experience.
-            </Text>
-
-            {showWriteReviewCta && (
-              <Button
-                className='mt-4'
-                onPress={onWriteReview}
-                size="sm"
-                variant='secondary'
-              >
-                <IconHomeStar size={18} color={colors.primary} />
-                <Button.Label>
-                  Be the First to Review
-                </Button.Label>
-              </Button>
-            )}
-          </View>
+          <EmptyState
+            className='py-8'
+            icon={IconStarOff}
+            title='No ratings yet'
+            description="This place hasn't been reviewed. Ratings will appear here once a tenant shares their experience."
+            action={
+              showWriteReviewCta ? (
+                <Button onPress={onWriteReview} size='sm' variant='secondary'>
+                  <IconHomeStar size={16} color={colors.primary} />
+                  <Button.Label>Be the First to Review</Button.Label>
+                </Button>
+              ) : undefined
+            }
+          />
         )}
       </View>
     </>

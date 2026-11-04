@@ -11,6 +11,8 @@ import FinanceCard from "./FinanceCard";
 import FinanceMoneyRow from "./FinanceMoneyRow";
 import CollectionHealth from "./CollectionHealth";
 import PropertyPerformance from "./PropertyPerformance";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconTargetArrow } from "@tabler/icons-react";
 
 const IncomeTrends = dynamic(() => import("./IncomeTrends"), {
   loading: () => (
@@ -67,15 +69,12 @@ export function OverviewAside({
         description="Spending limits and reserve allocations are kept separate."
       >
         {!data.budgets.length ? (
-          <div className="py-4">
-            <h3 className="font-nunito font-bold">
-              No plan for this month yet
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Set spending limits and reserve goals for this month to see your
-              plan here.
-            </p>
-          </div>
+          <EmptyState
+            className="py-6"
+            icon={IconTargetArrow}
+            title="No plan for this month yet"
+            description="Set spending limits and reserve goals for this month to see your plan here."
+          />
         ) : (
           <>
             <FinanceMoneyRow

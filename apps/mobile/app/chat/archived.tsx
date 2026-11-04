@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Gesture-aware list so the rows' swipe actions work on Android.
 import { FlatList } from 'react-native-gesture-handler';
-import { IconArchive } from '@tabler/icons-react-native';
+import { IconArchive, IconAlertCircle } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -78,6 +78,7 @@ export default function ArchivedChats() {
   ) : error ? (
     <ConversationListState
       variant='illustrated'
+      icon={IconAlertCircle}
       title='Something went wrong'
       description={error}
       actionLabel='Retry'

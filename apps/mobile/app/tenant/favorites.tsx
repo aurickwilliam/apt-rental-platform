@@ -119,8 +119,7 @@ export default function TenantFavorites() {
       ) : combinedError ? (
         <View className="flex-1 items-center justify-center px-5">
           <EmptyState
-            variant="tenant"
-            icon={<IconAlertCircle size={64} color={colors.primary} />}
+            icon={IconAlertCircle}
             title="Something went wrong"
             description={combinedError}
             action={
@@ -164,8 +163,7 @@ export default function TenantFavorites() {
           ListHeaderComponent={<PullToRefreshIndicator refreshing={refreshingApartments} />}
           ListEmptyComponent={
             <EmptyState
-              variant="tenant"
-              icon={<IconHeartOff size={64} color={colors.primary} />}
+              icon={IconHeartOff}
               title="No favorites yet"
               description="Tap the heart on any listing to save it here."
               action={

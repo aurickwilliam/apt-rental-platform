@@ -8,6 +8,7 @@ import ImageViewing from "react-native-image-viewing";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import DetailField from "@/components/display/DetailField";
+import EmptyState from "@/components/display/EmptyState";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import ConfirmDialog from "@/components/display/ConfirmDialog";
 import MaintenanceFeeCard from "@/components/maintenance/MaintenanceFeeCard";
@@ -83,11 +84,16 @@ export default function MaintenanceDetails() {
         scrollable
         className="p-5"
       >
-        <Text className="text-foreground">
-          {error
-            ? "Couldn't load this maintenance request."
-            : "No maintenance request found."}
-        </Text>
+        <EmptyState
+          className="flex-1"
+          icon={IconHammer}
+          title={error ? "Couldn't load this request" : "Request not found"}
+          description={
+            error
+              ? "Couldn't load this maintenance request."
+              : "This maintenance request may have been removed."
+          }
+        />
       </ScreenWrapper>
     );
   }

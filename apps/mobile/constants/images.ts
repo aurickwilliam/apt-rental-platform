@@ -10,7 +10,6 @@ export const IMAGES = {
 };
 
 export const EMPTY_STATE_IMAGES = {
-  emptyMessage: require("../assets/images/empty-states/messages-empty.png"),
   emptyPaymentMethods: require("../assets/images/empty-states/payment-methods-empty.png"),
 }
 

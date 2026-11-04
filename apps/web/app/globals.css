@@ -1557,8 +1557,7 @@ body[data-scroll-locked] [role="option"] {
 /* Favorites reuses the browse card without restyling browse itself. These
    unlayered overrides intentionally take precedence over HeroUI defaults. */
 .favorites-grid .card,
-.favorite-list-card,
-.favorites-state-card {
+.favorite-list-card {
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-2xl);
@@ -1613,17 +1612,6 @@ body[data-scroll-locked] [role="option"] {
 
 .favorites-grid .card__footer svg {
   color: var(--color-rating);
-}
-
-.favorites-state-card {
-  padding: 0;
-}
-
-.favorites-state-card .card__content {
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1.5rem;
-  text-align: center;
 }
 
 .favorite-list-card .card__content {

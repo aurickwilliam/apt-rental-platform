@@ -4,8 +4,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Button, ScrollShadow } from "@heroui/react";
 import {
   IconArrowDown,
-  IconMessage,
-} from "@tabler/icons-react";
+  IconMessage, IconMessageCircle } from "@tabler/icons-react";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "@/app/components/chat/MessageInput";
@@ -30,6 +29,7 @@ import useScrollToLatestOnOpen from "@/app/components/chat/useScrollToLatestOnOp
 import type { ChatMessage } from "@/app/components/chat/types";
 import { formatMessageMenuDate, latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 import { formatChatDayLabel, isSameChatDay } from "@repo/utils";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ConversationViewProps {
   /** Which portal this thread is in: sets the apartment link and the contact-context lookup. */
@@ -402,12 +402,12 @@ export default function ConversationView({
           <div data-message-timeline className="flex w-full min-w-0 flex-col">
             {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} verified={context.verified} apartment={apartment} /> : null}
             {messages.length === 0 ? (
-              <div className="flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
-                <p className="text-sm font-medium text-foreground">No messages yet</p>
-                <p className="text-xs text-default-500">
-                  Say hi to start the conversation.
-                </p>
-              </div>
+              <EmptyState
+                className="py-4"
+                icon={IconMessageCircle}
+                title="No messages yet"
+                description="Say hi to start the conversation."
+              />
             ) : (
               messages.map((msg, index) => (
                 <Fragment key={msg.id}>

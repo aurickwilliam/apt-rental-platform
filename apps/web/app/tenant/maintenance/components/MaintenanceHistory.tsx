@@ -14,6 +14,7 @@ import { MAINTENANCE_HISTORY_PREVIEW_LIMIT, sortMaintenanceHistoryRequests } fro
 import { MAINTENANCE_HISTORY_LIMIT } from "@/service/maintenanceService";
 import { useMaintenancePhotoUrls } from "@/hooks/use-maintenance-photo-urls";
 import { canCancelMaintenanceRequest, type MaintenanceRequest } from "@/hooks/use-maintenance-request-history";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
   low: { tone: "neutral" },
@@ -109,7 +110,12 @@ export default function MaintenanceHistory({ requests, loading, error, cancellin
         {loading ? <div className="flex justify-center py-4"><Spinner color="accent" /></div> : error ? (
           <div className="space-y-3" role="alert"><p className="font-inter text-sm text-danger">{error}</p>{onRetry ? <Button variant="outline" size="sm" onPress={onRetry}>Retry requests</Button> : null}</div>
         ) : visibleRequests.length === 0 ? (
-          <p className="font-inter text-sm text-muted-foreground text-center py-2">{isHistory ? "No resolved or cancelled requests yet." : "No active maintenance requests. Need a repair? Select Request Maintenance above."}</p>
+          <EmptyState
+            className="py-4"
+            icon={isHistory ? IconHistory : Wrench}
+            title={isHistory ? "No resolved or cancelled requests yet." : "No active maintenance requests"}
+            description={isHistory ? "Your completed and cancelled requests will appear here." : "Need a repair? Select Request Maintenance above."}
+          />
         ) : (
           <div className={isHistory ? "flex flex-col gap-2" : "flex flex-col gap-3"}>
             {visibleRequests.map((request) => isHistory ? renderHistoryRequest(request) : renderActiveRequest(request, () => openCancel(request.id)))}

@@ -109,7 +109,7 @@ export default function CollectionHealthChart({
         </>
       ) : (
         <EmptyState
-          icon={<IconReceipt size={32} color={colors.gray500} />}
+          icon={IconReceipt}
           title="No billable tenancies this month"
           description="Expected rent and payment status will appear here once a tenancy is billed for this month."
         />

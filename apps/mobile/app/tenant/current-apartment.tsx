@@ -9,11 +9,12 @@ import { formatPesoDisplay } from '@repo/utils'
 
 import { Button, Separator, Spinner } from 'heroui-native'
 
-import { IconHome, IconBath, IconBed, IconMaximize, IconCalendar, IconArmchair, IconBuilding, IconUsers, IconFileText, IconAlertCircle, IconStar } from '@tabler/icons-react-native';
+import { IconHome, IconBath, IconBed, IconMaximize, IconCalendar, IconArmchair, IconBuilding, IconUsers, IconFileText, IconStar } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
 import { useTenancy } from 'hooks/tenancy'
 import { useLeaseAgreement } from '@/hooks/apartments'
+import EmptyState from "@/components/display/EmptyState";
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -52,15 +53,12 @@ export default function CurrentApartmentDetails() {
   if (error || !tenancy) {
     return (
       <ScreenWrapper header={<StandardHeader title="Apartment Details" />}>
-        <View className="flex-1 items-center justify-center px-6">
-          <IconAlertCircle size={40} color={colors.gray300} />
-          <Text className="text-foreground text-base font-nunitoSemiBold mt-3 text-center">
-            No Active Tenancy
-          </Text>
-          <Text className="text-muted text-sm font-inter mt-1 text-center">
-            {error ?? "You don't have an active tenancy at the moment."}
-          </Text>
-        </View>
+        <EmptyState
+          className="flex-1"
+          icon={IconHome}
+          title="No Active Tenancy"
+          description={error ?? "You don't have an active tenancy at the moment."}
+        />
       </ScreenWrapper>
     )
   }

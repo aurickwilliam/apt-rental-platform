@@ -28,7 +28,6 @@ import { apartmentHref, landlordReviewsHref, memberSinceYear, type ProfileViewer
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
-import PublicProfileEmptyState from "./PublicProfileEmptyState";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
@@ -37,6 +36,7 @@ import PublicProfileStats from "./PublicProfileStats";
 import PublicProfileTagsCard from "./PublicProfileTagsCard";
 import type { PublicProfileTrustItem } from "./PublicProfileTrustStrip";
 import type { LandlordProfileData } from "./types";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface LandlordProfileViewProps {
   data: LandlordProfileData;
@@ -198,7 +198,8 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
       >
         <PublicProfileSection title={`${firstName}'s listings`}>
           {listings.length === 0 ? (
-            <PublicProfileEmptyState
+            <EmptyState
+          className="py-12 rounded-3xl border border-border bg-card"
               icon={IconBuildingSkyscraper}
               title="No listings yet"
               description="This landlord hasn't published any apartments yet."
@@ -266,7 +267,8 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
           ) : null}
 
           {reviews.length === 0 ? (
-            <PublicProfileEmptyState
+            <EmptyState
+          className="py-12 rounded-3xl border border-border bg-card"
               icon={IconMessage}
               title="No reviews yet"
               description="Reviews from tenants who rented this landlord's apartments will appear here."

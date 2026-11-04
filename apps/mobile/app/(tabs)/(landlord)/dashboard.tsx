@@ -21,7 +21,6 @@ import EmptyState from "@/components/display/EmptyState";
 import NotificationBellButton from "@/app/(tabs)/components/NotificationBellButton";
 
 import { useDashboardData } from "@/hooks/dashboard";
-import { useColors } from "@/hooks/useTheme";
 
 import {
   buildRequestItems,
@@ -42,7 +41,6 @@ const REQUEST_ROUTES = {
 
 function Dashboard() {
   const router = useRouter();
-  const { colors } = useColors();
   const { data, isLoading, error } = useDashboardData();
   const { stats, attention, thisMonth, collectionByMonth, monthlyRevenue, rentDues } =
     data;
@@ -143,7 +141,7 @@ function Dashboard() {
             {showCombinedChartEmpty ? (
               <View className="bg-surface rounded-3xl border border-border p-4">
                 <EmptyState
-                  icon={<IconChartBar size={36} color={colors.gray500} />}
+                  icon={IconChartBar}
                   title="No earnings yet"
                   description="Once tenants start paying rent, your earnings will show up here."
                 />
@@ -168,7 +166,7 @@ function Dashboard() {
 
             {rentDues.length === 0 ? (
               <EmptyState
-                icon={<IconCalendarCheck size={36} color={colors.gray500} />}
+                icon={IconCalendarCheck}
                 title="No upcoming rent dues"
                 description="You're all caught up. New dues will appear here as they come due."
               />

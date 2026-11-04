@@ -26,6 +26,7 @@ import { useDocumentUrls } from "@/hooks/applications";
 import { usePassportDocuments } from "@/hooks/passport";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { isExpiredDate, selectSupportingDocuments } from "@repo/passport";
+import EmptyState from "@/components/display/EmptyState";
 
 export default function Index() {
   const router = useRouter();
@@ -191,25 +192,24 @@ export default function Index() {
       ) : showSkeleton ? (
         <PassportSkeleton />
       ) : !hasDocuments ? (
-        <View className="flex-1 items-center gap-4 pt-16 px-4">
-          <IconFileUpload size={64} color={colors.primary} />
-          <Text className="text-foreground text-xl font-nunitoBold text-center">
-            No documents yet
-          </Text>
-          <Text className="text-gray-400 text-base font-inter text-center px-8 leading-relaxed">
-            Add your IDs and supporting documents so they&apos;re ready when you
-            apply for an apartment.
-          </Text>
-
-          <Button
-            size="lg"
-            onPress={() => router.push("/document-id/select-document")}
-          >
-            <IconPlus size={20} color="#FFFFFF" />
-            <Button.Label className="text-white font-nunitoSemiBold">
-              Add a Document
-            </Button.Label>
-          </Button>
+        <View className="flex-1 items-center px-4">
+          <EmptyState
+            className="pt-16 pb-0"
+            icon={IconFileUpload}
+            title="No documents yet"
+            description="Add your IDs and supporting documents so they're ready when you apply for an apartment."
+            action={
+              <Button
+                size="sm"
+                onPress={() => router.push("/document-id/select-document")}
+              >
+                <IconPlus size={16} color="#FFFFFF" />
+                <Button.Label className="text-white font-nunitoSemiBold">
+                  Add a Document
+                </Button.Label>
+              </Button>
+            }
+          />
 
           {/* Info card */}
           <View className="mt-8 w-full bg-surface border border-border rounded-3xl p-4 gap-3">

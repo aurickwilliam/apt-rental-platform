@@ -5,8 +5,7 @@ import { Button, ButtonGroup } from "@heroui/react";
 import {
   IconCalendarMonth,
   IconCalendarStats,
-  IconCalendarWeek,
-} from "@tabler/icons-react";
+  IconCalendarWeek, IconChartBar } from "@tabler/icons-react";
 import {
   Bar,
   CartesianGrid,
@@ -28,6 +27,7 @@ import {
 } from "@repo/utils";
 import FinanceCard from "./FinanceCard";
 import FinanceMoneyRow, { financeMoney } from "./FinanceMoneyRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export default function IncomeTrends({
   months,
@@ -84,12 +84,12 @@ export default function IncomeTrends({
       }
     >
       {!hasActivity ? (
-        <div className="py-8 text-center">
-          <h3 className="font-nunito font-bold">No income activity yet</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Collected rent and recorded expenses will appear here.
-          </p>
-        </div>
+        <EmptyState
+          className="py-8"
+          icon={IconChartBar}
+          title="No income activity yet"
+          description="Collected rent and recorded expenses will appear here."
+        />
       ) : (
         <>
           <div className="flex flex-wrap gap-2" aria-label="Chart series">

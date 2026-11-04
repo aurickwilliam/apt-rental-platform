@@ -75,8 +75,7 @@ export default function ApartmentsList({
     if (error) {
       return (
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Something went wrong"
           description={error}
           action={
@@ -101,8 +100,7 @@ export default function ApartmentsList({
 
       return (
         <EmptyState
-          variant="tenant"
-          icon={<IconSearchOff size={64} color={colors.primary} />}
+          icon={IconSearchOff}
           title="No results found"
           description={description}
           action={
@@ -118,8 +116,7 @@ export default function ApartmentsList({
 
     return (
       <EmptyState
-        variant="tenant"
-        icon={<IconSearchOff size={64} color={colors.primary} />}
+        icon={IconSearchOff}
         title="No apartments available"
         description="We couldn't find any listings. Pull to refresh or try another city."
         action={

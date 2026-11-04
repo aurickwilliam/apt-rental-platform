@@ -8,6 +8,7 @@ import { useColors } from "@/hooks/useTheme";
 import type { MaintenanceRequest } from "@/hooks/maintenance-requests";
 
 import MaintenanceRequestCard from "./MaintenanceRequestCard";
+import EmptyState from "@/components/display/EmptyState";
 
 // How many recent requests the Rentals tab lists before "View all".
 const RECENT_REQUEST_COUNT = 3;
@@ -50,19 +51,12 @@ export default function MaintenanceSection({
       </View>
 
       {recentRequests.length === 0 ? (
-        <View className="flex-row items-center gap-3">
-          <View className="size-12 items-center justify-center rounded-2xl bg-surface-tertiary">
-            <IconTool size={24} color={colors.textPrimary} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-sm font-nunitoSemiBold text-foreground">
-              No maintenance requests
-            </Text>
-            <Text className="text-xs font-inter text-muted">
-              Report an issue with your rental.
-            </Text>
-          </View>
-        </View>
+        <EmptyState
+          className="py-4"
+          icon={IconTool}
+          title="No maintenance requests"
+          description="Report an issue with your rental."
+        />
       ) : (
         <View className="gap-3">
           {recentRequests.map((request) => (

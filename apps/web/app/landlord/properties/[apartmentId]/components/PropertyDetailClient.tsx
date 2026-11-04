@@ -12,6 +12,7 @@ import {
   Modal,
   toast,
   useOverlayState,
+  buttonVariants,
 } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
@@ -47,6 +48,7 @@ import DescriptionModal from "../../components/modals/DescriptionModal";
 import AmenitiesModal from "../../components/modals/AmenitiesModal";
 import EditPropertyModal from "../../components/modals/EditPropertyModal";
 import DeletePropertyModal from "../../components/modals/DeletePropertyModal";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function buildAddress(apartment: LandlordUnitApartment): string {
   const parts = [
@@ -514,13 +516,21 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               )}
             </>
           ) : (
-            <Card className="shadow-none bg-card rounded-3xl border border-dashed border-border p-8 flex flex-col items-center gap-3 text-center">
-              <p className="font-nunito font-semibold text-card-foreground">This property is currently vacant.</p>
-              <p className="text-sm text-muted-foreground">Review applications to fill this unit.</p>
-              <Link href="/landlord/applications" className="no-underline">
-                <Button size="sm" variant="secondary">View Applications</Button>
-              </Link>
-            </Card>
+            <EmptyState
+              framed
+              className="py-10"
+              icon={House}
+              title="This property is currently vacant."
+              description="Review applications to fill this unit."
+              action={
+                <Link
+                  href="/landlord/applications"
+                  className={`${buttonVariants({ size: "sm", variant: "secondary" })} cursor-pointer no-underline`}
+                >
+                  View Applications
+                </Link>
+              }
+            />
           )}
 
           {/* Lifecycle actions */}

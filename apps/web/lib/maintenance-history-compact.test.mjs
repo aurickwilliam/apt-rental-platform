@@ -31,6 +31,7 @@ function fixture(kind = "history", selectedRequests = requests) {
     "@tabler/icons-react": { IconTool: "IconTool", IconHistory: "IconHistory", IconChevronRight: "ChevronRight", IconChevronUp: "ChevronUp", IconStack: "IconStack", IconCalendarEvent: "IconCalendarEvent", IconBolt: "IconBolt", IconLeaf: "IconLeaf", IconCircleCheck: "IconCircleCheck", IconCircleX: "IconCircleX" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "./ActiveMaintenanceRequestCard": { default: "ActiveMaintenanceRequestCard" },
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
     "./ActiveMaintenanceRequestsModal": { default: "ActiveMaintenanceRequestsModal" },
     "./MaintenanceHistoryRow": { default: HistoryRow },
     "./MaintenanceHistoryModal": { default: "MaintenanceHistoryModal" },
@@ -170,10 +171,16 @@ test("active request presentation features one request, and only loads hidden ph
   assert.equal(nodes(tree).find((node) => node.type === "CardContent").props.style.padding, 4);
 });
 
-test("an empty active list uses compact message spacing rather than a tall empty state", () => {
+test("empty active and history lists use the shared empty state without losing compact spacing", () => {
   const tree = fixture("active", []).render();
-  const message = nodes(tree).find((node) => node.type === "p" && text(node).includes("No active maintenance requests."));
-  assert.ok(message.props.className.includes("py-2"));
+  const message = nodes(tree).find((node) => node.type === "EmptyState");
+  assert.equal(message.props.title, "No active maintenance requests");
+  assert.equal(message.props.icon, "IconTool");
+  assert.equal(message.props.className, "py-4");
+  assert.match(message.props.description, /Request Maintenance above/);
+  const history = nodes(fixture("history", []).render()).find((node) => node.type === "EmptyState");
+  assert.equal(history.props.title, "No resolved or cancelled requests yet.");
+  assert.equal(history.props.icon, "IconHistory");
   assert.equal(nodes(tree).find((node) => node.type === "CardContent").props.style.padding, 4);
 });
 

@@ -16,6 +16,7 @@ import { useTenancy } from "@/hooks/use-tenancy";
 import PaymentHistoryFilters from "../components/PaymentHistoryFilters";
 import PaymentHistorySkeleton from "../components/PaymentHistorySkeleton";
 import ReceiptModal from "../components/ReceiptModal";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -201,18 +202,17 @@ function HistoryContent() {
 
         {/* Content */}
         {filtered.length === 0 ? (
-          <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
-              <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
-                <Receipt size={32} className="text-primary" />
-              </span>
-              <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
-              <p className="text-sm text-zinc-500 max-w-sm">Try adjusting your filters to see more results.</p>
+          <EmptyState
+            framed
+            icon={Receipt}
+            title="No payments found"
+            description="Try adjusting your filters to see more results."
+            action={
               <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: [], sort: "Newest" })}>
                 Clear filters
               </Button>
-            </Card.Content>
-          </Card>
+            }
+          />
         ) : (
           <div className="space-y-6">
             {grouped.map(([year, payments]) => (

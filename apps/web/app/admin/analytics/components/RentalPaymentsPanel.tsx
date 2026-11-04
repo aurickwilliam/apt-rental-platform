@@ -16,6 +16,8 @@ import {
   shortDate,
 } from "./analytics-format";
 import Panel from "./Panel";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconReceipt, IconAlertCircle } from "@tabler/icons-react";
 
 const paymentConfig = {
   payment_total: {
@@ -44,12 +46,13 @@ export default function RentalPaymentsPanel({
       className={className}
     >
       {paymentTrends === null ? (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          Rental payment data is unavailable. Refresh and try again.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconAlertCircle}
+          title="Rental payment data is unavailable"
+          description="Refresh and try again."
+        />
       ) : (
         <>
           <p className="mt-4 font-nunito text-3xl font-bold tabular-nums text-primary sm:text-4xl">
@@ -150,12 +153,13 @@ export default function RentalPaymentsPanel({
               </p>
             </>
           ) : (
-            <p
-              className="mt-4 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-              role="status"
-            >
-              No successful payments recorded in this period.
-            </p>
+            <EmptyState
+          framed
+          className="mt-4 py-8"
+          icon={IconReceipt}
+          title="No successful payments"
+          description="None were recorded in this period."
+        />
           )}
         </>
       )}

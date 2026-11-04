@@ -3,7 +3,7 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
-import { IconBell, IconX } from "@tabler/icons-react";
+import { IconBell, IconX, IconBellCheck, IconBellOff } from "@tabler/icons-react";
 import {
   groupNotificationFeed,
   groupNotificationsByLocalDate,
@@ -21,6 +21,7 @@ import type { FeedNotification } from "@/service/notificationService";
 import { FAB_PLACEMENT_RESET_EVENT } from "./DraggableNotificationBell";
 import NotificationGroupRow from "./NotificationGroupRow";
 import NotificationRow from "./NotificationRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type Filter = "all" | "unread";
 
@@ -224,11 +225,11 @@ export default function NotificationDrawer({
                   {error}
                 </p>
               ) : shown.length === 0 ? (
-                <p className="mt-10 px-4 text-center font-inter text-sm text-muted-foreground">
-                  {filter === "unread"
-                    ? "You're all caught up."
-                    : "No notifications yet."}
-                </p>
+                <EmptyState
+                  icon={filter === "unread" ? IconBellCheck : IconBellOff}
+                  title={filter === "unread" ? "You're all caught up" : "No notifications yet"}
+                  description={filter === "unread" ? "You have no unread notifications." : "Updates about your account will appear here."}
+                />
               ) : (
                 groups.map((group) => (
                   <section key={group.key} aria-label={group.label} className="mb-2">

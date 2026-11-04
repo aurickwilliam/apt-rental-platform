@@ -5,6 +5,8 @@ import type { ChartConfig } from "@/components/ui/chart";
 import type { AnalyticsMetrics } from "../types";
 import Panel from "./Panel";
 import StatusDonut from "./StatusDonut";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconTools } from "@tabler/icons-react";
 
 const maintenanceConfig = {
   pending: { label: "Pending", color: COLORS.light.warning },
@@ -41,12 +43,13 @@ export default function MaintenanceRequestsPanel({
           chartClassName="xl:size-40 2xl:size-52"
         />
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          No maintenance requests were created in this period.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconTools}
+          title="No maintenance requests"
+          description="None were created in this period."
+        />
       )}
     </Panel>
   );

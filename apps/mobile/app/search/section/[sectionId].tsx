@@ -14,7 +14,6 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard from "components/cards/ApartmentCard";
 import EmptyState from "components/display/EmptyState";
-import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
@@ -43,7 +42,6 @@ export default function SectionDetail() {
     spec?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const selectedCity = (city as string) ?? "CAMANAVA";
@@ -169,8 +167,7 @@ export default function SectionDetail() {
         )}
         ListEmptyComponent={
           <EmptyState
-            variant="tenant"
-            icon={<IconSearchOff size={64} color={colors.primary} />}
+            icon={IconSearchOff}
             title="Nothing here yet"
             description="This section has no listings."
             action={

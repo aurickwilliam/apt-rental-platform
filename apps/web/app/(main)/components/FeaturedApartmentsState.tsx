@@ -1,5 +1,7 @@
 import { Skeleton } from "@heroui/react";
 import design from "./landing-design.module.css";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconAlertCircle, IconBuilding } from "@tabler/icons-react";
 
 interface FeaturedApartmentsStateProps {
   state: "loading" | "empty" | "error";
@@ -43,11 +45,17 @@ export default function FeaturedApartmentsState({ state }: FeaturedApartmentsSta
           </div>
         </>
       ) : (
-        <p role={state === "error" ? "alert" : "status"} className="mt-4 min-h-[265px] py-8 text-muted-foreground sm:min-h-[313px]">
-          {state === "error"
-            ? "We couldn’t load featured apartments. Please refresh the page to try again."
-            : "No verified apartments are available right now. Please check back soon."}
-        </p>
+        <div role={state === "error" ? "alert" : "status"} className="mt-4 flex min-h-[265px] items-center justify-center sm:min-h-[313px]">
+          <EmptyState
+            icon={state === "error" ? IconAlertCircle : IconBuilding}
+            title={state === "error" ? "Couldn’t load featured apartments" : "No featured apartments right now"}
+            description={
+              state === "error"
+                ? "Please refresh the page to try again."
+                : "No verified apartments are available right now. Please check back soon."
+            }
+          />
+        </div>
       )}
     </div>
   );

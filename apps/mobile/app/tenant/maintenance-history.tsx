@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Button, Card, Spinner } from "heroui-native";
-import { IconChevronRight } from "@tabler/icons-react-native";
+import { IconChevronRight, IconHistory, IconTool } from "@tabler/icons-react-native";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import { PullToRefreshControl, PullToRefreshIndicator } from "@/components/display/PullToRefresh";
@@ -13,6 +13,7 @@ import { useMaintenanceDashboard } from "@/hooks/maintenance-requests/useMainten
 import { MAINTENANCE_DASHBOARD_LIMIT, MAINTENANCE_PREVIEW_LIMIT } from "@/constants/maintenance-dashboard";
 import type { MaintenanceRequest } from "@/service/maintenance-requests/maintenanceService";
 import { useColors } from "@/hooks/useTheme";
+import EmptyState from "@/components/display/EmptyState";
 
 export default function MaintenanceHistory() {
   const router = useRouter();
@@ -69,9 +70,12 @@ export default function MaintenanceHistory() {
             </Button>
           </View>
         ) : (
-          <Text className="rounded-2xl bg-overlay p-4 font-inter text-sm text-muted">
-            No active maintenance requests. You can request a repair from Rentals.
-          </Text>
+          <EmptyState
+            className="py-4"
+            icon={IconTool}
+            title="No active maintenance requests"
+            description="You can request a repair from Rentals."
+          />
         )}
         ListFooterComponent={
           <View className="gap-5 pt-2">
@@ -94,7 +98,12 @@ export default function MaintenanceHistory() {
                 ) : failed ? (
                   <Text className="font-inter text-sm text-muted">History is unavailable. Use Retry requests above.</Text>
                 ) : history.length === 0 ? (
-                  <Text className="font-inter text-sm text-muted">No resolved or cancelled requests yet.</Text>
+                  <EmptyState
+                    className="py-4"
+                    icon={IconHistory}
+                    title="No resolved or cancelled requests yet."
+                    description="Your completed and cancelled requests will appear here."
+                  />
                 ) : (
                   <View className="gap-2">
                     {history.slice(0, MAINTENANCE_PREVIEW_LIMIT).map((request) => (
