@@ -1,6 +1,6 @@
 import {
-  applicationAnswersFromPreferences,
   buildApplicationPreferenceSnapshot,
+  buildDeclaredApplicationPreferenceSnapshot,
   describeApplicationPreferences,
   parseApplicationPreferenceSnapshot,
   type ApplicationPreferenceSource,
@@ -66,15 +66,13 @@ describe('buildApplicationPreferenceSnapshot', () => {
   });
 });
 
-describe('applicationAnswersFromPreferences', () => {
-  it('pre-fills the yes/no questions, or leaves them unanswered without preferences', () => {
-    expect(applicationAnswersFromPreferences(prefs())).toEqual({ hasPets: 'yes', isSmoker: 'no', needParking: 'yes' });
-    expect(applicationAnswersFromPreferences(prefs({ hasPets: false, hasSmoker: true, hasParking: false }))).toEqual({
-      hasPets: 'no',
-      isSmoker: 'yes',
-      needParking: 'no',
+describe('buildDeclaredApplicationPreferenceSnapshot', () => {
+  it('uses the declared answers, so a no never carries details', () => {
+    expect(buildDeclaredApplicationPreferenceSnapshot(prefs({ hasPets: false, hasParking: false }))).toMatchObject({
+      pets: { has: false },
+      parking: { needed: false },
     });
-    expect(applicationAnswersFromPreferences(null)).toBeNull();
+    expect(buildDeclaredApplicationPreferenceSnapshot(prefs()).pets.has).toBe(true);
   });
 });
 

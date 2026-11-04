@@ -1,5 +1,5 @@
 import {
-  buildApplicationPreferenceSnapshot,
+  buildDeclaredApplicationPreferenceSnapshot,
   type ApplicationPreferenceSnapshot,
   type ApplicationPreferenceSource,
 } from "@repo/utils";
@@ -63,11 +63,6 @@ export function applicationPreferenceSourceFromForm(form: ApplicationPreferenceF
  * The copy stored on the application: what the tenant declared on the form.
  * Details of pets or parking they answered "no" to are never included.
  */
-export function buildApplicationSnapshotFromForm(form: ApplicationPreferenceFields): ApplicationPreferenceSnapshot | null {
-  const source = applicationPreferenceSourceFromForm(form);
-  return buildApplicationPreferenceSnapshot(source, {
-    hasPets: source.hasPets,
-    isSmoker: source.hasSmoker,
-    needParking: source.hasParking,
-  });
+export function buildApplicationSnapshotFromForm(form: ApplicationPreferenceFields): ApplicationPreferenceSnapshot {
+  return buildDeclaredApplicationPreferenceSnapshot(applicationPreferenceSourceFromForm(form));
 }

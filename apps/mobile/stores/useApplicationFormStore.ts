@@ -23,6 +23,15 @@ export type RentalPreferences = {
   hasPets: boolean | undefined
   isSmoker: boolean | undefined
   needParking: boolean | undefined
+  /** Follow-ups to "Do you have pets?"; only read while it is yes. */
+  kindOfPets: string[]
+  noOfPets: number
+  nameOfPets: string | null
+  /** Follow-ups to "Do you need parking?"; only read while it is yes. */
+  noOfParkingSpots: number
+  listOfVehicles: string[]
+  /** Whether anyone in the household has a disability. */
+  hasDisability: boolean | undefined
   additionalNotes: string
 }
 
@@ -47,6 +56,12 @@ const initialRentalPreferences: RentalPreferences = {
   hasPets: undefined,
   isSmoker: undefined,
   needParking: undefined,
+  kindOfPets: [],
+  noOfPets: 1,
+  nameOfPets: null,
+  noOfParkingSpots: 1,
+  listOfVehicles: [],
+  hasDisability: undefined,
   additionalNotes: '',
 }
 
@@ -101,6 +116,8 @@ type ApplicationFormState = {
     field: K,
     value: RentalPreferences[K],
   ) => void
+  /** Sets several rental-preference fields at once (an answer and its details). */
+  patchRentalPreferences: (patch: Partial<RentalPreferences>) => void
   setIsSubmitting: (isSubmitting: boolean) => void
 
   // Lifecycle
@@ -137,6 +154,11 @@ export const useApplicationFormStore = create<ApplicationFormState>((set) => ({
         ...state.rentalPreferences,
         [field]: value,
       },
+    })),
+
+  patchRentalPreferences: (patch) =>
+    set((state) => ({
+      rentalPreferences: { ...state.rentalPreferences, ...patch },
     })),
 
   setIsSubmitting: (isSubmitting) => set({ isSubmitting }),

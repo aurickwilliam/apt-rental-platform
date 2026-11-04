@@ -5,9 +5,9 @@ import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
 import { evaluateApplicationReadiness } from '@repo/passport'
-import { buildApplicationPreferenceSnapshot } from '@repo/utils'
+import { buildDeclaredApplicationPreferenceSnapshot } from '@repo/utils'
 import type { Json } from '@repo/supabase'
-import { parsePreferences } from '@/hooks/preferences/useUserPreferences'
+import { toApplicationPreferenceSource } from '@/service/applications/applicationFormPreferences'
 
 type SubmitArgs = {
   apartmentId: string
@@ -94,22 +94,10 @@ export function useSubmitApplication() {
           return fail('Your APT Passport is missing required documents.')
         }
 
-        // Fresh read, so the copy shared with the landlord matches what the
-        // tenant has saved right now, not what the app cached earlier.
-        const { data: preferenceRow, error: preferenceError } = await supabase
-          .from('users')
-          .select('preferences')
-          .eq('id', tenantId)
-          .maybeSingle()
-        if (preferenceError) return fail(preferenceError.message)
-
-        const preferenceSnapshot = buildApplicationPreferenceSnapshot(
-          parsePreferences(preferenceRow?.preferences),
-          {
-            hasPets: rentalPreferences.hasPets ?? false,
-            isSmoker: rentalPreferences.isSmoker ?? false,
-            needParking: rentalPreferences.needParking ?? false,
-          },
+        // The details the tenant declared on the form (pets, parking and
+        // vehicles, smoking, disability), kept as they were when applying.
+        const preferenceSnapshot = buildDeclaredApplicationPreferenceSnapshot(
+          toApplicationPreferenceSource(rentalPreferences),
         )
 
         const { error: insertError } = await supabase.from('rental_application').insert({

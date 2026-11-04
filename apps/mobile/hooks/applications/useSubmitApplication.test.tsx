@@ -36,8 +36,14 @@ const mockStoreState = {
     moveInDate: new Date('2026-10-01'),
     noOccupants: 1,
     hasPets: false,
+    kindOfPets: [] as string[],
+    noOfPets: 1,
+    nameOfPets: null as string | null,
     isSmoker: false,
     needParking: false,
+    noOfParkingSpots: 1,
+    listOfVehicles: [] as string[],
+    hasDisability: false,
     additionalNotes: '',
   },
   setIsSubmitting: mockSetIsSubmitting,
@@ -87,34 +93,13 @@ const billing: PassportDocumentRow = {
   storage_path: 'tenant-1/passport/residency.pdf',
 }
 
-const savedPreferences = {
-  selectedCities: ['Caloocan'],
-  budgetMin: 5000,
-  budgetMax: 20000,
-  bedroomCount: null,
-  householdSize: null,
-  hasPets: true,
-  kindOfPets: ['Dog'],
-  noOfPets: 1,
-  nameOfPets: 'Max',
-  hasParking: false,
-  noOfParkingSpots: 1,
-  listOfVehicles: [],
-  hasSmoker: false,
-  hasDisability: true,
-}
-
 function mockApartment(
   landlordId: string,
   insert = jest.fn().mockResolvedValue({ error: null }),
-  preferences: unknown = null,
 ) {
   mockFrom.mockImplementation((table: string) => {
     if (table === 'apartments') {
       return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
-    }
-    if (table === 'users') {
-      return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { preferences }, error: null }) }) }) }
     }
     return { insert }
   })
@@ -153,32 +138,74 @@ it('attaches passport documents by reference without uploading', async () => {
   expect(mockResetForm).toHaveBeenCalled()
 })
 
-it('stores no preference snapshot when the tenant has no saved preferences', async () => {
+it('stores the answers as a snapshot even when no details apply', async () => {
   const insert = mockApartment('landlord-1')
 
   expect(await submitApplication()).toEqual({ success: true })
-  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ tenant_preferences: null }))
+  expect(insert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      tenant_preferences: {
+        version: 1,
+        pets: { has: false },
+        parking: { needed: false },
+        smoker: false,
+        householdDisability: false,
+      },
+    })
+  )
 })
 
-it('copies the saved preference details the tenant confirms into the application', async () => {
-  mockStoreState.rentalPreferences.hasPets = true
+it('stores the pet, parking and disability details the tenant declared on the form', async () => {
+  const original = { ...mockStoreState.rentalPreferences }
+  Object.assign(mockStoreState.rentalPreferences, {
+    hasPets: true,
+    kindOfPets: ['Dog'],
+    noOfPets: 1,
+    nameOfPets: 'Max',
+    needParking: true,
+    noOfParkingSpots: 2,
+    listOfVehicles: ['Car'],
+    hasDisability: true,
+  })
   try {
-    const insert = mockApartment('landlord-1', undefined, savedPreferences)
+    const insert = mockApartment('landlord-1')
 
     expect(await submitApplication()).toEqual({ success: true })
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
+        has_pets: true,
+        need_parking: true,
         tenant_preferences: {
           version: 1,
           pets: { has: true, kinds: ['Dog'], count: 1, names: 'Max' },
-          parking: { needed: false },
+          parking: { needed: true, spots: 2, vehicles: ['Car'] },
           smoker: false,
           householdDisability: true,
         },
       })
     )
   } finally {
-    mockStoreState.rentalPreferences.hasPets = false
+    Object.assign(mockStoreState.rentalPreferences, original)
+  }
+})
+
+it('shares no pet or parking details when the tenant answers no', async () => {
+  const original = { ...mockStoreState.rentalPreferences }
+  Object.assign(mockStoreState.rentalPreferences, {
+    hasPets: false,
+    kindOfPets: ['Dog'],
+    needParking: false,
+    listOfVehicles: ['Car'],
+  })
+  try {
+    const insert = mockApartment('landlord-1')
+
+    await submitApplication()
+    const payload = insert.mock.calls[0][0]
+    expect(payload.tenant_preferences.pets).toEqual({ has: false })
+    expect(payload.tenant_preferences.parking).toEqual({ needed: false })
+  } finally {
+    Object.assign(mockStoreState.rentalPreferences, original)
   }
 })
 

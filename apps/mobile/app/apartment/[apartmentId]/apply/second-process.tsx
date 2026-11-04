@@ -6,6 +6,10 @@ import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/Sc
 import ApplicationHeader from '@/components/layout/ApplicationHeader'
 import DateField from '@/components/inputs/DateField'
 
+import ParkingDetailsFields from 'components/preferences/ParkingDetailsFields'
+import PetDetailsFields from 'components/preferences/PetDetailsFields'
+import YesNoRadioField from 'components/preferences/YesNoRadioField'
+
 import {
   TextField,
   Input,
@@ -13,13 +17,13 @@ import {
   FieldError,
   TextArea,
   Button,
-  RadioGroup,
-  Radio,
   Separator,
   Description,
 } from 'heroui-native';
 
-import { applicationAnswersFromPreferences } from '@repo/utils'
+import { OTHER_PET, getPetsError, minimumPetCount } from '@repo/constants'
+
+import { applicationAnswersFromSavedPreferences } from '@/service/applications/applicationFormPreferences'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
@@ -28,34 +32,58 @@ type FormErrors = {
   moveInDate?: string
   noOccupants?: string
   hasPets?: string
+  petDetails?: string
   isSmoker?: string
   needParking?: string
+  parkingDetails?: string
+  hasDisability?: string
 }
 
 export default function SecondProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
-  const { rentalPreferences, updateRentalPreferences } = useApplicationFormStore();
+  const { rentalPreferences, updateRentalPreferences, patchRentalPreferences } = useApplicationFormStore();
   const maxOccupants = useApplicationFormStore((state) => state.apartmentContext.maxOccupants);
 
   const [errors, setErrors] = useState<FormErrors>({})
 
-  // The yes/no answers start from the saved rental preferences (still editable
-  // for this application); an answer the tenant already gave is never replaced.
+  // The preference questions (and their details) start from the saved rental
+  // preferences, still editable for this application; an answer the tenant
+  // already gave is never replaced.
   const { preferences } = useUserPreferences()
-  const savedAnswers = applicationAnswersFromPreferences(preferences)
+  const savedAnswers = applicationAnswersFromSavedPreferences(preferences)
   const answersPrefilled = useRef(false)
 
   useEffect(() => {
     if (!savedAnswers || answersPrefilled.current) return
     answersPrefilled.current = true
-    const { rentalPreferences: current, updateRentalPreferences: update } =
+    const { rentalPreferences: current, patchRentalPreferences: patch } =
       useApplicationFormStore.getState()
-    if (current.hasPets === undefined) update('hasPets', savedAnswers.hasPets === 'yes')
-    if (current.isSmoker === undefined) update('isSmoker', savedAnswers.isSmoker === 'yes')
-    if (current.needParking === undefined) update('needParking', savedAnswers.needParking === 'yes')
+    patch({
+      ...(current.hasPets === undefined
+        ? {
+            hasPets: savedAnswers.hasPets,
+            kindOfPets: savedAnswers.kindOfPets,
+            noOfPets: savedAnswers.noOfPets,
+            nameOfPets: savedAnswers.nameOfPets,
+          }
+        : {}),
+      ...(current.needParking === undefined
+        ? {
+            needParking: savedAnswers.needParking,
+            noOfParkingSpots: savedAnswers.noOfParkingSpots,
+            listOfVehicles: savedAnswers.listOfVehicles,
+          }
+        : {}),
+      ...(current.isSmoker === undefined ? { isSmoker: savedAnswers.isSmoker } : {}),
+      ...(current.hasDisability === undefined ? { hasDisability: savedAnswers.hasDisability } : {}),
+    })
   }, [savedAnswers])
+
+  const petsError = rentalPreferences.hasPets
+    ? getPetsError(true, rentalPreferences.kindOfPets, rentalPreferences.noOfPets)
+    : null
 
   const scrollRef = useRef<ScreenWrapperScrollRef>(null)
   const contentRef = useRef<View>(null)
@@ -107,12 +135,19 @@ export default function SecondProcess() {
 
     if (rentalPreferences.hasPets === undefined)
       newErrors.hasPets = 'Please indicate if you have pets.'
+    else if (petsError)
+      newErrors.petDetails = petsError
 
     if (rentalPreferences.isSmoker === undefined)
       newErrors.isSmoker = 'Please indicate if you are a smoker.'
 
     if (rentalPreferences.needParking === undefined)
       newErrors.needParking = 'Please indicate if you need parking.'
+    else if (rentalPreferences.needParking && rentalPreferences.listOfVehicles.length === 0)
+      newErrors.parkingDetails = 'Please select the kinds of vehicles you have.'
+
+    if (rentalPreferences.hasDisability === undefined)
+      newErrors.hasDisability = 'Please indicate if anyone in your household has a disability.'
 
     setErrors(newErrors)
     const isValid = Object.keys(newErrors).length === 0
@@ -122,8 +157,11 @@ export default function SecondProcess() {
         'moveInDate',
         'noOccupants',
         'hasPets',
+        'petDetails',
         'isSmoker',
         'needParking',
+        'parkingDetails',
+        'hasDisability',
       ]
 
       const firstInvalidField = fieldOrder.find((field) => newErrors[field])
@@ -237,42 +275,55 @@ export default function SecondProcess() {
               fieldPositions.current.hasPets =
                 (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
             }}
-            className="flex flex-col gap-4 mb-3"
+            className="flex gap-5 mb-3"
           >
-            <Label>Do you have pets?</Label>
-            <RadioGroup
-              className="flex-row gap-6"
-              value={
-                rentalPreferences.hasPets === undefined
-                  ? undefined
-                  : rentalPreferences.hasPets
-                    ? "yes"
-                    : "no"
-              }
-              onValueChange={(value) => {
-                updateRentalPreferences("hasPets", value === "yes");
-                clearError("hasPets");
+            <YesNoRadioField
+              label="Do you have pets?"
+              required
+              value={rentalPreferences.hasPets}
+              error={errors.hasPets}
+              onChange={(value) => {
+                patchRentalPreferences({
+                  hasPets: value,
+                  kindOfPets: value ? rentalPreferences.kindOfPets : [],
+                  noOfPets: value ? rentalPreferences.noOfPets : 1,
+                  nameOfPets: value ? rentalPreferences.nameOfPets : null,
+                })
+                clearError('hasPets')
+                clearError('petDetails')
               }}
-              isInvalid={!!errors.hasPets}
-            >
-              <RadioGroup.Item
-                value="yes"
-                className="flex-row items-center gap-2"
+            />
+
+            {rentalPreferences.hasPets && (
+              <View
+                className="flex gap-5"
+                onLayout={(e) => {
+                  fieldPositions.current.petDetails =
+                    (fieldPositions.current.hasPets ?? 0) + e.nativeEvent.layout.y
+                }}
               >
-                <Radio />
-                <Label>Yes</Label>
-              </RadioGroup.Item>
-              <RadioGroup.Item
-                value="no"
-                className="flex-row items-center gap-2"
-              >
-                <Radio />
-                <Label>No</Label>
-              </RadioGroup.Item>
-            </RadioGroup>
-            <FieldError isInvalid={!!errors.hasPets}>
-              {errors.hasPets}
-            </FieldError>
+                <PetDetailsFields
+                  kindOfPets={rentalPreferences.kindOfPets}
+                  noOfPets={rentalPreferences.noOfPets}
+                  nameOfPets={rentalPreferences.nameOfPets}
+                  error={errors.petDetails ? petsError : null}
+                  onCountChange={(count) => {
+                    updateRentalPreferences('noOfPets', count)
+                    clearError('petDetails')
+                  }}
+                  onKindsChange={(kinds) => {
+                    patchRentalPreferences({
+                      kindOfPets: kinds,
+                      // Never fewer pets than kinds: raise the count as kinds are added.
+                      noOfPets: Math.max(rentalPreferences.noOfPets, minimumPetCount(kinds.length)),
+                      nameOfPets: kinds.includes(OTHER_PET) ? rentalPreferences.nameOfPets : null,
+                    })
+                    clearError('petDetails')
+                  }}
+                  onNameChange={(name) => updateRentalPreferences('nameOfPets', name)}
+                />
+              </View>
+            )}
           </View>
 
           {/* Is Smoker */}
@@ -281,42 +332,18 @@ export default function SecondProcess() {
               fieldPositions.current.isSmoker =
                 (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
             }}
-            className="flex flex-col gap-4 mb-3"
+            className="mb-3"
           >
-            <Label>Are you a smoker?</Label>
-            <RadioGroup
-              className="flex-row items-center justify-start gap-6"
-              value={
-                rentalPreferences.isSmoker === undefined
-                  ? undefined
-                  : rentalPreferences.isSmoker
-                    ? "yes"
-                    : "no"
-              }
-              onValueChange={(value) => {
-                updateRentalPreferences("isSmoker", value === "yes");
-                clearError("isSmoker");
+            <YesNoRadioField
+              label="Are you a smoker?"
+              required
+              value={rentalPreferences.isSmoker}
+              error={errors.isSmoker}
+              onChange={(value) => {
+                updateRentalPreferences('isSmoker', value)
+                clearError('isSmoker')
               }}
-              isInvalid={!!errors.isSmoker}
-            >
-              <RadioGroup.Item
-                value="yes"
-                className="flex-row items-center gap-2"
-              >
-                <Radio />
-                <Label>Yes</Label>
-              </RadioGroup.Item>
-              <RadioGroup.Item
-                value="no"
-                className="flex-row items-center gap-2"
-              >
-                <Radio />
-                <Label>No</Label>
-              </RadioGroup.Item>
-            </RadioGroup>
-            <FieldError isInvalid={!!errors.isSmoker}>
-              {errors.isSmoker}
-            </FieldError>
+            />
           </View>
 
           {/* Need Parking */}
@@ -325,43 +352,70 @@ export default function SecondProcess() {
               fieldPositions.current.needParking =
                 (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
             }}
-            className="flex flex-col gap-4 mb-3"
+            className="flex gap-5 mb-3"
           >
-            <Label>Do you need parking?</Label>
-            <RadioGroup
-              className="flex-row items-center justify-start gap-6"
-              value={
-                rentalPreferences.needParking === undefined
-                  ? undefined
-                  : rentalPreferences.needParking
-                    ? "yes"
-                    : "no"
-              }
-              onValueChange={(value) => {
-                updateRentalPreferences("needParking", value === "yes");
-                clearError("needParking");
+            <YesNoRadioField
+              label="Do you need parking?"
+              required
+              value={rentalPreferences.needParking}
+              error={errors.needParking}
+              onChange={(value) => {
+                patchRentalPreferences({
+                  needParking: value,
+                  noOfParkingSpots: value ? rentalPreferences.noOfParkingSpots : 1,
+                  listOfVehicles: value ? rentalPreferences.listOfVehicles : [],
+                })
+                clearError('needParking')
+                clearError('parkingDetails')
               }}
-              isInvalid={!!errors.needParking}
-            >
-              <RadioGroup.Item
-                value="yes"
-                className="flex-row items-center gap-2"
-              >
-                <Radio />
-                <Label>Yes</Label>
-              </RadioGroup.Item>
-              <RadioGroup.Item
-                value="no"
-                className="flex-row items-center gap-2"
-              >
-                <Radio />
-                <Label>No</Label>
-              </RadioGroup.Item>
-            </RadioGroup>
+            />
 
-            <FieldError isInvalid={!!errors.needParking}>
-              {errors.needParking}
-            </FieldError>
+            {rentalPreferences.needParking && (
+              <View
+                className="flex gap-5"
+                onLayout={(e) => {
+                  fieldPositions.current.parkingDetails =
+                    (fieldPositions.current.needParking ?? 0) + e.nativeEvent.layout.y
+                }}
+              >
+                <ParkingDetailsFields
+                  noOfParkingSpots={rentalPreferences.noOfParkingSpots}
+                  listOfVehicles={rentalPreferences.listOfVehicles}
+                  error={errors.parkingDetails}
+                  onSpotsChange={(spots) => updateRentalPreferences('noOfParkingSpots', spots)}
+                  onToggleVehicle={(vehicle) => {
+                    const vehicles = rentalPreferences.listOfVehicles
+                    updateRentalPreferences(
+                      'listOfVehicles',
+                      vehicles.includes(vehicle)
+                        ? vehicles.filter((v) => v !== vehicle)
+                        : [...vehicles, vehicle],
+                    )
+                    clearError('parkingDetails')
+                  }}
+                />
+              </View>
+            )}
+          </View>
+
+          {/* Household Disability */}
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.hasDisability =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+            className="mb-3"
+          >
+            <YesNoRadioField
+              label="Does anyone in your household have a disability?"
+              required
+              value={rentalPreferences.hasDisability}
+              error={errors.hasDisability}
+              onChange={(value) => {
+                updateRentalPreferences('hasDisability', value)
+                clearError('hasDisability')
+              }}
+            />
           </View>
 
           <Separator className="my-3" />

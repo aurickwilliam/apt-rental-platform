@@ -19,9 +19,9 @@ export interface ApplyPageData {
   /** Personal details from the profile; read-only in the form, as on mobile. */
   personalInfo: ApplicantPersonalInfo;
   /**
-   * The tenant's saved rental preferences, or null when skipped. They pre-fill
-   * the pets, smoking and parking questions and supply the details shared with
-   * the landlord (see `buildApplicationPreferenceSnapshot`).
+   * The tenant's saved rental preferences, or null when skipped. They only
+   * pre-fill the pets, smoking, parking and disability questions and their
+   * details; what the form declares is what the landlord sees.
    */
   savedPreferences: TenantPreferences | null;
 }

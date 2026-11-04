@@ -151,8 +151,7 @@ export default function ApplyClient({
 
   // What the landlord will see of the declared details, for the review step.
   const preferenceLines = useMemo(() => {
-    const snapshot = buildApplicationSnapshotFromForm(form);
-    return snapshot ? describeApplicationPreferences(snapshot) : [];
+    return describeApplicationPreferences(buildApplicationSnapshotFromForm(form));
   }, [form]);
 
   const totalMoveIn = (apartment.monthlyRent ?? 0) + (apartment.securityDeposit ?? 0) + (apartment.advanceRent ?? 0);
