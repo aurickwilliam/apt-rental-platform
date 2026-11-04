@@ -5,7 +5,6 @@ import {
   type ApplicationPreferenceSnapshot,
 } from "@repo/utils";
 
-import { parseTenantPreferences, type TenantPreferences } from "@/lib/tenant-preferences";
 import {
   APPLICATION_DOCUMENT_PATH_KEYS,
   buildApplicationDocumentList,
@@ -40,7 +39,7 @@ export type TenantApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
-  /** Details copied from the tenant's saved preferences when they applied; null when there were none. */
+  /** Pet, parking, smoking and disability details the tenant declared when they applied. */
   preferences: ApplicationPreferenceSnapshot | null;
   documents: ApplicationDocument[];
   apartments: {
@@ -144,7 +143,7 @@ export type InsertTenantApplicationPayload = {
   proof_of_income_url: string | null;
   proof_of_billing_url: string;
   nbi_clearance_url: string | null;
-  /** Pet, parking, smoking and disability details copied from the saved preferences at submit time. */
+  /** Pet, parking, smoking and disability details the tenant declared on the form. */
   tenant_preferences: ApplicationPreferenceSnapshot | null;
 };
 
@@ -179,8 +178,6 @@ export async function insertTenantApplication(
 export interface ApplicationSubmitContext {
   tenantId: string;
   accountStatus: string | null;
-  /** The applicant's saved rental preferences, read fresh at submit time; null when skipped. */
-  preferences: TenantPreferences | null;
   landlordId: string | null;
   hasActiveApplication: boolean;
 }
@@ -201,7 +198,7 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("id, account_status, preferences")
+    .select("id, account_status")
     .eq("user_id", user.id)
     .maybeSingle();
   if (profileError) throw new Error(profileError.message);
@@ -225,7 +222,6 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
   return {
     tenantId: profile.id,
     accountStatus: profile.account_status,
-    preferences: parseTenantPreferences(profile.preferences),
     landlordId: apartmentResult.data.landlord_id,
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
   };

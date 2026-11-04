@@ -48,8 +48,13 @@ export function buildApplicationPreferenceSnapshot(
   prefs: ApplicationPreferenceSource | null | undefined,
   answers: ApplicationAnswers,
 ): ApplicationPreferenceSnapshot | null {
-  if (!prefs) return null;
+  return prefs ? snapshotFrom(prefs, answers) : null;
+}
 
+function snapshotFrom(
+  prefs: ApplicationPreferenceSource,
+  answers: ApplicationAnswers,
+): ApplicationPreferenceSnapshot {
   const pets: ApplicationPreferenceSnapshot["pets"] = { has: answers.hasPets };
   if (answers.hasPets && prefs.hasPets) {
     if (prefs.kindOfPets.length > 0) pets.kinds = [...prefs.kindOfPets];
@@ -74,20 +79,18 @@ export function buildApplicationPreferenceSnapshot(
 }
 
 /**
- * The form's yes/no answers pre-filled from saved preferences, as the "yes" /
- * "no" strings both apply forms keep; null when there are no saved preferences
- * (the questions then start unanswered).
+ * The snapshot for an application whose form asks the details itself: the
+ * declared answers decide what is shared, so a "no" never carries pet or
+ * parking details. Both apply forms build their stored copy with this.
  */
-export function applicationAnswersFromPreferences(
-  prefs: Pick<ApplicationPreferenceSource, "hasPets" | "hasSmoker" | "hasParking"> | null | undefined,
-): { hasPets: "yes" | "no"; isSmoker: "yes" | "no"; needParking: "yes" | "no" } | null {
-  if (!prefs) return null;
-  const yesNo = (value: boolean) => (value ? "yes" : "no");
-  return {
-    hasPets: yesNo(prefs.hasPets),
-    isSmoker: yesNo(prefs.hasSmoker),
-    needParking: yesNo(prefs.hasParking),
-  };
+export function buildDeclaredApplicationPreferenceSnapshot(
+  declared: ApplicationPreferenceSource,
+): ApplicationPreferenceSnapshot {
+  return snapshotFrom(declared, {
+    hasPets: declared.hasPets,
+    isSmoker: declared.hasSmoker,
+    needParking: declared.hasParking,
+  });
 }
 
 function isStringArray(value: unknown): value is string[] {

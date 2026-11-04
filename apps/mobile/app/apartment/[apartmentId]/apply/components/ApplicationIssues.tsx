@@ -6,12 +6,23 @@ import { Button } from "heroui-native";
 import { IconAlertTriangle } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
+import { useProfile } from "hooks/auth";
 import type { ApplicationIssue } from "@repo/passport";
 
-function actionFor(issue: ApplicationIssue): { label: string; href: Href } | null {
+// A pending account already sent its documents: show where the review stands
+// (the profile's verification card) instead of starting verification again.
+const VERIFICATION_STATUS_HREF = "/(tabs)/(tenant)/profile" as Href;
+
+function actionFor(
+  issue: ApplicationIssue,
+  accountStatus: string | null | undefined,
+): { label: string; href: Href } | null {
   switch (issue.code) {
     case "unverified":
-      return { label: "Verify account", href: "/(auth)/verify-account" as Href };
+      if (accountStatus === "verified") return null;
+      return accountStatus === "pending"
+        ? { label: "View verification status", href: VERIFICATION_STATUS_HREF }
+        : { label: "Verify account", href: "/(auth)/verify-account" as Href };
     case "passport-missing":
       return { label: "Add to APT Passport", href: "/document-id/select-document" as Href };
     case "passport-expired":
@@ -25,13 +36,14 @@ function actionFor(issue: ApplicationIssue): { label: string; href: Href } | nul
 export default function ApplicationIssues({ issues }: { issues: ApplicationIssue[] }) {
   const router = useRouter();
   const { colors } = useColors();
+  const { profile } = useProfile();
 
   if (issues.length === 0) return null;
 
   return (
     <View className="gap-3">
       {issues.map((issue) => {
-        const action = actionFor(issue);
+        const action = actionFor(issue, profile?.account_status);
         return (
           <View
             key={issue.code}

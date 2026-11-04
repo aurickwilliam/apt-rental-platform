@@ -7,8 +7,7 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-  Button,
-  Card,
+  Separator,
   Spinner,
 } from "@heroui/react";
 import { IconMapPin } from "@tabler/icons-react";
@@ -22,6 +21,7 @@ import {
 } from "@repo/passport";
 import { formatPesoDisplay, type ApplicationPreferenceLine } from "@repo/utils";
 
+import FormStepActions from "@/app/components/layout/FormStepActions";
 import PassportStatusChip from "@/app/components/passport/PassportStatusChip";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
 
@@ -33,8 +33,8 @@ interface ReviewStepProps {
   apartment: ApplyApartmentContext;
   accountStatus: string | null;
   form: ApplicationForm;
-  /** The saved-preference details the landlord will see, or null when none are saved. */
-  sharedPreferences: ApplicationPreferenceLine[] | null;
+  /** The pet, parking, smoking and disability details the landlord will see. */
+  preferenceLines: ApplicationPreferenceLine[];
   totalMoveIn: number;
   readiness: {
     issues: ApplicationIssue[];
@@ -58,11 +58,6 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function yesNo(value: string | null): string {
-  if (!value) return "—";
-  return value === "yes" ? "Yes" : "No";
-}
-
 function formatDate(value: string): string {
   return value ? new Date(value).toLocaleDateString() : "—";
 }
@@ -73,14 +68,17 @@ function emptySlotLabel(slot: ApplicationDocumentSlot, employmentType: string): 
   return "Missing";
 }
 
-const SECTION_ITEM = "overflow-hidden rounded-xl border border-border bg-muted";
-const SECTION_TRIGGER = "flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold text-card-foreground";
+// `after:hidden` drops HeroUI's item separator line: each section is its own card.
+const SECTION_ITEM = "overflow-hidden rounded-2xl border border-border bg-card shadow-sm after:hidden";
+const SECTION_TRIGGER =
+  "flex w-full cursor-pointer items-center justify-between rounded-2xl px-5 py-4 text-base font-semibold text-card-foreground transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
+const SECTION_BODY = "border-t border-border px-5 pb-5 pt-4";
 
 export default function ReviewStep({
   apartment,
   accountStatus,
   form,
-  sharedPreferences,
+  preferenceLines,
   totalMoveIn,
   readiness,
   isSubmitting,
@@ -92,9 +90,9 @@ export default function ReviewStep({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-6">
+      <section>
         <p className="mb-1 text-xs tracking-widest text-muted-foreground uppercase">You are applying for</p>
-        <h2 className="text-xl font-bold text-card-foreground">{apartment.name}</h2>
+        <h2 className="font-nunito text-lg font-semibold text-foreground">{apartment.name}</h2>
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
           <IconMapPin size={14} /> {apartment.address}
         </p>
@@ -110,10 +108,12 @@ export default function ReviewStep({
           <DetailRow label="Total Move-In Cost" value={formatPesoDisplay(totalMoveIn) || "—"} />
           <DetailRow label="Rental Owner" value={apartment.landlordName ?? "—"} />
         </div>
-      </Card>
+      </section>
 
-      <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-6">
-        <h3 className="text-base font-semibold text-card-foreground">Summary of Application</h3>
+      <Separator />
+
+      <section>
+        <h2 className="font-nunito text-lg font-semibold text-foreground">Summary of Application</h2>
         <p className="mb-4 text-xs text-muted-foreground">
           Please review your details. Make sure everything is accurate before submitting.
         </p>
@@ -128,7 +128,7 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <DetailRow label="Full Name" value={form.fullName} />
                   <DetailRow label="Email" value={form.email} />
@@ -154,30 +154,20 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <DetailRow label="Move-in Date" value={formatDate(form.moveInDate)} />
                   <DetailRow label="Number of Occupants" value={form.noOccupants ? `${form.noOccupants} Person(s)` : "—"} />
-                  <DetailRow label="Has Pets?" value={yesNo(form.hasPets)} />
-                  <DetailRow label="Smoker?" value={yesNo(form.isSmoker)} />
-                  <DetailRow label="Need Parking?" value={yesNo(form.needParking)} />
+                  {preferenceLines.map((line) => (
+                    <DetailRow key={line.label} label={line.label} value={line.value} />
+                  ))}
                   <div className="md:col-span-2">
                     <DetailRow label="Additional Notes" value={form.additionalNotes || "—"} />
                   </div>
                 </div>
-                {sharedPreferences ? (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <p className="text-xs font-semibold text-card-foreground">Shared with the landlord</p>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      The details from your saved rental preferences. The landlord sees them with your application.
-                    </p>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {sharedPreferences.map((line) => (
-                        <DetailRow key={line.label} label={line.label} value={line.value} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+                <p className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
+                  The landlord sees these details with your application.
+                </p>
               </AccordionBody>
             </AccordionPanel>
           </AccordionItem>
@@ -188,7 +178,7 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 {readiness.loading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Spinner size="sm" color="accent" /> Checking your APT Passport…
@@ -227,20 +217,24 @@ export default function ReviewStep({
           {!readiness.loading ? <ApplicationIssues issues={readiness.issues} accountStatus={accountStatus} /> : null}
         </div>
 
-        <div className="mt-6 flex gap-3">
-          <Button variant="outline" className="flex-1" isDisabled={isSubmitting} onPress={onBack}>
-            Back
-          </Button>
-          <Button
-            className="flex-1"
-            isDisabled={isSubmitting || readiness.loading || !readiness.isReady}
-            isPending={isSubmitting}
-            onPress={onSubmit}
-          >
-            {isSubmitting ? <Spinner size="sm" color="current" /> : null}
-            {isSubmitting ? "Submitting…" : "Submit Application"}
-          </Button>
-        </div>
+        <FormStepActions
+          isFirstStep={false}
+          onBack={onBack}
+          onContinue={onSubmit}
+          isBackDisabled={isSubmitting}
+          isContinueDisabled={isSubmitting || readiness.loading || !readiness.isReady}
+          isContinuePending={isSubmitting}
+          continueLabel={
+            isSubmitting ? (
+              <>
+                <Spinner size="sm" color="current" />
+                Submitting…
+              </>
+            ) : (
+              "Submit Application"
+            )
+          }
+        />
         {submitError ? (
           <p role="alert" className="mt-3 text-center text-sm text-danger">
             {submitError}
@@ -250,7 +244,7 @@ export default function ReviewStep({
             The landlord is notified as soon as you submit.
           </p>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

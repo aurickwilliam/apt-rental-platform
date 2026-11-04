@@ -18,7 +18,6 @@ import {
 } from 'heroui-native';
 
 import { useProfile } from 'hooks/auth'
-import { usePHMobileValidation } from '@repo/hooks'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
@@ -30,6 +29,9 @@ import {
   requiresOccupation,
   requiresCompanyName,
   EmploymentType,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  formatPHMobileInput,
+  validatePHMobile,
 } from '@repo/constants'
 import { formatPesoDisplay, handlePesoChange } from '@repo/utils'
 
@@ -46,8 +48,6 @@ export default function FirstProcess() {
   const router = useRouter();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
   const { profile } = useProfile();
-
-  const previousLandlordContactValidation = usePHMobileValidation();
 
   const {
     tenantInformation,
@@ -141,9 +141,7 @@ export default function FirstProcess() {
 
     // previousLandlordContact is optional, only validate format if filled in
     if (tenantInformation.previousLandlordContact.trim()) {
-      const prevContactResult = previousLandlordContactValidation.validate(
-        tenantInformation.previousLandlordContact,
-      )
+      const prevContactResult = validatePHMobile(tenantInformation.previousLandlordContact)
       if (!prevContactResult.isValid) {
         nextErrors.previousLandlordContact =
           prevContactResult.errorMessage ?? 'Invalid contact number.'
@@ -467,23 +465,29 @@ export default function FirstProcess() {
             <TextField isInvalid={!!errors.previousLandlordContact}>
               <Label>Previous Landlord Contact</Label>
               <Input
-                placeholder="Enter your previous landlord contact"
+                placeholder="0917 123 4567"
+                keyboardType="phone-pad"
+                maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
                 value={tenantInformation.previousLandlordContact}
                 onChangeText={(text) => {
-                  updateTenantInformation("previousLandlordContact", text);
-                  if (
-                    !text.trim() ||
-                    previousLandlordContactValidation.validate(text).isValid
-                  ) {
+                  // Same live formatting as the profile forms: "0917 123 4567".
+                  const formatted = formatPHMobileInput(text);
+                  updateTenantInformation("previousLandlordContact", formatted);
+                  if (!formatted || validatePHMobile(formatted).isValid) {
                     clearFieldError("previousLandlordContact");
                   }
                 }}
-                onBlur={() =>
-                  tenantInformation.previousLandlordContact.trim() &&
-                  previousLandlordContactValidation.validate(
-                    tenantInformation.previousLandlordContact,
-                  )
-                }
+                onBlur={() => {
+                  const contact = tenantInformation.previousLandlordContact;
+                  if (!contact) return;
+                  const result = validatePHMobile(contact);
+                  if (!result.isValid) {
+                    setErrors((prev) => ({
+                      ...prev,
+                      previousLandlordContact: result.errorMessage ?? "Invalid contact number.",
+                    }));
+                  }
+                }}
               />
               <FieldError>{errors.previousLandlordContact}</FieldError>
             </TextField>

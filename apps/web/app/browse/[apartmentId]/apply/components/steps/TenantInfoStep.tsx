@@ -1,12 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
+import { FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
 
 import { handlePesoChange } from "@repo/utils";
-import { EMPLOYMENT_TYPES, REQUIRES_OCCUPATION_TYPES, requiresProofOfIncome, type EmploymentType } from "@repo/constants";
+import {
+  EMPLOYMENT_TYPES,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  REQUIRES_OCCUPATION_TYPES,
+  formatPHMobileInput,
+  requiresProofOfIncome,
+  type EmploymentType,
+} from "@repo/constants";
 
-import { employmentRules } from "../../lib/validate-application";
+import FormStepActions from "@/app/components/layout/FormStepActions";
+
+import { employmentRules, validatePHMobile } from "../../lib/validate-application";
 import type { ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
@@ -41,10 +51,16 @@ interface TenantInfoStepProps extends ApplicationStepProps {
 
 export default function TenantInfoStep({ form, errors, onChange, clearError, onBack, onNext }: TenantInfoStepProps) {
   const { isNoIncomeType, requiresOccupation, requiresCompany } = employmentRules(form.employmentType);
+  // Like Complete Profile, the number is checked once the field is left and
+  // the message then follows the typing. Blank passes: the field is optional.
+  const [contactTouched, setContactTouched] = useState(false);
+  const contactError =
+    errors.prevLandlordContact ??
+    (contactTouched ? validatePHMobile(form.prevLandlordContact).errorMessage : undefined);
 
   return (
-    <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
-      <h2 className="text-lg font-semibold text-card-foreground">Personal Information</h2>
+    <div>
+      <h2 className="font-nunito text-lg font-semibold text-foreground">Personal Information</h2>
       <p className="mb-5 text-xs text-muted-foreground">
         From your profile. To change these, update your{" "}
         <Link href="/tenant/profile" className="font-medium text-primary hover:underline">
@@ -70,7 +86,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
       </div>
 
       <Separator className="my-6" />
-      <h3 className="mb-4 text-base font-semibold text-card-foreground">Employment & Income Details</h3>
+      <h2 className="mb-4 font-nunito text-lg font-semibold text-foreground">Employment & Income Details</h2>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Select
           isRequired
@@ -158,7 +174,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
       </div>
 
       <Separator className="my-6" />
-      <h3 className="text-base font-semibold text-card-foreground">References</h3>
+      <h2 className="font-nunito text-lg font-semibold text-foreground">References</h2>
       <p className="mb-4 text-xs text-muted-foreground">Preferred for fast-track review</p>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <TextField
@@ -174,27 +190,27 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           <FieldError>{errors.prevLandlordName}</FieldError>
         </TextField>
         <TextField
-          isInvalid={!!errors.prevLandlordContact}
+          isInvalid={!!contactError}
           value={form.prevLandlordContact}
           onChange={(value: string) => {
-            onChange({ prevLandlordContact: value });
+            // Same live formatting as Complete Profile: "0917 123 4567".
+            onChange({ prevLandlordContact: formatPHMobileInput(value) });
             clearError("prevLandlordContact");
           }}
+          onBlur={() => setContactTouched(true)}
         >
           <Label>Previous Landlord Contact</Label>
-          <Input placeholder="09XX XXX XXXX" className={INPUT_CLASS} />
-          <FieldError>{errors.prevLandlordContact}</FieldError>
+          <Input
+            inputMode="tel"
+            placeholder="09XX XXX XXXX"
+            maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
+            className={INPUT_CLASS}
+          />
+          <FieldError>{contactError}</FieldError>
         </TextField>
       </div>
 
-      <div className="mt-8 flex gap-3">
-        <Button variant="outline" className="flex-1" onPress={onBack}>
-          Back
-        </Button>
-        <Button className="flex-1" onPress={onNext}>
-          Next
-        </Button>
-      </div>
-    </Card>
+      <FormStepActions isFirstStep onBack={onBack} onContinue={onNext} />
+    </div>
   );
 }
