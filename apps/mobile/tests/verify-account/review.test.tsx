@@ -88,11 +88,9 @@ jest.mock('heroui-native', () => {
 });
 
 const mockMutateAsync = jest.fn();
-const mockSessionMutateAsync = jest.fn();
 const mockBuildVerificationInput = jest.fn();
 jest.mock('@/hooks/verification', () => ({
   useSubmitVerification: () => ({ mutateAsync: mockMutateAsync, isPending: false }),
-  useSubmitSessionVerification: () => ({ mutateAsync: mockSessionMutateAsync, isPending: false }),
   buildVerificationInput: (...args: unknown[]) => mockBuildVerificationInput(...args),
 }));
 
@@ -117,7 +115,6 @@ describe('Review', () => {
     jest.clearAllMocks();
     latestImageViewingProps = null;
     mockMutateAsync.mockResolvedValue({ id: 'verification-1' });
-    mockSessionMutateAsync.mockResolvedValue({ id: 'verification-1' });
     mockBuildVerificationInput.mockReturnValue(BUILT_INPUT);
     useVerificationStore.setState({ ...initialVerificationState });
   });
@@ -260,7 +257,6 @@ describe('Review', () => {
     fireEvent.press(screen.getByText('Confirm & submit'));
 
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith(BUILT_INPUT));
-    expect(mockSessionMutateAsync).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/success');
   });
 
@@ -274,31 +270,9 @@ describe('Review', () => {
     fireEvent.press(screen.getByText('Go back and review'));
 
     expect(mockMutateAsync).not.toHaveBeenCalled();
-    expect(mockSessionMutateAsync).not.toHaveBeenCalled();
     expect(screen.queryByText('Submit for verification?')).toBeNull();
     // Review content (and its captures) is intact.
     expect(screen.getByText('Submit for Verification')).toBeTruthy();
-  });
-
-  it('submits against the claimed desktop session when one is active', async () => {
-    useVerificationStore.setState({
-      ...COMPLETE_STATE,
-      sessionClaim: {
-        token: 'desktop-token',
-        verificationId: 'session-vid',
-        expiresAt: new Date(Date.now() + 600_000).toISOString(),
-      },
-    });
-    render(<Review />);
-
-    fireEvent.press(screen.getByText('Submit for Verification'));
-    fireEvent.press(screen.getByText('Confirm & submit'));
-
-    await waitFor(() =>
-      expect(mockSessionMutateAsync).toHaveBeenCalledWith(BUILT_INPUT),
-    );
-    expect(mockMutateAsync).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/success');
   });
 
   it('shows the submission error without navigating when the upload fails', async () => {
