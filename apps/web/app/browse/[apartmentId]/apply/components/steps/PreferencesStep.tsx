@@ -62,6 +62,11 @@ export default function PreferencesStep({
 }: PreferencesStepProps) {
   // The earliest move-in is tomorrow; `validatePreferences` repeats this.
   const earliestMoveIn = useMemo(() => parseDate(manilaToday()).add({ days: 1 }), []);
+  const earliestMoveInLabel = new Date(`${earliestMoveIn.toString()}T00:00:00`).toLocaleDateString("en-PH", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <div>
@@ -94,9 +99,9 @@ export default function PreferencesStep({
             </DateField.Suffix>
           </DateField.Group>
           <FieldError>{errors.moveInDate}</FieldError>
-          {maxOccupants !== null && !errors.moveInDate && (
+          {!errors.moveInDate && (
             <Description className="text-muted-foreground">
-              This unit allows a maximum of {maxOccupants} occupant(s).
+              The earliest move-in date is {earliestMoveInLabel}.
             </Description>
           )}
           <DatePicker.Popover>
@@ -153,6 +158,11 @@ export default function PreferencesStep({
           <Label>Number of Occupants</Label>
           <Input type="number" placeholder="Enter number of occupants" inputMode="numeric" className={INPUT_CLASS} />
           <FieldError>{errors.noOccupants}</FieldError>
+          {maxOccupants !== null && !errors.noOccupants && (
+            <Description className="text-muted-foreground">
+              This unit allows a maximum of {maxOccupants} occupant(s).
+            </Description>
+          )}
         </TextField>
 
         <Separator />
