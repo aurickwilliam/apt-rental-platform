@@ -52,15 +52,17 @@ function MemberCard({ member }: { member: (typeof teamMembers)[0] }) {
       <Card.Content className="p-0 flex flex-col">
         {/* Photo */}
         <div
-          className="relative w-full rounded-t-xl overflow-hidden"
+          className="flex items-end justify-center"
           style={{ height: "275px" }}
         >
-          <Image
-            src={member.image}
-            alt={member.name}
-            fill
-            className="object-cover"
-          />
+          <div className="relative w-56 h-56 rounded-xl overflow-hidden">
+            <Image
+              src={member.image}
+              alt={member.name}
+              fill
+              className="object-contain"
+            />
+          </div>
         </div>
 
         {/* Info */}
@@ -155,7 +157,7 @@ export default function TeamSection() {
           The <em className="text-primary not-italic">people</em> who built this
         </h2>
         <p className="text-sm text-default-700 mb-8">
-          Mga estudyante ni Enchong Dee.
+          Students of STI Caloocan.
         </p>
       </motion.div>
 

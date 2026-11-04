@@ -11,7 +11,7 @@ export const teamMembers = [
   {
     name: "Aurick William Lorenzo",
     role: "Lead Developer",
-    bio: "Full-stack engineer who led APT's architecture — the matching engine, payments, and the Supabase backend he keeps clean, secure, and fast.",
+    bio: "Full-stack engineer who led APT's architecture, from the matching engine and payments to the Supabase backend he keeps clean, secure, and fast.",
     image: "/images/orik.jpg",
     github: "https://github.com/aurickwilliam",
     linkedin: "https://www.linkedin.com/in/aurick-william-lorenzo-ba83a73a6/?skipRedirect=true",
@@ -19,15 +19,15 @@ export const teamMembers = [
   {
     name: "Mhart Aaron Navales",
     role: "Full-Stack Developer & UI/UX",
-    bio: "Full-stack developer and UI/UX designer; builds APT's screens end-to-end and keeps the experience friendly on every device.",
-    image: "/images/ron.jpg",
+    bio: "Full-stack developer and UI/UX designer. Builds APT's screens end to end and keeps the experience friendly on every device.",
+    image: "/images/ron.webp",
     github: "https://github.com/Kaironnnn",
     linkedin: null,
   },
   {
     name: "Michael Jann Mateo",
     role: "Backend Developer & Project Manager",
-    bio: "Backend developer and project manager; coordinates the roadmap, reviews the data model, and keeps releases on schedule.",
+    bio: "Backend developer and project manager. Coordinates the roadmap, reviews the data model, and keeps releases on schedule.",
     image: "/images/mija.jpg",
     github: "https://github.com/YuriPatriotic",
     linkedin: null,
@@ -35,7 +35,7 @@ export const teamMembers = [
   {
     name: "Charle Fulgencio",
     role: "Quality Assurance & Documentation",
-    bio: "Quality assurance and documentation lead; tests every release against real rentals and keeps our guides accurate.",
+    bio: "Quality assurance and documentation lead. Tests every release against real rentals and keeps our guides accurate.",
     image: "/images/charle.jpg",
     github: "https://github.com/KhromaUnus",
     linkedin: null,
