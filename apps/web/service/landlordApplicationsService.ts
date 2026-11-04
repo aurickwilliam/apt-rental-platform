@@ -1,5 +1,9 @@
 import { createClient } from "@repo/supabase/browser";
-import { formatAddress } from "@repo/utils";
+import {
+  formatAddress,
+  parseApplicationPreferenceSnapshot,
+  type ApplicationPreferenceSnapshot,
+} from "@repo/utils";
 
 export type DisplayStatus = "Applied" | "Approved" | "Rejected" | "Cancelled";
 
@@ -34,6 +38,8 @@ export type LandlordApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  /** Details the tenant copied from their saved preferences when applying; null when there were none. */
+  preferences: ApplicationPreferenceSnapshot | null;
   gov_id_url: string | null;
   gov_id_back_url: string | null;
   proof_of_income_url: string | null;
@@ -108,7 +114,7 @@ export async function fetchLandlordApplications(applicationId?: string, supabase
       `id, status, created_at, rejected_reason, apartment_id, tenant_id,
       occupation, employer_name, monthly_income, employment_type,
       prev_landlord_name, prev_landlord_contact,
-      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message, tenant_preferences,
       gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
       apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status, apartment_images(url, url_thumb, is_cover)),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`,
@@ -159,6 +165,7 @@ export async function fetchLandlordApplications(applicationId?: string, supabase
       has_smoker: Boolean(item.has_smoker),
       need_parking: Boolean(item.need_parking),
       message: (item.message as string | null) ?? null,
+      preferences: parseApplicationPreferenceSnapshot(item.tenant_preferences),
       gov_id_url: (item.gov_id_url as string | null) ?? null,
       gov_id_back_url: (item.gov_id_back_url as string | null) ?? null,
       proof_of_income_url: (item.proof_of_income_url as string | null) ?? null,

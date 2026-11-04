@@ -10,6 +10,7 @@ import FilterBottomSheet, {
 import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
+import CityChips from "../components/search/CityChips";
 import RecentSearchesList from "../components/search/RecentSearchesList";
 import SearchSectionsList from "../components/search/SearchSectionsList";
 import { useSearchLogic, useSearchSections } from "@/hooks/search";
@@ -137,9 +138,6 @@ export default function Search() {
     // keyboard on drag and on taps outside pressables instead.
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <SearchHeader
-        cities={cities}
-        selectedCity={selectedCity}
-        onSelectCity={setSelectedCity}
         isGridView={isGridView}
         onToggleView={() => setIsGridView((previous) => !previous)}
         onFavoritesPress={() => router.push("/tenant/favorites")}
@@ -166,6 +164,9 @@ export default function Search() {
         committedSearch={committedSearch}
         onFocusChange={setIsSearchFocused}
         onFieldBottomChange={setFieldBottom}
+        belowField={
+          <CityChips cities={cities} selectedCity={selectedCity} onSelectCity={setSelectedCity} />
+        }
       />
 
       {showNetflix ? (

@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
 import { BROWSE_BODY_CLASS, browseFrameClass } from "../lib/browse-layout";
+import BrowseFilterRail from "./BrowseFilterRail";
 import SearchContainer from "./SearchContainer";
 
 interface BrowseShellProps {
@@ -18,6 +19,11 @@ interface BrowseShellProps {
    * public route keeps the capped, centered block sizing.
    */
   fullWidth?: boolean;
+  /**
+   * Searched, filtered or paged results: the filters sit beside them from md up
+   * (and the search bar drops its filter button there).
+   */
+  filterRail?: boolean;
 }
 
 /**
@@ -35,6 +41,7 @@ export default function BrowseShell({
   fallback,
   children,
   fullWidth = false,
+  filterRail = false,
 }: BrowseShellProps) {
   return (
     <div className={browseFrameClass(fullWidth)}>
@@ -43,9 +50,11 @@ export default function BrowseShell({
           filterButton={filterButton}
           mapHref={`${basePath}/map`}
           assistantButton={assistantButton}
+          hasFilterRail={filterRail}
         />
       </Suspense>
       <div className={BROWSE_BODY_CLASS}>
+        {filterRail ? <BrowseFilterRail basePath={basePath} fullWidth={fullWidth} /> : null}
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <Suspense fallback={fallback}>{children}</Suspense>
         </div>

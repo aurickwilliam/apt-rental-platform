@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@repo/supabase/server";
 
 import { applicantPersonalInfo, type ApplicantPersonalInfo } from "@/lib/application-profile";
+import { parseTenantPreferences, type TenantPreferences } from "@/lib/tenant-preferences";
 
 import { getApplyApartmentContext, type ApplyApartmentContext } from "./get-apply-context";
 
@@ -18,6 +19,12 @@ export interface ApplyPageData {
   hasActiveApplication: boolean;
   /** Personal details from the profile; read-only in the form, as on mobile. */
   personalInfo: ApplicantPersonalInfo;
+  /**
+   * The tenant's saved rental preferences, or null when skipped. They pre-fill
+   * the pets, smoking and parking questions and supply the details shared with
+   * the landlord (see `buildApplicationPreferenceSnapshot`).
+   */
+  savedPreferences: TenantPreferences | null;
 }
 
 /**
@@ -38,7 +45,7 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
   const { data: profile, error: profileError } = await supabase
     .from("users")
     .select(
-      "id, roles, account_status, first_name, middle_name, last_name, email, mobile_number, birth_date, street_address, barangay, city, province",
+      "id, roles, account_status, preferences, first_name, middle_name, last_name, email, mobile_number, birth_date, street_address, barangay, city, province",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -63,5 +70,6 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
     viewer: { userId: profile.id, accountStatus: profile.account_status },
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
     personalInfo: applicantPersonalInfo(profile, user.email ?? null),
+    savedPreferences: parseTenantPreferences(profile.preferences),
   };
 }

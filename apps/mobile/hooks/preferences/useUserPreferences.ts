@@ -1,28 +1,17 @@
 import { useMemo } from "react";
 import { normalizeKindOfPets } from "@repo/constants";
+import {
+  BROWSE_DEFAULT_BUDGET_MAX,
+  BROWSE_DEFAULT_BUDGET_MIN,
+  hasMeaningfulPreferences,
+} from "@repo/utils";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import type { PersonalizationState } from "@/stores/usePersonalizationStore";
 
 export type TenantPreferences = PersonalizationState;
 
-const DEFAULT_BUDGET_MIN = 5_000;
-const DEFAULT_BUDGET_MAX = 100_000;
-
-function isDefaultBudget(prefs: TenantPreferences): boolean {
-  return prefs.budgetMin === DEFAULT_BUDGET_MIN && prefs.budgetMax === DEFAULT_BUDGET_MAX;
-}
-
 export function hasPersonalization(prefs: TenantPreferences | null | undefined): boolean {
-  if (!prefs) return false;
-  if (prefs.selectedCities.length > 0) return true;
-  if (!isDefaultBudget(prefs)) return true;
-  if (prefs.bedroomCount !== null) return true;
-  if (prefs.householdSize !== null) return true;
-  if (prefs.hasPets) return true;
-  if (prefs.hasParking) return true;
-  if (prefs.hasSmoker) return true;
-  if (prefs.hasDisability) return true;
-  return false;
+  return hasMeaningfulPreferences(prefs);
 }
 
 export function parsePreferences(raw: unknown): TenantPreferences | null {
@@ -32,8 +21,8 @@ export function parsePreferences(raw: unknown): TenantPreferences | null {
   if (!Array.isArray(obj.selectedCities)) return null;
   return {
     selectedCities: obj.selectedCities as string[],
-    budgetMin: typeof obj.budgetMin === "number" ? obj.budgetMin : DEFAULT_BUDGET_MIN,
-    budgetMax: typeof obj.budgetMax === "number" ? obj.budgetMax : DEFAULT_BUDGET_MAX,
+    budgetMin: typeof obj.budgetMin === "number" ? obj.budgetMin : BROWSE_DEFAULT_BUDGET_MIN,
+    budgetMax: typeof obj.budgetMax === "number" ? obj.budgetMax : BROWSE_DEFAULT_BUDGET_MAX,
     bedroomCount: (obj.bedroomCount as string | null) ?? null,
     householdSize: (obj.householdSize as string | null) ?? null,
     hasPets: Boolean(obj.hasPets),

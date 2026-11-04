@@ -100,7 +100,7 @@ test("public card and rental hero preserve source selection, geometry, null fall
   for (const file of ["app/components/passport/ValidIdCard.tsx", "app/components/passport/PassportDocumentThumbnail.tsx"]) {
     assert.match(source(file), /unoptimized/); assert.doesNotMatch(source(file), /public-apartment-image/);
   }
-  assert.match(source("app/browse/lib/fetch-browse-results.ts"), /url_thumb/);
+  assert.match(source("app/browse/lib/browse-apartment.ts"), /url_thumb/);
   assert.match(source("service/favoritesService.ts"), /url_thumb/);
 });
 

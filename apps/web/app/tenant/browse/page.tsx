@@ -18,6 +18,7 @@ import {
   loadBrowseResults,
   type BrowseResults,
 } from "@/app/browse/lib/fetch-browse-results";
+import { BROWSE_GRID_WITH_RAIL_CLASS } from "@/app/browse/lib/browse-layout";
 import { isDefaultBrowseParams } from "@/app/browse/lib/browse-params";
 import { parseTenantPreferences } from "@/lib/tenant-preferences";
 
@@ -46,9 +47,9 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
     return (
       <BrowseShell
         basePath={BASE_PATH}
-        assistantButton={<AskAvaButton basePath={BASE_PATH} />}
+        assistantButton={<AskAvaButton basePath={BASE_PATH} variant="ghost" size="md" />}
         // No total is loaded in discovery, so the drawer omits the count.
-        filterButton={<FilterDrawerButton basePath={BASE_PATH} />}
+        filterButton={<FilterDrawerButton basePath={BASE_PATH} variant="ghost" size="md" />}
         fallback={
           <div className="w-full min-w-0 flex-1 rounded-lg p-0">
             <BrowseSectionsSkeleton />
@@ -73,7 +74,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
   return (
     <BrowseShell
       basePath={BASE_PATH}
-      assistantButton={<AskAvaButton basePath={BASE_PATH} />}
+      assistantButton={<AskAvaButton basePath={BASE_PATH} variant="ghost" size="md" />}
       filterButton={
         <Suspense fallback={<FilterEntrySkeleton />}>
           <BrowseFilterEntry supabase={supabase} params={params} />
@@ -81,6 +82,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
       }
       fallback={<BrowseResultsGridSkeleton />}
       fullWidth
+      filterRail
     >
       <BrowseGridContent supabase={supabase} params={params} />
     </BrowseShell>
@@ -95,7 +97,7 @@ async function BrowseFilterEntry({
   params: Record<string, string>;
 }) {
   const { totalCount } = await loadBrowseResults(supabase, params);
-  return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} />;
+  return <FilterDrawerButton resultCount={totalCount} basePath={BASE_PATH} variant="ghost" size="md" />;
 }
 
 async function BrowseGridContent({
@@ -115,6 +117,7 @@ async function BrowseGridContent({
         totalCount={results.totalCount}
         pageSize={results.pageSize}
         basePath={BASE_PATH}
+        gridClassName={BROWSE_GRID_WITH_RAIL_CLASS}
       />
     </>
   );
