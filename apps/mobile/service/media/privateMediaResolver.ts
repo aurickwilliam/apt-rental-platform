@@ -12,6 +12,7 @@ import {
 export { clearPrivateMediaUrlCache, setPrivateMediaCacheUser } from './privateMediaCache';
 
 export type PrivateMediaBucket =
+  | 'signed-leases'
   | 'application-documents'
   | 'chat-images'
   | 'maintenance-images'

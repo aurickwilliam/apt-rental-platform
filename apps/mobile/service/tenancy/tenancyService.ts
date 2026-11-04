@@ -67,6 +67,9 @@ export interface CurrentTenancy {
   apartment: TenancyApartment;
   landlord: TenancyLandlord | null;
   currentPayment: TenancyPayment | null;
+  signed_lease_path: string | null;
+  signed_lease_uploaded_at: string | null;
+  tenant_acknowledged_at: string | null;
 }
 
 type TenancyRow = Omit<CurrentTenancy, "currentPayment" | "apartment"> & {
@@ -85,6 +88,9 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
       monthly_rent,
       rent_due_day,
       status,
+      signed_lease_path,
+      signed_lease_uploaded_at,
+      tenant_acknowledged_at,
       apartment:apartments (
         id, name, street_address, barangay, city, province, zip_code, monthly_rent,
         type, no_bedrooms, no_bathrooms, area_sqm, amenities, description,
@@ -123,6 +129,9 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
 
   return {
     ...tenancy,
+    signed_lease_path: tenancy.signed_lease_path ?? null,
+    signed_lease_uploaded_at: tenancy.signed_lease_uploaded_at ?? null,
+    tenant_acknowledged_at: tenancy.tenant_acknowledged_at ?? null,
     bill: bill as unknown as TenancyBill | null,
     legacyFees,
     apartment: { ...apartment, cover_url: coverImageUrl(apartmentImages, "full") },
