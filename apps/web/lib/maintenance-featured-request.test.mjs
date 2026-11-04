@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { sortActiveMaintenanceRequests } from "./maintenance-featured-request.ts";
 import { compile, deferred, hookRuntime } from "./test-support/hook-runtime.mjs";
@@ -41,11 +42,17 @@ test("the active-list modal confirms inside its own layer, locks duplicate write
     react: runtime.react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Modal: modalRoot, Button: "Button", Spinner: "Spinner", toast: { success: (message) => notices.push(message), danger: (message) => notices.push(message) } },
+    "@tabler/icons-react": { IconX: "IconX" },
     "@/service/maintenanceService": { MAINTENANCE_HISTORY_LIMIT: 100 },
   }).default;
   const render = () => runtime.render(() => Modal({ isOpen: true, onOpenChange: (open) => closes.push(open), requests: [row("request-a", "In Progress", "2026-11-01")], loading: false, error: null, photoLoading: false, photoError: null, onCancel: () => { writes++; return writes === 1 ? first.promise : Promise.resolve({ success: true }); }, renderRequest: (request, onCancel) => jsx("RequestCard", { request, onCancel }) }));
   nodes(render()).find((node) => node.type === "RequestCard").props.onCancel();
   const selected = render();
+  const close = nodes(selected).find((node) => node.type === "CloseTrigger");
+  assert.equal(close.props.className, "maintenance-modal-close");
+  assert.equal(close.props.children.type, "IconX");
+  assert.equal(close.props.children.props.size, 16);
+  assert.equal(nodes(selected).find((node) => node.type === "Header").props.className, "pr-12");
   assert.equal(nodes(selected).filter((node) => node.type === modalRoot).length, 1, "no nested confirmation modal");
   const confirm = nodes(selected).find((node) => node.type === "Button" && text(node) === "Yes, cancel request");
   const work = confirm.props.onPress();
@@ -65,4 +72,50 @@ test("the active-list modal confirms inside its own layer, locks duplicate write
   render().props.onOpenChange(false);
   assert.deepEqual(closes, [false]);
   runtime.unmount();
+});
+
+test("the request form modal has the same Tabler close control and retains its save-time dismissal guard", () => {
+  const runtime = hookRuntime();
+  const closes = [];
+  const modalRoot = Object.assign(() => {}, Object.fromEntries(["Backdrop", "Container", "Dialog", "CloseTrigger", "Header", "Heading", "Body"].map((key) => [key, key])));
+  const RequestModal = compile("app/tenant/maintenance/components/MaintenanceRequestModal.tsx", {
+    react: runtime.react,
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@heroui/react": { Modal: modalRoot },
+    "@tabler/icons-react": { IconX: "IconX" },
+    "./MaintenanceForm": { default: "MaintenanceForm" },
+    "./PropertyContextCard": { default: "PropertyContextCard" },
+  }).default;
+  const render = () => runtime.render(() => RequestModal({ isOpen: true, apartmentId: "apartment", onOpenChange: (open) => closes.push(open), onSubmitted: async () => {} }));
+  const initial = render();
+  const close = nodes(initial).find((node) => node.type === "CloseTrigger");
+  assert.equal(close.props.className, "maintenance-modal-close");
+  assert.equal(close.props.children.type, "IconX");
+  assert.equal(close.props.children.props.size, 16);
+  assert.equal(close.props["aria-label"], "Close maintenance request");
+  assert.equal(nodes(initial).find((node) => node.type === "Header").props.className, "pr-12");
+  nodes(initial).find((node) => node.type === "MaintenanceForm").props.onSubmittingChange(true);
+  const saving = render();
+  assert.equal(nodes(saving).find((node) => node.type === "CloseTrigger").props.isDisabled, true);
+  saving.props.onOpenChange(false);
+  assert.deepEqual(closes, []);
+  nodes(saving).find((node) => node.type === "MaintenanceForm").props.onSubmittingChange(false);
+  render().props.onOpenChange(false);
+  assert.deepEqual(closes, [false]);
+});
+
+test("maintenance close styles keep 44px targets around 32px circles and 16px icons, with keyboard focus", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const button = css.match(/\.maintenance-modal-close\.close-button\s*\{([^}]+)\}/)[1];
+  assert.match(button, /width: 44px/);
+  assert.match(button, /height: 44px/);
+  assert.match(button, /color: var\(--foreground\)/);
+  assert.match(button, /background-color: transparent/);
+  const circle = css.match(/\.maintenance-modal-close\.close-button::before\s*\{([^}]+)\}/)[1];
+  assert.match(circle, /inset: 6px/);
+  assert.match(circle, /pointer-events: none/);
+  const icon = css.match(/\.maintenance-modal-close\.close-button svg\s*\{([^}]+)\}/)[1];
+  assert.match(icon, /width: 16px/);
+  assert.match(icon, /height: 16px/);
+  assert.match(css, /\.maintenance-modal-close\.close-button:focus-visible/);
 });
