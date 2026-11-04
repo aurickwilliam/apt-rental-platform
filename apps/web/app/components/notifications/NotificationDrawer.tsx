@@ -62,6 +62,8 @@ export default function NotificationDrawer({
   const [filter, setFilter] = useState<Filter>("all");
   // Keyed by group identity (conversation + sender + oldest member), so a
   // realtime arrival keeps an already-expanded group open.
+  // Notices with no page to open (a warning, a suspension) expand in place instead.
+  const [expandedNotices, setExpandedNotices] = useState<ReadonlySet<string>>(() => new Set());
   const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -71,6 +73,7 @@ export default function NotificationDrawer({
   if (previousPortal !== activePortal) {
     setPreviousPortal(activePortal);
     setExpandedGroups(new Set());
+    setExpandedNotices(new Set());
     setFilter("all");
   }
   const { notifications, unreadCount, loading, error, markOneRead, markManyRead, markVisibleRead } =
@@ -134,7 +137,14 @@ export default function NotificationDrawer({
     if (href) {
       onClose();
       router.push(href);
+      return;
     }
+    setExpandedNotices((previous) => {
+      const next = new Set(previous);
+      if (next.has(notification.id)) next.delete(notification.id);
+      else next.add(notification.id);
+      return next;
+    });
   };
 
   // A group acknowledges its unread records in one batch, but only when the
@@ -243,6 +253,8 @@ export default function NotificationDrawer({
                             key={unit.id}
                             notification={unit.notification}
                             onOpen={() => openNotification(unit.notification)}
+                            expanded={expandedNotices.has(unit.notification.id)}
+                            expandable={!resolveNotificationTarget(unit.notification.data, activePortal).href}
                           />
                         ) : (
                           <NotificationGroupRow
