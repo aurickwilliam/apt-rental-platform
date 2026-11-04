@@ -1,6 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
+import { parseDate, type CalendarDate } from "@internationalized/date";
 import {
+  Calendar,
+  DateField,
+  DatePicker,
   Description,
   FieldError,
   Input,
@@ -11,6 +16,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@heroui/react";
+
+import { manilaToday } from "@repo/utils";
 
 import FormStepActions from "@/app/components/layout/FormStepActions";
 
@@ -26,6 +33,14 @@ const YES_NO_QUESTIONS: { field: YesNoField; title: string }[] = [
   { field: "isSmoker", title: "Are you a smoker?" },
   { field: "needParking", title: "Do you need parking?" },
 ];
+
+function toCalendarDate(value: string): CalendarDate | null {
+  try {
+    return parseDate(value);
+  } catch {
+    return null;
+  }
+}
 
 interface PreferencesStepProps extends ApplicationStepProps {
   maxOccupants: number | null;
@@ -45,25 +60,82 @@ export default function PreferencesStep({
   onBack,
   onNext,
 }: PreferencesStepProps) {
+  // The earliest move-in is tomorrow; `validatePreferences` repeats this.
+  const earliestMoveIn = useMemo(() => parseDate(manilaToday()).add({ days: 1 }), []);
+
   return (
     <div>
       <div className="flex flex-col gap-5">
-        <TextField
-          isRequired
-          isInvalid={!!errors.moveInDate}
-          value={form.moveInDate}
-          onChange={(value: string) => {
-            onChange({ moveInDate: value });
+        <DatePicker
+          className="flex w-full flex-col gap-1"
+          value={toCalendarDate(form.moveInDate)}
+          onChange={(value) => {
+            onChange({ moveInDate: value ? value.toString() : "" });
             if (value) clearError("moveInDate");
           }}
+          minValue={earliestMoveIn}
+          isInvalid={!!errors.moveInDate}
+          isRequired
         >
           <Label>Preferred Move-In Date</Label>
-          <Input type="date" className={INPUT_CLASS} />
+          <DateField.Group fullWidth className="border border-border bg-card">
+            <DateField.Input>
+              {(segment) => (
+                <DateField.Segment
+                  segment={segment}
+                  className="text-foreground data-[placeholder=true]:text-muted-foreground"
+                />
+              )}
+            </DateField.Input>
+            <DateField.Suffix>
+              <DatePicker.Trigger className="cursor-pointer">
+                <DatePicker.TriggerIndicator className="text-muted-foreground" />
+              </DatePicker.Trigger>
+            </DateField.Suffix>
+          </DateField.Group>
           <FieldError>{errors.moveInDate}</FieldError>
           {maxOccupants !== null && !errors.moveInDate && (
-            <Description>This unit allows a maximum of {maxOccupants} occupant(s).</Description>
+            <Description className="text-muted-foreground">
+              This unit allows a maximum of {maxOccupants} occupant(s).
+            </Description>
           )}
-        </TextField>
+          <DatePicker.Popover>
+            {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
+            <Calendar aria-label="Preferred move-in date" minValue={earliestMoveIn}>
+              <Calendar.Header>
+                <Calendar.YearPickerTrigger className="cursor-pointer">
+                  <Calendar.YearPickerTriggerHeading />
+                  <Calendar.YearPickerTriggerIndicator className="text-muted-foreground" />
+                </Calendar.YearPickerTrigger>
+                <Calendar.NavButton slot="previous" className="cursor-pointer text-muted-foreground" />
+                <Calendar.NavButton slot="next" className="cursor-pointer text-muted-foreground" />
+              </Calendar.Header>
+              <Calendar.Grid>
+                <Calendar.GridHeader>
+                  {(day) => <Calendar.HeaderCell className="text-muted-foreground">{day}</Calendar.HeaderCell>}
+                </Calendar.GridHeader>
+                <Calendar.GridBody>
+                  {(day) => (
+                    <Calendar.Cell
+                      date={day}
+                      className="cursor-pointer data-selected:bg-primary data-selected:text-white data-disabled:cursor-not-allowed"
+                    />
+                  )}
+                </Calendar.GridBody>
+              </Calendar.Grid>
+              <Calendar.YearPickerGrid>
+                <Calendar.YearPickerGridBody>
+                  {(yearProps) => (
+                    <Calendar.YearPickerCell
+                      year={yearProps.year}
+                      className="cursor-pointer data-selected:bg-primary data-selected:text-white"
+                    />
+                  )}
+                </Calendar.YearPickerGridBody>
+              </Calendar.YearPickerGrid>
+            </Calendar>
+          </DatePicker.Popover>
+        </DatePicker>
 
         <TextField
           isRequired
@@ -134,7 +206,7 @@ export default function PreferencesStep({
             maxLength={NOTES_MAX_LENGTH}
             className={INPUT_CLASS}
           />
-          <Description>
+          <Description className="text-muted-foreground">
             {form.additionalNotes.length}/{NOTES_MAX_LENGTH} characters
           </Description>
         </TextField>
