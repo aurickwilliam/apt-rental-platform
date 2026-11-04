@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { IconChevronRight, IconHome } from "@tabler/icons-react";
+import { IconChevronRight, IconHome, IconBuilding } from "@tabler/icons-react";
 import { Button, Card, Modal } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { statusToneFor } from "@/lib/status-tone";
@@ -78,7 +78,7 @@ interface ApartmentListProps {
 
 function ApartmentList({ apartments, limit }: ApartmentListProps) {
   if (!apartments.length) {
-    return <DetailEmptyState>No owned units</DetailEmptyState>;
+    return <DetailEmptyState icon={IconBuilding} title="No owned units" description="This user has not listed any property." />;
   }
   const displayedApartments = limit ? apartments.slice(0, limit) : apartments;
   return (
@@ -136,7 +136,7 @@ function LandlordTenancies({
 }) {
   if (!tenancies.length) {
     return (
-      <DetailEmptyState>No active tenancies on owned units</DetailEmptyState>
+      <DetailEmptyState icon={IconHome} title="No active tenancies on owned units" description="Tenancies will appear here once a unit is rented." />
     );
   }
   const displayedTenancies = limit ? tenancies.slice(0, limit) : tenancies;
@@ -182,7 +182,7 @@ function TenantTenancy({ tenancies }: { tenancies: ActiveTenancy[] }) {
   const current =
     tenancies.find((item) => item.status === "active") ?? tenancies[0] ?? null;
   if (!current) {
-    return <DetailEmptyState>No active tenancy</DetailEmptyState>;
+    return <DetailEmptyState icon={IconHome} title="No active tenancy" description="This user is not currently renting." />;
   }
   return (
     <p className="text-sm">

@@ -10,7 +10,6 @@ import FinanceCard from "./FinanceCard";
 import FinanceHeading from "./FinanceHeading";
 import { FINANCE_CATEGORY_BACKGROUND_CLASSES } from "./financeCategoryStyles";
 import EmptyState from "@/components/display/EmptyState";
-import { useColors } from "@/hooks/useTheme";
 import type { FinanceData } from "@/service/finance/financeService";
 
 export default function ExpenseCategoryChart({
@@ -20,7 +19,6 @@ export default function ExpenseCategoryChart({
   categories: FinanceData["categories"];
   onSelect: (value: FinanceCategory) => void;
 }) {
-  const { colors } = useColors();
   const rows = [...categories]
     .filter((row) => (row.amount ?? 0) > 0 || row.previous_amount > 0)
     .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
@@ -34,7 +32,7 @@ export default function ExpenseCategoryChart({
       />
       {rows.length === 0 && (
         <EmptyState
-          icon={<IconReceipt2 size={32} color={colors.gray500} />}
+          icon={IconReceipt2}
           title="No expenses recorded"
           description="Nothing recorded this month or the previous month."
         />

@@ -20,6 +20,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import type { TrendPoint } from "../lib/get-dashboard-data";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconAlertCircle, IconCircleCheck } from "@tabler/icons-react";
 
 interface QueueChartProps {
   users: number | null;
@@ -34,9 +36,12 @@ const queueConfig = {
 export function QueueChart({ users, apartments }: QueueChartProps) {
   if (users === null || apartments === null)
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        Queue totals unavailable.
-      </p>
+      <EmptyState
+        className="py-12"
+        icon={IconAlertCircle}
+        title="Queue totals unavailable"
+        description="Refresh to try again."
+      />
     );
   const total = users + apartments;
   const data = [
@@ -76,9 +81,12 @@ export function QueueChart({ users, apartments }: QueueChartProps) {
           </div>
         </div>
       ) : (
-        <p className="py-12 text-center text-sm text-muted-foreground">
-          No pending reviews. All caught up!
-        </p>
+        <EmptyState
+          className="py-12"
+          icon={IconCircleCheck}
+          title="No pending reviews"
+          description="You're all caught up!"
+        />
       )}
       <ul className="mt-3 space-y-2 text-sm">
         <li className="flex items-center justify-between">

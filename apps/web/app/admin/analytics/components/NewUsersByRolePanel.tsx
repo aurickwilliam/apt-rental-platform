@@ -13,6 +13,8 @@ import {
 import type { AnalyticsMetrics, AnalyticsTrend } from "../types";
 import { bucketDateLabel, numberFormat, shortDate } from "./analytics-format";
 import Panel from "./Panel";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 
 const roleConfig = {
   tenants: { label: "Tenant", color: "var(--primary)" },
@@ -134,14 +136,13 @@ export default function NewUsersByRolePanel({
           </p>
         </>
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          {trends === null
-            ? "Role trend unavailable; period totals are shown above."
-            : "No registration data for this period."}
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={trends === null ? IconAlertCircle : IconUsers}
+          title={trends === null ? "Role trend unavailable" : "No registration data for this period"}
+          description={trends === null ? "Period totals are shown above." : "Nothing has been recorded in this period."}
+        />
       )}
     </Panel>
   );

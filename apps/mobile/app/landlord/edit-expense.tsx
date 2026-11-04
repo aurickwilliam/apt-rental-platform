@@ -19,7 +19,6 @@ import {
   useLandlordFinances,
 } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
-import { useColors } from "@/hooks/useTheme";
 import { financeErrorMessage } from "@/service/finance/financeService";
 
 function EditExpense() {
@@ -31,7 +30,6 @@ function EditExpense() {
     apartmentId?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const { toast } = useToast();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
@@ -99,7 +97,7 @@ function EditExpense() {
         className="p-5"
       >
         <EmptyState
-          icon={<IconReceipt2 size={32} color={colors.gray500} />}
+          icon={IconReceipt2}
           title="Expense not found"
           description={`This expense is no longer part of ${financeMonthLabel(month)}'s records. Open the category and choose an expense to change.`}
         />

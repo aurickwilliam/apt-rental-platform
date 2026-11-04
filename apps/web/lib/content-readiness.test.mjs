@@ -223,6 +223,7 @@ test("admin shell returns after authorization without awaiting any region, and d
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     react: { Suspense: "Suspense" },
     "next/link": { default: "Link" },
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
     "@/components/ui/skeleton": { Skeleton: "Skeleton" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "../_lib/require-admin": { requireAdmin: async () => { if (!allowed) throw new Error("Denied"); return { first_name: "Admin" }; } },

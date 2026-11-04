@@ -65,7 +65,7 @@ export default function UserReputation({
           </div>
         </>
       ) : (
-        <DetailEmptyState>No review activity yet</DetailEmptyState>
+        <DetailEmptyState icon={IconStar} title="No review activity yet" description="Reviews given or received will appear here." />
       )}
       </Card.Content>
     </Card>

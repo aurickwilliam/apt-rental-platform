@@ -69,7 +69,7 @@ export default function UserVerificationCard({
             ) : null}
           </div>
         ) : (
-          <DetailEmptyState>No verification submission</DetailEmptyState>
+          <DetailEmptyState icon={IconShieldCheck} title="No verification submission" description="This user has not submitted identity documents yet." />
         )}
       </Card.Content>
     </Card>

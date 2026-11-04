@@ -21,6 +21,7 @@ function load(file, options = {}) {
   let href = `https://apt.example/landlord/applications?${params}`;
   const jsx = (type, props) => ({ type, props });
   const dependencies = {
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/PresentationBoundary": { default: function PresentationBoundary({ children }) { return children(undefined); } },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "react": { Suspense: "Suspense", useMemo: callback => callback(), useState: initial => [filters ? filters[stateIndex++] : initial, () => {}] },
@@ -70,7 +71,7 @@ function load(file, options = {}) {
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "PresentationBoundary", "ApplicationsHeader", "ApplicationsContent", "ApplicationsSummary", "ApplicationsSummarySkeleton", "ApplicationsSkeleton", "ApplicationsCountSkeleton", "ApplicationsResultsSkeleton",
+    "EmptyState", "Sk", "PresentationBoundary", "ApplicationsHeader", "ApplicationsContent", "ApplicationsSummary", "ApplicationsSummarySkeleton", "ApplicationsSkeleton", "ApplicationsCountSkeleton", "ApplicationsResultsSkeleton",
   ].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];

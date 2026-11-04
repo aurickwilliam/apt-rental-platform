@@ -111,6 +111,7 @@ test("Maintenance page uses the independent context and shares its tenant identi
       "./components/MaintenanceForm": { default: "MaintenanceForm" },
       "./components/MaintenanceHistory": { default: "MaintenanceHistory" },
       "./components/MaintenancePageSkeleton": { default: "MaintenancePageSkeleton" },
+      "@/app/components/display/EmptyState": { default: "EmptyState" },
       "@/app/components/display/ErrorBanner": { default: "ErrorBanner" },
       "@/hooks/use-maintenance-tenancy": { useMaintenanceTenancy: () => state },
       "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: (...args) => { historyReads.push(args); return { requests: [] }; } },

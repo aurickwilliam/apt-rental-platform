@@ -18,8 +18,9 @@ import {
   type MonthlyRevenuePoint,
   type TrendTimeframe,
 } from "@repo/utils";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconChartBar } from "@tabler/icons-react";
 
-import ChartEmptyState from "./ChartEmptyState";
 
 const profitConfig = {
   value: { label: "Profit", color: "var(--primary)" },
@@ -101,7 +102,8 @@ export default function ProfitTrendChart({ data, className = "" }: Props) {
           </AreaChart>
         </ChartContainer>
       ) : (
-        <ChartEmptyState
+        <EmptyState
+          icon={IconChartBar}
           title="No earnings yet"
           description="Your profit trend will appear here once payments come in."
         />

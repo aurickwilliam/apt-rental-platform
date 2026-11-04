@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Spinner } from "heroui-native";
 
@@ -8,6 +8,8 @@ import { useMaintenanceRequestHistory } from "@/hooks/maintenance-requests";
 import { useColors } from "@/hooks/useTheme";
 import StandardHeader from "@/components/layout/StandardHeader";
 import { useMaintenanceFocusRefresh } from "@/hooks/maintenance-requests/useMaintenanceFocusRefresh";
+import { IconTool } from "@tabler/icons-react-native";
+import EmptyState from "@/components/display/EmptyState";
 
 export default function MaintenanceHistory() {
   const router = useRouter();
@@ -48,9 +50,11 @@ export default function MaintenanceHistory() {
           />
         )}
         ListEmptyComponent={
-          <Text className="text-gray-500 text-center mt-10">
-            No maintenance requests yet.
-          </Text>
+          <EmptyState
+            icon={IconTool}
+            title="No maintenance requests yet"
+            description="Requests you send to your landlord will appear here."
+          />
         }
       />
     </ScreenWrapper>

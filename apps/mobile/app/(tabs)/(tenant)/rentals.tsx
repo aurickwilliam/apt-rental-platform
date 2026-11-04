@@ -27,7 +27,6 @@ import {
 
 import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
-import { useColors } from '@/hooks/useTheme';
 import { useLightStatusBar } from '@/hooks/useLightStatusBar';
 import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
@@ -93,7 +92,6 @@ function TabScreen({
 
 export default function Rentals() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const {
     tenancy,
@@ -381,8 +379,7 @@ export default function Rentals() {
 
       {view === 'error' ? (
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Couldn't load your rentals"
           description="Check your connection and try again."
           action={

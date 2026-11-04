@@ -21,6 +21,7 @@ import PaymentHistoryCard, { type PaymentHistoryItem } from './components/Paymen
 import PaymentHistoryFilterSheet, {
   type PaymentHistoryFilters,
 } from './components/PaymentHistoryFilterSheet'
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: PaymentHistoryFilters = {
   years: [],
@@ -191,15 +192,11 @@ export default function History() {
         )}
         ItemSeparatorComponent={() => <View className='h-3' />}
         ListEmptyComponent={
-          <View className='items-center gap-4 py-20'>
-            <IconReceipt size={64} color={colors.primary} />
-            <Text className='text-xl font-nunitoBold text-foreground'>
-              No payments found
-            </Text>
-            <Text className='text-gray-400 text-base font-inter text-center px-8'>
-              Try adjusting your filters to see more results.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconReceipt}
+            title='No payments found'
+            description='Try adjusting your filters to see more results.'
+          />
         }
       />
 

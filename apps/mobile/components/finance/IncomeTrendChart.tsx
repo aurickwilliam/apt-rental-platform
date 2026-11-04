@@ -92,7 +92,7 @@ export default function IncomeTrendChart({
       />
       {!hasActivity ? (
         <EmptyState
-          icon={<IconChartBar size={32} color={colors.textSecondary} />}
+          icon={IconChartBar}
           title="No income activity yet"
           description="Collected rent and recorded expenses will appear here."
         />

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@heroui/react";
 import { IconHistory } from "@tabler/icons-react";
 import { activityDateFormatter } from "../../../activity/lib/activity-display";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export interface UserActivityEvent {
   id: string;
@@ -28,7 +29,7 @@ function targetHref(targetType: string, targetId: string) {
 export default function UserActivityTimeline({
   events,
   title = "Activity timeline",
-  emptyMessage = "No account activity yet",
+  emptyMessage = "Account access, moderation and review history will appear here.",
 }: UserActivityTimelineProps) {
   return (
     <Card className="rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
@@ -82,9 +83,7 @@ export default function UserActivityTimeline({
             })}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
-             {emptyMessage}
-          </p>
+          <EmptyState className="mt-2 py-8" icon={IconHistory} title="No activity yet" description={emptyMessage} />
         )}
       </Card.Content>
     </Card>

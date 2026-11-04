@@ -11,6 +11,8 @@ import {
 import type { ListingCityCount } from "../types";
 import { numberFormat } from "./analytics-format";
 import Panel from "./Panel";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconBuilding, IconAlertCircle } from "@tabler/icons-react";
 
 const cityConfig = {
   value: { label: "Listings", color: "var(--primary)" },
@@ -37,12 +39,13 @@ export default function ListingsByCityPanel({
       description="Current listing distribution across CAMANAVA."
     >
       {listingsByCity === null ? (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          City distribution is unavailable. Refresh and try again.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconAlertCircle}
+          title="City distribution is unavailable"
+          description="Refresh and try again."
+        />
       ) : cityBars.some((row) => row.value > 0) ? (
         <>
           <ChartContainer config={cityConfig} className="mt-4 h-56 w-full">
@@ -107,12 +110,13 @@ export default function ListingsByCityPanel({
           </p>
         </>
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          No listings recorded in the four CAMANAVA cities.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconBuilding}
+          title="No listings yet"
+          description="None recorded in the four CAMANAVA cities."
+        />
       )}
       {listingsByCity !== null && unmatchedCityCount > 0 ? (
         <p className="mt-3 text-xs text-muted-foreground">

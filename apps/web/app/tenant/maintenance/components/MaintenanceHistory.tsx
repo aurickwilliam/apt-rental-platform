@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card, Modal, Spinner, useOverlayState, toast } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
-import { IconTool as Wrench } from "@tabler/icons-react";
+import { IconTool as Wrench, IconTools } from "@tabler/icons-react";
 
 import { CATEGORIES } from "../data/maintenance-data";
 import { useMaintenancePhotoUrls } from "@/hooks/use-maintenance-photo-urls";
@@ -12,6 +12,7 @@ import {
   canCancelMaintenanceRequest,
   type MaintenanceRequest,
 } from "@/hooks/use-maintenance-request-history";
+import EmptyState from "@/app/components/display/EmptyState";
 
 // Same tones as mobile's useMaintenanceRequestUrgencyStyles.
 const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
@@ -88,9 +89,12 @@ export default function MaintenanceHistory({
         ) : error ? (
           <p className="font-inter text-sm text-red-600">{error}</p>
         ) : requests.length === 0 ? (
-          <p className="font-inter text-sm text-muted-foreground text-center py-6">
-            No maintenance requests yet.
-          </p>
+          <EmptyState
+            className="py-6"
+            icon={IconTools}
+            title="No maintenance requests yet"
+            description="Requests you send to your landlord will appear here."
+          />
         ) : (
           <div className="flex flex-col gap-3">
             {requests.map((request) => {

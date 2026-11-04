@@ -3,11 +3,12 @@ import Image from "next/image";
 
 import { Button, Dropdown, Table } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
-import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
+import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconBuilding } from "@tabler/icons-react";
 
 import { STATUS_COLOR } from "./propertyConstants";
 import type { Property } from "./propertyTypes";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type Props = {
   properties: Property[];
@@ -26,10 +27,11 @@ export default function PropertiesTable({
 }: Props) {
   if (properties.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-        <p className="text-base font-medium">No properties yet</p>
-        <p className="text-sm">Add your first listing to get started</p>
-      </div>
+      <EmptyState
+        icon={IconBuilding}
+        title="No properties yet"
+        description="Add your first listing to get started"
+      />
     );
   }
 

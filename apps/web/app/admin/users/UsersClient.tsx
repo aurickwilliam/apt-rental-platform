@@ -23,7 +23,6 @@ import type { ActiveFilterTag } from "../_components/filters/types";
 import { useListFilters } from "../_components/filters/use-list-filters";
 import UsersTable from "./components/UsersTable";
 import UserCardList from "./components/UserCardList";
-import UsersEmptyState from "./components/UsersEmptyState";
 import type { AdminUser } from "./lib/user-display";
 import {
   ACCESS_OPTIONS,
@@ -36,6 +35,7 @@ import {
   type UserRole,
   type VerificationStatus,
 } from "./lib/user-filters";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface UsersClientProps {
   users: AdminUser[];
@@ -261,7 +261,11 @@ export default function UsersClient({
                 <UserCardList users={users} />
               </>
             ) : (
-              <UsersEmptyState />
+              <EmptyState
+      icon={IconUsers}
+      title="No users found"
+      description="Try adjusting your search or filters."
+    />
             )}
           </PendingList>
 

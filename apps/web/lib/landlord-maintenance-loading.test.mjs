@@ -27,6 +27,7 @@ function load(file, options = {}) {
   };
   const header = { default: function MaintenanceHeader() { return load("components/MaintenanceHeader.tsx").default(); } };
   const dependencies = {
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/PresentationBoundary": { default: function PresentationBoundary({ children }) { return children(undefined); } },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "react": {
@@ -46,6 +47,7 @@ function load(file, options = {}) {
     },
     "@/hooks/use-landlord-action-badges": { useLandlordActionBadges: () => ({ markViewed }) },
     "@/app/components/profile/UserAvatar": { default: "UserAvatar" },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/components/settings/SettingsSelect": { default: "SettingsSelect" },
     "./lib/maintenance-status": maintenanceStatus,
@@ -62,7 +64,6 @@ function load(file, options = {}) {
     "./lib/use-maintenance-list-filters": { default: () => load("lib/use-maintenance-list-filters.ts", options).default() },
     "./MaintenanceSummary": { default: function MaintenanceSummary(props) { return load("components/MaintenanceSummary.tsx").default(props); } },
     "./components/MaintenanceSummary": { default: function MaintenanceSummary(props) { return load("components/MaintenanceSummary.tsx").default(props); } },
-    "./components/MaintenanceEmptyState": { default: function MaintenanceEmptyState() { return load("components/MaintenanceEmptyState.tsx").default(); } },
     "./MaintenanceHeader": header,
     "./components/MaintenanceHeader": header,
     "./components/MaintenanceSkeletons": skeletons,
@@ -89,7 +90,7 @@ function load(file, options = {}) {
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
   const expand = typeof element.type === "function" && [
-    "Sk", "PresentationBoundary", "MaintenanceHeader", "MaintenanceSkeleton", "MaintenanceCountSkeleton", "MaintenanceResultsSkeleton",
+    "EmptyState", "Sk", "PresentationBoundary", "MaintenanceHeader", "MaintenanceSkeleton", "MaintenanceCountSkeleton", "MaintenanceResultsSkeleton",
     "MaintenanceTableSkeleton", "MaintenanceCardSkeleton", "MaintenanceEmptyState", "MaintenanceContent", "MaintenanceSummary",
     "MaintenanceDetailShell", "MaintenanceDetailSkeleton", "MaintenanceDetailFieldSkeleton", "MaintenanceDetailSectionTitle", "SectionTitle", "DetailField",
   ].includes(element.type.name);

@@ -29,7 +29,6 @@ import EmptyState from "@/components/display/EmptyState";
 import EmptyProperties from "@/app/(tabs)/components/units/EmptyProperties";
 import FinanceSkeleton from "@/components/finance/FinanceSkeleton";
 import { useCurrentUser } from "@/hooks/auth";
-import { useColors } from "@/hooks/useTheme";
 import {
   useFinanceIncomeMonths,
   useLandlordFinances,
@@ -62,7 +61,6 @@ function LandlordAnalytics() {
     month?: string;
     apartmentId?: string;
   }>();
-  const { colors } = useColors();
   const { toast } = useToast();
   const listRef = useRef<ScreenWrapperScrollRef>(null);
   const today = manilaToday();
@@ -233,13 +231,7 @@ function LandlordAnalytics() {
       >
         <EmptyState
           className="py-16"
-          icon={
-            accessUnavailable ? (
-              <IconLock size={48} color={colors.gray500} />
-            ) : (
-              <IconChartBar size={48} color={colors.gray500} />
-            )
-          }
+          icon={accessUnavailable ? IconLock : IconChartBar}
           title={
             accessUnavailable
               ? "Finances unavailable"
@@ -445,9 +437,7 @@ function LandlordAnalytics() {
                 />
                 {data.budgets.length === 0 ? (
                   <EmptyState
-                    icon={
-                      <IconTargetArrow size={32} color={colors.gray500} />
-                    }
+                    icon={IconTargetArrow}
                     title="No plan for this month yet"
                     description="Set spending limits and reserve goals for this month to see your plan here."
                   />

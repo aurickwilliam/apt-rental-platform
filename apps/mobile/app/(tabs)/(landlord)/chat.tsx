@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FlatList } from 'react-native-gesture-handler'
 
 import { Tabs } from 'heroui-native'
-import { IconMessageQuestion, IconSearchOff, IconUsers } from '@tabler/icons-react-native'
+import { IconMessageQuestion, IconSearchOff, IconUsers, IconAlertCircle } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import {
@@ -19,7 +19,6 @@ import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRo
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
 import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays'
 
-import { useColors } from '@/hooks/useTheme'
 import { useConversationRowActions, useConversations } from '@/hooks/chat'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import {
@@ -56,7 +55,6 @@ const FILTER_EMPTY_STATES: Record<
 
 function Chat() {
   const router = useRouter();
-  const { colors } = useColors();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -136,7 +134,7 @@ function Chat() {
   const filterEmptyState = !isSearching && hasConversations && filteredCount === 0 ? (
     <EmptyState
       className='mt-6'
-      icon={<EmptyFilterIcon size={36} color={colors.primary} />}
+      icon={EmptyFilterIcon}
       title={FILTER_EMPTY_STATES[selectedFilter].title}
       description={FILTER_EMPTY_STATES[selectedFilter].description}
     />
@@ -147,6 +145,7 @@ function Chat() {
   ) : error ? (
     <ConversationListState
       variant='illustrated'
+      icon={IconAlertCircle}
       title='Something went wrong'
       description={error}
       actionLabel='Retry'

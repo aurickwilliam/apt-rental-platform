@@ -7,6 +7,7 @@ import { IconTools } from "@tabler/icons-react";
 
 import { CATEGORIES } from "@/app/tenant/maintenance/data/maintenance-data";
 import type { ApartmentMaintenanceHistoryItem } from "@/service/apartmentMaintenanceHistoryService";
+import EmptyState from "@/app/components/display/EmptyState";
 
 // Same tones as mobile's useMaintenanceRequestUrgencyStyles.
 const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
@@ -56,9 +57,12 @@ export default function ApartmentMaintenanceHistory({
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-foreground text-center py-6">
-          No resolved maintenance yet.
-        </p>
+        <EmptyState
+          className="py-6"
+          icon={IconTools}
+          title="No resolved maintenance yet"
+          description="Completed repairs for this apartment will be listed here."
+        />
       ) : (
         <div className="flex flex-col gap-3 max-h-[580px] overflow-y-auto pr-1">
           {items.map((item) => {

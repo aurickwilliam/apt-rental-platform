@@ -130,6 +130,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     },
     "@/hooks/use-notifications": hook,
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/lib/notification-fab-position": {},
     "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
     "@/lib/notification-links": drawerLinks,

@@ -148,7 +148,7 @@ export default function LandlordPaymentsScreen() {
     return (
       <ScreenWrapper header={header} className="p-5">
         <EmptyState
-          icon={<IconWallet size={48} color={colors.primary} />}
+          icon={IconWallet}
           title="No units yet"
           description="Payments for your units will appear here."
         />
@@ -228,30 +228,32 @@ export default function LandlordPaymentsScreen() {
         </View>
 
         {rows.length === 0 ? (
-          <View className="items-center gap-3 py-12">
-            <IconWallet size={56} color={colors.primary} />
-            <Text className="text-xl font-nunitoBold text-foreground">
-              {isFiltered ? "No payments found" : "No payments yet"}
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center px-8">
-              {isFiltered
+          <EmptyState
+            className="py-12"
+            icon={IconWallet}
+            title={isFiltered ? "No payments found" : "No payments yet"}
+            description={
+              isFiltered
                 ? "Try another status or year to see more results."
                 : showUnit
                   ? "Payments for your units will appear here."
-                  : "Payments for this unit will appear here."}
-            </Text>
-            {isFiltered ? (
-              <Button
-                variant="secondary"
-                onPress={() => {
-                  setTab("all");
-                  setYear(ALL_YEARS);
-                }}
-              >
-                <Button.Label>Clear filters</Button.Label>
-              </Button>
-            ) : null}
-          </View>
+                  : "Payments for this unit will appear here."
+            }
+            action={
+              isFiltered ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onPress={() => {
+                    setTab("all");
+                    setYear(ALL_YEARS);
+                  }}
+                >
+                  <Button.Label>Clear filters</Button.Label>
+                </Button>
+              ) : undefined
+            }
+          />
         ) : (
           <View className="gap-2">
             {visibleRows.map((payment) => (

@@ -6,7 +6,6 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from "components/display/PullToRefresh";
-import { useColors } from "hooks/useTheme";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 import SearchSection, { SearchSectionSkeleton } from "./SearchSection";
 import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
@@ -34,7 +33,6 @@ export default function SearchSectionsList({
   onPressApartment,
   cityLabel = "CAMANAVA",
 }: Props) {
-  const { colors } = useColors();
 
   if (isLoading) {
     return (
@@ -50,8 +48,7 @@ export default function SearchSectionsList({
     return (
       <View className="flex-1 px-5">
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Something went wrong"
           description={error}
           action={
@@ -68,8 +65,7 @@ export default function SearchSectionsList({
     return (
       <View className="flex-1 px-5">
         <EmptyState
-          variant="tenant"
-          icon={<IconSearchOff size={64} color={colors.primary} />}
+          icon={IconSearchOff}
           title="No apartments available"
           description="We couldn't find any listings. Pull to refresh or try another city."
           action={

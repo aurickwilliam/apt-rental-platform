@@ -14,6 +14,8 @@ import {
 import type { AnalyticsMetrics } from "../types";
 import { numberFormat } from "./analytics-format";
 import Panel from "./Panel";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconShieldCheck } from "@tabler/icons-react";
 
 const reviewConfig = {
   approved: { label: "Approved · in period", color: COLORS.light.success },
@@ -110,9 +112,13 @@ export default function VerificationActivityPanel({
           </BarChart>
         </ChartContainer>
       ) : (
-        <p className="mt-4 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-          No verification decisions in this period or requests pending now.
-        </p>
+        <EmptyState
+          framed
+          className="mt-4 py-8"
+          icon={IconShieldCheck}
+          title="No verification activity"
+          description="No decisions in this period and no requests pending now."
+        />
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
         <span>

@@ -2,17 +2,15 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
-import { IconFilter } from '@tabler/icons-react-native';
+import { IconFilter, IconFileText, IconSearchOff } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
 import TenantApplicationCard from './components/TenantApplicationCard';
 import TenantApplicationCardSkeleton from './components/TenantApplicationCardSkeleton';
-import EmptyApplications from './components/EmptyApplications';
 import ApplicationFilterSheet, {
   type ApplicationFilters,
 } from './components/ApplicationFilterSheet';
-import EmptySearchResults from './components/EmptySearchResults';
 import {
   PullToRefreshControl,
   PullToRefreshIndicator,
@@ -26,6 +24,7 @@ import { useLandlordApplications } from '@/hooks/applications';
 import { useColors } from '@/hooks/useTheme';
 import { useLandlordActionBadges } from '@/hooks/apartments';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: ApplicationFilters = { statuses: [], locations: [] };
 
@@ -157,8 +156,18 @@ export default function TenantApplications() {
         ListEmptyComponent={
           loading ? null : (
             hasApplications && hasActiveSearch
-              ? <EmptySearchResults query={searchQuery} />
-              : <EmptyApplications />
+              ? <EmptyState
+          className="flex-1"
+          icon={IconSearchOff}
+          title="No results found"
+          description={searchQuery.trim() ? `No applications match "${searchQuery.trim()}".` : undefined}
+        />
+              : <EmptyState
+      className="flex-1"
+      icon={IconFileText}
+      title="No applications yet"
+      description="New tenant applications will appear here."
+    />
           )
         }
         renderItem={({ item }) => (

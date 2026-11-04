@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import type { Icon } from "@tabler/icons-react";
+
+import EmptyState from "@/app/components/display/EmptyState";
 
 export function InfoField({ label, value }: { label: string; value: string }) {
   return (
@@ -18,6 +20,16 @@ export function MetricItem({ value, label }: { value: string; label: string }) {
   );
 }
 
-export function DetailEmptyState({ children }: { children: ReactNode }) {
-  return <p className="mt-3 text-sm text-muted-foreground">{children}</p>;
+export function DetailEmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: Icon;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <EmptyState className="mt-2 py-8" icon={icon} title={title} description={description} />
+  );
 }

@@ -33,6 +33,7 @@ import {
   IconFlag,
   IconStarFilled,
 } from '@tabler/icons-react-native';
+import EmptyState from "@/components/display/EmptyState";
 
 export default function PublicTenantProfile() {
   const { tenantId, apartmentId } = useLocalSearchParams<{
@@ -236,15 +237,11 @@ export default function PublicTenantProfile() {
             </SkeletonGroup>
           </View>
         ) : pastApartments.length === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconHomeSearch size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No rental history yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              This tenant has no completed leases on the platform yet.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconHomeSearch}
+            title="No rental history yet"
+            description="This tenant has no completed leases on the platform yet."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {pastApartments.map((apartment) => {
@@ -289,15 +286,11 @@ export default function PublicTenantProfile() {
         </Text>
 
         {landlordReviews.length === 0 ? (
-          <View className="items-center py-10 px-8 gap-3">
-            <IconStar size={48} color={colors.primary} />
-            <Text className="text-foreground text-lg font-nunitoBold text-center">
-              No landlord ratings yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              Landlords can rate a tenant once their lease has ended.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title="No landlord ratings yet"
+            description="Landlords can rate a tenant once their lease has ended."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {landlordReviews.map((review) => (

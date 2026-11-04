@@ -21,13 +21,13 @@ import {
   type ProfileViewerPortal,
 } from "@/lib/public-profile";
 
-import PublicProfileEmptyState from "./PublicProfileEmptyState";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
 import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
 import type { LandlordReviewsPageData } from "./types";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface LandlordReviewsViewProps {
   data: LandlordReviewsPageData;
@@ -139,7 +139,8 @@ export default function LandlordReviewsView({ data, portal }: LandlordReviewsVie
           ) : null}
 
           {reviews.length === 0 ? (
-            <PublicProfileEmptyState
+            <EmptyState
+          className="py-12 rounded-3xl border border-border bg-card"
               icon={IconMessage}
               title="No reviews yet"
               description="Reviews from tenants who rented this landlord's apartments will appear here."

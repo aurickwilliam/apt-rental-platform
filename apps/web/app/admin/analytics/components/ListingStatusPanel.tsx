@@ -5,6 +5,8 @@ import type { ChartConfig } from "@/components/ui/chart";
 import type { ListingStatus } from "../types";
 import Panel from "./Panel";
 import StatusDonut from "./StatusDonut";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconBuilding, IconAlertCircle } from "@tabler/icons-react";
 
 const listingConfig = {
   available: { label: "Available", color: COLORS.light.success },
@@ -44,12 +46,13 @@ export default function ListingStatusPanel({
       description="Current inventory · non-deleted listings, regardless of the selected reporting period."
     >
       {listingStatus === null ? (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          Listing inventory is unavailable. Refresh and try again.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconAlertCircle}
+          title="Listing inventory is unavailable"
+          description="Refresh and try again."
+        />
       ) : listingStatus.total ? (
         <>
           <StatusDonut
@@ -70,12 +73,13 @@ export default function ListingStatusPanel({
           </p>
         </>
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          No listings in the current inventory.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconBuilding}
+          title="No listings yet"
+          description="There are no listings in the current inventory."
+        />
       )}
     </Panel>
   );
