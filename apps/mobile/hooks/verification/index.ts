@@ -5,7 +5,6 @@ export {
   useLatestVerification,
   useVerificationHistory,
   useSubmitVerification,
-  useSubmitSessionVerification,
   getUserVerificationQueryKey,
   getUserVerificationHistoryQueryKey,
   buildVerificationInput,
