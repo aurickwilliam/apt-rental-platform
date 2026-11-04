@@ -57,6 +57,7 @@ function submitHook() {
       }),
     },
     "@/lib/application-form-preferences": formPreferences,
+    "@repo/constants": compile("../../packages/constants/src/user/ph-mobile.ts", {}),
     "@/service/passportService": { fetchPassportDocumentsWithVerification: async () => [] },
     "@/service/tenantApplicationsService": {
       fetchApplicationSubmitContext: async () => ({
@@ -81,6 +82,12 @@ test("submitting stores the details the tenant declared on the form", async () =
     householdDisability: true,
   });
   assert.equal(inserted[0].has_pets, true, "the form's own answers are still written");
+});
+
+test("the previous landlord's number is stored without the spaces the field shows", async () => {
+  const { submit, inserted } = submitHook();
+  await submit("apt-1", { ...form, prevLandlordName: "Ana", prevLandlordContact: "0917 123 4567" });
+  assert.equal(inserted[0].prev_landlord_contact, "09171234567");
 });
 
 test("answering no shares no pet or parking details, even if some were typed earlier", async () => {

@@ -1,14 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
 
 import { handlePesoChange } from "@repo/utils";
-import { EMPLOYMENT_TYPES, REQUIRES_OCCUPATION_TYPES, requiresProofOfIncome, type EmploymentType } from "@repo/constants";
+import {
+  EMPLOYMENT_TYPES,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  REQUIRES_OCCUPATION_TYPES,
+  formatPHMobileInput,
+  requiresProofOfIncome,
+  type EmploymentType,
+} from "@repo/constants";
 
 import FormStepActions from "@/app/components/layout/FormStepActions";
 
-import { employmentRules } from "../../lib/validate-application";
+import { employmentRules, validatePHMobile } from "../../lib/validate-application";
 import type { ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
@@ -43,6 +51,12 @@ interface TenantInfoStepProps extends ApplicationStepProps {
 
 export default function TenantInfoStep({ form, errors, onChange, clearError, onBack, onNext }: TenantInfoStepProps) {
   const { isNoIncomeType, requiresOccupation, requiresCompany } = employmentRules(form.employmentType);
+  // Like Complete Profile, the number is checked once the field is left and
+  // the message then follows the typing. Blank passes: the field is optional.
+  const [contactTouched, setContactTouched] = useState(false);
+  const contactError =
+    errors.prevLandlordContact ??
+    (contactTouched ? validatePHMobile(form.prevLandlordContact).errorMessage : undefined);
 
   return (
     <div>
@@ -176,16 +190,23 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           <FieldError>{errors.prevLandlordName}</FieldError>
         </TextField>
         <TextField
-          isInvalid={!!errors.prevLandlordContact}
+          isInvalid={!!contactError}
           value={form.prevLandlordContact}
           onChange={(value: string) => {
-            onChange({ prevLandlordContact: value });
+            // Same live formatting as Complete Profile: "0917 123 4567".
+            onChange({ prevLandlordContact: formatPHMobileInput(value) });
             clearError("prevLandlordContact");
           }}
+          onBlur={() => setContactTouched(true)}
         >
           <Label>Previous Landlord Contact</Label>
-          <Input placeholder="09XX XXX XXXX" className={INPUT_CLASS} />
-          <FieldError>{errors.prevLandlordContact}</FieldError>
+          <Input
+            inputMode="tel"
+            placeholder="09XX XXX XXXX"
+            maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
+            className={INPUT_CLASS}
+          />
+          <FieldError>{contactError}</FieldError>
         </TextField>
       </div>
 

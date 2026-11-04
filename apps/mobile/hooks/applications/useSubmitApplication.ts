@@ -5,6 +5,7 @@ import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
 import { evaluateApplicationReadiness } from '@repo/passport'
+import { normalizePHMobile } from '@repo/constants'
 import { buildDeclaredApplicationPreferenceSnapshot } from '@repo/utils'
 import type { Json } from '@repo/supabase'
 import { toApplicationPreferenceSource } from '@/service/applications/applicationFormPreferences'
@@ -108,7 +109,10 @@ export function useSubmitApplication() {
           monthly_income: monthlyIncome,
           employment_type: tenantInformation.employmentType,
           prev_landlord_name: tenantInformation.previousLandlordName || null,
-          prev_landlord_contact: tenantInformation.previousLandlordContact || null,
+          // Stored as 0XXXXXXXXXX, without the spaces the field shows.
+          prev_landlord_contact: tenantInformation.previousLandlordContact
+            ? normalizePHMobile(tenantInformation.previousLandlordContact)
+            : null,
           move_in_date: rentalPreferences.moveInDate.toISOString().slice(0, 10),
           no_occupants: noOccupants,
           has_pets: rentalPreferences.hasPets ?? false,

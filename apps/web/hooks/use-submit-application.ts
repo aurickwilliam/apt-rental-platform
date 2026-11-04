@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { normalizePHMobile } from "@repo/constants";
 import { evaluateApplicationReadiness } from "@repo/passport";
 
 import { buildApplicationSnapshotFromForm } from "@/lib/application-form-preferences";
@@ -86,7 +87,8 @@ export function useSubmitApplication() {
         monthly_income: form.monthlyIncome,
         employment_type: form.employmentType,
         prev_landlord_name: form.prevLandlordName.trim() || null,
-        prev_landlord_contact: form.prevLandlordContact.trim() || null,
+        // Stored as 0XXXXXXXXXX, without the spaces the field shows.
+        prev_landlord_contact: form.prevLandlordContact.trim() ? normalizePHMobile(form.prevLandlordContact) : null,
         move_in_date: form.moveInDate,
         no_occupants: occupants,
         has_pets: form.hasPets === "yes",

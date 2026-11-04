@@ -189,6 +189,24 @@ it('stores the pet, parking and disability details the tenant declared on the fo
   }
 })
 
+it('stores the previous landlord number without the spaces the field shows', async () => {
+  const original = { ...mockStoreState.tenantInformation }
+  Object.assign(mockStoreState.tenantInformation, {
+    previousLandlordName: 'Ana',
+    previousLandlordContact: '0917 123 4567',
+  })
+  try {
+    const insert = mockApartment('landlord-1')
+
+    await submitApplication()
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ prev_landlord_contact: '09171234567' })
+    )
+  } finally {
+    Object.assign(mockStoreState.tenantInformation, original)
+  }
+})
+
 it('shares no pet or parking details when the tenant answers no', async () => {
   const original = { ...mockStoreState.rentalPreferences }
   Object.assign(mockStoreState.rentalPreferences, {
