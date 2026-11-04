@@ -105,9 +105,14 @@ it("opens the dedicated history page and keeps active details navigation", () =>
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "active", apartmentId: "apartment" } });
 });
 
-it("makes preview history cards tappable while retaining the active request's details button", () => {
+it.each(["Pending", "In Progress"])("makes %s and preview history cards tappable without separate details buttons", (status) => {
+  const value = state();
+  value.requests.data.active[0].status = status;
+  mockDashboard.mockReturnValue(value);
   render(<MaintenanceHistory />);
-  expect(screen.getAllByText("View details")).toHaveLength(1);
+  expect(screen.queryByText("View details")).toBeNull();
+  fireEvent.press(screen.getByRole("button", { name: "View details for Repair active" }));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "active", apartmentId: "apartment" } });
   fireEvent.press(screen.getByRole("button", { name: "View details for Repair 0" }));
   expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "0", apartmentId: "apartment" } });
 });
