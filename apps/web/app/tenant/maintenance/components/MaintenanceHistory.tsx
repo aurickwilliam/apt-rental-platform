@@ -15,6 +15,7 @@ import { MAINTENANCE_HISTORY_LIMIT } from "@/service/maintenanceService";
 import { useMaintenancePhotoUrls } from "@/hooks/use-maintenance-photo-urls";
 import { canCancelMaintenanceRequest, type MaintenanceRequest } from "@/hooks/use-maintenance-request-history";
 import EmptyState from "@/app/components/display/EmptyState";
+import { emptyHistoryFilters, filterMaintenanceHistory } from "@repo/utils/maintenance-history";
 
 const URGENCY_STYLE: Record<string, { tone: StatusTone }> = {
   low: { tone: "neutral" },
@@ -47,11 +48,16 @@ export default function MaintenanceHistory({ requests, loading, error, cancellin
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const [allOpen, setAllOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [filters, setFilters] = useState(emptyHistoryFilters);
   const isHistory = kind === "history";
   const activeRequests = isHistory ? [] : sortActiveMaintenanceRequests(requests);
-  const historyRequests = isHistory ? sortMaintenanceHistoryRequests(requests) : [];
-  const visibleRequests = isHistory ? historyRequests.slice(0, MAINTENANCE_HISTORY_PREVIEW_LIMIT) : activeRequests.slice(0, 1);
-  const remainingHistory = historyRequests.slice(MAINTENANCE_HISTORY_PREVIEW_LIMIT);
+  const allHistoryRequests = isHistory ? sortMaintenanceHistoryRequests(requests) : [];
+  const historyRequests = filterMaintenanceHistory(allHistoryRequests, filters);
+  const applyFilters = (next: typeof filters) => {
+    setFilters(next);
+    setExpandedIds(new Set());
+  };
+  const visibleRequests = isHistory ? allHistoryRequests.slice(0, MAINTENANCE_HISTORY_PREVIEW_LIMIT) : activeRequests.slice(0, 1);
   const photoRequests = isHistory ? (historyOpen ? historyRequests : visibleRequests) : (allOpen ? activeRequests : visibleRequests);
   const cancelDialog = useOverlayState();
   const photos = useMaintenancePhotoUrls(!loading && !error
@@ -105,6 +111,7 @@ export default function MaintenanceHistory({ requests, loading, error, cancellin
             <Button variant="secondary" className="ml-auto shrink-0 self-end" onPress={() => setAllOpen(true)}>{activeRequests.length >= MAINTENANCE_HISTORY_LIMIT ? `View active requests (${activeRequests.length}+)` : `View all active requests (${activeRequests.length})`}</Button>
           ) : null}
         </div>
+        {isHistory && allHistoryRequests.length >= MAINTENANCE_HISTORY_LIMIT && !loading && !error ? <p className="mb-3 text-xs text-muted-foreground">History is limited to the latest {MAINTENANCE_HISTORY_LIMIT} requests. Filters apply to these loaded requests.</p> : null}
         {photos.loading ? <p role="status" className="text-xs text-muted-foreground">Loading request photos…</p> : null}
         {photos.error ? <p role="alert" className="text-xs text-danger">{photos.error}</p> : null}
         {loading ? <div className="flex justify-center py-4"><Spinner color="accent" /></div> : error ? (
@@ -121,11 +128,11 @@ export default function MaintenanceHistory({ requests, loading, error, cancellin
             {visibleRequests.map((request) => isHistory ? renderHistoryRequest(request) : renderActiveRequest(request, () => openCancel(request.id)))}
           </div>
         )}
-        {isHistory && remainingHistory.length > 0 && !loading && !error ? (
-          <div className="mt-4 flex justify-end"><Button variant="secondary" onPress={() => setHistoryOpen(true)}>See more<IconChevronRight size={18} aria-hidden="true" /></Button></div>
+        {isHistory && allHistoryRequests.length > MAINTENANCE_HISTORY_PREVIEW_LIMIT && !loading && !error ? (
+          <div className="mt-4 flex justify-end"><Button variant="secondary" onPress={() => { setExpandedIds(new Set()); setHistoryOpen(true); }}>See more<IconChevronRight size={18} aria-hidden="true" /></Button></div>
         ) : null}
         {isHistory ? (
-          <MaintenanceHistoryModal isOpen={historyOpen} onOpenChange={setHistoryOpen} requests={remainingHistory} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} limitReached={historyRequests.length >= MAINTENANCE_HISTORY_LIMIT} onRetry={onRetry} renderRequest={renderHistoryRequest} />
+          <MaintenanceHistoryModal isOpen={historyOpen} onOpenChange={(open) => { setHistoryOpen(open); if (!open) setExpandedIds(new Set()); }} requests={historyRequests} filters={filters} onApplyFilters={applyFilters} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} limitReached={allHistoryRequests.length >= MAINTENANCE_HISTORY_LIMIT} onRetry={onRetry} renderRequest={renderHistoryRequest} />
         ) : (
           <ActiveMaintenanceRequestsModal isOpen={allOpen} onOpenChange={setAllOpen} requests={activeRequests} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} onRetry={onRetry} onCancel={onCancel} renderRequest={renderActiveRequest} />
         )}

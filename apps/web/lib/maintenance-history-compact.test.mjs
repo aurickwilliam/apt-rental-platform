@@ -3,6 +3,7 @@ import test from "node:test";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
 import { sortActiveMaintenanceRequests } from "./maintenance-featured-request.ts";
 import { MAINTENANCE_HISTORY_PREVIEW_LIMIT, sortMaintenanceHistoryRequests } from "./maintenance-history-preview.ts";
+import * as historyFilters from "../../../packages/utils/src/maintenanceHistoryFilters.ts";
 
 const jsx = (type, props) => ({ type, props });
 const Disclosure = Object.assign(() => {}, { Heading: "DisclosureHeading", Trigger: "DisclosureTrigger", Content: "DisclosureContent" });
@@ -35,6 +36,8 @@ function fixture(kind = "history", selectedRequests = requests) {
     "./ActiveMaintenanceRequestsModal": { default: "ActiveMaintenanceRequestsModal" },
     "./MaintenanceHistoryRow": { default: HistoryRow },
     "./MaintenanceHistoryModal": { default: "MaintenanceHistoryModal" },
+    "./MaintenanceHistoryFilters": { default: "MaintenanceHistoryFilters" },
+    "@repo/utils/maintenance-history": historyFilters,
     "@/lib/maintenance-featured-request": { sortActiveMaintenanceRequests },
     "@/lib/maintenance-history-preview": { MAINTENANCE_HISTORY_PREVIEW_LIMIT, sortMaintenanceHistoryRequests },
     "@/service/maintenanceService": { MAINTENANCE_HISTORY_LIMIT: 100 },
@@ -71,7 +74,7 @@ test("history starts as compact summary rows, retaining labels/statuses but hidi
   assert.ok(nodes(tree).some((node) => node.props?.className?.includes("h-6 w-1.5 shrink-0 rounded-full bg-primary")));
 });
 
-test("history previews only the three newest rows; See more opens the remaining rows without signing collapsed or closed-modal photos", () => {
+test("history previews only the three newest rows; See more opens all history without signing collapsed or closed-modal photos", () => {
   const records = Array.from({ length: 5 }, (_, index) => ({ ...requests[0], id: `h${index}`, title: `Request ${index}`, created_at: `2026-11-0${index + 1}`, image_paths: [`tenant/photo-${index}`] }));
   const h = fixture("history", [records[2], records[0], records[4], records[1], records[3]]);
   const initial = h.render();
@@ -83,8 +86,9 @@ test("history previews only the three newest rows; See more opens the remaining 
   nodes(initial).find((node) => node.type === "Button" && text(node).trim() === "See more").props.onPress();
   let modal = nodes(h.render()).find((node) => node.type === "MaintenanceHistoryModal");
   assert.equal(modal.props.isOpen, true);
-  assert.deepEqual(modal.props.requests.map((row) => row.id), ["h1", "h0"]);
-  const olderRow = modal.props.renderRequest(modal.props.requests[0]);
+  assert.deepEqual(modal.props.requests.map((row) => row.id), ["h4", "h3", "h2", "h1", "h0"]);
+  assert.ok(!nodes(initial).some((node) => node.type === "MaintenanceHistoryFilters"), "filters moved into the modal");
+  const olderRow = modal.props.renderRequest(modal.props.requests[3]);
   olderRow.props.onExpandedChange(true);
   h.render();
   assert.deepEqual(h.paths(), ["tenant/photo-1"]);
@@ -104,17 +108,61 @@ test("See more stays hidden with zero, one or exactly three history records; act
   assert.deepEqual(sortMaintenanceHistoryRequests([{ ...requests[0], status: "Pending" }]), []);
 });
 
-test("the older-history modal reuses row rendering, retains the compact Tabler close control, and handles read failures without false empty results", () => {
+test("modal filters govern all modal rows, leave the page preview unchanged and retire hidden photo reads", () => {
+  const records = Array.from({ length: 8 }, (_, index) => ({ ...requests[0], id: `h${index}`, title: `Request ${index}`, status: index % 2 ? "Resolved" : "Cancelled", created_at: `2026-11-0${index + 1}`, image_paths: [`tenant/photo-${index}`] }));
+  const h = fixture("history", records);
+  let tree = h.render();
+  nodes(tree).find((node) => node.type === Disclosure).props.onExpandedChange(true);
+  tree = h.render();
+  assert.deepEqual(h.paths(), ["tenant/photo-7"]);
+  nodes(tree).find((node) => node.type === "Button" && text(node).trim() === "See more").props.onPress();
+  tree = h.render();
+  nodes(tree).find((node) => node.type === "MaintenanceHistoryModal").props.onApplyFilters({ ...historyFilters.emptyHistoryFilters(), statuses: ["Resolved"] });
+  tree = h.render();
+  assert.deepEqual(nodes(tree).filter((node) => node.type === Disclosure).map((row) => text(row).match(/Request \d/)[0]), ["Request 7", "Request 6", "Request 5"]);
+  assert.deepEqual(h.paths(), []);
+  let modal = nodes(tree).find((node) => node.type === "MaintenanceHistoryModal");
+  assert.equal(modal.props.isOpen, true);
+  assert.deepEqual(modal.props.requests.map((row) => row.id), ["h7", "h5", "h3", "h1"]);
+});
+
+test("no modal matches never hides the page preview and clearing restores all modal history", () => {
+  const h = fixture();
+  let tree = h.render();
+  nodes(tree).find((node) => node.type === "MaintenanceHistoryModal").props.onApplyFilters({ ...historyFilters.emptyHistoryFilters(), urgencies: ["high"] });
+  tree = h.render();
+  const modal = nodes(tree).find((node) => node.type === "MaintenanceHistoryModal");
+  assert.equal(modal.props.requests.length, 0);
+  assert.equal(nodes(tree).filter((node) => node.type === Disclosure).length, 2);
+  modal.props.onApplyFilters(historyFilters.emptyHistoryFilters());
+  assert.equal(nodes(h.render()).filter((node) => node.type === Disclosure).length, 2);
+  assert.ok(!nodes(fixture("active", []).render()).some((node) => node.type === "MaintenanceHistoryFilters"));
+});
+
+test("history cap disclosure counts loaded rows rather than filtered matches", () => {
+  const h = fixture("history", Array.from({ length: 100 }, (_, index) => ({ ...requests[0], id: String(index) })));
+  let tree = h.render();
+  nodes(tree).find((node) => node.type === "MaintenanceHistoryModal").props.onApplyFilters({ ...historyFilters.emptyHistoryFilters(), statuses: ["Cancelled"] });
+  tree = h.render();
+  assert.match(text(tree), /latest 100 requests/);
+  assert.equal(nodes(tree).find((node) => node.type === "MaintenanceHistoryModal").props.limitReached, true);
+});
+
+test("the full-history modal hosts filters, reuses row rendering and handles empty matches and read failures", () => {
   const modalRoot = Object.assign(() => {}, Object.fromEntries(["Backdrop", "Container", "Dialog", "CloseTrigger", "Header", "Heading", "Body"].map((key) => [key, key])));
   const HistoryModal = compile("app/tenant/maintenance/components/MaintenanceHistoryModal.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@heroui/react": { Modal: modalRoot, Button: "Button", Spinner: "Spinner" },
-    "@tabler/icons-react": { IconX: "IconX" },
+    "@tabler/icons-react": { IconX: "IconX", IconHistory: "IconHistory" },
+    "@repo/utils/maintenance-history": historyFilters,
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
+    "./MaintenanceHistoryFilters": { default: "MaintenanceHistoryFilters" },
     "@/service/maintenanceService": { MAINTENANCE_HISTORY_LIMIT: 100 },
   }).default;
   let retried = false;
   const closes = [];
-  const props = { isOpen: true, onOpenChange: (open) => closes.push(open), requests, loading: false, error: null, photoLoading: false, photoError: null, limitReached: true, onRetry: () => { retried = true; }, renderRequest: (request) => jsx("HistoryRow", { request }) };
+  let applied;
+  const props = { isOpen: true, onOpenChange: (open) => closes.push(open), requests, filters: historyFilters.emptyHistoryFilters(), onApplyFilters: (next) => { applied = next; }, loading: false, error: null, photoLoading: false, photoError: null, limitReached: true, onRetry: () => { retried = true; }, renderRequest: (request) => jsx("HistoryRow", { request }) };
   const tree = HistoryModal(props);
   assert.equal(nodes(tree).filter((node) => node.type === "HistoryRow").length, requests.length);
   const close = nodes(tree).find((node) => node.type === "CloseTrigger");
@@ -122,6 +170,14 @@ test("the older-history modal reuses row rendering, retains the compact Tabler c
   assert.equal(close.props.children.type, "IconX");
   assert.equal(close.props.children.props.size, 16);
   assert.match(text(tree), /latest 100 requests/);
+  assert.match(text(tree), /All resolved and cancelled requests/);
+  const filter = nodes(tree).find((node) => node.type === "MaintenanceHistoryFilters");
+  assert.equal(filter.props.onApply, props.onApplyFilters);
+  const noMatches = HistoryModal({ ...props, requests: [], filters: { ...props.filters, urgencies: ["high"] } });
+  const empty = nodes(noMatches).find((node) => node.type === "EmptyState");
+  assert.equal(empty.props.title, "No requests match your filters");
+  empty.props.action.props.onPress();
+  assert.equal(historyFilters.historyFilterCount(applied), 0);
   tree.props.onOpenChange(false);
   assert.deepEqual(closes, [false]);
   const failed = HistoryModal({ ...props, error: "History unavailable" });
