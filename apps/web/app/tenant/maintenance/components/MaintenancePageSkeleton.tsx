@@ -37,7 +37,7 @@ function RequestListSkeleton({ compact = false }: { compact?: boolean }) {
           <div className="min-w-0 flex-1 space-y-2"><Sk className="h-7 w-80 max-w-full rounded-lg" /><Sk className="h-5 w-72 max-w-full rounded-lg" /></div>
         </div>
         <div className="space-y-2">
-          {[0, 1].map((row) => (
+          {[0, 1, 2].map((row) => (
             <div key={row} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border p-4">
               <div className="min-w-0 flex-1 basis-72 space-y-2">
                 <Sk className="h-7 w-48 max-w-full rounded-lg" />
