@@ -6,12 +6,10 @@ import { IconPlus, IconTool } from "@tabler/icons-react-native";
 
 import { useColors } from "@/hooks/useTheme";
 import type { MaintenanceRequest } from "@/hooks/maintenance-requests";
+import { MAINTENANCE_PREVIEW_LIMIT } from "@/constants/maintenance-dashboard";
 
 import MaintenanceRequestCard from "./MaintenanceRequestCard";
 import EmptyState from "@/components/display/EmptyState";
-
-// How many recent requests the Rentals tab lists before "View all".
-const RECENT_REQUEST_COUNT = 3;
 
 const isOpen = (request: MaintenanceRequest) =>
   request.status === "Pending" || request.status === "In Progress";
@@ -24,8 +22,8 @@ interface MaintenanceSectionProps {
   onRequestMaintenance: () => void;
 }
 
-// Recent maintenance requests for the rented apartment, with the way to file
-// a new one. A new request waits until the open one is resolved.
+// Keep repairs in progress visible without blocking another request. Once
+// none remain open, retain just the most recently resolved request.
 export default function MaintenanceSection({
   requests,
   onOpenRequest,
@@ -33,9 +31,13 @@ export default function MaintenanceSection({
   onRequestMaintenance,
 }: MaintenanceSectionProps) {
   const { colors } = useColors();
-  const recentRequests = requests.slice(0, RECENT_REQUEST_COUNT);
   const activeRequests = requests.filter(isOpen);
-  const hasOpenRequest = activeRequests.length > 0;
+  const visibleRequests = activeRequests.length > 0
+    ? activeRequests.slice(0, MAINTENANCE_PREVIEW_LIMIT)
+    : requests.filter((request) => request.status === "Resolved")
+      .sort((left, right) => Date.parse(right.resolved_at ?? right.created_at)
+        - Date.parse(left.resolved_at ?? left.created_at) || right.id.localeCompare(left.id))
+      .slice(0, 1);
 
   return (
     <View className="gap-4 rounded-3xl border border-border bg-surface p-4">
@@ -50,42 +52,34 @@ export default function MaintenanceSection({
         </View>
       </View>
 
-      {recentRequests.length === 0 ? (
+      {visibleRequests.length === 0 ? (
         <EmptyState
           className="py-4"
           icon={IconTool}
-          title="No maintenance requests"
+          title="No active maintenance requests"
           description="Report an issue with your rental."
         />
       ) : (
         <View className="gap-3">
-          {recentRequests.map((request) => (
+          {visibleRequests.map((request) => (
             <MaintenanceRequestCard
               key={request.id}
               request={request}
               onPress={() => onOpenRequest(request)}
             />
           ))}
-          {requests.length > 0 && (
-            <LinkButton className="self-end" onPress={onViewAll}>
-              <LinkButton.Label className="text-accent">
-                View all
-              </LinkButton.Label>
-            </LinkButton>
-          )}
         </View>
       )}
 
-      {hasOpenRequest ? (
-        <Text className="text-muted font-inter text-sm">
-          You can file a new request once your open one is resolved.
-        </Text>
-      ) : (
-        <Button size="sm" onPress={onRequestMaintenance}>
-          <IconPlus size={20} color={colors.secondaryForeground} />
-          <Button.Label>Request Maintenance</Button.Label>
-        </Button>
+      {requests.length > 0 && (
+        <LinkButton className="self-end" onPress={onViewAll}>
+          <LinkButton.Label className="text-accent">View all</LinkButton.Label>
+        </LinkButton>
       )}
+      <Button size="sm" onPress={onRequestMaintenance}>
+        <IconPlus size={20} color={colors.secondaryForeground} />
+        <Button.Label>Request Maintenance</Button.Label>
+      </Button>
     </View>
   );
 }

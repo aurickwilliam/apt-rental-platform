@@ -211,6 +211,7 @@ test("Tenant application and maintenance history seeds skip hydration reads; own
   const historyResource = compile("hooks/use-async-resource.ts", { react: historyRuntime.react });
   const history = compile("hooks/use-maintenance-request-history.ts", {
     react: historyRuntime.react, "@/hooks/use-async-resource": historyResource,
+    "@/service/tenantMaintenanceService": {},
     "@/service/favoritesService": { getTenantContext: async () => { contexts++; return { tenantId: "owner-a" }; } },
     "@/service/maintenanceService": {
       fetchMaintenanceRequestHistory: async (apartmentId, ownerId, photos) => { historyReads++; assert.equal(ownerId, "owner-a"); assert.equal(photos, false); return [{ id: "new", status: "Pending" }]; },

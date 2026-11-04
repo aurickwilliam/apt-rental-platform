@@ -6,6 +6,7 @@ import { useAsyncResource } from "@/hooks/use-async-resource";
 import type { PresentationSeed } from "@/service/presentation-seed";
 
 import { getTenantContext } from "@/service/favoritesService";
+import { fetchTenantMaintenanceRequests } from "@/service/tenantMaintenanceService";
 import {
   cancelMaintenanceRequest,
   fetchMaintenanceRequestHistory,
@@ -20,7 +21,7 @@ export function canCancelMaintenanceRequest(status: MaintenanceRequest["status"]
   return status === "Pending" || status === "In Progress";
 }
 
-export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true, initial?: PresentationSeed<MaintenanceRequest[]>) {
+export function useMaintenanceRequestHistory(apartmentId: string | null, tenantId?: string | null, includePhotos = true, initial?: PresentationSeed<MaintenanceRequest[]>, dashboard = false) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<MaintenanceRequest[]> => {
@@ -29,15 +30,17 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     // Omitted context preserves the existing behavior for other consumers.
     const resolvedTenantId = tenantId === undefined ? (await getTenantContext()).tenantId : tenantId;
     if (!resolvedTenantId) return NO_REQUESTS;
+    if (dashboard) return fetchTenantMaintenanceRequests(apartmentId, resolvedTenantId);
     return includePhotos
       ? fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId)
       : fetchMaintenanceRequestHistory(apartmentId, resolvedTenantId, false);
-  }, [apartmentId, tenantId, includePhotos]);
+  }, [apartmentId, tenantId, includePhotos, dashboard]);
   const {
     data: requests,
     loading,
     error,
     refresh,
+    revalidate,
     setData: setRequests,
   } = useAsyncResource(load, NO_REQUESTS, "Failed to load maintenance requests.", {
     initial: initial?.profileId === tenantId && initial?.resourceId === apartmentId && !includePhotos ? initial : undefined,
@@ -89,6 +92,7 @@ export function useMaintenanceRequestHistory(apartmentId: string | null, tenantI
     loading,
     error,
     refresh,
+    revalidate,
     cancelRequest,
     cancellingId,
   };

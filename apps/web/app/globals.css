@@ -308,6 +308,45 @@
   color: var(--muted-foreground);
   background-color: var(--muted);
 }
+
+/* Maintenance overlays keep HeroUI's close/focus behavior with a legible Tabler X. */
+.maintenance-modal-close.close-button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 9999px;
+  color: var(--foreground);
+  background-color: transparent;
+}
+.maintenance-modal-close.close-button::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: var(--muted);
+}
+.maintenance-modal-close.close-button svg {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.maintenance-modal-close.close-button:not(:disabled):not([aria-disabled="true"]):hover {
+  color: var(--secondary-foreground);
+  background-color: transparent;
+}
+.maintenance-modal-close.close-button:not(:disabled):not([aria-disabled="true"]):hover::before {
+  background-color: var(--secondary-hover);
+}
+.maintenance-modal-close.close-button:focus-visible,
+.maintenance-modal-close.close-button[data-focus-visible="true"] {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 @media (max-width: 639px) {
   .registration-policies-dialog {
     height: calc(100dvh - 2rem);

@@ -30,6 +30,7 @@ export type MaintenanceRequest = {
   image_paths: string[];
   image_urls: string[];
   created_at: string;
+  updated_at?: string | null;
   resolved_at: string | null;
   resolution_notes: string | null;
   cancelled_at: string | null;
@@ -46,7 +47,7 @@ const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceStatusDisplay> = {
 };
 
 const SELECT_FIELDS =
-  "id, title, category, message, urgency, status, image_urls, created_at, resolved_at, resolution_notes, cancelled_at, apartment_id, tenant_id, landlord_id";
+  "id, title, category, message, urgency, status, image_urls, created_at, updated_at, resolved_at, resolution_notes, cancelled_at, apartment_id, tenant_id, landlord_id";
 
 type MaintenanceRow = {
   id: string;
@@ -57,6 +58,7 @@ type MaintenanceRow = {
   status: string;
   image_urls: string[] | null;
   created_at: string;
+  updated_at: string | null;
   resolved_at: string | null;
   resolution_notes: string | null;
   cancelled_at: string | null;
@@ -161,6 +163,7 @@ function mapRow(row: MaintenanceRow, urls: Record<string, string | null>): Maint
     image_paths: paths,
     image_urls: signedUrls,
     created_at: row.created_at,
+    updated_at: row.updated_at ?? null,
     resolved_at: row.resolved_at,
     resolution_notes: row.resolution_notes,
     cancelled_at: row.cancelled_at,
@@ -175,14 +178,20 @@ export async function fetchMaintenanceRequestHistory(
   tenantId: string,
   includePhotos = true,
   supabase = createClient(),
+  statuses?: readonly MaintenanceStatusDb[],
+  orderByUpdate = false,
 ): Promise<MaintenanceRequest[]> {
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("maintenance_request")
     .select(SELECT_FIELDS)
     .eq("apartment_id", apartmentId)
-    .eq("tenant_id", tenantId)
+    .eq("tenant_id", tenantId);
+  if (statuses) query = query.in("status", [...statuses]);
+  if (orderByUpdate) query = query.order("updated_at", { ascending: false, nullsFirst: false });
+  const { data, error } = await query
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(MAINTENANCE_HISTORY_LIMIT);
 
   if (error) throw error;
