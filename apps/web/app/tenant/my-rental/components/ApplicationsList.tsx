@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Badge, Button, Chip, Drawer, Popover, Separator, useOverlayState } from "@heroui/react";
-import { IconClipboardList as ClipboardList, IconFilter as Filter } from "@tabler/icons-react";
+import { IconClipboardList as ClipboardList, IconFilter as Filter, IconFilterOff } from "@tabler/icons-react";
 
 import type { TenantApplication } from "@/hooks/use-tenant-applications";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -10,6 +10,7 @@ import type { ApplicationStatus } from "@/app/tenant/applications/lib/statusStyl
 
 import ApplicationStatusCard from "./ApplicationStatusCard";
 import ApplicationStatusCardSkeleton from "./ApplicationStatusCardSkeleton";
+import EmptyState from "@/app/components/display/EmptyState";
 import ApplicationsEmptyState from "./ApplicationsEmptyState";
 
 type ApplicationSort = "pending_first" | "newest" | "oldest";
@@ -142,15 +143,18 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
   ) : applications.length === 0 ? (
     <ApplicationsEmptyState />
   ) : filteredApplications.length === 0 ? (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-10 text-center">
-      <p className="text-lg font-nunito font-semibold text-card-foreground">No matching applications</p>
-      <p className="text-sm font-inter text-muted-foreground">
-        Try another status to see your applications.
-      </p>
-      <Button variant="secondary" size="sm" onPress={() => setFilters(DEFAULT_FILTERS)}>
-        Clear filter
-      </Button>
-    </div>
+    <EmptyState
+      framed
+      className="py-10"
+      icon={IconFilterOff}
+      title="No Matching Applications"
+      description="Try another status to see your applications."
+      action={
+        <Button variant="secondary" size="sm" onPress={() => setFilters(DEFAULT_FILTERS)}>
+          Clear filter
+        </Button>
+      }
+    />
   ) : (
     <div className="flex flex-col gap-3">
       {filteredApplications.map((a) => (

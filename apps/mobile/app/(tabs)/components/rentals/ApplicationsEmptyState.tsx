@@ -11,7 +11,7 @@ export default function ApplicationsEmptyState() {
 
   return (
     <EmptyState
-      className="flex-1 bg-background"
+      className="flex-1"
       icon={IconClipboardOff}
       title="No Applications Yet"
       description="You haven't applied to any apartment yet. Browse listings and submit an application to get started."
