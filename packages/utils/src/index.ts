@@ -296,3 +296,19 @@ export {
 export * from './browseRows';
 export * from './rangeInput';
 export * from './applicationPreferences';
+export {
+  type ActivePortal,
+  type AudienceNotification,
+  type ChatRecipientAudience,
+  type NotificationApartmentOwner,
+  type PortalAudience,
+  type UnreadNotification,
+  getExplicitChatRecipientPortal,
+  getLegacyChatApartmentIds,
+  getNotificationAudience,
+  getVisibleUnreadIds,
+  isChatNotification,
+  isNotificationVisibleInPortal,
+  resolveChatAudiencesWith,
+  resolveChatNotificationAudiences,
+} from './notificationAudience';

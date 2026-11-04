@@ -22,7 +22,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
   const currentUserQuery = useCurrentUser();
   const currentUserId = currentUserQuery.data?.id ?? null;
 
-  const { unreadCount, refetch, loading } = useNotifications();
+  const { unreadCount, unreadIds, refetch, loading } = useNotifications();
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
   const { markAllAsRead } = useNotificationActions(currentUserId);
 
@@ -49,7 +49,7 @@ export default function NotificationScreen({ title }: NotificationScreenProps) {
           </View>
 
           {unreadCount > 0 && (
-            <TouchableOpacity onPress={() => markAllAsRead.mutate()} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => markAllAsRead.mutate(unreadIds)} activeOpacity={0.7}>
               <Text className="text-primary font-nunitoSemiBold text-sm">
                 Mark all read
               </Text>

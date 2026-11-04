@@ -14,7 +14,11 @@ interface NotificationIconTileProps {
   title: string;
 }
 
-/** Soft-blue circular tile carrying the notification's type icon. */
+/**
+ * Circular tile carrying the notification's type icon. The fill is a tint of
+ * the icon color (not `primary-light`, which nearly matches the screen
+ * background), so the tile stays visible in light and dark themes.
+ */
 export default function NotificationIconTile({ type, title }: NotificationIconTileProps) {
   const { colors } = useColors();
   const isRentDue = type === 'payment' && isRentDueNotification(title);
@@ -25,7 +29,7 @@ export default function NotificationIconTile({ type, title }: NotificationIconTi
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      className="h-12 w-12 items-center justify-center rounded-full bg-primary-light"
+      className={`h-12 w-12 items-center justify-center rounded-full ${isRentDue ? 'bg-danger/15' : 'bg-primary/15'}`}
     >
       {createElement(Icon, { size: 24, color: isRentDue ? colors.danger : colors.primary })}
     </View>

@@ -375,7 +375,7 @@ test("web feed query uses created_at DESC then id ASC before its limit", async (
     exports,
     require: name => {
       if (name === "@/lib/chat-notification-audience") return {
-        getLegacyChatApartmentIds: () => [], resolveChatNotificationAudiences: rows => rows,
+        resolveChatAudiencesWith: async rows => rows,
       };
       assert.equal(name, "@repo/supabase/browser");
       return { createClient: () => ({ from: () => query }) };
