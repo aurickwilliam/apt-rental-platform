@@ -3,7 +3,7 @@
 import { createClient } from "@repo/supabase/browser";
 import type { Database } from "@repo/supabase";
 import type { ChatRecipientAudience } from "@/lib/notification-audience";
-import { getLegacyChatApartmentIds, resolveChatNotificationAudiences } from "@/lib/chat-notification-audience";
+import { resolveChatAudiencesWith } from "@/lib/chat-notification-audience";
 
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 
@@ -30,27 +30,23 @@ export async function fetchNotifications(
     .limit(limit);
 
   if (error) throw error;
-  const notifications = (data ?? []) as FeedNotification[];
-  const apartmentIds = getLegacyChatApartmentIds(notifications, internalUserId);
-  if (apartmentIds.length === 0) {
-    return resolveChatNotificationAudiences(notifications, internalUserId, []);
-  }
-
   // One bounded ownership lookup inside the existing shared store load. Never
   // publish raw legacy chat while this resolves, and never query per consumer.
-  try {
-    const { data: apartments, error: ownershipError } = await supabase
-      .from("apartments")
-      .select("id, landlord_id")
-      .in("id", apartmentIds);
-    if (ownershipError) throw ownershipError;
-    return resolveChatNotificationAudiences(notifications, internalUserId, apartments ?? []);
-  } catch {
-    // Preserve other notifications and explicit audiences if context is
-    // unavailable. Legacy chat fails closed, without writes or PII in logs.
-    console.error("[notifications] Couldn't resolve chat notification ownership.");
-    return resolveChatNotificationAudiences(notifications, internalUserId, []);
-  }
+  // A failed lookup keeps other notifications and explicit audiences and
+  // leaves legacy chat unresolved, without writes or PII in logs.
+  return resolveChatAudiencesWith(
+    (data ?? []) as FeedNotification[],
+    internalUserId,
+    async (apartmentIds) => {
+      const { data: apartments, error: ownershipError } = await supabase
+        .from("apartments")
+        .select("id, landlord_id")
+        .in("id", apartmentIds);
+      if (ownershipError) throw ownershipError;
+      return apartments ?? [];
+    },
+    () => console.error("[notifications] Couldn't resolve chat notification ownership."),
+  );
 }
 
 /** Marks one row read. Never inserts — inserts are trigger/service-only. */

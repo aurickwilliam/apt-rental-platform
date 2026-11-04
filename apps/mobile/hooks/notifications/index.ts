@@ -1,4 +1,4 @@
-export { useNotifications } from "./useNotifications";
+export { useNotifications, useNotificationPortal } from "./useNotifications";
 export { useUnreadNotificationCount } from "./useUnreadNotificationCount";
 export type { NotificationItem, NotificationType } from "./useNotifications";
 export { useNotificationActions } from "./useNotificationActions";

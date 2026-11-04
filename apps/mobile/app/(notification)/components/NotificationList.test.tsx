@@ -37,6 +37,7 @@ jest.mock("@/hooks/auth", () => ({
 jest.mock("@/hooks/notifications", () => ({
   useNotifications: () => ({ notifications: mockNotifications, loading: false, error: null }),
   useNotificationActions: () => ({ markAsRead: mockMarkAsRead }),
+  useNotificationPortal: () => mockRole,
 }));
 jest.mock("@/service/auth/portalPreference", () => ({
   authorizedPortal: (roles: string[]) => roles[0] ?? null,
