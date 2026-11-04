@@ -2097,6 +2097,14 @@ export type Database = {
         Args: { p_platform: string; p_token: string }
         Returns: undefined
       }
+      request_listing_review: {
+        Args: { p_apartment_id: string; p_note: string }
+        Returns: undefined
+      }
+      get_listing_review_state: {
+        Args: { p_apartment_id: string }
+        Returns: Json
+      }
       report_apartment: {
         Args: { p_apartment_id: string; p_details?: string; p_reason: string }
         Returns: undefined

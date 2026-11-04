@@ -58,3 +58,10 @@ Deno.test('emails use the APT logo, a card layout and no scripts or external fon
   assert(!email.html.includes('fonts.googleapis'))
   assert(email.html.length < 20_000)
 })
+
+Deno.test('listing_review_declined shows the admin message and says how to try again', () => {
+  const email = renderEmail('listing_review_declined', { apartmentName: 'Sunrise', note: 'Photos still look stolen' })
+  assertEquals(email.subject, 'Your listing review request was declined')
+  assertStringIncludes(email.text, 'Message from our team: Photos still look stolen')
+  assertStringIncludes(email.text, 'send another review request')
+})

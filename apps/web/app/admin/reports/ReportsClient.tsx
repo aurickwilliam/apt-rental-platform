@@ -35,6 +35,7 @@ const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
   { id: "landlord", label: "Landlords" },
   { id: "tenant", label: "Tenants" },
   { id: "user", label: "Chats" },
+  { id: "review_request", label: "Review requests" },
 ];
 
 // Every report, open or closed, is shown with no filter applied, so a report stays listed after it is handled.

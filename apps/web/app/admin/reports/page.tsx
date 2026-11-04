@@ -31,7 +31,7 @@ export default async function ReportsPage({
       `id, reason, details, status, resolution_note, created_at, resolved_at, target_type, action_taken,
        reporter:users!user_reports_reporter_id_fkey(id, first_name, last_name, email),
        reported:users!user_reports_reported_user_id_fkey(id, first_name, last_name, email, is_suspended),
-       apartment:apartments!user_reports_apartment_id_fkey(id, name, is_hidden_by_admin)`,
+       apartment:apartments!user_reports_apartment_id_fkey(id, name, is_hidden_by_admin, hidden_reason)`,
       { count: "exact" },
     )
     .order("created_at", { ascending: false })

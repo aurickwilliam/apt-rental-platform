@@ -21,7 +21,7 @@ export interface AdminUserReport {
   action_taken: string;
   reporter: ReportPerson | null;
   reported: (ReportPerson & { is_suspended: boolean }) | null;
-  apartment: { id: string; name: string; is_hidden_by_admin: boolean } | null;
+  apartment: { id: string; name: string; is_hidden_by_admin: boolean; hidden_reason: string | null } | null;
 }
 
 export const reportDateFormatter = new Intl.DateTimeFormat("en-PH", {

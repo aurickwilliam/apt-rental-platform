@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Button, Label, Modal, Radio, RadioGroup, TextArea } from "@heroui/react";
-import { IconX } from "@tabler/icons-react";
+import { Button, Label, Modal, Radio, RadioGroup, TextArea, buttonVariants } from "@heroui/react";
+import { IconBuilding, IconUser, IconX } from "@tabler/icons-react";
 import { USER_REPORT_TARGET_LABELS } from "@repo/utils";
 
 import StatusChip from "@/app/components/display/StatusChip";
@@ -13,7 +13,7 @@ import { REPORT_ACTION_LABELS, formatReportPerson, getReportReasonLabel } from "
 import { actOnUserReport, resolveUserReport } from "../../actions/operations";
 import { reportDateFormatter, reportStatusColor, type AdminUserReport } from "../lib/report-types";
 
-type Decision = "warn" | "hide_listing" | "suspend_user" | "resolve" | "dismiss";
+type Decision = "warn" | "hide_listing" | "suspend_user" | "resolve" | "dismiss" | "restore_listing" | "keep_hidden";
 
 interface DecisionOption {
   value: Decision;
@@ -21,6 +21,8 @@ interface DecisionOption {
   description: string;
   danger?: boolean;
   noteLabel: string;
+  /** Only offered for a landlord's review request (and then only these). */
+  reviewRequest?: boolean;
 }
 
 const DECISIONS: readonly DecisionOption[] = [
@@ -43,6 +45,21 @@ const DECISIONS: readonly DecisionOption[] = [
     description: "Block the account and sign it out everywhere, then close the report.",
     danger: true,
     noteLabel: "Reason for suspending",
+  },
+  {
+    value: "restore_listing",
+    label: "Restore listing",
+    description: "Make the listing visible in search again and tell the landlord. Closes the request.",
+    noteLabel: "Message to the landlord",
+    reviewRequest: true,
+  },
+  {
+    value: "keep_hidden",
+    label: "Keep hidden",
+    description: "Decline the request. The landlord is told why and can send another one after more changes.",
+    danger: true,
+    noteLabel: "What still needs fixing",
+    reviewRequest: true,
   },
   {
     value: "resolve",
@@ -89,7 +106,9 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
   const isOpenReport = report?.status === "open";
   const canHideListing =
     report?.target_type === "apartment" && Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
+  const isReviewRequest = report?.target_type === "review_request";
   const options = (isOpenReport ? DECISIONS : []).filter((option) => {
+    if (Boolean(option.reviewRequest) !== isReviewRequest) return false;
     if (option.value === "hide_listing") return canHideListing;
     if (option.value === "suspend_user") return Boolean(report?.reported) && !report?.reported?.is_suspended;
     if (option.value === "warn") return Boolean(report?.reported);
@@ -151,6 +170,7 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
               <Modal.Body className="max-h-[70vh] overflow-y-auto">
                 {/* Details on the left, the decision on the right (stacked on narrow screens). */}
                 <div className={`grid items-start gap-5 ${isOpenReport ? "lg:grid-cols-2" : ""}`}>
+                <div className="space-y-3">
                 <dl className="grid content-start gap-4 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-2">
                   <Detail label="Type">
                     <StatusChip size="sm" tone="neutral">
@@ -163,7 +183,7 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                       {report.status}
                     </StatusChip>
                   </Detail>
-                  <Detail label="Reported">
+                  <Detail label={isReviewRequest ? "Landlord" : "Reported"}>
                     {report.reported ? (
                       <Link href={`/admin/users/${report.reported.id}`} className={LINK_CLASSES}>
                         {formatReportPerson(report.reported)}
@@ -173,6 +193,7 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                     )}
                     {report.reported?.is_suspended ? <span className="text-danger"> · Suspended</span> : null}
                   </Detail>
+                  {!isReviewRequest ? (
                   <Detail label="Reported by">
                     {report.reporter ? (
                       <Link href={`/admin/users/${report.reporter.id}`} className={LINK_CLASSES}>
@@ -182,6 +203,7 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                       formatReportPerson(null)
                     )}
                   </Detail>
+                  ) : null}
                   {report.apartment ? (
                     <Detail label="Listing">
                       <Link href={`/admin/apartments/${report.apartment.id}`} className={LINK_CLASSES}>
@@ -190,9 +212,15 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                       {report.apartment.is_hidden_by_admin ? <span className="text-danger"> · Hidden</span> : null}
                     </Detail>
                   ) : null}
-                  <Detail label="Reason">{getReportReasonLabel(report.reason)}</Detail>
+                  {isReviewRequest ? (
+                    <Detail label="Hidden because">
+                      {report.apartment?.hidden_reason ?? <span className="text-muted-foreground">No reason recorded.</span>}
+                    </Detail>
+                  ) : (
+                    <Detail label="Reason">{getReportReasonLabel(report.reason)}</Detail>
+                  )}
                   <div className="sm:col-span-2">
-                    <Detail label="Details">
+                    <Detail label={isReviewRequest ? "Landlord's note" : "Details"}>
                       {report.details ? (
                         <span className="whitespace-pre-wrap">{report.details}</span>
                       ) : (
@@ -217,6 +245,29 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                     </div>
                   ) : null}
                 </dl>
+
+                {/* Shortcuts to the full listing and account pages. */}
+                <div className="flex flex-wrap gap-2">
+                  {report.apartment ? (
+                    <Link
+                      href={`/admin/apartments/${report.apartment.id}`}
+                      className={`${buttonVariants({ size: "sm", variant: "outline" })} cursor-pointer gap-1.5 no-underline`}
+                    >
+                      <IconBuilding size={16} aria-hidden="true" />
+                      View listing details
+                    </Link>
+                  ) : null}
+                  {report.reported ? (
+                    <Link
+                      href={`/admin/users/${report.reported.id}`}
+                      className={`${buttonVariants({ size: "sm", variant: "outline" })} cursor-pointer gap-1.5 no-underline`}
+                    >
+                      <IconUser size={16} aria-hidden="true" />
+                      {isReviewRequest ? "View landlord" : "View reported account"}
+                    </Link>
+                  ) : null}
+                </div>
+                </div>
 
                 {isOpenReport ? (
                 <div className="space-y-5">

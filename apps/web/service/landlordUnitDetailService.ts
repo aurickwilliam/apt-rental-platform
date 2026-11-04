@@ -28,6 +28,7 @@ export type LandlordUnitApartment = {
   province: string | null;
   zip_code: number | null;
   status: string;
+  is_hidden_by_admin: boolean;
   average_rating: number | null;
   no_ratings: number | null;
   no_bedrooms: number | null;
@@ -100,7 +101,7 @@ const APARTMENT_SELECT = `
   street_address, barangay, city, province, zip_code, status,
   average_rating, no_ratings, no_bedrooms, no_bathrooms, area_sqm,
   max_occupants, furnished_type, floor_level, lease_duration,
-  amenities, lease_agreement_url, is_verified, landlord_id,
+  amenities, lease_agreement_url, is_verified, is_hidden_by_admin, landlord_id,
   apartment_images (id, url, url_thumb, is_cover)
 `;
 

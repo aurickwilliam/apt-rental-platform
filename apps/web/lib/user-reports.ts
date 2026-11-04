@@ -10,6 +10,7 @@ export const USER_REPORT_REASON_LABELS: Record<string, string> = {
   incorrect_info: "Wrong price or details",
   unavailable: "Already rented",
   inappropriate_photos: "Inappropriate photos",
+  review_request: "Review request",
 };
 
 export const USER_REPORT_STATUSES = ["open", "resolved", "dismissed"] as const;
@@ -41,7 +42,7 @@ export function formatReportPerson(
   );
 }
 
-export const USER_REPORT_TARGET_TYPES = ["user", "apartment", "landlord", "tenant"] as const;
+export const USER_REPORT_TARGET_TYPES = ["user", "apartment", "landlord", "tenant", "review_request"] as const;
 export type UserReportTargetTypeFilter = (typeof USER_REPORT_TARGET_TYPES)[number] | "all";
 
 /** Type filter from `?type=`; every kind of report by default. */
@@ -59,6 +60,8 @@ export const REPORT_ACTION_LABELS: Record<string, string> = {
   warned: "Warning sent",
   listing_hidden: "Listing hidden",
   user_suspended: "Account suspended",
+  listing_restored: "Listing restored",
+  listing_kept_hidden: "Kept hidden",
 };
 
 export interface ReportFilters {

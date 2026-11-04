@@ -6,6 +6,7 @@
 export type EmailTemplate =
   | 'listing_hidden'
   | 'listing_restored'
+  | 'listing_review_declined'
   | 'account_suspended'
   | 'account_reactivated'
   | 'warning'
@@ -14,6 +15,7 @@ export type EmailTemplate =
 export const EMAIL_TEMPLATES: readonly EmailTemplate[] = [
   'listing_hidden',
   'listing_restored',
+  'listing_review_declined',
   'account_suspended',
   'account_reactivated',
   'warning',
@@ -131,6 +133,19 @@ export function renderEmail(template: EmailTemplate, params: Params): RenderedEm
         ...layout({
           heading: 'Your listing is visible again',
           intro: [`"${name}" is visible in search again after our team's review.`, 'Thank you for your patience.'],
+        }),
+      }
+    }
+    case 'listing_review_declined': {
+      const name = text(params.apartmentName, 'Your listing')
+      const note = text(params.note, 'The listing still needs changes.')
+      return {
+        subject: 'Your listing review request was declined',
+        ...layout({
+          heading: 'Your review request was declined',
+          intro: [`Our team reviewed your request for "${name}" and is keeping it hidden for now.`],
+          callout: { label: 'Message from our team', text: note },
+          outro: ['Update the listing and send another review request when it is ready.'],
         }),
       }
     }

@@ -9,6 +9,7 @@ export function toProperty(apartment: LandlordUnitApartment): Property {
     apartment.apartment_images.find((img) => img.is_cover) ?? apartment.apartment_images[0];
   return {
     id: apartment.id,
+    is_hidden_by_admin: apartment.is_hidden_by_admin,
     name: apartment.name,
     description: apartment.description,
     monthly_rent: apartment.monthly_rent,

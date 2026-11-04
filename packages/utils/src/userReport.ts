@@ -25,11 +25,12 @@ export const APARTMENT_REPORT_REASONS = [
 export type ApartmentReportReason = (typeof APARTMENT_REPORT_REASONS)[number]['value'];
 
 /** What a report is about: a chat contact, a listing, or a landlord/tenant profile. */
-export type UserReportTargetType = 'user' | 'apartment' | 'landlord' | 'tenant';
+export type UserReportTargetType = 'user' | 'apartment' | 'landlord' | 'tenant' | 'review_request';
 
 export const USER_REPORT_TARGET_LABELS: Record<UserReportTargetType, string> = {
   user: 'Chat',
   apartment: 'Apartment',
   landlord: 'Landlord',
   tenant: 'Tenant',
+  review_request: 'Review request',
 };

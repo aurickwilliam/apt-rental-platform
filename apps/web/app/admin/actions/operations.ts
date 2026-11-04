@@ -108,7 +108,13 @@ export async function actOnUserReport(formData: FormData): Promise<OperationResu
   const parsed = input(formData);
   if (!("id" in parsed)) return parsed;
   const decision = formData.get("decision");
-  if (decision !== "warn" && decision !== "hide_listing" && decision !== "suspend_user")
+  if (
+    decision !== "warn" &&
+    decision !== "hide_listing" &&
+    decision !== "suspend_user" &&
+    decision !== "restore_listing" &&
+    decision !== "keep_hidden"
+  )
     return { error: "Invalid decision." };
 
   const end = decision === "suspend_user" ? suspensionUntil(formData) : { until: null };
