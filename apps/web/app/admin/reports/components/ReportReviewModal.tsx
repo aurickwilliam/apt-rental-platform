@@ -8,10 +8,10 @@ import { USER_REPORT_TARGET_LABELS } from "@repo/utils";
 
 import StatusChip from "@/app/components/display/StatusChip";
 import { SUSPENSION_DURATIONS } from "@/lib/suspension-duration";
-import { formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
+import { REPORT_ACTION_LABELS, formatReportPerson, getReportReasonLabel } from "@/lib/user-reports";
 
 import { actOnUserReport, resolveUserReport } from "../../actions/operations";
-import { reportDateFormatter, type AdminUserReport } from "../lib/report-types";
+import { reportDateFormatter, reportStatusColor, type AdminUserReport } from "../lib/report-types";
 
 type Decision = "warn" | "hide_listing" | "suspend_user" | "resolve" | "dismiss";
 
@@ -69,21 +69,30 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
   );
 }
 
-/** One place to read a report and decide: details on top, then a single action and a note. */
-export default function ReportReviewModal({ report }: { report: AdminUserReport }) {
-  const [open, setOpen] = useState(false);
+interface ReportReviewModalProps {
+  /** The report shown, or null when closed. */
+  report: AdminUserReport | null;
+  onClose: () => void;
+}
+
+/**
+ * One place to read a report and decide: details on top, then a single action
+ * and a note. A closed report shows the same details with what was decided.
+ */
+export default function ReportReviewModal({ report, onClose }: ReportReviewModalProps) {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [duration, setDuration] = useState("permanent");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const isOpenReport = report?.status === "open";
   const canHideListing =
-    report.target_type === "apartment" && Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
-  const options = DECISIONS.filter((option) => {
+    report?.target_type === "apartment" && Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
+  const options = (isOpenReport ? DECISIONS : []).filter((option) => {
     if (option.value === "hide_listing") return canHideListing;
-    if (option.value === "suspend_user") return Boolean(report.reported) && !report.reported?.is_suspended;
-    if (option.value === "warn") return Boolean(report.reported);
+    if (option.value === "suspend_user") return Boolean(report?.reported) && !report?.reported?.is_suspended;
+    if (option.value === "warn") return Boolean(report?.reported);
     return true;
   });
   const selected = options.find((option) => option.value === decision) ?? null;
@@ -91,18 +100,16 @@ export default function ReportReviewModal({ report }: { report: AdminUserReport 
 
   // The draft never outlives the dialog.
   function handleOpenChange(next: boolean) {
-    if (pending) return;
-    setOpen(next);
-    if (!next) {
-      setDecision(null);
-      setDuration("permanent");
-      setNote("");
-      setError(null);
-    }
+    if (pending || next) return;
+    setDecision(null);
+    setDuration("permanent");
+    setNote("");
+    setError(null);
+    onClose();
   }
 
   function submit() {
-    if (!selected) return;
+    if (!selected || !report) return;
     const formData = new FormData();
     formData.set("id", report.id);
     formData.set("decision", selected.value);
@@ -125,29 +132,37 @@ export default function ReportReviewModal({ report }: { report: AdminUserReport 
     });
   }
 
+  if (!report) return null;
+
   return (
     <>
-      <Button size="sm" className="cursor-pointer rounded-full" onPress={() => setOpen(true)}>
-        Review
-      </Button>
-      <Modal isOpen={open} onOpenChange={handleOpenChange}>
+      <Modal isOpen onOpenChange={handleOpenChange}>
         <Modal.Backdrop isDismissable={!pending} isKeyboardDismissDisabled={pending}>
           <Modal.Container size="lg" placement="center">
-            <Modal.Dialog className="rounded-2xl">
+            <Modal.Dialog className={`rounded-2xl ${isOpenReport ? "lg:max-w-4xl!" : ""}`}>
               <Modal.CloseTrigger className="maintenance-modal-close" aria-label="Close review" isDisabled={pending}>
                 <IconX size={16} aria-hidden="true" />
               </Modal.CloseTrigger>
               <Modal.Header className="pr-12">
-                <Modal.Heading className="font-nunito text-lg font-bold text-primary">Review report</Modal.Heading>
+                <Modal.Heading className="font-nunito text-lg font-bold text-primary">
+                  {isOpenReport ? "Review report" : "Report details"}
+                </Modal.Heading>
               </Modal.Header>
-              <Modal.Body className="max-h-[70vh] space-y-5 overflow-y-auto">
-                <dl className="grid gap-4 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-2">
+              <Modal.Body className="max-h-[70vh] overflow-y-auto">
+                {/* Details on the left, the decision on the right (stacked on narrow screens). */}
+                <div className={`grid gap-5 ${isOpenReport ? "lg:grid-cols-2" : ""}`}>
+                <dl className="grid content-start gap-4 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-2">
                   <Detail label="Type">
                     <StatusChip size="sm" tone="neutral">
                       {USER_REPORT_TARGET_LABELS[report.target_type] ?? "Report"}
                     </StatusChip>
                   </Detail>
                   <Detail label="Reported on">{reportDateFormatter.format(new Date(report.created_at))}</Detail>
+                  <Detail label="Status">
+                    <StatusChip size="sm" tone={reportStatusColor(report.status)} className="capitalize">
+                      {report.status}
+                    </StatusChip>
+                  </Detail>
                   <Detail label="Reported">
                     {report.reported ? (
                       <Link href={`/admin/users/${report.reported.id}`} className={LINK_CLASSES}>
@@ -185,8 +200,26 @@ export default function ReportReviewModal({ report }: { report: AdminUserReport 
                       )}
                     </Detail>
                   </div>
+                  {!isOpenReport ? (
+                    <div className="sm:col-span-2">
+                      <Detail label="Outcome">
+                        {REPORT_ACTION_LABELS[report.action_taken] ? (
+                          <span className="font-semibold">{REPORT_ACTION_LABELS[report.action_taken]}. </span>
+                        ) : null}
+                        {report.resolution_note ?? "No note was recorded."}
+                        {report.resolved_at ? (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            ({reportDateFormatter.format(new Date(report.resolved_at))})
+                          </span>
+                        ) : null}
+                      </Detail>
+                    </div>
+                  ) : null}
                 </dl>
 
+                {isOpenReport ? (
+                <div className="space-y-5">
                 <RadioGroup
                   aria-label="Action"
                   value={decision ?? ""}
@@ -222,7 +255,7 @@ export default function ReportReviewModal({ report }: { report: AdminUserReport 
                     value={duration}
                     onChange={(value) => setDuration(String(value))}
                     isDisabled={pending}
-                    className="report-reason-radios grid grid-cols-2 gap-2 sm:grid-cols-4"
+                    className="report-reason-radios grid grid-cols-2 gap-2"
                   >
                     {SUSPENSION_DURATIONS.map((option) => (
                       <Radio key={option.value} value={option.value} className="w-full min-w-0 cursor-pointer">
@@ -255,24 +288,35 @@ export default function ReportReviewModal({ report }: { report: AdminUserReport 
                     {error}
                   </p>
                 ) : null}
+                </div>
+                ) : null}
+                </div>
               </Modal.Body>
               <Modal.Footer className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 cursor-pointer rounded-full"
-                  onPress={() => handleOpenChange(false)}
-                  isDisabled={pending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant={selected?.danger ? "danger" : "primary"}
-                  className="flex-1 cursor-pointer rounded-full"
-                  onPress={submit}
-                  isDisabled={!canSubmit}
-                >
-                  {pending ? "Saving…" : selected ? `Confirm ${selected.label.toLowerCase()}` : "Choose an action"}
-                </Button>
+                {isOpenReport ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="flex-1 cursor-pointer rounded-full"
+                      onPress={() => handleOpenChange(false)}
+                      isDisabled={pending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant={selected?.danger ? "danger" : "primary"}
+                      className="flex-1 cursor-pointer rounded-full"
+                      onPress={submit}
+                      isDisabled={!canSubmit}
+                    >
+                      {pending ? "Saving…" : selected ? `Confirm ${selected.label.toLowerCase()}` : "Choose an action"}
+                    </Button>
+                  </>
+                ) : (
+                  <Button className="flex-1 cursor-pointer rounded-full" onPress={() => handleOpenChange(false)}>
+                    Close
+                  </Button>
+                )}
               </Modal.Footer>
             </Modal.Dialog>
           </Modal.Container>

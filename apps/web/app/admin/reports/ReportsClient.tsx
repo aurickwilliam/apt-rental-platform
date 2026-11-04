@@ -16,6 +16,7 @@ import {
 } from "@/lib/user-reports";
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
+import ReportReviewModal from "./components/ReportReviewModal";
 import type { AdminUserReport } from "./lib/report-types";
 import EmptyState from "@/app/components/display/EmptyState";
 import { IconFlag } from "@tabler/icons-react";
@@ -65,6 +66,9 @@ export default function ReportsClient({
   const { status, type } = filters;
   const isNavigating = list.isPending;
   const [draft, setDraft] = useState({ status: filters.status, type: filters.type });
+  // The open report is looked up by id so it reflects the refreshed list.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openReport = reports.find((report) => report.id === openId) ?? null;
 
   const activeTags: ActiveFilterTag[] = [];
   if (status !== DEFAULT_FILTERS.status) {
@@ -155,8 +159,8 @@ export default function ReportsClient({
             ) : null}
             {reports.length ? (
               <>
-                <ReportsTable reports={reports} />
-                <ReportCardList reports={reports} />
+                <ReportsTable reports={reports} onOpen={(report) => setOpenId(report.id)} />
+                <ReportCardList reports={reports} onOpen={(report) => setOpenId(report.id)} />
               </>
             ) : (
               <EmptyState
@@ -207,6 +211,7 @@ export default function ReportsClient({
           ) : null}
         </>
       )}
+      <ReportReviewModal report={openReport} onClose={() => setOpenId(null)} />
     </div>
   );
 }
