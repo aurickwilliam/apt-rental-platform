@@ -223,15 +223,6 @@ export default function PreferencesStep({
         )}
 
         <PreferenceYesNoField
-          label="Are you a smoker?"
-          icon={<IconSmoking size={18} />}
-          required
-          value={toBoolean(form.isSmoker)}
-          error={errors.isSmoker}
-          onChange={(value) => answer("isSmoker", value, "isSmoker")}
-        />
-
-        <PreferenceYesNoField
           label="Do you need parking?"
           icon={<IconCar size={18} />}
           required
@@ -262,6 +253,15 @@ export default function PreferencesStep({
             ) : null}
           </>
         )}
+
+        <PreferenceYesNoField
+          label="Are you a smoker?"
+          icon={<IconSmoking size={18} />}
+          required
+          value={toBoolean(form.isSmoker)}
+          error={errors.isSmoker}
+          onChange={(value) => answer("isSmoker", value, "isSmoker")}
+        />
 
         <PreferenceYesNoField
           label="Does anyone in your household have a disability?"

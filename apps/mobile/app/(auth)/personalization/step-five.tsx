@@ -29,7 +29,7 @@ export default function StepFive() {
     nameOfPets, setNameOfPets,
     hasParking, setHasParking,
     noOfParkingSpots, setNoOfParkingSpots,
-    listOfVehicles, toggleVehicle,
+    listOfVehicles, setListOfVehicles,
     hasSmoker, setHasSmoker,
     hasDisability, setHasDisability,
     answered,
@@ -160,7 +160,7 @@ export default function StepFive() {
                 noOfParkingSpots={noOfParkingSpots}
                 listOfVehicles={listOfVehicles}
                 onSpotsChange={setNoOfParkingSpots}
-                onToggleVehicle={toggleVehicle}
+                onVehiclesChange={setListOfVehicles}
               />
             )}
           </View>

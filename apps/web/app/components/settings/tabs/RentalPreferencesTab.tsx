@@ -202,28 +202,19 @@ export default function RentalPreferencesTab({
                     />
                   }
                 />
-                <div>
-                  <p className="mb-2 text-sm text-foreground">Vehicles</p>
-                  <CheckboxGroup
-                    name="vehicle-types"
-                    value={form.listOfVehicles}
-                    onChange={(values) => form.setVehicles(values as string[])}
-                    className="rental-prefs-checks"
-                  >
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {VEHICLE_OPTIONS.map((vehicle) => (
-                        <Checkbox key={vehicle} value={vehicle}>
-                          <Checkbox.Content>
-                            <Checkbox.Control>
-                              <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            {vehicle}
-                          </Checkbox.Content>
-                        </Checkbox>
-                      ))}
-                    </div>
-                  </CheckboxGroup>
-                </div>
+                <ControlRow
+                  label={<Label className="text-sm text-foreground">Vehicles</Label>}
+                  control={
+                    <SettingsMultiSelect
+                      label="Kinds of vehicles"
+                      value={form.listOfVehicles}
+                      options={VEHICLE_OPTIONS.map((vehicle) => ({ value: vehicle, label: vehicle }))}
+                      onChange={form.setVehicles}
+                      placeholder="Select"
+                      className="w-44"
+                    />
+                  }
+                />
               </div>
             )}
           </div>

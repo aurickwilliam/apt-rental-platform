@@ -97,7 +97,7 @@ type PersonalizationActions = {
   setNameOfPets: (value: string | null) => void;
   setHasParking: (value: boolean) => void;
   setNoOfParkingSpots: (value: number) => void;
-  toggleVehicle: (vehicle: string) => void;
+  setListOfVehicles: (vehicles: string[]) => void;
   setHasSmoker: (value: boolean) => void;
   setHasDisability: (value: boolean) => void;
 
@@ -170,12 +170,8 @@ export const usePersonalizationStore = create<
   setNoOfParkingSpots: (value) =>
     set({ noOfParkingSpots: value }),
 
-  toggleVehicle: (vehicle) =>
-    set((state) => ({
-      listOfVehicles: state.listOfVehicles.includes(vehicle)
-        ? state.listOfVehicles.filter((v) => v !== vehicle)
-        : [...state.listOfVehicles, vehicle],
-    })),
+  setListOfVehicles: (vehicles) =>
+    set({ listOfVehicles: vehicles }),
 
   setHasSmoker: (value) =>
     set((state) => ({

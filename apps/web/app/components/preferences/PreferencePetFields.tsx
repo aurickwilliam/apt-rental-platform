@@ -39,7 +39,16 @@ export default function PreferencePetFields({
         <Select
           placeholder="Select the number of pets you have"
           value={petCountToOption(noOfPets)}
-          onChange={(key) => onChange({ noOfPets: key ? optionToPetCount(String(key)) : 1 })}
+          onChange={(key) => {
+            const count = key ? optionToPetCount(String(key)) : 1;
+            // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
+            const kept = kindOfPets.slice(0, count);
+            onChange({
+              noOfPets: count,
+              kindOfPets: kept,
+              nameOfPets: kept.includes(OTHER_PET) ? nameOfPets : null,
+            });
+          }}
           isInvalid={kindOfPets.length > 0 && error !== null}
         >
           <Label>How many pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>

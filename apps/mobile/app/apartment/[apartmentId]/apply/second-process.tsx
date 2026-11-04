@@ -138,13 +138,13 @@ export default function SecondProcess() {
     else if (petsError)
       newErrors.petDetails = petsError
 
-    if (rentalPreferences.isSmoker === undefined)
-      newErrors.isSmoker = 'Please indicate if you are a smoker.'
-
     if (rentalPreferences.needParking === undefined)
       newErrors.needParking = 'Please indicate if you need parking.'
     else if (rentalPreferences.needParking && rentalPreferences.listOfVehicles.length === 0)
       newErrors.parkingDetails = 'Please select the kinds of vehicles you have.'
+
+    if (rentalPreferences.isSmoker === undefined)
+      newErrors.isSmoker = 'Please indicate if you are a smoker.'
 
     if (rentalPreferences.hasDisability === undefined)
       newErrors.hasDisability = 'Please indicate if anyone in your household has a disability.'
@@ -158,9 +158,9 @@ export default function SecondProcess() {
         'noOccupants',
         'hasPets',
         'petDetails',
-        'isSmoker',
         'needParking',
         'parkingDetails',
+        'isSmoker',
         'hasDisability',
       ]
 
@@ -326,26 +326,6 @@ export default function SecondProcess() {
             )}
           </View>
 
-          {/* Is Smoker */}
-          <View
-            onLayout={(e) => {
-              fieldPositions.current.isSmoker =
-                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
-            }}
-            className="mb-3"
-          >
-            <YesNoRadioField
-              label="Are you a smoker?"
-              required
-              value={rentalPreferences.isSmoker}
-              error={errors.isSmoker}
-              onChange={(value) => {
-                updateRentalPreferences('isSmoker', value)
-                clearError('isSmoker')
-              }}
-            />
-          </View>
-
           {/* Need Parking */}
           <View
             onLayout={(e) => {
@@ -383,19 +363,33 @@ export default function SecondProcess() {
                   listOfVehicles={rentalPreferences.listOfVehicles}
                   error={errors.parkingDetails}
                   onSpotsChange={(spots) => updateRentalPreferences('noOfParkingSpots', spots)}
-                  onToggleVehicle={(vehicle) => {
-                    const vehicles = rentalPreferences.listOfVehicles
-                    updateRentalPreferences(
-                      'listOfVehicles',
-                      vehicles.includes(vehicle)
-                        ? vehicles.filter((v) => v !== vehicle)
-                        : [...vehicles, vehicle],
-                    )
+                  onVehiclesChange={(vehicles) => {
+                    updateRentalPreferences('listOfVehicles', vehicles)
                     clearError('parkingDetails')
                   }}
                 />
               </View>
             )}
+          </View>
+
+          {/* Is Smoker */}
+          <View
+            onLayout={(e) => {
+              fieldPositions.current.isSmoker =
+                (groupOffsets.current.main ?? 0) + e.nativeEvent.layout.y
+            }}
+            className="mb-3"
+          >
+            <YesNoRadioField
+              label="Are you a smoker?"
+              required
+              value={rentalPreferences.isSmoker}
+              error={errors.isSmoker}
+              onChange={(value) => {
+                updateRentalPreferences('isSmoker', value)
+                clearError('isSmoker')
+              }}
+            />
           </View>
 
           {/* Household Disability */}

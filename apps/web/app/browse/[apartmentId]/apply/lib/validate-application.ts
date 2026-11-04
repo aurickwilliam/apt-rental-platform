@@ -98,11 +98,11 @@ export function validatePreferences(form: ApplicationForm, maxOccupants: number 
     });
     if (petsError) next.petDetails = petsError;
   }
-  if (!form.isSmoker) next.isSmoker = "Please indicate if you are a smoker.";
   if (!form.needParking) next.needParking = "Please indicate if you need parking.";
   else if (form.needParking === "yes" && form.listOfVehicles.length === 0) {
     next.parkingDetails = "Please select the kinds of vehicles you have.";
   }
+  if (!form.isSmoker) next.isSmoker = "Please indicate if you are a smoker.";
   if (!form.hasDisability) {
     next.hasDisability = "Please indicate if anyone in your household has a disability.";
   }

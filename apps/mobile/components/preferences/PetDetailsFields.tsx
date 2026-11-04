@@ -38,7 +38,12 @@ export default function PetDetailsFields({
         bottomSheetLabel="Select your Pets"
         placeholder="Select the number of pets you have"
         options={PET_COUNT_OPTIONS}
-        onSelect={(value) => onCountChange(value ? optionToPetCount(value) : 1)}
+        onSelect={(value) => {
+          const count = value ? optionToPetCount(value) : 1
+          onCountChange(count)
+          // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
+          if (kindOfPets.length > count) onKindsChange(kindOfPets.slice(0, count))
+        }}
         value={petCountToOption(noOfPets)}
         error={kindOfPets.length > 0 ? error ?? undefined : undefined}
         required

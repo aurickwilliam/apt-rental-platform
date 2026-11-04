@@ -144,6 +144,15 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
   const setVehicles = useCallback((vehicles: string[]) => {
     setSaveError(null);
     setListOfVehicles(vehicles);
+    // Never fewer spots than kinds: raise the count as kinds are added.
+    setNoOfParkingSpots((count) => Math.max(count || 0, vehicles.length));
+  }, []);
+
+  const setSpots = useCallback((value: number) => {
+    setSaveError(null);
+    setNoOfParkingSpots(value);
+    // Lowering the count drops the vehicle kinds that no longer fit.
+    setListOfVehicles((prev) => prev.slice(0, value));
   }, []);
 
   // Conditional clearing mirrors mobile: disabling a parent option clears
@@ -169,7 +178,13 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
   const setNoOfPets = useCallback((value: number) => {
     setSaveError(null);
     setNoOfPetsRaw(value);
-  }, []);
+    // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
+    const kept = kindOfPets.slice(0, value);
+    if (kept.length !== kindOfPets.length) {
+      setKindOfPetsRaw(kept);
+      if (!kept.includes("Other")) setNameOfPets(null);
+    }
+  }, [kindOfPets]);
 
   const setHasParking = useCallback((value: boolean) => {
     setSaveError(null);
@@ -270,10 +285,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       setNameOfPets(v);
     },
     setHasParking,
-    setNoOfParkingSpots: (v: number) => {
-      setSaveError(null);
-      setNoOfParkingSpots(v);
-    },
+    setNoOfParkingSpots: setSpots,
     setHasSmoker: (v: boolean) => {
       setSaveError(null);
       setHasSmoker(v);

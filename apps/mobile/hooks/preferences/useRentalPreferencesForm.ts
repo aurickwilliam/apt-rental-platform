@@ -108,8 +108,29 @@ export function useRentalPreferencesForm() {
   }, []);
 
   const toggleVehicle = useCallback((vehicle: string) => {
-    setListOfVehicles((prev) => (prev.includes(vehicle) ? prev.filter((v) => v !== vehicle) : [...prev, vehicle]));
+    const next = listOfVehicles.includes(vehicle)
+      ? listOfVehicles.filter((v) => v !== vehicle)
+      : [...listOfVehicles, vehicle];
+    setListOfVehicles(next);
+    // Never fewer spots than kinds: raise the count as kinds are added.
+    setNoOfParkingSpots((count) => Math.max(count, next.length));
+  }, [listOfVehicles]);
+
+  const handleSetParkingSpots = useCallback((spots: number) => {
+    setNoOfParkingSpots(spots);
+    // Lowering the count drops the vehicle kinds that no longer fit.
+    setListOfVehicles((prev) => prev.slice(0, spots));
   }, []);
+
+  const handleSetPetCount = useCallback((count: number) => {
+    setNoOfPets(count);
+    // Lowering the count drops the kinds that no longer fit ("4+" keeps them all).
+    if (kindOfPets.length > count) {
+      const kept = kindOfPets.slice(0, count);
+      setKindOfPets(kept);
+      if (!kept.includes(OTHER_PET)) setNameOfPets(null);
+    }
+  }, [kindOfPets]);
 
   const setPetsEnabled = useCallback((val: boolean) => {
     setHasPets(val);
@@ -191,10 +212,10 @@ export function useRentalPreferencesForm() {
     setHouseholdSize,
     setHasPets: setPetsEnabled,
     setKindOfPets: handleSelectPetKinds,
-    setNoOfPets,
+    setNoOfPets: handleSetPetCount,
     setNameOfPets,
     setHasParking: setParkingEnabled,
-    setNoOfParkingSpots,
+    setNoOfParkingSpots: handleSetParkingSpots,
     setListOfVehicles,
     setHasSmoker,
     setHasDisability,

@@ -5,8 +5,6 @@ import { VEHICLE_OPTIONS } from "@repo/constants";
 
 import { PARKING_SPOT_OPTIONS } from "@/lib/tenant-preferences";
 
-import PreferenceOptionCard from "./PreferenceOptionCard";
-
 export interface ParkingDetails {
   noOfParkingSpots: number;
   listOfVehicles: string[];
@@ -22,20 +20,16 @@ export default function PreferenceParkingFields({
   listOfVehicles,
   onChange,
 }: PreferenceParkingFieldsProps) {
-  const toggleVehicle = (vehicle: string) => {
-    onChange({
-      listOfVehicles: listOfVehicles.includes(vehicle)
-        ? listOfVehicles.filter((v) => v !== vehicle)
-        : [...listOfVehicles, vehicle],
-    });
-  };
-
   return (
     <>
       <Select
         placeholder="Select the number of parking you need"
         value={String(noOfParkingSpots)}
-        onChange={(key) => onChange({ noOfParkingSpots: key ? Number(key) : 1 })}
+        onChange={(key) => {
+          const count = key ? Number(key) : 1;
+          // Lowering the count drops the vehicle kinds that no longer fit.
+          onChange({ noOfParkingSpots: count, listOfVehicles: listOfVehicles.slice(0, count) });
+        }}
       >
         <Label>If yes, how many cars or motorcycles do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
         <Select.Trigger>
@@ -53,19 +47,36 @@ export default function PreferenceParkingFields({
           </ListBox>
         </Select.Popover>
       </Select>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-foreground">Select the kinds of vehicles you have:</p>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2" role="group" aria-label="Vehicle types">
-          {VEHICLE_OPTIONS.map((vehicle) => (
-            <PreferenceOptionCard
-              key={vehicle}
-              label={vehicle}
-              selected={listOfVehicles.includes(vehicle)}
-              onPress={() => toggleVehicle(vehicle)}
-            />
-          ))}
-        </div>
-      </div>
+      <Select
+        selectionMode="multiple"
+        placeholder="Select the kinds of vehicles you have"
+        value={listOfVehicles}
+        onChange={(keys) => {
+          const picked = keys.map(String);
+          const next = VEHICLE_OPTIONS.filter((vehicle) => picked.includes(vehicle));
+          // Never fewer spots than kinds: raise the count as kinds are added.
+          onChange({
+            listOfVehicles: next,
+            noOfParkingSpots: Math.max(noOfParkingSpots || 0, next.length),
+          });
+        }}
+      >
+        <Label>Select the kinds of vehicles you have:</Label>
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox className="settings-select-list" selectionMode="multiple">
+            {VEHICLE_OPTIONS.map((vehicle) => (
+              <ListBox.Item key={vehicle} id={vehicle} textValue={vehicle}>
+                {vehicle}
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Select.Popover>
+      </Select>
     </>
   );
 }
