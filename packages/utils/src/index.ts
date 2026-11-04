@@ -294,3 +294,4 @@ export {
   composeAvaReply,
 } from './avaChat';
 export * from './browseRows';
+export * from './rangeInput';

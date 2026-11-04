@@ -38,6 +38,7 @@ export default function SearchContainer({
   assistantButton,
   compact = false,
   navigate,
+  hasFilterRail = false,
 }: {
   basePath?: string;
   filterButton?: React.ReactNode;
@@ -53,6 +54,8 @@ export default function SearchContainer({
    * navigation remounts the page and would throw away the map and its results.
    */
   navigate?: (href: string) => void;
+  /** The filters sit beside the results from md up, so the bar's filter button is for phones only. */
+  hasFilterRail?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -319,7 +322,7 @@ export default function SearchContainer({
           className="mx-1 h-6 w-px shrink-0 bg-gray-300"
         />
         <div className="flex shrink-0 items-center">
-          {filterButton}
+          {hasFilterRail ? <div className="md:hidden">{filterButton}</div> : filterButton}
           {mapHref ? (
             <Button
               isIconOnly

@@ -74,7 +74,7 @@ test("See All shows the filtered results skeleton while its navigation is pendin
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
     "@/hooks/use-recent-apartment-searches": { useRememberRecentApartment: () => () => {} },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
-    "./BrowsePageSkeleton": { BrowseResultsGridSkeleton: "ResultsSkeleton" },
+    "./BrowsePageSkeleton": { BrowseResultsGridSkeleton: "ResultsSkeleton", BrowseFilterRailSkeleton: "RailSkeleton" },
   };
   const Browse = compile("app/browse/components/BrowseSectionsList.tsx", dependencies).default;
   const sections = [{ id: "verified", title: "Verified", seeAllHref: "/browse?verified=1", apartments: [{ id: "one", name: "One" }, { id: "two", name: "Two" }] }];
@@ -93,6 +93,7 @@ test("See All shows the filtered results skeleton while its navigation is pendin
     const tree = render();
     assert.equal(tree.filter(node => node.type === "ApartmentCard").length, nextPending ? 0 : 2);
     assert.equal(tree.filter(node => node.type === "ResultsSkeleton").length, nextPending ? 1 : 0);
+    assert.equal(tree.filter(node => node.type === "RailSkeleton").length, nextPending ? 1 : 0, "the filtered page's filter rail is held in place");
     assert.equal(tree.some(node => node.props.role === "status" && node.props["aria-busy"]), nextPending);
   }
   const list = source("app/browse/components/BrowseSectionsList.tsx");

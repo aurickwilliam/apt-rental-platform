@@ -14,7 +14,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
-import { BrowseResultsGridSkeleton } from "./BrowsePageSkeleton";
+import { BrowseFilterRailSkeleton, BrowseResultsGridSkeleton } from "./BrowsePageSkeleton";
 import {
   previewPosition,
   useHoverPreview,
@@ -240,8 +240,13 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
 
   if (isOpeningSeeAll) {
     return (
-      <div role="status" aria-label="Loading results" aria-busy="true">
-        <BrowseResultsGridSkeleton />
+      // The filtered page has the filter rail beside its results, so the skeleton
+      // does too and the layout holds when the page arrives.
+      <div role="status" aria-label="Loading results" aria-busy="true" className="flex flex-col gap-4 md:flex-row">
+        <BrowseFilterRailSkeleton />
+        <div className="min-w-0 flex-1">
+          <BrowseResultsGridSkeleton />
+        </div>
       </div>
     );
   }

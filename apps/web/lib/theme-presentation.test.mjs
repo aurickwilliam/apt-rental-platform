@@ -49,7 +49,7 @@ test("theme provider suppresses only theme-change transitions while preserving i
   assert.ok(rendered.some(node => node.type?.name === "ReducedMotionPreference"));
 });
 
-function renderSearch({ basePath, params = "page=3&verified=1", draft = "  Caloocan  ", filterButton = jsx("ExistingFilterButton", {}) }) {
+function renderSearch({ basePath, params = "page=3&verified=1", draft = "  Caloocan  ", filterButton = jsx("ExistingFilterButton", {}), hasFilterRail = false }) {
   let current = draft;
   const navigations = [];
   const { default: Search } = compile("app/browse/components/SearchContainer.tsx", {
@@ -81,7 +81,7 @@ function renderSearch({ basePath, params = "page=3&verified=1", draft = "  Caloo
     "../lib/browse-layout": compile("app/browse/lib/browse-layout.ts", {}),
     "./CityChips": { default: "CityChips" },
   });
-  return { tree: nodes(Search({ basePath, filterButton, mapHref: `${basePath}/map` })), navigations, filterButton, draft: () => current };
+  return { tree: nodes(Search({ basePath, filterButton, hasFilterRail, mapHref: `${basePath}/map` })), navigations, filterButton, draft: () => current };
 }
 
 test("public and tenant search share one bar that keeps HeroUI colors and search navigation", () => {
@@ -113,6 +113,16 @@ test("public and tenant search share one bar that keeps HeroUI colors and search
   }
   assert.match(source("app/tenant/browse/page.tsx"), /BrowseShell/);
   assert.match(source("app/browse/components/BrowseShell.tsx"), /<SearchContainer basePath=\{basePath\}/);
+});
+
+test("with the filter rail beside results the bar's filter button is for phones only", () => {
+  const { tree, filterButton } = renderSearch({ basePath: "/browse", hasFilterRail: true });
+  const wrapper = tree.find(node => node.props.className === "md:hidden");
+  assert.ok(wrapper, "the filter button sits in a phones-only wrapper");
+  assert.ok(nodes(wrapper).includes(filterButton));
+  const plain = renderSearch({ basePath: "/browse" });
+  assert.ok(!plain.tree.some(node => node.props.className === "md:hidden"), "without a rail the button shows at every size");
+  assert.ok(plain.tree.includes(plain.filterButton));
 });
 
 test("city chips write the drawer's locations filter, one city at a time", () => {

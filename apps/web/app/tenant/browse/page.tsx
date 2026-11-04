@@ -18,6 +18,7 @@ import {
   loadBrowseResults,
   type BrowseResults,
 } from "@/app/browse/lib/fetch-browse-results";
+import { BROWSE_GRID_WITH_RAIL_CLASS } from "@/app/browse/lib/browse-layout";
 import { isDefaultBrowseParams } from "@/app/browse/lib/browse-params";
 import { parseTenantPreferences } from "@/lib/tenant-preferences";
 
@@ -81,6 +82,7 @@ export default async function TenantBrowsePage({ searchParams }: PageProps) {
       }
       fallback={<BrowseResultsGridSkeleton />}
       fullWidth
+      filterRail
     >
       <BrowseGridContent supabase={supabase} params={params} />
     </BrowseShell>
@@ -115,6 +117,7 @@ async function BrowseGridContent({
         totalCount={results.totalCount}
         pageSize={results.pageSize}
         basePath={BASE_PATH}
+        gridClassName={BROWSE_GRID_WITH_RAIL_CLASS}
       />
     </>
   );

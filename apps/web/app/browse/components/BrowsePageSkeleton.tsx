@@ -3,8 +3,11 @@ import { Skeleton } from "@heroui/react";
 import {
   BROWSE_BODY_CLASS,
   BROWSE_GRID_CLASS,
+  BROWSE_GRID_WITH_RAIL_CLASS,
   BROWSE_HEADER_CLASS,
+  BROWSE_RAIL_CLASS,
   browseFrameClass,
+  browseRailCardClass,
 } from "../lib/browse-layout";
 
 // Title/location widths cycle so a row of placeholders reads as real listings
@@ -169,8 +172,24 @@ export function BrowseResultsGridSkeleton() {
       <div aria-hidden="true" className="mb-3 flex h-8 items-center">
         <Skeleton className="h-5 w-24 rounded-md" />
       </div>
-      <BrowseCardsSkeleton />
+      <BrowseCardsSkeleton className={BROWSE_GRID_WITH_RAIL_CLASS} />
     </>
+  );
+}
+
+// The filter rail's placeholder beside searched / filtered / paged results (md
+// and up): the card with its "Filters" header and the drawer panel's placeholder.
+export function BrowseFilterRailSkeleton({ fullWidth = false }: { fullWidth?: boolean }) {
+  return (
+    <div aria-hidden="true" className={BROWSE_RAIL_CLASS}>
+      <div className={browseRailCardClass(fullWidth)}>
+        <div className="flex items-center gap-2 border-b border-divider px-4 py-3">
+          <Skeleton className="size-4 rounded" />
+          <Skeleton className="h-5 w-16 rounded-md" />
+        </div>
+        <FilterPanelSkeleton />
+      </div>
+    </div>
   );
 }
 
@@ -181,6 +200,7 @@ export function BrowseResultsPageSkeleton({ fullWidth = false }: BrowsePageSkele
       <BrowseHeaderSkeleton />
 
       <div className={BROWSE_BODY_CLASS}>
+        <BrowseFilterRailSkeleton fullWidth={fullWidth} />
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <BrowseResultsGridSkeleton />
         </div>

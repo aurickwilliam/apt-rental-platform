@@ -26,6 +26,8 @@ interface RenderApartmentsProps {
   totalCount: number;
   pageSize: number;
   basePath?: string;
+  /** Grid columns; beside the filter rail it has one column fewer. */
+  gridClassName?: string;
 }
 
 // Memoized so list-level state (hover preview, page nav) never redraws
@@ -101,7 +103,14 @@ function getVisiblePages(page: number, totalPages: number): (number | "…")[] {
   return pages;
 }
 
-export default function RenderApartments({ apartment, page, totalCount, pageSize, basePath = "/browse" }: RenderApartmentsProps) {
+export default function RenderApartments({
+  apartment,
+  page,
+  totalCount,
+  pageSize,
+  basePath = "/browse",
+  gridClassName = BROWSE_GRID_CLASS,
+}: RenderApartmentsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -185,7 +194,7 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           <p className="text-sm">Try adjusting your filters</p>
         </div>
       ) : (
-        <div className={BROWSE_GRID_CLASS}>
+        <div className={gridClassName}>
           {apartment.map((apt, i) => (
             <ApartmentGridItem
               key={apt.id}

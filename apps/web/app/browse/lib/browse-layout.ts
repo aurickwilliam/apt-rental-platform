@@ -23,6 +23,17 @@ export const BROWSE_SEARCH_BAR_CLASS =
 export const BROWSE_CITY_CHIPS_CLASS =
   "flex min-w-0 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
+// Filter rail beside searched, filtered and paged results (md and up; below md
+// the filter button opens the drawer). A card that sticks while the results
+// scroll: the tenant shell has no navbar above it, the public route's navbar is
+// 5rem tall.
+export const BROWSE_RAIL_CLASS = "hidden w-72 shrink-0 md:block lg:w-80";
+
+export function browseRailCardClass(fullWidth: boolean): string {
+  const sticky = fullWidth ? "top-4 max-h-[calc(100dvh-2rem)]" : "top-24 max-h-[calc(100dvh-7rem)]";
+  return `sticky ${sticky} flex flex-col overflow-hidden rounded-xl border border-divider bg-surface`;
+}
+
 // Results area under the header: optional filter rail beside the content.
 export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";
 
@@ -31,6 +42,11 @@ export const BROWSE_BODY_CLASS = "mt-4 flex flex-col md:flex-row gap-4";
 // photo), so wide screens get 5 and 6 columns instead of ever-larger cards.
 export const BROWSE_GRID_CLASS =
   "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
+
+// The same grid beside the filter rail: one column fewer at each width, since
+// the rail takes a fifth to a quarter of the row.
+export const BROWSE_GRID_WITH_RAIL_CLASS =
+  "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
 
 // Card grid inside the map search's list column (half the width on desktop).
 export const MAP_LIST_GRID_CLASS =

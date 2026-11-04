@@ -84,7 +84,7 @@ export default function FilterDrawerButton({
                 className={
                   isMobile
                     ? "flex max-h-[85dvh] w-full flex-col rounded-t-2xl p-0"
-                    : "flex h-full w-105 max-w-[90vw] flex-col p-0"
+                    : "flex h-full w-105 max-w-[90vw] flex-col overflow-hidden rounded-l-2xl p-0"
                 }
               >
                 {isMobile ? (
