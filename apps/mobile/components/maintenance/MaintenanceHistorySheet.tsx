@@ -30,7 +30,7 @@ export default function MaintenanceHistorySheet({ isOpen, onOpenChange, requests
             data={isOpen ? requests : []}
             keyExtractor={(request: MaintenanceRequest) => request.id}
             renderItem={({ item }: { item: MaintenanceRequest }) => <MaintenanceDashboardRequestCard request={item} onPress={onOpenRequest} />}
-            contentContainerStyle={{ gap: 12, paddingBottom: insets.bottom + 24 }}
+            contentContainerStyle={{ gap: 8, paddingBottom: insets.bottom + 24 }}
             ListFooterComponent={limited ? <Text className="pt-3 font-inter text-xs text-muted">History is limited to the latest {MAINTENANCE_DASHBOARD_LIMIT} requests.</Text> : null}
           />
         </BottomSheet.Content>

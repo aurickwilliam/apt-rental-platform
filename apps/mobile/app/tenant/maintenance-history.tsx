@@ -103,9 +103,13 @@ export default function MaintenanceHistory() {
                   <Text className="font-inter text-sm text-muted">History is unavailable. Use Retry requests above.</Text>
                 ) : history.length === 0 ? (
                   <Text className="font-inter text-sm text-muted">No resolved or cancelled requests yet.</Text>
-                ) : history.slice(0, MAINTENANCE_PREVIEW_LIMIT).map((request) => (
-                  <MaintenanceDashboardRequestCard key={request.id} request={request} onPress={openRequest} />
-                ))}
+                ) : (
+                  <View className="gap-2">
+                    {history.slice(0, MAINTENANCE_PREVIEW_LIMIT).map((request) => (
+                      <MaintenanceDashboardRequestCard key={request.id} request={request} onPress={openRequest} />
+                    ))}
+                  </View>
+                )}
                 {history.length > MAINTENANCE_PREVIEW_LIMIT && (
                   <Button variant="secondary" size="sm" className="min-h-11 self-end" onPress={() => setSheetAccount(accountKey)}>
                     <Button.Label>See more</Button.Label>

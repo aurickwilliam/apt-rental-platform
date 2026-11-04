@@ -14,8 +14,8 @@ interface MaintenanceOverviewProps {
 export default function MaintenanceOverview({ data, loading, error, onRetry }: MaintenanceOverviewProps) {
   const { colors } = useColors();
   const panels = [
-    { title: "Active requests", Icon: IconTool, value: String(data?.activeCount ?? "—") },
-    { title: "Unpaid maintenance fees", Icon: IconReceipt, value: data ? `₱${data.unpaidFees.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—" },
+    { title: "Active requests", Icon: IconTool, value: String(data?.activeCount ?? "—"), highlighted: true },
+    { title: "Unpaid maintenance fees", Icon: IconReceipt, value: data ? `₱${data.unpaidFees.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—", highlighted: false },
   ];
   return (
     <Card className="rounded-3xl border border-border bg-overlay shadow-none">
@@ -30,18 +30,18 @@ export default function MaintenanceOverview({ data, loading, error, onRetry }: M
           </View>
         ) : (
             <View className="flex-row items-stretch gap-3">
-              {panels.map(({ title, Icon, value }) => (
+              {panels.map(({ title, Icon, value, highlighted }) => (
                 <View key={title} className="min-w-0 flex-1 gap-3 rounded-2xl border border-border bg-surface p-3">
-                  <View className="gap-2">
-                    <Icon size={20} color={colors.primaryLightForeground} />
-                    <Text className="font-nunitoSemiBold text-sm text-foreground">{title}</Text>
+                  <View className="flex-row items-start gap-2">
+                    <View className="size-5 shrink-0"><Icon size={20} color={colors.primaryLightForeground} /></View>
+                    <Text className="min-w-0 flex-1 font-nunitoSemiBold text-sm text-foreground">{title}</Text>
                   </View>
                   <Text
                     selectable
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.65}
-                    className="mt-auto max-w-full self-start rounded-xl bg-primary-light px-2 py-2 font-nunitoBold text-xl text-primary-light-foreground"
+                    className={`mt-auto max-w-full self-start py-2 font-nunitoBold text-xl text-primary-light-foreground${highlighted ? " rounded-xl bg-primary-light px-2" : ""}`}
                     style={{ fontVariant: ["tabular-nums"] }}
                   >
                     {value}

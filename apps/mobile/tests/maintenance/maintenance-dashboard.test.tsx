@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { FlatList, View } from "react-native";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import MaintenanceHistory from "@/app/tenant/maintenance-history";
 
@@ -26,7 +26,7 @@ jest.mock("heroui-native", () => {
   const Pass = ({ children }: { children: ReactNode }) => <View>{children}</View>;
   const Label = ({ children }: { children: ReactNode }) => <Text>{children}</Text>;
   const Sheet = ({ children, isOpen }: { children: ReactNode; isOpen: boolean }) => isOpen ? <View>{children}</View> : null;
-  return { ...stub, BottomSheet: Object.assign(Sheet, { Portal: Pass, Overlay: () => null, Content: Pass, Title: Label, Description: Label }) };
+  return { ...stub, PressableFeedback: Object.assign(stub.Button, { Highlight: () => null }), BottomSheet: Object.assign(Sheet, { Portal: Pass, Overlay: () => null, Content: Pass, Title: Label, Description: Label }) };
 });
 jest.mock("@gorhom/bottom-sheet", () => ({ BottomSheetFlatList: jest.requireActual("react-native").FlatList }));
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
@@ -59,11 +59,38 @@ it("places equal-width overview panels in one row without descriptions", () => {
   for (const panel of row.props.children) {
     expect(panel.props.className).toContain("flex-1");
     expect(panel.props.className).toContain("min-w-0");
+    const heading = panel.props.children[0];
+    expect(heading.props.className).toContain("flex-row");
+    expect(heading.props.children[1].props.className).toContain("flex-1");
+    expect(heading.props.children[1].props.numberOfLines).toBeUndefined();
   }
   expect(screen.queryByText("Active requests are pending or in progress.")).toBeNull();
   expect(screen.queryByText(/All outstanding fees for your current tenancy/)).toBeNull();
   expect(screen.queryByText(/No active tenancy/)).toBeNull();
   expect(screen.getByText("₱1,250.50").props.adjustsFontSizeToFit).toBe(true);
+  expect(screen.getByText("₱1,250.50").props.className).not.toContain("bg-primary-light");
+});
+
+it("groups request titles and chips in the top row, with category and date together below", () => {
+  render(<MaintenanceHistory />);
+  const views = screen.UNSAFE_getAllByType(View);
+  const topRows = views.filter((node) => node.props.className === "flex-row items-start justify-between gap-2");
+  expect(topRows.length).toBeGreaterThan(0);
+  for (const topRow of topRows) {
+    const [title, badges] = topRow.props.children;
+    expect(title.props.className).toContain("items-center");
+    expect(title.props.children[0].props.className).not.toContain("mt-1");
+    expect(title.props.children[1].props.children).toMatch(/^Repair /);
+    expect(badges.props.children).toHaveLength(2);
+    expect(badges.props.className).toContain("flex-wrap");
+  }
+  const metadataRows = views.filter((node) => node.props.className === "flex-row items-start gap-3"
+    && node.props.children[0]?.props.className === "min-w-0 flex-1 flex-row items-start gap-2");
+  expect(metadataRows).toHaveLength(topRows.length);
+  for (const row of metadataRows) {
+    expect(row.props.children).toHaveLength(2);
+    for (const column of row.props.children) expect(column.props.className).toContain("flex-1");
+  }
 });
 
 it("opens only older rows in the sheet, supports closing, and keeps details navigation", () => {
@@ -76,6 +103,32 @@ it("opens only older rows in the sheet, supports closing, and keeps details navi
   expect(screen.queryByText("Repair 3")).toBeNull();
   fireEvent.press(screen.getByLabelText("View details for Repair active"));
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "active", apartmentId: "apartment" } });
+});
+
+it("makes history cards tappable in both surfaces while retaining the active request's details button", () => {
+  render(<MaintenanceHistory />);
+  expect(screen.getAllByText("View details")).toHaveLength(1);
+  fireEvent.press(screen.getByRole("button", { name: "View details for Repair 0" }));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "0", apartmentId: "apartment" } });
+  fireEvent.press(screen.getByText("See more"));
+  expect(screen.getAllByText("View details")).toHaveLength(1);
+  fireEvent.press(screen.getByRole("button", { name: "View details for Repair 3" }));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "3", apartmentId: "apartment" } });
+  expect(screen.queryByText("More maintenance history")).toBeNull();
+});
+
+it("uses compact history gaps in both surfaces without changing active list spacing", () => {
+  render(<MaintenanceHistory />);
+  const preview = screen.UNSAFE_getAllByType(View).filter((node) => node.props.className === "gap-2"
+    && Array.isArray(node.props.children) && node.props.children[0]?.props.request?.id === "0");
+  expect(preview).toHaveLength(1);
+  expect(preview[0].props.children).toHaveLength(3);
+  fireEvent.press(screen.getByText("See more"));
+  const lists = screen.UNSAFE_getAllByType(FlatList);
+  const active = lists.find((node) => node.props.data[0]?.id === "active");
+  const older = lists.find((node) => node.props.data[0]?.id === "3");
+  expect(active?.props.contentContainerStyle.gap).toBe(12);
+  expect(older?.props.contentContainerStyle.gap).toBe(8);
 });
 
 it.each([0, 1, 3])("hides See more with %i history rows", (count) => {
