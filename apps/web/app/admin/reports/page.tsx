@@ -34,6 +34,8 @@ export default async function ReportsPage({
        apartment:apartments!user_reports_apartment_id_fkey(id, name, is_hidden_by_admin, hidden_reason)`,
       { count: "exact" },
     )
+    // Open reports come first so one waiting for a decision is never buried by closed ones.
+    .order("status_rank", { ascending: true })
     .order("created_at", { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (status !== "all") query = query.eq("status", status);
@@ -42,12 +44,14 @@ export default async function ReportsPage({
   // Search matches the reported person, the reporter or the listing by name.
   if (filters.q) {
     const term = `%${filters.q}%`;
+    // Every word must match the first name, last name or email, so a full name
+    // ("Ryan Gosling") finds the person even though no single column holds it.
+    let peopleQuery = supabase.from("users").select("id");
+    for (const word of filters.q.split(" ")) {
+      peopleQuery = peopleQuery.or(`first_name.ilike.%${word}%,last_name.ilike.%${word}%,email.ilike.%${word}%`);
+    }
     const [{ data: people }, { data: listings }] = await Promise.all([
-      supabase
-        .from("users")
-        .select("id")
-        .or(`first_name.ilike.${term},last_name.ilike.${term},email.ilike.${term}`)
-        .limit(100),
+      peopleQuery.limit(100),
       supabase.from("apartments").select("id").ilike("name", term).limit(100),
     ]);
     const personIds = (people ?? []).map((person) => person.id).join(",");

@@ -63,7 +63,8 @@ export default function NotificationRow({
     <Button
       variant="ghost"
       onClick={onOpen}
-      aria-label={accessibleLabel}
+      // An expanded notice is read from its content; the short label would hide the full message.
+      aria-label={expanded ? undefined : accessibleLabel}
       aria-expanded={expandable ? expanded : undefined}
       className={`button--bare ${compact ? "notification-feed-member" : "notification-feed-row"}`}
     >

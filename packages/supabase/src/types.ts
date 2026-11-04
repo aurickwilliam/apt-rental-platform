@@ -1448,6 +1448,7 @@ export type Database = {
           resolved_at: string | null
           resolved_by: string | null
           status: string
+          status_rank: number
           target_type: string
         }
         Insert: {

@@ -97,9 +97,21 @@ Deno.serve(async (req: Request) => {
     return fail(`provider status ${res.status}`)
   }
 
-  await supabase
-    .from('email_outbox')
-    .update({ sent_at: new Date().toISOString(), last_error: null })
-    .eq('id', id)
+  // The email is out. Record that, retrying once, so the retry job never sends it again.
+  const markSent = () =>
+    supabase
+      .from('email_outbox')
+      .update({ sent_at: new Date().toISOString(), last_error: null })
+      .eq('id', id)
+  let marked = await markSent()
+  if (marked.error) marked = await markSent()
+  if (marked.error) {
+    console.error('email-notify: sent but could not record it:', marked.error.message)
+    // Use up the attempts so the retry job cannot send a duplicate.
+    await supabase
+      .from('email_outbox')
+      .update({ attempts: MAX_ATTEMPTS, last_error: 'sent; status not recorded' })
+      .eq('id', id)
+  }
   return json({ sent: true })
 })
