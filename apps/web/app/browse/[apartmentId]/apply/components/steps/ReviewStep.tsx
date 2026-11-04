@@ -68,8 +68,11 @@ function emptySlotLabel(slot: ApplicationDocumentSlot, employmentType: string): 
   return "Missing";
 }
 
-const SECTION_ITEM = "overflow-hidden rounded-xl border border-border bg-muted";
-const SECTION_TRIGGER = "flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold text-card-foreground";
+// `after:hidden` drops HeroUI's item separator line: each section is its own card.
+const SECTION_ITEM = "overflow-hidden rounded-2xl border border-border bg-card shadow-sm after:hidden";
+const SECTION_TRIGGER =
+  "flex w-full cursor-pointer items-center justify-between rounded-2xl px-5 py-4 text-base font-semibold text-card-foreground transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
+const SECTION_BODY = "border-t border-border px-5 pb-5 pt-4";
 
 export default function ReviewStep({
   apartment,
@@ -125,7 +128,7 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <DetailRow label="Full Name" value={form.fullName} />
                   <DetailRow label="Email" value={form.email} />
@@ -151,7 +154,7 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <DetailRow label="Move-in Date" value={formatDate(form.moveInDate)} />
                   <DetailRow label="Number of Occupants" value={form.noOccupants ? `${form.noOccupants} Person(s)` : "—"} />
@@ -175,7 +178,7 @@ export default function ReviewStep({
               <AccordionIndicator className="text-muted-foreground!" />
             </AccordionTrigger>
             <AccordionPanel>
-              <AccordionBody className="px-4 pb-4">
+              <AccordionBody className={SECTION_BODY}>
                 {readiness.loading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Spinner size="sm" color="accent" /> Checking your APT Passport…
