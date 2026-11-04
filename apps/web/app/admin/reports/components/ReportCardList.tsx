@@ -37,7 +37,7 @@ export default function ReportCardList({ reports }: { reports: AdminUserReport[]
           </div>
           <div className="text-sm">
             <p className="font-semibold">{getReportReasonLabel(report.reason)}</p>
-            {report.details ? <p className="wrap-break-word text-muted-foreground">{report.details}</p> : null}
+            {report.details ? <p className="line-clamp-3 wrap-break-word text-muted-foreground">{report.details}</p> : null}
             <p className="text-xs text-muted-foreground">
               {USER_REPORT_TARGET_LABELS[report.target_type] ?? "Report"}
               {report.apartment ? (

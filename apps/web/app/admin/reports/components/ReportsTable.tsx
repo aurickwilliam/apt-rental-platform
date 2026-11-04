@@ -25,40 +25,39 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
               <Table.Column>Reported by</Table.Column>
               <Table.Column>Status</Table.Column>
               <Table.Column>When</Table.Column>
-              <Table.Column>Review</Table.Column>
+              <Table.Column>Action</Table.Column>
             </Table.Header>
             <Table.Body>
               {reports.map((report) => (
                 <Table.Row key={report.id} id={report.id}>
-                  <Table.Cell className="text-sm">
-                    {report.reported ? (
-                      <Link href={`/admin/users/${report.reported.id}`} className={LINK_CLASSES}>
-                        {formatReportPerson(report.reported)}
-                      </Link>
-                    ) : (
-                      formatReportPerson(null)
-                    )}
-                    {report.reported?.is_suspended ? (
-                      <p className="text-xs text-danger">Suspended</p>
-                    ) : null}
-                    <p className="text-xs text-muted-foreground">
+                  <Table.Cell className="min-w-48 text-sm">
+                    <StatusChip size="sm" tone="neutral">
                       {USER_REPORT_TARGET_LABELS[report.target_type] ?? "Report"}
+                    </StatusChip>
+                    <p className="mt-1.5">
+                      {report.reported ? (
+                        <Link href={`/admin/users/${report.reported.id}`} className={LINK_CLASSES}>
+                          {formatReportPerson(report.reported)}
+                        </Link>
+                      ) : (
+                        formatReportPerson(null)
+                      )}
+                      {report.reported?.is_suspended ? <span className="text-xs text-danger"> · Suspended</span> : null}
                     </p>
                     {report.apartment ? (
-                      <p className="text-xs">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Listing:{" "}
                         <Link href={`/admin/apartments/${report.apartment.id}`} className={LINK_CLASSES}>
                           {report.apartment.name}
                         </Link>
-                        {report.apartment.is_hidden_by_admin ? (
-                          <span className="text-danger"> · Hidden</span>
-                        ) : null}
+                        {report.apartment.is_hidden_by_admin ? <span className="text-danger"> · Hidden</span> : null}
                       </p>
                     ) : null}
                   </Table.Cell>
-                  <Table.Cell className="max-w-72 text-sm">
+                  <Table.Cell className="min-w-56 max-w-80 text-sm">
                     <p className="font-semibold">{getReportReasonLabel(report.reason)}</p>
                     {report.details ? (
-                      <p className="wrap-break-word text-muted-foreground">{report.details}</p>
+                      <p className="line-clamp-2 wrap-break-word text-muted-foreground">{report.details}</p>
                     ) : null}
                   </Table.Cell>
                   <Table.Cell className="text-sm">
@@ -78,7 +77,7 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
                   <Table.Cell className="whitespace-nowrap text-sm text-muted-foreground">
                     {reportDateFormatter.format(new Date(report.created_at))}
                   </Table.Cell>
-                  <Table.Cell className="text-sm">
+                  <Table.Cell className="min-w-40 text-sm">
                     {report.status === "open" ? (
                       <ReportActions report={report} />
                     ) : (
@@ -86,7 +85,7 @@ export default function ReportsTable({ reports }: { reports: AdminUserReport[] }
                         {REPORT_ACTION_LABELS[report.action_taken] ? (
                           <p className="font-semibold text-foreground">{REPORT_ACTION_LABELS[report.action_taken]}</p>
                         ) : null}
-                        <p>{report.resolution_note ?? "—"}</p>
+                        <p className="line-clamp-2 wrap-break-word">{report.resolution_note ?? "—"}</p>
                       </div>
                     )}
                   </Table.Cell>

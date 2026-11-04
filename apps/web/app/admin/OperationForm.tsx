@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button, Description, Label, Modal, Radio, RadioGroup, TextArea } from "@heroui/react";
+import { SUSPENSION_DURATIONS } from "@/lib/suspension-duration";
 import type { OperationResult } from "./actions/operations";
 
 interface OperationFormProps {
@@ -10,13 +11,6 @@ interface OperationFormProps {
   onSubmit: (formData: FormData) => Promise<OperationResult>;
   label?: string;
 }
-
-const SUSPENSION_DURATIONS = [
-  { value: "permanent", label: "Permanent", description: "Stays suspended until an admin reactivates it" },
-  { value: "7", label: "7 days", description: "Lifts itself automatically" },
-  { value: "30", label: "30 days", description: "Lifts itself automatically" },
-  { value: "90", label: "90 days", description: "Lifts itself automatically" },
-] as const;
 
 const COPY = {
   suspend: "Future sign-ins will be blocked and this account will lose access to protected data immediately. Existing access tokens may remain valid until expiry.",

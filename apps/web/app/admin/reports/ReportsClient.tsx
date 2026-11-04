@@ -1,10 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pagination, Spinner } from "@heroui/react";
+import ActiveFilterTags from "../_components/filters/ActiveFilterTags";
 import FilterPillGroup from "../_components/filters/FilterPillGroup";
-import type { FilterOption } from "../_components/filters/types";
+import FilterPopover from "../_components/filters/FilterPopover";
+import type { ActiveFilterTag, FilterOption } from "../_components/filters/types";
 import type { UserReportStatusFilter, UserReportTargetTypeFilter } from "@/lib/user-reports";
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
@@ -27,6 +29,12 @@ const TYPE_OPTIONS: readonly FilterOption<UserReportTargetTypeFilter>[] = [
   { id: "user", label: "Chats" },
 ];
 
+// Open reports of every kind are what the page shows with no filter applied.
+const DEFAULT_FILTERS: { status: UserReportStatusFilter; type: UserReportTargetTypeFilter } = {
+  status: "open",
+  type: "all",
+};
+
 interface ReportsClientProps {
   reports: AdminUserReport[];
   error: boolean;
@@ -48,6 +56,22 @@ export default function ReportsClient({
 }: ReportsClientProps) {
   const router = useRouter();
   const [isNavigating, startTransition] = useTransition();
+  const [draft, setDraft] = useState({ status, type });
+
+  const activeTags: ActiveFilterTag[] = [];
+  if (status !== DEFAULT_FILTERS.status) {
+    activeTags.push({
+      id: "status",
+      label: `Status: ${STATUS_OPTIONS.find((option) => option.id === status)?.label ?? status}`,
+    });
+  }
+  if (type !== DEFAULT_FILTERS.type) {
+    activeTags.push({
+      id: "type",
+      label: `Type: ${TYPE_OPTIONS.find((option) => option.id === type)?.label ?? type}`,
+    });
+  }
+
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const firstVisiblePage = Math.max(1, Math.min(page - 2, totalPages - 4));
   const visiblePages = Array.from(
@@ -61,22 +85,46 @@ export default function ReportsClient({
     });
   }
 
+  function removeTags(ids: string[]) {
+    navigate(
+      ids.includes("status") ? DEFAULT_FILTERS.status : status,
+      ids.includes("type") ? DEFAULT_FILTERS.type : type,
+      1,
+    );
+  }
+
   return (
     <div className="space-y-5">
-      <FilterPillGroup
-        label="Status"
-        selectionMode="single"
-        options={STATUS_OPTIONS}
-        value={status}
-        onChange={(nextStatus) => navigate(nextStatus, type, 1)}
-      />
-      <FilterPillGroup
-        label="Type"
-        selectionMode="single"
-        options={TYPE_OPTIONS}
-        value={type}
-        onChange={(nextType) => navigate(status, nextType, 1)}
-      />
+      <div className="space-y-3">
+        <div className="flex justify-end">
+          <FilterPopover
+            activeCount={activeTags.length}
+            onOpen={() => setDraft({ status, type })}
+            onReset={() => setDraft(DEFAULT_FILTERS)}
+            onApply={() => navigate(draft.status, draft.type, 1)}
+          >
+            <FilterPillGroup
+              label="Status"
+              selectionMode="single"
+              options={STATUS_OPTIONS}
+              value={draft.status}
+              onChange={(nextStatus) => setDraft((current) => ({ ...current, status: nextStatus }))}
+            />
+            <FilterPillGroup
+              label="Type"
+              selectionMode="single"
+              options={TYPE_OPTIONS}
+              value={draft.type}
+              onChange={(nextType) => setDraft((current) => ({ ...current, type: nextType }))}
+            />
+          </FilterPopover>
+        </div>
+        <ActiveFilterTags
+          tags={activeTags}
+          onRemove={removeTags}
+          onClearAll={() => navigate(DEFAULT_FILTERS.status, DEFAULT_FILTERS.type, 1)}
+        />
+      </div>
 
       {error ? (
         <p role="alert" className="text-sm text-danger">

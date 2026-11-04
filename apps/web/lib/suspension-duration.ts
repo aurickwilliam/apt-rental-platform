@@ -15,3 +15,11 @@ export function suspensionEnd(duration: unknown, now: number = Date.now()): stri
   if (!(SUSPENSION_DAYS as readonly number[]).includes(days)) return undefined;
   return new Date(now + days * DAY_MS).toISOString();
 }
+
+/** The choices the admin forms show; values match what `suspensionEnd` accepts. */
+export const SUSPENSION_DURATIONS = [
+  { value: "permanent", label: "Permanent", description: "Stays suspended until an admin reactivates it" },
+  { value: "7", label: "7 days", description: "Lifts itself automatically" },
+  { value: "30", label: "30 days", description: "Lifts itself automatically" },
+  { value: "90", label: "90 days", description: "Lifts itself automatically" },
+] as const;
