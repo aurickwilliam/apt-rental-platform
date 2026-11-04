@@ -41,6 +41,7 @@ export {
   type ApartmentReportReason,
   type UserReportTargetType,
 } from './userReport';
+export { getErrorMessage } from './getErrorMessage';
 export * from './landlordFinance';
 export * from './landlordPayments';
 export { filterPaymentHistory } from './paymentHistory';

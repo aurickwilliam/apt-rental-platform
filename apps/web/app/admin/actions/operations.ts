@@ -2,6 +2,7 @@
 
 import { createClient } from "@repo/supabase/server";
 import { revalidatePath } from "next/cache";
+import { suspensionEnd } from "@/lib/suspension-duration";
 import { requireAdmin } from "../_lib/require-admin";
 
 export interface OperationResult {
@@ -19,16 +20,11 @@ function input(formData: FormData): { id: string; reason: string } | OperationRe
   return { id, reason: reason.trim() };
 }
 
-const SUSPENSION_DAYS = new Set(["7", "30", "90"]);
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** End of a suspension from the form's `duration` ("permanent" or a number of days); null = permanent. */
-function suspensionEnd(formData: FormData): { until: string | null } | OperationResult {
-  const duration = formData.get("duration") ?? "permanent";
-  if (duration === "permanent") return { until: null };
-  if (typeof duration !== "string" || !SUSPENSION_DAYS.has(duration))
-    return { error: "Choose how long the suspension lasts." };
-  return { until: new Date(Date.now() + Number(duration) * DAY_MS).toISOString() };
+/** End of a suspension from the form's `duration`; null = permanent. */
+function suspensionUntil(formData: FormData): { until: string | null } | OperationResult {
+  const until = suspensionEnd(formData.get("duration"));
+  if (until === undefined) return { error: "Choose how long the suspension lasts." };
+  return { until };
 }
 
 export async function setUserAccess(formData: FormData): Promise<OperationResult> {
@@ -39,7 +35,7 @@ export async function setUserAccess(formData: FormData): Promise<OperationResult
   if (suspend !== "suspend" && suspend !== "reactivate") return { error: "Invalid decision." };
 
   // The RPC authorizes the caller from auth.uid() and writes the audit row.
-  const end = suspend === "suspend" ? suspensionEnd(formData) : { until: null };
+  const end = suspend === "suspend" ? suspensionUntil(formData) : { until: null };
   if (!("until" in end)) return end;
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_set_user_access", {
@@ -115,7 +111,7 @@ export async function actOnUserReport(formData: FormData): Promise<OperationResu
   if (decision !== "warn" && decision !== "hide_listing" && decision !== "suspend_user")
     return { error: "Invalid decision." };
 
-  const end = decision === "suspend_user" ? suspensionEnd(formData) : { until: null };
+  const end = decision === "suspend_user" ? suspensionUntil(formData) : { until: null };
   if (!("until" in end)) return end;
 
   // One audited transaction: warn, hide the listing or suspend the account, and close the report.

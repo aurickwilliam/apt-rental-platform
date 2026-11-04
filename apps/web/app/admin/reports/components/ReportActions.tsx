@@ -11,7 +11,9 @@ import type { AdminUserReport } from "../lib/report-types";
  * account is suspended.
  */
 export default function ReportActions({ report }: { report: AdminUserReport }) {
-  const canHideListing = Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
+  // A chat report only tags the conversation's apartment, so only listing reports can hide one.
+  const canHideListing =
+    report.target_type === "apartment" && Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
   const canSuspend = Boolean(report.reported) && !report.reported?.is_suspended;
 
   return (

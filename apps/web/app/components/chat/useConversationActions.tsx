@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
 import { createClient } from "@repo/supabase/browser";
-import type { UserReportReason } from "@repo/utils";
+import { getErrorMessage, type UserReportReason } from "@repo/utils";
 
 import RemovePhotoConfirmModal from "@/app/components/profile/RemovePhotoConfirmModal";
 import { conversationApartmentHref } from "@/lib/conversation-context";
@@ -21,10 +21,7 @@ import { markConversationRead, reportUser, setConversationPreference, setUserBlo
 /** What a row's menu has changed locally on top of the server's lists. */
 type Overlay = Partial<Pick<ConversationContact, "isPinned" | "pinnedAt" | "isArchived" | "isMuted" | "markedUnread" | "blockedByMe">>;
 
-function errorMessage(error: unknown): string {
-  const message = (error as { message?: unknown } | null)?.message;
-  return typeof message === "string" && message.trim() ? message : "Something went wrong. Try again.";
-}
+const errorMessage = (error: unknown) => getErrorMessage(error, "Something went wrong. Try again.");
 
 const firstName = (contact: ConversationContact) => contact.name.split(" ")[0] || "this person";
 

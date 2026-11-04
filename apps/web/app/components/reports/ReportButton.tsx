@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Button, toast } from "@heroui/react";
 import { IconFlag } from "@tabler/icons-react";
 import { createClient } from "@repo/supabase/browser";
-import { APARTMENT_REPORT_REASONS, USER_REPORT_REASONS } from "@repo/utils";
+import { APARTMENT_REPORT_REASONS, USER_REPORT_REASONS, getErrorMessage } from "@repo/utils";
 import type { ApartmentReportReason, UserReportReason } from "@repo/utils";
 
 import ReportUserModal from "@/app/components/chat/ReportUserModal";
@@ -19,19 +19,18 @@ export type ReportTarget =
 interface ReportButtonProps {
   target: ReportTarget;
   className?: string;
+  /** "card" is the full-width red button used in the price card; "ghost" is the quiet inline one. */
+  variant?: "ghost" | "card";
 }
 
-function errorMessage(error: unknown): string {
-  const message = (error as { message?: unknown } | null)?.message;
-  return typeof message === "string" && message.trim() ? message : "Something went wrong. Try again.";
-}
+const REPORT_ERROR_FALLBACK = "Something went wrong. Try again.";
 
 /**
  * Report entry point for a listing or a landlord/tenant profile. Hidden for the
  * owner of the thing being reported; signed-out visitors are asked to sign in.
  * The database is the final authority on who can report what.
  */
-export default function ReportButton({ target, className }: ReportButtonProps) {
+export default function ReportButton({ target, className, variant = "ghost" }: ReportButtonProps) {
   const supabase = useMemo(() => createClient(), []);
   const { profile, loading } = useUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +42,7 @@ export default function ReportButton({ target, className }: ReportButtonProps) {
   if (loading || (viewerId && viewerId === targetOwnerId)) return null;
 
   const isApartment = target.kind === "apartment";
-  const label = isApartment ? "Report this listing" : "Report";
+  const label = isApartment && variant === "ghost" ? "Report this listing" : "Report";
 
   const open = () => {
     if (!viewerId) {
@@ -76,7 +75,7 @@ export default function ReportButton({ target, className }: ReportButtonProps) {
       setIsOpen(false);
     } catch (reportError) {
       console.error("[reports] Failed to send report:", reportError);
-      setError(errorMessage(reportError));
+      setError(getErrorMessage(reportError, REPORT_ERROR_FALLBACK));
     } finally {
       setIsSubmitting(false);
     }
@@ -84,15 +83,27 @@ export default function ReportButton({ target, className }: ReportButtonProps) {
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="ghost"
-        onPress={open}
-        className={`cursor-pointer gap-1.5 rounded-full font-nunito text-muted-foreground ${className ?? ""}`}
-      >
-        <IconFlag size={14} aria-hidden="true" />
-        {label}
-      </Button>
+      {variant === "card" ? (
+        <Button
+          variant="tertiary"
+          fullWidth
+          onPress={open}
+          className={`cursor-pointer border-red-300 bg-red-400/10 text-red-600 hover:bg-red-400/20 ${className ?? ""}`}
+        >
+          <IconFlag size={16} aria-hidden="true" />
+          {label}
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          onPress={open}
+          className={`cursor-pointer gap-1.5 rounded-full font-nunito text-muted-foreground ${className ?? ""}`}
+        >
+          <IconFlag size={14} aria-hidden="true" />
+          {label}
+        </Button>
+      )}
       <ReportUserModal
         name={isOpen ? target.name : null}
         reasons={isApartment ? APARTMENT_REPORT_REASONS : USER_REPORT_REASONS}

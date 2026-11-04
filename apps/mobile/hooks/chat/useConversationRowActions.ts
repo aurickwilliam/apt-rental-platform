@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "expo-router";
 import { useToast } from "heroui-native";
+import { getErrorMessage } from "@repo/utils";
 
 import { getChatApartmentRoute, getChatProfileRoute } from "@/service/chat/chatRoutes";
 import { hasUnread } from "@/service/chat/conversationList";
@@ -35,12 +36,7 @@ interface ConversationRowActionsDeps {
   setBlocked: (otherUserId: string, blocked: boolean) => Promise<void>;
 }
 
-function getErrorMessage(error: unknown): string {
-  const message = (error as { message?: unknown } | null)?.message;
-  return typeof message === "string" && message.trim()
-    ? message
-    : "Something went wrong. Try again.";
-}
+const ROW_ACTION_ERROR_FALLBACK = "Something went wrong. Try again.";
 
 function firstName(conversation: ConversationWithMeta): string {
   return conversation.other_user_name.split(" ")[0] || "this person";
@@ -83,7 +79,7 @@ export function useConversationRowActions({
         toast.show({
           variant: "danger",
           label: "Couldn't update this chat",
-          description: getErrorMessage(error),
+          description: getErrorMessage(error, ROW_ACTION_ERROR_FALLBACK),
         });
       }
     },
@@ -146,7 +142,7 @@ export function useConversationRowActions({
         toast.show({
           variant: "danger",
           label: "Couldn't unblock",
-          description: getErrorMessage(error),
+          description: getErrorMessage(error, ROW_ACTION_ERROR_FALLBACK),
         });
       }
     },
@@ -231,7 +227,7 @@ export function useConversationRowActions({
       } catch (error) {
         console.error("[conversations] Failed to report user:", error);
         // Database messages are written for users (e.g. already reported).
-        setReportError(getErrorMessage(error));
+        setReportError(getErrorMessage(error, ROW_ACTION_ERROR_FALLBACK));
       } finally {
         setIsReporting(false);
       }
@@ -248,7 +244,7 @@ export function useConversationRowActions({
       setBlockTarget(null);
     } catch (error) {
       console.error("[conversations] Failed to block:", error);
-      setBlockError(getErrorMessage(error));
+      setBlockError(getErrorMessage(error, ROW_ACTION_ERROR_FALLBACK));
     }
   }, [blockTarget, setBlocked, toast]);
 

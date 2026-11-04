@@ -1,12 +1,11 @@
 import { useCallback, useState } from "react";
 import { useToast } from "heroui-native";
 
+import { getErrorMessage } from "@repo/utils";
+
 import { submitReport, type ReportTarget } from "@/service/reports/reportService";
 
-function getErrorMessage(error: unknown): string {
-  const message = (error as { message?: unknown } | null)?.message;
-  return typeof message === "string" && message.trim() ? message : "Something went wrong. Try again.";
-}
+const REPORT_ERROR_FALLBACK = "Something went wrong. Try again.";
 
 /**
  * State for a report dialog opened from a listing or profile screen. The draft
@@ -36,7 +35,7 @@ export function useReportDialog(target: ReportTarget | null) {
         toast.show({ variant: "success", label: "Report sent. Thanks for letting us know." });
       } catch (error) {
         console.error("[reports] Failed to send report:", error);
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(getErrorMessage(error, REPORT_ERROR_FALLBACK));
       } finally {
         setIsSubmitting(false);
       }

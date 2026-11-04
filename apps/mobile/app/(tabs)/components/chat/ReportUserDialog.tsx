@@ -53,6 +53,16 @@ export default function ReportUserDialog({
   const [reason, setReason] = useState<string | null>(null);
   const [details, setDetails] = useState('');
 
+  // The draft never outlives the open: reset on any close (cancel, success or parent).
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) {
+      setReason(null);
+      setDetails('');
+    }
+  }
+
   const needsDetails = reason === 'other';
   const canSubmit =
     reason !== null && (!needsDetails || details.trim().length > 0) && !isSubmitting;
