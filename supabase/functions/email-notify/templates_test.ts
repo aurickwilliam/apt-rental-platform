@@ -49,3 +49,12 @@ Deno.test('account_reactivated says whether the suspension ended on its own', ()
   assertStringIncludes(renderEmail('account_reactivated', { automatic: true }).text, 'suspension has ended')
   assertStringIncludes(renderEmail('account_reactivated', {}).text, 'reactivated your account')
 })
+
+Deno.test('emails use the APT logo, a card layout and no scripts or external fonts', () => {
+  const email = renderEmail('warning', { note: 'Fix the price', aboutListing: true })
+  assertStringIncludes(email.html, 'email-assets/apt-logo.png')
+  assertStringIncludes(email.html, 'Message from our team')
+  assert(!email.html.includes('<script'))
+  assert(!email.html.includes('fonts.googleapis'))
+  assert(email.html.length < 20_000)
+})
