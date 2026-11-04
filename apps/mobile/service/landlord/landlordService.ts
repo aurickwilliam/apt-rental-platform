@@ -184,6 +184,9 @@ export type LandlordTenant = {
   leaseStart: string;
   leaseEnd: string | null;
   tenancyId: string;
+  signedLeasePath: string | null;
+  signedLeaseUploadedAt: string | null;
+  tenantAcknowledgedAt: string | null;
 };
 
 export type LandlordTenancyMaintenanceRequest = {
@@ -219,6 +222,9 @@ export async function fetchLandlordTenancy(
         id,
         lease_start,
         lease_end,
+        signed_lease_path,
+        signed_lease_uploaded_at,
+        tenant_acknowledged_at,
         tenant:users!tenancies_tenant_id_fkey (
           id,
           first_name,
@@ -258,6 +264,9 @@ export async function fetchLandlordTenancy(
         id: string;
         lease_start: string;
         lease_end: string | null;
+        signed_lease_path: string | null;
+        signed_lease_uploaded_at: string | null;
+        tenant_acknowledged_at: string | null;
         tenant: {
           id: string;
           first_name: string;
@@ -280,6 +289,9 @@ export async function fetchLandlordTenancy(
       leaseStart: tenancyData.lease_start,
       leaseEnd: tenancyData.lease_end,
       tenancyId: tenancyData.id,
+      signedLeasePath: tenancyData.signed_lease_path ?? null,
+      signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at ?? null,
+      tenantAcknowledgedAt: tenancyData.tenant_acknowledged_at ?? null,
     };
   }
 

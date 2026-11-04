@@ -14,7 +14,7 @@ import ErrorDialog from '@/components/display/ErrorDialog'
 import ConfirmDialog from '@/components/display/ConfirmDialog'
 
 import { useColors } from '@/hooks/useTheme'
-import { buildVerificationInput, useSubmitSessionVerification, useSubmitVerification } from '@/hooks/verification'
+import { buildVerificationInput, useSubmitVerification } from '@/hooks/verification'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence, SELFIE_STEP } from '@/constants/verification/captureSequences'
 import { getCaptureProgress } from '@/utils/verification/gating'
@@ -25,16 +25,13 @@ export default function Review() {
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
-  const sessionClaim = useVerificationStore((state) => state.sessionClaim);
 
   const sequence = getCaptureSequence(selectedId);
   const idStepsComplete = getCaptureProgress(sequence, captures).isComplete;
   const selfie = captures[SELFIE_STEP.id] ?? null;
 
   const { mutateAsync: submitStandalone, isPending: isStandalonePending } = useSubmitVerification();
-  const { mutateAsync: submitSession, isPending: isSessionPending } =
-    useSubmitSessionVerification(sessionClaim?.token ?? null);
-  const isPending = isStandalonePending || isSessionPending;
+  const isPending = isStandalonePending;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -110,13 +107,7 @@ export default function Review() {
     }
 
     try {
-      // A claimed desktop session consumes the session row so the desktop
-      // modal observes completion; otherwise the standalone flow applies.
-      if (sessionClaim) {
-        await submitSession(input);
-      } else {
-        await submitStandalone(input);
-      }
+      await submitStandalone(input);
       router.push('/(auth)/verify-account/success');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to submit verification.');

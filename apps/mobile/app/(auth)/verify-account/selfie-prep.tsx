@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { Button, CloseButton } from 'heroui-native'
 
-import { IconBulb, IconChevronLeft, IconFaceId, IconIdBadge } from '@tabler/icons-react-native'
+import { IconBulb, IconChevronLeft, IconEyeOff, IconFaceId, IconIdBadge } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
@@ -25,6 +25,7 @@ const SELFIE_GUIDELINES: SelfieGuideline[] = [
   { icon: IconBulb, text: 'Use bright, even lighting.' },
   { icon: IconIdBadge, text: 'Hold the same ID beside your face.' },
   { icon: IconFaceId, text: 'Keep your full face visible in the frame.' },
+  { icon: IconEyeOff, text: 'Remove glasses, hats, and other face accessories.' },
 ];
 
 export default function SelfiePrep() {
@@ -83,11 +84,11 @@ export default function SelfiePrep() {
 
         <View className='w-full gap-3'>
           {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, text }) => (
-            <View key={text} className='flex-row items-center gap-3 rounded-3xl bg-primary p-2'>
-              <View className='rounded-full bg-white/20 p-2'>
-                <GuidelineIcon size={22} color={colors.white} />
+            <View key={text} className='flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3'>
+              <View className='rounded-full bg-primary-light p-2'>
+                <GuidelineIcon size={22} color={colors.primaryLightForeground} />
               </View>
-              <Text className='flex-1 text-sm font-nunitoSemiBold text-white'>
+              <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
                 {text}
               </Text>
             </View>

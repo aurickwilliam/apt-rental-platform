@@ -14,8 +14,11 @@ import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 import HiddenListingBanner from 'components/apartment/HiddenListingBanner'
+import LandlordSignedLeaseCard from '@/components/tenancy/LandlordSignedLeaseCard';
+import { useLandlordTenancyRefresh } from '@/hooks/tenancy/useLandlordTenancyRefresh';
+import { usePortalStore } from '@/stores/usePortalStore';
 
-import { Button, Separator, useToast } from 'heroui-native'
+import { Button, Separator, Spinner, useToast } from 'heroui-native'
 
 import {
   IconUser,
@@ -50,7 +53,9 @@ export default function Index() {
   const [tenantToRate, setTenantToRate] = useState<{ id: string; name: string } | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
-  const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
+  const { tenant, maintenanceRequest, paymentHistory, loading: tenancyLoading, error: tenancyError, refetch: refetchTenancy } = useLandlordTenancy(apartmentId);
+  const leaseAuthId = usePortalStore((state) => state.authUserId);
+  useLandlordTenancyRefresh(apartmentId);
   const { profile } = useProfile();
   const queryClient = useQueryClient();
 
@@ -266,6 +271,13 @@ export default function Index() {
             {/* Occupied vs Vacant */}
             {isOccupied ? (
               <>
+                {tenancyLoading ? <View className="mt-5 flex-row items-center gap-2">
+                  <Spinner size="sm" />
+                  <Text className="text-muted font-inter text-sm">Loading tenant and signed lease…</Text>
+                </View> : tenancyError ? <View className="mt-5 gap-2">
+                  <Text accessibilityRole="alert" className="text-danger font-inter text-sm">Could not refresh tenant and signed lease details.</Text>
+                  <Button size="sm" variant="secondary" onPress={() => void refetchTenancy()}><Button.Label>Retry</Button.Label></Button>
+                </View> : null}
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
@@ -286,6 +298,17 @@ export default function Index() {
                         tenant.leaseEnd ? formatDate(tenant.leaseEnd, "medium") : '—'
                       }
                       onMessagePress={handleMessageTenant}
+                    />
+                    <LandlordSignedLeaseCard
+                      key={`${leaseAuthId}:${tenant.tenancyId}`}
+                      tenancyId={tenant.tenancyId}
+                      path={tenant.signedLeasePath}
+                      uploadedAt={tenant.signedLeaseUploadedAt}
+                      acknowledgedAt={tenant.tenantAcknowledgedAt}
+                      onSaved={async () => {
+                        const result = await refetchTenancy();
+                        if (result.error) throw result.error;
+                      }}
                     />
                   </View>
                 )}

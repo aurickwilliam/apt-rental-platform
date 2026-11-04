@@ -57,7 +57,7 @@ describe('SelfiePrep', () => {
     expect(screen.getByText('Use bright, even lighting.')).toBeTruthy();
     expect(screen.getByText('Hold the same ID beside your face.')).toBeTruthy();
     expect(screen.getByText('Keep your full face visible in the frame.')).toBeTruthy();
-    expect(screen.queryByText(/glasses, hats/i)).toBeNull();
+    expect(screen.getByText('Remove glasses, hats, and other face accessories.')).toBeTruthy();
     expect(screen.getByLabelText('Selfie preparation illustration')).toBeTruthy();
     expect(screen.getByText("I'm Ready")).toBeTruthy();
   });
