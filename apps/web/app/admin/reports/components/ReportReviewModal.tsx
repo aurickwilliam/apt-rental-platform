@@ -150,7 +150,7 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
               </Modal.Header>
               <Modal.Body className="max-h-[70vh] overflow-y-auto">
                 {/* Details on the left, the decision on the right (stacked on narrow screens). */}
-                <div className={`grid gap-5 ${isOpenReport ? "lg:grid-cols-2" : ""}`}>
+                <div className={`grid items-start gap-5 ${isOpenReport ? "lg:grid-cols-2" : ""}`}>
                 <dl className="grid content-start gap-4 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-2">
                   <Detail label="Type">
                     <StatusChip size="sm" tone="neutral">
