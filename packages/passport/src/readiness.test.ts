@@ -47,6 +47,14 @@ it('flags unverified accounts, own listings and duplicate applications', () => {
   expect(codes({ ...ready, hasActiveApplication: true })).toEqual(['already-applied'])
 })
 
+it('tells a pending account its review is under way instead of asking it to verify again', () => {
+  const message = (accountStatus: string) =>
+    evaluateApplicationReadiness({ ...ready, accountStatus }).issues[0].message
+  expect(message('pending')).toMatch(/under review/)
+  expect(message('unverified')).toMatch(/^Verify your account first/)
+  expect(message('rejected')).toMatch(/^Verify your account first/)
+})
+
 it('flags missing required documents', () => {
   expect(codes({ ...ready, passportDocs: [gov] })).toEqual(['passport-missing'])
 })

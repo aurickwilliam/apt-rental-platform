@@ -58,7 +58,10 @@ export function evaluateApplicationReadiness<T extends PassportSlotDocument>(
   if (input.accountStatus !== 'verified') {
     issues.push({
       code: 'unverified',
-      message: 'Verify your account first. Your APT Passport is submitted with every application.',
+      message:
+        input.accountStatus === 'pending'
+          ? 'Your verification is under review. You can apply once it is approved.'
+          : 'Verify your account first. Your APT Passport is submitted with every application.',
     })
   }
 
