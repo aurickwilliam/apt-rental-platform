@@ -15,6 +15,7 @@ export type MaintenanceRequest = {
   status: MaintenanceRequestStatus;
   image_urls: string[];
   created_at: string;
+  updated_at?: string | null;
   resolved_at: string | null;
   resolution_notes: string | null;
   tenant_id: string;
@@ -33,9 +34,9 @@ const DB_TO_DISPLAY_STATUS: Record<string, MaintenanceRequestStatus> = {
   cancelled: "Cancelled",
 };
 
-export async function mapRow(row: Record<string, unknown>): Promise<MaintenanceRequest> {
+export async function mapRow(row: Record<string, unknown>, includePhotos = true): Promise<MaintenanceRequest> {
   const paths: string[] = Array.isArray(row.image_urls) ? (row.image_urls as string[]) : [];
-  const { urls } = await resolvePrivateMediaUrls("maintenance-images", paths);
+  const { urls } = includePhotos ? await resolvePrivateMediaUrls("maintenance-images", paths) : { urls: {} as Record<string, string> };
   const resolvedUrls = paths
     .map((path) => urls[path])
     .filter((url): url is string => Boolean(url));
