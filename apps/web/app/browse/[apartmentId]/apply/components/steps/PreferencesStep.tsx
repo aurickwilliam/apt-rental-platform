@@ -8,8 +8,8 @@ import {
   DatePicker,
   Description,
   FieldError,
-  Input,
   Label,
+  NumberField,
   Separator,
   TextArea,
   TextField,
@@ -71,99 +71,109 @@ export default function PreferencesStep({
   return (
     <div>
       <div className="flex flex-col gap-5">
-        <DatePicker
-          className="flex w-full flex-col gap-1"
-          value={toCalendarDate(form.moveInDate)}
-          onChange={(value) => {
-            onChange({ moveInDate: value ? value.toString() : "" });
-            if (value) clearError("moveInDate");
-          }}
-          minValue={earliestMoveIn}
-          isInvalid={!!errors.moveInDate}
-          isRequired
-        >
-          <Label>Preferred Move-In Date</Label>
-          <DateField.Group fullWidth className="border border-border bg-card">
-            <DateField.Input>
-              {(segment) => (
-                <DateField.Segment
-                  segment={segment}
-                  className="text-foreground data-[placeholder=true]:text-muted-foreground"
-                />
-              )}
-            </DateField.Input>
-            <DateField.Suffix>
-              <DatePicker.Trigger className="cursor-pointer">
-                <DatePicker.TriggerIndicator className="text-muted-foreground" />
-              </DatePicker.Trigger>
-            </DateField.Suffix>
-          </DateField.Group>
-          <FieldError>{errors.moveInDate}</FieldError>
-          {!errors.moveInDate && (
-            <Description className="text-muted-foreground">
-              The earliest move-in date is {earliestMoveInLabel}.
-            </Description>
-          )}
-          <DatePicker.Popover>
-            {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
-            <Calendar aria-label="Preferred move-in date" minValue={earliestMoveIn}>
-              <Calendar.Header>
-                <Calendar.YearPickerTrigger className="cursor-pointer">
-                  <Calendar.YearPickerTriggerHeading />
-                  <Calendar.YearPickerTriggerIndicator className="text-muted-foreground" />
-                </Calendar.YearPickerTrigger>
-                <Calendar.NavButton slot="previous" className="cursor-pointer text-muted-foreground" />
-                <Calendar.NavButton slot="next" className="cursor-pointer text-muted-foreground" />
-              </Calendar.Header>
-              <Calendar.Grid>
-                <Calendar.GridHeader>
-                  {(day) => <Calendar.HeaderCell className="text-muted-foreground">{day}</Calendar.HeaderCell>}
-                </Calendar.GridHeader>
-                <Calendar.GridBody>
-                  {(day) => (
-                    <Calendar.Cell
-                      date={day}
-                      className="cursor-pointer data-selected:bg-primary data-selected:text-white data-disabled:cursor-not-allowed"
-                    />
-                  )}
-                </Calendar.GridBody>
-              </Calendar.Grid>
-              <Calendar.YearPickerGrid>
-                <Calendar.YearPickerGridBody>
-                  {(yearProps) => (
-                    <Calendar.YearPickerCell
-                      year={yearProps.year}
-                      className="cursor-pointer data-selected:bg-primary data-selected:text-white"
-                    />
-                  )}
-                </Calendar.YearPickerGridBody>
-              </Calendar.YearPickerGrid>
-            </Calendar>
-          </DatePicker.Popover>
-        </DatePicker>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <DatePicker
+            className="flex w-full flex-col gap-1"
+            value={toCalendarDate(form.moveInDate)}
+            onChange={(value) => {
+              onChange({ moveInDate: value ? value.toString() : "" });
+              if (value) clearError("moveInDate");
+            }}
+            minValue={earliestMoveIn}
+            isInvalid={!!errors.moveInDate}
+            isRequired
+          >
+            <Label>Preferred Move-In Date</Label>
+            <DateField.Group fullWidth className="border border-border bg-card">
+              <DateField.Input>
+                {(segment) => (
+                  <DateField.Segment
+                    segment={segment}
+                    className="date-segment-cursor cursor-text text-foreground data-[placeholder=true]:text-muted-foreground"
+                  />
+                )}
+              </DateField.Input>
+              <DateField.Suffix>
+                <DatePicker.Trigger className="cursor-pointer">
+                  <DatePicker.TriggerIndicator className="text-muted-foreground" />
+                </DatePicker.Trigger>
+              </DateField.Suffix>
+            </DateField.Group>
+            <FieldError>{errors.moveInDate}</FieldError>
+            {!errors.moveInDate && (
+              <Description className="text-muted-foreground">
+                The earliest move-in date is {earliestMoveInLabel}.
+              </Description>
+            )}
+            <DatePicker.Popover>
+              {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
+              <Calendar aria-label="Preferred move-in date" minValue={earliestMoveIn}>
+                <Calendar.Header>
+                  <Calendar.YearPickerTrigger className="cursor-pointer">
+                    <Calendar.YearPickerTriggerHeading />
+                    <Calendar.YearPickerTriggerIndicator className="text-muted-foreground" />
+                  </Calendar.YearPickerTrigger>
+                  <Calendar.NavButton slot="previous" className="cursor-pointer text-muted-foreground" />
+                  <Calendar.NavButton slot="next" className="cursor-pointer text-muted-foreground" />
+                </Calendar.Header>
+                <Calendar.Grid>
+                  <Calendar.GridHeader>
+                    {(day) => <Calendar.HeaderCell className="text-muted-foreground">{day}</Calendar.HeaderCell>}
+                  </Calendar.GridHeader>
+                  <Calendar.GridBody>
+                    {(day) => (
+                      <Calendar.Cell
+                        date={day}
+                        className="cursor-pointer data-selected:bg-primary data-selected:text-white data-disabled:cursor-not-allowed"
+                      />
+                    )}
+                  </Calendar.GridBody>
+                </Calendar.Grid>
+                <Calendar.YearPickerGrid>
+                  <Calendar.YearPickerGridBody>
+                    {(yearProps) => (
+                      <Calendar.YearPickerCell
+                        year={yearProps.year}
+                        className="cursor-pointer data-selected:bg-primary data-selected:text-white"
+                      />
+                    )}
+                  </Calendar.YearPickerGridBody>
+                </Calendar.YearPickerGrid>
+              </Calendar>
+            </DatePicker.Popover>
+          </DatePicker>
 
-        <TextField
-          isRequired
-          isInvalid={!!errors.noOccupants}
-          value={form.noOccupants}
-          onChange={(value: string) => {
-            const digits = value.replace(/\D/g, "");
-            onChange({ noOccupants: digits });
-            const count = parseInt(digits, 10);
-            if (!Number.isNaN(count) && count > 0 && (maxOccupants === null || count <= maxOccupants)) {
-              clearError("noOccupants");
-            }
-          }}
-        >
-          <Label>Number of Occupants</Label>
-          <Input type="number" placeholder="Enter number of occupants" inputMode="numeric" className={INPUT_CLASS} />
-          <FieldError>{errors.noOccupants}</FieldError>
-          {maxOccupants !== null && !errors.noOccupants && (
-            <Description className="text-muted-foreground">
-              This unit allows a maximum of {maxOccupants} occupant(s).
-            </Description>
-          )}
-        </TextField>
+          <NumberField
+            className="form-number-stepper"
+            minValue={1}
+            maxValue={maxOccupants ?? undefined}
+            value={form.noOccupants ? Number(form.noOccupants) : Number.NaN}
+            onChange={(value) => {
+              onChange({ noOccupants: Number.isNaN(value) ? "" : String(value) });
+              if (!Number.isNaN(value) && value > 0 && (maxOccupants === null || value <= maxOccupants)) {
+                clearError("noOccupants");
+              }
+            }}
+            isInvalid={!!errors.noOccupants}
+            isRequired
+          >
+            <Label>Number of Occupants</Label>
+            <NumberField.Group className="flex items-center border border-border rounded-field overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
+              <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11 cursor-pointer disabled:cursor-not-allowed" />
+              <NumberField.Input
+                placeholder="0"
+                className="w-full text-center bg-transparent py-3 text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+              <NumberField.IncrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-l border-border flex items-center justify-center min-w-11 cursor-pointer disabled:cursor-not-allowed" />
+            </NumberField.Group>
+            <FieldError>{errors.noOccupants}</FieldError>
+            {maxOccupants !== null && !errors.noOccupants && (
+              <Description className="text-muted-foreground">
+                This unit allows a maximum of {maxOccupants} occupant(s).
+              </Description>
+            )}
+          </NumberField>
+        </div>
 
         <Separator />
 

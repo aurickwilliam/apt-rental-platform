@@ -1466,15 +1466,49 @@ body[data-scroll-locked] [role="option"] {
   text-align: start;
 }
 
+/* Date field typing cursor: segments are not text inputs, so they have no caret
+   of their own. Highlight the active segment and draw one after its digits. */
+.date-input-group__segment.date-segment-cursor {
+  position: relative;
+}
+
+.date-input-group__segment.date-segment-cursor:is(:focus, [data-focused="true"]) {
+  background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+}
+
+.date-input-group__segment.date-segment-cursor:is(:focus, [data-focused="true"])::after {
+  content: "";
+  position: absolute;
+  inset-block: 10%;
+  inset-inline-end: -1px;
+  width: 2px;
+  border-radius: 1px;
+  background-color: var(--primary);
+  animation: date-segment-cursor-blink 1s step-end infinite;
+}
+
+@keyframes date-segment-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .date-input-group__segment.date-segment-cursor:is(:focus, [data-focused="true"])::after {
+    animation: none;
+  }
+}
+
 /* Posting-form steppers: keep the end controls inside their grid cells. */
-.create-listing-flow .number-field__group:has([slot="decrement"]):has([slot="increment"]) {
+:is(.create-listing-flow, .form-number-stepper) .number-field__group:has([slot="decrement"]):has([slot="increment"]) {
   grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
   overflow: hidden;
 }
 
 /* The group clips the outer corners; square button edges avoid a second,
    inset curve. Match the grid cells and remove padding/borders that overflow. */
-.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button) {
+:is(.create-listing-flow, .form-number-stepper) :is(.number-field__increment-button, .number-field__decrement-button) {
   width: 100%;
   min-width: 0;
   height: 100%;
@@ -1484,15 +1518,15 @@ body[data-scroll-locked] [role="option"] {
   transform: none;
 }
 
-.create-listing-flow .number-field__increment-button {
+:is(.create-listing-flow, .form-number-stepper) .number-field__increment-button {
   border-inline-start: 1px solid var(--border);
 }
 
-.create-listing-flow .number-field__decrement-button {
+:is(.create-listing-flow, .form-number-stepper) .number-field__decrement-button {
   border-inline-end: 1px solid var(--border);
 }
 
-.create-listing-flow :is(.number-field__increment-button, .number-field__decrement-button):not(:disabled):not([aria-disabled="true"]):is(:hover, [data-hovered="true"]) {
+:is(.create-listing-flow, .form-number-stepper) :is(.number-field__increment-button, .number-field__decrement-button):not(:disabled):not([aria-disabled="true"]):is(:hover, [data-hovered="true"]) {
   background-color: var(--muted);
 }
 
