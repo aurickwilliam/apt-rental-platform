@@ -60,7 +60,7 @@ function loadPropertiesHeader() {
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
-  const expand = typeof element.type === "function" && ["Sk", "FieldSkeleton", "DescriptionFieldSkeleton", "DescriptionSection", "ReadOnlyField", "EditSectionButton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
+  const expand = typeof element.type === "function" && ["EmptyState", "Sk", "FieldSkeleton", "DescriptionFieldSkeleton", "DescriptionSection", "ReadOnlyField", "EditSectionButton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 }
@@ -193,6 +193,7 @@ function reviewsHarness(reviews) {
   const { default: Client } = load("landlord/properties/[apartmentId]/reviews/components/ReviewsClient.tsx", {
     react: { useMemo: compute => compute(), useState: () => [sort, value => { sort = value; }] },
     "next/navigation": { useRouter: () => ({ prefetch: href => prefetched.push(href), push: href => pushed.push(href) }) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/browse/[apartmentId]/components/ReviewCard": { default: "ReviewCard" },
     "@/app/browse/[apartmentId]/components/RatingBreakdown": { default: "RatingBreakdown" },
   });
@@ -204,8 +205,8 @@ test("Reviews empty state fills the page and never presents a zero rating as ten
   const elements = render();
   assert.ok(elements[0].props.className.includes("w-full min-w-0"));
   assert.equal(elements[0].props.className.includes("max-w-5xl"), false);
-  assert.ok(elements.some(node => node.type === "p" && node.props.children === "No ratings yet"));
-  assert.ok(elements.some(node => node.type === "h3" && node.props.children === "No reviews yet"));
+  assert.ok(elements.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No ratings yet"));
+  assert.ok(elements.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No reviews yet"));
   assert.equal(elements.some(node => node.type === "RatingBreakdown"), false);
   assert.equal(elements.some(node => node.type === "Dropdown.Menu"), false);
   const back = elements.find(node => node.type === "Button");
@@ -266,6 +267,7 @@ test("Property reviews link prefetches on pointer and keyboard intent", () => {
 test("Shared rating breakdown keeps its default layout while supporting a stacked landlord summary", () => {
   const { default: Breakdown } = load("browse/[apartmentId]/components/RatingBreakdown.tsx", {
     "@heroui/react": { Meter: compound("Meter", ["Track", "Fill"]) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StarRating": { default: "StarRating" },
   });
   const props = { overallRate: 4, totalReviews: 1, no5Star: 0, no4Star: 1, no3Star: 0, no2Star: 0, no1Star: 0 };
@@ -281,6 +283,7 @@ test("Property rows prefetch on hover and keyboard focus without changing row ac
   const opened = [];
   const tree = load("landlord/properties/components/PropertiesTable.tsx", {
     "./propertyConstants": { STATUS_COLOR: {} },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
   }).default({ properties: [property], onRowIntent: item => intended.push(item.id), onRowClick: item => opened.push(item.id) });
   const elements = nodes(tree);
@@ -305,6 +308,7 @@ function galleryHarness(initialImages) {
       },
     },
     "@/app/components/display/PhotoGalleryModal": { default: "PhotoGalleryModal" },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
   });
   return (images = initialImages) => {
     cursor = 0;
@@ -346,7 +350,7 @@ test("Property gallery handles deleted selections, a single photo, and an empty 
   assert.equal(single.some(node => node.props["aria-label"] === "Choose property photo"), false);
   const empty = render([]);
   assert.equal(empty.some(node => node.type === "PhotoGalleryModal"), false);
-  assert.ok(empty.some(node => node.type === "p" && node.props.children.includes("No property photos yet")));
+  assert.ok(empty.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No property photos yet"));
 });
 
 test("Edit Property uses a wider scoped dialog and equal-width footer actions", () => {

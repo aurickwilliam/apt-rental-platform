@@ -7,6 +7,7 @@ import { IconArrowLeft as ArrowLeft, IconChevronDown as ChevronDown, IconMessage
 import ReviewCard from "@/app/browse/[apartmentId]/components/ReviewCard";
 import RatingBreakdown from "@/app/browse/[apartmentId]/components/RatingBreakdown";
 import type { LandlordUnitReview } from "@/service/landlordUnitDetailService";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type ReviewSortOption = "Most Recent" | "Highest Rating" | "Lowest Rating";
 
@@ -92,11 +93,12 @@ export default function ReviewsClient({ apartmentId, apartmentName, reviews }: P
               no1Star={stats.counts[1]}
             />
           ) : (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <IconStar size={40} className="text-muted-foreground" aria-hidden="true" />
-              <p className="text-base font-nunito font-semibold text-card-foreground">No ratings yet</p>
-              <p className="max-w-64 text-sm leading-6 text-muted-foreground">Your rating summary will appear after a tenant submits a review.</p>
-            </div>
+            <EmptyState
+              className="py-8"
+              icon={IconStar}
+              title="No ratings yet"
+              description="Your rating summary will appear after a tenant submits a review."
+            />
           )}
         </Card>
 
@@ -138,13 +140,12 @@ export default function ReviewsClient({ apartmentId, apartmentName, reviews }: P
 
           {stats.total === 0 ? (
             <Card className="landlord-reviews-panel border border-border">
-              <div className="flex min-h-80 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
-                <span className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <MessageSquareText size={30} aria-hidden="true" />
-                </span>
-                <h3 className="text-lg font-nunito font-bold text-card-foreground">No reviews yet</h3>
-                <p className="max-w-md text-sm leading-6 text-muted-foreground">Reviews from tenants will show up here once they&apos;re submitted.</p>
-              </div>
+              <EmptyState
+                className="min-h-80 justify-center"
+                icon={MessageSquareText}
+                title="No reviews yet"
+                description="Reviews from tenants will show up here once they're submitted."
+              />
             </Card>
           ) : (
             <div className="grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-2">

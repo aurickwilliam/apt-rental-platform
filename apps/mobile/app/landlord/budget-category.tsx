@@ -23,7 +23,6 @@ import BudgetCategorySkeleton from "@/components/finance/BudgetCategorySkeleton"
 import BudgetProgressRow from "@/components/finance/BudgetProgressRow";
 import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
-import { useColors } from "@/hooks/useTheme";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { financeErrorMessage } from "@/service/finance/financeService";
 
@@ -40,7 +39,6 @@ function BudgetCategory() {
     kind?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
     typeof params.apartmentId === "string" ? params.apartmentId : null;
@@ -112,7 +110,7 @@ function BudgetCategory() {
         className="p-5"
       >
         <EmptyState
-          icon={<IconTargetArrow size={32} color={colors.gray500} />}
+          icon={IconTargetArrow}
           title="Budget category not found"
           description="Open the Budget tab and choose a category to see its properties."
         />
@@ -256,7 +254,7 @@ function BudgetCategory() {
           )}
           ListEmptyComponent={
             <EmptyState
-              icon={<IconTargetArrow size={32} color={colors.gray500} />}
+              icon={IconTargetArrow}
               title={
                 kind === "reserve"
                   ? "No reserve goals in this category"

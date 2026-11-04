@@ -2,13 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SearchField, Button } from "heroui-native";
-import { IconFilter2 } from "@tabler/icons-react-native";
+import { IconFilter2, IconHammer } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
 import MaintenanceRequestCard from "./components/MaintenanceRequestCard";
 import MaintenanceRequestCardSkeleton from "./components/MaintenanceRequestCardSkeleton";
-import EmptyMaintenanceRequestsList from "./components/EmptyMaintenanceRequestsList";
 import {
   PullToRefreshControl,
   PullToRefreshIndicator,
@@ -21,6 +20,7 @@ import { formatDate } from "@repo/utils";
 import { useLandlordMaintenanceRequests } from "@/hooks/maintenance-requests";
 import { useColors } from "@/hooks/useTheme";
 import { useLandlordActionBadges } from "@/hooks/apartments";
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: MaintenanceRequestFilters = {
   statuses: [],
@@ -165,7 +165,12 @@ export default function MaintenanceRequests() {
           </>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={isInitialLoad ? null : <EmptyMaintenanceRequestsList />}
+        ListEmptyComponent={isInitialLoad ? null : <EmptyState
+      className="flex-1"
+      icon={IconHammer}
+      title="No maintenance requests"
+      description="Requests from tenants will appear here."
+    />}
         renderItem={({ item }) => (
           <MaintenanceRequestCard
             issueTitle={item.issue_title}

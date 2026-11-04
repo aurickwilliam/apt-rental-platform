@@ -8,8 +8,9 @@ import type { FilterOption } from "../_components/filters/types";
 import type { UserReportStatusFilter } from "@/lib/user-reports";
 import ReportsTable from "./components/ReportsTable";
 import ReportCardList from "./components/ReportCardList";
-import ReportsEmptyState from "./components/ReportsEmptyState";
 import type { AdminUserReport } from "./lib/report-types";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconFlag } from "@tabler/icons-react";
 
 const STATUS_OPTIONS: readonly FilterOption<UserReportStatusFilter>[] = [
   { id: "open", label: "Open" },
@@ -83,7 +84,11 @@ export default function ReportsClient({
                 <ReportCardList reports={reports} />
               </>
             ) : (
-              <ReportsEmptyState status={status} />
+              <EmptyState
+                icon={IconFlag}
+                title={status === "open" ? "No open reports" : "No reports here"}
+                description="Reports people send from Messages will appear here for review."
+              />
             )}
           </div>
 

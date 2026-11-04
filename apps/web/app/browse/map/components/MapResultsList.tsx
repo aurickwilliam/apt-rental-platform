@@ -12,6 +12,7 @@ import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { MAP_LIST_GRID_CLASS } from "../../lib/browse-layout";
 import { MAP_RESULT_LIMIT, type MapApartment } from "../../lib/fetch-map-results";
 import { BrowseCardsSkeleton } from "../../components/BrowsePageSkeleton";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface MapResultsListProps {
   /** Listings inside the visible map area. */
@@ -133,11 +134,11 @@ export default function MapResultsList({
       {initialLoading ? (
         <BrowseCardsSkeleton count={6} className={MAP_LIST_GRID_CLASS} />
       ) : count === 0 && !error ? (
-        <div className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center text-muted-foreground">
-          <IconMapPin size={32} aria-hidden="true" />
-          <p className="text-base font-medium text-foreground">No apartments in this area</p>
-          <p className="text-sm">Zoom out or move the map, or loosen your filters.</p>
-        </div>
+        <EmptyState
+          icon={IconMapPin}
+          title="No apartments in this area"
+          description="Zoom out or move the map, or loosen your filters."
+        />
       ) : (
         <div className={MAP_LIST_GRID_CLASS}>
           {apartments.map((apartment) => (

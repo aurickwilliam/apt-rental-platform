@@ -8,8 +8,7 @@ import {
   IconHistory,
   IconShieldCheck,
   IconUsers,
-  type Icon,
-} from "@tabler/icons-react";
+  type Icon, IconInbox } from "@tabler/icons-react";
 import { requireAdmin } from "../_lib/require-admin";
 import DashboardTrends from "./components/DashboardTrends";
 import CurrentMonthCalendar from "./components/CurrentMonthCalendar";
@@ -19,6 +18,7 @@ import RecentUserCard from "./components/RecentUserCard";
 import VerificationQueue from "./components/VerificationQueue";
 import { QueueChart } from "./components/DashboardCharts";
 import { getDashboardRegions, getDashboardTrends, type DashboardData, type DashboardRegion, type RecentItem, type VerificationRequest } from "./lib/get-dashboard-data";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -101,8 +101,14 @@ function RecentSection({
             </li>
           ))
         ) : !hasError ? (
-          <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Nothing to show yet.
+          <li>
+            <EmptyState
+              framed
+              className="py-8"
+              icon={IconInbox}
+              title="Nothing to show yet"
+              description="New items will appear here."
+            />
           </li>
         ) : null}
       </ul>

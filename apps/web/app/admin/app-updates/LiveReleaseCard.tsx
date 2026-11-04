@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { Skeleton } from "@heroui/react";
-import { IconBroadcast } from "@tabler/icons-react";
+import { IconBroadcast, IconRocket } from "@tabler/icons-react";
 import CopyButton from "./CopyButton";
 import LinkStatus from "./LinkStatus";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export interface LiveRelease {
   latestVersion: string;
@@ -53,9 +54,12 @@ export default function LiveReleaseCard({ release }: { release: LiveRelease | nu
           </Suspense>
         </div>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Nothing is live yet, so no one sees an update prompt. Publish a release to start.
-        </p>
+        <EmptyState
+          className="mt-2 py-8"
+          icon={IconRocket}
+          title="Nothing is live yet"
+          description="No one sees an update prompt. Publish a release to start."
+        />
       )}
     </section>
   );

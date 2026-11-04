@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Keyboard, Pressable } from 'react-native';
+import { View, Text, Keyboard, Pressable } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
@@ -27,6 +27,7 @@ import {
 import MapPreviewSheet from './components/MapPreviewSheet';
 import { IconNavigation, IconSearch, IconMapPin, IconChevronLeft, IconCompass } from '@tabler/icons-react-native';
 import { useColors } from '@/hooks/useTheme';
+import EmptyState from "@/components/display/EmptyState";
 
 const INITIAL_REGION: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number } = {
   latitude: MAP_DEFAULT_COORDS.latitude,
@@ -354,17 +355,18 @@ export default function TenantMapSearchScreen() {
         {/* Empty state overlay — top-anchored so the map center (blue dot) stays visible */}
         {!isLocating && !loading && apartments.length === 0 && !error && (
           <View className="absolute left-6 right-6 items-center" style={{ top: insets.top + 72 }}>
-            <View className="bg-surface px-5 py-5 rounded-2xl shadow border border-border items-center w-full">
-              <View className="bg-surface-secondary p-4 rounded-full mb-3">
-                <IconMapPin size={28} color={colors.gray400} />
-              </View>
-              <Text className="text-base font-nunitoSemiBold text-foreground text-center">No results here</Text>
-              <Text className="text-sm text-muted font-inter text-center mt-1">
-                Try panning or zooming to search nearby.
-              </Text>
-              <TouchableOpacity onPress={handleRecenter} className="mt-4 px-4 py-2 bg-primary rounded-full">
-                <Text className="text-white font-nunitoSemiBold text-sm">Center on me</Text>
-              </TouchableOpacity>
+            <View className="bg-surface rounded-2xl shadow border border-border items-center w-full">
+              <EmptyState
+                className="py-6"
+                icon={IconMapPin}
+                title="No results here"
+                description="Try panning or zooming to search nearby."
+                action={
+                  <Button size="sm" onPress={handleRecenter}>
+                    <Button.Label>Center on me</Button.Label>
+                  </Button>
+                }
+              />
             </View>
           </View>
         )}

@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import { ScrollShadow, Button } from "@heroui/react";
 import { IconArchive, IconChevronLeft } from "@tabler/icons-react";
 
-import ConversationListEmpty from "./ConversationListEmpty";
 import ConversationRow from "./ConversationRow";
 import type { ConversationContact } from "@/lib/conversation-contacts";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ArchivedConversationsProps<T extends ConversationContact> {
   contacts: T[];
@@ -39,7 +39,8 @@ export default function ArchivedConversations<T extends ConversationContact>({
       </div>
       <ScrollShadow className="min-h-0 flex-1 overflow-y-auto p-2" visibility="none">
         {contacts.length === 0 ? (
-          <ConversationListEmpty
+          <EmptyState
+          className="py-14"
             icon={IconArchive}
             title="No archived chats"
             description="Chats you archive stay here until you move them back to Messages."

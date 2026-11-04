@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 
-import { IconChevronDown, IconChevronUp } from '@tabler/icons-react-native';
+import { IconChevronDown, IconChevronUp, IconHome } from '@tabler/icons-react-native';
 
 import { Card, SearchField } from "heroui-native";
 
@@ -10,7 +10,6 @@ import ScreenWrapper, { renderKeyboardAwareListScrollView } from "@/components/l
 import StandardHeader from "@/components/layout/StandardHeader";
 import VisitRequestCard from "./components/VisitRequestCard";
 import VisitRequestCalendar from "./components/VisitRequestCalendar";
-import EmptyApproved from "./components/EmptyApproved";
 import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
 import {
   PullToRefreshControl,
@@ -25,6 +24,7 @@ import {
 } from "@/hooks/visitRequests";
 import { useLandlordActionBadges } from "@/hooks/apartments";
 import { useColors } from "@/hooks/useTheme";
+import EmptyState from "@/components/display/EmptyState";
 
 type Group = "Today" | "This Week" | "Next Week" | "Later" | "Past";
 
@@ -295,7 +295,12 @@ export default function VisitRequests() {
           </>
         }
         ItemSeparatorComponent={() => null}
-        ListEmptyComponent={loading ? null : <EmptyApproved />}
+        ListEmptyComponent={loading ? null : <EmptyState
+      className="flex-1"
+      icon={IconHome}
+      title="No approved visits"
+      description="Approved visit requests will appear here."
+    />}
         renderItem={({ item }) => {
           if (item.type === "header") {
             return <SectionHeader group={item.group} count={item.count} />;

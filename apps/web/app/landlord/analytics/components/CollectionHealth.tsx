@@ -5,6 +5,7 @@ import { IconChevronRight, IconReceipt } from "@tabler/icons-react";
 import type { CollectionStatus, FinanceData } from "@repo/utils";
 import FinanceCard from "./FinanceCard";
 import FinanceMoneyRow, { financeMoney } from "./FinanceMoneyRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export default function CollectionHealth({
   data,
@@ -98,20 +99,12 @@ export default function CollectionHealth({
           </p>
         </>
       ) : (
-        <div className="flex flex-col items-center gap-2 py-8 text-center">
-          <IconReceipt
-            size={32}
-            className="text-muted-foreground"
-            aria-hidden
-          />
-          <h3 className="font-nunito font-bold">
-            No billable tenancies this month
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Expected rent and payment status will appear here once a tenancy is
-            billed for this month.
-          </p>
-        </div>
+        <EmptyState
+          className="py-8"
+          icon={IconReceipt}
+          title="No billable tenancies this month"
+          description="Expected rent and payment status will appear here once a tenancy is billed for this month."
+        />
       )}
     </FinanceCard>
   );

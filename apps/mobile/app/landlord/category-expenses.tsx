@@ -22,7 +22,6 @@ import ExpenseTransactionsSkeleton from "@/components/finance/ExpenseTransaction
 import ExpenseTransactionRow from "@/components/finance/ExpenseTransactionRow";
 import FinanceError from "@/components/finance/FinanceError";
 import { useCurrentUser } from "@/hooks/auth";
-import { useColors } from "@/hooks/useTheme";
 import {
   useFinanceExpenses,
   useLandlordFinances,
@@ -36,7 +35,6 @@ function CategoryExpenses() {
     category?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
     typeof params.apartmentId === "string" ? params.apartmentId : null;
@@ -162,7 +160,7 @@ function CategoryExpenses() {
           ListEmptyComponent={
             !expenses.isLoading && !expenses.error ? (
               <EmptyState
-                icon={<IconReceipt2 size={32} color={colors.gray500} />}
+                icon={IconReceipt2}
                 title={
                   category
                     ? "No expenses in this category"

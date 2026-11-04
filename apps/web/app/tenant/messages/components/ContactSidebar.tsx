@@ -5,12 +5,12 @@ import { ScrollShadow } from "@heroui/react";
 import type { Contact } from "./types";
 import { IconMessageQuestion, IconSearch } from "@tabler/icons-react";
 import ConversationRow from "@/app/components/chat/ConversationRow";
-import ConversationListEmpty from "@/app/components/chat/ConversationListEmpty";
 import ArchivedConversations from "@/app/components/chat/ArchivedConversations";
 import ArchiveToggleButton from "@/app/components/chat/ArchiveToggleButton";
 import ConversationSearchField from "@/app/components/chat/ConversationSearchField";
 import { useConversationSearch } from "@/hooks/use-conversation-search";
 import { filterConversationContacts } from "@/lib/conversation-search";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ContactSidebarProps {
   /** The current landlord(s), always pinned on top (shown even before any message). */
@@ -66,9 +66,11 @@ export default function ContactSidebar({ myLandlord, pastInquiries, activeContac
           <ScrollShadow className="min-h-0 flex-1 overflow-y-auto p-2" visibility="none">
             {pinnedRows.length === 0 && otherRows.length === 0 ? (
               isSearching ? (
-                <ConversationListEmpty icon={IconSearch} title="No matches" description={`No conversation matches “${query.trim()}”.`} />
+                <EmptyState
+          className="py-14" icon={IconSearch} title="No matches" description={`No conversation matches “${query.trim()}”.`} />
               ) : (
-                <ConversationListEmpty icon={IconMessageQuestion} title="No messages yet" description="Start a conversation with a landlord to see your messages here." />
+                <EmptyState
+          className="py-14" icon={IconMessageQuestion} title="No messages yet" description="Start a conversation with a landlord to see your messages here." />
               )
             ) : (
               <>

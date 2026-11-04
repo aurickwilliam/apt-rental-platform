@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { IconFilter } from '@tabler/icons-react-native';
+import { IconFilter, IconCalendar } from '@tabler/icons-react-native';
 import { Button, SearchField } from "heroui-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
@@ -16,11 +16,11 @@ import VisitRequestFilterSheet, {
   type DateRange,
 } from "./components/VisitRequestFilterSheet";
 import VisitRequestCardSkeleton from "./components/VisitRequestCardSkeleton";
-import EmptyPending from "./components/EmptyPending";
 
 import { formatDate, formatFullName, formatTime } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import { useLandlordVisitRequests } from "@/hooks/visitRequests";
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: VisitRequestFilters = { statuses: [], dateRanges: [] };
 
@@ -180,7 +180,12 @@ export default function PendingVisitRequests() {
           </>
         }
         ItemSeparatorComponent={() => <View className="h-3" />}
-        ListEmptyComponent={loading ? null : <EmptyPending />}
+        ListEmptyComponent={loading ? null : <EmptyState
+      className="flex-1"
+      icon={IconCalendar}
+      title="No pending requests"
+      description="Pending visit requests will show up here."
+    />}
         renderItem={({ item }) => (
           <VisitRequestCard
             tenantName={formatFullName({

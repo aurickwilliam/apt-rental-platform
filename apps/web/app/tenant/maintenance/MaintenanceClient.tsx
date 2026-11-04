@@ -1,6 +1,6 @@
 "use client";
 
-import { IconTool as Wrench } from "@tabler/icons-react";
+import { IconTool as Wrench, IconHome } from "@tabler/icons-react";
 import PropertyContextCard from "./components/PropertyContextCard";
 import MaintenanceForm from "./components/MaintenanceForm";
 import MaintenanceHistory from "./components/MaintenanceHistory";
@@ -12,6 +12,7 @@ import PresentationBoundary from "@/app/components/display/PresentationBoundary"
 import type { PresentationSeed } from "@/service/presentation-seed";
 import type { InitialRentalContext } from "@/service/tenancy-context";
 import type { MaintenanceRequest } from "@/service/maintenanceService";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export interface MaintenancePresentation {
   context: InitialRentalContext;
@@ -73,15 +74,13 @@ function MaintenanceContent({ initial }: { initial?: MaintenancePresentation }) 
           ) : tenancyError ? (
             <ErrorBanner message={tenancyError} />
           ) : !tenancy || !apartmentId ? (
-            <div className="rounded-2xl border border-border bg-card p-6 text-center">
-              <p className="font-nunito text-sm font-semibold text-card-foreground">
-                No active lease found
-              </p>
-              <p className="font-inter text-sm text-muted-foreground mt-1">
-                Maintenance requests are linked to your current rental. Once you have an
-                active tenancy, you can submit requests here.
-              </p>
-            </div>
+            <EmptyState
+              framed
+              className="py-10"
+              icon={IconHome}
+              title="No active lease found"
+              description="Maintenance requests are linked to your current rental. Once you have an active tenancy, you can submit requests here."
+            />
           ) : (
             <>
               <PropertyContextCard apartmentName={apartmentName} address={address} landlordName={landlordName} imageUrl={cover} />

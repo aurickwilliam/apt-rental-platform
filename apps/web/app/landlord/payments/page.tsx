@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import { Badge, Button, Card, ComboBox, Input, ListBox, Tabs } from "@heroui/react";
+import { Badge, Button, ComboBox, Input, ListBox, Tabs } from "@heroui/react";
 import { IconReceipt as Receipt, IconRefresh } from "@tabler/icons-react";
 import SettingsSelect from "@/app/components/settings/SettingsSelect";
 import { paymentStatusLabel } from "@/app/tenant/payment/utils";
@@ -27,6 +27,7 @@ import PaymentsSkeleton, { NeedsAttentionSkeleton, PaymentsBodySkeleton } from "
 import PaymentsSummary from "./components/PaymentsSummary";
 import PaymentReceiptModal from "./components/PaymentReceiptModal";
 import PaymentsTable from "./components/PaymentsTable";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type PaymentLedgerRow = LedgerRow & { payment: LandlordPaymentRecord };
 
@@ -214,22 +215,19 @@ function PaymentsContent() {
             </div>
 
             {rows.length === 0 ? (
-              <Card className="rounded-2xl border border-dashed border-border bg-card">
-                <Card.Content className="flex flex-col items-center gap-3 py-16 text-center">
-                  <span className="rounded-full bg-muted p-5">
-                    <Receipt size={32} className="text-primary" />
-                  </span>
-                  <p className="font-nunito text-base font-bold text-foreground">
-                    {isFiltered ? "No payments found" : "No payments yet"}
-                  </p>
-                  <p className="max-w-sm text-sm text-muted-foreground">
-                    {isFiltered
-                      ? "Try another status or year to see more results."
-                      : showUnit
-                        ? "Payments for your units will appear here."
-                        : "Payments for this unit will appear here."}
-                  </p>
-                  {isFiltered ? (
+              <EmptyState
+                framed
+                icon={Receipt}
+                title={isFiltered ? "No payments found" : "No payments yet"}
+                description={
+                  isFiltered
+                    ? "Try another status or year to see more results."
+                    : showUnit
+                      ? "Payments for your units will appear here."
+                      : "Payments for this unit will appear here."
+                }
+                action={
+                  isFiltered ? (
                     <Button
                       variant="secondary"
                       size="sm"
@@ -240,9 +238,9 @@ function PaymentsContent() {
                     >
                       Clear filters
                     </Button>
-                  ) : null}
-                </Card.Content>
-              </Card>
+                  ) : undefined
+                }
+              />
             ) : (
               <PaymentsTable payments={rows.map((row) => row.payment)} showUnit={showUnit} onOpen={(payment) => setReceiptId(payment.id)} />
             )}

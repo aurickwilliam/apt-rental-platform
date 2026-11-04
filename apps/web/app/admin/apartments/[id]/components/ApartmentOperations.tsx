@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { Icon } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
 import {
   IconCalendarEvent,
@@ -26,24 +26,19 @@ import {
   SectionError,
   StatusChip,
 } from "./DetailPrimitives";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function OperationalEmptyState({
   icon,
   title,
   description,
 }: {
-  icon: ReactNode;
+  icon: Icon;
   title: string;
   description: string;
 }) {
   return (
-    <div className="flex min-h-40 flex-col items-center justify-center gap-2 px-3 py-5 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true">
-        {icon}
-      </span>
-      <p className="font-nunito font-semibold text-foreground">{title}</p>
-      <p className="max-w-xs text-sm text-muted-foreground">{description}</p>
-    </div>
+    <EmptyState className="min-h-40 justify-center py-5" icon={icon} title={title} description={description} />
   );
 }
 
@@ -141,7 +136,7 @@ export function ApartmentPipelineSummary({
           <SectionError />
         ) : !applications.items.length && (applications.counts.total ?? 0) === 0 ? (
           <OperationalEmptyState
-            icon={<IconClipboardList size={24} />}
+            icon={IconClipboardList}
             title="No applications yet"
             description="Rental applications for this property will appear here."
           />
@@ -166,9 +161,7 @@ export function ApartmentPipelineSummary({
                 ))}
               </ul>
             ) : (
-              <p className="mt-3 text-sm text-muted-foreground">
-                No recent applications to display.
-              </p>
+              <EmptyState className="mt-2 py-6" icon={IconClipboardList} title="No recent applications" description="Applications will be listed here as they come in." />
             )}
           </>
         )}
@@ -178,7 +171,7 @@ export function ApartmentPipelineSummary({
           <SectionError />
         ) : !visits.items.length && (visits.counts.total ?? 0) === 0 ? (
           <OperationalEmptyState
-            icon={<IconCalendarEvent size={24} />}
+            icon={IconCalendarEvent}
             title="No visit requests yet"
             description="Visit requests for this property will appear here."
           />
@@ -211,9 +204,7 @@ export function ApartmentPipelineSummary({
                 ))}
               </ul>
             ) : (
-              <p className="mt-3 text-sm text-muted-foreground">
-                No recent visit requests to display.
-              </p>
+              <EmptyState className="mt-2 py-6" icon={IconCalendarEvent} title="No recent visit requests" description="Visit requests will be listed here as they come in." />
             )}
           </>
         )}
@@ -237,7 +228,7 @@ export function ApartmentMaintenanceSummary({
         <SectionError />
       ) : !summary.items.length && Object.values(summary.counts).every((count) => count === 0) ? (
         <OperationalEmptyState
-          icon={<IconTools size={24} />}
+          icon={IconTools}
           title="No maintenance requests"
           description="Reported maintenance issues for this property will appear here."
         />
@@ -283,9 +274,7 @@ export function ApartmentMaintenanceSummary({
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">
-              No recent maintenance requests to display.
-            </p>
+            <EmptyState className="mt-2 py-6" icon={IconTools} title="No recent maintenance requests" description="Maintenance requests will be listed here as they come in." />
           )}
         </>
       )}
@@ -314,7 +303,7 @@ export function ApartmentReviewsSummary({
         <SectionError />
       ) : !reviews.length && (total ?? 0) === 0 && (rating == null || rating === 0) ? (
         <OperationalEmptyState
-          icon={<IconStar size={24} />}
+          icon={IconStar}
           title="No reviews yet"
           description="Tenant reviews for this property will appear here."
         />
@@ -347,9 +336,7 @@ export function ApartmentReviewsSummary({
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">
-              No recent reviews to display.
-            </p>
+            <EmptyState className="mt-2 py-6" icon={IconStar} title="No recent reviews" description="Reviews will be listed here as they come in." />
           )}
         </>
       )}

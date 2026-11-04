@@ -20,6 +20,7 @@ import PresentationBoundary from "@/app/components/display/PresentationBoundary"
 import type { PresentationSeed } from "@/service/presentation-seed";
 import type { LandlordApplication } from "@/service/landlordApplicationsService";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export type { DisplayStatus };
 
@@ -104,12 +105,12 @@ function ApplicationsContent({ initial }: { initial?: PresentationSeed<LandlordA
             <Button variant="secondary" onPress={() => void refresh()}>Try Again</Button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
-            <Home size={32} className="text-primary" aria-hidden="true" />
-            <p className="text-base font-nunito font-semibold text-card-foreground">No applications found</p>
-            <p className="text-sm">{applications.length === 0 ? "Tenant applications for your properties will appear here." : "Try adjusting search or filters."}</p>
-            {activeFilterCount > 0 || search ? <Button variant="secondary" size="sm" onPress={clearFilters}>Clear Filters</Button> : null}
-          </div>
+          <EmptyState
+            icon={Home}
+            title="No applications found"
+            description={applications.length === 0 ? "Tenant applications for your properties will appear here." : "Try adjusting search or filters."}
+            action={activeFilterCount > 0 || search ? <Button variant="secondary" size="sm" onPress={clearFilters}>Clear Filters</Button> : undefined}
+          />
         ) : (
           <>
             <div className="hidden md:block">

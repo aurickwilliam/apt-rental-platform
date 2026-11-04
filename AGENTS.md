@@ -465,6 +465,7 @@ Rules:
 
 ## What NOT to do
 
+- Don't hand-roll an empty state (a circle, "No …" text or a bare icon): use the shared `EmptyState` (mobile `components/display/EmptyState.tsx`, web `app/components/display/EmptyState.tsx`; icon on a soft-blue circle, title, description, optional `size="sm"` action). See DESIGN.md §15.
 - Don't reintroduce NativeWind, `lucide-react-native` or `react-native-keyboard-aware-scroll-view` on mobile.
 - Don't bypass `public.users.id` indirection in new RLS policies or FK joins.
 - Don't store public URLs for private bucket assets — store paths and sign on read.

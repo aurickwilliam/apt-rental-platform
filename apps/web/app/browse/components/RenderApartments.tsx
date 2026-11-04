@@ -17,6 +17,8 @@ import {
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconSearch } from "@tabler/icons-react";
 
 const ApartmentHoverPreview = dynamic(() => import("./ApartmentHoverPreview"));
 
@@ -187,12 +189,11 @@ export default function RenderApartments({
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {apartment.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 px-4 text-center text-default-400">
-          <p className="text-lg font-medium">
-            {isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
-          </p>
-          <p className="text-sm">Try adjusting your filters</p>
-        </div>
+        <EmptyState
+          icon={IconSearch}
+          title={isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
+          description="Try adjusting your filters"
+        />
       ) : (
         <div className={gridClassName}>
           {apartment.map((apt, i) => (

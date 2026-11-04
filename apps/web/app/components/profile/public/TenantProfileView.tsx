@@ -10,7 +10,6 @@ import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import { apartmentHref, formatDurationMonths, landlordProfileHref, memberSinceYear } from "@/lib/public-profile";
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
-import PublicProfileEmptyState from "./PublicProfileEmptyState";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
@@ -20,6 +19,7 @@ import PublicProfileSection from "./PublicProfileSection";
 import PublicProfileStats from "./PublicProfileStats";
 import PublicProfileTagsCard from "./PublicProfileTagsCard";
 import type { TenantProfileData } from "./types";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export default function TenantProfileView({ data }: { data: TenantProfileData }) {
   const { identity, contact, pastStays, stayHistory } = data;
@@ -83,7 +83,8 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
       >
       <PublicProfileSection title={`${firstName}'s past stays`}>
         {pastStays.length === 0 ? (
-          <PublicProfileEmptyState
+          <EmptyState
+          className="py-12 rounded-3xl border border-border bg-card"
             icon={IconHomeSearch}
             title="No rental history yet"
             description="This tenant has no completed leases on the platform yet."
@@ -152,7 +153,8 @@ export default function TenantProfileView({ data }: { data: TenantProfileData })
         description="Ratings from landlords this tenant rented from, left after the lease ended."
       >
         {data.landlordReviews.length === 0 ? (
-          <PublicProfileEmptyState
+          <EmptyState
+          className="py-12 rounded-3xl border border-border bg-card"
             icon={IconStar}
             title="No landlord ratings yet"
             description="Landlords can rate a tenant once their lease has ended."

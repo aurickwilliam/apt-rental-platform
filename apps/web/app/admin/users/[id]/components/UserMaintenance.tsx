@@ -66,7 +66,7 @@ export default function UserMaintenance({
           </ul>
         </>
       ) : (
-        <DetailEmptyState>No maintenance requests</DetailEmptyState>
+        <DetailEmptyState icon={IconTools} title="No maintenance requests" description="Requests raised by or for this user will appear here." />
       )}
       </Card.Content>
     </Card>

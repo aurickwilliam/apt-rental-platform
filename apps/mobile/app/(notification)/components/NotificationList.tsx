@@ -9,7 +9,6 @@ import type { MessageGroupUnit } from '@repo/utils'
 import { useNotifications, useNotificationActions } from '@/hooks/notifications'
 import type { NotificationItem } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
-import { useColors } from '@/hooks/useTheme'
 import EmptyState from '@/components/display/EmptyState'
 import { buildNotificationDeepLink, getWebOnlyNotificationNotice } from '@/utils/notificationDeepLink'
 import { authorizedPortal } from '@/service/auth/portalPreference'
@@ -27,7 +26,6 @@ interface NotificationListProps {
 }
 
 export default function NotificationList({ filter, onShowAll }: NotificationListProps) {
-  const { colors } = useColors();
   const router = useRouter();
   const { toast } = useToast();
   const currentUserQuery = useCurrentUser();
@@ -107,7 +105,7 @@ export default function NotificationList({ filter, onShowAll }: NotificationList
     return filter === 'unread' ? (
       <EmptyState
         className="mt-6"
-        icon={<IconBellCheck size={40} color={colors.primary} />}
+        icon={IconBellCheck}
         title="You're all caught up"
         description="No unread notifications. New messages, payments and updates will show up here."
         action={onShowAll ? (
@@ -119,7 +117,7 @@ export default function NotificationList({ filter, onShowAll }: NotificationList
     ) : (
       <EmptyState
         className="mt-6"
-        icon={<IconBellOff size={40} color={colors.gray500} />}
+        icon={IconBellOff}
         title="No notifications yet"
         description="When something happens with your messages, payments or listings, you'll see it here."
       />

@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import { Button, Spinner } from "heroui-native";
-import { IconCircleCheckFilled } from "@tabler/icons-react-native";
+import { IconCircleCheckFilled, IconHome } from "@tabler/icons-react-native";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import StandardHeader from "@/components/layout/StandardHeader";
@@ -293,18 +293,22 @@ export default function PaymentCheckout() {
         header={<StandardHeader title="Rent Payment" />}
         className="p-5"
       >
-        <View className="flex-1 items-center justify-center gap-4">
-          <Text className="text-foreground text-lg font-nunitoSemiBold text-center">
-            {tenancyError ?? "No active rental found on this account."}
-          </Text>
-          <Button
-            onPress={() => {
-              void refetch();
-            }}
-          >
-            <Button.Label>Try Again</Button.Label>
-          </Button>
-        </View>
+        <EmptyState
+          className="flex-1"
+          icon={IconHome}
+          title={tenancyError ? "Couldn't load your rental" : "No active rental found"}
+          description={tenancyError ?? "There is no active rental on this account."}
+          action={
+            <Button
+              size="sm"
+              onPress={() => {
+                void refetch();
+              }}
+            >
+              <Button.Label>Try Again</Button.Label>
+            </Button>
+          }
+        />
       </ScreenWrapper>
     );
   }
@@ -317,7 +321,8 @@ export default function PaymentCheckout() {
       >
         <View className="flex-1 justify-center">
           <EmptyState
-            icon={<IconCircleCheckFilled size={32} color={colors.success} />}
+            icon={IconCircleCheckFilled}
+            iconColor={colors.success}
             title={bill?.coveredByAdvance ? "Covered by advance rent" : "Rent Already Paid"}
             description={`Your rent for ${monthLabel} ${yearLabel} ${bill?.coveredByAdvance ? "was prepaid in your move-in payment" : "has been paid in full"}. No further payment is needed.`}
           />

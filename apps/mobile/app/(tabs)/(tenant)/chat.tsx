@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
 // slight vertical drift and cancels the rows' swipe actions.
 import { FlatList } from 'react-native-gesture-handler';
-import { IconSearchOff } from '@tabler/icons-react-native';
+import { IconSearchOff, IconAlertCircle } from '@tabler/icons-react-native';
 
 import { formatFullName } from '@repo/utils';
 
@@ -159,6 +159,7 @@ export default function Chat() {
   ) : error ? (
     <ConversationListState
       variant='illustrated'
+      icon={IconAlertCircle}
       title='Something went wrong'
       description={error}
       actionLabel='Retry'

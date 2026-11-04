@@ -1,6 +1,7 @@
+import { buttonVariants } from "@heroui/react";
 import Link from "next/link";
 import { unstable_rethrow } from "next/navigation";
-import { IconAlertTriangle, IconCash, IconHome, IconTool } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCash, IconHome, IconTool, IconBuilding } from "@tabler/icons-react";
 
 import { buildRequestItems, formatPesoDisplay } from "@repo/utils";
 
@@ -12,6 +13,7 @@ import RentDueList from "./components/RentDueList";
 import ProfitTrendChart from "./components/ProfitTrendChart";
 import CollectionHistoryChart from "./components/CollectionHistoryChart";
 import DashboardHeader from "./components/DashboardHeader";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -49,18 +51,20 @@ export default async function Dashboard() {
     return (
       <div className="p-4 md:p-6">
         <DashboardHeader />
-        <div className="space-y-3 rounded-3xl border border-border bg-card py-16 text-center">
-          <h2 className="font-nunito text-xl font-bold">No properties yet</h2>
-          <p className="text-sm text-muted-foreground">
-            Add your first property to start managing your rentals.
-          </p>
-          <Link
-            className="cursor-pointer text-brand underline"
-            href="/landlord/properties/create"
-          >
-            Create a property
-          </Link>
-        </div>
+        <EmptyState
+          framed
+          icon={IconBuilding}
+          title="No properties yet"
+          description="Add your first property to start managing your rentals."
+          action={
+            <Link
+              href="/landlord/properties/create"
+              className={`${buttonVariants({ size: "sm" })} cursor-pointer no-underline`}
+            >
+              Create a property
+            </Link>
+          }
+        />
       </div>
     );
   }

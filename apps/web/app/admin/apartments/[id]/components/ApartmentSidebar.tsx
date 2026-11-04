@@ -23,6 +23,7 @@ import {
   SectionError,
   StatusChip,
 } from "./DetailPrimitives";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export function ApartmentVerificationCard({
   apartment,
@@ -87,9 +88,12 @@ export function ApartmentVerificationCard({
           </Link>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          No property verification has been submitted yet.
-        </p>
+        <EmptyState
+          className="py-8"
+          icon={IconShieldCheck}
+          title="No verification yet"
+          description="No property verification has been submitted yet."
+        />
       )}
     </Section>
   );

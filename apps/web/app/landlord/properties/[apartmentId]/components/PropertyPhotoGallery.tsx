@@ -7,6 +7,7 @@ import { IconArrowsMaximize, IconPhoto } from "@tabler/icons-react";
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import type { LandlordUnitImage } from "@/service/landlordUnitDetailService";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface PropertyPhotoGalleryProps {
   name: string;
@@ -66,10 +67,12 @@ export default function PropertyPhotoGallery({ name, images }: PropertyPhotoGall
           />
         </>
       ) : (
-        <div className="flex h-64 sm:h-80 flex-col items-center justify-center gap-3 rounded-xl bg-muted text-muted-foreground">
-          <IconPhoto size={32} aria-hidden="true" />
-          <p className="text-sm">No property photos yet. Add photos from the Manage menu.</p>
-        </div>
+        <EmptyState
+          className="h-64 justify-center sm:h-80"
+          icon={IconPhoto}
+          title="No property photos yet"
+          description="Add photos from the Manage menu."
+        />
       )}
     </Card>
   );

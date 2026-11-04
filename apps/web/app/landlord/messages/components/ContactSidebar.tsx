@@ -5,12 +5,12 @@ import { Tabs, ScrollShadow } from "@heroui/react";
 import type { Contact, TabKey } from "./types";
 import { IconMessageQuestion, IconSearch, IconUsers } from "@tabler/icons-react";
 import ConversationRow from "@/app/components/chat/ConversationRow";
-import ConversationListEmpty from "@/app/components/chat/ConversationListEmpty";
 import ArchivedConversations from "@/app/components/chat/ArchivedConversations";
 import ArchiveToggleButton from "@/app/components/chat/ArchiveToggleButton";
 import ConversationSearchField from "@/app/components/chat/ConversationSearchField";
 import { useConversationSearch } from "@/hooks/use-conversation-search";
 import { filterConversationContacts } from "@/lib/conversation-search";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ContactSidebarProps {
   contacts: Contact[];
@@ -70,8 +70,10 @@ export default function ContactSidebar({ contacts, activeTab, activeContact, onT
             </Tabs>
           </div>
           <ScrollShadow className="min-h-0 flex-1 overflow-y-auto p-2" visibility="none">
-            {contacts.length === 0 ? <ConversationListEmpty {...EMPTY_STATES[activeTab]} /> : visibleContacts.length === 0 ? (
-              <ConversationListEmpty icon={IconSearch} title="No matches" description={`Nothing in ${activeTab === "current" ? "Current Tenants" : "Inquiries"} matches “${query.trim()}”.`} />
+            {contacts.length === 0 ? <EmptyState
+          className="py-14" {...EMPTY_STATES[activeTab]} /> : visibleContacts.length === 0 ? (
+              <EmptyState
+          className="py-14" icon={IconSearch} title="No matches" description={`Nothing in ${activeTab === "current" ? "Current Tenants" : "Inquiries"} matches “${query.trim()}”.`} />
             ) : visibleContacts.map((contact) => (
               <ConversationRow key={contact.conversationKey} contact={contact} isActive={activeContact?.conversationKey === contact.conversationKey} onSelect={() => selectContact(contact)} menu={renderMenu(contact, pinLocked)} />
             ))}

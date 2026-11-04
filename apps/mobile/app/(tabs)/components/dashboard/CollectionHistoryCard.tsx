@@ -114,7 +114,7 @@ export default function CollectionHistoryCard({
       <View className="mt-4 overflow-hidden" onLayout={handleLayout}>
         {!hasBilledRent ? (
           <EmptyState
-            icon={<IconChartBar size={36} color={colors.gray500} />}
+            icon={IconChartBar}
             title="No rent billed yet"
             description="Once rent comes due, collected and unpaid amounts show up here."
           />

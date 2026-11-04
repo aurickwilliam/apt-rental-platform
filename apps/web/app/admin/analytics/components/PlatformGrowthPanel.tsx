@@ -13,6 +13,8 @@ import {
 import type { AnalyticsMetrics, AnalyticsTrend } from "../types";
 import { bucketDateLabel, numberFormat, shortDate } from "./analytics-format";
 import Panel from "./Panel";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconAlertCircle, IconChartLine } from "@tabler/icons-react";
 
 const growthConfig = {
   users: { label: "New users", color: "var(--primary)" },
@@ -141,14 +143,13 @@ export default function PlatformGrowthPanel({
           </p>
         </>
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          {trends === null
-            ? "Growth trend unavailable; period totals are shown above."
-            : "No growth data for this period."}
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={trends === null ? IconAlertCircle : IconChartLine}
+          title={trends === null ? "Growth trend unavailable" : "No growth data for this period"}
+          description={trends === null ? "Period totals are shown above." : "Nothing has been recorded in this period."}
+        />
       )}
     </Panel>
   );

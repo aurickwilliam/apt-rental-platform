@@ -34,6 +34,7 @@ import {
   IconStar,
   IconStarFilled,
 } from '@tabler/icons-react-native';
+import EmptyState from "@/components/display/EmptyState";
 
 export default function PublicLandlordProfile() {
   const { landlordId, apartmentId } = useLocalSearchParams<{
@@ -228,15 +229,11 @@ export default function PublicLandlordProfile() {
             </SkeletonGroup>
           </View>
         ) : listings.length === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconBuildingSkyscraper size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No listings yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              This landlord hasn&apos;t published any apartments yet.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconBuildingSkyscraper}
+            title="No listings yet"
+            description="This landlord hasn't published any apartments yet."
+          />
         ) : (
           <>
             <FlatList
@@ -288,16 +285,11 @@ export default function PublicLandlordProfile() {
             <RatingCardSkeleton />
           </View>
         ) : totalReviews === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconStar size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No reviews yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              Reviews from tenants who rented this landlord&apos;s apartments will
-              appear here.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title="No reviews yet"
+            description="Reviews from tenants who rented this landlord's apartments will appear here."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {reviews.map((review) => (

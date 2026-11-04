@@ -12,13 +12,11 @@ import {
   IconFiles,
   IconFileDescription,
   IconListDetails,
-  IconMessage,
-} from '@tabler/icons-react-native';
+  IconMessage, IconFileText } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
 import DetailField from '@/components/display/DetailField';
-import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
 import DetailSection from './components/DetailSection';
 import TenantSummaryCard from './components/TenantSummaryCard';
@@ -36,6 +34,7 @@ import {
   useApplicationActions
 } from '@/hooks/applications';
 import { usePassportVerifiedPaths } from '@/hooks/passport';
+import EmptyState from "@/components/display/EmptyState";
 
 
 const orDash = (value: string | null | undefined) =>
@@ -100,7 +99,12 @@ export default function TenantApplicationDetails() {
         scrollable
         className="p-5"
       >
-        <EmptyApplicationData />
+        <EmptyState
+      className="flex-1"
+      icon={IconFileText}
+      title="Application not found"
+      description="This application may have been removed."
+    />
       </ScreenWrapper>
     );
   }
