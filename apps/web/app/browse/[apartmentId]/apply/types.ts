@@ -21,6 +21,15 @@ export interface ApplicationForm {
   hasPets: string | null;
   isSmoker: string | null;
   needParking: string | null;
+  /** Follow-ups to "Do you have pets?"; only read while it is "yes". */
+  kindOfPets: string[];
+  noOfPets: number;
+  nameOfPets: string | null;
+  /** Follow-ups to "Do you need parking?"; only read while it is "yes". */
+  noOfParkingSpots: number;
+  listOfVehicles: string[];
+  /** Whether anyone in the household has a disability ("yes" / "no"). */
+  hasDisability: string | null;
   additionalNotes: string;
 }
 
@@ -52,5 +61,11 @@ export const EMPTY_APPLICATION_FORM: ApplicationForm = {
   hasPets: null,
   isSmoker: null,
   needParking: null,
+  kindOfPets: [],
+  noOfPets: 1,
+  nameOfPets: null,
+  noOfParkingSpots: 1,
+  listOfVehicles: [],
+  hasDisability: null,
   additionalNotes: "",
 };

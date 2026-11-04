@@ -33,8 +33,8 @@ interface ReviewStepProps {
   apartment: ApplyApartmentContext;
   accountStatus: string | null;
   form: ApplicationForm;
-  /** The saved-preference details the landlord will see, or null when none are saved. */
-  sharedPreferences: ApplicationPreferenceLine[] | null;
+  /** The pet, parking, smoking and disability details the landlord will see. */
+  preferenceLines: ApplicationPreferenceLine[];
   totalMoveIn: number;
   readiness: {
     issues: ApplicationIssue[];
@@ -58,11 +58,6 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function yesNo(value: string | null): string {
-  if (!value) return "—";
-  return value === "yes" ? "Yes" : "No";
-}
-
 function formatDate(value: string): string {
   return value ? new Date(value).toLocaleDateString() : "—";
 }
@@ -80,7 +75,7 @@ export default function ReviewStep({
   apartment,
   accountStatus,
   form,
-  sharedPreferences,
+  preferenceLines,
   totalMoveIn,
   readiness,
   isSubmitting,
@@ -160,26 +155,16 @@ export default function ReviewStep({
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <DetailRow label="Move-in Date" value={formatDate(form.moveInDate)} />
                   <DetailRow label="Number of Occupants" value={form.noOccupants ? `${form.noOccupants} Person(s)` : "—"} />
-                  <DetailRow label="Has Pets?" value={yesNo(form.hasPets)} />
-                  <DetailRow label="Smoker?" value={yesNo(form.isSmoker)} />
-                  <DetailRow label="Need Parking?" value={yesNo(form.needParking)} />
+                  {preferenceLines.map((line) => (
+                    <DetailRow key={line.label} label={line.label} value={line.value} />
+                  ))}
                   <div className="md:col-span-2">
                     <DetailRow label="Additional Notes" value={form.additionalNotes || "—"} />
                   </div>
                 </div>
-                {sharedPreferences ? (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <p className="text-xs font-semibold text-card-foreground">Shared with the landlord</p>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      The details from your saved rental preferences. The landlord sees them with your application.
-                    </p>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {sharedPreferences.map((line) => (
-                        <DetailRow key={line.label} label={line.label} value={line.value} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+                <p className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
+                  The landlord sees these details with your application.
+                </p>
               </AccordionBody>
             </AccordionPanel>
           </AccordionItem>

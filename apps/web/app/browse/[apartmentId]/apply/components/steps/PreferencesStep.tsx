@@ -13,26 +13,26 @@ import {
   Separator,
   TextArea,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
 } from "@heroui/react";
 
+import { IconAccessible, IconCar, IconPaw, IconSmoking } from "@tabler/icons-react";
 import { manilaToday } from "@repo/utils";
 
 import FormStepActions from "@/app/components/layout/FormStepActions";
+import PreferenceParkingFields from "@/app/components/preferences/PreferenceParkingFields";
+import PreferencePetFields from "@/app/components/preferences/PreferencePetFields";
+import PreferenceYesNoField from "@/app/components/preferences/PreferenceYesNoField";
 
 import type { ApplicationForm, ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
 const NOTES_MAX_LENGTH = 1000;
 
-type YesNoField = "hasPets" | "isSmoker" | "needParking";
+type YesNoAnswer = "yes" | "no";
 
-const YES_NO_QUESTIONS: { field: YesNoField; title: string }[] = [
-  { field: "hasPets", title: "Do you have pets?" },
-  { field: "isSmoker", title: "Are you a smoker?" },
-  { field: "needParking", title: "Do you need parking?" },
-];
+/** The four Yes/No questions; the details of pets and parking follow a "yes". */
+const toBoolean = (answer: string | null): boolean | null => (answer === null ? null : answer === "yes");
+const toYesNo = (value: boolean): YesNoAnswer => (value ? "yes" : "no");
 
 function toCalendarDate(value: string): CalendarDate | null {
   try {
@@ -67,6 +67,16 @@ export default function PreferencesStep({
     day: "numeric",
     year: "numeric",
   });
+
+  const answer = (
+    field: "hasPets" | "isSmoker" | "needParking" | "hasDisability",
+    value: boolean,
+    errorKey: string,
+    details: Partial<ApplicationForm> = {},
+  ) => {
+    onChange({ [field]: toYesNo(value), ...details });
+    clearError(errorKey);
+  };
 
   return (
     <div>
@@ -183,38 +193,84 @@ export default function PreferencesStep({
           </p>
         ) : null}
 
-        {YES_NO_QUESTIONS.map(({ field, title }) => {
-          const value = form[field];
-          return (
-            <div key={field}>
-              <Label className="mb-2 block text-sm font-medium text-card-foreground">
-                {title} <span className="text-danger">*</span>
-              </Label>
-              <ToggleButtonGroup
-                selectionMode="single"
-                selectedKeys={value ? [value] : []}
-                onSelectionChange={(keys) => {
-                  const first = Array.from(keys as Set<string>)[0] as string | undefined;
-                  if (!first) return;
-                  onChange({ [field]: first } as Partial<ApplicationForm>);
-                  clearError(field);
-                }}
-                className="flex gap-2"
-              >
-                {["Yes", "No"].map((option) => (
-                  <ToggleButton
-                    key={option}
-                    id={option.toLowerCase()}
-                    className="rounded-full border px-5 py-2 text-sm font-medium data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-white"
-                  >
-                    {option}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-              {errors[field] && <p className="mt-1 text-xs text-danger">{errors[field]}</p>}
-            </div>
-          );
-        })}
+        <PreferenceYesNoField
+          label="Do you have pets?"
+          icon={<IconPaw size={18} />}
+          required
+          value={toBoolean(form.hasPets)}
+          error={errors.hasPets}
+          onChange={(value) => {
+            answer("hasPets", value, "hasPets", {
+              kindOfPets: value ? form.kindOfPets : [],
+              noOfPets: value ? form.noOfPets : 1,
+              nameOfPets: value ? form.nameOfPets : null,
+            });
+            clearError("petDetails");
+          }}
+        />
+        {form.hasPets === "yes" && (
+          <PreferencePetFields
+            kindOfPets={form.kindOfPets}
+            noOfPets={form.noOfPets}
+            nameOfPets={form.nameOfPets}
+            error={errors.petDetails ?? null}
+            idPrefix="application-pet"
+            onChange={(patch) => {
+              onChange(patch);
+              clearError("petDetails");
+            }}
+          />
+        )}
+
+        <PreferenceYesNoField
+          label="Are you a smoker?"
+          icon={<IconSmoking size={18} />}
+          required
+          value={toBoolean(form.isSmoker)}
+          error={errors.isSmoker}
+          onChange={(value) => answer("isSmoker", value, "isSmoker")}
+        />
+
+        <PreferenceYesNoField
+          label="Do you need parking?"
+          icon={<IconCar size={18} />}
+          required
+          value={toBoolean(form.needParking)}
+          error={errors.needParking}
+          onChange={(value) => {
+            answer("needParking", value, "needParking", {
+              noOfParkingSpots: value ? form.noOfParkingSpots : 1,
+              listOfVehicles: value ? form.listOfVehicles : [],
+            });
+            clearError("parkingDetails");
+          }}
+        />
+        {form.needParking === "yes" && (
+          <>
+            <PreferenceParkingFields
+              noOfParkingSpots={form.noOfParkingSpots}
+              listOfVehicles={form.listOfVehicles}
+              onChange={(patch) => {
+                onChange(patch);
+                clearError("parkingDetails");
+              }}
+            />
+            {errors.parkingDetails ? (
+              <p role="alert" className="-mt-3 text-xs text-danger">
+                {errors.parkingDetails}
+              </p>
+            ) : null}
+          </>
+        )}
+
+        <PreferenceYesNoField
+          label="Does anyone in your household have a disability?"
+          icon={<IconAccessible size={18} />}
+          required
+          value={toBoolean(form.hasDisability)}
+          error={errors.hasDisability}
+          onChange={(value) => answer("hasDisability", value, "hasDisability")}
+        />
 
         <Separator />
 

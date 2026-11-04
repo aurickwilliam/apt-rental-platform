@@ -4,17 +4,14 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, useOverlayState } from "@heroui/react";
 
-import {
-  applicationAnswersFromPreferences,
-  buildApplicationPreferenceSnapshot,
-  describeApplicationPreferences,
-} from "@repo/utils";
+import { describeApplicationPreferences } from "@repo/utils";
 
 import FormStepper from "@/app/components/layout/FormStepper";
 import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
 
 import type { ApplicantPersonalInfo } from "@/lib/application-profile";
+import { applicationFormDefaultsFromPreferences, buildApplicationSnapshotFromForm } from "@/lib/application-form-preferences";
 import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import type { ApplyViewer } from "../lib/load-apply-page";
@@ -74,9 +71,10 @@ export default function ApplyClient({
   const discardModal = useOverlayState();
   const [step, setStep] = useState<Step>("tenant");
   const [furthestStep, setFurthestStep] = useState(1);
-  // The pets, smoking and parking questions start from the saved preferences;
-  // the tenant can change any answer for this application.
-  const prefilled = useMemo(() => applicationAnswersFromPreferences(savedPreferences), [savedPreferences]);
+  // The pets, parking, smoking and disability questions (and their details)
+  // start from the saved preferences; the tenant can change any answer for this
+  // application.
+  const prefilled = useMemo(() => applicationFormDefaultsFromPreferences(savedPreferences), [savedPreferences]);
   const [form, setForm] = useState<ApplicationForm>(() => ({
     ...EMPTY_APPLICATION_FORM,
     ...personalInfo,
@@ -151,15 +149,11 @@ export default function ApplyClient({
     goTo("submitted");
   };
 
-  // What the landlord will see of the saved preferences, for the review step.
-  const sharedPreferences = useMemo(() => {
-    const snapshot = buildApplicationPreferenceSnapshot(savedPreferences, {
-      hasPets: form.hasPets === "yes",
-      isSmoker: form.isSmoker === "yes",
-      needParking: form.needParking === "yes",
-    });
-    return snapshot ? describeApplicationPreferences(snapshot) : null;
-  }, [savedPreferences, form.hasPets, form.isSmoker, form.needParking]);
+  // What the landlord will see of the declared details, for the review step.
+  const preferenceLines = useMemo(() => {
+    const snapshot = buildApplicationSnapshotFromForm(form);
+    return snapshot ? describeApplicationPreferences(snapshot) : [];
+  }, [form]);
 
   const totalMoveIn = (apartment.monthlyRent ?? 0) + (apartment.securityDeposit ?? 0) + (apartment.advanceRent ?? 0);
   const currentNumber = wizardNumber(step);
@@ -225,7 +219,7 @@ export default function ApplyClient({
             apartment={apartment}
             accountStatus={viewer.accountStatus}
             form={form}
-            sharedPreferences={sharedPreferences}
+            preferenceLines={preferenceLines}
             totalMoveIn={totalMoveIn}
             readiness={readiness}
             isSubmitting={isSubmitting}

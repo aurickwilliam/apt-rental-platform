@@ -7,6 +7,8 @@ import {
   type EmploymentType,
 } from "@repo/constants";
 
+import { validatePets } from "@/lib/tenant-preferences";
+
 import type { ApplicationErrors, ApplicationForm } from "../types";
 
 // Optional field: blank passes, anything typed follows the shared rule.
@@ -88,8 +90,22 @@ export function validatePreferences(form: ApplicationForm, maxOccupants: number 
     next.noOccupants = `Please enter ${maxOccupants} or fewer occupants.`;
   }
   if (!form.hasPets) next.hasPets = "Please indicate if you have pets.";
+  else if (form.hasPets === "yes") {
+    const petsError = validatePets({
+      hasPets: true,
+      kindOfPets: form.kindOfPets,
+      noOfPets: form.noOfPets,
+    });
+    if (petsError) next.petDetails = petsError;
+  }
   if (!form.isSmoker) next.isSmoker = "Please indicate if you are a smoker.";
   if (!form.needParking) next.needParking = "Please indicate if you need parking.";
+  else if (form.needParking === "yes" && form.listOfVehicles.length === 0) {
+    next.parkingDetails = "Please select the kinds of vehicles you have.";
+  }
+  if (!form.hasDisability) {
+    next.hasDisability = "Please indicate if anyone in your household has a disability.";
+  }
 
   return withoutEmpty(next);
 }

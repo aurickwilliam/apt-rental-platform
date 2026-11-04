@@ -3,8 +3,8 @@
 import { useCallback, useState } from "react";
 
 import { evaluateApplicationReadiness } from "@repo/passport";
-import { buildApplicationPreferenceSnapshot } from "@repo/utils";
 
+import { buildApplicationSnapshotFromForm } from "@/lib/application-form-preferences";
 import { fetchPassportDocumentsWithVerification } from "@/service/passportService";
 import { fetchApplicationSubmitContext, insertTenantApplication } from "@/service/tenantApplicationsService";
 
@@ -20,6 +20,12 @@ export type SubmitApplicationForm = {
   hasPets: string | null;
   isSmoker: string | null;
   needParking: string | null;
+  kindOfPets: string[];
+  noOfPets: number;
+  nameOfPets: string | null;
+  noOfParkingSpots: number;
+  listOfVehicles: string[];
+  hasDisability: string | null;
   additionalNotes: string;
 };
 
@@ -87,13 +93,9 @@ export function useSubmitApplication() {
         has_smoker: form.isSmoker === "yes",
         need_parking: form.needParking === "yes",
         message: form.additionalNotes.trim() || null,
-        // A copy of the saved preferences' details, taken now so the landlord
-        // sees what the tenant declared when applying.
-        tenant_preferences: buildApplicationPreferenceSnapshot(context.preferences, {
-          hasPets: form.hasPets === "yes",
-          isSmoker: form.isSmoker === "yes",
-          needParking: form.needParking === "yes",
-        }),
+        // The details the tenant declared on the form (pets, parking and
+        // vehicles, smoking, disability), kept as they were when applying.
+        tenant_preferences: buildApplicationSnapshotFromForm(form),
         gov_id_url: docs.govId.storage_path,
         // Only a verification-linked ID has a back capture to share.
         gov_id_back_url: docs.govId.verification_id ? docs.govId.storage_path_back : null,
