@@ -43,8 +43,10 @@ export default function TenantSignedLeaseCard({ tenancyId, path, uploadedAt, ack
         <Text className="text-muted font-inter text-sm">{summary}</Text>
         <View className="flex-row items-stretch gap-2">
           <Button size="sm" className="flex-1 min-w-0 h-auto min-h-11 px-3 py-2" variant="outline" onPress={() => void form.view()} isDisabled={!path || form.viewing || form.confirming}>
-            {form.viewing ? <Spinner size="sm" /> : <IconFileText size={16} color={colors.primary} />}
-            <Button.Label className="shrink text-center">View document</Button.Label>
+            <View testID="signed-lease-view-content" className="flex-row items-center justify-center self-center gap-2 max-w-full shrink">
+              {form.viewing ? <Spinner size="sm" /> : <IconFileText size={16} color={colors.primary} />}
+              <Button.Label className="shrink text-center" style={{ flexGrow: 0 }}>View document</Button.Label>
+            </View>
           </Button>
           {status === "pending" && !confirmed && <Button size="sm" className="flex-1 min-w-0 h-auto min-h-11 px-3 py-2" onPress={() => void form.confirm()} isDisabled={form.confirming || form.viewing}>
             {form.confirming ? <Spinner size="sm" color="white" /> : <IconShieldCheck size={16} color="white" />}

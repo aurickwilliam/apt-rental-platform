@@ -73,6 +73,16 @@ it("places viewing and confirmation in the same action row", () => {
   expect(within(row).getByText(confirmLabel)).toBeTruthy();
 });
 
+it("centres the View icon and label together with a small gap", () => {
+  render(<TenantSignedLeaseCard {...props} acknowledgedAt="2026-11-05" />);
+  const content = screen.getByTestId("signed-lease-view-content");
+  expect(content.props.className).toContain("flex-row");
+  expect(content.props.className).toContain("justify-center");
+  expect(content.props.className).toContain("gap-2");
+  expect(content.props.className).not.toContain("flex-1");
+  expect(within(content).getByText("View document")).toBeTruthy();
+});
+
 it("does not nudge inactive or already-confirmed rentals and keeps confirmed viewing available", async () => {
   mockFocused = false;
   const { rerender } = render(<TenantSignedLeaseCard {...props} />);
