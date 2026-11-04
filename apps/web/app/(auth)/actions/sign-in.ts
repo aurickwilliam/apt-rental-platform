@@ -1,10 +1,21 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
+import {
+  clearSignInFailures,
+  clientIpFromHeaders,
+  isSignInBlocked,
+  pruneSignInBuckets,
+  recordSignInFailure,
+  signInEmailKey,
+  signInIpKey,
+  type SignInBuckets,
+  SIGN_IN_THROTTLE_MESSAGE,
+} from "@/lib/sign-in-rate-limit";
 
 export interface SignInFormState {
   error: string | null;
@@ -14,6 +25,12 @@ export interface SignInFormState {
 }
 
 interface UserRolesProfile { roles: string[] }
+
+// Brute-force protection state: one in-memory failure-window store shared by
+// every sign-in request in this process. Next keeps one server process here,
+// and Supabase Auth keeps its own platform limits as the backstop; a
+// multi-instance deployment would need a shared store (documented limit).
+const signInBuckets: SignInBuckets = new Map();
 
 // Only the verification handoff may resume after login. Re-validated here
 // (never trust the client): exact /verify or /verify/mobile?token=<opaque>.
@@ -37,6 +54,23 @@ export async function signIn(
     return { error: "Email and password are required." };
   }
 
+  // Brute-force guard: refuse with a generic message (no Supabase call, no
+  // account enumeration) while either the email or the client-IP failure
+  // window is spent. "Invalid login credentials" is the only failure that
+  // counts — other errors and successes never deepen a window.
+  const requestHeaders = await headers();
+  const clientIp = clientIpFromHeaders({
+    "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
+    "x-real-ip": requestHeaders.get("x-real-ip"),
+  });
+  const attemptKeys = [signInEmailKey(email)];
+  if (clientIp) attemptKeys.push(signInIpKey(clientIp));
+  const now = Date.now();
+  pruneSignInBuckets(signInBuckets, now);
+  if (attemptKeys.some((key) => isSignInBlocked(signInBuckets, key, now).blocked)) {
+    return { error: SIGN_IN_THROTTLE_MESSAGE };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -47,6 +81,7 @@ export async function signIn(
   if (error) {
     // Map common Supabase auth errors to user-friendly messages
     if (error.message === "Invalid login credentials") {
+      for (const key of attemptKeys) recordSignInFailure(signInBuckets, key, Date.now());
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
@@ -60,6 +95,10 @@ export async function signIn(
     }
     return { error: error.message };
   }
+
+  // A good sign-in resets the email and IP windows, so a shared office IP is
+  // not punished for an attacker's earlier guesses.
+  for (const key of attemptKeys) clearSignInFailures(signInBuckets, key);
 
   // A fresh sign-in replaces any password-recovery session, so drop its marker
   // (otherwise the middleware would sign this new session out).

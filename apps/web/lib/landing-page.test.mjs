@@ -623,7 +623,17 @@ test("hero keeps its approved content and coordinates short, low-distance entran
 test("landing typography uses the loaded Nunito Bold and stays local without changing motion", () => {
   const css = readFileSync(new URL("../app/(main)/components/landing-design.module.css", import.meta.url), "utf8");
   const root = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.match(root, /weight: \["400", "500", "600", "700"\]/);
+  // Fonts are self-hosted from the mobile-bundled latin subsets: the root
+  // layout loads every weight the styles use through next/font/local,
+  // including Nunito Bold, and never fetches Google fonts at build time.
+  assert.match(root, /import localFont from "next\/font\/local";/);
+  assert.doesNotMatch(root, /next\/font\/google/);
+  assert.match(root, /nunito-regular\.woff2", weight: "400"/);
+  assert.match(root, /nunito-medium\.woff2", weight: "500"/);
+  assert.match(root, /nunito-semibold\.woff2", weight: "600"/);
+  assert.match(root, /nunito-bold\.woff2", weight: "700"/);
+  assert.match(root, /variable: "--font-nunito-face"/);
+  assert.match(root, /variable: "--font-inter-face"/);
   assert.match(css, /font-weight: 700;/);
   assert.match(css, /font-synthesis: none;/);
   assert.doesNotMatch(css, /font-weight: (800|900);|@font-face|@import/);
