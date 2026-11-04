@@ -10,8 +10,6 @@ import {
   CheckboxGroup,
   Checkbox,
   Chip,
-  RadioGroup,
-  Radio,
   Label,
   Switch,
   ToggleButtonGroup,
@@ -20,8 +18,7 @@ import {
   InputGroup,
 } from "@heroui/react";
 
-import { IconSearch } from "@tabler/icons-react";
-
+import { commitRangeDraft } from "@repo/utils";
 import {
   APARTMENT_TYPES,
   FURNISHED_TYPES,
@@ -217,24 +214,13 @@ function RangeInputs({
     setDraftMax(null);
   }
 
-  const parse = (raw: string, fallback: number) => {
-    const digits = raw.replace(/[^0-9]/g, "");
-    if (!digits) return fallback;
-    return Math.round(Number(digits) / step) * step;
-  };
-
   const commitSide = (side: "min" | "max") => {
-    if (side === "min") {
-      if (draftMin === null) return;
-      const nextMin = Math.min(Math.max(parse(draftMin, min), absoluteMin), max);
-      setDraftMin(null);
-      if (nextMin !== min) onCommit([nextMin, max]);
-    } else {
-      if (draftMax === null) return;
-      const nextMax = Math.max(Math.min(parse(draftMax, max), absoluteMax), min);
-      setDraftMax(null);
-      if (nextMax !== max) onCommit([min, nextMax]);
-    }
+    const draft = side === "min" ? draftMin : draftMax;
+    if (draft === null) return;
+    const next = commitRangeDraft(side, draft, { range: [min, max], absoluteMin, absoluteMax, step });
+    if (side === "min") setDraftMin(null);
+    else setDraftMax(null);
+    if (next[0] !== min || next[1] !== max) onCommit(next);
   };
 
   // Plain render helper (not a component) so focus is never lost while typing.
@@ -309,7 +295,7 @@ const BudgetSection = memo(function BudgetSection({
         onChange={(val) => onPriceChange(val as [number, number])}
         className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
       >
-        <Label>Budget</Label>
+        <Label className="font-nunito text-base font-semibold">Budget</Label>
 
         <Slider.Output>
           {() => {
@@ -365,7 +351,7 @@ const SizeSection = memo(function SizeSection({
         onChange={(val) => onSizeChange(val as [number, number])}
         className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
       >
-        <Label>Size Range</Label>
+        <Label className="font-nunito text-base font-semibold">Size Range</Label>
 
         <Slider.Output>
           {() => `${sizeRange[0]} – ${sizeRange[1]} sqm`}
@@ -397,7 +383,7 @@ const SizeSection = memo(function SizeSection({
   );
 });
 
-// Toggle chip for the multi-select groups. Picked: soft blue with APT blue text
+// Toggle chip for the multi-select groups (and Sort By, which picks one). Picked: soft blue with APT blue text
 // and ring; resting: neutral, with a transparent border so toggling never
 // shifts the layout. Keyboard-operable like the checkboxes beside it.
 function FilterChip({
@@ -476,7 +462,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
   );
 
   // Applies a new filter state instantly to the UI only — no fetching.
-  // The URL (and therefore results) updates solely via "Search Apartment"
+  // The URL (and therefore results) updates solely via "Apply Filters"
   // or "Clear All". Called only from event handlers (never render).
   // Stable so memoized sections skip unrelated updates.
   const applyNext = useCallback((next: Filters) => {
@@ -517,7 +503,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
     [updateFilter],
   );
 
-  // "Search Apartment" is the single fetch trigger for filter edits.
+  // "Apply Filters" is the single fetch trigger for filter edits.
   const handleApply = useCallback(() => {
     pushFilters(filtersRef.current);
     onApply?.();
@@ -567,7 +553,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Location */}
-        <p className="text-sm font-medium mb-2">Location</p>
+        <h4 className="font-nunito text-base font-semibold mb-3">Location</h4>
         <CheckboxGroup
           name="locations"
           value={filters.locations}
@@ -590,7 +576,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
 
         {/* Unit Type */}
-        <p className="text-sm font-medium mt-6 mb-2">Unit Type</p>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Unit Type</h4>
         <div className="flex flex-wrap gap-2">
           {APARTMENT_TYPES.map((type) => {
             const selected = filters.aptTypes.includes(type);
@@ -607,29 +593,21 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
 
         <Separator className="my-5" />
 
-        {/* Sort By */}
-        <p className="text-sm font-medium mb-2">Sort By</p>
-        {/* Shares the checkout radios' look: outlined ring, APT blue fill when picked. */}
-        <RadioGroup
-          className="payment-method-radios gap-3"
-          name="sort"
-          value={filters.sortBy}
-          onChange={(val) => updateFilter("sortBy", val)}
-        >
+        {/* Sort By: one choice, as chips (mobile's control). */}
+        <h4 className="font-nunito text-base font-semibold mb-3">Sort By</h4>
+        <div role="group" aria-label="Sort by" className="flex flex-wrap gap-2">
           {SORT_OPTIONS.map((opt) => (
-            <Radio key={opt.value} value={opt.value}>
-              <Radio.Content>
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                {opt.label}
-              </Radio.Content>
-            </Radio>
+            <FilterChip
+              key={opt.value}
+              label={opt.label}
+              selected={filters.sortBy === opt.value}
+              onToggle={() => updateFilter("sortBy", opt.value)}
+            />
           ))}
-        </RadioGroup>
+        </div>
 
         {/* Bedrooms */}
-        <p className="text-sm font-medium mb-2 mt-6">Bedrooms</p>
+        <h4 className="font-nunito text-base font-semibold mb-3 mt-6">Bedrooms</h4>
         <ToggleButtonGroup
           selectionMode="single"
           selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
@@ -653,7 +631,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </ToggleButtonGroup>
 
         {/* Bathrooms */}
-        <p className="text-sm font-medium mt-6 mb-2">Bathrooms</p>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Bathrooms</h4>
         <ToggleButtonGroup
           selectionMode="single"
           selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
@@ -682,7 +660,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Furnishing */}
-        <p className="text-sm font-medium mb-2">Furnishing</p>
+        <h4 className="font-nunito text-base font-semibold mb-3">Furnishing</h4>
         <div className="flex flex-wrap gap-2">
           {FURNISHED_TYPES.map((option) => {
             const selected = filters.furnishing.includes(option);
@@ -698,7 +676,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </div>
 
         {/* Floor Level */}
-        <p className="text-sm font-medium mt-6 mb-2">Floor Level</p>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Floor Level</h4>
         <div className="flex flex-wrap gap-2">
           {FLOOR_LEVELS.map((option) => {
             const selected = filters.floorLevel.includes(option);
@@ -714,7 +692,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </div>
 
         {/* Lease Duration */}
-        <p className="text-sm font-medium mt-6 mb-2">Lease Duration</p>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Lease Duration</h4>
         <div className="flex flex-wrap gap-2">
           {LEASE_DURATIONS.map((option) => {
             const selected = filters.leaseDuration.includes(option);
@@ -732,7 +710,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Amenities */}
-        <p className="text-sm font-medium mb-2">Amenities</p>
+        <h4 className="font-nunito text-base font-semibold mb-3">Amenities</h4>
         <AmenitiesSelect
           amenities={Object.values(PERKS)}
           selected={filters.amenities}
@@ -742,8 +720,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
 
       <div className="flex shrink-0 gap-2 border-t border-divider bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <Button className="min-w-0 flex-1" onPress={handleApply}>
-          <IconSearch size={20} />
-          Search Apartment
+          Apply Filters
         </Button>
 
         <Button

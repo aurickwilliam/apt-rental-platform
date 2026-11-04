@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
-import BrowseSeeAllPending from "./BrowseSeeAllPending";
+import { BrowseFilterRailSkeleton, BrowseResultsGridSkeleton } from "./BrowsePageSkeleton";
 import {
   previewPosition,
   useHoverPreview,
@@ -41,8 +41,8 @@ interface SectionRowProps {
 
 // Memoized like the grid items: hover-preview state at the list root must
 // not redraw every row. Re-renders only when this section's data or a
-// handler identity changes. Edge arrows hide at each scroll end and when
-// the row fits without scrolling.
+// handler identity changes. Arrows hide at each scroll end and when the row
+// fits without scrolling.
 const SectionRow = memo(function SectionRow({
   section,
   sectionIndex,
@@ -84,21 +84,24 @@ const SectionRow = memo(function SectionRow({
     track.scrollBy({ left: direction * track.clientWidth * 0.8, behavior: "smooth" });
   };
 
-  // Tall edge strips (not floating circles) so aiming for an arrow never
-  // lands on a card. Base is hidden: revealed on row hover only on devices
+  // Round arrows centered vertically on the cards (half the track's bottom
+  // padding up from the row's middle), revealed on row hover only on devices
   // with a fine pointer + hover (mouse/trackpad) at any viewport width, so
   // narrow PC windows get the same arrows as full-width. Touch phones stay
-  // swipe-only with no arrow clutter.
-  const stripBase =
-    "absolute inset-y-0 z-10 hidden w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-primary md:w-12 [@media(hover:hover)_and_(pointer:fine)]:flex";
-  const leftStripClass = `${stripBase} left-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-background dark:via-background/80 dark:to-transparent`;
-  const rightStripClass = `${stripBase} right-0 bg-gradient-to-l from-white via-white/80 to-transparent dark:from-background dark:via-background/80 dark:to-transparent`;
+  // swipe-only with no arrow clutter. The row bleeds past the page padding, so
+  // the arrows sit just inside the frame edge, clear of the first card.
+  const arrowWrapperClass =
+    "absolute top-[calc(50%-0.25rem)] z-10 hidden -translate-y-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:block";
+  const arrowButtonClass = "bg-white/90 text-gray-900 shadow-md";
 
   return (
-    <div className="group relative">
+    // Cancels the page padding (browseFrameClass) so cards scroll out to the
+    // frame edge instead of being cut at the content edge; the track's own
+    // padding puts the first card back in line with the heading.
+    <div className="group relative -mx-4 sm:-mx-6">
       <div
         ref={trackRef}
-        className="flex w-full max-w-full gap-3 overflow-x-auto pb-2 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
+        className="flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:gap-4 sm:px-6 [&::-webkit-scrollbar]:hidden"
       >
         {section.apartments.map((apt, i) => (
           <div
@@ -136,24 +139,30 @@ const SectionRow = memo(function SectionRow({
       </div>
 
       {canScrollLeft && (
-        <Button
-          variant="ghost"
-          aria-label={`Scroll ${section.title} left`}
-          onClick={() => scrollRow(-1)}
-          className={`button--bare ${leftStripClass}`}
-        >
-          <IconChevronLeft size={28} className="text-foreground" />
-        </Button>
+        <div className={`${arrowWrapperClass} left-3`}>
+          <Button
+            variant="ghost"
+            isIconOnly
+            aria-label={`Scroll ${section.title} left`}
+            onClick={() => scrollRow(-1)}
+            className={arrowButtonClass}
+          >
+            <IconChevronLeft size={22} />
+          </Button>
+        </div>
       )}
       {canScrollRight && (
-        <Button
-          variant="ghost"
-          aria-label={`Scroll ${section.title} right`}
-          onClick={() => scrollRow(1)}
-          className={`button--bare ${rightStripClass}`}
-        >
-          <IconChevronRight size={28} className="text-foreground" />
-        </Button>
+        <div className={`${arrowWrapperClass} right-3`}>
+          <Button
+            variant="ghost"
+            isIconOnly
+            aria-label={`Scroll ${section.title} right`}
+            onClick={() => scrollRow(1)}
+            className={arrowButtonClass}
+          >
+            <IconChevronRight size={22} />
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -165,8 +174,13 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
   const rememberRecentApartment = useRememberRecentApartment();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
+  // A See All link changes only the query string, so Next keeps this page on
+  // screen until the filtered grid has rendered. The transition's pending state
+  // shows that grid's skeleton in the meantime.
+  const [isOpeningSeeAll, startSeeAllNavigation] = useTransition();
   const {
     preview,
+    isPreviewClosing,
     handleHoverCard,
     handleLeaveCard,
     handleKeepPreview,
@@ -224,6 +238,19 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
     [handleFavoriteToggle],
   );
 
+  if (isOpeningSeeAll) {
+    return (
+      // The filtered page has the filter rail beside its results, so the skeleton
+      // does too and the layout holds when the page arrives.
+      <div role="status" aria-label="Loading results" aria-busy="true" className="flex flex-col gap-4 md:flex-row">
+        <BrowseFilterRailSkeleton />
+        <div className="min-w-0 flex-1">
+          <BrowseResultsGridSkeleton />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
       {sections.map((section, sectionIndex) => (
@@ -242,13 +269,17 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
             {section.seeAllHref ? (
               <Link
                 href={section.seeAllHref}
-                onNavigate={dismissPreview}
+                onNavigate={(event) => {
+                  event.preventDefault();
+                  dismissPreview();
+                  const href = section.seeAllHref as string;
+                  startSeeAllNavigation(() => router.push(href));
+                }}
                 className="flex shrink-0 items-center gap-0.5 rounded-full text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
                 aria-label={`See all ${section.title}`}
               >
                 See All
                 <IconChevronRight size={18} />
-                <BrowseSeeAllPending />
               </Link>
             ) : null}
           </div>
@@ -271,12 +302,13 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
           key={preview.apartment.id}
           apartment={preview.apartment}
           style={previewPosition(preview.rect)}
+          isClosing={isPreviewClosing}
           isFavorite={isFavorite(preview.apartment.id)}
           isFavoriteLoading={activeFavoriteId === preview.apartment.id}
           onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
-          onMouseLeave={dismissPreview}
+          onMouseLeave={handleLeaveCard}
         />
       )}
 

@@ -1,14 +1,21 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, useOverlayState } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
+
+import {
+  applicationAnswersFromPreferences,
+  buildApplicationPreferenceSnapshot,
+  describeApplicationPreferences,
+} from "@repo/utils";
 
 import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
 
 import type { ApplicantPersonalInfo } from "@/lib/application-profile";
+import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import type { ApplyViewer } from "../lib/load-apply-page";
 import { validatePreferences, validateTenantInfo } from "../lib/validate-application";
@@ -41,6 +48,7 @@ interface ApplyClientProps {
   viewer: ApplyViewer;
   hasActiveApplication: boolean;
   personalInfo: ApplicantPersonalInfo;
+  savedPreferences: TenantPreferences | null;
 }
 
 /**
@@ -49,11 +57,24 @@ interface ApplyClientProps {
  * (`ApplyStartModal`). There is no upload step: the APT Passport is attached
  * by reference.
  */
-export default function ApplyClient({ apartment, viewer, hasActiveApplication, personalInfo }: ApplyClientProps) {
+export default function ApplyClient({
+  apartment,
+  viewer,
+  hasActiveApplication,
+  personalInfo,
+  savedPreferences,
+}: ApplyClientProps) {
   const router = useRouter();
   const discardModal = useOverlayState();
   const [step, setStep] = useState<Step>("tenant");
-  const [form, setForm] = useState<ApplicationForm>(() => ({ ...EMPTY_APPLICATION_FORM, ...personalInfo }));
+  // The pets, smoking and parking questions start from the saved preferences;
+  // the tenant can change any answer for this application.
+  const prefilled = useMemo(() => applicationAnswersFromPreferences(savedPreferences), [savedPreferences]);
+  const [form, setForm] = useState<ApplicationForm>(() => ({
+    ...EMPTY_APPLICATION_FORM,
+    ...personalInfo,
+    ...prefilled,
+  }));
   const [errors, setErrors] = useState<ApplicationErrors>({});
 
   const readiness = useApplicationReadiness({
@@ -98,6 +119,16 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
     if (!result.success) return;
     goTo("submitted");
   };
+
+  // What the landlord will see of the saved preferences, for the review step.
+  const sharedPreferences = useMemo(() => {
+    const snapshot = buildApplicationPreferenceSnapshot(savedPreferences, {
+      hasPets: form.hasPets === "yes",
+      isSmoker: form.isSmoker === "yes",
+      needParking: form.needParking === "yes",
+    });
+    return snapshot ? describeApplicationPreferences(snapshot) : null;
+  }, [savedPreferences, form.hasPets, form.isSmoker, form.needParking]);
 
   const totalMoveIn = (apartment.monthlyRent ?? 0) + (apartment.securityDeposit ?? 0) + (apartment.advanceRent ?? 0);
   const wizard = WIZARD[step];
@@ -152,6 +183,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
           onChange={updateForm}
           clearError={clearError}
           maxOccupants={apartment.maxOccupants}
+          isPrefilled={prefilled !== null}
           onBack={goBack}
           onNext={() => advanceIfValid(validatePreferences(form, apartment.maxOccupants), "review")}
         />
@@ -162,6 +194,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
           apartment={apartment}
           accountStatus={viewer.accountStatus}
           form={form}
+          sharedPreferences={sharedPreferences}
           totalMoveIn={totalMoveIn}
           readiness={readiness}
           isSubmitting={isSubmitting}

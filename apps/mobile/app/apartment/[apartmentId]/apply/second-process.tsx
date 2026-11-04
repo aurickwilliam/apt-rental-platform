@@ -1,5 +1,5 @@
 import { View } from 'react-native'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper'
@@ -19,7 +19,10 @@ import {
   Description,
 } from 'heroui-native';
 
+import { applicationAnswersFromPreferences } from '@repo/utils'
+
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
+import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 
 type FormErrors = {
   moveInDate?: string
@@ -37,6 +40,22 @@ export default function SecondProcess() {
   const maxOccupants = useApplicationFormStore((state) => state.apartmentContext.maxOccupants);
 
   const [errors, setErrors] = useState<FormErrors>({})
+
+  // The yes/no answers start from the saved rental preferences (still editable
+  // for this application); an answer the tenant already gave is never replaced.
+  const { preferences } = useUserPreferences()
+  const savedAnswers = applicationAnswersFromPreferences(preferences)
+  const answersPrefilled = useRef(false)
+
+  useEffect(() => {
+    if (!savedAnswers || answersPrefilled.current) return
+    answersPrefilled.current = true
+    const { rentalPreferences: current, updateRentalPreferences: update } =
+      useApplicationFormStore.getState()
+    if (current.hasPets === undefined) update('hasPets', savedAnswers.hasPets === 'yes')
+    if (current.isSmoker === undefined) update('isSmoker', savedAnswers.isSmoker === 'yes')
+    if (current.needParking === undefined) update('needParking', savedAnswers.needParking === 'yes')
+  }, [savedAnswers])
 
   const scrollRef = useRef<ScreenWrapperScrollRef>(null)
   const contentRef = useRef<View>(null)
@@ -205,6 +224,12 @@ export default function SecondProcess() {
           </View>
 
           <Separator className="my-3" />
+
+          {savedAnswers ? (
+            <Description>
+              Filled in from your saved rental preferences. Change any answer for this application.
+            </Description>
+          ) : null}
 
           {/* Has Pets */}
           <View

@@ -50,10 +50,10 @@ export default function LocationSection() {
               <MapPin size={20} className="text-primary" />
             </div>
             <div>
-              <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-1">
+              <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-1">
                 Office Address
               </p>
-              <p className="text-sm font-poppinsMedium">
+              <p className="text-sm font-nunito font-medium">
                 109 Samson Road corner Caimito Road, Caloocan, Philippines
               </p>
               <p className="text-xs text-default-700 mt-1">

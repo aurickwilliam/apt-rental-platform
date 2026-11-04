@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@repo/supabase";
 import type { Json } from "@repo/supabase";
 import type { ApartmentCardProps } from "components/cards/ApartmentCard";
-import { transformApartments } from "./useSearchSections";
+import { transformApartments } from "@/service/search/sectionCards";
 
 export const SECTION_PAGE_SIZE = 10;
 

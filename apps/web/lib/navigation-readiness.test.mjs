@@ -327,7 +327,8 @@ test("server/client reads share exact mapping, owner/resource filters, ordering 
     let browserCreates = 0;
     const service = compile(`service/${file}.ts`, {
       "@repo/supabase/browser": { createClient: () => { browserCreates++; return browser.client; } },
-      "@repo/utils": { formatAddress: () => "Address", normalizeMaintenanceFeeStatus: value => value },
+      "@repo/utils": { formatAddress: () => "Address", normalizeMaintenanceFeeStatus: value => value, parseApplicationPreferenceSnapshot: () => null },
+      "@/lib/tenant-preferences": { parseTenantPreferences: () => null },
       "@/service/landlordApplicationsService": { getLandlordContext: () => assert.fail("Known owner must not re-resolve context") },
       "@/service/maintenanceService": { resolveMaintenanceImageUrls: () => assert.fail("Server/list presentation must not sign private photos") },
       "@/lib/application-documents": compile("lib/application-documents.ts", {}),

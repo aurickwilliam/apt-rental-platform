@@ -29,6 +29,7 @@ import { useProfile } from "@/hooks/auth";
 import { buildConversationKey } from "@/service/chat/chatService";
 
 import {
+  describeApplicationPreferences,
   formatAddress,
   formatPesoDisplay,
   formatDate,
@@ -429,18 +430,26 @@ export default function ApplicationApartment() {
                       label="No. of Occupants"
                       value={application.no_occupants.toString()}
                     />
-                    <DetailField
-                      label="Has Pets"
-                      value={application.has_pets ? "Yes" : "No"}
-                    />
-                    <DetailField
-                      label="Has Smoker"
-                      value={application.has_smoker ? "Yes" : "No"}
-                    />
-                    <DetailField
-                      label="Needs Parking"
-                      value={application.need_parking ? "Yes" : "No"}
-                    />
+                    {application.preferences ? (
+                      describeApplicationPreferences(application.preferences).map((line) => (
+                        <DetailField key={line.label} label={line.label} value={line.value} />
+                      ))
+                    ) : (
+                      <>
+                        <DetailField
+                          label="Has Pets"
+                          value={application.has_pets ? "Yes" : "No"}
+                        />
+                        <DetailField
+                          label="Has Smoker"
+                          value={application.has_smoker ? "Yes" : "No"}
+                        />
+                        <DetailField
+                          label="Needs Parking"
+                          value={application.need_parking ? "Yes" : "No"}
+                        />
+                      </>
+                    )}
                     {application.message && (
                       <DetailField
                         label="Message"

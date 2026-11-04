@@ -257,6 +257,26 @@ describe('fetchLandlordApplications', () => {
     expect(result[0].apartment_address).toContain('1410')
   })
 
+  it('reads the saved-preference snapshot and ignores an unusable one', async () => {
+    const snapshot = { version: 1, pets: { has: true, kinds: ['Dog'], count: 2 }, parking: { needed: false }, smoker: false, householdDisability: true }
+    mockFrom.mockReset()
+    mockFrom.mockReturnValue(
+      chainWith({
+        data: [
+          { ...baseRow, tenant_preferences: snapshot, apartments: apartmentRow },
+          { ...baseRow, id: 'app-2', tenant_preferences: { pets: 'yes' }, apartments: apartmentRow },
+          { ...baseRow, id: 'app-3', apartments: apartmentRow },
+        ],
+      }),
+    )
+
+    const result = await fetchLandlordApplications('landlord-1')
+
+    expect(result[0].preferences).toEqual(snapshot)
+    expect(result[1].preferences).toBeNull()
+    expect(result[2].preferences).toBeNull()
+  })
+
   it('maps string monthly_rent from PostgREST numeric columns', async () => {
     mockFrom.mockReset()
     mockFrom.mockReturnValue(

@@ -28,7 +28,7 @@ const stagger = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen font-poppins">
+    <div className="min-h-screen">
       {/* ── Hero ── */}
       <section className="px-4 py-9 md:px-12 border-b border-default-200">
         <div className="max-w-7xl mx-auto">
@@ -55,7 +55,7 @@ export default function AboutPage() {
             className="mb-5"
           >
             <Chip variant="soft" color="default" size="sm">
-              <span className="flex items-center gap-1 text-xs font-poppinsSemiBold uppercase tracking-widest">
+              <span className="flex items-center gap-1 text-xs font-inter font-semibold uppercase tracking-widest">
                 <Users size={12} />
                 About Us
               </span>
@@ -97,7 +97,7 @@ export default function AboutPage() {
             {stats.map((stat) => (
               <motion.div key={stat.label} variants={fadeUp}>
                 <Card className="bg-surface border border-default-200 hover:border-primary transition-all duration-200 p-4">
-                  <p className="text-xl font-poppinsSemiBold text-primary">
+                  <p className="text-xl font-nunito font-semibold text-primary">
                     {stat.value}
                   </p>
                   <p className="text-xs text-default-700">{stat.label}</p>
@@ -125,10 +125,10 @@ export default function AboutPage() {
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Target size={20} className="text-primary" />
               </div>
-              <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+              <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
                 Mission
               </p>
-              <h3 className="text-xl font-poppinsSemiBold mb-3">
+              <h3 className="text-xl font-inter font-semibold mb-3">
                 What we are here to do
               </h3>
               <p className="text-sm text-default-700 leading-relaxed">
@@ -145,10 +145,10 @@ export default function AboutPage() {
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Eye size={20} className="text-primary" />
               </div>
-              <p className="text-xs font-poppinsSemiBold uppercase tracking-widest text-primary mb-2">
+              <p className="text-xs font-inter font-semibold uppercase tracking-widest text-primary mb-2">
                 Vision
               </p>
-              <h3 className="text-xl font-poppinsSemiBold mb-3">
+              <h3 className="text-xl font-inter font-semibold mb-3">
                 Where we are headed
               </h3>
               <p className="text-sm text-default-700 leading-relaxed">

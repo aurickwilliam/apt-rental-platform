@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import Animated from 'react-native-reanimated';
@@ -19,12 +20,19 @@ import {
   useToast,
 } from "heroui-native";
 
-import { calcMoveInCost, formatDate, formatPesoDisplay } from '@repo/utils'
+import {
+  buildApplicationPreferenceSnapshot,
+  calcMoveInCost,
+  describeApplicationPreferences,
+  formatDate,
+  formatPesoDisplay,
+} from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 import { useApplicationReadiness, useSubmitApplication } from '@/hooks/applications'
 import { useApartmentDetails } from '@/hooks/apartments'
+import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 import { APPLICATION_SLOT_LABELS } from '@repo/passport'
 
 export default function ReviewInformation() {
@@ -46,6 +54,17 @@ export default function ReviewInformation() {
   );
 
   const { submit, isSubmitting } = useSubmitApplication();
+
+  // The saved-preference details the landlord will see with this application.
+  const { preferences } = useUserPreferences();
+  const sharedPreferences = useMemo(() => {
+    const snapshot = buildApplicationPreferenceSnapshot(preferences, {
+      hasPets: rentalPreferences.hasPets ?? false,
+      isSmoker: rentalPreferences.isSmoker ?? false,
+      needParking: rentalPreferences.needParking ?? false,
+    });
+    return snapshot ? describeApplicationPreferences(snapshot) : null;
+  }, [preferences, rentalPreferences.hasPets, rentalPreferences.isSmoker, rentalPreferences.needParking]);
 
   const totalMoveInCost = calcMoveInCost(
     apartmentContext.monthlyRent,
@@ -282,6 +301,21 @@ export default function ReviewInformation() {
                   label="Additional Notes"
                   value={rentalPreferences.additionalNotes || "—"}
                 />
+
+                {sharedPreferences ? (
+                  <>
+                    <Separator className="my-5" />
+                    <Text className="text-sm font-nunitoSemiBold text-foreground">
+                      Shared with the landlord
+                    </Text>
+                    <Text className="text-xs font-inter text-muted mb-3">
+                      The details from your saved rental preferences. The landlord sees them with your application.
+                    </Text>
+                    {sharedPreferences.map((line) => (
+                      <DetailField key={line.label} label={line.label} value={line.value} />
+                    ))}
+                  </>
+                ) : null}
               </ReviewAccordionItem>
 
               <ReviewAccordionItem value="documents" title="APT Passport Documents">

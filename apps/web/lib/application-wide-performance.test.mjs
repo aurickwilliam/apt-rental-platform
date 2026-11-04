@@ -62,6 +62,8 @@ test("tenant summary skips signing/import work; direct detail preserves complete
   const signed = [];
   const service = compile("service/tenantApplicationsService.ts", {
     "@repo/supabase/browser": { createClient: () => db.client },
+    "@repo/utils": { parseApplicationPreferenceSnapshot: () => null },
+    "@/lib/tenant-preferences": { parseTenantPreferences: () => null },
     "@/lib/application-documents": documents,
     "@/service/applicationDocumentsService": { resolveApplicationDocumentUrls: async paths => {
       signed.push(plain(paths));
@@ -86,7 +88,7 @@ test("landlord application detail returns the same complete row without a collec
   const db = database({ rental_application: [app("a"), app("b")] });
   const service = compile("service/landlordApplicationsService.ts", {
     "@repo/supabase/browser": { createClient: () => db.client },
-    "@repo/utils": { formatAddress: () => "Address" },
+    "@repo/utils": { formatAddress: () => "Address", parseApplicationPreferenceSnapshot: () => null },
   });
   const list = await service.fetchLandlordApplications();
   const detail = await service.fetchLandlordApplications("b");

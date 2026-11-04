@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { evaluateApplicationReadiness } from "@repo/passport";
+import { buildApplicationPreferenceSnapshot } from "@repo/utils";
 
 import { fetchPassportDocumentsWithVerification } from "@/service/passportService";
 import { fetchApplicationSubmitContext, insertTenantApplication } from "@/service/tenantApplicationsService";
@@ -86,6 +87,13 @@ export function useSubmitApplication() {
         has_smoker: form.isSmoker === "yes",
         need_parking: form.needParking === "yes",
         message: form.additionalNotes.trim() || null,
+        // A copy of the saved preferences' details, taken now so the landlord
+        // sees what the tenant declared when applying.
+        tenant_preferences: buildApplicationPreferenceSnapshot(context.preferences, {
+          hasPets: form.hasPets === "yes",
+          isSmoker: form.isSmoker === "yes",
+          needParking: form.needParking === "yes",
+        }),
         gov_id_url: docs.govId.storage_path,
         // Only a verification-linked ID has a back capture to share.
         gov_id_back_url: docs.govId.verification_id ? docs.govId.storage_path_back : null,
