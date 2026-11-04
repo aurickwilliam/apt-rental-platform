@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import { fetchMaintenanceDashboardRequests, fetchMaintenanceOverview } from "@/service/maintenance-requests/maintenanceDashboardService";
 
-export function useMaintenanceDashboard(apartmentId?: string) {
+export function useMaintenanceDashboard(apartmentId?: string, { includeOverview = true }: { includeOverview?: boolean } = {}) {
   const user = useCurrentUser();
   const tenantId = user.data?.id;
   const authId = user.data?.user_id;
@@ -16,17 +16,17 @@ export function useMaintenanceDashboard(apartmentId?: string) {
   });
   const overview = useQuery({
     queryKey: ["maintenance-overview", authId, tenantId, apartmentId],
-    queryFn: () => fetchMaintenanceOverview(apartmentId!, tenantId!), enabled,
+    queryFn: () => fetchMaintenanceOverview(apartmentId!, tenantId!), enabled: enabled && includeOverview,
   });
   useFocusEffect(useCallback(() => {
     if (!apartmentId || !tenantId || !authId) return;
-    for (const resource of ["maintenance-dashboard", "maintenance-overview"]) {
+    for (const resource of includeOverview ? ["maintenance-dashboard", "maintenance-overview"] : ["maintenance-dashboard"]) {
       void client.invalidateQueries({ queryKey: [resource, authId, tenantId, apartmentId], exact: true }, { cancelRefetch: false });
     }
-  }, [apartmentId, tenantId, authId, client]));
+  }, [apartmentId, tenantId, authId, client, includeOverview]));
 
   const refresh = async () => {
-    if (enabled) await Promise.all([requests.refetch(), overview.refetch()]);
+    if (enabled) await Promise.all([requests.refetch(), ...(includeOverview ? [overview.refetch()] : [])]);
     else await user.refetch();
   };
   const identityError = user.error ? "Couldn't load your account. Please try again."

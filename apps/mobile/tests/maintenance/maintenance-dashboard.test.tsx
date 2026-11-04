@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
 import { FlatList, View } from "react-native";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { Button } from "heroui-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import MaintenanceHistory from "@/app/tenant/maintenance-history";
+import MaintenanceHistoryList from "@/app/tenant/maintenance-history-list";
 
 const mockDashboard = jest.fn();
 const mockPush = jest.fn();
 const mockRefresh = jest.fn();
 jest.mock("@/hooks/maintenance-requests/useMaintenanceDashboard", () => ({ useMaintenanceDashboard: () => mockDashboard() }));
 jest.mock("expo-router", () => ({ useLocalSearchParams: () => ({ apartmentId: "apartment" }), useRouter: () => ({ push: mockPush }) }));
-jest.mock("@/components/layout/ScreenWrapper", () => ({ __esModule: true, default: ({ children }: { children: ReactNode }) => children }));
-jest.mock("@/components/layout/StandardHeader", () => () => null);
+jest.mock("@/components/layout/ScreenWrapper", () => ({ __esModule: true, default: ({ children, header }: { children: ReactNode; header?: ReactNode }) => <>{header}{children}</> }));
+jest.mock("@/components/layout/StandardHeader", () => ({ __esModule: true, default: ({ rightComponent }: { rightComponent?: ReactNode }) => rightComponent ?? null }));
 jest.mock("@/components/display/PullToRefresh", () => ({ PullToRefreshControl: () => null, PullToRefreshIndicator: () => null }));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5", primaryLightForeground: "#2F5FE0", textSecondary: "#6C757D" } }) }));
-jest.mock("@tabler/icons-react-native", () => Object.fromEntries(["IconChartBar", "IconHistory", "IconTool", "IconCalendarEvent", "IconChevronRight", "IconStack", "IconReceipt"].map((key) => [key, () => null])));
+jest.mock("@tabler/icons-react-native", () => Object.fromEntries(["IconFilter2", "IconChartBar", "IconHistory", "IconTool", "IconCalendarEvent", "IconChevronRight", "IconStack", "IconReceipt"].map((key) => [key, () => null])));
 jest.mock("@/hooks/maintenance-requests", () => {
   const style = { textColor: "#111111", backgroundColor: "#FFFFFF", borderColor: "#CCCCCC" };
   return {
@@ -28,7 +30,7 @@ jest.mock("heroui-native", () => {
   const Sheet = ({ children, isOpen }: { children: ReactNode; isOpen: boolean }) => isOpen ? <View>{children}</View> : null;
   return { ...stub, PressableFeedback: Object.assign(stub.Button, { Highlight: () => null }), BottomSheet: Object.assign(Sheet, { Portal: Pass, Overlay: () => null, Content: Pass, Title: Label, Description: Label }) };
 });
-jest.mock("@gorhom/bottom-sheet", () => ({ BottomSheetFlatList: jest.requireActual("react-native").FlatList }));
+jest.mock("@gorhom/bottom-sheet", () => ({ BottomSheetScrollView: jest.requireActual("react-native").ScrollView }));
 jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
 const request = (id: string, status = "Resolved") => ({ id, title: `Repair ${id}`, status, category: "plumbing", urgency: "low", created_at: "2026-11-04", apartment_id: "apartment", image_urls: [] });
@@ -39,7 +41,8 @@ function state(historyCount = 5) {
     refresh: mockRefresh, identityError: null, identityLoading: false, accountKey: "account-a",
   };
 }
-beforeEach(() => { jest.clearAllMocks(); mockDashboard.mockReturnValue(state()); });
+beforeEach(() => { jest.useFakeTimers(); jest.clearAllMocks(); mockDashboard.mockReturnValue(state()); });
+afterEach(() => { act(() => { jest.runOnlyPendingTimers(); }); jest.useRealTimers(); });
 
 it("stacks Active Requests, Overview and History in that order with three history previews", () => {
   render(<MaintenanceHistory />);
@@ -93,42 +96,31 @@ it("groups request titles and chips in the top row, with category and date toget
   }
 });
 
-it("opens only older rows in the sheet, supports closing, and keeps details navigation", () => {
+it("opens the dedicated history page and keeps active details navigation", () => {
   render(<MaintenanceHistory />);
   fireEvent.press(screen.getByText("See more"));
-  expect(screen.getByText("More maintenance history")).toBeTruthy();
-  expect(screen.getByText("Repair 3")).toBeTruthy();
-  expect(screen.getAllByText("Repair 0")).toHaveLength(1);
-  fireEvent.press(screen.getByLabelText("Close maintenance history"));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-history-list", params: { apartmentId: "apartment" } });
   expect(screen.queryByText("Repair 3")).toBeNull();
   fireEvent.press(screen.getByLabelText("View details for Repair active"));
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "active", apartmentId: "apartment" } });
 });
 
-it("makes history cards tappable in both surfaces while retaining the active request's details button", () => {
+it("makes preview history cards tappable while retaining the active request's details button", () => {
   render(<MaintenanceHistory />);
   expect(screen.getAllByText("View details")).toHaveLength(1);
   fireEvent.press(screen.getByRole("button", { name: "View details for Repair 0" }));
   expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "0", apartmentId: "apartment" } });
-  fireEvent.press(screen.getByText("See more"));
-  expect(screen.getAllByText("View details")).toHaveLength(1);
-  fireEvent.press(screen.getByRole("button", { name: "View details for Repair 3" }));
-  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "3", apartmentId: "apartment" } });
-  expect(screen.queryByText("More maintenance history")).toBeNull();
 });
 
-it("uses compact history gaps in both surfaces without changing active list spacing", () => {
+it("uses compact preview history gaps without changing active list spacing", () => {
   render(<MaintenanceHistory />);
   const preview = screen.UNSAFE_getAllByType(View).filter((node) => node.props.className === "gap-2"
     && Array.isArray(node.props.children) && node.props.children[0]?.props.request?.id === "0");
   expect(preview).toHaveLength(1);
   expect(preview[0].props.children).toHaveLength(3);
-  fireEvent.press(screen.getByText("See more"));
   const lists = screen.UNSAFE_getAllByType(FlatList);
   const active = lists.find((node) => node.props.data[0]?.id === "active");
-  const older = lists.find((node) => node.props.data[0]?.id === "3");
   expect(active?.props.contentContainerStyle.gap).toBe(12);
-  expect(older?.props.contentContainerStyle.gap).toBe(8);
 });
 
 it.each([0, 1, 3])("hides See more with %i history rows", (count) => {
@@ -149,17 +141,6 @@ it("keeps failures separate from empty results and offers retry without false ze
   expect(mockRefresh).toHaveBeenCalled();
 });
 
-it("closes the old account's sheet on an account change", () => {
-  const { rerender } = render(<MaintenanceHistory />);
-  fireEvent.press(screen.getByText("See more"));
-  mockDashboard.mockReturnValue({ ...state(), accountKey: "account-b" });
-  rerender(<MaintenanceHistory />);
-  expect(screen.queryByText("More maintenance history")).toBeNull();
-  mockDashboard.mockReturnValue(state());
-  rerender(<MaintenanceHistory />);
-  expect(screen.queryByText("More maintenance history")).toBeNull();
-});
-
 it("shows honest empty states while keeping the overview available", () => {
   const value = state(0);
   mockDashboard.mockReturnValue({ ...value, requests: { ...value.requests, data: { ...value.requests.data, active: [] } } });
@@ -176,4 +157,99 @@ it("does not show successful empty states or zero totals while initial reads are
   expect(screen.queryByText(/No active maintenance requests/)).toBeNull();
   expect(screen.queryByText("No resolved or cancelled requests yet.")).toBeNull();
   expect(screen.queryByText("₱0.00")).toBeNull();
+});
+
+it("shows the complete loaded history on its own page with compact tappable cards", () => {
+  render(<MaintenanceHistoryList />);
+  for (const id of ["0", "1", "2", "3", "4"]) expect(screen.getByText(`Repair ${id}`)).toBeTruthy();
+  expect(screen.queryByText("Repair active")).toBeNull();
+  expect(screen.queryByText("View details")).toBeNull();
+  expect(screen.UNSAFE_getAllByType(FlatList)[0].props.contentContainerStyle.gap).toBe(8);
+  fireEvent.press(screen.getByRole("button", { name: "View details for Repair 4" }));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/tenant/maintenance-details", params: { requestId: "4", apartmentId: "apartment" } });
+});
+
+it("applies filter drafts only on Apply, preserves selections on reopen, and resets them", () => {
+  const value = state();
+  value.requests.data.history[1].status = "Cancelled";
+  mockDashboard.mockReturnValue(value);
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Status: Cancelled"));
+  expect(screen.getByText("Repair 0")).toBeTruthy();
+  fireEvent.press(screen.getByText("Apply filters"));
+  expect(screen.queryByText("Repair 0")).toBeNull();
+  expect(screen.getByText("Repair 1")).toBeTruthy();
+  expect(screen.getByText("1 request matching your filters")).toBeTruthy();
+  fireEvent.press(screen.getByLabelText("Filter maintenance history, 1 filter applied"));
+  fireEvent.press(screen.getByLabelText("Urgency: High"));
+  fireEvent.press(screen.getByText("Close filters"));
+  expect(screen.getByText("Repair 1")).toBeTruthy();
+  fireEvent.press(screen.getByLabelText("Filter maintenance history, 1 filter applied"));
+  fireEvent.press(screen.getByText("Reset"));
+  fireEvent.press(screen.getByText("Apply filters"));
+  expect(screen.getByText("5 requests")).toBeTruthy();
+});
+
+it("keeps date pills at their natural size in two explicit rows and applies This year", () => {
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  expect(screen.getByText("This year")).toBeTruthy();
+  const dateButtons = screen.UNSAFE_getAllByType(Button).filter((node) => node.props.accessibilityRole === "radio");
+  expect(dateButtons).toHaveLength(4);
+  const dateRows = screen.UNSAFE_getAllByType(View).filter((node) => node.props.style?.flexDirection === "row" && node.props.style?.gap === 8);
+  expect(dateRows).toHaveLength(2);
+  for (const row of dateRows) expect(row.props.children).toHaveLength(2);
+  for (const button of dateButtons) {
+    expect(button.props.style).toMatchObject({ flexShrink: 0, alignSelf: "flex-start" });
+    expect(button.props.size).toBe("sm");
+    expect(button.props.className).toContain("min-h-11");
+    expect(button.props.className).toContain("py-3");
+    expect(button.props.className).not.toContain("grow");
+    expect(button.props.className).toContain("h-auto");
+    expect(button.props.children.props.numberOfLines).toBe(1);
+    expect(button.props.children.props.style.flexShrink).toBe(0);
+    expect(button.props.children.props.className).toContain("text-center");
+  }
+  fireEvent.press(screen.getByLabelText("Reported date: This year"));
+  fireEvent.press(screen.getByText("Apply filters"));
+  expect(screen.getByLabelText("Filter maintenance history, 1 filter applied")).toBeTruthy();
+});
+
+it("shows a filtered empty state and clears filters without a new request", () => {
+  render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Category: Appliances"));
+  fireEvent.press(screen.getByText("Apply filters"));
+  expect(screen.getByText("No requests match your filters.")).toBeTruthy();
+  fireEvent.press(screen.getByText("Clear filters"));
+  expect(screen.getByText("Repair 0")).toBeTruthy();
+  expect(mockRefresh).not.toHaveBeenCalled();
+});
+
+it("retires filter drafts and applied filters when the account changes", () => {
+  const { rerender } = render(<MaintenanceHistoryList />);
+  fireEvent.press(screen.getByLabelText("Filter maintenance history"));
+  fireEvent.press(screen.getByLabelText("Status: Cancelled"));
+  fireEvent.press(screen.getByText("Apply filters"));
+  fireEvent.press(screen.getByLabelText("Filter maintenance history, 1 filter applied"));
+  mockDashboard.mockReturnValue({ ...state(), accountKey: "account-b" });
+  rerender(<MaintenanceHistoryList />);
+  expect(screen.queryByText("Filter maintenance history", { exact: true })).toBeNull();
+  expect(screen.getByText("5 requests")).toBeTruthy();
+  expect(screen.getByLabelText("Filter maintenance history")).toBeTruthy();
+});
+
+it("keeps unavailable history distinct from empty results and discloses the loaded cap", () => {
+  const value = state();
+  value.requests.data.historyLimited = true;
+  mockDashboard.mockReturnValue(value);
+  const { rerender } = render(<MaintenanceHistoryList />);
+  expect(screen.getByText(/History is limited to the latest 200 requests/)).toBeTruthy();
+  mockDashboard.mockReturnValue({ ...value, requests: { ...value.requests, isError: true } });
+  rerender(<MaintenanceHistoryList />);
+  expect(screen.getByText("Couldn't load maintenance history.")).toBeTruthy();
+  expect(screen.queryByText("No resolved or cancelled requests yet.")).toBeNull();
+  fireEvent.press(screen.getByText("Retry history"));
+  expect(mockRefresh).toHaveBeenCalled();
 });

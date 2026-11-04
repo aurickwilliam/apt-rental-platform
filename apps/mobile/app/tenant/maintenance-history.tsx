@@ -9,7 +9,6 @@ import { PullToRefreshControl, PullToRefreshIndicator } from "@/components/displ
 import MaintenanceSectionHeading from "@/components/maintenance/MaintenanceSectionHeading";
 import MaintenanceDashboardRequestCard from "@/components/maintenance/MaintenanceDashboardRequestCard";
 import MaintenanceOverview from "@/components/maintenance/MaintenanceOverview";
-import MaintenanceHistorySheet from "@/components/maintenance/MaintenanceHistorySheet";
 import { useMaintenanceDashboard } from "@/hooks/maintenance-requests/useMaintenanceDashboard";
 import { MAINTENANCE_DASHBOARD_LIMIT, MAINTENANCE_PREVIEW_LIMIT } from "@/constants/maintenance-dashboard";
 import type { MaintenanceRequest } from "@/service/maintenance-requests/maintenanceService";
@@ -19,19 +18,12 @@ export default function MaintenanceHistory() {
   const router = useRouter();
   const { colors } = useColors();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
-  const { requests, overview, refresh, identityError, identityLoading, accountKey } = useMaintenanceDashboard(apartmentId);
-  const [sheetAccount, setSheetAccount] = useState<string | null>(null);
-  const [previousAccount, setPreviousAccount] = useState(accountKey);
+  const { requests, overview, refresh, identityError, identityLoading } = useMaintenanceDashboard(apartmentId);
   const [refreshing, setRefreshing] = useState(false);
-  if (previousAccount !== accountKey) {
-    setPreviousAccount(accountKey);
-    setSheetAccount(null);
-  }
   const failed = !!identityError || requests.isError;
   const loading = identityLoading || (requests.isPending && !identityError);
   const history = !failed ? requests.data?.history ?? [] : [];
   const openRequest = (request: MaintenanceRequest) => {
-    setSheetAccount(null);
     router.push({
       pathname: "/tenant/maintenance-details",
       params: { requestId: request.id, apartmentId: request.apartment_id },
@@ -111,7 +103,7 @@ export default function MaintenanceHistory() {
                   </View>
                 )}
                 {history.length > MAINTENANCE_PREVIEW_LIMIT && (
-                  <Button variant="secondary" size="sm" className="min-h-11 self-end" onPress={() => setSheetAccount(accountKey)}>
+                  <Button variant="secondary" size="sm" className="min-h-11 self-end" onPress={() => router.push({ pathname: "/tenant/maintenance-history-list", params: { apartmentId } })}>
                     <Button.Label>See more</Button.Label>
                     <IconChevronRight size={18} color={colors.primaryLightForeground} />
                   </Button>
@@ -120,13 +112,6 @@ export default function MaintenanceHistory() {
             </Card>
           </View>
         }
-      />
-      <MaintenanceHistorySheet
-        isOpen={sheetAccount === accountKey && !failed && !loading}
-        onOpenChange={(open) => setSheetAccount(open ? accountKey : null)}
-        requests={history.slice(MAINTENANCE_PREVIEW_LIMIT)}
-        limited={requests.data?.historyLimited ?? false}
-        onOpenRequest={openRequest}
       />
     </ScreenWrapper>
   );
