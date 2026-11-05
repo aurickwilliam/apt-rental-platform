@@ -9,7 +9,7 @@ const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[va
 const plain = value => JSON.parse(JSON.stringify(value));
 const parts = (name, keys) => Object.assign(() => {}, Object.fromEntries(keys.map(key => [key, `${name}.${key}`])));
 
-const Modal = compile("app/(auth)/components/RegistrationPoliciesModal.tsx", {
+const ModalComponent = compile("app/(auth)/components/RegistrationPoliciesModal.tsx", {
   react: { Component: class {}, useId: () => "dialog-instance", useState: init => [init(), () => {}], lazy: () => "RegistrationPolicyContent", Suspense: "Suspense" },
   "react/jsx-runtime": jsx,
   "@heroui/react": {
@@ -20,6 +20,7 @@ const Modal = compile("app/(auth)/components/RegistrationPoliciesModal.tsx", {
   "@/lib/registration-policies": policies,
   "@tabler/icons-react": { IconFileText: "IconFileText", IconInfoCircle: "IconInfoCircle", IconNotes: "IconNotes" },
 }).default;
+const Modal = props => ModalComponent({ reviewed: { privacy: false, terms: false }, onRead() {}, ...props });
 
 test("the shared modal selects either policy, keeps navigation and close outside scroll, and has no acceptance action", () => {
   for (const policy of ["privacy", "terms"]) {
@@ -51,6 +52,7 @@ test("the shared modal selects either policy, keeps navigation and close outside
 
 const Content = compile("app/(auth)/components/RegistrationPolicyContent.tsx", {
   react: { memo: component => component },
+  "@/hooks/use-policy-scroll-completion": { usePolicyScrollCompletion: () => ({ current: null }) },
   "react/jsx-runtime": jsx, "@/lib/registration-policies": policies,
   "@heroui/react": { Alert: parts("Alert", ["Indicator", "Content", "Title", "Description"]) },
   "@tabler/icons-react": { IconInfoCircleFilled: "IconInfoCircleFilled" },

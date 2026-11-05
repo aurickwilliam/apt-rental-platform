@@ -409,6 +409,10 @@
   }
 }
 
+.registration-policy-checks .checkbox__content {
+  min-width: 44px;
+  min-height: 44px;
+}
 .registration-policy-checks .checkbox__control {
   width: 20px;
   height: 20px;

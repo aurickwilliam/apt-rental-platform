@@ -79,6 +79,46 @@ test("policy reading opens the requested tab and closes without changing explici
   }
 });
 
+test("each checkbox stays locked until its own current policy is reviewed, and reading never accepts", () => {
+  const runtime = hookRuntime();
+  const changes = [];
+  let value = policies.emptyRegistrationAcceptance();
+  let isDisabled = false;
+  const Checkbox = Object.assign(() => {}, { Content: "Content", Control: "Control", Indicator: "Indicator" });
+  const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
+    react: { ...runtime.react, useId: () => "read-gate" }, "react/jsx-runtime": virtualJsx,
+    "@heroui/react": { Button: "Button", Checkbox },
+    "./RegistrationPoliciesModal": { default: "Modal", preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
+  }).default;
+  const render = () => nodes(runtime.render(() => Component({ value, isDisabled, onChange: next => { value = next; changes.push(next); } })));
+  const checks = () => render().filter(node => node.type === Checkbox);
+  const modal = () => render().find(node => node.type === "Modal");
+  assert.ok(checks().every(node => node.props.isDisabled));
+  checks()[0].props.onChange(true);
+  assert.equal(changes.length, 0, "the handler also rejects a locked selection");
+  modal().props.onRead("privacy");
+  assert.equal(changes.length, 0);
+  assert.equal(checks()[0].props.isDisabled, false);
+  assert.equal(checks()[1].props.isDisabled, true);
+  checks()[0].props.onChange(true);
+  assert.equal(value.privacyAccepted, true);
+  assert.equal(value.termsAccepted, false);
+  modal().props.onClose();
+  assert.equal(checks()[0].props.isDisabled, false, "reopening retains completion within the form");
+  modal().props.onRead("terms");
+  checks()[1].props.onChange(true);
+  assert.equal(value.termsAccepted, true);
+  checks()[0].props.onChange(false);
+  assert.equal(value.privacyAccepted, false);
+  isDisabled = true;
+  assert.ok(checks().every(node => node.props.isDisabled));
+  checks()[0].props.onChange(true);
+  assert.equal(value.privacyAccepted, false);
+  isDisabled = false;
+  value = { ...value, privacyVersion: "another-version" };
+  assert.equal(checks()[0].props.isDisabled, true, "completion never carries to another revision");
+});
+
 function formHarness(kind, server = {}, props = {}) {
   const runtime = hookRuntime();
   let serverState = server;

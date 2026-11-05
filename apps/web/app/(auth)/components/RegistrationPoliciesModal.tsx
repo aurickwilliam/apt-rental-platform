@@ -54,9 +54,11 @@ interface RegistrationPoliciesModalProps {
   policy: RegistrationPolicy | null;
   onPolicyChange: (policy: RegistrationPolicy) => void;
   onClose: () => void;
+  onRead: (policy: RegistrationPolicy) => void;
+  reviewed: Record<RegistrationPolicy, boolean>;
 }
 
-export default function RegistrationPoliciesModal({ policy, onPolicyChange, onClose }: RegistrationPoliciesModalProps) {
+export default function RegistrationPoliciesModal({ policy, onPolicyChange, onClose, onRead, reviewed }: RegistrationPoliciesModalProps) {
   const instanceId = useId();
   const [content, setContent] = useState(() => ({ Component: loadPolicyContent(), attempt: 0, open: policy !== null }));
   if (content.open !== (policy !== null)) {
@@ -106,7 +108,7 @@ export default function RegistrationPoliciesModal({ policy, onPolicyChange, onCl
                     {policy === key || visited.includes(key) ? (
                       <PolicyContentBoundary key={content.attempt} onRetry={retryContent}>
                         <Suspense fallback={<div role="status" className="flex items-center gap-3 p-5 text-sm text-muted-foreground"><Spinner size="sm" />Loading policy…</div>}>
-                          <RegistrationPolicyContent policy={key} instanceId={instanceId} />
+                          <RegistrationPolicyContent policy={key} instanceId={instanceId} active={policy === key && !reviewed[key]} onRead={onRead} />
                         </Suspense>
                       </PolicyContentBoundary>
                     ) : null}
@@ -117,7 +119,9 @@ export default function RegistrationPoliciesModal({ policy, onPolicyChange, onCl
             <Modal.Footer className="registration-policies-footer">
               <Alert status="accent" role="note" className="registration-policies-reminder">
                 <Alert.Indicator><IconInfoCircle size={20} aria-hidden="true" /></Alert.Indicator>
-                <Alert.Content><Alert.Description>Reading a policy does not select its checkbox.</Alert.Description></Alert.Content>
+                <Alert.Content><Alert.Description><span role="status">{policy && reviewed[policy]
+                  ? "You reached the end. You can now select this policy’s checkbox on the form."
+                  : "Scroll to the end of this policy to enable its checkbox. Reading does not accept it."}</span></Alert.Description></Alert.Content>
               </Alert>
               <Button type="button" variant="primary" className="registration-policies-close" onPress={onClose}>Close</Button>
             </Modal.Footer>

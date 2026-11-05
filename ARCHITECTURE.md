@@ -181,6 +181,13 @@ Phase 0 admin authorization hardening: browser/mobile profile edits cannot chang
 
 ### 4.3 Web flow
 
+Web registration policy checkboxes additionally require reaching each loaded
+document's end in the shared policy modal. Version-keyed completion stays local
+to that form; an active-panel IntersectionObserver disconnects once complete
+and retires queued callbacks on cleanup. This browser interaction guard does
+not prove reading or change server/database acceptance authorization. See
+`docs/web-registration-acceptance.md` for the boundary and verification.
+
 **Web policy acceptance.** Email registration (including the OTP request/resend and final profile action) and Complete Profile require independent explicit acceptance of Terms and Conditions and Privacy Policy. Versions/display metadata come from `apps/web/lib/registration-policies.ts`; a migration maintains matching authoritative revisions in `web_registration_policies`. The caller-bound `complete_web_registration` RPC atomically writes the allowed profile fields and both `policy_acceptances` rows. It is SECURITY INVOKER so existing RLS, column grants and validation triggers remain active; a narrow definer helper records only the caller's own revisions with database timestamps. The rows reference internal `users.id`, allow owner-only reads and no direct client mutations, and are unique per account/policy/version. Acceptance failure rolls back completion; retries preserve original timestamps. Existing onboarding guards therefore keep interrupted Google/email sessions out of portals without a new account-wide acceptance gate. Completed accounts remain unchanged; mobile has its own opt-in transaction described in §4.4, while older apps retain their profile-only contract. Apply `20261029120000_web_registration_policy_acceptance.sql` before deploying the web feature. See `docs/web-registration-acceptance.md` for rollout, security boundaries and local verification.
 
 ```mermaid

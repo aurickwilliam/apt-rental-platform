@@ -9,6 +9,13 @@ import path from "node:path";
 const root = process.argv[2];
 if (!root || !process.env.REGISTRATION_PLAYWRIGHT_PATH) throw new Error("Supply fixture output directory and REGISTRATION_PLAYWRIGHT_PATH.");
 const { chromium } = createRequire(import.meta.url)(process.env.REGISTRATION_PLAYWRIGHT_PATH);
+async function reachPolicyEnd(page, dialog) {
+  await page.waitForFunction(element => {
+    const panel = element.querySelector('[role="tabpanel"]:not([hidden])');
+    panel.scrollTop = panel.scrollHeight;
+    return element.querySelector('[role="status"]')?.textContent.includes("You reached the end");
+  }, await dialog.elementHandle());
+}
 const server = createServer(async (req, res) => {
   const pathname = new URL(req.url, "http://localhost").pathname;
   if (["/pap", "/tos"].includes(pathname)) {
@@ -48,6 +55,14 @@ try {
     const button = form.getByRole("button", { name: buttonLabel, exact: true });
     assert.equal(await button.isDisabled(), true);
     assert.equal(await privacy.isChecked(), false); assert.equal(await terms.isChecked(), false);
+    assert.equal(await privacy.isDisabled(), true); assert.equal(await terms.isDisabled(), true);
+    await form.locator("label").filter({ hasText: "I have read and agree to the" }).first().click({ force: true });
+    assert.equal(await privacy.isChecked(), false, "the label cannot bypass the reading gate");
+    await form.getByRole("button", { name: "Privacy Policy", exact: true }).click();
+    await page.getByRole("article", { name: "Privacy Policy", exact: true }).waitFor();
+    await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+    assert.equal(await privacy.isDisabled(), true, "opening and closing early must not unlock acceptance");
     for (const [policy, count] of [["Privacy Policy", 13], ["Terms and Conditions", 22]]) {
       const trigger = form.getByRole("button", { name: policy, exact: true });
       await trigger.click();
@@ -72,7 +87,11 @@ try {
       const before = await heading.boundingBox();
       const panel = dialog.getByRole("tabpanel");
       await article.evaluate(element => { element.dataset.retainedPolicy = "yes"; });
-      await panel.evaluate(element => { element.scrollTop = element.scrollHeight; });
+      await panel.focus();
+      await page.keyboard.press("Control+End");
+      // content-visibility may refine section heights after a large jump.
+      // Reaching the real loaded end, not an estimated scrollHeight, unlocks it.
+      await reachPolicyEnd(page, dialog);
       assert.ok(await panel.evaluate(element => element.scrollTop > 0));
       assert.ok(Math.abs((await heading.boundingBox()).y - before.y) < 1);
       assert.equal(await dialog.getByRole("button", { name: "Close", exact: true }).isVisible(), true);
@@ -95,6 +114,8 @@ try {
       assert.equal(await privacy.isChecked(), false); assert.equal(await terms.isChecked(), false);
       assert.equal(await button.isDisabled(), true);
       assert.equal(await form.evaluate(element => element.dataset.submissions ?? "0"), "0");
+      assert.equal(await (policy === "Privacy Policy" ? privacy : terms).isDisabled(), false);
+      if (policy === "Privacy Policy") assert.equal(await terms.isDisabled(), true, "a briefly visited inactive policy stays locked");
     }
     await privacy.focus(); await page.keyboard.press("Space");
     assert.equal(await privacy.isChecked(), true); assert.equal(await button.isDisabled(), true);
@@ -118,7 +139,10 @@ try {
   await page.screenshot({ path: path.join(root, "desktop-dark.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload(); await page.waitForLoadState("networkidle");
-  for (const checkbox of await page.getByRole("checkbox").all()) assert.equal(await checkbox.isChecked(), false);
+  for (const checkbox of await page.getByRole("checkbox").all()) {
+    assert.equal(await checkbox.isChecked(), false);
+    assert.equal(await checkbox.isDisabled(), true, "refresh resets reading completion");
+  }
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
   await page.screenshot({ path: path.join(root, "small-screen.png"), fullPage: true });
   for (const dark of [false, true]) {
@@ -131,8 +155,13 @@ try {
     assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= 390 && bounds.y + bounds.height <= 844);
     assert.ok(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth));
     await page.screenshot({ path: path.join(root, `policy-modal-small-${dark ? "dark" : "light"}.png`), fullPage: true, animations: "disabled" });
+    await reachPolicyEnd(page, dialog);
     await dialog.getByRole("button", { name: "Close policies", exact: true }).click();
     await dialog.waitFor({ state: "hidden" });
+    const narrowForm = page.getByRole("form", { name: "Email registration", exact: true });
+    assert.equal(await narrowForm.getByRole("checkbox", { name: /Privacy Policy/ }).isDisabled(), false);
+    assert.equal(await narrowForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), false);
+    assert.equal(await narrowForm.getByRole("checkbox", { name: /Terms and Conditions/ }).isDisabled(), true);
   }
   assert.equal(page.context().pages().length, initialPages);
   assert.deepEqual(errors, []);
@@ -142,6 +171,7 @@ try {
   const failedForm = failedPage.getByRole("form", { name: "Email registration", exact: true });
   await failedForm.getByRole("button", { name: "Privacy Policy", exact: true }).click();
   await failedPage.getByRole("dialog").getByRole("alert").waitFor();
+  assert.equal(await failedForm.locator('input[type="checkbox"]').first().isDisabled(), true, "failed content cannot unlock acceptance");
   await failedPage.unroute("**/RegistrationPolicyContent-*.js");
   await failedPage.getByRole("dialog").getByRole("button", { name: "Retry loading policy", exact: true }).click();
   await failedPage.getByRole("dialog").getByRole("article", { name: "Privacy Policy", exact: true }).waitFor();
@@ -155,10 +185,18 @@ try {
   await failedPage.getByRole("dialog").waitFor({ state: "hidden" });
   assert.equal(await failedForm.getByRole("textbox", { name: "Draft name" }).inputValue(), "Unsaved draft");
   assert.equal(await failedForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), false);
+  await failedForm.locator("label").filter({ hasText: "I have read and agree to the" }).first().click({ force: true });
+  assert.equal(await failedForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), false, "retrying without reaching the end stays locked");
+  await failedForm.getByRole("button", { name: "Privacy Policy", exact: true }).click();
+  const recoveredDialog = failedPage.getByRole("dialog");
+  await recoveredDialog.getByRole("article", { name: "Privacy Policy", exact: true }).waitFor();
+  await reachPolicyEnd(failedPage, recoveredDialog);
+  await recoveredDialog.getByRole("button", { name: "Close", exact: true }).click();
+  await recoveredDialog.waitFor({ state: "hidden" });
   await failedForm.locator("label").filter({ hasText: "I have read and agree to the" }).first().click();
   assert.equal(await failedForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), true);
   await failedPage.close();
-  console.log("PASS: policy modal tabs/full content, scrolling, focus trap/return, Escape/Close, no new tabs/submits/acceptance, draft preservation and responsive themes.");
+  console.log("PASS: independent scroll-to-end gates, early close/labels cannot bypass, retry/refresh safety, keyboard scrolling, tabs/full content, focus, explicit acceptance, draft preservation and responsive themes.");
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));

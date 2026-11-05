@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Checkbox } from "@heroui/react";
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { REGISTRATION_POLICIES, type AcceptanceErrors, type RegistrationAcceptance, type RegistrationPolicy } from "@/lib/registration-policies";
 import RegistrationPoliciesModal, { preloadRegistrationPolicyContent } from "./RegistrationPoliciesModal";
 
@@ -15,6 +15,15 @@ interface RegistrationPolicyAcceptanceProps {
 export default function RegistrationPolicyAcceptance({ value, onChange, errors = {}, isDisabled = false }: RegistrationPolicyAcceptanceProps) {
   const id = useId();
   const [openPolicy, setOpenPolicy] = useState<RegistrationPolicy | null>(null);
+  const [readVersions, setReadVersions] = useState<Partial<Record<RegistrationPolicy, string>>>({});
+  const onRead = useCallback((policy: RegistrationPolicy) => {
+    setReadVersions(previous => previous[policy] === REGISTRATION_POLICIES[policy].version
+      ? previous : { ...previous, [policy]: REGISTRATION_POLICIES[policy].version });
+  }, []);
+  const reviewed = {
+    privacy: readVersions.privacy === value.privacyVersion && value.privacyVersion === REGISTRATION_POLICIES.privacy.version,
+    terms: readVersions.terms === value.termsVersion && value.termsVersion === REGISTRATION_POLICIES.terms.version,
+  };
   return (
     <div className="registration-policy-checks w-full space-y-2">
       <div>
@@ -23,16 +32,17 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
           const errorId = `${id}-${policy}-error`;
           const labelId = `${id}-${policy}-label`;
           const info = REGISTRATION_POLICIES[policy];
+          const hintId = `${id}-${policy}-hint`;
           return (
             <div key={policy} className="space-y-1">
               <div className="flex items-start gap-2">
                 <Checkbox
                   id={`${id}-${policy}-checkbox`}
                   aria-labelledby={labelId}
-                  aria-describedby={errors[field] ? errorId : undefined}
+                  aria-describedby={[!reviewed[policy] ? hintId : null, errors[field] ? errorId : null].filter(Boolean).join(" ") || undefined}
                   isSelected={value[field]}
-                  onChange={selected => onChange({ ...value, [field]: selected })}
-                  isDisabled={isDisabled}
+                  onChange={selected => { if (!isDisabled && (!selected || reviewed[policy])) onChange({ ...value, [field]: selected }); }}
+                  isDisabled={isDisabled || !reviewed[policy]}
                   isInvalid={!!errors[field]}
                   isRequired
                   validationBehavior="aria"
@@ -52,6 +62,7 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                   </Button>.
                 </span>
               </div>
+              {!reviewed[policy] ? <p id={hintId} className="text-xs leading-5 text-muted-foreground">Open and scroll to the end of the {info.label} to enable acceptance.</p> : null}
               {errors[field] ? <p id={errorId} role="alert" className="text-sm text-danger">{errors[field]}</p> : null}
             </div>
           );
@@ -66,7 +77,7 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
         <p>False information or fraudulent listings may lead to account suspension or termination.</p>
         <p>Personal data is handled under our Privacy Policy and Philippine data protection laws.</p>
       </div>
-      <RegistrationPoliciesModal policy={openPolicy} onPolicyChange={setOpenPolicy} onClose={() => setOpenPolicy(null)} />
+      <RegistrationPoliciesModal policy={openPolicy} onPolicyChange={setOpenPolicy} onClose={() => setOpenPolicy(null)} onRead={onRead} reviewed={reviewed} />
     </div>
   );
 }

@@ -26,6 +26,20 @@ per dialog and document; their headings are nested beneath the dialog heading.
 Reading, switching tabs and closing do not accept policies, submit registration
 or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
 dismissal. Public policy URLs remain available outside registration.
+Each checkbox is disabled until the user reaches the end of its own loaded
+document in this form. An IntersectionObserver watches a final marker after the
+contact details, rooted in the active scroll panel; loading/error fallbacks and
+hidden/inert tabs cannot unlock it, and cleanup rejects queued callbacks after
+tab changes or dismissal. It disconnects after completion instead of updating
+React on every scroll. The footer announces when the checkbox is available;
+the form explains each locked checkbox through its accessible description.
+Completion is in memory, keyed by document revision, and survives reopening
+within the same form only. Refresh starts over. Keyboard scrolling is supported;
+if the entire document fits, its visible end qualifies without artificial scrolling.
+Reaching the end only unlocks selection and never accepts automatically. This
+is a browser interaction guard, not proof of reading/comprehension or a security
+boundary against a modified client. Server validation and acceptance storage
+remain unchanged; no new database fields, migration or mobile changes are needed.
 The ordinary acceptance text is a clickable checkbox label; policy-name buttons
 remain separate and never toggle acceptance. A failed policy download offers a
 HeroUI Retry button that replaces the failed lazy loader without reloading the
