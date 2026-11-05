@@ -40,12 +40,13 @@ import {
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Button, Drawer, Dropdown, Label, Separator, Spinner, useOverlayState } from "@heroui/react";
+import { Button, Drawer, Dropdown, Label, Separator, Spinner, Tooltip, useOverlayState } from "@heroui/react";
 import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar } from "@tabler/icons-react";
 
 import { signOut } from "@/service/signOutService";
 import { usePendingNavigation } from "@/hooks/use-pending-navigation";
 import SidebarLinkPending from "./SidebarLinkPending";
+import { Tooltip as RailTooltip, TooltipContent as RailTooltipContent, TooltipProvider as RailTooltipProvider, TooltipTrigger as RailTooltipTrigger } from "@/components/ui/tooltip";
 import SidebarNotificationsItem from "./SidebarNotificationsItem";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -389,6 +390,8 @@ export function AppSidebar({
         className={`flex border-b border-sidebar-border bg-sidebar ${collapsed ? "justify-center px-2 py-3" : "items-center justify-between gap-2 px-5 py-5"}`}
       >
         {collapsed ? (
+          <Tooltip>
+            <Tooltip.Trigger>
           <Button
             variant="ghost"
             aria-label="Expand sidebar"
@@ -414,6 +417,9 @@ export function AppSidebar({
               />
             </span>
           </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content placement="right">Expand sidebar</Tooltip.Content>
+          </Tooltip>
         ) : (
           <Link
             href={navItems[0]?.href ?? "/"}
@@ -451,6 +457,7 @@ export function AppSidebar({
         aria-label="Portal pages"
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
+        <RailTooltipProvider delayDuration={0}>
         {navGroups.map((group, groupIndex) => (
           <div
             key={group.section ?? "pages"}
@@ -467,14 +474,14 @@ export function AppSidebar({
               ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
               : (ICON_MAP[icon] ?? Search);
           return (
+            <RailTooltip key={href}>
+              <RailTooltipTrigger asChild>
             <Link
               href={href}
-              key={href}
               onMouseEnter={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               onFocus={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               aria-current={active ? "page" : undefined}
               aria-label={hasActivity ? `${label}, Unread activity` : collapsed ? label : undefined}
-              title={collapsed ? `${label}${hasActivity ? ", Unread activity" : ""}` : undefined}
               className={`group relative flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"} ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
@@ -490,10 +497,18 @@ export function AppSidebar({
               {hasActivity ? <UnreadActivityDot active={active} collapsed={collapsed} /> : null}
               <SidebarLinkPending label={label} />
             </Link>
+              </RailTooltipTrigger>
+              {collapsed ? (
+                <RailTooltipContent side="right" sideOffset={8}>
+                  {`${label}${hasActivity ? ", Unread activity" : ""}`}
+                </RailTooltipContent>
+              ) : null}
+            </RailTooltip>
           );
             })}
           </div>
         ))}
+        </RailTooltipProvider>
         <SidebarNotificationsItem activePortal={activePortal} collapsed={collapsed} />
       </nav>
 
