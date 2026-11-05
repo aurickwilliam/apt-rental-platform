@@ -11,13 +11,15 @@ import RentalsWelcomeGate from "@/components/profile/RentalsWelcomeGate";
 const mockReplace = jest.fn();
 const mockSave = jest.fn();
 const mockToast = jest.fn();
+const mockRefetchProfile = jest.fn();
+let mockProfileLoading = false;
 let mockProfile: { user_id: string } | null = null;
 let mockFocused = true;
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace }) }));
 jest.mock("@repo/supabase", () => ({ supabase: { from: () => ({ update: () => ({ eq: mockSave }) }) } }));
-jest.mock("hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile }) }));
-jest.mock("@/hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile }) }));
+jest.mock("hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile, loading: mockProfileLoading, refetch: mockRefetchProfile }) }));
+jest.mock("@/hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile, loading: mockProfileLoading, refetch: mockRefetchProfile }) }));
 jest.mock("expo-router/react-navigation", () => ({ useIsFocused: () => mockFocused }));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
 jest.mock("@tabler/icons-react-native", () => ({ IconHomeHeart: () => null }));
@@ -62,6 +64,8 @@ jest.mock("heroui-native", () => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockProfile = null;
+  mockProfileLoading = false;
+  mockRefetchProfile.mockResolvedValue({ data: null });
   mockFocused = true;
   useWelcomeStore.getState().reset();
   mockSave.mockResolvedValue({ error: null });
@@ -145,6 +149,40 @@ it("does not show the welcome on an unfocused tab or for a different account", (
   mockFocused = true;
   screen.rerender(<RentalsWelcomeGate />);
   expect(screen.getByText("Welcome to APT!")).toBeTruthy();
+});
+
+it("waits for the profile and shows the Rentals welcome when all options are unanswered", async () => {
+  mockProfileLoading = true;
+  const screen = render(<StepFive />);
+  fireEvent.press(screen.getByText("Loading account..."));
+  expect(mockSave).not.toHaveBeenCalled();
+  expect(mockReplace).not.toHaveBeenCalled();
+  mockProfileLoading = false;
+  mockProfile = { user_id: "new-account" };
+  screen.rerender(<StepFive />);
+  fireEvent.press(screen.getByText("Let's find your place!"));
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
+  expect(mockSave).toHaveBeenCalledWith("user_id", "new-account");
+  screen.unmount();
+  expect(render(<RentalsWelcomeGate />).getByText("Welcome to APT!")).toBeTruthy();
+});
+
+it("retries an unavailable profile rather than bypassing the welcome", async () => {
+  mockRefetchProfile.mockResolvedValue({ data: { user_id: "new-account" } });
+  const screen = render(<StepFive />);
+  fireEvent.press(screen.getByText("Let's find your place!"));
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
+  expect(mockRefetchProfile).toHaveBeenCalledTimes(1);
+  expect(useWelcomeStore.getState().pendingAuthId).toBe("new-account");
+});
+
+it("stays on personalization with a retry notice if the profile is still unavailable", async () => {
+  const screen = render(<StepFive />);
+  fireEvent.press(screen.getByText("Let's find your place!"));
+  await waitFor(() => expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ label: "Couldn't load your account" })));
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(mockSave).not.toHaveBeenCalled();
+  expect(useWelcomeStore.getState().pendingAuthId).toBeNull();
 });
 
 it("keeps the draft and does not welcome the user when saving fails", async () => {
