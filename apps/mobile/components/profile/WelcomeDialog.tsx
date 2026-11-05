@@ -32,9 +32,14 @@ export default function WelcomeDialog({ isOpen, onContinue }: WelcomeDialogProps
       }
       fitToViewport
       footer={
-        <Button onPress={onContinue} className="min-h-12">
-          <Button.Label>Continue</Button.Label>
-        </Button>
+        <View className="gap-3">
+          <Button onPress={onContinue} className="min-h-12">
+            <Button.Label>Continue</Button.Label>
+          </Button>
+          <Text className="text-center font-inter text-xs leading-4 text-muted">
+            Change your preferences anytime in Settings.
+          </Text>
+        </View>
       }
     >
       <Text className="text-center font-inter text-base leading-6 text-muted">

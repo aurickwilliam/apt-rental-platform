@@ -122,6 +122,7 @@ it("opens Rentals after saving and shows the welcome there until Continue", asyn
   screen.unmount();
   const rentals = render(<RentalsWelcomeGate />);
   expect(rentals.getByText("Your account is ready. Let’s start your rental journey!")).toBeTruthy();
+  expect(rentals.getByText("Change your preferences anytime in Settings.").props.className).toContain("text-xs");
   expect(rentals.getByTestId("welcome-dialog").props.accessibilityState.disabled).toBe(true);
   fireEvent.press(rentals.getByTestId("dismiss-attempt"));
   expect(rentals.getByText("Welcome to APT!")).toBeTruthy();
