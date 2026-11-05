@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Spinner } from "@heroui/react";
 import { verificationCameraError } from "@/lib/verification-camera-errors";
-import { shouldMirrorCapture } from "@/lib/camera-mirror";
+import { canFlipCapturedPhoto, shouldFlipCapturedPhoto } from "@/lib/camera-mirror";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import MobileVerificationNavigation from "./MobileVerificationNavigation";
 
@@ -29,10 +29,11 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
   const [status, setStatus] = useState<"idle" | "starting" | "live" | "unavailable">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  // Selfie step only: the capture mirrors the front-camera frame by default;
-  // this saves the exactly-as-seen (unmirrored) frame instead. Resets each
-  // time a camera session starts, so retakes follow the current toggle.
-  const [unmirrorCapture, setUnmirrorCapture] = useState(false);
+  // The live preview always stays raw. Front cameras and webcams can opt
+  // into flipping only the captured JPEG, which is shown to the user before
+  // they continue or submit. The choice resets for every new session.
+  const [flipPhoto, setFlipPhoto] = useState(false);
+  const [canFlipPhoto, setCanFlipPhoto] = useState(false);
 
   const stopStream = useCallback(() => {
     requestRef.current += 1;
@@ -57,7 +58,8 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
     stopStream();
     setErrorMessage(null);
     setIsCapturing(false);
-    setUnmirrorCapture(false);
+    setFlipPhoto(false);
+    setCanFlipPhoto(false);
     if (!window.isSecureContext) {
       failCamera("insecure");
       return;
@@ -96,6 +98,8 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
         return;
       }
       startingRef.current = false;
+      const facingMode = stream.getVideoTracks()[0]?.getSettings().facingMode;
+      setCanFlipPhoto(canFlipCapturedPhoto(facingMode));
       setStatus("live");
     } catch (error) {
       if (requestRef.current !== request) return;
@@ -119,7 +123,7 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext("2d");
       if (!ctx) { failCamera("capture"); return; }
-      if (shouldMirrorCapture(facing, unmirrorCapture)) {
+      if (shouldFlipCapturedPhoto(canFlipPhoto, flipPhoto)) {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
       }
@@ -133,21 +137,26 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
         onCapture(new File([blob], "capture.jpg", { type: "image/jpeg" }));
       }, "image/jpeg", 0.9);
     } catch { failCamera("capture"); }
-  }, [facing, status, onCapture, failCamera, stopStream, unmirrorCapture]);
+  }, [status, onCapture, failCamera, stopStream, canFlipPhoto, flipPhoto]);
 
   const cancel = () => { stopStream(); onCancel(); };
 
   return (
     <div className={mobileNavigation ? "mobile-verification-camera" : "flex flex-col gap-3"}>
       <p className="text-center text-sm text-muted-foreground">{guide}</p>
-      {facing === "user" && status === "live" ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-2.5">
-          <span className="text-sm">Unmirror capture</span>
-          <ToggleSwitch
-            isSelected={unmirrorCapture}
-            onValueChange={setUnmirrorCapture}
-            aria-label="Unmirror capture"
-          />
+      {canFlipPhoto && status === "live" ? (
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card px-4 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">Flip Photo</span>
+            <ToggleSwitch
+              isSelected={flipPhoto}
+              onValueChange={setFlipPhoto}
+              aria-label="Flip Photo"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The live preview always stays unflipped. If the text in the captured photo appears backward, turn on Flip Photo. Make sure all text on your ID is clear and legible before continuing.
+          </p>
         </div>
       ) : null}
       {status === "idle" ? (
@@ -158,7 +167,14 @@ export default function CameraCapture({ facing, guide, onCapture, onCancel, fall
       ) : null}
       {status === "starting" || status === "live" ? (
         <div className="relative overflow-hidden rounded-2xl bg-black">
-          <video ref={videoRef} playsInline autoPlay muted className="aspect-[4/3] w-full object-cover" aria-label="Camera preview" />
+          <video
+            ref={videoRef}
+            playsInline
+            autoPlay
+            muted
+            className="aspect-[4/3] w-full object-cover"
+            aria-label="Camera preview"
+          />
           {status === "starting" ? (
             <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60" role="status">
               <Spinner size="sm" aria-hidden="true" /><p className="text-sm text-white">Starting camera…</p>

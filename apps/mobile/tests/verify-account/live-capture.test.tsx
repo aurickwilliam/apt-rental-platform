@@ -60,7 +60,6 @@ jest.mock('expo-image', () => {
 
 const mockManipulate = jest.fn();
 const mockCropAction = jest.fn();
-const mockFlipAction = jest.fn();
 const mockRenderAsync = jest.fn();
 const mockSaveAsync = jest.fn();
 
@@ -81,12 +80,22 @@ jest.mock('heroui-native', () => {
     </TouchableOpacity>
   );
   const ButtonLabel = ({ children }: any) => <Text>{children}</Text>;
+  const SwitchRoot = ({ isSelected, onSelectedChange, ...rest }: any) => (
+    <TouchableOpacity
+      role="switch"
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isSelected }}
+      onPress={() => onSelectedChange(!isSelected)}
+      {...rest}
+    />
+  );
 
   return {
     Button: Object.assign(ButtonRoot, { Label: ButtonLabel }),
     CloseButton: ({ children, onPress }: any) => (
       <TouchableOpacity testID="close-button" onPress={onPress}>{children}</TouchableOpacity>
     ),
+    Switch: SwitchRoot,
   };
 });
 
@@ -121,7 +130,7 @@ describe('LiveCapture', () => {
     latestGuidedFrameProps = null;
     mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
     mockTakePictureAsync = jest.fn().mockResolvedValue({ uri: 'file://captured.jpg', width: 400, height: 252 });
-    mockManipulate.mockReturnValue({ crop: mockCropAction, flip: mockFlipAction, renderAsync: mockRenderAsync });
+    mockManipulate.mockReturnValue({ crop: mockCropAction, renderAsync: mockRenderAsync });
     mockRenderAsync.mockResolvedValue({ saveAsync: mockSaveAsync });
     mockSaveAsync.mockResolvedValue({ uri: 'file://cropped.jpg', width: 200, height: 126 });
     useVerificationStore.setState({ ...initialVerificationState });
@@ -354,7 +363,30 @@ describe('LiveCapture', () => {
       }
     });
 
-    it('mirrors the selfie save so it matches the mirrored front preview', async () => {
+    it('shows Mirror off by default and does not mirror the selfie capture', async () => {
+      setPermission('granted');
+      mockSearchParams = { stepId: SELFIE_STEP.id };
+      render(<LiveCapture />);
+
+      expect(screen.getByLabelText('Mirror')).toBeTruthy();
+      expect(latestCameraProps.mirror).toBe(false);
+      expect(latestCameraProps.style.transform).toEqual([{ scaleX: -1 }]);
+
+      act(() => {
+        latestCameraProps.onCameraReady();
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
+      expect(mockCropAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('mirrors both the front preview and captured selfie when Mirror is on, then resets it on retake', async () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
       render(<LiveCapture />);
@@ -363,6 +395,11 @@ describe('LiveCapture', () => {
         latestCameraProps.onCameraReady();
       });
 
+      fireEvent.press(screen.getByLabelText('Mirror'));
+
+      expect(latestCameraProps.mirror).toBe(true);
+      expect(latestCameraProps.style.transform).toEqual([{ scaleX: 1 }]);
+
       await act(async () => {
         fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
@@ -370,14 +407,23 @@ describe('LiveCapture', () => {
       });
 
       expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
-      expect(mockFlipAction).toHaveBeenCalledTimes(1);
-      expect(mockFlipAction).toHaveBeenCalledWith('horizontal');
+      expect(mockCropAction).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('captured-image-preview')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('Retake'));
+
+      expect(latestCameraProps.mirror).toBe(false);
+      expect(latestCameraProps.style.transform).toEqual([{ scaleX: -1 }]);
     });
 
-    it('does not mirror rear-camera ID captures', async () => {
+    it('does not offer Mirror or mirror rear-camera ID captures', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
       render(<LiveCapture />);
+
+      expect(screen.queryByLabelText('Mirror')).toBeNull();
+      expect(latestCameraProps.mirror).toBe(false);
+      expect(latestCameraProps.style.transform).toEqual([{ scaleX: 1 }]);
 
       act(() => {
         latestCameraProps.onCameraReady();
@@ -390,7 +436,7 @@ describe('LiveCapture', () => {
       });
 
       expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
-      expect(mockFlipAction).not.toHaveBeenCalled();
+      expect(mockCropAction).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to the uncropped photo when the frame crop fails', async () => {
