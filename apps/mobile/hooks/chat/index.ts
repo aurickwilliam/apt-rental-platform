@@ -4,6 +4,7 @@ export { useChatTyping } from './useChatTyping';
 export { useAIChat } from './useAIChat';
 export type { AIChatMessage } from './useAIChat';
 export { useConversations } from './useConversations';
+export { useUnreadChatCount } from './useUnreadChatCount';
 export { useConversationRowActions } from './useConversationRowActions';
 export { useBlockStatus } from './useBlockStatus';
 export { useChatApartment } from './useChatApartment';

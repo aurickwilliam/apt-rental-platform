@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
 // slight vertical drift and cancels the rows' swipe actions.
 import { FlatList } from 'react-native-gesture-handler'
+import type { ComponentRef } from 'react'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext'
 
 import { Tabs } from 'heroui-native'
 import { IconMessageQuestion, IconSearchOff, IconUsers, IconAlertCircle } from '@tabler/icons-react-native'
@@ -56,6 +58,7 @@ const FILTER_EMPTY_STATES: Record<
 function Chat() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<ComponentRef<typeof FlatList<ConversationListItem>>>();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<ConversationFilter>('Tenant');
@@ -68,7 +71,7 @@ function Chat() {
     markConversationRead,
     updatePreferences,
     setBlocked,
-  } = useConversations('landlord');
+  } = useConversations('landlord', { subscribe: false }); // the tab layout owns the channel
 
   const { rowHandlers, overlays } = useConversationRowActions({
     role: 'landlord',
@@ -171,6 +174,9 @@ function Chat() {
   return (
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <FlatList
+        ref={listRef}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         data={loading || error ? [] : items}
         keyExtractor={(item) => item.key}
         renderItem={renderItem}

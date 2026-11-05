@@ -2,7 +2,8 @@ import { View, Text } from "react-native";
 import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper, { type ScreenWrapperScrollRef } from "@/components/layout/ScreenWrapper";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
 import PropertyCard from "../components/units/PropertyCard";
 import PropertyStats from "../components/units/PropertyStats";
@@ -44,6 +45,8 @@ function Units() {
 
   const { apartments, monthlyProfit, loading } = useLandlordUnits();
   const { counts } = useLandlordActionBadges();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
@@ -96,7 +99,7 @@ function Units() {
   };
 
   return (
-    <ScreenWrapper className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
+    <ScreenWrapper ref={scrollRef} onScroll={onTabBarScroll} className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       {/* Header */}
       <Text className="text-accent text-3xl font-nunitoBold">
         My Properties

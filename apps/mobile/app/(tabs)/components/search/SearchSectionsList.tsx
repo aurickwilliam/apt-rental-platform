@@ -1,4 +1,5 @@
 import { View, FlatList } from "react-native";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import { Button } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
 import EmptyState from "components/display/EmptyState";
@@ -33,6 +34,7 @@ export default function SearchSectionsList({
   onPressApartment,
   cityLabel = "CAMANAVA",
 }: Props) {
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<FlatList>();
 
   if (isLoading) {
     return (
@@ -80,6 +82,9 @@ export default function SearchSectionsList({
 
   return (
     <FlatList
+      ref={listRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       data={sections}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (

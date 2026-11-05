@@ -3,6 +3,10 @@ import { render } from "@testing-library/react-native";
 
 import SearchSectionsList from "./SearchSectionsList";
 
+jest.mock('@/components/layout/TabBarVisibilityContext', () => ({
+  useTabScreenScroll: () => ({ ref: { current: null }, onScroll: jest.fn() }),
+}));
+
 jest.mock("./SearchSection", () => ({
   __esModule: true,
   default: () => null,

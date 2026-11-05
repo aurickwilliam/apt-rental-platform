@@ -7,6 +7,7 @@ import {
 import { Button, Spinner } from 'heroui-native';
 import { SearchGridSkeleton } from './SearchSection';
 
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext';
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 import EmptyState from 'components/display/EmptyState';
 import {
@@ -57,6 +58,7 @@ export default function ApartmentsList({
   activeFilterCount = 0,
   onClearAll,
 }: ApartmentsListProps) {
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<FlatList>();
   const { colors } = useColors();
 
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
@@ -148,6 +150,9 @@ export default function ApartmentsList({
 
   return (
     <FlatList
+      ref={listRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       key={isGridView ? 'grid' : 'list'}
       style={{ flex: 1 }}
       data={apartments}
