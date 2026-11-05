@@ -130,6 +130,15 @@ export async function actOnUserReport(formData: FormData): Promise<OperationResu
   });
   if (error) {
     console.error("Admin report action failed", error);
+    // Our own `raise exception` messages (SQLSTATE P0001) are written for admins; show them.
+    if (error.code === "P0001" && error.message) {
+      return {
+        error:
+          error.message === "Invalid account access transition."
+            ? "This account can't be suspended. Admin accounts, your own account and accounts that are already suspended are off limits."
+            : error.message,
+      };
+    }
     return { error: "The action could not be completed. Refresh and try again." };
   }
   revalidatePath("/admin/reports");

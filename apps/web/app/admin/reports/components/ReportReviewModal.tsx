@@ -107,10 +107,13 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
   const canHideListing =
     report?.target_type === "apartment" && Boolean(report.apartment) && !report.apartment?.is_hidden_by_admin;
   const isReviewRequest = report?.target_type === "review_request";
+  // The database never suspends an account that holds the admin role.
+  const reportedIsAdmin = Boolean(report?.reported?.roles?.includes("admin"));
   const options = (isOpenReport ? DECISIONS : []).filter((option) => {
     if (Boolean(option.reviewRequest) !== isReviewRequest) return false;
     if (option.value === "hide_listing") return canHideListing;
-    if (option.value === "suspend_user") return Boolean(report?.reported) && !report?.reported?.is_suspended;
+    if (option.value === "suspend_user")
+      return Boolean(report?.reported) && !report?.reported?.is_suspended && !reportedIsAdmin;
     if (option.value === "warn") return Boolean(report?.reported);
     return true;
   });
@@ -299,6 +302,12 @@ export default function ReportReviewModal({ report, onClose }: ReportReviewModal
                     </Radio>
                   ))}
                 </RadioGroup>
+
+                {isOpenReport && !isReviewRequest && reportedIsAdmin ? (
+                  <p className="text-xs text-muted-foreground">
+                    This person also holds an admin role, so their account can&apos;t be suspended from here.
+                  </p>
+                ) : null}
 
                 {selected?.value === "suspend_user" ? (
                   <RadioGroup

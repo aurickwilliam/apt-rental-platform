@@ -3,6 +3,7 @@
 import { Card } from "@heroui/react";
 import { IconMapPin as MapPin } from "@tabler/icons-react";
 import { motion } from "framer-motion";
+import { ABOUT_COVERAGE, ABOUT_OFFICE_ADDRESS } from "@repo/constants";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -54,11 +55,10 @@ export default function LocationSection() {
                 Office Address
               </p>
               <p className="text-sm font-nunito font-medium">
-                109 Samson Road corner Caimito Road, Caloocan, Philippines
+                {ABOUT_OFFICE_ADDRESS}
               </p>
               <p className="text-xs text-default-700 mt-1">
-                Serving the CAMANAVA area — Caloocan, Malabon, Navotas, and
-                Valenzuela
+                {ABOUT_COVERAGE}
               </p>
             </div>
           </Card.Content>
