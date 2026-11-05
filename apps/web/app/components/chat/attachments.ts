@@ -171,12 +171,16 @@ function readVideoDuration(file: File): Promise<number | null> {
  * without `createImageBitmap`) so a valid image is never blocked by it.
  */
 export async function compressChatImage(file: File): Promise<File> {
-  if (typeof createImageBitmap !== "function") return file;
+  if (typeof createImageBitmap !== "function") {
+    console.warn("[chat] createImageBitmap unavailable; uploading the original image.");
+    return file;
+  }
 
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(file);
-  } catch {
+  } catch (error) {
+    console.warn(`[chat] could not decode ${file.name} for compression; uploading the original image.`, error);
     return file;
   }
 
@@ -193,19 +197,26 @@ export async function compressChatImage(file: File): Promise<File> {
     canvas.height = height;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
+    if (!ctx) {
+      console.warn(`[chat] could not get a 2d context for ${file.name}; uploading the original image.`);
+      return file;
+    }
 
     ctx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", IMAGE_JPEG_QUALITY)
     );
-    if (!blob) return file;
+    if (!blob) {
+      console.warn(`[chat] JPEG encode produced no blob for ${file.name}; uploading the original image.`);
+      return file;
+    }
 
     return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.jpg`, {
       type: "image/jpeg",
     });
-  } catch {
+  } catch (error) {
+    console.warn(`[chat] image compression failed for ${file.name}; uploading the original image.`, error);
     return file;
   } finally {
     bitmap.close();
