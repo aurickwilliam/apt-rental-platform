@@ -79,11 +79,16 @@ async function endPasswordRecovery(supabase: Supabase, scope: "local" | "global"
 
 // Sends (or resends) a recovery code. auth.resend() does not support recovery
 // codes, so resend calls this again. Unknown accounts get the same answer.
-export async function requestPasswordRecovery(email: string): Promise<RecoveryRequestResult> {
+export async function requestPasswordRecovery(
+  email: string,
+  captchaToken?: string,
+): Promise<RecoveryRequestResult> {
   try {
     const normalizedEmail = normalizeRecoveryEmail(email);
     const supabase = await createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      captchaToken: captchaToken || undefined,
+    });
     if (!error || error.code === "user_not_found") return { error: null };
     return { error: errorReason(error, "Password recovery request") };
   } catch (error) {

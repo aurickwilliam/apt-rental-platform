@@ -32,6 +32,7 @@ function harness(options = {}) {
     "next/navigation": { useRouter: () => router },
     "next/link": { default: options.realUI ? NextLink : "NextLink" },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
+    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" },
     "./AuthContext": { useAuth: () => context },
     "../actions/sign-in": { signIn: () => {} },
     "../actions/check-email-availability": { checkEmailAvailability: async email => {

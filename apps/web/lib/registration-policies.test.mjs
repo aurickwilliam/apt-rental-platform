@@ -100,7 +100,7 @@ function formHarness(kind, server = {}, props = {}) {
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "../../actions/complete-profile": { completeProfile() {} },
     "../../components/AuthContext": { useAuth: () => ({ role: "tenant", email: "test@example.com" }) },
-    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
+    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null }, "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
   };
@@ -211,7 +211,7 @@ function actionHarness(kind, options = {}) {
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/registration-policies": policies, "@/service/registrationService": service,
     "@repo/constants": { SUFFIXES: [], GENDERS: ["Male"], validatePHMobile: () => ({ formattedNumber: "09171234567" }) },
     "@/lib/birth-date": { validateBirthDate: () => null, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
-    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { getEmailCodeRequestError: message => message },
+    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { getEmailCodeRequestError: message => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" },
     "next/headers": { cookies: async () => ({ set() {} }) }, "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } },
     "@/lib/portal-preference": { PORTAL_COOKIE: "portal" },
   }, { process: { env: { NODE_ENV: "test" } } });

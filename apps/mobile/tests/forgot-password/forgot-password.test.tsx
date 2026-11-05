@@ -75,7 +75,7 @@ describe("Forgot password email screen", () => {
     fireEvent.press(screen.getByText("Send Code"));
 
     await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/forgot-password/otp-verification"));
-    expect(mockRequest).toHaveBeenCalledWith(EMAIL);
+    expect(mockRequest).toHaveBeenCalledWith(EMAIL, undefined);
     expect(usePasswordRecoveryStore.getState().email).toBe(EMAIL);
     expect(JSON.stringify(mockRouter.push.mock.calls)).not.toContain(EMAIL);
   });

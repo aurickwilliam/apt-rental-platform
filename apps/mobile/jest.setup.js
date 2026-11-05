@@ -27,3 +27,6 @@ jest.mock('expo-updates', () => ({
   fetchUpdateAsync: jest.fn(),
   reloadAsync: jest.fn(),
 }));
+
+// The captcha WebView is native; screens only need it to render nothing.
+jest.mock('react-native-webview', () => ({ WebView: () => null }));

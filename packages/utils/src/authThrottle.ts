@@ -10,6 +10,15 @@ export type AuthThrottlePurpose = "signin_email" | "signin_ip" | "signup_otp" | 
 export const AUTH_THROTTLE_MESSAGE =
   "Too many attempts. Please wait a few minutes before trying again.";
 
+export const CAPTCHA_PENDING_MESSAGE =
+  "Please wait a moment for the security check to finish, then try again.";
+export const CAPTCHA_FAILED_MESSAGE = "The security check failed. Please try again.";
+
+/** Supabase answers a missing, expired or reused CAPTCHA token with this code. */
+export function isCaptchaError(error: unknown): boolean {
+  return !!error && typeof error === "object" && (error as { code?: string }).code === "captcha_failed";
+}
+
 // Structural subset of a Supabase client, so this package needs no dependency.
 export interface AuthThrottleClient {
   rpc(

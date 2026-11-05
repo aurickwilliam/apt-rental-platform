@@ -24,10 +24,13 @@ import {
   type PasswordErrorReason,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
+  CAPTCHA_PENDING_MESSAGE,
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import CodeInput from "@/app/components/inputs/CodeInput";
+import TurnstileWidget from "@/app/components/inputs/TurnstileWidget";
+import { useCaptcha, type CaptchaAttempt } from "@/hooks/use-captcha";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   requestPasswordRecovery,
@@ -58,7 +61,7 @@ function BackToSignIn() {
 
 // Email and code steps of password recovery. The email lives only in this
 // component's state: never in the URL, storage or a shared context.
-export default function ForgotPasswordClient() {
+function ForgotPasswordFlow({ takeCaptcha }: { takeCaptcha: () => CaptchaAttempt }) {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("email");
@@ -94,9 +97,15 @@ export default function ForgotPasswordClient() {
       return;
     }
 
+    const attempt = takeCaptcha();
+    if (attempt.pending) {
+      setError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
+
     setSending(true);
     try {
-      const { error: reason } = await requestPasswordRecovery(trimmedEmail);
+      const { error: reason } = await requestPasswordRecovery(trimmedEmail, attempt.token);
       if (reason === "invalid_email") {
         setEmailError(messageFor(reason));
         return;
@@ -159,12 +168,17 @@ export default function ForgotPasswordClient() {
 
   const handleResend = async () => {
     if (resending || secondsLeft > 0) return;
+    const attempt = takeCaptcha();
+    if (attempt.pending) {
+      setError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
     setResending(true);
     setError(null);
     setCodeError(null);
     setResendNotice(null);
     try {
-      const { error: reason } = await requestPasswordRecovery(email);
+      const { error: reason } = await requestPasswordRecovery(email, attempt.token);
       if (reason) {
         showCodeError(reason);
         return;
@@ -363,5 +377,15 @@ export default function ForgotPasswordClient() {
         </Alert>
       </div>
     </div>
+  );
+}
+
+export default function ForgotPasswordClient() {
+  const { attach, take } = useCaptcha();
+  return (
+    <>
+      <ForgotPasswordFlow takeCaptcha={take} />
+      <TurnstileWidget ref={attach} />
+    </>
   );
 }

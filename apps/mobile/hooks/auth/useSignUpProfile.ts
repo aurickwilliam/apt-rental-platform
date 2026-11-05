@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import type { usePasswordValidation } from "@repo/hooks";
-import { getEmailCodeRequestError, joinFullName } from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, getEmailCodeRequestError, isCaptchaError, joinFullName } from "@repo/utils";
 
 import { requestSignUpCode } from "@/service/auth/signUpService";
 import type { Portal } from "@/service/auth/portalPreference";
@@ -16,12 +16,13 @@ interface UseSignUpProfileOptions {
   passwords: ReturnType<typeof usePasswordValidation>;
   email: string;
   userSide: Portal;
+  takeCaptcha?: () => { token?: string; pending: boolean };
 }
 
 // Submit flow of the sign-up profile screen: create the Auth account (which
 // sends the confirmation code), keep the details in the registration store
 // and continue to code verification, where the profile row is written.
-export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUpProfileOptions) {
+export function useSignUpProfile({ form, passwords, email, userSide, takeCaptcha }: UseSignUpProfileOptions) {
   const router = useRouter();
   const { setData, reset } = useRegistrationStore();
   const policies = useRegistrationAcceptance();
@@ -38,6 +39,13 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
     if (!policies.validate()) return;
     if (!form.validate(passwords.isPasswordValid ? [] : ["password"])) return;
 
+    const captcha = takeCaptcha?.();
+    if (captcha?.pending) {
+      setError(CAPTCHA_PENDING_MESSAGE);
+      setErrorDialogOpen(true);
+      return;
+    }
+
     pending.current = true;
     const requestGeneration = generation.current;
     setLoading(true);
@@ -47,6 +55,7 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
         email,
         acceptance: policies.value,
         password: passwords.password,
+        captchaToken: captcha?.token,
         fullName: joinFullName({
           firstName: form.values.firstName,
           lastName: form.values.lastName,
@@ -70,7 +79,11 @@ export function useSignUpProfile({ form, passwords, email, userSide }: UseSignUp
     } catch (err) {
       if (requestGeneration !== generation.current) return;
       if (policies.handleError(err)) return;
-      setError(getEmailCodeRequestError(err instanceof Error ? err.message : undefined));
+      setError(
+        isCaptchaError(err)
+          ? CAPTCHA_FAILED_MESSAGE
+          : getEmailCodeRequestError(err instanceof Error ? err.message : undefined),
+      );
       setErrorDialogOpen(true);
     } finally {
       pending.current = false;
