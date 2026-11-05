@@ -1,5 +1,6 @@
 import {
   clearApartmentOwnerCache,
+  deletePushToken,
   fetchPortalNotifications,
   markNotificationsRead,
   registerPushToken,
@@ -118,6 +119,25 @@ describe('registerPushToken', () => {
     mockRpc.mockResolvedValue({ error });
 
     await expect(registerPushToken('ExpoPushToken[device-token]', 'ios')).rejects.toEqual(error);
+  });
+});
+
+describe('deletePushToken', () => {
+  it('releases the token through the RPC so it also works after sign-out', async () => {
+    mockRpc.mockResolvedValue({ error: null });
+
+    await deletePushToken('ExponentPushToken[device-token]');
+
+    expect(mockRpc).toHaveBeenCalledWith('unregister_push_token', {
+      p_token: 'ExponentPushToken[device-token]',
+    });
+  });
+
+  it('propagates removal errors', async () => {
+    const error = { code: '22023', message: 'Invalid push token' };
+    mockRpc.mockResolvedValue({ error });
+
+    await expect(deletePushToken('not-a-token')).rejects.toEqual(error);
   });
 });
 
