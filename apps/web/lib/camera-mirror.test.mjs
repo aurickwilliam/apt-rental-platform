@@ -1,21 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canMirrorCamera, shouldMirrorCapture } from "./camera-mirror.ts";
+import { canFlipCapturedPhoto, shouldFlipCapturedPhoto } from "./camera-mirror.ts";
 
-test("a confirmed rear camera cannot be mirrored", () => {
-  assert.equal(canMirrorCamera("environment"), false);
-  assert.equal(shouldMirrorCapture(canMirrorCamera("environment"), true), false);
-  assert.equal(shouldMirrorCapture(canMirrorCamera("environment"), false), false);
+test("a confirmed rear camera cannot flip the captured photo", () => {
+  assert.equal(canFlipCapturedPhoto("environment"), false);
+  assert.equal(shouldFlipCapturedPhoto(canFlipCapturedPhoto("environment"), true), false);
+  assert.equal(shouldFlipCapturedPhoto(canFlipCapturedPhoto("environment"), false), false);
 });
 
-test("front cameras and webcams can opt into mirroring", () => {
+test("front cameras and webcams can opt into flipping the captured photo", () => {
   for (const facingMode of ["user", "left", "right", undefined]) {
-    assert.equal(canMirrorCamera(facingMode), true);
-    assert.equal(shouldMirrorCapture(canMirrorCamera(facingMode), true), true);
+    assert.equal(canFlipCapturedPhoto(facingMode), true);
+    assert.equal(shouldFlipCapturedPhoto(canFlipCapturedPhoto(facingMode), true), true);
   }
 });
 
-test("mirror remains off until explicitly enabled", () => {
-  assert.equal(shouldMirrorCapture(true, false), false);
-  assert.equal(shouldMirrorCapture(false, false), false);
+test("flip photo remains off until explicitly enabled", () => {
+  assert.equal(shouldFlipCapturedPhoto(true, false), false);
+  assert.equal(shouldFlipCapturedPhoto(false, false), false);
 });

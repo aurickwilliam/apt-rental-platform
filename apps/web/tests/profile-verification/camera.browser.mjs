@@ -88,7 +88,7 @@ try {
     await button("Enable camera").click();
     await button("Capture").waitFor();
   };
-  const mirrorControl = () => page.getByRole("switch", { name: "Mirror", exact: true });
+  const flipPhotoControl = () => page.getByRole("switch", { name: "Flip Photo", exact: true });
   const previewTransform = () => page.evaluate(() => getComputedStyle(document.querySelector('video[aria-label="Camera preview"]')).transform);
   const capture = async () => { await enable(); await button("Capture").click(); };
   const allStopped = () => page.waitForFunction(() => window.fixtureStreams.every(stream => stream.getTracks().every(track => track.readyState === "ended")));
@@ -112,13 +112,14 @@ try {
   await button("Try camera again").click();
   await button("Capture").waitFor();
   // The fake stream reports no facing mode, so it behaves like a laptop webcam
-  // and the Mirror control remains available even on an ID step.
-  assert.equal(await mirrorControl().count(), 1);
-  assert.equal(await mirrorControl().getAttribute("aria-checked"), "false");
+  // and the Flip Photo control remains available even on an ID step.
+  assert.equal(await flipPhotoControl().count(), 1);
+  assert.equal(await flipPhotoControl().getAttribute("aria-checked"), "false");
   assert.equal(await previewTransform(), "none");
-  await mirrorControl().click();
-  assert.equal(await mirrorControl().getAttribute("aria-checked"), "true");
-  assert.equal(await previewTransform(), "matrix(-1, 0, 0, 1, 0, 0)");
+  await page.getByText(/Make sure all text on your ID is clear and legible before continuing\./).waitFor();
+  await flipPhotoControl().click();
+  assert.equal(await flipPhotoControl().getAttribute("aria-checked"), "true");
+  assert.equal(await previewTransform(), "none", "Flip Photo must not transform the live preview");
   await button("Capture").click();
   assert.deepEqual(await page.evaluate(() => window.fixtureCanvasTransforms.at(-1)), [640, -1]);
   await page.getByText("Flip your ID over and capture the back.", { exact: true }).waitFor();
@@ -129,7 +130,7 @@ try {
   await noGallery();
   await enable();
   // A new camera session resets the control before the selfie is captured.
-  assert.equal(await mirrorControl().getAttribute("aria-checked"), "false");
+  assert.equal(await flipPhotoControl().getAttribute("aria-checked"), "false");
   assert.equal(await previewTransform(), "none");
   await button("Capture").click();
   assert.deepEqual(await page.evaluate(() => window.fixtureCanvasTransforms.at(-1)), [0, 1]);
@@ -139,7 +140,7 @@ try {
   await allStopped();
   assert.deepEqual(await page.evaluate(() => window.fixtureMediaRequests.map(request => request.video.facingMode.ideal)), ["environment", "environment", "environment", "user"]);
   assert.equal(await page.evaluate(() => window.fixtureUploads?.length || 0), 0);
-  console.log("PASS denied permission → retry → live front/back/selfie captures; webcam mirror preview + capture + session reset, progress, previews, lens preferences, stopped tracks and no gallery inputs");
+  console.log("PASS denied permission → retry → live front/back/selfie captures; webcam Flip Photo captured-frame-only flip + post-capture preview + session reset, progress, previews, lens preferences, stopped tracks and no gallery inputs");
 
   await page.getByRole("button", { name: /^Retake / }).first().click();
   await button("Enable camera").waitFor();
@@ -191,8 +192,8 @@ try {
 
   await front();
   await enable();
-  // Report a confirmed rear camera: the control must disappear and capture
-  // could not mirror even if a stale mirror state survived.
+  // Report a confirmed rear camera: the control must disappear and its
+  // captured frame must never flip, even if stale flip state survived.
   await page.evaluate(() => {
     const stream = window.fixtureStreams.at(-1);
     const track = stream.getVideoTracks()[0];

@@ -13,13 +13,15 @@ fallback. The separately supported desktop wizard retains its explicit ID
 upload controls and its existing phone-handoff action; this change does not
 turn all verification workflows into a server-enforced camera-only policy.
 
-While the camera is live, the page offers an optional **Mirror** choice unless
-the active track reports a rear-facing camera. It starts off and controls both
-the live video preview and the captured frame, so what is seen is what is
-captured. Front cameras, laptop webcams and tracks that do not report a facing
-mode can be mirrored, including a webcam used for an ID step; a confirmed rear
-camera cannot. Toggling and retaking reset the choice for the next camera
-session.
+While the camera is live, the page offers an optional **Flip Photo** choice
+unless the active track reports a rear-facing camera. It starts off. The live
+video preview always stays raw; only the captured JPEG is flipped. The helper
+text tells the user to flip backward text and to keep all ID text clear and
+legible. After capture, the actual saved photo is shown in the existing
+post-capture/review preview before the user continues or submits, with Retake
+available. Front cameras, laptop webcams and tracks that do not report a facing
+mode can use it, including a webcam used for an ID step; a confirmed rear
+camera cannot. A new camera session and retake reset the choice to off.
 
 ## Permission and failure handling
 
@@ -98,8 +100,9 @@ omit the return link; the normal profile/mobile verification flow still works.
 The network-isolated browser fixture in
 `apps/web/tests/profile-verification/camera.browser.mjs` uses Chromium synthetic
 camera frames and in-memory storage/action fixtures. It exercises camera
-failures and retry, successful captures, webcam mirroring of both the live
-preview and saved frame, its reset on retake, confirmed-rear-camera exclusion,
+failures and retry, successful captures, webcam Flip Photo of only the saved
+frame with an always-raw live preview and post-capture preview, its reset on
+retake, confirmed-rear-camera exclusion,
 no gallery/paste/drop inputs, retake,
 Back, previews/progress, Passport's exception, explicit confirmation,
 incomplete confirmation, expiry and stream cleanup. See that directory's
@@ -110,7 +113,8 @@ ownership, expiry and single-use submission separately.
 Before release, test physical Android Chrome and iPhone Safari: first permission
 prompt, permanent denial and re-enabling permissions, rear/front lens choice,
 rotation, backgrounding/return, camera interruption, expiry during capture,
-retake, Mirror on/off preview and saved-frame agreement, readable ID photos
+retake, Flip Photo off/on captured-frame behavior with an always-raw live
+preview, post-capture flipped-photo preview, readable ID photos
 and the complete private upload/review path using
 isolated test accounts. Also test a laptop webcam falling back during an ID
 step. Browser emulation cannot establish real-camera quality,
