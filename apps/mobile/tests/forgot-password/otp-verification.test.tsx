@@ -165,7 +165,7 @@ describe("Recovery code screen", () => {
     fireEvent.press(screen.getByText("Resend"));
 
     expect(await screen.findByText(/A new code is on its way/)).toBeTruthy();
-    expect(mockRequest).toHaveBeenCalledWith(EMAIL);
+    expect(mockRequest).toHaveBeenCalledWith(EMAIL, undefined);
     expect(screen.getByText(`Resend in ${RECOVERY_RESEND_COOLDOWN_SECONDS}s`)).toBeTruthy();
   });
 

@@ -11,6 +11,7 @@ import ErrorDialog from '@/components/display/ErrorDialog';
 import RegistrationPolicyAcceptance from '@/components/legal/RegistrationPolicyAcceptance';
 
 import { useProfileDetailsForm } from '@/hooks/auth/useProfileDetailsForm';
+import { useCaptcha } from '@/hooks/auth/useCaptcha';
 import { useSignUpProfile } from '@/hooks/auth/useSignUpProfile';
 import { isPortal } from '@/service/auth/portalPreference';
 import { firstParam } from '@/utils/routeParams';
@@ -37,11 +38,13 @@ export default function CompleteProfile() {
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const form = useProfileDetailsForm({ scrollRef });
   const passwords = usePasswordValidation();
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
   const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog, policies } = useSignUpProfile({
     form,
     passwords,
     email,
     userSide: role,
+    takeCaptcha,
   });
 
   const getPasswordError = (field: 'password' | 'confirmPassword') => {
@@ -95,6 +98,7 @@ export default function CompleteProfile() {
 
       <View className="mt-16 mb-0">
         <RegistrationPolicyAcceptance form={policies} isDisabled={loading} />
+        {captchaWidget}
         <Button onPress={submit} isDisabled={loading || !policies.canSubmit}>
           <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
           {loading && (

@@ -16,6 +16,7 @@ import {
 
 import { IconBrandGoogle, IconChevronLeft } from "@tabler/icons-react-native";
 
+import { useCaptcha } from "@/hooks/auth/useCaptcha";
 import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
@@ -27,6 +28,7 @@ import {
   PasswordError,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
+  CAPTCHA_PENDING_MESSAGE,
 } from "@repo/utils";
 
 // Errors shown under the code input; anything else opens the error dialog.
@@ -34,6 +36,7 @@ const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);
 const GENERIC_ERROR = "Something went wrong. Please try again.";
 
 export default function RecoveryCodeVerification() {
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
   const router = useRouter();
   const { colors } = useColors();
 
@@ -98,11 +101,17 @@ export default function RecoveryCodeVerification() {
   const handleResend = async () => {
     if (resending || countdown > 0) return;
 
+    const captcha = takeCaptcha();
+    if (captcha.pending) {
+      setCodeError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
+
     setResending(true);
     setCodeError(null);
     setResendNotice(null);
     try {
-      await requestPasswordRecovery(email);
+      await requestPasswordRecovery(email, captcha.token);
       clearCode();
       setResendNotice("A new code is on its way. Check your inbox.");
     } catch (err) {
@@ -196,6 +205,8 @@ export default function RecoveryCodeVerification() {
           </Text>
         )}
       </View>
+
+      {captchaWidget}
 
       <View className="flex-row items-center">
         <Text className="text-muted text-base">Didn&apos;t get the code? </Text>

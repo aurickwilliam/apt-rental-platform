@@ -64,9 +64,11 @@ export async function isPasswordRecoveryInProgress(): Promise<boolean> {
 // Sends (or resends) a recovery code. supabase.auth.resend() does not support
 // recovery codes, so resend calls this again. Resolves the same way whether or
 // not the account exists, so callers can't reveal account existence.
-export async function requestPasswordRecovery(email: string): Promise<void> {
+export async function requestPasswordRecovery(email: string, captchaToken?: string): Promise<void> {
   const normalizedEmail = normalizeRecoveryEmail(email);
-  const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+  const { error } = await (captchaToken
+    ? supabase.auth.resetPasswordForEmail(normalizedEmail, { captchaToken })
+    : supabase.auth.resetPasswordForEmail(normalizedEmail));
   if (!error || error.code === "user_not_found") return;
   throw toPasswordError(error, "Password recovery request");
 }

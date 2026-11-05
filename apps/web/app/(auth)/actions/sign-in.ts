@@ -6,9 +6,11 @@ import { createClient } from "@repo/supabase/server";
 import { RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 import {
+  CAPTCHA_FAILED_MESSAGE,
   checkAuthThrottle,
   clearAuthThrottle,
   isAuthRateLimitError,
+  isCaptchaError,
   recordAuthFailure,
   type AuthThrottlePurpose,
 } from "@repo/utils";
@@ -66,12 +68,18 @@ export async function signIn(
     return { error: SIGN_IN_THROTTLE_MESSAGE };
   }
 
+  // Single-use Turnstile token from the form; Supabase rejects a missing or
+  // reused one once CAPTCHA protection is enabled for the project.
+  const captchaToken = formData.get("captchaToken");
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
+    options: typeof captchaToken === "string" && captchaToken ? { captchaToken } : undefined,
   });
 
   if (error) {
+    // Not a wrong password, so it never counts toward the throttle.
+    if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
     // Map common Supabase auth errors to user-friendly messages
     if (error.message === "Invalid login credentials") {
       await Promise.all(attempts.map((a) => recordAuthFailure(supabase, a.purpose, a.subject)));

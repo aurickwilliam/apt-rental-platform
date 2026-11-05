@@ -12,6 +12,7 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { useCaptcha } from '@/hooks/auth/useCaptcha'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 import { completeMobileRegistration } from '@/service/auth/registrationService'
 import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '@/service/auth/registrationAcceptance'
@@ -23,6 +24,9 @@ import {
   getProfileSubmitError,
   parseResendWaitSeconds,
   AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
   checkAuthThrottle,
   clearAuthThrottle,
   isInvalidOtpError,
@@ -43,6 +47,7 @@ import {
 const OTP_VALIDITY_DURATION = 60 // seconds
 
 export default function OTPVerification() {
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha()
   const router = useRouter()
   const { email, mode } = useLocalSearchParams()
   // Opened from sign-in for an account whose email was never confirmed: there
@@ -89,6 +94,12 @@ export default function OTPVerification() {
       }
     }
 
+    const captcha = takeCaptcha()
+    if (captcha.pending) {
+      setOtpError(CAPTCHA_PENDING_MESSAGE)
+      return
+    }
+
     setResendLoading(true)
     setOtpError(null)
 
@@ -96,6 +107,7 @@ export default function OTPVerification() {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: emailValue || data.email!,
+        options: captcha.token ? { captchaToken: captcha.token } : undefined,
       })
 
       if (resendError) {
@@ -106,7 +118,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(getEmailCodeRequestError(resendError.message))
+        setError(isCaptchaError(resendError) ? CAPTCHA_FAILED_MESSAGE : getEmailCodeRequestError(resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -328,6 +340,8 @@ export default function OTPVerification() {
               </Button>
             </View>
           )}
+
+          {captchaWidget}
 
           {/* Resend Link and Countdown */}
           <View className="flex-row items-center">

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { AUTH_THROTTLE_MESSAGE, checkAuthThrottle, clearAuthThrottle, getOtpAttemptError, isInvalidOtpError, recordAuthFailure } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, CAPTCHA_PENDING_MESSAGE, checkAuthThrottle, clearAuthThrottle, getOtpAttemptError, isInvalidOtpError, recordAuthFailure } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
@@ -21,6 +21,7 @@ interface UseOtpFlowOptions {
   formData: SignUpFormData;
   role: string;
   acceptance: RegistrationAcceptance;
+  takeCaptcha?: () => { token?: string; pending: boolean };
   showError: (msg: string) => void;
   onSuccessOpen: () => void;
   onBirthDateError: (message: string, value: string, verified?: boolean) => void;
@@ -31,6 +32,7 @@ export function useOtpFlow({
   formData,
   role,
   acceptance,
+  takeCaptcha,
   showError,
   onSuccessOpen,
   onBirthDateError,
@@ -64,6 +66,11 @@ export function useOtpFlow({
     setResendLoading(true);
     setOtpError(null);
     try {
+      const captcha = takeCaptcha?.();
+      if (captcha?.pending) {
+        setOtpError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
       const result = await sendEmailOtp(
         data.email,
         data.password,
@@ -71,6 +78,7 @@ export function useOtpFlow({
         data.lastName,
         data.birthDate,
         latest.current.acceptance,
+        captcha?.token,
       );
       if (result.acceptanceErrors) {
         latest.current.onAcceptanceError(result.acceptanceErrors);
@@ -92,7 +100,7 @@ export function useOtpFlow({
     } finally {
       setResendLoading(false);
     }
-  }, [startCooldown, attempts]);
+  }, [startCooldown, attempts, takeCaptcha]);
 
   const handleVerifyOtp = useCallback(async (onClose: () => void) => {
     const { formData: data, role: currentRole, showError: fail, onSuccessOpen: succeed } = latest.current;

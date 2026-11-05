@@ -52,6 +52,9 @@ export * from './landlordReceipt';
 export { formatDate } from './formatDate';
 export {
   AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
   checkAuthThrottle,
   clearAuthThrottle,
   isAuthRateLimitError,

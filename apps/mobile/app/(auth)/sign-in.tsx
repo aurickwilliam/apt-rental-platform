@@ -9,6 +9,7 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
 import AuthButton from "./components/AuthButton";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import { useCaptcha } from "@/hooks/auth/useCaptcha";
 
 import {
   Button,
@@ -45,6 +46,9 @@ import { profileMissingRoute } from "@/service/auth/profileMissingService";
 
 import {
   AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
   checkAuthThrottle,
   clearAuthThrottle,
   isAuthRateLimitError,
@@ -53,6 +57,7 @@ import {
 } from "@repo/utils";
 
 export default function SignIn() {
+  const { widget: captchaWidget, take: takeCaptcha, takeWhenReady: takeCaptchaWhenReady } = useCaptcha();
   const router = useRouter();
   const { colors } = useColors();
 
@@ -136,23 +141,38 @@ export default function SignIn() {
         setError(AUTH_THROTTLE_MESSAGE);
         return;
       }
+      // Single-use Turnstile token; Supabase rejects a missing or reused one
+      // once CAPTCHA protection is enabled for the project.
+      const captcha = takeCaptcha();
+      if (captcha.pending) {
+        setError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
       const { data: authData, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
+          options: captcha.token ? { captchaToken: captcha.token } : undefined,
         });
       if (!signInError) await clearAuthThrottle(supabase, "signin_email", email);
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
-        if (signInError.code === "invalid_credentials" || signInError.message === "Invalid login credentials") {
+        if (isCaptchaError(signInError)) {
+          setError(CAPTCHA_FAILED_MESSAGE);
+        } else if (signInError.code === "invalid_credentials" || signInError.message === "Invalid login credentials") {
           await recordAuthFailure(supabase, "signin_email", email);
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           // Sign-up was left before the email code was entered: send a fresh
           // code and let the person confirm it here. A throttled resend still
           // lets them use the code they already have.
-          await supabase.auth.resend({ type: "signup", email: email.trim() });
+          const resendCaptcha = await takeCaptchaWhenReady();
+          await supabase.auth.resend({
+            type: "signup",
+            email: email.trim(),
+            options: resendCaptcha.token ? { captchaToken: resendCaptcha.token } : undefined,
+          });
           router.push({
             pathname: "/(auth)/otp-verification",
             params: { email: email.trim().toLowerCase(), mode: "confirm" },
@@ -316,6 +336,8 @@ export default function SignIn() {
           Forgot Password?
         </LinkButton.Label>
       </LinkButton>
+
+      {captchaWidget}
 
       {/* Sign In Button */}
       <View className="mt-5">
