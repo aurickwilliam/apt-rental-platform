@@ -182,9 +182,11 @@ Phase 0 admin authorization hardening: browser/mobile profile edits cannot chang
 ### 4.3 Web flow
 
 Web registration policy checkboxes additionally require reaching each loaded
-document's end in the shared policy modal. Version-keyed completion stays local
-to that form; an active-panel IntersectionObserver disconnects once complete
-and retires queued callbacks on cleanup. This browser interaction guard does
+document's end in its own policy modal (two fixed-document instances, no tabs).
+After content readiness, the same independent completion state locks Close/X,
+Escape and backdrop dismissal; loading/error states stay dismissible. Version-keyed
+completion stays local to that form; a document-panel IntersectionObserver
+disconnects once complete and retires queued callbacks on cleanup. This browser interaction guard does
 not prove reading or change server/database acceptance authorization. See
 `docs/web-registration-acceptance.md` for the boundary and verification.
 
