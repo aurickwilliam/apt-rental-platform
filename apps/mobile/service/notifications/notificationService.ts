@@ -219,8 +219,10 @@ export async function registerPushToken(token: string, platform: 'ios' | 'androi
   if (error) throw error;
 }
 
+// Runs after sign-out too, when the session (and so the owner-only table
+// policy) is gone, so it goes through the token-bound RPC, not a table delete.
 export async function deletePushToken(token: string): Promise<void> {
-  const { error } = await supabase.from('push_tokens').delete().eq('token', token);
+  const { error } = await supabase.rpc('unregister_push_token', { p_token: token });
 
   if (error) throw error;
 }

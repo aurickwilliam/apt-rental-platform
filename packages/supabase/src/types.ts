@@ -2098,6 +2098,7 @@ export type Database = {
         Args: { p_platform: string; p_token: string }
         Returns: undefined
       }
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined }
       request_listing_review: {
         Args: { p_apartment_id: string; p_note: string }
         Returns: undefined
