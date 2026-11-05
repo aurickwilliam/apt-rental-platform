@@ -6,7 +6,6 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import ParkingDetailsFields from "components/preferences/ParkingDetailsFields";
 import PetDetailsFields from "components/preferences/PetDetailsFields";
 import YesNoRadioField from "components/preferences/YesNoRadioField";
-import WelcomeDialog from "components/profile/WelcomeDialog";
 
 import PersonalizationProgress from "./components/PersonalizationProgress";
 
@@ -18,6 +17,7 @@ import { useProfile } from "hooks/auth";
 import { Button, useToast, Separator } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useWelcomeStore } from "@/stores/useWelcomeStore";
 
 export default function StepFive() {
   const router = useRouter();
@@ -40,12 +40,11 @@ export default function StepFive() {
   const { profile } = useProfile();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
 
   const petsError = getPetsError(hasPets, kindOfPets, noOfPets);
 
   const handleNext = async () => {
-    if (isSaving || showWelcome) return;
+    if (isSaving) return;
 
     if (petsError) {
       toast.show({
@@ -96,7 +95,9 @@ export default function StepFive() {
         return;
       }
 
-      setShowWelcome(true);
+      useWelcomeStore.getState().request(profile.user_id);
+      reset();
+      router.replace("/(tabs)/(tenant)/rentals");
     } catch (err) {
       // Network-level failure (e.g. request never reached Supabase)
       console.error("Unexpected error saving preferences:", err);
@@ -201,14 +202,6 @@ export default function StepFive() {
           </Button>
         </View>
       </View>
-      <WelcomeDialog
-        isOpen={showWelcome}
-        onContinue={() => {
-          setShowWelcome(false);
-          reset();
-          router.replace("/(tabs)/(tenant)/rentals");
-        }}
-      />
     </ScreenWrapper>
   );
 }

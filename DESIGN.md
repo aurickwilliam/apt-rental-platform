@@ -24,7 +24,7 @@ Apartment details show an “Accepted payment methods” block with the landlord
 
 **Mobile-first:** the Expo app is the primary product; web mirrors its palette and semantics. Design mobile-first, adapt to web.
 
-Mobile personalization completion shows `components/profile/WelcomeDialog` only after preferences save successfully: a Tabler home-heart icon in a soft-blue circle, the centered title “Welcome to APT!”, and “Your account is ready. Let’s start your rental journey!” A single full-width Continue button opens Rentals. Reuse `AppDialog` with dismissal disabled: no close icon, outside-tap, swipe or Android Back dismissal. Failed saves keep the draft and do not open the welcome dialog.
+Mobile personalization completion navigates to Rentals after preferences save successfully; its focused tab then shows `components/profile/WelcomeDialog` through `RentalsWelcomeGate`, using an account-scoped, in-memory completion flag: a Tabler home-heart icon in a soft-blue circle, the centered title “Welcome to APT!”, and “Your account is ready. Let’s start your rental journey!” A single full-width Continue button dismisses it without further navigation. Reuse `AppDialog` with dismissal disabled: no close icon, outside-tap, swipe or Android Back dismissal. Failed saves keep the draft and do not open the welcome dialog.
 
 **Accessibility:** status colors never used alone (paired with text/icons); visible focus rings (`#376BF5`/15% web, `border-focus` mobile); `FieldError` + `isInvalid` on inputs; required `*` markers; muted text no lighter than `#6C757D`/`gray-500` at scale. No `prefers-reduced-motion` handling exists — keep motion minimal (§17).
 

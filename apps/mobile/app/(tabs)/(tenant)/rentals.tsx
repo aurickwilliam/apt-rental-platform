@@ -22,6 +22,7 @@ import {
   getRentalsView,
 } from '@/utils/tenancy/rentalsView';
 import EmptyState from 'components/display/EmptyState';
+import RentalsWelcomeGate from '@/components/profile/RentalsWelcomeGate';
 
 import {
   IconAlertCircle,
@@ -96,6 +97,7 @@ function TabScreen({
           style={{ height: insets.top }}
         />
       )}
+      <RentalsWelcomeGate />
     </View>
   );
 }

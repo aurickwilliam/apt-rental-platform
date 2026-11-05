@@ -5,15 +5,20 @@ import StepThree from "../../app/(auth)/personalization/step-three";
 import StepFour from "../../app/(auth)/personalization/step-four";
 import StepFive from "../../app/(auth)/personalization/step-five";
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useWelcomeStore } from "@/stores/useWelcomeStore";
+import RentalsWelcomeGate from "@/components/profile/RentalsWelcomeGate";
 
 const mockReplace = jest.fn();
 const mockSave = jest.fn();
 const mockToast = jest.fn();
 let mockProfile: { user_id: string } | null = null;
+let mockFocused = true;
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace }) }));
 jest.mock("@repo/supabase", () => ({ supabase: { from: () => ({ update: () => ({ eq: mockSave }) }) } }));
 jest.mock("hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile }) }));
+jest.mock("@/hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile }) }));
+jest.mock("expo-router/react-navigation", () => ({ useIsFocused: () => mockFocused }));
 jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
 jest.mock("@tabler/icons-react-native", () => ({ IconHomeHeart: () => null }));
 jest.mock("@/components/display/AppDialog", () => {
@@ -57,6 +62,8 @@ jest.mock("heroui-native", () => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockProfile = null;
+  mockFocused = true;
+  useWelcomeStore.getState().reset();
   mockSave.mockResolvedValue({ error: null });
   usePersonalizationStore.getState().reset();
 });
@@ -102,22 +109,41 @@ it.each([
   expect(usePersonalizationStore.getState()).toBe(before);
 });
 
-it("shows the welcome only after saving and waits for Continue before opening Rentals", async () => {
+it("opens Rentals after saving and shows the welcome there until Continue", async () => {
   mockProfile = { user_id: "new-account" };
   usePersonalizationStore.getState().toggleCity("Caloocan");
   const screen = render(<StepFive />);
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   fireEvent.press(screen.getByText("Let's find your place!"));
-  await waitFor(() => expect(screen.getByText("Welcome to APT!")).toBeTruthy());
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
   expect(mockSave).toHaveBeenCalledWith("user_id", "new-account");
-  expect(screen.getByText("Your account is ready. Let’s start your rental journey!")).toBeTruthy();
-  expect(screen.getByTestId("welcome-dialog").props.accessibilityState.disabled).toBe(true);
-  fireEvent.press(screen.getByTestId("dismiss-attempt"));
-  expect(screen.getByText("Welcome to APT!")).toBeTruthy();
-  expect(mockReplace).not.toHaveBeenCalled();
-  fireEvent.press(screen.getByText("Continue"));
-  expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
+  expect(screen.queryByText("Welcome to APT!")).toBeNull();
   expect(usePersonalizationStore.getState().selectedCities).toEqual([]);
+  screen.unmount();
+  const rentals = render(<RentalsWelcomeGate />);
+  expect(rentals.getByText("Your account is ready. Let’s start your rental journey!")).toBeTruthy();
+  expect(rentals.getByTestId("welcome-dialog").props.accessibilityState.disabled).toBe(true);
+  fireEvent.press(rentals.getByTestId("dismiss-attempt"));
+  expect(rentals.getByText("Welcome to APT!")).toBeTruthy();
+  fireEvent.press(rentals.getByText("Continue"));
+  expect(rentals.queryByText("Welcome to APT!")).toBeNull();
+  expect(mockReplace).toHaveBeenCalledTimes(1);
+  rentals.unmount();
+  expect(render(<RentalsWelcomeGate />).queryByText("Welcome to APT!")).toBeNull();
+});
+
+it("does not show the welcome on an unfocused tab or for a different account", () => {
+  useWelcomeStore.getState().request("new-account");
+  mockProfile = { user_id: "other-account" };
+  const screen = render(<RentalsWelcomeGate />);
+  expect(screen.queryByText("Welcome to APT!")).toBeNull();
+  mockProfile = { user_id: "new-account" };
+  mockFocused = false;
+  screen.rerender(<RentalsWelcomeGate />);
+  expect(screen.queryByText("Welcome to APT!")).toBeNull();
+  mockFocused = true;
+  screen.rerender(<RentalsWelcomeGate />);
+  expect(screen.getByText("Welcome to APT!")).toBeTruthy();
 });
 
 it("keeps the draft and does not welcome the user when saving fails", async () => {
@@ -131,5 +157,6 @@ it("keeps the draft and does not welcome the user when saving fails", async () =
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   expect(mockReplace).not.toHaveBeenCalled();
   expect(usePersonalizationStore.getState().selectedCities).toEqual(["Caloocan"]);
+  expect(useWelcomeStore.getState().pendingAuthId).toBeNull();
   log.mockRestore();
 });
