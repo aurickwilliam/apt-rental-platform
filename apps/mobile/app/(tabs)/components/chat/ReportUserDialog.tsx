@@ -15,8 +15,13 @@ import {
 import {
   USER_REPORT_DETAILS_MAX_LENGTH,
   USER_REPORT_REASONS,
-  type UserReportReason,
 } from '@/service/chat/conversationActionsService'
+
+export interface ReportReasonOption {
+  value: string;
+  label: string;
+  description: string;
+}
 
 // Keeps the reason list scrollable on short screens while the buttons stay visible.
 const REASON_LIST_MAX_HEIGHT = 320;
@@ -24,27 +29,39 @@ const REASON_LIST_MAX_HEIGHT = 320;
 interface ReportUserDialogProps {
   isOpen: boolean;
   name: string;
+  /** Reasons to choose from; people reasons by default. */
+  reasons?: readonly ReportReasonOption[];
+  /** What the report is about, for the sentence under the title. */
+  subject?: 'person' | 'listing';
   isSubmitting: boolean;
   errorMessage: string | null;
   onClose: () => void;
-  onSubmit: (reason: UserReportReason, details: string) => void;
-}
-
-function isReportReason(value: string): value is UserReportReason {
-  return USER_REPORT_REASONS.some((reason) => reason.value === value);
+  onSubmit: (reason: string, details: string) => void;
 }
 
 /** Reason + optional details for reporting someone from a conversation. */
 export default function ReportUserDialog({
   isOpen,
   name,
+  reasons = USER_REPORT_REASONS,
+  subject = 'person',
   isSubmitting,
   errorMessage,
   onClose,
   onSubmit,
 }: ReportUserDialogProps) {
-  const [reason, setReason] = useState<UserReportReason | null>(null);
+  const [reason, setReason] = useState<string | null>(null);
   const [details, setDetails] = useState('');
+
+  // The draft never outlives the open: reset on any close (cancel, success or parent).
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) {
+      setReason(null);
+      setDetails('');
+    }
+  }
 
   const needsDetails = reason === 'other';
   const canSubmit =
@@ -66,18 +83,20 @@ export default function ReportUserDialog({
           <View className='mb-4 gap-1.5 pr-8'>
             <Dialog.Title className='font-nunitoBold'>Report {name}</Dialog.Title>
             <Dialog.Description>
-              Our team reviews every report. {name} won&apos;t know who reported them.
+              {subject === 'listing'
+                ? 'Our team reviews every report. The landlord won\'t know who reported this listing.'
+                : `Our team reviews every report. ${name} won't know who reported them.`}
             </Dialog.Description>
           </View>
 
           <ScrollView style={{ maxHeight: REASON_LIST_MAX_HEIGHT }} keyboardShouldPersistTaps='handled'>
             <RadioGroup
               value={reason ?? undefined}
-              onValueChange={(value) => { if (isReportReason(value)) setReason(value); }}
+              onValueChange={(value) => { if (reasons.some((option) => option.value === value)) setReason(value); }}
               className='gap-2'
               isDisabled={isSubmitting}
             >
-              {USER_REPORT_REASONS.map((option) => (
+              {reasons.map((option) => (
                 <RadioGroup.Item
                   key={option.value}
                   value={option.value}

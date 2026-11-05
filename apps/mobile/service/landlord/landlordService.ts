@@ -26,6 +26,8 @@ export type LandlordUnitApartment = {
   city: string;
   status: ApartmentStatus;
   isVerified: boolean;
+  /** An admin hid the listing from public search; the landlord can still see it. */
+  isHiddenByAdmin: boolean;
   coverUrl: string | null;
   monthlyRent?: number;
 };
@@ -72,7 +74,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
   const [apartmentsResult, monthlyProfit] = await Promise.all([
     supabase
       .from("apartments")
-      .select("id, name, barangay, city, status, is_verified, apartment_images (url, url_thumb, is_cover), monthly_rent")
+      .select("id, name, barangay, city, status, is_verified, is_hidden_by_admin, apartment_images (url, url_thumb, is_cover), monthly_rent")
       .eq("landlord_id", landlordId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
@@ -95,6 +97,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
         ? (rawStatus as ApartmentStatus)
         : "available",
       isVerified: apt.is_verified ?? false,
+      isHiddenByAdmin: apt.is_hidden_by_admin ?? false,
       coverUrl: (cover?.url_thumb || cover?.url) ?? null,
       monthlyRent: apt.monthly_rent ?? undefined,
     };
@@ -181,6 +184,9 @@ export type LandlordTenant = {
   leaseStart: string;
   leaseEnd: string | null;
   tenancyId: string;
+  signedLeasePath: string | null;
+  signedLeaseUploadedAt: string | null;
+  tenantAcknowledgedAt: string | null;
 };
 
 export type LandlordTenancyMaintenanceRequest = {
@@ -216,6 +222,9 @@ export async function fetchLandlordTenancy(
         id,
         lease_start,
         lease_end,
+        signed_lease_path,
+        signed_lease_uploaded_at,
+        tenant_acknowledged_at,
         tenant:users!tenancies_tenant_id_fkey (
           id,
           first_name,
@@ -255,6 +264,9 @@ export async function fetchLandlordTenancy(
         id: string;
         lease_start: string;
         lease_end: string | null;
+        signed_lease_path: string | null;
+        signed_lease_uploaded_at: string | null;
+        tenant_acknowledged_at: string | null;
         tenant: {
           id: string;
           first_name: string;
@@ -277,6 +289,9 @@ export async function fetchLandlordTenancy(
       leaseStart: tenancyData.lease_start,
       leaseEnd: tenancyData.lease_end,
       tenancyId: tenancyData.id,
+      signedLeasePath: tenancyData.signed_lease_path ?? null,
+      signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at ?? null,
+      tenantAcknowledgedAt: tenancyData.tenant_acknowledged_at ?? null,
     };
   }
 

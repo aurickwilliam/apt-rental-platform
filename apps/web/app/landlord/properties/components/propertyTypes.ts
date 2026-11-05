@@ -12,6 +12,8 @@ export type Property = {
   province: string | null;
   zip_code: number | null;
   status: string;
+  /** An admin hid the listing from public search; the landlord can still see it. */
+  is_hidden_by_admin?: boolean;
   average_rating: number;
   no_ratings: number;
   no_bedrooms: number | null;

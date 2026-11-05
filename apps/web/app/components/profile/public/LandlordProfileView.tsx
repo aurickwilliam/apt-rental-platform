@@ -28,6 +28,7 @@ import { apartmentHref, landlordReviewsHref, memberSinceYear, type ProfileViewer
 
 import PublicProfileContactCard from "./PublicProfileContactCard";
 import PublicProfileContactLockedCard from "./PublicProfileContactLockedCard";
+import ReportButton from "@/app/components/reports/ReportButton";
 import PublicProfileHeader from "./PublicProfileHeader";
 import PublicProfileLayout from "./PublicProfileLayout";
 import PublicProfileReviewList from "./PublicProfileReviewList";
@@ -129,7 +130,18 @@ export default function LandlordProfileView({ data, portal }: LandlordProfileVie
 
       <PublicProfileLayout
         hasTopNavbar={portal === "public"}
-        header={<PublicProfileHeader identity={identity} role="landlord" trustItems={trustItems} />}
+        header={
+          <PublicProfileHeader
+            identity={identity}
+            role="landlord"
+            trustItems={trustItems}
+            actions={
+              <ReportButton
+                target={{ kind: "profile", userId: identity.id, role: "landlord", name: identity.displayName }}
+              />
+            }
+          />
+        }
         aside={
           <>
             <PublicProfileStats

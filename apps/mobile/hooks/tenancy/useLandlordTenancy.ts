@@ -23,6 +23,7 @@ export function useLandlordTenancy(apartmentId: string | undefined) {
     maintenanceRequest: tenancyQuery.data?.maintenanceRequest ?? null,
     paymentHistory: tenancyQuery.data?.paymentHistory ?? [],
     loading: tenancyQuery.isLoading,
+    error: tenancyQuery.error,
     refetch: () => tenancyQuery.refetch(),
   };
 }

@@ -22,6 +22,7 @@ import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 import { PERKS } from "../../../components/inputs/perks";
 
 import { STATUS_COLOR } from "./propertyConstants";
+import HiddenListingChip from "./HiddenListingChip";
 import type { Property } from "./propertyTypes";
 import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
@@ -261,13 +262,16 @@ export default function PropertyDetailsSheet({
                           </p>
                         </div>
 
-                        <StatusChip
-                          size="sm"
-                          tone={STATUS_COLOR[selected.status] ?? "neutral"}
-                          className="capitalize"
-                        >
-                          {selected.status}
-                        </StatusChip>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <StatusChip
+                            size="sm"
+                            tone={STATUS_COLOR[selected.status] ?? "neutral"}
+                            className="capitalize"
+                          >
+                            {selected.status}
+                          </StatusChip>
+                          <HiddenListingChip hidden={selected.is_hidden_by_admin} />
+                        </div>
                       </div>
                     </div>
 

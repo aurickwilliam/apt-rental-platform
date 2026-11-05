@@ -1436,6 +1436,7 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          action_taken: string
           apartment_id: string | null
           created_at: string
           details: string | null
@@ -1447,8 +1448,11 @@ export type Database = {
           resolved_at: string | null
           resolved_by: string | null
           status: string
+          status_rank: number
+          target_type: string
         }
         Insert: {
+          action_taken?: string
           apartment_id?: string | null
           created_at?: string
           details?: string | null
@@ -1460,8 +1464,10 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
+          target_type?: string
         }
         Update: {
+          action_taken?: string
           apartment_id?: string | null
           created_at?: string
           details?: string | null
@@ -1473,6 +1479,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
+          target_type?: string
         }
         Relationships: [
           {
@@ -1582,6 +1589,7 @@ export type Database = {
           gender: string | null
           id: string
           is_suspended: boolean
+          suspended_until: string | null
           last_name: string | null
           middle_name: string | null
           mobile_number: string | null
@@ -1610,6 +1618,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_suspended?: boolean
+          suspended_until?: string | null
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1638,6 +1647,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_suspended?: boolean
+          suspended_until?: string | null
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1828,6 +1838,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_act_on_report: {
+        Args: {
+          p_action: string
+          p_note: string
+          p_report_id: string
+          p_until?: string
+        }
+        Returns: undefined
+      }
       admin_resolve_user_report: {
         Args: { p_note: string; p_report_id: string; p_status: string }
         Returns: undefined
@@ -1837,7 +1856,12 @@ export type Database = {
         Returns: undefined
       }
       admin_set_user_access: {
-        Args: { p_reason: string; p_suspend: boolean; p_target_id: string }
+        Args: {
+          p_reason: string
+          p_suspend: boolean
+          p_target_id: string
+          p_until?: string
+        }
         Returns: undefined
       }
       block_user: { Args: { p_user_id: string }; Returns: undefined }
@@ -2072,6 +2096,27 @@ export type Database = {
       notify_rent_due_status: { Args: never; Returns: undefined }
       register_push_token: {
         Args: { p_platform: string; p_token: string }
+        Returns: undefined
+      }
+      request_listing_review: {
+        Args: { p_apartment_id: string; p_note: string }
+        Returns: undefined
+      }
+      get_listing_review_state: {
+        Args: { p_apartment_id: string }
+        Returns: Json
+      }
+      report_apartment: {
+        Args: { p_apartment_id: string; p_details?: string; p_reason: string }
+        Returns: undefined
+      }
+      report_profile: {
+        Args: {
+          p_details?: string
+          p_reason: string
+          p_reported_user_id: string
+          p_target_type: string
+        }
         Returns: undefined
       }
       report_user: {

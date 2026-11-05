@@ -4,7 +4,7 @@ import { Skeleton } from "heroui-native";
 import { useRentalHeroHeight } from "./RentalHero";
 
 // Mirrors the rental page: photo, payment summary, quick actions, landlord,
-// maintenance.
+// maintenance and signed lease.
 export default function RentalsSkeleton() {
   const heroHeight = useRentalHeroHeight();
 
@@ -74,6 +74,16 @@ export default function RentalsSkeleton() {
           </View>
         </View>
         <Skeleton className="h-12 w-full rounded-full" />
+      </View>
+      {/* Signed lease — title, status, summary and equal-width action row */}
+      <View className="gap-3 rounded-3xl border border-border bg-surface p-4">
+        <Skeleton className="h-5 w-32 rounded-md" />
+        <Skeleton className="h-6 w-40 rounded-full" />
+        <Skeleton className="h-4 w-full rounded-md" />
+        <View className="flex-row gap-2">
+          <Skeleton className="h-11 flex-1 rounded-full" />
+          <Skeleton className="h-11 flex-1 rounded-full" />
+        </View>
       </View>
     </View>
   );
