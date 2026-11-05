@@ -15,22 +15,19 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[value.props?.children].flat(Infinity).flatMap(nodes)];
 const jsxRuntime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
 const ui = {
-  FieldError: "FieldError", Input: "Input", Label: "Label", TextField: "TextField", Button: "Button", Form: "Form", Separator: "Separator", Spinner: "Spinner",
+  FieldError: "FieldError", Input: "Input", Label: "Label", TextField: "TextField", Form: "Form", Separator: "Separator", Spinner: "Spinner",
   Select: Object.assign(() => {}, { Trigger: "Trigger", Value: "Value", Indicator: "Indicator", Popover: "Popover" }),
   ListBox: Object.assign(() => {}, { Item: "Item", ItemIndicator: "ItemIndicator" }),
   DatePicker: Object.assign(() => {}, { Popover: "DatePopover", Trigger: "DateTrigger", TriggerIndicator: "DateTriggerIndicator" }),
   DateField: { Group: "Group", Input: "DateInput", Suffix: "Suffix" },
   Calendar: Object.assign(() => {}, Object.fromEntries(["Header", "YearPickerTrigger", "YearPickerTriggerHeading", "YearPickerTriggerIndicator", "NavButton", "Grid", "GridHeader", "GridBody", "YearPickerGrid", "YearPickerGridBody"].map(key => [key, key]))),
   ComboBox: Object.assign(() => {}, { InputGroup: "ComboBoxInputGroup", Trigger: "ComboBoxTrigger", Popover: "ComboBoxPopover" }),
-  InputGroup: Object.assign(() => {}, { Input: "InputGroupInput", Suffix: "InputGroupSuffix" }),
-  Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }),
   useOverlayState: () => ({ isOpen: false, open() {}, close() {} }),
 };
 const { validatePHMobile, formatPHMobileInput } = compile("../../packages/constants/src/user/ph-mobile.ts");
 const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [], validatePHMobile, formatPHMobileInput };
-const icons = { IconInfoCircle: "IconInfoCircle" };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants, "@/lib/registration-address": addressRules,
 }).default;
 
 function fieldHarness(initial = empty) {
@@ -165,19 +162,23 @@ test("a well-formed ZIP we do not recognize for the city is a warning, not an er
   assert.equal(addressRules.getRegistrationZipWarning({ ...validAddress, postalCode: "14a5" }), null);
 });
 
-test("an unrecognized ZIP shows an info icon whose tooltip carries the note, not text under the field", () => {
+test("an unrecognized ZIP shows the note as a gray description under the field, not a tooltip", () => {
   const warning = `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`;
   const h = fieldHarness({ ...validAddress, postalCode: "9999" });
   const parts = nodes(h.field("postalCode"));
-  assert.equal(parts.find(node => node.type === "TooltipContent")?.props.children, warning);
-  assert.ok(parts.some(node => node.type === "InputGroupSuffix"));
-  assert.equal(parts.some(node => node.type === "p"), false);
+  const note = parts.find(node => node.type === "span" && node.props?.role === "status");
+  assert.equal(note?.props.children, warning);
+  assert.match(note?.props.className, /text-xs/);
+  assert.match(note?.props.className, /text-muted-foreground/);
+  assert.ok(parts.some(node => node.type === "Input"));
+  assert.equal(parts.some(node => node.props?.ariaLabel === "About this postal code"), false);
   const recognized = nodes(fieldHarness(validAddress).field("postalCode"));
-  assert.equal(recognized.some(node => node.type === "TooltipContent" || node.type === "InputGroupSuffix"), false);
+  assert.equal(recognized.some(node => node.props?.role === "status"), false);
   const html = renderToStaticMarkup(compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
   }).default({ value: { ...validAddress, postalCode: "9999" }, onChange() {} }));
-  assert.match(html, /aria-label="About this postal code"/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /text-muted-foreground/);
 });
 
 test("street and ZIP remain editable, user-entered valid ZIPs are not auto-replaced, and geographic coverage stays nationwide", () => {
@@ -207,7 +208,7 @@ test("shared fields preserve ordered two-column desktop / stacked mobile layout 
 
 test("installed HeroUI provides input error association and disabled dependent selectors", () => {
   const nativeFields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
   }).default;
   const html = renderToStaticMarkup(nativeFields({ value: empty, onChange() {}, errors: validate(empty) }));
   assert.match(html, /aria-invalid="true"/);

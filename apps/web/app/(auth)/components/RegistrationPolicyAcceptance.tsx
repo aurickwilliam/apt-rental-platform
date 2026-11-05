@@ -37,13 +37,13 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                   isRequired
                   validationBehavior="aria"
                 >
-                  <Checkbox.Content className="min-h-11 min-w-11 items-center justify-center">
+                  <Checkbox.Content className="min-h-10 items-center justify-start">
                     <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
                   </Checkbox.Content>
                 </Checkbox>
                 {/* Reading and accepting are separate actions; keep the
                     dialog button outside the checkbox's pressable label. */}
-                <span id={labelId} className="py-3 text-sm font-normal leading-5 text-foreground">
+                <span id={labelId} className="py-2 text-sm font-normal leading-5 text-foreground">
                   <label htmlFor={`${id}-${policy}-checkbox`} className="cursor-pointer">I have read and agree to the</label>{" "}
                   <Button type="button" variant="ghost" className="registration-policy-link" aria-haspopup="dialog"
                     onHoverStart={preloadRegistrationPolicyContent} onFocus={preloadRegistrationPolicyContent}

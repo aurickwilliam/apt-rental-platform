@@ -77,7 +77,7 @@ export default function CompleteProfile() {
         <Separator />
 
         <Text className="text-xl text-foreground font-nunitoBold mt-3">
-          Account Security
+          Set Your Password
         </Text>
 
         <View {...form.trackPosition('password')}>
