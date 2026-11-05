@@ -8,7 +8,8 @@ import { IconCalendarCheck, IconChartBar } from "@tabler/icons-react-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper, { type ScreenWrapperScrollRef } from "@/components/layout/ScreenWrapper";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import MonthCollectionCard from "@/app/(tabs)/components/dashboard/MonthCollectionCard";
 import DashboardStatTile from "@/app/(tabs)/components/dashboard/DashboardStatTile";
@@ -41,6 +42,8 @@ const REQUEST_ROUTES = {
 
 function Dashboard() {
   const router = useRouter();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
   const { data, isLoading, error } = useDashboardData();
   const { stats, attention, thisMonth, collectionByMonth, monthlyRevenue, rentDues } =
     data;
@@ -64,6 +67,8 @@ function Dashboard() {
 
   return (
     <ScreenWrapper
+      ref={scrollRef}
+      onScroll={onTabBarScroll}
       scrollable
       className="p-5"
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}

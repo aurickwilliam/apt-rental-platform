@@ -1,4 +1,5 @@
 import { View, ScrollView, Platform } from 'react-native'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext';
 import { useFocusEffect, useRouter } from 'expo-router';
 import type React from 'react';
 import { useCallback } from 'react';
@@ -25,6 +26,7 @@ import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/compo
 export default function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { ref: scrollRef, onScroll: onTabBarScroll } = useTabScreenScroll<ScrollView>();
   const { profile, loading, refetch: refetchProfile } = useProfile();
   const { colors } = useColors();
 
@@ -95,6 +97,9 @@ export default function Profile() {
 
   return (
     <ScrollView
+      ref={scrollRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
