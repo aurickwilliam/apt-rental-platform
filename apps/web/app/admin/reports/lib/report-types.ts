@@ -20,7 +20,7 @@ export interface AdminUserReport {
   target_type: UserReportTargetType;
   action_taken: string;
   reporter: ReportPerson | null;
-  reported: (ReportPerson & { is_suspended: boolean }) | null;
+  reported: (ReportPerson & { is_suspended: boolean; roles: string[] | null }) | null;
   apartment: { id: string; name: string; is_hidden_by_admin: boolean; hidden_reason: string | null } | null;
 }
 
