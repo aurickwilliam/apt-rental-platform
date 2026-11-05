@@ -148,11 +148,12 @@ test("history cap disclosure counts loaded rows rather than filtered matches", (
   assert.equal(nodes(tree).find((node) => node.type === "MaintenanceHistoryModal").props.limitReached, true);
 });
 
-test("the full-history modal hosts filters, reuses row rendering and handles empty matches and read failures", () => {
-  const modalRoot = Object.assign(() => {}, Object.fromEntries(["Backdrop", "Container", "Dialog", "CloseTrigger", "Header", "Heading", "Body"].map((key) => [key, key])));
-  const HistoryModal = compile("app/tenant/maintenance/components/MaintenanceHistoryModal.tsx", {
+test("the full-history drawer hosts filters, reuses row rendering and handles empty matches and read failures", () => {
+  const drawerRoot = Object.assign(() => {}, Object.fromEntries(["Root", "Backdrop", "Content", "Dialog", "CloseTrigger", "Header", "Heading", "Body"].map((key) => [key, key])));
+  const HistoryDrawer = compile("app/tenant/maintenance/components/MaintenanceHistoryModal.tsx", {
+    react: hookRuntime().react,
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Modal: modalRoot, Button: "Button", Spinner: "Spinner" },
+    "@heroui/react": { Drawer: drawerRoot, Button: "Button", Spinner: "Spinner", useOverlayState: (options) => ({ isOpen: options.isOpen, onOpenChange: options.onOpenChange, setOpen: options.onOpenChange }) },
     "@tabler/icons-react": { IconX: "IconX", IconHistory: "IconHistory" },
     "@repo/utils/maintenance-history": historyFilters,
     "@/app/components/display/EmptyState": { default: "EmptyState" },
@@ -163,24 +164,26 @@ test("the full-history modal hosts filters, reuses row rendering and handles emp
   const closes = [];
   let applied;
   const props = { isOpen: true, onOpenChange: (open) => closes.push(open), requests, filters: historyFilters.emptyHistoryFilters(), onApplyFilters: (next) => { applied = next; }, loading: false, error: null, photoLoading: false, photoError: null, limitReached: true, onRetry: () => { retried = true; }, renderRequest: (request) => jsx("HistoryRow", { request }) };
-  const tree = HistoryModal(props);
+  const tree = HistoryDrawer(props);
   assert.equal(nodes(tree).filter((node) => node.type === "HistoryRow").length, requests.length);
+  const content = nodes(tree).find((node) => node.type === "Content");
+  assert.equal(content.props.placement, "right");
   const close = nodes(tree).find((node) => node.type === "CloseTrigger");
-  assert.equal(close.props.className, "maintenance-modal-close");
+  assert.equal(close.props["aria-label"], "Close maintenance history");
   assert.equal(close.props.children.type, "IconX");
   assert.equal(close.props.children.props.size, 16);
   assert.match(text(tree), /latest 100 requests/);
   assert.match(text(tree), /All resolved and cancelled requests/);
   const filter = nodes(tree).find((node) => node.type === "MaintenanceHistoryFilters");
   assert.equal(filter.props.onApply, props.onApplyFilters);
-  const noMatches = HistoryModal({ ...props, requests: [], filters: { ...props.filters, urgencies: ["high"] } });
+  const noMatches = HistoryDrawer({ ...props, requests: [], filters: { ...props.filters, urgencies: ["high"] } });
   const empty = nodes(noMatches).find((node) => node.type === "EmptyState");
   assert.equal(empty.props.title, "No requests match your filters");
   empty.props.action.props.onPress();
   assert.equal(historyFilters.historyFilterCount(applied), 0);
-  tree.props.onOpenChange(false);
+  tree.props.state.onOpenChange(false);
   assert.deepEqual(closes, [false]);
-  const failed = HistoryModal({ ...props, error: "History unavailable" });
+  const failed = HistoryDrawer({ ...props, error: "History unavailable" });
   assert.equal(nodes(failed).filter((node) => node.type === "HistoryRow").length, 0);
   assert.match(text(failed), /History unavailable/);
   assert.doesNotMatch(text(failed), /No more maintenance requests/);

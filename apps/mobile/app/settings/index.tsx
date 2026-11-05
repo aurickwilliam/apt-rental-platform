@@ -7,7 +7,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
-import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors, useThemePreference } from '@/hooks/useTheme'
@@ -136,12 +136,6 @@ export default function Index() {
           onPress: () => router.push('/landlord/payment-methods'),
           suffix: <IconChevronRight size={16} color={colors.gray500} />,
         }] : []),
-        {
-          icon: IconGlobe,
-          title: 'Language & Region',
-          disabled: true,
-          suffix: <ComingSoonChip />,
-        },
         {
           icon: IconBell,
           title: 'Notifications',

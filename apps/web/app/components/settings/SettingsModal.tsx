@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   IconBell,
   IconCreditCard,
-  IconGlobe,
   IconHelpCircle,
   IconHome,
   IconSettings,
@@ -18,19 +17,17 @@ import { useUser } from "@/hooks/use-user";
 import { useRentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import GeneralTab from "./tabs/GeneralTab";
 import SecurityTab from "./tabs/SecurityTab";
-import LanguageRegionTab from "./tabs/LanguageRegionTab";
 import NotificationsTab from "./tabs/NotificationsTab";
 import HelpTab from "./tabs/HelpTab";
 import RentalPreferencesTab from "./tabs/RentalPreferencesTab";
 import PaymentMethodsTab from "./tabs/PaymentMethodsTab";
 
-type TabId = "general" | "security" | "language" | "notifications" | "help" | "rental" | "payments";
+type TabId = "general" | "security" | "notifications" | "help" | "rental" | "payments";
 
 const TAB_META = [
   { id: "general", label: "General", icon: IconSun },
   { id: "security", label: "Security", icon: IconShieldLock },
   { id: "notifications", label: "Notifications", icon: IconBell },
-  { id: "language", label: "Language & Region", icon: IconGlobe },
   { id: "help", label: "Help & Support", icon: IconHelpCircle },
 ] as const;
 
@@ -205,7 +202,6 @@ export default function SettingsModal({
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
                   {activeId === "security" ? <SecurityTab isAdmin={isAdmin} onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} /> : null}
-                  {activeId === "language" ? <LanguageRegionTab /> : null}
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
                   {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}
                   {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} /> : null}

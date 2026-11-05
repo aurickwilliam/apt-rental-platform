@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { IconAlertCircle, IconChevronDown, IconChevronUp, IconExternalLink, IconHelpCircle } from "@tabler/icons-react";
-import { Accordion, AccordionBody, AccordionIndicator, AccordionItem, AccordionPanel, AccordionTrigger } from "@heroui/react";
+import { IconAlertCircle, IconExternalLink } from "@tabler/icons-react";
 
 import SettingsRow from "../SettingsRow";
 import ComingSoonChip from "../ComingSoonChip";
@@ -55,9 +53,6 @@ export default function HelpTab({
 }: {
   isAdmin?: boolean;
 }) {
-  const [faqsOpen, setFaqsOpen] = useState(false);
-  const ExpandIcon = faqsOpen ? IconChevronUp : IconChevronDown;
-
   return (
     <>
       <h2 className="font-nunito text-lg font-bold text-primary">
@@ -79,40 +74,19 @@ export default function HelpTab({
         </div>
       ) : null}
       {!isAdmin ? (
-        <div className="mt-4">
-          <div className="rounded-xl border border-border overflow-hidden">
-            <SettingsRow
-              icon={<IconHelpCircle size={18} />}
-              title="Frequently Asked Questions"
-              onClick={() => setFaqsOpen((v) => !v)}
-              hideChevron
-              expanded={faqsOpen}
-              controlsId="settings-faq-list"
-              suffix={
-                <ExpandIcon size={16} className="text-muted-foreground flex-shrink-0" aria-hidden="true" />
-              }
-            />
-          </div>
-          {faqsOpen ? (
-            <Accordion id="settings-faq-list" className="mt-3 flex flex-col gap-3">
+        <section aria-labelledby="settings-faq-heading" className="mt-4">
+          <h3 id="settings-faq-heading" className="font-nunito text-base font-bold text-foreground">
+            Frequently Asked Questions
+          </h3>
+          <div className="mt-3 flex flex-col gap-3">
             {faqs.map((faq) => (
-              <AccordionItem key={faq.id} id={String(faq.id)} className="rounded-lg bg-muted/30 px-2 overflow-hidden">
-                <AccordionTrigger className="w-full flex items-center justify-between p-4 text-left font-nunito font-semibold text-base text-foreground">
-                  <span className="pr-4">
-                    {faq.question}
-                  </span>
-                  <AccordionIndicator className="text-muted-foreground flex-shrink-0" />
-                </AccordionTrigger>
-                <AccordionPanel>
-                  <AccordionBody className="px-4 pb-4">
-                    <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
-                  </AccordionBody>
-                </AccordionPanel>
-              </AccordionItem>
+              <article key={faq.id} className="rounded-xl bg-muted/30 p-4">
+                <p className="font-nunito text-base font-semibold text-foreground">{faq.question}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>
+              </article>
             ))}
-            </Accordion>
-          ) : null}
-        </div>
+          </div>
+        </section>
       ) : null}
       <div className="mt-4 space-y-3">
         <Link
