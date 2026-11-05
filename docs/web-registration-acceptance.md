@@ -32,7 +32,11 @@ contact details, rooted in the active scroll panel; loading/error fallbacks and
 hidden/inert tabs cannot unlock it, and cleanup rejects queued callbacks after
 tab changes or dismissal. It disconnects after completion instead of updating
 React on every scroll. The footer announces when the checkbox is available;
-the form explains each locked checkbox through its accessible description.
+the form shows one shared instruction below both compact rows while either
+policy is locked: “Open each policy and scroll to the end to enable its checkbox.”
+Each locked checkbox references that instruction as its accessible description. The
+20px checkbox layout slot keeps its original 8px label gap; its 44px hit area
+extends outside that slot without widening or separating the rows.
 Completion is in memory, keyed by document revision, and survives reopening
 within the same form only. Refresh starts over. Keyboard scrolling is supported;
 if the entire document fits, its visible end qualifies without artificial scrolling.

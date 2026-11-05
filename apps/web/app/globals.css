@@ -409,9 +409,17 @@
   }
 }
 
+.registration-policy-checks .checkbox {
+  flex-shrink: 0;
+  width: 20px;
+}
 .registration-policy-checks .checkbox__content {
+  /* Grow the hit area, not the layout slot or the gap beside the label. */
   min-width: 44px;
   min-height: 44px;
+  margin-inline: -12px;
+  margin-block: -4px 0;
+  justify-content: center;
 }
 .registration-policy-checks .checkbox__control {
   width: 20px;

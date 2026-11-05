@@ -56,6 +56,20 @@ try {
     assert.equal(await button.isDisabled(), true);
     assert.equal(await privacy.isChecked(), false); assert.equal(await terms.isChecked(), false);
     assert.equal(await privacy.isDisabled(), true); assert.equal(await terms.isDisabled(), true);
+    const geometry = await form.locator(".registration-policy-checks").evaluate(element => {
+      const controls = [...element.querySelectorAll('[data-slot="checkbox-control"]')].map(node => node.getBoundingClientRect());
+      const labels = [...element.querySelectorAll('span[id$="-label"]')].map(node => node.getBoundingClientRect());
+      return controls.map((control, index) => ({
+        gap: labels[index].left - control.right,
+        centerOffset: Math.abs(labels[index].top + labels[index].height / 2 - control.top - control.height / 2),
+        rowOffset: controls[index].top - controls[0].top,
+      }));
+    });
+    for (const row of geometry) {
+      assert.ok(Math.abs(row.gap - 8) < 1, "checkbox-to-label gap stays at the original 8px");
+      assert.ok(row.centerOffset <= 2, "checkbox and label stay vertically aligned");
+    }
+    assert.ok(Math.abs(geometry[1].rowOffset - 40) < 1, "hidden instructions do not add row spacing");
     await form.locator("label").filter({ hasText: "I have read and agree to the" }).first().click({ force: true });
     assert.equal(await privacy.isChecked(), false, "the label cannot bypass the reading gate");
     await form.getByRole("button", { name: "Privacy Policy", exact: true }).click();

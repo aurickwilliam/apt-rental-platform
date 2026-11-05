@@ -14,6 +14,7 @@ interface RegistrationPolicyAcceptanceProps {
 
 export default function RegistrationPolicyAcceptance({ value, onChange, errors = {}, isDisabled = false }: RegistrationPolicyAcceptanceProps) {
   const id = useId();
+  const hintId = `${id}-reading-hint`;
   const [openPolicy, setOpenPolicy] = useState<RegistrationPolicy | null>(null);
   const [readVersions, setReadVersions] = useState<Partial<Record<RegistrationPolicy, string>>>({});
   const onRead = useCallback((policy: RegistrationPolicy) => {
@@ -32,7 +33,6 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
           const errorId = `${id}-${policy}-error`;
           const labelId = `${id}-${policy}-label`;
           const info = REGISTRATION_POLICIES[policy];
-          const hintId = `${id}-${policy}-hint`;
           return (
             <div key={policy} className="space-y-1">
               <div className="flex items-start gap-2">
@@ -62,12 +62,12 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                   </Button>.
                 </span>
               </div>
-              {!reviewed[policy] ? <p id={hintId} className="text-xs leading-5 text-muted-foreground">Open and scroll to the end of the {info.label} to enable acceptance.</p> : null}
               {errors[field] ? <p id={errorId} role="alert" className="text-sm text-danger">{errors[field]}</p> : null}
             </div>
           );
         })}
       </div>
+      {!reviewed.privacy || !reviewed.terms ? <p id={hintId} className="text-xs leading-5 text-muted-foreground">Open each policy and scroll to the end to enable its checkbox.</p> : null}
       <input type="hidden" name="privacyAccepted" value={String(value.privacyAccepted)} />
       <input type="hidden" name="termsAccepted" value={String(value.termsAccepted)} />
       <input type="hidden" name="privacyVersion" value={value.privacyVersion} />
