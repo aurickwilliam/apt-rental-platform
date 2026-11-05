@@ -13,6 +13,14 @@ fallback. The separately supported desktop wizard retains its explicit ID
 upload controls and its existing phone-handoff action; this change does not
 turn all verification workflows into a server-enforced camera-only policy.
 
+While the camera is live, the page offers an optional **Mirror** choice unless
+the active track reports a rear-facing camera. It starts off and controls both
+the live video preview and the captured frame, so what is seen is what is
+captured. Front cameras, laptop webcams and tracks that do not report a facing
+mode can be mirrored, including a webcam used for an ID step; a confirmed rear
+camera cannot. Toggling and retaking reset the choice for the next camera
+session.
+
 ## Permission and failure handling
 
 - Permission denial gives browser-specific site-permission guidance, including
@@ -90,7 +98,9 @@ omit the return link; the normal profile/mobile verification flow still works.
 The network-isolated browser fixture in
 `apps/web/tests/profile-verification/camera.browser.mjs` uses Chromium synthetic
 camera frames and in-memory storage/action fixtures. It exercises camera
-failures and retry, successful captures, no gallery/paste/drop inputs, retake,
+failures and retry, successful captures, webcam mirroring of both the live
+preview and saved frame, its reset on retake, confirmed-rear-camera exclusion,
+no gallery/paste/drop inputs, retake,
 Back, previews/progress, Passport's exception, explicit confirmation,
 incomplete confirmation, expiry and stream cleanup. See that directory's
 README for commands. Error wording and no-input checks also run in the normal
@@ -100,8 +110,10 @@ ownership, expiry and single-use submission separately.
 Before release, test physical Android Chrome and iPhone Safari: first permission
 prompt, permanent denial and re-enabling permissions, rear/front lens choice,
 rotation, backgrounding/return, camera interruption, expiry during capture,
-retake, readable ID photos and the complete private upload/review path using
-isolated test accounts. Browser emulation cannot establish real-camera quality,
+retake, Mirror on/off preview and saved-frame agreement, readable ID photos
+and the complete private upload/review path using
+isolated test accounts. Also test a laptop webcam falling back during an ID
+step. Browser emulation cannot establish real-camera quality,
 iOS permission behavior or any identity/liveness assurance.
 
 `responsive.browser.mjs` additionally checks 320, 375, 393, 430, 768 and 1280px

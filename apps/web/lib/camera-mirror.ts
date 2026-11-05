@@ -1,15 +1,15 @@
-// Mirror decision for the verification camera capture. Pure so it stays
+// Mirror decision for verification camera captures. Pure so it stays
 // node-tested; CameraCapture owns the toggle state and preview.
 //
-// The live <video> preview is never transformed, and the capture mirrors the
-// raw front-camera frame by default (the selfie step with a held ID). Some
-// front cameras/browser stacks already capture unmirrored, so the selfie step
-// offers "Unmirror capture" to save the exactly-as-seen frame; ID steps
-// (back camera) are never flipped either way.
+// Only a front camera or webcam may be mirrored. A confirmed rear camera is
+// never mirrored. Browsers can fall back to a laptop webcam even when the rear
+// camera was requested, so the actual track's facing mode decides eligibility;
+// an unreported mode is treated as a webcam rather than excluding that laptop.
 
-export type CameraFacing = "environment" | "user";
+export function canMirrorCamera(facingMode?: string): boolean {
+  return facingMode !== "environment";
+}
 
-export function shouldMirrorCapture(facing: CameraFacing, unmirror?: boolean): boolean {
-  if (facing !== "user") return false;
-  return !unmirror;
+export function shouldMirrorCapture(canMirror: boolean, mirror: boolean): boolean {
+  return canMirror && mirror;
 }

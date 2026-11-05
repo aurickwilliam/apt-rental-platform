@@ -45,6 +45,22 @@ try {
       if (window.fixtureCameraMode === "playFailure") return Promise.reject(new DOMException("Synthetic play failure", "NotReadableError"));
       return realPlay.call(this);
     };
+    const realCanvasDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+      window.fixtureCanvasTransforms ??= [];
+      window.fixtureCanvasTransforms.push([this._translateX || 0, this._scaleX || 1]);
+      return realCanvasDrawImage.apply(this, args);
+    };
+    const realTranslate = CanvasRenderingContext2D.prototype.translate;
+    CanvasRenderingContext2D.prototype.translate = function (x, ...args) {
+      this._translateX = (this._translateX || 0) + x;
+      return realTranslate.call(this, x, ...args);
+    };
+    const realScale = CanvasRenderingContext2D.prototype.scale;
+    CanvasRenderingContext2D.prototype.scale = function (x, y) {
+      this._scaleX = (this._scaleX || 1) * x;
+      return realScale.call(this, x, y);
+    };
     const realToBlob = HTMLCanvasElement.prototype.toBlob;
     HTMLCanvasElement.prototype.toBlob = function (callback, ...args) {
       if (window.fixtureCameraMode === "nullBlob") { callback(null); return; }
@@ -72,6 +88,8 @@ try {
     await button("Enable camera").click();
     await button("Capture").waitFor();
   };
+  const mirrorControl = () => page.getByRole("switch", { name: "Mirror", exact: true });
+  const previewTransform = () => page.evaluate(() => getComputedStyle(document.querySelector('video[aria-label="Camera preview"]')).transform);
   const capture = async () => { await enable(); await button("Capture").click(); };
   const allStopped = () => page.waitForFunction(() => window.fixtureStreams.every(stream => stream.getTracks().every(track => track.readyState === "ended")));
 
@@ -93,21 +111,35 @@ try {
   await page.evaluate(() => { window.fixtureCameraMode = null; });
   await button("Try camera again").click();
   await button("Capture").waitFor();
+  // The fake stream reports no facing mode, so it behaves like a laptop webcam
+  // and the Mirror control remains available even on an ID step.
+  assert.equal(await mirrorControl().count(), 1);
+  assert.equal(await mirrorControl().getAttribute("aria-checked"), "false");
+  assert.equal(await previewTransform(), "none");
+  await mirrorControl().click();
+  assert.equal(await mirrorControl().getAttribute("aria-checked"), "true");
+  assert.equal(await previewTransform(), "matrix(-1, 0, 0, 1, 0, 0)");
   await button("Capture").click();
+  assert.deepEqual(await page.evaluate(() => window.fixtureCanvasTransforms.at(-1)), [640, -1]);
   await page.getByText("Flip your ID over and capture the back.", { exact: true }).waitFor();
   await allStopped();
   await noGallery();
   await capture();
   await page.getByText("Hold your ID beside your face with your full face visible.", { exact: true }).waitFor();
   await noGallery();
-  await capture();
+  await enable();
+  // A new camera session resets the control before the selfie is captured.
+  assert.equal(await mirrorControl().getAttribute("aria-checked"), "false");
+  assert.equal(await previewTransform(), "none");
+  await button("Capture").click();
+  assert.deepEqual(await page.evaluate(() => window.fixtureCanvasTransforms.at(-1)), [0, 1]);
   await page.getByRole("heading", { name: "Review your submission", exact: true }).waitFor();
   assert.equal(await page.locator('img[alt$="preview"]').count(), 3);
   assert.equal(await page.getByRole("progressbar").getAttribute("aria-valuenow"), "6");
   await allStopped();
   assert.deepEqual(await page.evaluate(() => window.fixtureMediaRequests.map(request => request.video.facingMode.ideal)), ["environment", "environment", "environment", "user"]);
   assert.equal(await page.evaluate(() => window.fixtureUploads?.length || 0), 0);
-  console.log("PASS denied permission → retry → live front/back/selfie captures; progress, previews, lens preferences, stopped tracks and no gallery inputs");
+  console.log("PASS denied permission → retry → live front/back/selfie captures; webcam mirror preview + capture + session reset, progress, previews, lens preferences, stopped tracks and no gallery inputs");
 
   await page.getByRole("button", { name: /^Retake / }).first().click();
   await button("Enable camera").waitFor();
@@ -159,6 +191,14 @@ try {
 
   await front();
   await enable();
+  // Report a confirmed rear camera: the control must disappear and capture
+  // could not mirror even if a stale mirror state survived.
+  await page.evaluate(() => {
+    const stream = window.fixtureStreams.at(-1);
+    const track = stream.getVideoTracks()[0];
+    track.getSettings = () => ({ ...track.getSettings(), facingMode: "environment" });
+  });
+  await page.waitForFunction(() => document.querySelectorAll('button[role="switch"]').length === 0);
   await page.evaluate(() => window.fixtureStreams[0].getVideoTracks()[0].dispatchEvent(new Event("ended")));
   assert.match(await page.getByRole("alert").innerText(), /camera stopped/);
   await allStopped();

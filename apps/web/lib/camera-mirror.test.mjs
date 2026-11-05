@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { shouldMirrorCapture } from "./camera-mirror.ts";
+import { canMirrorCamera, shouldMirrorCapture } from "./camera-mirror.ts";
 
-test("the back camera (ID steps) is never mirrored", () => {
-  assert.equal(shouldMirrorCapture("environment", undefined), false);
-  assert.equal(shouldMirrorCapture("environment", true), false);
-  assert.equal(shouldMirrorCapture("environment", false), false);
+test("a confirmed rear camera cannot be mirrored", () => {
+  assert.equal(canMirrorCamera("environment"), false);
+  assert.equal(shouldMirrorCapture(canMirrorCamera("environment"), true), false);
+  assert.equal(shouldMirrorCapture(canMirrorCamera("environment"), false), false);
 });
 
-test("the front camera mirrors by default and honors the unmirror toggle", () => {
-  assert.equal(shouldMirrorCapture("user", undefined), true);
-  assert.equal(shouldMirrorCapture("user", false), true);
-  assert.equal(shouldMirrorCapture("user", true), false);
+test("front cameras and webcams can opt into mirroring", () => {
+  for (const facingMode of ["user", "left", "right", undefined]) {
+    assert.equal(canMirrorCamera(facingMode), true);
+    assert.equal(shouldMirrorCapture(canMirrorCamera(facingMode), true), true);
+  }
+});
+
+test("mirror remains off until explicitly enabled", () => {
+  assert.equal(shouldMirrorCapture(true, false), false);
+  assert.equal(shouldMirrorCapture(false, false), false);
 });
