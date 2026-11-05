@@ -1,6 +1,11 @@
 import { View, Text } from "react-native";
 
-import { PH_MOBILE_MAX_INPUT_LENGTH, PROVINCES, GENDERS, SUFFIXES } from "@repo/constants";
+import {
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  PROVINCES,
+  GENDERS,
+  SUFFIXES,
+} from "@repo/constants";
 import { fromBirthDateValue, toBirthDateValue } from "@repo/utils";
 
 import { Input, Label, TextField, FieldError, Separator } from "heroui-native";
@@ -18,7 +23,10 @@ interface ProfileDetailsFieldsProps {
 // the sign-up and finish-profile screens. Render it inside the screen's
 // `flex gap-4` column; the form state and validation come from
 // useProfileDetailsForm.
-export default function ProfileDetailsFields({ form, email }: ProfileDetailsFieldsProps) {
+export default function ProfileDetailsFields({
+  form,
+  email,
+}: ProfileDetailsFieldsProps) {
   const { values, getError } = form;
 
   return (
@@ -42,7 +50,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
             value={values.firstName}
             onChangeText={(value) => form.setField("firstName", value)}
           />
-          {getError("firstName") && <FieldError>{getError("firstName")}</FieldError>}
+          {getError("firstName") && (
+            <FieldError>{getError("firstName")}</FieldError>
+          )}
         </TextField>
       </View>
 
@@ -54,7 +64,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
             value={values.lastName}
             onChangeText={(value) => form.setField("lastName", value)}
           />
-          {getError("lastName") && <FieldError>{getError("lastName")}</FieldError>}
+          {getError("lastName") && (
+            <FieldError>{getError("lastName")}</FieldError>
+          )}
         </TextField>
       </View>
 
@@ -95,7 +107,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
           placeholder="Select your date of birth"
           required
           value={fromBirthDateValue(values.birthDate)}
-          onChange={(date) => form.setField("birthDate", toBirthDateValue(date))}
+          onChange={(date) =>
+            form.setField("birthDate", toBirthDateValue(date))
+          }
           error={getError("birthDate")}
         />
       </View>
@@ -110,7 +124,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
             value={form.mobile.value}
             onChangeText={form.mobile.onChange}
           />
-          {form.mobile.errorMessage && <FieldError>{form.mobile.errorMessage}</FieldError>}
+          {form.mobile.errorMessage && (
+            <FieldError>{form.mobile.errorMessage}</FieldError>
+          )}
         </TextField>
       </View>
 
@@ -176,7 +192,9 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
             value={values.streetAddress}
             onChangeText={(value) => form.setField("streetAddress", value)}
           />
-          {getError("streetAddress") && <FieldError>{getError("streetAddress")}</FieldError>}
+          {getError("streetAddress") && (
+            <FieldError>{getError("streetAddress")}</FieldError>
+          )}
         </TextField>
       </View>
 
@@ -193,7 +211,7 @@ export default function ProfileDetailsFields({ form, email }: ProfileDetailsFiel
           />
           {form.postal.error && <FieldError>{form.postal.error}</FieldError>}
           {!form.postal.error && form.postal.warning && (
-            <Text className="text-xs text-warning-text">{form.postal.warning}</Text>
+            <Text className="text-xs text-muted">{form.postal.warning}</Text>
           )}
         </TextField>
       </View>
