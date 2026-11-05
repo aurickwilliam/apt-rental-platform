@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, checkAuthThrottle, clearAuthThrottle, getEmailCodeRequestError, getOtpAttemptError, isInvalidOtpError, parseResendWaitSeconds, recordAuthFailure } from "@repo/utils";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
 
@@ -58,16 +58,28 @@ export function useConfirmEmail(email: string) {
     setLoading(true);
     setOtpError(null);
     try {
-      const { data, error } = await createClient().auth.verifyOtp({
+      const client = createClient();
+      if ((await checkAuthThrottle(client, "signup_otp", email)) > 0) {
+        setOtpError(AUTH_THROTTLE_MESSAGE);
+        setOtp("");
+        return;
+      }
+      const { data, error } = await client.auth.verifyOtp({
         email: email.trim(),
         token: otp,
         type: "signup",
       });
       if (error || !data.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        if (isInvalidOtpError(error)) {
+          const blockedFor = await recordAuthFailure(client, "signup_otp", email);
+          setOtpError(blockedFor > 0 ? AUTH_THROTTLE_MESSAGE : getOtpAttemptError(attempts.recordWrongCode()));
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
+      await clearAuthThrottle(client, "signup_otp", email);
       // Full navigation: the new session cookies must reach the server.
       window.location.assign(FINISH_PROFILE_PATH);
     } catch {

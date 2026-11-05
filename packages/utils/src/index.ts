@@ -50,6 +50,15 @@ export * from './landlordPayments';
 export { filterPaymentHistory } from './paymentHistory';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
+export {
+  AUTH_THROTTLE_MESSAGE,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isAuthRateLimitError,
+  isInvalidOtpError,
+  recordAuthFailure,
+} from './authThrottle';
+export type { AuthThrottleClient, AuthThrottlePurpose } from './authThrottle';
 export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
 export {
   MINIMUM_AGE,

@@ -22,6 +22,11 @@ import {
   getOtpAttemptError,
   getProfileSubmitError,
   parseResendWaitSeconds,
+  AUTH_THROTTLE_MESSAGE,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isInvalidOtpError,
+  recordAuthFailure,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
@@ -138,13 +143,26 @@ export default function OTPVerification() {
     let emailVerified = false
 
     try {
+      // Persistent guess limit per email (database), so restarting the app
+      // does not give a fresh set of attempts.
+      const throttleEmail = emailValue || data.email!
+      if ((await checkAuthThrottle(supabase, 'signup_otp', throttleEmail)) > 0) {
+        clearOtp()
+        setOtpLocked(true)
+        setOtpError(AUTH_THROTTLE_MESSAGE)
+        return
+      }
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
         token: otp,
         type: 'signup',
       })
 
-      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
+      if (verifyError || !authData.user) {
+        if (isInvalidOtpError(verifyError)) await recordAuthFailure(supabase, 'signup_otp', throttleEmail)
+        throw verifyError ?? new Error('Verification failed')
+      }
+      await clearAuthThrottle(supabase, 'signup_otp', throttleEmail)
       emailVerified = true
 
       if (isConfirmMode) {
@@ -199,6 +217,7 @@ export default function OTPVerification() {
       // incorrect-or-expired code; the resend link only appears after its
       // countdown, never because of this error.
       const isInvalidOtp =
+        isInvalidOtpError(err) ||
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
         msg.includes('invalid_otp') ||

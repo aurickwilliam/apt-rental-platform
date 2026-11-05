@@ -8,6 +8,8 @@ const mockVerifyOtp = jest.fn();
 const mockResend = jest.fn();
 const mockSignOut = jest.fn();
 const mockRpc = jest.fn();
+// Throttle checks also go through rpc; registration assertions ignore them.
+const registrationCalls = () => mockRpc.mock.calls.filter(([name]) => name !== 'auth_throttle');
 const mockReplace = jest.fn();
 const mockSwitchTo = jest.fn();
 const mockMissing = jest.fn();
@@ -92,7 +94,7 @@ it("does not let a different email consume the staged acceptance", async () => {
   render(<OTPVerification />);
   await verify();
   expect(mockVerifyOtp).not.toHaveBeenCalled();
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });
 
 it("retains the selections on a wrong code and on resend", async () => {
@@ -104,7 +106,7 @@ it("retains the selections on a wrong code and on resend", async () => {
   await waitFor(() => expect(mockResend).toHaveBeenCalledWith({ type: "signup", email: "a@example.test" }));
   expect(useRegistrationStore.getState().data.acceptance).toEqual(acceptance);
   expect(mockSignOut).not.toHaveBeenCalled();
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });
 
 it("signs out a verified session on stale acceptance, with inline recovery instructions and no portal entry", async () => {
@@ -125,5 +127,5 @@ it("preserves confirm-email recovery without requiring nonexistent signup data",
   render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/finish-profile"));
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });

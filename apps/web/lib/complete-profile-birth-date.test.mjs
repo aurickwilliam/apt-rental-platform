@@ -846,7 +846,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
             },
           }),
         },
-        "@repo/utils": { getOtpAttemptError: () => "wrong code" },
+        "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
         "@/lib/registration-policies": policyRules,
         "../../actions/sign-up": {
           signUp: async () =>

@@ -43,7 +43,14 @@ import {
 
 import { profileMissingRoute } from "@/service/auth/profileMissingService";
 
-import { isValidEmail } from "@repo/utils";
+import {
+  AUTH_THROTTLE_MESSAGE,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isAuthRateLimitError,
+  isValidEmail,
+  recordAuthFailure,
+} from "@repo/utils";
 
 export default function SignIn() {
   const router = useRouter();
@@ -123,15 +130,23 @@ export default function SignIn() {
     try {
       // Attempt to sign in with Supabase
       // Using email and password
+      // Persistent per-email failure window (database), on top of Supabase's
+      // own limits; the message never says whether the account exists.
+      if ((await checkAuthThrottle(supabase, "signin_email", email)) > 0) {
+        setError(AUTH_THROTTLE_MESSAGE);
+        return;
+      }
       const { data: authData, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
+      if (!signInError) await clearAuthThrottle(supabase, "signin_email", email);
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
-        if (signInError.message === "Invalid login credentials") {
+        if (signInError.code === "invalid_credentials" || signInError.message === "Invalid login credentials") {
+          await recordAuthFailure(supabase, "signin_email", email);
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           // Sign-up was left before the email code was entered: send a fresh
@@ -142,7 +157,7 @@ export default function SignIn() {
             pathname: "/(auth)/otp-verification",
             params: { email: email.trim().toLowerCase(), mode: "confirm" },
           });
-        } else if (signInError.message.includes("rate limit")) {
+        } else if (isAuthRateLimitError(signInError)) {
           setError("Too many sign-in attempts. Please try again later.");
         } else {
           setError(signInError.message);

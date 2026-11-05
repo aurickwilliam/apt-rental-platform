@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { getOtpAttemptError } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, checkAuthThrottle, clearAuthThrottle, getOtpAttemptError, isInvalidOtpError, recordAuthFailure } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { SignUpFormData } from "../types";
@@ -100,6 +100,12 @@ export function useOtpFlow({
     setOtpError(null);
 
     try {
+      // Persistent guess limit per email: a refresh does not reset it.
+      if ((await checkAuthThrottle(supabase, "signup_otp", data.email)) > 0) {
+        setOtpError(AUTH_THROTTLE_MESSAGE);
+        setOtp("");
+        return;
+      }
       const { data: session, error: otpError } = await supabase.auth.verifyOtp({
         email: data.email,
         token: otpRef.current,
@@ -107,10 +113,16 @@ export function useOtpFlow({
       });
 
       if (otpError || !session.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        if (isInvalidOtpError(otpError)) {
+          const blockedFor = await recordAuthFailure(supabase, "signup_otp", data.email);
+          setOtpError(blockedFor > 0 ? AUTH_THROTTLE_MESSAGE : getOtpAttemptError(attempts.recordWrongCode()));
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
+      await clearAuthThrottle(supabase, "signup_otp", data.email);
 
       const fd = new FormData();
       fd.set("userId", session.user.id);
