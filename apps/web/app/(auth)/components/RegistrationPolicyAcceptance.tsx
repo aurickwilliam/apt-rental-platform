@@ -37,7 +37,7 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
                   isRequired
                   validationBehavior="aria"
                 >
-                  <Checkbox.Content className="min-h-10 min-w-11 items-center justify-center">
+                  <Checkbox.Content className="min-h-10 items-center justify-start">
                     <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
                   </Checkbox.Content>
                 </Checkbox>
