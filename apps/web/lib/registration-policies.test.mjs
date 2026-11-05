@@ -13,6 +13,7 @@ import { terms, privacy } from "./test-support/legal-policy-runtime.mjs";
 const accepted = { ...policies.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 const virtualJsx = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
 const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[value.props?.children].flat(Infinity).flatMap(nodes)];
+const policyIcons = { IconInfoCircle: "IconInfoCircle", IconAlertTriangle: "IconAlertTriangle" };
 
 test("acceptance is explicit and versioned, never truthy strings, metadata or a default", () => {
   assert.equal(policies.emptyRegistrationAcceptance().termsAccepted, false);
@@ -29,6 +30,7 @@ test("acceptance is explicit and versioned, never truthy strings, metadata or a 
 test("installed HeroUI renders required checkboxes and non-submitting policy dialog buttons", () => {
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: React, "react/jsx-runtime": jsx, "@heroui/react": HeroUI,
+    "@tabler/icons-react": { IconInfoCircle: () => null, IconAlertTriangle: () => null },
     "./RegistrationPoliciesModal": { default: () => null, preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
   }).default;
   const html = renderToStaticMarkup(jsx.jsx(Component, { value: policies.emptyRegistrationAcceptance(), onChange() {}, errors: policies.validateRegistrationAcceptance(policies.emptyRegistrationAcceptance()) }));
@@ -39,7 +41,7 @@ test("installed HeroUI renders required checkboxes and non-submitting policy dia
     assert.ok(html.includes(policy.label));
   }
   assert.equal((html.match(/aria-haspopup="dialog"/g) ?? []).length, 2);
-  assert.equal((html.match(/type="button"/g) ?? []).length, 2);
+  assert.equal((html.match(/type="button"/g) ?? []).length, 4);
   assert.doesNotMatch(html, /target="_blank"|href="\/(pap|tos)"/);
   assert.equal((html.match(/role="alert"/g) ?? []).length, 2);
   assert.match(html, /text-muted-foreground/);
@@ -57,18 +59,19 @@ test("policy reading opens the requested tab and closes without changing explici
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: { ...runtime.react, useId: () => "acceptance-test" }, "react/jsx-runtime": virtualJsx,
     "@heroui/react": { Button: "Button", Checkbox: Object.assign(() => {}, { Content: "Checkbox.Content", Control: "Checkbox.Control", Indicator: "Checkbox.Indicator" }) },
+    "@tabler/icons-react": policyIcons,
     "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal", preloadRegistrationPolicyContent: () => preloads.push(true) }, "@/lib/registration-policies": policies,
   }).default;
   const render = () => runtime.render(() => Component({ value: accepted, onChange: value => changes.push(value) }));
   const modal = () => nodes(render()).find(node => node.type === "RegistrationPoliciesModal");
   assert.equal(modal().props.policy, null);
-  const trigger = nodes(render()).find(node => node.type === "Button");
+  const trigger = nodes(render()).find(node => node.type === "Button" && node.props["aria-haspopup"]);
   trigger.props.onHoverStart(); trigger.props.onFocus();
   assert.equal(preloads.length, 2);
   assert.equal(modal().props.policy, null);
   assert.deepEqual(changes, []);
   for (const [index, policy] of ["privacy", "terms"].entries()) {
-    nodes(render()).filter(node => node.type === "Button")[index].props.onPress();
+    nodes(render()).filter(node => node.type === "Button" && node.props["aria-haspopup"])[index].props.onPress();
     assert.equal(modal().props.policy, policy);
     modal().props.onPolicyChange(policy === "privacy" ? "terms" : "privacy");
     assert.equal(modal().props.policy, policy === "privacy" ? "terms" : "privacy");
@@ -88,6 +91,7 @@ test("each checkbox stays locked until its own current policy is reviewed, and r
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: { ...runtime.react, useId: () => "read-gate" }, "react/jsx-runtime": virtualJsx,
     "@heroui/react": { Button: "Button", Checkbox },
+    "@tabler/icons-react": policyIcons,
     "./RegistrationPoliciesModal": { default: "Modal", preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
   }).default;
   const render = () => nodes(runtime.render(() => Component({ value, isDisabled, onChange: next => { value = next; changes.push(next); } })));
@@ -96,10 +100,26 @@ test("each checkbox stays locked until its own current policy is reviewed, and r
   assert.ok(checks().every(node => node.props.isDisabled));
   const hint = () => render().filter(node => node.props?.id === "read-gate-reading-hint");
   assert.equal(hint().length, 1, "both checkboxes share one visible instruction");
-  assert.equal(hint()[0].props.children, "Open each policy and scroll to the end to enable its checkbox.");
+  assert.ok(nodes(hint()[0]).some(node => node.props?.children === "Open each policy and scroll to the end to enable its checkbox."));
+  assert.equal(hint()[0].type, "p", "instruction is plain text without an alert container");
+  assert.match(hint()[0].props.className, /text-xs/);
   assert.ok(checks().every(node => node.props["aria-describedby"] === "read-gate-reading-hint"));
   checks()[0].props.onChange(true);
   assert.equal(changes.length, 0, "the handler also rejects a locked selection");
+  const lockedButtons = () => render().filter(node => node.props?.className === "registration-policy-locked-trigger");
+  lockedButtons()[0].props.onPress();
+  const warning = () => render().find(node => node.props?.id === "read-gate-reading-warning");
+  assert.equal(warning().props.role, "alert");
+  assert.equal(warning().type, "p", "warning has no panel or review button");
+  assert.doesNotMatch(warning().props.className, /pl-7/, "warning stays aligned with the checkbox, not indented beneath its label");
+  const warningIcon = nodes(warning()).find(node => node.type === "IconAlertTriangle");
+  assert.ok(warningIcon.props.className.includes("text-[#92400E] dark:text-[#FDE047]"));
+  assert.equal(nodes(warning()).some(node => node.type === "Button"), false);
+  assert.ok(JSON.stringify(warning()).includes("Privacy Policy"));
+  assert.equal(changes.length, 0, "an attempted click warns but never accepts");
+  lockedButtons()[1].props.onPress();
+  assert.ok(JSON.stringify(warning()).includes("Terms and Conditions"));
+  assert.ok(!JSON.stringify(warning()).includes("Privacy Policy"));
   modal().props.onRead("privacy");
   assert.equal(changes.length, 0);
   assert.equal(checks()[0].props.isDisabled, false);
@@ -111,6 +131,7 @@ test("each checkbox stays locked until its own current policy is reviewed, and r
   modal().props.onClose();
   assert.equal(checks()[0].props.isDisabled, false, "reopening retains completion within the form");
   modal().props.onRead("terms");
+  assert.equal(warning(), undefined, "reviewing the requested policy clears the warning");
   assert.equal(hint().length, 0, "the instruction disappears when both policies are unlocked");
   checks()[1].props.onChange(true);
   assert.equal(value.termsAccepted, true);
@@ -123,6 +144,10 @@ test("each checkbox stays locked until its own current policy is reviewed, and r
   isDisabled = false;
   value = { ...value, privacyVersion: "another-version" };
   assert.equal(checks()[0].props.isDisabled, true, "completion never carries to another revision");
+  isDisabled = true;
+  assert.equal(lockedButtons()[0].props.isDisabled, true);
+  lockedButtons()[0].props.onPress();
+  assert.equal(warning(), undefined, "pending forms do not respond to locked-checkbox attempts");
 });
 
 function formHarness(kind, server = {}, props = {}) {

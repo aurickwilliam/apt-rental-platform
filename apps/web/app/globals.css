@@ -409,6 +409,31 @@
   }
 }
 
+.registration-policy-control-slot {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+}
+.registration-policy-checks .registration-policy-locked-trigger {
+  position: absolute;
+  inset-inline-start: -12px;
+  top: -4px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+.registration-policy-checks .registration-policy-locked-trigger:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.registration-policy-checks .registration-policy-locked-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .registration-policy-checks .checkbox {
   flex-shrink: 0;
   width: 20px;

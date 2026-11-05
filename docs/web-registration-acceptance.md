@@ -32,9 +32,18 @@ contact details, rooted in the active scroll panel; loading/error fallbacks and
 hidden/inert tabs cannot unlock it, and cleanup rejects queued callbacks after
 tab changes or dismissal. It disconnects after completion instead of updating
 React on every scroll. The footer announces when the checkbox is available;
-the form shows one shared instruction below both compact rows while either
-policy is locked: “Open each policy and scroll to the end to enable its checkbox.”
-Each locked checkbox references that instruction as its accessible description. The
+the form shows one shared 12px instruction with a small info icon below both
+compact rows while either policy is locked, without a panel, border, background
+or heading. Each locked checkbox references it as
+its accessible description. An accessible HeroUI button covers the locked
+checkbox's existing hit area while the checkbox itself stays natively disabled.
+Pointer/keyboard activation of that button, or a click on the introductory label,
+shows one inline, announced 12px warning with a small warning icon directly below
+that policy's acceptance row, never acceptance or a submission. The warning has
+no panel or Review policy button; the existing policy-name link opens the document.
+Pending submissions disable this warning entry point too.
+Warnings disappear when their policy is reviewed; the notice disappears when
+both are reviewed. Policy-name links still open directly without a warning. The
 20px checkbox layout slot keeps its original 8px label gap; its 44px hit area
 extends outside that slot without widening or separating the rows.
 Completion is in memory, keyed by document revision, and survives reopening

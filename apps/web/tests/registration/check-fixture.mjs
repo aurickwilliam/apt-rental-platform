@@ -70,12 +70,30 @@ try {
       assert.ok(row.centerOffset <= 2, "checkbox and label stay vertically aligned");
     }
     assert.ok(Math.abs(geometry[1].rowOffset - 40) < 1, "hidden instructions do not add row spacing");
+    const notice = form.getByRole("note");
+    assert.equal(await notice.innerText(), "Open each policy and scroll to the end to enable its checkbox.");
+    assert.ok(await notice.evaluate(element => element.tagName === "P" && getComputedStyle(element).fontSize === "12px" && getComputedStyle(element).borderTopWidth === "0px"), "instruction is compact text without a panel");
+    const lockedPrivacy = form.getByRole("button", { name: "Review required before accepting the Privacy Policy", exact: true });
+    await lockedPrivacy.focus();
+    await page.keyboard.press("Enter");
+    assert.ok((await form.getByRole("alert").innerText()).includes("Please open the Privacy Policy"));
+    assert.ok(await form.getByRole("alert").evaluate(element => element.parentElement.querySelector('span[id$="-label"] > label').htmlFor.includes("privacy")), "warning appears directly under its policy row");
+    assert.ok(await form.getByRole("alert").evaluate(element => Math.abs(element.querySelector("svg").getBoundingClientRect().left - element.parentElement.querySelector('[data-slot="checkbox-control"]').getBoundingClientRect().left) < 1), "warning icon aligns with the checkbox's left edge");
+    assert.equal(await form.getByRole("button", { name: "Review policy", exact: true }).count(), 0);
+    assert.equal(await privacy.isChecked(), false, "keyboard attempts warn without accepting");
+    await form.getByRole("button", { name: "Review required before accepting the Terms and Conditions", exact: true }).click();
+    assert.ok((await form.getByRole("alert").innerText()).includes("Please open the Terms and Conditions"));
+    assert.equal(await terms.isChecked(), false);
     await form.locator("label").filter({ hasText: "I have read and agree to the" }).first().click({ force: true });
     assert.equal(await privacy.isChecked(), false, "the label cannot bypass the reading gate");
+    assert.ok((await form.getByRole("alert").innerText()).includes("Please open the Privacy Policy"));
+    if (name === "Email registration") await page.screenshot({ path: path.join(root, "policy-warning-desktop.png"), fullPage: true, animations: "disabled" });
     await form.getByRole("button", { name: "Privacy Policy", exact: true }).click();
     await page.getByRole("article", { name: "Privacy Policy", exact: true }).waitFor();
     await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
     await page.getByRole("dialog").waitFor({ state: "hidden" });
+    await page.waitForFunction(element => document.activeElement === element,
+      await form.getByRole("button", { name: "Privacy Policy", exact: true }).elementHandle());
     assert.equal(await privacy.isDisabled(), true, "opening and closing early must not unlock acceptance");
     for (const [policy, count] of [["Privacy Policy", 13], ["Terms and Conditions", 22]]) {
       const trigger = form.getByRole("button", { name: policy, exact: true });
@@ -131,6 +149,8 @@ try {
       assert.equal(await (policy === "Privacy Policy" ? privacy : terms).isDisabled(), false);
       if (policy === "Privacy Policy") assert.equal(await terms.isDisabled(), true, "a briefly visited inactive policy stays locked");
     }
+    assert.equal(await form.getByRole("alert").count(), 0, "the reviewed policy no longer needs a warning");
+    assert.equal(await form.getByRole("note").count(), 0, "the shared notice hides once both documents are reviewed");
     await privacy.focus(); await page.keyboard.press("Space");
     assert.equal(await privacy.isChecked(), true); assert.equal(await button.isDisabled(), true);
     await form.locator('[data-slot="checkbox-control"]').nth(1).click();
@@ -176,6 +196,11 @@ try {
     assert.equal(await narrowForm.getByRole("checkbox", { name: /Privacy Policy/ }).isDisabled(), false);
     assert.equal(await narrowForm.getByRole("checkbox", { name: /Privacy Policy/ }).isChecked(), false);
     assert.equal(await narrowForm.getByRole("checkbox", { name: /Terms and Conditions/ }).isDisabled(), true);
+    assert.ok(await narrowForm.getByRole("note").evaluate(element => getComputedStyle(element).fontSize === "12px" && getComputedStyle(element).borderTopWidth === "0px"));
+    await narrowForm.getByRole("button", { name: "Review required before accepting the Terms and Conditions", exact: true }).click();
+    assert.ok((await narrowForm.getByRole("alert").innerText()).includes("Please open the Terms and Conditions"));
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    await page.screenshot({ path: path.join(root, `policy-warning-small-${dark ? "dark" : "light"}.png`), fullPage: true, animations: "disabled" });
   }
   assert.equal(page.context().pages().length, initialPages);
   assert.deepEqual(errors, []);
