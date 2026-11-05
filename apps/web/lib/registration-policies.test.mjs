@@ -52,7 +52,7 @@ test("installed HeroUI renders required checkboxes and non-submitting policy dia
   assert.doesNotMatch(html, /securely processed|will be banned/);
 });
 
-test("policy reading opens the requested tab and closes without changing explicit acceptance", () => {
+test("each policy opens only its own modal without changing explicit acceptance", () => {
   const runtime = hookRuntime();
   const changes = [];
   const preloads = [];
@@ -63,20 +63,21 @@ test("policy reading opens the requested tab and closes without changing explici
     "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal", preloadRegistrationPolicyContent: () => preloads.push(true) }, "@/lib/registration-policies": policies,
   }).default;
   const render = () => runtime.render(() => Component({ value: accepted, onChange: value => changes.push(value) }));
-  const modal = () => nodes(render()).find(node => node.type === "RegistrationPoliciesModal");
-  assert.equal(modal().props.policy, null);
+  const modals = () => nodes(render()).filter(node => node.type === "RegistrationPoliciesModal");
+  const modal = policy => modals().find(node => node.props.policy === policy);
+  assert.equal(modals().length, 2);
+  assert.ok(modals().every(node => !node.props.isOpen));
   const trigger = nodes(render()).find(node => node.type === "Button" && node.props["aria-haspopup"]);
   trigger.props.onHoverStart(); trigger.props.onFocus();
   assert.equal(preloads.length, 2);
-  assert.equal(modal().props.policy, null);
+  assert.ok(modals().every(node => !node.props.isOpen));
   assert.deepEqual(changes, []);
   for (const [index, policy] of ["privacy", "terms"].entries()) {
     nodes(render()).filter(node => node.type === "Button" && node.props["aria-haspopup"])[index].props.onPress();
-    assert.equal(modal().props.policy, policy);
-    modal().props.onPolicyChange(policy === "privacy" ? "terms" : "privacy");
-    assert.equal(modal().props.policy, policy === "privacy" ? "terms" : "privacy");
-    modal().props.onClose();
-    assert.equal(modal().props.policy, null);
+    assert.equal(modal(policy).props.isOpen, true);
+    assert.equal(modal(policy === "privacy" ? "terms" : "privacy").props.isOpen, false);
+    modal(policy).props.onClose();
+    assert.ok(modals().every(node => !node.props.isOpen));
     assert.deepEqual(changes, []);
     assert.ok(nodes(render()).filter(node => node.props?.type === "hidden" && /Accepted$/.test(node.props.name)).every(node => node.props.value === "true"));
   }

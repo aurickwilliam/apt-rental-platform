@@ -4,12 +4,12 @@ import { useEffect, useRef } from "react";
 import type { RegistrationPolicy } from "@/lib/registration-policies";
 
 // Mounted with the loaded document, never its Suspense/error fallback. Observe
-// only the active scroll panel, not the window or retained hidden policy tab.
+// only this document's scroll panel, not the window or the other policy modal.
 export function usePolicyScrollCompletion(policy: RegistrationPolicy, active: boolean, onRead: (policy: RegistrationPolicy) => void) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const end = endRef.current;
-    const panel = end?.closest<HTMLElement>('[role="tabpanel"]');
+    const panel = end?.closest<HTMLElement>("[data-registration-policy-scroll]");
     if (!active || !end || !panel) return;
 
     let retired = false;

@@ -94,7 +94,8 @@ export default function RegistrationPolicyAcceptance({ value, onChange, errors =
         <p>False information or fraudulent listings may lead to account suspension or termination.</p>
         <p>Personal data is handled under our Privacy Policy and Philippine data protection laws.</p>
       </div>
-      <RegistrationPoliciesModal policy={openPolicy} onPolicyChange={setOpenPolicy} onClose={() => setOpenPolicy(null)} onRead={onRead} reviewed={reviewed} />
+      {(["privacy", "terms"] as const).map(policy => <RegistrationPoliciesModal key={policy} policy={policy}
+        isOpen={openPolicy === policy} onClose={() => setOpenPolicy(null)} onRead={onRead} reviewed={reviewed[policy]} />)}
     </div>
   );
 }

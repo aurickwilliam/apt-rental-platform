@@ -6,7 +6,7 @@ function harness() {
   const runtime = hookRuntime();
   const observations = [], reads = [];
   const panel = { hidden: false, inert: false, clientHeight: 400 };
-  const end = { closest: () => panel };
+  const end = { closest: selector => { assert.equal(selector, "[data-registration-policy-scroll]"); return panel; } };
   const { usePolicyScrollCompletion } = compile("hooks/use-policy-scroll-completion.ts", { react: runtime.react }, {
     IntersectionObserver: class {
       constructor(callback, options) { this.callback = callback; this.options = options; observations.push(this); }
@@ -42,7 +42,7 @@ test("only the loaded document's fully visible end unlocks once, scoped to its s
   assert.equal(observer.disconnected, true);
 });
 
-test("inactive tabs never observe; switching tabs and dismissal retire queued observer callbacks", () => {
+test("inactive policy dialogs never observe; dismissal retires queued observer callbacks", () => {
   const h = harness(); h.render("terms", false);
   assert.equal(h.observations.length, 0);
   h.render("terms", true);

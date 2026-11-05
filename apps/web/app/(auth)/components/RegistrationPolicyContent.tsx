@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert } from "@heroui/react";
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import LegalBlocks from "../../(main)/components/legal/LegalBlocks";
 import LegalBulletList from "../../(main)/components/legal/LegalBulletList";
@@ -17,10 +17,12 @@ interface RegistrationPolicyContentProps {
   instanceId: string;
   active: boolean;
   onRead: (policy: RegistrationPolicy) => void;
+  onReady: () => void;
 }
 
-function RegistrationPolicyContent({ policy, instanceId, active, onRead }: RegistrationPolicyContentProps) {
+function RegistrationPolicyContent({ policy, instanceId, active, onRead, onReady }: RegistrationPolicyContentProps) {
   const endRef = usePolicyScrollCompletion(policy, active, onRead);
+  useEffect(() => { onReady(); }, [onReady]);
   const isPrivacy = policy === "privacy";
   const meta = isPrivacy ? PRIVACY_META : TERMS_META;
   const brand = isPrivacy ? PRIVACY_BRAND : TERMS_BRAND;

@@ -17,20 +17,21 @@ or a claim that direct Supabase profile writes require acceptance.
 
 See DESIGN.md §10. `RegistrationPolicyAcceptance` is shared by both web forms.
 Selections are local, initially false, and never persisted as proof. Policy-name
-buttons open `RegistrationPoliciesModal` on the corresponding tab, with both
-documents available without navigating away. The dialog's heading, tabs and Close
-controls stay outside the scrolling panel. `RegistrationPolicyContent` is loaded
+buttons open two independent instances of `RegistrationPoliciesModal`, each
+bound to one document and titled Privacy Policy or Terms and Conditions. There
+are no tabs or in-dialog switches. Each heading and Close control stays outside
+its keyboard-focusable scrolling region. `RegistrationPolicyContent` is loaded
 on intent (policy-button hover or keyboard focus) or first open and reuses the public policy data and legal components, including
 version metadata, all sections and contact details. Section IDs are namespaced
 per dialog and document; their headings are nested beneath the dialog heading.
-Reading, switching tabs and closing do not accept policies, submit registration
+Reading and closing do not accept policies, submit registration
 or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
 dismissal. Public policy URLs remain available outside registration.
 Each checkbox is disabled until the user reaches the end of its own loaded
 document in this form. An IntersectionObserver watches a final marker after the
 contact details, rooted in the active scroll panel; loading/error fallbacks and
-hidden/inert tabs cannot unlock it, and cleanup rejects queued callbacks after
-tab changes or dismissal. It disconnects after completion instead of updating
+inactive dialogs cannot unlock it, and cleanup rejects queued callbacks after
+dismissal. It disconnects after completion instead of updating
 React on every scroll. The footer announces when the checkbox is available;
 the form shows one shared 12px instruction with a small info icon below both
 compact rows while either policy is locked, without a panel, border, background
@@ -49,7 +50,16 @@ extends outside that slot without widening or separating the rows.
 Completion is in memory, keyed by document revision, and survives reopening
 within the same form only. Refresh starts over. Keyboard scrolling is supported;
 if the entire document fits, its visible end qualifies without artificial scrolling.
-Reaching the end only unlocks selection and never accepts automatically. This
+Once the loaded document reports readiness, Close and the top X are disabled
+until that document's end is visible. HeroUI's `isDismissable` and
+`isKeyboardDismissDisabled`, plus a guarded close callback, block backdrop and
+Escape dismissal for the same interval. Completion unlocks all dismissal paths
+and only that policy's checkbox. Reopening an already reviewed document remains
+dismissible within the current form. Loading and error states always permit
+closing, so an unavailable download cannot trap the user; retry restores the
+lock only after the real content is ready. The other policy keeps its own
+independent progress. No account-wide gate is added.
+Reaching the end only unlocks selection and dismissal, never accepts automatically. This
 is a browser interaction guard, not proof of reading/comprehension or a security
 boundary against a modified client. Server validation and acceptance storage
 remain unchanged; no new database fields, migration or mobile changes are needed.
@@ -59,10 +69,9 @@ HeroUI Retry button that replaces the failed lazy loader without reloading the
 page or clearing the draft.
 The public-content import is shared across both forms; failed speculative loads
 are discarded so opening or Retry can request it again. A completed preload
-renders without a loading fallback. During one modal opening, each visited
-HeroUI tab panel stays mounted, with inactive panels hidden and inert; memoized
-policy content avoids rebuilding the section cards and preserves scroll position
-when switching back. Dismissal still releases the panels. Off-screen sections
+renders without a loading fallback. Only the open dialog mounts its memoized
+policy content; the other dialog does not render a second document. Dismissal
+releases the content, while the form retains version-keyed completion. Off-screen sections
 use browser `content-visibility` to defer layout/paint without removing policy
 text or changing the HeroUI controls.
 Submission stays disabled until both are selected;
@@ -160,7 +169,7 @@ Run `check-fixture.mjs` with the same output directory and
 It is not a substitute for real OAuth and email journey checks after rollout.
 
 `benchmark-fixture.mjs <fixture-directory>` uses the same temporary browser
-variables to report median first-open, hover-preloaded-open, visited-tab and
+variables to report median first-open, hover-preloaded-open, second-policy-open and
 reopen timings (3 runs, isolated development fixture, 4x CPU slowdown, 250ms
 policy response delay, 1-second hover dwell). Timings are informational, include
 browser automation overhead and are not production guarantees or CI thresholds.
