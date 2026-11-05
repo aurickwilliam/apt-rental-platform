@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import StepOne from "../../app/(auth)/personalization/step-one";
 import StepTwo from "../../app/(auth)/personalization/step-two";
 import StepThree from "../../app/(auth)/personalization/step-three";
@@ -7,10 +7,27 @@ import StepFive from "../../app/(auth)/personalization/step-five";
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
 
 const mockReplace = jest.fn();
+const mockSave = jest.fn();
+const mockToast = jest.fn();
+let mockProfile: { user_id: string } | null = null;
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace }) }));
-jest.mock("@repo/supabase", () => ({ supabase: {} }));
-jest.mock("hooks/auth", () => ({ useProfile: () => ({ profile: null }) }));
+jest.mock("@repo/supabase", () => ({ supabase: { from: () => ({ update: () => ({ eq: mockSave }) }) } }));
+jest.mock("hooks/auth", () => ({ useProfile: () => ({ profile: mockProfile }) }));
+jest.mock("@/hooks/useTheme", () => ({ useColors: () => ({ colors: { primary: "#376BF5" } }) }));
+jest.mock("@tabler/icons-react-native", () => ({ IconHomeHeart: () => null }));
+jest.mock("@/components/display/AppDialog", () => {
+  const { View, Text, Pressable } = jest.requireActual<typeof import("react-native")>("react-native");
+  return { __esModule: true, default: function Dialog({ isOpen, onOpenChange, dismissible, title, children, footer, titleIllustration }: {
+    isOpen: boolean; onOpenChange: (open: boolean) => void; dismissible: boolean;
+    title: string; children: React.ReactNode; footer: React.ReactNode; titleIllustration: React.ReactNode;
+  }) {
+    return isOpen ? <View testID="welcome-dialog" accessibilityState={{ disabled: !dismissible }}>
+      {titleIllustration}<Text>{title}</Text>{children}{footer}
+      <Pressable testID="dismiss-attempt" onPress={() => onOpenChange(false)} />
+    </View> : null;
+  } };
+});
 jest.mock("components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual<typeof import("react-native")>("react-native");
   return { __esModule: true, default: View };
@@ -34,11 +51,13 @@ jest.mock("heroui-native", () => {
   Button.Label = Text;
   function Slider() { return null; }
   Slider.Track = () => null;
-  return { Button, Slider, Separator: () => null, useToast: () => ({ toast: { show: jest.fn() } }) };
+  return { Button, Slider, Separator: () => null, useToast: () => ({ toast: { show: mockToast } }) };
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockProfile = null;
+  mockSave.mockResolvedValue({ error: null });
   usePersonalizationStore.getState().reset();
 });
 
@@ -81,4 +100,36 @@ it.each([
   fireEvent.press(screen.getByText("Back"));
   expect(mockReplace).toHaveBeenCalledWith(previousRoute);
   expect(usePersonalizationStore.getState()).toBe(before);
+});
+
+it("shows the welcome only after saving and waits for Continue before opening Rentals", async () => {
+  mockProfile = { user_id: "new-account" };
+  usePersonalizationStore.getState().toggleCity("Caloocan");
+  const screen = render(<StepFive />);
+  expect(screen.queryByText("Welcome to APT!")).toBeNull();
+  fireEvent.press(screen.getByText("Let's find your place!"));
+  await waitFor(() => expect(screen.getByText("Welcome to APT!")).toBeTruthy());
+  expect(mockSave).toHaveBeenCalledWith("user_id", "new-account");
+  expect(screen.getByText("Your account is ready. Let’s start your rental journey!")).toBeTruthy();
+  expect(screen.getByTestId("welcome-dialog").props.accessibilityState.disabled).toBe(true);
+  fireEvent.press(screen.getByTestId("dismiss-attempt"));
+  expect(screen.getByText("Welcome to APT!")).toBeTruthy();
+  expect(mockReplace).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByText("Continue"));
+  expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
+  expect(usePersonalizationStore.getState().selectedCities).toEqual([]);
+});
+
+it("keeps the draft and does not welcome the user when saving fails", async () => {
+  mockProfile = { user_id: "new-account" };
+  mockSave.mockResolvedValue({ error: { code: "TEST_FAILURE" } });
+  const log = jest.spyOn(console, "error").mockImplementation(() => {});
+  usePersonalizationStore.getState().toggleCity("Caloocan");
+  const screen = render(<StepFive />);
+  fireEvent.press(screen.getByText("Let's find your place!"));
+  await waitFor(() => expect(mockToast).toHaveBeenCalled());
+  expect(screen.queryByText("Welcome to APT!")).toBeNull();
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(usePersonalizationStore.getState().selectedCities).toEqual(["Caloocan"]);
+  log.mockRestore();
 });
