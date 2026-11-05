@@ -56,12 +56,14 @@ export default function StepFour() {
           </View>
         </View>
 
-        {/* Next Button */}
-        <Button onPress={handleNext}>
-          <Button.Label>
-            {householdSize !== null ? "Next" : "Skip"}
-          </Button.Label>
-        </Button>
+        <View className="flex-row gap-3">
+          <Button variant="secondary" className="flex-1" onPress={() => router.replace("/personalization/step-three")}>
+            <Button.Label>Back</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleNext}>
+            <Button.Label>Next</Button.Label>
+          </Button>
+        </View>
       </View>
     </ScreenWrapper>
   );

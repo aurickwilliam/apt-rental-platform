@@ -187,12 +187,16 @@ export default function StepFive() {
           />
         </View>
 
-        {/* Next Button */}
-        <Button onPress={handleNext} isDisabled={isSaving}>
-          <Button.Label>
-            {isSaving ? "Saving..." : "Let's find your place!"}
-          </Button.Label>
-        </Button>
+        <View className="flex-row gap-3">
+          <Button variant="secondary" className="flex-1" onPress={() => router.replace("/personalization/step-four")} isDisabled={isSaving}>
+            <Button.Label>Back</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleNext} isDisabled={isSaving}>
+            <Button.Label>
+              {isSaving ? "Saving..." : "Let's find your place!"}
+            </Button.Label>
+          </Button>
+        </View>
       </View>
     </ScreenWrapper>
   );

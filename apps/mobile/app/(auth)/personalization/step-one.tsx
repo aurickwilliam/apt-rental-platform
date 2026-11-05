@@ -52,12 +52,14 @@ export default function StepOne() {
           </View>
         </View>
 
-        {/* Next Button */}
-        <Button onPress={handleNext}>
-          <Button.Label>
-            {selectedCities.length > 0 ? "Next" : "Skip"}
-          </Button.Label>
-        </Button>
+        <View className="flex-row gap-3">
+          <Button variant="secondary" className="flex-1" isDisabled>
+            <Button.Label>Back</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleNext}>
+            <Button.Label>Next</Button.Label>
+          </Button>
+        </View>
       </View>
     </ScreenWrapper>
   );
