@@ -254,6 +254,17 @@ sequenceDiagram
 
 ### 4.4 Mobile flow
 
+Mobile registration policy readers mirror web's independent interaction gate:
+each fixed-document dialog tracks its native viewport, full-content size and
+trailing-marker layout through `usePolicyReadingProgress`, then unlocks only its
+own checkbox and dismissal controls at the end. Measurements stay in refs, with
+state updates only at readiness/completion. Completion is version-keyed form
+memory, not persisted evidence of reading. Close/backdrop/Android Back share one
+stable, latest-state guard because HeroUI Native's Back subscription captures
+its initial callback. Unmounting retires both reading and close callbacks;
+pending layout and render failures allow dismissal. The registration service,
+server validation, policy versions and acceptance transaction are unchanged.
+
 **Registration policy acceptance.** Email Complete Profile and signed-in Finish Profile require separate Privacy and Terms selections, initially false. Displayed revisions come from mobile's `constants/legal/` policy data (tested against web). Reading policies opens a HeroUI Native dialog over the unchanged form. The email journey stages its acceptance and normalized profile snapshot in memory until OTP verification; neither device storage, route params nor Auth metadata are proof of acceptance. `complete_mobile_registration` writes the caller's profile and both acceptance records atomically through an invoker transaction plus narrow caller-only definer helper. The expected Auth ID rejects retired-account submissions; existing profile grants, validation and Google-only onboarding-role rules remain active. Policy revisions reuse `web_registration_policies`, and `policy_acceptances.source` adds mobile-specific origins without changing the web functions. Completed-account retries preserve original timestamps; legacy completed accounts and older apps remain unaffected, with no universal acceptance trigger. The migration must precede the mobile release. See `docs/mobile-registration-acceptance.md`.
 
 **Portal selection (2026-09-30).** A mobile profile's `users.roles` array supplies tenant/landlord membership. `service/auth/portalPreference.ts` stores only a per-auth-user portal choice in AsyncStorage; `stores/usePortalStore.ts` keeps its in-memory active value. Sign-in has no role selector: returning accounts resume their last authorized portal, falling back to a held tenant/landlord role. Sign-up selects a role; Google sign-in with an incomplete profile offers role choice on `finish-profile` before the onboarding RPC runs. On sign-out, in-memory state and sensitive query data clear but the account-scoped choice remains. Bootstrap revalidates the saved choice against current roles, and the `(tabs)` guard redirects only when the current tab group differs from the active authorized portal. Both profile screens show a switch for dual-role users. Admin-only profiles have no mobile consumer access; mixed admin/tenant or admin/landlord profiles can use only their tenant or landlord portal. Notification taps use the active authorized portal, not `roles[0]`.

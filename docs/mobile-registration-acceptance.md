@@ -8,10 +8,52 @@ selections. Both start false. Completed accounts, ordinary sign-in and role
 additions are not enrolled again. Older installed apps remain compatible.
 
 The existing mobile form stays in place. `RegistrationPolicyAcceptance` uses
-HeroUI Native controls and opens `RegistrationPoliciesDialog`; its fixed title,
-policy switch and Close surround the scrollable `LegalPolicyContent`, also used
-by Settings. Reading or closing never accepts a policy or resets the form.
-See DESIGN.md §10. No new dependencies or native rebuild requirements are added.
+HeroUI Native controls and opens separate fixed-document instances of
+`RegistrationPoliciesDialog`: Privacy Policy and Terms and Conditions, without
+tabs or an in-dialog switch. Only the requested dialog mounts. Each reuses the
+complete `LegalPolicyContent` also used by Settings. Title, instructions and Close
+stay outside its bounded native ScrollView; swipe dismissal is disabled so it
+cannot compete with scrolling. Reading or closing never accepts a policy or
+resets the form. See DESIGN.md §10. No new dependencies or native rebuild are needed.
+
+Each checkbox is disabled until that document reaches its end. The form stores
+completed revisions in local memory only, independently of explicit acceptance.
+Reopening within the same form preserves completion; a fresh visit or another
+revision does not reuse it. No device storage, route parameters, Auth metadata,
+extra server requests or new database fields are used for reading progress.
+
+The form has one compact 12px instruction and info icon below both rows. Pressing
+a locked checkbox/introductory-label area uses a native accessible warning target
+over the disabled HeroUI control: it shows an announced, 12px policy-specific
+warning with a 16px warning-colored icon aligned with the checkbox. No panel or
+extra Review button is added. Policy-name links still open their own documents
+directly, and pending submissions disable these entry points. Reading never
+checks either box automatically.
+
+`usePolicyReadingProgress` keeps native viewport/content/offset measurements in
+refs. It waits for a trailing marker after the contact details as well as valid
+content and viewport sizes, preventing a partial first layout from unlocking a
+long document. The final bottom comparison tolerates two logical pixels of
+native rounding. Short documents qualify when fully visible without requiring
+an impossible scroll; updated layout and scroll events account for rotation and
+larger text. React state changes only for readiness/completion, not every scroll
+frame. Unmounting retires queued native events before another document can open.
+
+Once measurements are ready, Close, backdrop presses and Android Back are locked
+until that document is reviewed. The installed HeroUI Native Dialog captures its
+Android Back callback on mount, so the guard is stable and reads current lock and
+lifetime refs; a callback from a retired dialog cannot close a new one. Before
+measurement readiness, or if the policy-content error boundary catches a render
+failure, closing remains available. The static policies are bundled, not fetched;
+closing/reopening retries a rendering failure without losing the draft. Reviewed
+documents remain dismissible on reopening. Existing Settings policy readers are
+unchanged.
+
+Reaching the end is an interaction rule, not proof of reading/comprehension or
+a security boundary against a modified client. Server-side explicit-acceptance
+validation and the atomic registration write remain unchanged. This UI-only
+follow-up requires no additional migration; the original acceptance migration
+below remains the prerequisite for mobile registration.
 
 ## Flow and storage
 
@@ -70,13 +112,18 @@ Run:
 pnpm db:mobile-registration:test
 pnpm db:web-registration:test
 pnpm --filter mobile typecheck
-pnpm --filter mobile lint
+EXPO_NO_DOTENV=1 pnpm --filter mobile lint
 pnpm --filter mobile exec jest --runInBand --forceExit
 ```
 
 The mobile database command runs embedded PostgreSQL only (no remote access),
 covering ownership, source/version validation, atomic rollback, timestamps,
 replay, role rules, suspension, completed accounts and web/older-app compatibility.
-Mobile tests cover checkbox behavior, policy reading, drafts, hooks and OTP paths.
+Mobile tests cover independent reading and acceptance, native measurement ordering,
+rounding, short documents, resized content, retired callbacks, guarded dismissal,
+render-failure escape, warning colors, pending forms, version changes, draft
+preservation in both onboarding screens, hooks and OTP paths. `EXPO_NO_DOTENV=1`
+prevents Expo CLI verification from loading `.env` files (in PowerShell, set
+`$env:EXPO_NO_DOTENV='1'` before running the command).
 Real email/Google signup and device accessibility checks remain release checks
 after the migration is applied to the confirmed project.
