@@ -58,8 +58,12 @@ export default function LandlordReviewsPage() {
   }
 
   return (
-    <ScreenWrapper header={<StandardHeader title="Reviews" />}>
+    <ScreenWrapper
+      header={<StandardHeader title="Reviews" />}
+      dismissKeyboardOnTouch={false}
+    >
       <FlatList
+        style={{ flex: 1 }}
         data={reviews}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 32 }}
