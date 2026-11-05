@@ -1,22 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
   ReduceMotion,
+  runOnJS,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 
 import { useColors } from 'hooks/useTheme';
 
 import { useTabBarVisibility } from './TabBarVisibilityContext';
+import {
+  clampIndicatorX,
+  indicatorRestX,
+  isTouchOnIndicator,
+  nearestTabIndex,
+  type TabIndicatorLayout,
+} from './tabBarIndicator';
 
 export type TablerIconComponent = React.ComponentType<{
   size?: number;
@@ -54,6 +62,10 @@ export const FLOATING_TAB_BAR_BOTTOM_OFFSET = 16;
 
 const BAR_SIDE_MARGIN = 20;
 const ROW_PADDING = 4;
+const ROW_BORDER = 1;
+/** Horizontal travel before a touch on the indicator becomes a drag. */
+const DRAG_ACTIVATION_OFFSET = 8;
+const DRAG_FAIL_OFFSET_Y = 24;
 const ROW_GAP = 12;
 /** Extra travel so the shadow also leaves the screen when hidden. */
 const HIDDEN_EXTRA_TRAVEL = 32;
@@ -176,74 +188,137 @@ function TabItems({
   const count = Math.max(1, visibleRoutes.length);
   const itemWidth = Math.max(
     0,
-    (rowWidth - ROW_PADDING * 2 - ROW_GAP * (count - 1)) / count
+    (rowWidth - ROW_BORDER * 2 - ROW_PADDING * 2 - ROW_GAP * (count - 1)) / count
   );
 
-  const indicatorX = useDerivedValue(() =>
-    withSpring(ROW_PADDING + focusedPosition * (itemWidth + ROW_GAP), SPRING)
+  const layout = useMemo<TabIndicatorLayout>(
+    () => ({ itemWidth, gap: ROW_GAP, padding: ROW_PADDING, count }),
+    [itemWidth, count]
   );
+
+  const selectRoute = useCallback(
+    (route: (typeof visibleRoutes)[number]) => {
+      const isFocused = state.routes[state.index]?.key === route.key;
+      const event = navigation.emit({
+        type: 'tabPress',
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (!isFocused && !event.defaultPrevented) {
+        navigation.navigate(route.name);
+      }
+    },
+    [navigation, state.index, state.routes]
+  );
+
+  const selectPosition = useCallback(
+    (position: number) => {
+      const route = visibleRoutes[position];
+      if (route) selectRoute(route);
+    },
+    [selectRoute, visibleRoutes]
+  );
+
+  // Left edge of the indicator. It springs to the focused tab, and follows the
+  // finger while it is dragged.
+  const indicatorX = useSharedValue(0);
+  const grabbed = useSharedValue(false);
+  const dragStartX = useSharedValue(0);
+  const isPositioned = useRef(false);
+
+  useEffect(() => {
+    if (itemWidth <= 0) return;
+    const restX = indicatorRestX(focusedPosition, layout);
+    if (!isPositioned.current) {
+      // First layout: start in place instead of sliding in from the left edge.
+      isPositioned.current = true;
+      indicatorX.set(restX);
+      return;
+    }
+    indicatorX.set(withSpring(restX, SPRING));
+  }, [focusedPosition, itemWidth, layout, indicatorX]);
+
   const indicatorStyle = useAnimatedStyle(() => ({
     width: itemWidth,
     transform: [{ translateX: indicatorX.value }],
   }));
+
+  // Drag the indicator to pick a tab: it follows the finger between the first
+  // and last tab and, on release, snaps to the nearest one and selects it.
+  // Only a touch that starts on the indicator drags; taps still go to the tabs.
+  const dragGesture = Gesture.Pan()
+    .activeOffsetX([-DRAG_ACTIVATION_OFFSET, DRAG_ACTIVATION_OFFSET])
+    .failOffsetY([-DRAG_FAIL_OFFSET_Y, DRAG_FAIL_OFFSET_Y])
+    .onBegin((event) => {
+      grabbed.value = isTouchOnIndicator(event.x - ROW_BORDER, indicatorX.value, itemWidth);
+      dragStartX.value = indicatorX.value;
+    })
+    .onUpdate((event) => {
+      if (!grabbed.value) return;
+      indicatorX.set(clampIndicatorX(dragStartX.value + event.translationX, layout));
+    })
+    .onEnd(() => {
+      if (!grabbed.value) return;
+      const index = nearestTabIndex(indicatorX.value, layout);
+      indicatorX.set(withSpring(indicatorRestX(index, layout), SPRING));
+      runOnJS(selectPosition)(index);
+    })
+    .onFinalize((_event, success) => {
+      if (grabbed.value && !success) {
+        // Cancelled mid-drag (e.g. interrupted): go back to the focused tab.
+        indicatorX.set(withSpring(indicatorRestX(focusedPosition, layout), SPRING));
+      }
+      grabbed.value = false;
+    });
 
   const onRowLayout = (event: LayoutChangeEvent) => {
     setRowWidth(event.nativeEvent.layout.width);
   };
 
   return (
-    <View
-      className="flex-1 flex-row items-center rounded-full border p-1 gap-3"
-      style={{
-        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-      }}
-      onLayout={onRowLayout}
-      accessibilityRole="tablist"
-    >
-      {rowWidth > 0 && (
-        <Animated.View
-          pointerEvents="none"
-          className="absolute rounded-full"
-          style={[
-            {
-              top: ROW_PADDING,
-              bottom: ROW_PADDING,
-              left: 0,
-              backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)',
-            },
-            indicatorStyle,
-          ]}
-        />
-      )}
-
-      {visibleRoutes.map((route) => {
-        const config = tabs.find((t) => t.name === route.name);
-        if (!config) return null;
-
-        const isFocused = state.routes[state.index]?.key === route.key;
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
-
-        return (
-          <TabItem
-            key={route.key}
-            config={config}
-            isFocused={isFocused}
-            onPress={onPress}
-            colors={colors}
+    <GestureDetector gesture={dragGesture}>
+      <View
+        className="flex-1 flex-row items-center rounded-full border p-1 gap-3"
+        style={{
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }}
+        onLayout={onRowLayout}
+        accessibilityRole="tablist"
+      >
+        {rowWidth > 0 && (
+          <Animated.View
+            pointerEvents="none"
+            className="absolute rounded-full"
+            style={[
+              {
+                top: ROW_PADDING,
+                bottom: ROW_PADDING,
+                left: 0,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)',
+              },
+              indicatorStyle,
+            ]}
           />
-        );
-      })}
-    </View>
+        )}
+
+        {visibleRoutes.map((route) => {
+          const config = tabs.find((t) => t.name === route.name);
+          if (!config) return null;
+
+          const isFocused = state.routes[state.index]?.key === route.key;
+
+          return (
+            <TabItem
+              key={route.key}
+              config={config}
+              isFocused={isFocused}
+              onPress={() => selectRoute(route)}
+              colors={colors}
+            />
+          );
+        })}
+      </View>
+    </GestureDetector>
   );
 }
 

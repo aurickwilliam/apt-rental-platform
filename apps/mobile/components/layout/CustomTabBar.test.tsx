@@ -7,15 +7,41 @@ jest.mock('react-native-reanimated', () => {
   return {
     __esModule: true,
     default: { View },
-    useSharedValue: (value: number) => ({ value }),
+    useSharedValue: (initial: number) => {
+      const shared = {
+        value: initial,
+        set: (next: number) => {
+          shared.value = next;
+        },
+      };
+      return shared;
+    },
+    runOnJS: (fn: unknown) => fn,
     useAnimatedStyle: (fn: () => object) => fn(),
-    useDerivedValue: (fn: () => number) => ({ value: fn() }),
     withSpring: (value: number) => value,
     withTiming: (value: number) => value,
     withSequence: (...values: number[]) => values[values.length - 1],
     interpolate: () => 0,
     Extrapolation: { CLAMP: 'clamp' },
     ReduceMotion: { System: 'system' },
+  };
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const chain: Record<string, unknown> = {};
+  for (const method of [
+    'activeOffsetX',
+    'failOffsetY',
+    'onBegin',
+    'onUpdate',
+    'onEnd',
+    'onFinalize',
+  ]) {
+    chain[method] = () => chain;
+  }
+  return {
+    Gesture: { Pan: () => chain },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
   };
 });
 
