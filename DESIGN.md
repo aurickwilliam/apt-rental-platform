@@ -517,7 +517,7 @@ Sidebar unread activity uses a solid 8px dot, never a numbered section badge: `b
 
 ### Mobile
 
-- **Tabs:** iOS = `NativeTabs` (system chrome, `tintColor primary`); **Android = floating pill** ✅ (`CustomTabBar`): absolute `bottom: max(insets.bottom, 16)`, `left/right 20`, `rounded-full bg-surface`, height 68px, inner `border p-1 gap-3`; focused icon filled 24 `primary` `strokeWidth 2.5` + label `text-[10px] font-nunitoSemiBold`; unfocused outline `gray300` `strokeWidth 1.8`; no badges
+- **Tabs:** iOS = `NativeTabs` (system chrome, `tintColor primary`); **Android = floating pill** ✅ (`CustomTabBar`): absolute `bottom: max(insets.bottom, 16)`, `left/right 20`, `rounded-full bg-surface`, height 68px, inner `border p-1 gap-3`; focused icon filled 24 `primary` `strokeWidth 2.5` + label `text-[10px] font-nunitoSemiBold`; unfocused outline `gray300` `strokeWidth 1.8`. A sliding `rounded-full` indicator (translucent black/white fill) springs behind the focused tab and can be dragged left or right (it follows the finger between the first and last tab, then snaps to the nearest tab and selects it on release; only a touch that starts on the indicator drags, taps on tabs work as before), the focused icon does a short scale pop, and `badge` counts show as an 18px `bg-danger` pill on the icon (`99+` cap, announced as "Chat, 3 unread"): Chat counts unread conversations (archived and muted skipped, `useUnreadChatCount`), landlord Units counts pending maintenance, visit and application items. The bar slides down and fades out while a tab's main list scrolls down and returns on scroll up or at the top/bottom edge (`TabBarVisibilityContext`, rules in `tabBarVisibility.ts`); tapping the active tab scrolls its screen to the top. iOS `NativeTabs` is unchanged
 - **Stack:** `headerShown: false` globally; screens render their own:
   - `StandardHeader` ✅: `bg-accent`, `paddingTop: insets.top + 20`, `pb-5 px-4`, centered `font-nunitoBold text-lg` white, back chevron 24
   - `ChatHeader` ✅: `bg-accent`, height `insets.top + 56`, avatar `border-white`, name `text-base font-nunitoSemiBold`, sub `text-xs /70`
@@ -630,6 +630,7 @@ Conservative — functional, not decorative.
 - **Hover (web):** `transition-all duration-200` (cards `hover:border-primary`), `hover:brightness-90` images, standard button hovers
 - **Skeletons:** 700ms Reanimated opacity 0.45↔0.85 on mobile; existing web shimmer/pulse engines are retained and disabled by either OS or APT reduced-motion preference (§15).
 - **Sheets/dialogs:** HeroUI Native/HeroUI defaults (fade + slide); legacy modals `animationType="fade"`
+- **Android tab bar:** hides/shows with a 220ms timing slide + fade, the indicator and icon use a spring; every animation follows the OS reduce-motion setting (`ReduceMotion.System`) (§13)
 - **Page transitions: none exist** — do not add full-page animation systems
 - Dark-mode: instant (next-themes; mobile `Uniwind.setTheme`, with a System / Light / Dark choice in Settings → Appearance)
 

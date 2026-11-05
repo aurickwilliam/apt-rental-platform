@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Platform } from 'react-native';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Tabs } from 'expo-router';
@@ -14,6 +15,9 @@ import {
 import { useColors } from 'hooks/useTheme';
 
 import { CustomTabBar, type CustomTabConfig } from '@/components/layout/CustomTabBar';
+import { TabBarVisibilityProvider } from '@/components/layout/TabBarVisibilityContext';
+import { useLandlordActionBadges } from '@/hooks/apartments';
+import { useUnreadChatCount } from '@/hooks/chat';
 
 const LANDLORD_TABS: CustomTabConfig[] = [
   {
@@ -44,25 +48,41 @@ const LANDLORD_TABS: CustomTabConfig[] = [
 
 export default function LandlordTabLayout() {
   const { colors } = useColors();
+  // Owns the landlord chat list's realtime channel (the Chat screen reads it with subscribe: false).
+  const unreadChats = useUnreadChatCount('landlord');
+  const { counts } = useLandlordActionBadges();
+  const pendingUnitActions = counts.maintenance + counts.visits + counts.applications;
+
+  const tabs = useMemo(
+    () =>
+      LANDLORD_TABS.map((tab) => {
+        if (tab.name === 'chat') return { ...tab, badge: unreadChats };
+        if (tab.name === 'units') return { ...tab, badge: pendingUnitActions };
+        return tab;
+      }),
+    [unreadChats, pendingUnitActions]
+  );
 
   if (Platform.OS === 'android') {
     return (
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            position: 'absolute',
-            backgroundColor: 'transparent',
-            borderTopWidth: 0,
-            elevation: 0,
-          },
-        }}
-        tabBar={(props) => <CustomTabBar {...props} tabs={LANDLORD_TABS} />}
-      >
-        {LANDLORD_TABS.map((tab) => (
-          <Tabs.Screen key={tab.name} name={tab.name} />
-        ))}
-      </Tabs>
+      <TabBarVisibilityProvider>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: {
+              position: 'absolute',
+              backgroundColor: 'transparent',
+              borderTopWidth: 0,
+              elevation: 0,
+            },
+          }}
+          tabBar={(props) => <CustomTabBar {...props} tabs={tabs} />}
+        >
+          {LANDLORD_TABS.map((tab) => (
+            <Tabs.Screen key={tab.name} name={tab.name} />
+          ))}
+        </Tabs>
+      </TabBarVisibilityProvider>
     );
   }
 

@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
@@ -66,17 +67,25 @@ function TabScreen({
   onScroll,
 }: TabScreenProps) {
   const insets = useSafeAreaInsets();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    onTabBarScroll(event);
+    onScroll?.(event);
+  };
 
   return (
     <View className="flex-1">
       <ScreenWrapper
+      ref={scrollRef}
       scrollable
       className={edgeToEdge ? "px-5 pb-5" : "p-5"}
       noTopPadding={edgeToEdge}
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      onScroll={onScroll}
+      onScroll={handleScroll}
     >
       {children}
     </ScreenWrapper>
