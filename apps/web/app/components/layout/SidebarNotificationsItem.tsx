@@ -59,7 +59,7 @@ export default function SidebarNotificationsItem({
           ) : null}
         </Button>
       </Tooltip.Trigger>
-      <Tooltip.Content placement="right">
+      <Tooltip.Content placement="right" offset={8} className="rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-none">
         {`Notifications${hasUnread ? `, ${unreadCount} unread` : ""}`}
       </Tooltip.Content>
     </Tooltip>

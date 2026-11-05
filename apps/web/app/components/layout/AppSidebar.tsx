@@ -418,7 +418,7 @@ export function AppSidebar({
             </span>
           </Button>
             </Tooltip.Trigger>
-            <Tooltip.Content placement="right">Expand sidebar</Tooltip.Content>
+            <Tooltip.Content placement="right" offset={8} className="rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-none">Expand sidebar</Tooltip.Content>
           </Tooltip>
         ) : (
           <Link
@@ -499,7 +499,7 @@ export function AppSidebar({
             </Link>
               </RailTooltipTrigger>
               {collapsed ? (
-                <RailTooltipContent side="right" sideOffset={8}>
+                <RailTooltipContent side="right" sideOffset={8} hideArrow className="rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-none">
                   {`${label}${hasActivity ? ", Unread activity" : ""}`}
                 </RailTooltipContent>
               ) : null}
