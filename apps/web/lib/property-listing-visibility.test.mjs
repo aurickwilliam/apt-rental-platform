@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compile } from "./test-support/hook-runtime.mjs";
 
-const { propertyStatusLabel, canChangeListingVisibility } = compile("lib/property-listing-visibility.ts", {});
-const { changePropertyVisibility } = compile("service/propertyVisibilityService.ts", {});
+const shared = compile("../../packages/utils/src/listingVisibility.ts", {});
+const { propertyStatusLabel, canChangeListingVisibility } = compile("lib/property-listing-visibility.ts", { "@repo/utils": shared });
+const { changePropertyVisibility } = compile("service/propertyVisibilityService.ts", { "@repo/utils": shared });
 const { applyVisibleListings } = compile("app/browse/lib/browse-query.ts", {});
 
 test("only vacant available/maintenance properties offer visibility actions", () => {

@@ -1,7 +1,8 @@
 import type { createClient } from "@repo/supabase/browser";
+import { nextListingVisibilityStatus, type ListingVisibilityStatus } from "@repo/utils";
 
 type Supabase = ReturnType<typeof createClient>;
-type ListingStatus = "available" | "under_maintenance";
+type ListingStatus = ListingVisibilityStatus;
 
 /** Compare-and-set: a stale page must never overwrite a newly occupied unit. */
 export async function changePropertyVisibility(
@@ -9,7 +10,7 @@ export async function changePropertyVisibility(
   apartmentId: string,
   currentStatus: ListingStatus,
 ): Promise<{ success: true; status: ListingStatus } | { success: false; error: string }> {
-  const status = currentStatus === "available" ? "under_maintenance" : "available";
+  const status = nextListingVisibilityStatus(currentStatus);
   const { data, error } = await supabase.from("apartments")
     .update({ status })
     .eq("id", apartmentId)

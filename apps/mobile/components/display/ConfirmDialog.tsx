@@ -15,6 +15,8 @@ type Props = {
   isConfirmDisabled?: boolean;
   cancelLabel?: string;
   checklistItems?: string[];
+  /** Locks every dismissal path while a confirmed action is saving. */
+  isPending?: boolean;
 };
 
 export default function ConfirmDialog({
@@ -29,13 +31,14 @@ export default function ConfirmDialog({
   isConfirmDisabled,
   cancelLabel = "Cancel",
   checklistItems,
+  isPending = false,
 }: Props) {
   return (
-    <Dialog isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Dialog isOpen={isOpen} onOpenChange={(open) => { if (!isPending) onOpenChange(open); }}>
       <Dialog.Portal>
         <Dialog.Overlay />
         <Dialog.Content>
-          <Dialog.Close variant="ghost" className="absolute top-4 right-4" />
+          <Dialog.Close variant="ghost" className="absolute top-4 right-4" isDisabled={isPending} accessibilityLabel="Close" />
           <View className="mb-5 gap-1.5">
             <Dialog.Title className="font-nunitoBold">{title}</Dialog.Title>
             <Dialog.Description>{description}</Dialog.Description>
@@ -50,7 +53,7 @@ export default function ConfirmDialog({
               </View>
             )}
             {errorMessage && (
-              <Text className="text-sm text-danger mt-1">{errorMessage}</Text>
+              <Text accessibilityRole="alert" className="text-sm text-danger mt-1">{errorMessage}</Text>
             )}
           </View>
           <View className="flex-row gap-3">
@@ -59,6 +62,7 @@ export default function ConfirmDialog({
               size="sm"
               className="flex-1"
               onPress={() => onOpenChange(false)}
+              isDisabled={isPending}
             >
               <Button.Label>{cancelLabel}</Button.Label>
             </Button>
@@ -67,7 +71,7 @@ export default function ConfirmDialog({
               variant={confirmVariant}
               className="flex-1"
               onPress={onConfirm}
-              isDisabled={isConfirmDisabled}
+              isDisabled={isConfirmDisabled || isPending}
             >
               <Button.Label>{confirmLabel}</Button.Label>
             </Button>

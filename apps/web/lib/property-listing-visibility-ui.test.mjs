@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compile, deferred, hookRuntime, settle } from "./test-support/hook-runtime.mjs";
 
-const rules = compile("lib/property-listing-visibility.ts", {});
+const shared = compile("../../packages/utils/src/listingVisibility.ts", {});
+const rules = compile("lib/property-listing-visibility.ts", { "@repo/utils": shared });
 const jsx = (type, props) => ({ type, props });
 const Modal = Object.assign(() => {}, Object.fromEntries(
   ["Backdrop", "Container", "Dialog", "Header", "Heading", "Body", "Footer"].map(name => [name, `Modal.${name}`]),
