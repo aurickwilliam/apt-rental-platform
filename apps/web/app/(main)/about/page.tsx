@@ -8,6 +8,7 @@ import {
 import { motion } from "framer-motion";
 import { IconUsers as Users, IconTarget as Target, IconEye as Eye } from "@tabler/icons-react";
 
+import { ABOUT_MISSION, ABOUT_VISION } from "@repo/constants";
 import { stats } from "./data/AboutData";
 import TeamSection from "./components/TeamSection";
 import LocationSection from "./components/LocationSection";
@@ -132,9 +133,7 @@ export default function AboutPage() {
                 What we are here to do
               </h3>
               <p className="text-sm text-default-700 leading-relaxed">
-                To make renting in the Philippines simpler, safer, and more
-                transparent, connecting tenants and property owners through a
-                trusted digital platform built for the Filipino community.
+                {ABOUT_MISSION}
               </p>
             </Card>
           </motion.div>
@@ -152,9 +151,7 @@ export default function AboutPage() {
                 Where we are headed
               </h3>
               <p className="text-sm text-default-700 leading-relaxed">
-                To become the most trusted rental platform in the Philippines,
-                where every Filipino can find a home they are proud of with
-                confidence, ease, and peace of mind.
+                {ABOUT_VISION}
               </p>
             </Card>
           </motion.div>

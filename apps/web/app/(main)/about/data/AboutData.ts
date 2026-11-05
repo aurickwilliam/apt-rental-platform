@@ -1,50 +1,19 @@
-export type TeamMember = {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
-  github: string | null;
-  linkedin: string | null;
+import { ABOUT_STATS, TEAM_MEMBERS, type TeamMember } from "@repo/constants";
+
+export type { TeamMember };
+
+// Copy is shared with the mobile About screen (`@repo/constants`); only the
+// photos live here because they are served from this app's /public folder.
+const MEMBER_IMAGES: Record<TeamMember["id"], string> = {
+  aurick: "/images/orik.jpg",
+  mhart: "/images/ron.webp",
+  michael: "/images/mija.jpg",
+  charle: "/images/charle.jpg",
 };
 
-export const teamMembers = [
-  {
-    name: "Aurick William Lorenzo",
-    role: "Lead Developer",
-    bio: "Full-stack engineer who led APT's architecture, from the matching engine and payments to the Supabase backend he keeps clean, secure, and fast.",
-    image: "/images/orik.jpg",
-    github: "https://github.com/aurickwilliam",
-    linkedin: "https://www.linkedin.com/in/aurick-william-lorenzo-ba83a73a6/?skipRedirect=true",
-  },
-  {
-    name: "Mhart Aaron Navales",
-    role: "Full-Stack Developer & UI/UX",
-    bio: "Full-stack developer and UI/UX designer. Builds APT's screens end to end and keeps the experience friendly on every device.",
-    image: "/images/ron.webp",
-    github: "https://github.com/Kaironnnn",
-    linkedin: null,
-  },
-  {
-    name: "Michael Jann Mateo",
-    role: "Backend Developer & Project Manager",
-    bio: "Backend developer and project manager. Coordinates the roadmap, reviews the data model, and keeps releases on schedule.",
-    image: "/images/mija.jpg",
-    github: "https://github.com/YuriPatriotic",
-    linkedin: null,
-  },
-  {
-    name: "Charle Fulgencio",
-    role: "Quality Assurance & Documentation",
-    bio: "Quality assurance and documentation lead. Tests every release against real rentals and keeps our guides accurate.",
-    image: "/images/charle.jpg",
-    github: "https://github.com/KhromaUnus",
-    linkedin: null,
-  },
-];
+export const teamMembers = TEAM_MEMBERS.map((member) => ({
+  ...member,
+  image: MEMBER_IMAGES[member.id],
+}));
 
-export const stats = [
-  { label: "Team Members", value: "4" },
-  { label: "Based in", value: "Caloocan" },
-  { label: "Built for", value: "Philippines" },
-  { label: "Areas Covered", value: "CAMANAVA" },
-];
+export const stats = ABOUT_STATS;
