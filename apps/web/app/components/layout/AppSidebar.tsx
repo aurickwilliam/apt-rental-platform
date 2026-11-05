@@ -40,7 +40,7 @@ import {
   type Icon as TablerIcon,
 } from "@tabler/icons-react";
 
-import { Button, Drawer, Dropdown, Label, Separator, Spinner, Tooltip, useOverlayState } from "@heroui/react";
+import { Button, Drawer, Dropdown, Label, Separator, Spinner, useOverlayState } from "@heroui/react";
 import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelector as ChevronsUpDown, IconSearch as Search, IconSettings as Settings, IconSun as Sun, IconHome as House, IconFileText as FileText, IconHeart as Heart, IconTool as Wrench, IconMessageCircle as MessageCircle, IconMoon as Moon, IconLayoutDashboard as LayoutDashboard, IconBuilding as Building2, IconFileCheck as FileCheckCorner, IconCashBanknote as Banknote, IconMessages as MessagesSquare, IconUsers as Users, IconUser as UserRound, IconShieldCheck as ShieldCheck, IconHistory as History, IconChartBar as ChartBar } from "@tabler/icons-react";
 
 import { signOut } from "@/service/signOutService";
@@ -390,8 +390,9 @@ export function AppSidebar({
         className={`flex border-b border-sidebar-border bg-sidebar ${collapsed ? "justify-center px-2 py-3" : "items-center justify-between gap-2 px-5 py-5"}`}
       >
         {collapsed ? (
-          <Tooltip>
-            <Tooltip.Trigger>
+          <RailTooltip>
+            <RailTooltipTrigger asChild>
+              <span className="inline-flex">
           <Button
             variant="ghost"
             aria-label="Expand sidebar"
@@ -417,9 +418,10 @@ export function AppSidebar({
               />
             </span>
           </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content placement="right" offset={8} className="rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-none">Expand sidebar</Tooltip.Content>
-          </Tooltip>
+              </span>
+            </RailTooltipTrigger>
+            <RailTooltipContent side="right" sideOffset={8}>Expand sidebar</RailTooltipContent>
+          </RailTooltip>
         ) : (
           <Link
             href={navItems[0]?.href ?? "/"}
@@ -499,7 +501,7 @@ export function AppSidebar({
             </Link>
               </RailTooltipTrigger>
               {collapsed ? (
-                <RailTooltipContent side="right" sideOffset={8} hideArrow className="rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-none">
+                <RailTooltipContent side="right" sideOffset={8}>
                   {`${label}${hasActivity ? ", Unread activity" : ""}`}
                 </RailTooltipContent>
               ) : null}
