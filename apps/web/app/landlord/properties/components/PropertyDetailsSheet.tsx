@@ -30,6 +30,7 @@ import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
 
 type ApartmentImage = {
   id: string;
@@ -268,7 +269,7 @@ export default function PropertyDetailsSheet({
                             tone={STATUS_COLOR[selected.status] ?? "neutral"}
                             className="capitalize"
                           >
-                            {selected.status}
+                            {propertyStatusLabel(selected.status)}
                           </StatusChip>
                           <HiddenListingChip hidden={selected.is_hidden_by_admin} />
                         </div>

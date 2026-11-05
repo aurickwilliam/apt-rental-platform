@@ -6,4 +6,5 @@ export const STATUS_COLOR: Record<string, StatusTone> = {
   verified: "success",
   unverified: "warning",
   occupied: "neutral",
+  under_maintenance: "warning",
 };

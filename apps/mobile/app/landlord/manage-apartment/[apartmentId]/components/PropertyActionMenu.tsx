@@ -2,7 +2,9 @@ import { Button, Menu} from 'heroui-native'
 import {
   IconDotsVertical,
   IconLogout,
-  IconCircleX
+  IconCircleX,
+  IconEye,
+  IconEyeOff,
 } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme'
@@ -11,9 +13,13 @@ type Props = {
   onVacate: () => void
   onRemove: () => void
   isOccupied: boolean
+  visibilityLabel?: string
+  isListingHidden?: boolean
+  onVisibilityPress?: () => void
+  isBusy?: boolean
 }
 
-export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: Props) {
+export default function PropertyActionMenu({ onVacate, onRemove, isOccupied, visibilityLabel, isListingHidden, onVisibilityPress, isBusy = false }: Props) {
   const { colors } = useColors()
 
   return (
@@ -23,6 +29,8 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
           className="absolute bottom-8 right-6 rounded-full bg-accent
             items-center justify-center shadow-lg active:opacity-80"
           isIconOnly
+          accessibilityLabel="Property actions"
+          isDisabled={isBusy}
         >
           <IconDotsVertical
             size={26}
@@ -40,7 +48,13 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
           width={200}
         >
           <Menu.Label>Actions</Menu.Label>
-          <Menu.Item isDisabled={!isOccupied} onPress={onVacate}>
+          {onVisibilityPress && visibilityLabel ? (
+            <Menu.Item isDisabled={isBusy} onPress={onVisibilityPress}>
+              {isListingHidden ? <IconEye size={20} color={colors.textPrimary} /> : <IconEyeOff size={20} color={colors.textPrimary} />}
+              <Menu.ItemTitle>{visibilityLabel}</Menu.ItemTitle>
+            </Menu.Item>
+          ) : null}
+          <Menu.Item isDisabled={!isOccupied || isBusy} onPress={onVacate}>
             <IconLogout
               size={20}
               color={!isOccupied ? colors.gray400 : colors.textPrimary}
@@ -52,7 +66,7 @@ export default function PropertyActionMenu({ onVacate, onRemove, isOccupied }: P
 
           <Menu.Item
             variant="danger"
-            isDisabled={isOccupied}
+            isDisabled={isOccupied || isBusy}
             onPress={onRemove}
           >
             <IconCircleX
