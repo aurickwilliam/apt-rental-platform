@@ -92,7 +92,8 @@ test("mobile drawer renders one group per section, split by separators, then the
 function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pushed = [] }) {
   const item = compile("../app/components/layout/SidebarNotificationsItem.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@heroui/react": { Button: "Button", Tooltip: Object.assign(() => {}, { Trigger: "Tooltip.Trigger", Content: "Tooltip.Content" }) },
+    "@heroui/react": { Button: "Button" },
+    "@/components/ui/tooltip": { Tooltip: "Tooltip", TooltipContent: "TooltipContent", TooltipProvider: "TooltipProvider", TooltipTrigger: "TooltipTrigger" },
     "@tabler/icons-react": { IconBell: "IconBell" },
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry, drawerSide: "right" } }) },
@@ -100,10 +101,11 @@ function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pu
   }, { window: { location: { href: "http://localhost/landlord/dashboard?tab=1#top" }, history: { pushState: (_state, _title, url) => pushed.push(url) } }, URL });
   const root = item.default({ activePortal: "landlord", collapsed });
   if (!root) return null;
-  // The button sits inside a Tooltip that names it on the collapsed rail.
-  const [trigger, content] = root.props.children;
-  const button = trigger.props.children;
-  return Object.assign(button, { tooltip: content.props.children, tooltipDisabled: root.props.isDisabled });
+  // The button sits inside a Tooltip that names it on the collapsed rail;
+  // the tooltip content is only rendered while the rail is collapsed.
+  const [trigger, content] = root.props.children.props.children;
+  const button = trigger.props.children.props.children;
+  return Object.assign(button, { tooltip: content?.props.children, tooltipDisabled: !content });
 }
 
 test("Notifications tab is hidden while the floating bell is the chosen entry point", () => {

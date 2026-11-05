@@ -23,6 +23,7 @@ function load(file, extra = {}) {
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
     "@/service/signOutService": { signOut: () => {} },
+    "@/components/ui/tooltip": { Tooltip: "Tooltip", TooltipContent: "TooltipContent", TooltipProvider: "TooltipProvider", TooltipTrigger: "TooltipTrigger" },
     "./SidebarLinkPending": { default: () => null },
     "./SidebarNotificationsItem": { default: "SidebarNotificationsItem" },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => extra["next/navigation"].useRouter().push(href) }) },
