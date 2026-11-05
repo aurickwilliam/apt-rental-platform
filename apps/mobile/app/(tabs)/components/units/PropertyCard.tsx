@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/useTheme'
 
 import { ApartmentStatus, APARTMENT_STATUS_LABELS } from '@repo/constants'
 
-import { formatPesoDisplay } from '@repo/utils'
+import { formatPesoDisplay, propertyStatusLabel } from '@repo/utils'
 
 interface PropertyCardProps {
   apartmentName: string
@@ -64,7 +64,7 @@ export default function PropertyCard({
   return (
     <PressableFeedback onPress={onPress} className='rounded-3xl overflow-hidden'>
       <PressableFeedback.Highlight />
-      <Card className='flex-row h-28 overflow-hidden rounded-3xl border border-border p-0 shadow-none'>
+       <Card className={`flex-row ${status === 'under_maintenance' ? 'min-h-28' : 'h-28'} overflow-hidden rounded-3xl border border-border p-0 shadow-none`}>
         <Image
           source={{ uri: thumbnailUrl }}
           className='w-30 shrink-0'
@@ -103,12 +103,12 @@ export default function PropertyCard({
             </Card.Description>
           </View>
 
-          <View className='flex-row items-center justify-between'>
+          <View className={`flex-row items-center justify-between gap-1 ${status === 'under_maintenance' ? 'flex-wrap' : ''}`}>
             {/* Monthly Rent */}
             <Text className='text-sm font-nunitoSemiBold text-accent'>
               {monthlyRent ? formatPesoDisplay(monthlyRent) : 'N/A'}
             </Text>
-            <View className='flex-row items-center gap-1'>
+            <View className={`flex-row items-center gap-1 ${status === 'under_maintenance' ? 'flex-wrap max-w-full' : ''}`}>
             {isHiddenByAdmin ? (
               <View
                 className='px-2 py-1 rounded-full self-start border'
@@ -121,14 +121,14 @@ export default function PropertyCard({
             ) : null}
             {/* Status chip */}
             <View
-              className='px-2 py-1 rounded-full self-start border'
+              className='px-2 py-1 rounded-full self-start border max-w-full'
               style={{
                 backgroundColor: style.backgroundColor,
                 borderColor: style.color,
               }}
             >
               <Text className='text-xs font-inter' style={{ color: style.color }}>
-                {APARTMENT_STATUS_LABELS[status]}
+                {status === 'under_maintenance' ? propertyStatusLabel(status) : APARTMENT_STATUS_LABELS[status]}
               </Text>
             </View>
             </View>

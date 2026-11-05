@@ -10,6 +10,7 @@ import HiddenListingChip from "./HiddenListingChip";
 import type { Property } from "./propertyTypes";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import EmptyState from "@/app/components/display/EmptyState";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
 
 type Props = {
   properties: Property[];
@@ -136,7 +137,7 @@ export default function PropertiesTable({
                       tone={STATUS_COLOR[property.status] ?? "neutral"}
                       className="capitalize"
                     >
-                      {property.status}
+                      {propertyStatusLabel(property.status)}
                     </StatusChip>
                     <HiddenListingChip hidden={property.is_hidden_by_admin} />
                   </div>

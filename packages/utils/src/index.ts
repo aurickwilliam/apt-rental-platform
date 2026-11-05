@@ -43,6 +43,8 @@ export {
 } from './userReport';
 export { getErrorMessage } from './getErrorMessage';
 export * from './listingReview';
+export { canChangeListingVisibility, propertyStatusLabel, nextListingVisibilityStatus } from './listingVisibility';
+export type { ListingVisibilityStatus } from './listingVisibility';
 export * from './landlordFinance';
 export * from './landlordPayments';
 export { filterPaymentHistory } from './paymentHistory';
