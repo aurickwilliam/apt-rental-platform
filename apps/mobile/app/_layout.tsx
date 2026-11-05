@@ -25,6 +25,7 @@ import QueryProvider from "@/components/providers/QueryProvider";
 import { setPrivateMediaCacheUser } from "@/service/media/privateMediaResolver";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { clearQueryClient } from "@/utils/queryClient";
+import { useWelcomeStore } from "@/stores/useWelcomeStore";
 import { getSplashBackground } from "@/utils/splashBackground";
 import {
   useInAppNotificationBanner,
@@ -98,6 +99,7 @@ export default function RootLayout() {
       setPrivateMediaCacheUser(session?.user.id ?? null);
       if (event === 'SIGNED_OUT' || (session && usePortalStore.getState().authUserId && usePortalStore.getState().authUserId !== session.user.id)) {
         usePortalStore.getState().reset();
+        useWelcomeStore.getState().reset();
         clearQueryClient();
       }
     });

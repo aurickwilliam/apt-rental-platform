@@ -17,6 +17,7 @@ import { useProfile } from "hooks/auth";
 import { Button, useToast, Separator } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useWelcomeStore } from "@/stores/useWelcomeStore";
 
 export default function StepFive() {
   const router = useRouter();
@@ -36,13 +37,15 @@ export default function StepFive() {
     reset,
   } = personalization;
 
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
   const petsError = getPetsError(hasPets, kindOfPets, noOfPets);
 
   const handleNext = async () => {
+    if (isSaving || profileLoading) return;
+
     if (petsError) {
       toast.show({
         variant: "danger",
@@ -52,14 +55,19 @@ export default function StepFive() {
       return;
     }
 
-    if (!profile?.user_id) {
-      router.replace("/(tabs)/(tenant)/rentals");
-      return;
-    }
-
     setIsSaving(true);
 
     try {
+      const currentProfile = profile ?? (await refetchProfile()).data;
+      if (!currentProfile?.user_id) {
+        toast.show({
+          variant: "danger",
+          label: "Couldn't load your account",
+          description: "Please try again to finish personalization.",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from("users")
         .update({
@@ -80,7 +88,7 @@ export default function StepFive() {
             hasDisability: personalization.hasDisability,
           },
         })
-        .eq("user_id", profile.user_id);
+        .eq("user_id", currentProfile.user_id);
 
       if (error) {
         console.error("Failed to save preferences:", error);
@@ -92,6 +100,7 @@ export default function StepFive() {
         return;
       }
 
+      useWelcomeStore.getState().request(currentProfile.user_id);
       reset();
       router.replace("/(tabs)/(tenant)/rentals");
     } catch (err) {
@@ -187,12 +196,16 @@ export default function StepFive() {
           />
         </View>
 
-        {/* Next Button */}
-        <Button onPress={handleNext} isDisabled={isSaving}>
-          <Button.Label>
-            {isSaving ? "Saving..." : "Let's find your place!"}
-          </Button.Label>
-        </Button>
+        <View className="flex-row gap-3">
+          <Button variant="secondary" className="flex-1" onPress={() => router.replace("/personalization/step-four")} isDisabled={isSaving}>
+            <Button.Label>Back</Button.Label>
+          </Button>
+          <Button className="flex-1" onPress={handleNext} isDisabled={isSaving || profileLoading}>
+            <Button.Label>
+              {isSaving ? "Saving..." : profileLoading ? "Loading account..." : "Let's find your place!"}
+            </Button.Label>
+          </Button>
+        </View>
       </View>
     </ScreenWrapper>
   );
