@@ -292,7 +292,8 @@ test("Our Team renders the four real members with circular portraits and approve
   assert(all.filter(node => node.type === "a").every(node => node.props.target === "_blank" && node.props.rel === "noopener noreferrer"));
 
   const source = readFileSync(new URL("../app/(main)/components/TeamSection.tsx", import.meta.url), "utf8");
-  const data = readFileSync(new URL("../app/(main)/about/data/AboutData.ts", import.meta.url), "utf8");
+  // Team copy is shared with mobile, so the names live in @repo/constants.
+  const data = readFileSync(new URL("../../../packages/constants/src/aboutTeam.ts", import.meta.url), "utf8");
   assert.doesNotMatch(source, /member\.bio/);
   assert.match(source, /from "\.\.\/about\/data\/AboutData"/);
   for (const member of teamMembers) assert(data.includes(member.name), `${member.name} must come from AboutData`);
