@@ -2,11 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { supabase } from "@repo/supabase";
 import {
+  checkAuthThrottle,
+  clearAuthThrottle,
   describeAuthError,
   hasEmailPasswordIdentity,
+  isInvalidOtpError,
   isRecoveryCodeFormat,
   normalizeRecoveryEmail,
   PasswordError,
+  recordAuthFailure,
   toPasswordError,
   toPasswordErrorReason,
 } from "@repo/utils";
@@ -60,9 +64,11 @@ export async function isPasswordRecoveryInProgress(): Promise<boolean> {
 // Sends (or resends) a recovery code. supabase.auth.resend() does not support
 // recovery codes, so resend calls this again. Resolves the same way whether or
 // not the account exists, so callers can't reveal account existence.
-export async function requestPasswordRecovery(email: string): Promise<void> {
+export async function requestPasswordRecovery(email: string, captchaToken?: string): Promise<void> {
   const normalizedEmail = normalizeRecoveryEmail(email);
-  const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+  const { error } = await (captchaToken
+    ? supabase.auth.resetPasswordForEmail(normalizedEmail, { captchaToken })
+    : supabase.auth.resetPasswordForEmail(normalizedEmail));
   if (!error || error.code === "user_not_found") return;
   throw toPasswordError(error, "Password recovery request");
 }
@@ -81,6 +87,12 @@ export async function verifyPasswordRecoveryCode(
     throw new PasswordError("invalid_or_expired_code");
   }
 
+  // Persistent guess limit per email (database), so closing the app does not
+  // reset it. A code is a 6-digit guess that ends in a full session.
+  if ((await checkAuthThrottle(supabase, "recovery_otp", normalizedEmail)) > 0) {
+    throw new PasswordError("rate_limited");
+  }
+
   // Marked before verifying so the app can't be closed between the session
   // being saved and the marker being written.
   await setRecoveryInProgress();
@@ -91,8 +103,10 @@ export async function verifyPasswordRecoveryCode(
   });
   if (error || !data.user || !data.session) {
     await clearRecoveryInProgress();
+    if (isInvalidOtpError(error)) await recordAuthFailure(supabase, "recovery_otp", normalizedEmail);
     throw toPasswordError(error, "Password recovery verification");
   }
+  await clearAuthThrottle(supabase, "recovery_otp", normalizedEmail);
 
   if (!hasEmailPasswordIdentity(data.user)) {
     await endPasswordRecovery();

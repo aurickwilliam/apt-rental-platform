@@ -9,12 +9,13 @@ export async function requestSignUpCode(params: {
   password: string;
   fullName: string;
   acceptance: RegistrationAcceptance;
+  captchaToken?: string;
 }): Promise<void> {
   requireRegistrationAcceptance(params.acceptance);
   const { error } = await supabase.auth.signUp({
     email: params.email,
     password: params.password,
-    options: { data: { full_name: params.fullName } },
+    options: { data: { full_name: params.fullName }, captchaToken: params.captchaToken },
   });
   if (error) throw error;
 }

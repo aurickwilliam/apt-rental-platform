@@ -9,6 +9,9 @@ import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
 import { useConfirmEmail } from '../hooks/use-confirm-email';
+import TurnstileWidget from '@/app/components/inputs/TurnstileWidget';
+import { useCaptcha } from '@/hooks/use-captcha';
+import { CAPTCHA_PENDING_MESSAGE } from '@repo/utils';
 import OtpModal from '../sign-up-form/components/OtpModal';
 
 import { Form, Input, Link, Button, TextField, FieldError, Label } from '@heroui/react'
@@ -29,8 +32,17 @@ export default function AuthForm({ next }: { next?: string }) {
   const [signUpEmailError, setSignUpEmailError] = useState<SignUpEmailError | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
-  const [state, formAction, isPending] = useActionState(signIn, initialState);
-  const confirmEmail = useConfirmEmail(email);
+  const { attach: attachCaptcha, take: takeCaptcha } = useCaptcha();
+  const [state, formAction, isPending] = useActionState(
+    async (previous: SignInFormState, formData: FormData): Promise<SignInFormState> => {
+      const attempt = takeCaptcha();
+      if (attempt.pending) return { error: CAPTCHA_PENDING_MESSAGE };
+      if (attempt.token) formData.set('captchaToken', attempt.token);
+      return signIn(previous, formData);
+    },
+    initialState,
+  );
+  const confirmEmail = useConfirmEmail(email, takeCaptcha);
 
   const clearSignUpError = useCallback(() => {
     setSignUpError((current) => (current === null ? current : null));
@@ -216,6 +228,8 @@ export default function AuthForm({ next }: { next?: string }) {
             </>
           )
         }
+
+        {type === 'sign-in' && <TurnstileWidget ref={attachCaptcha} />}
 
         <Button
           className='w-full mt-[clamp(0.75rem,2vh,1.25rem)]'

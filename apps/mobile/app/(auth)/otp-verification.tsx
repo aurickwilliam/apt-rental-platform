@@ -12,6 +12,7 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { useCaptcha } from '@/hooks/auth/useCaptcha'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 import { completeMobileRegistration } from '@/service/auth/registrationService'
 import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '@/service/auth/registrationAcceptance'
@@ -22,6 +23,14 @@ import {
   getOtpAttemptError,
   getProfileSubmitError,
   parseResendWaitSeconds,
+  AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isInvalidOtpError,
+  recordAuthFailure,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
@@ -38,6 +47,7 @@ import {
 const OTP_VALIDITY_DURATION = 60 // seconds
 
 export default function OTPVerification() {
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha()
   const router = useRouter()
   const { email, mode } = useLocalSearchParams()
   // Opened from sign-in for an account whose email was never confirmed: there
@@ -84,6 +94,12 @@ export default function OTPVerification() {
       }
     }
 
+    const captcha = takeCaptcha()
+    if (captcha.pending) {
+      setOtpError(CAPTCHA_PENDING_MESSAGE)
+      return
+    }
+
     setResendLoading(true)
     setOtpError(null)
 
@@ -91,6 +107,7 @@ export default function OTPVerification() {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: emailValue || data.email!,
+        options: captcha.token ? { captchaToken: captcha.token } : undefined,
       })
 
       if (resendError) {
@@ -101,7 +118,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(getEmailCodeRequestError(resendError.message))
+        setError(isCaptchaError(resendError) ? CAPTCHA_FAILED_MESSAGE : getEmailCodeRequestError(resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -138,13 +155,26 @@ export default function OTPVerification() {
     let emailVerified = false
 
     try {
+      // Persistent guess limit per email (database), so restarting the app
+      // does not give a fresh set of attempts.
+      const throttleEmail = emailValue || data.email!
+      if ((await checkAuthThrottle(supabase, 'signup_otp', throttleEmail)) > 0) {
+        clearOtp()
+        setOtpLocked(true)
+        setOtpError(AUTH_THROTTLE_MESSAGE)
+        return
+      }
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         email: emailValue || data.email!,
         token: otp,
         type: 'signup',
       })
 
-      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
+      if (verifyError || !authData.user) {
+        if (isInvalidOtpError(verifyError)) await recordAuthFailure(supabase, 'signup_otp', throttleEmail)
+        throw verifyError ?? new Error('Verification failed')
+      }
+      await clearAuthThrottle(supabase, 'signup_otp', throttleEmail)
       emailVerified = true
 
       if (isConfirmMode) {
@@ -199,6 +229,7 @@ export default function OTPVerification() {
       // incorrect-or-expired code; the resend link only appears after its
       // countdown, never because of this error.
       const isInvalidOtp =
+        isInvalidOtpError(err) ||
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
         msg.includes('invalid_otp') ||
@@ -309,6 +340,8 @@ export default function OTPVerification() {
               </Button>
             </View>
           )}
+
+          {captchaWidget}
 
           {/* Resend Link and Countdown */}
           <View className="flex-row items-center">

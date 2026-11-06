@@ -2,9 +2,10 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, checkAuthThrottle, clearAuthThrottle, getEmailCodeRequestError, getOtpAttemptError, isInvalidOtpError, parseResendWaitSeconds, recordAuthFailure } from "@repo/utils";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
+import type { CaptchaAttempt } from "@/hooks/use-captcha";
 
 const CODE_COOLDOWN = 60;
 
@@ -15,7 +16,7 @@ const FINISH_PROFILE_PATH = "/sign-up?from=profile-missing";
 // entered (sign-in answers "Email not confirmed"). A verified code starts a
 // session, and the missing profile is then finished like any interrupted
 // sign-up. No form data is kept anywhere, so nothing is lost by refreshing.
-export function useConfirmEmail(email: string) {
+export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttempt) {
   const [isOpen, setIsOpen] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -28,10 +29,20 @@ export function useConfirmEmail(email: string) {
     setResendLoading(true);
     setOtpError(null);
     try {
+      const captcha = takeCaptcha?.();
+      if (captcha?.pending) {
+        setOtpError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
       const { error } = await createClient().auth.resend({
         type: "signup",
         email: email.trim(),
+        options: captcha?.token ? { captchaToken: captcha.token } : undefined,
       });
+      if (isCaptchaError(error)) {
+        setOtpError(CAPTCHA_FAILED_MESSAGE);
+        return;
+      }
       if (error) {
         // A throttled resend means a code was sent moments ago and still works.
         const waitSeconds = parseResendWaitSeconds(error.message);
@@ -47,7 +58,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setResendLoading(false);
     }
-  }, [email, start, attempts]);
+  }, [email, start, attempts, takeCaptcha]);
 
   const open = useCallback(() => {
     setIsOpen(true);
@@ -58,16 +69,28 @@ export function useConfirmEmail(email: string) {
     setLoading(true);
     setOtpError(null);
     try {
-      const { data, error } = await createClient().auth.verifyOtp({
+      const client = createClient();
+      if ((await checkAuthThrottle(client, "signup_otp", email)) > 0) {
+        setOtpError(AUTH_THROTTLE_MESSAGE);
+        setOtp("");
+        return;
+      }
+      const { data, error } = await client.auth.verifyOtp({
         email: email.trim(),
         token: otp,
         type: "signup",
       });
       if (error || !data.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        if (isInvalidOtpError(error)) {
+          const blockedFor = await recordAuthFailure(client, "signup_otp", email);
+          setOtpError(blockedFor > 0 ? AUTH_THROTTLE_MESSAGE : getOtpAttemptError(attempts.recordWrongCode()));
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
+      await clearAuthThrottle(client, "signup_otp", email);
       // Full navigation: the new session cookies must reach the server.
       window.location.assign(FINISH_PROFILE_PATH);
     } catch {

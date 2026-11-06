@@ -13,11 +13,15 @@ import {
   RECOVERY_UPDATED_PATH,
 } from "@repo/supabase/password-recovery";
 import {
+  checkAuthThrottle,
+  clearAuthThrottle,
   describeAuthError,
   hasEmailPasswordIdentity,
+  isInvalidOtpError,
   isRecoveryCodeFormat,
   normalizeRecoveryEmail,
   PasswordError,
+  recordAuthFailure,
   type PasswordErrorReason,
   toPasswordError,
   toPasswordErrorReason,
@@ -75,11 +79,16 @@ async function endPasswordRecovery(supabase: Supabase, scope: "local" | "global"
 
 // Sends (or resends) a recovery code. auth.resend() does not support recovery
 // codes, so resend calls this again. Unknown accounts get the same answer.
-export async function requestPasswordRecovery(email: string): Promise<RecoveryRequestResult> {
+export async function requestPasswordRecovery(
+  email: string,
+  captchaToken?: string,
+): Promise<RecoveryRequestResult> {
   try {
     const normalizedEmail = normalizeRecoveryEmail(email);
     const supabase = await createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      captchaToken: captchaToken || undefined,
+    });
     if (!error || error.code === "user_not_found") return { error: null };
     return { error: errorReason(error, "Password recovery request") };
   } catch (error) {
@@ -103,6 +112,11 @@ export async function verifyPasswordRecoveryCode(
   if (!isRecoveryCodeFormat(token)) return { error: "invalid_or_expired_code" };
 
   const supabase = await createClient();
+  // Guess limit per email, enforced here (server side) so a refreshed page does
+  // not reset it. Same answer for unknown accounts, so nothing is revealed.
+  if ((await checkAuthThrottle(supabase, "recovery_otp", normalizedEmail)) > 0) {
+    return { error: "rate_limited" };
+  }
   const cookieStore = await cookies();
   // Marked before verifying, so a session can never exist without the marker.
   cookieStore.set(
@@ -119,9 +133,12 @@ export async function verifyPasswordRecoveryCode(
     });
     if (error || !data.user || !data.session) {
       await expireCookie(RECOVERY_MARKER_COOKIE);
+      // Only a wrong or expired code counts, never a network or throttle error.
+      if (isInvalidOtpError(error)) await recordAuthFailure(supabase, "recovery_otp", normalizedEmail);
       return { error: errorReason(error, "Password recovery verification") };
     }
 
+    await clearAuthThrottle(supabase, "recovery_otp", normalizedEmail);
     if (!hasEmailPasswordIdentity(data.user)) {
       await endPasswordRecovery(supabase, "local");
       return { status: "google_only" };
