@@ -181,6 +181,25 @@ Phase 0 admin authorization hardening: browser/mobile profile edits cannot chang
 
 ### 4.3 Web flow
 
+Standalone Terms and Privacy readers share presentation components between public
+and portal routes. Public policy pages resolve a settled session through the
+request-local identity and validated portal preference before redirecting; absent,
+incomplete or unavailable profiles stay on the public text without an onboarding
+loop. Portal pages keep their own role/suspension/onboarding authorization and
+Admin MFA. The two landlord policy routes are read-only exceptions to the
+verification wall, not exceptions to membership or suspension checks. Settings
+builds policy links from its resolved active portal, never role-priority alone.
+See `docs/web-policy-navigation.md`.
+
+Web registration policy checkboxes additionally require reaching each loaded
+document's end in its own policy modal (two fixed-document instances, no tabs).
+After content readiness, the same independent completion state locks Close/X,
+Escape and backdrop dismissal; loading/error states stay dismissible. Version-keyed
+completion stays local to that form; a document-panel IntersectionObserver
+disconnects once complete and retires queued callbacks on cleanup. This browser interaction guard does
+not prove reading or change server/database acceptance authorization. See
+`docs/web-registration-acceptance.md` for the boundary and verification.
+
 **Web policy acceptance.** Email registration (including the OTP request/resend and final profile action) and Complete Profile require independent explicit acceptance of Terms and Conditions and Privacy Policy. Versions/display metadata come from `apps/web/lib/registration-policies.ts`; a migration maintains matching authoritative revisions in `web_registration_policies`. The caller-bound `complete_web_registration` RPC atomically writes the allowed profile fields and both `policy_acceptances` rows. It is SECURITY INVOKER so existing RLS, column grants and validation triggers remain active; a narrow definer helper records only the caller's own revisions with database timestamps. The rows reference internal `users.id`, allow owner-only reads and no direct client mutations, and are unique per account/policy/version. Acceptance failure rolls back completion; retries preserve original timestamps. Existing onboarding guards therefore keep interrupted Google/email sessions out of portals without a new account-wide acceptance gate. Completed accounts remain unchanged; mobile has its own opt-in transaction described in §4.4, while older apps retain their profile-only contract. Apply `20261029120000_web_registration_policy_acceptance.sql` before deploying the web feature. See `docs/web-registration-acceptance.md` for rollout, security boundaries and local verification.
 
 ```mermaid
@@ -244,6 +263,17 @@ sequenceDiagram
 **Registration birth dates.** `@repo/utils` `birthDate.ts` owns strict date-only validation and inclusive 18–110-year anniversary bounds computed from the current Asia/Manila day (Feb 29 anniversaries clamp to Feb 28 where necessary). Web regular sign-up and Complete Profile use the same registration-only `RegistrationBirthDateField`; its calendar and input receive identical limits, refreshed at Manila midnight/resume. The OTP request validates before Auth account creation; profile insertion and completion revalidate independently before writes. Structured birth-date errors and exact known database guard exceptions map to the inline field, not the generic error modal. If verification already established a profile-less session, the existing sign-out safeguard remains and the form links to sign-in to finish setup. Complete Profile seeds saved birth dates through its existing caller-owned read. The historical database trigger's 120-year upper limit is unchanged: direct database enforcement of the stricter maximum requires a separately authorized migration. Other date pickers, Auth/role rules and address fields are unchanged.
 
 ### 4.4 Mobile flow
+
+Mobile registration policy readers mirror web's independent interaction gate:
+each fixed-document dialog tracks its native viewport, full-content size and
+trailing-marker layout through `usePolicyReadingProgress`, then unlocks only its
+own checkbox and dismissal controls at the end. Measurements stay in refs, with
+state updates only at readiness/completion. Completion is version-keyed form
+memory, not persisted evidence of reading. Close/backdrop/Android Back share one
+stable, latest-state guard because HeroUI Native's Back subscription captures
+its initial callback. Unmounting retires both reading and close callbacks;
+pending layout and render failures allow dismissal. The registration service,
+server validation, policy versions and acceptance transaction are unchanged.
 
 **Registration policy acceptance.** Email Complete Profile and signed-in Finish Profile require separate Privacy and Terms selections, initially false. Displayed revisions come from mobile's `constants/legal/` policy data (tested against web). Reading policies opens a HeroUI Native dialog over the unchanged form. The email journey stages its acceptance and normalized profile snapshot in memory until OTP verification; neither device storage, route params nor Auth metadata are proof of acceptance. `complete_mobile_registration` writes the caller's profile and both acceptance records atomically through an invoker transaction plus narrow caller-only definer helper. The expected Auth ID rejects retired-account submissions; existing profile grants, validation and Google-only onboarding-role rules remain active. Policy revisions reuse `web_registration_policies`, and `policy_acceptances.source` adds mobile-specific origins without changing the web functions. Completed-account retries preserve original timestamps; legacy completed accounts and older apps remain unaffected, with no universal acceptance trigger. The migration must precede the mobile release. See `docs/mobile-registration-acceptance.md`.
 

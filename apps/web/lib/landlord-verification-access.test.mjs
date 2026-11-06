@@ -5,7 +5,7 @@ import {
   LANDLORD_VERIFY_REQUIRED_PATH,
 } from "./landlord-verification-access.ts";
 
-test("only profile, public listing views and the wall stay open", () => {
+test("profile, policies, public listing views and the wall stay open", () => {
   for (const path of [
     LANDLORD_VERIFY_REQUIRED_PATH,
     "/landlord/profile",
@@ -13,6 +13,8 @@ test("only profile, public listing views and the wall stay open", () => {
     "/landlord/browse/abc/ratings",
     "/landlord/landlords/abc",
     "/landlord/landlords/abc/reviews",
+    "/landlord/pap",
+    "/landlord/tos",
   ]) {
     assert.equal(isLandlordRouteOpenWhileUnverified(path), true, path);
   }
@@ -34,6 +36,8 @@ test("every landlord tool is closed", () => {
     "/landlord/visit-requests",
     "/landlord/profileish",
     "/landlord/browser",
+    "/landlord/paperwork",
+    "/landlord/tos-settings",
   ]) {
     assert.equal(isLandlordRouteOpenWhileUnverified(path), false, path);
   }

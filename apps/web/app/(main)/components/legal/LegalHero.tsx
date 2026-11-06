@@ -21,6 +21,8 @@ interface LegalHeroProps {
   description: string;
   meta: LegalMeta;
   icon: ReactNode;
+  navigation?: ReactNode;
+  headingId?: string;
 }
 
 export default function LegalHero({
@@ -30,21 +32,30 @@ export default function LegalHero({
   description,
   meta,
   icon,
+  navigation,
+  headingId,
 }: LegalHeroProps) {
   return (
     <header className="border-b border-border bg-light-blue/60 dark:bg-primary/10">
       <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-7 sm:px-6 sm:pb-10 sm:pt-9">
         <div className="flex flex-col gap-3">
-          <Chip
-            color="accent"
-            variant="soft"
-            className="w-fit gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wider text-brand"
-          >
-            {icon}
-            <Chip.Label className="px-0 text-brand">{eyebrow}</Chip.Label>
-          </Chip>
+          <div className="flex items-center gap-3">
+            {navigation}
+            <Chip
+              color="accent"
+              variant="soft"
+              className="w-fit gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wider text-brand"
+            >
+              {icon}
+              <Chip.Label className="px-0 text-brand">{eyebrow}</Chip.Label>
+            </Chip>
+          </div>
 
-          <h1 className="font-nunito text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
+          <h1
+            id={headingId}
+            tabIndex={headingId ? -1 : undefined}
+            className="font-nunito text-4xl font-bold leading-tight tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-5xl"
+          >
             {title ? `${title} ` : ""}
             <span className="text-brand">{titleAccent}</span>
           </h1>
