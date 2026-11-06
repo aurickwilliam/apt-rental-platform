@@ -56,3 +56,6 @@ jobs:
 
       - name: Web registration database tests
         run: pnpm db:web-registration:test
+
+      - name: Auth throttle database tests
+        run: pnpm db:auth-throttle:test

@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { AUTH_THROTTLE_MESSAGE, CAPTCHA_PENDING_MESSAGE, checkAuthThrottle, clearAuthThrottle, getOtpAttemptError, isInvalidOtpError, recordAuthFailure } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, CAPTCHA_PENDING_MESSAGE, getOtpAttemptError } from "@repo/utils";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
+import { verifySignupCode } from "../../actions/verify-signup-code";
 import { SignUpFormData } from "../types";
 import { writeRegistrationAcceptance, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
 
@@ -108,32 +109,21 @@ export function useOtpFlow({
     setOtpError(null);
 
     try {
-      // Persistent guess limit per email: a refresh does not reset it.
-      if ((await checkAuthThrottle(supabase, "signup_otp", data.email)) > 0) {
-        setOtpError(AUTH_THROTTLE_MESSAGE);
+      // The guess limit lives on the server (database window written with the
+      // service role), so neither a refresh nor a direct call skips it.
+      const verification = await verifySignupCode(data.email, otpRef.current);
+      if (!verification.ok) {
+        setOtpError(
+          verification.reason === "rate_limited"
+            ? AUTH_THROTTLE_MESSAGE
+            : getOtpAttemptError(attempts.recordWrongCode()),
+        );
         setOtp("");
         return;
       }
-      const { data: session, error: otpError } = await supabase.auth.verifyOtp({
-        email: data.email,
-        token: otpRef.current,
-        type: "signup",
-      });
-
-      if (otpError || !session.user) {
-        if (isInvalidOtpError(otpError)) {
-          const blockedFor = await recordAuthFailure(supabase, "signup_otp", data.email);
-          setOtpError(blockedFor > 0 ? AUTH_THROTTLE_MESSAGE : getOtpAttemptError(attempts.recordWrongCode()));
-        } else {
-          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
-        }
-        setOtp("");
-        return;
-      }
-      await clearAuthThrottle(supabase, "signup_otp", data.email);
 
       const fd = new FormData();
-      fd.set("userId", session.user.id);
+      fd.set("userId", verification.userId);
       fd.set("email", data.email);
       fd.set("firstName", data.firstName);
       fd.set("lastName", data.lastName);

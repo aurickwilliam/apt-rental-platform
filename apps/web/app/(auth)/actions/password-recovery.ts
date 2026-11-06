@@ -27,6 +27,7 @@ import {
   toPasswordErrorReason,
 } from "@repo/utils";
 
+import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 // Password recovery by 6-digit email code, mirroring mobile
@@ -112,9 +113,11 @@ export async function verifyPasswordRecoveryCode(
   if (!isRecoveryCodeFormat(token)) return { error: "invalid_or_expired_code" };
 
   const supabase = await createClient();
-  // Guess limit per email, enforced here (server side) so a refreshed page does
-  // not reset it. Same answer for unknown accounts, so nothing is revealed.
-  if ((await checkAuthThrottle(supabase, "recovery_otp", normalizedEmail)) > 0) {
+  const throttle = getAuthThrottleClient();
+  // Guess limit per email, enforced here (server side, counters written with the
+  // service role) so a refreshed page does not reset it. Same answer for unknown
+  // accounts, so nothing is revealed.
+  if ((await checkAuthThrottle(throttle, "recovery_otp", normalizedEmail)) > 0) {
     return { error: "rate_limited" };
   }
   const cookieStore = await cookies();
@@ -134,11 +137,11 @@ export async function verifyPasswordRecoveryCode(
     if (error || !data.user || !data.session) {
       await expireCookie(RECOVERY_MARKER_COOKIE);
       // Only a wrong or expired code counts, never a network or throttle error.
-      if (isInvalidOtpError(error)) await recordAuthFailure(supabase, "recovery_otp", normalizedEmail);
+      if (isInvalidOtpError(error)) await recordAuthFailure(throttle, "recovery_otp", normalizedEmail);
       return { error: errorReason(error, "Password recovery verification") };
     }
 
-    await clearAuthThrottle(supabase, "recovery_otp", normalizedEmail);
+    await clearAuthThrottle(throttle, "recovery_otp", normalizedEmail);
     if (!hasEmailPasswordIdentity(data.user)) {
       await endPasswordRecovery(supabase, "local");
       return { status: "google_only" };

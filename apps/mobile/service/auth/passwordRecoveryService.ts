@@ -3,14 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
 import {
   checkAuthThrottle,
-  clearAuthThrottle,
   describeAuthError,
   hasEmailPasswordIdentity,
-  isInvalidOtpError,
   isRecoveryCodeFormat,
   normalizeRecoveryEmail,
   PasswordError,
-  recordAuthFailure,
   toPasswordError,
   toPasswordErrorReason,
 } from "@repo/utils";
@@ -87,8 +84,9 @@ export async function verifyPasswordRecoveryCode(
     throw new PasswordError("invalid_or_expired_code");
   }
 
-  // Persistent guess limit per email (database), so closing the app does not
-  // reset it. A code is a 6-digit guess that ends in a full session.
+  // Reads the per-email guess window (database). Only the web server writes it
+  // (service role), so on mobile this is a speed bump; Supabase's own limits are
+  // the real protection. A code is a 6-digit guess that ends in a full session.
   if ((await checkAuthThrottle(supabase, "recovery_otp", normalizedEmail)) > 0) {
     throw new PasswordError("rate_limited");
   }
@@ -103,10 +101,8 @@ export async function verifyPasswordRecoveryCode(
   });
   if (error || !data.user || !data.session) {
     await clearRecoveryInProgress();
-    if (isInvalidOtpError(error)) await recordAuthFailure(supabase, "recovery_otp", normalizedEmail);
     throw toPasswordError(error, "Password recovery verification");
   }
-  await clearAuthThrottle(supabase, "recovery_otp", normalizedEmail);
 
   if (!hasEmailPasswordIdentity(data.user)) {
     await endPasswordRecovery();

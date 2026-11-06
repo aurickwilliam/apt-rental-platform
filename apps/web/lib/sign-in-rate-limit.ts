@@ -6,20 +6,25 @@ export const SIGN_IN_THROTTLE_MESSAGE =
   "Too many sign-in attempts. Please try again in a few minutes.";
 
 /**
- * Client IP for rate limiting, not attribution: the first hop of
- * `x-forwarded-for` with `x-real-ip` as a fallback. Empty when neither is
- * present, and the IP bucket is then skipped. A proxy that does not overwrite
- * `x-forwarded-for` lets a caller pick this value, which is why the per-email
- * window (not spoofable) is the protection for a targeted account and the IP
- * window only slows password spraying.
+ * Client IP for rate limiting, not attribution. Prefers the headers the hosting
+ * platform sets itself (`x-vercel-forwarded-for`, then `x-real-ip`), which a
+ * caller cannot override there, and only then the first hop of
+ * `x-forwarded-for`. Empty when none is present, and the IP buckets are then
+ * skipped. Off the platform (local dev, a proxy that forwards these headers
+ * untouched) a caller can still pick the value, which is why the per-email
+ * hourly ceiling (it never reads the IP) is the protection for a targeted
+ * account and the IP windows only slow password spraying.
  */
-export function clientIpFromHeaders(headers: Record<
-  "x-forwarded-for" | "x-real-ip",
+export function clientIpFromHeaders(headers: Partial<Record<
+  "x-vercel-forwarded-for" | "x-real-ip" | "x-forwarded-for",
   string | string[] | null | undefined
->): string {
-  const forwarded = firstKnownIp(headers["x-forwarded-for"]);
-  if (forwarded) return forwarded;
-  return firstKnownIp(headers["x-real-ip"]) ?? "";
+>>): string {
+  return (
+    firstKnownIp(headers["x-vercel-forwarded-for"]) ??
+    firstKnownIp(headers["x-real-ip"]) ??
+    firstKnownIp(headers["x-forwarded-for"]) ??
+    ""
+  );
 }
 
 function firstKnownIp(value: string | string[] | null | undefined): string | null {

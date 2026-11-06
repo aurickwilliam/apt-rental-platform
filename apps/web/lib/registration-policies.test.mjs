@@ -296,6 +296,7 @@ test("email resend/final verification carry acceptance; stale policies after ver
     "@repo/supabase/browser": { createClient: () => ({ auth: { verifyOtp: async () => ({ data: { user: { id: "caller" } } }), signOut: async () => signedOut.push(true) } }) },
     "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
     "../../actions/send-otp": { sendEmailOtp: async (...args) => { resends.push(args); return { success: true }; } },
+    "../../actions/verify-signup-code": { verifySignupCode: async () => ({ ok: true, userId: "caller" }) },
     "../../actions/sign-up": { signUp: async (_, fd) => { requests.push(fd); return { acceptanceErrors: { version: "Review current policies." } }; } },
   }, { FormData });
   const hook = runtime.render(() => flow.useOtpFlow({

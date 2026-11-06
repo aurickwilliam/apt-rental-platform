@@ -1,11 +1,25 @@
 // App-level brute-force throttle for sign-in and one-time codes, shared by web
-// and mobile. State lives in the database (`public.auth_throttle`, see
-// 20261105144525_auth_attempt_throttle.sql), so it survives restarts, several
-// server instances and app reinstalls. Supabase Auth's own limits and CAPTCHA
-// stay the server-side backstop: a caller that talks to Auth directly skips
-// this, which is why web enforces it inside server actions where it can.
+// and mobile. State lives in the database, so it survives restarts, several
+// server instances and app reinstalls.
+//
+// Reading is open: `check` goes through `public.auth_throttle`, which anyone may
+// call. Writing is server-only: `fail` and `clear` go through
+// `public.auth_throttle_server`, executable by the service role alone
+// (20261106120000_lock_down_auth_throttle.sql). Pass a service-role client to
+// `recordAuthFailure` / `clearAuthThrottle` (web server actions do); any other
+// client is refused and fails open, so mobile can only read the counters.
+// Supabase Auth's own limits and CAPTCHA stay the backstop for callers that talk
+// to Auth directly.
 
-export type AuthThrottlePurpose = "signin_email" | "signin_ip" | "signup_otp" | "recovery_otp";
+export type AuthThrottlePurpose =
+  | "signin_email_ip"
+  | "signin_email_hour"
+  | "signin_ip"
+  | "signup_otp"
+  | "recovery_otp"
+  | "email_change_otp";
+
+type ThrottleFunction = "auth_throttle" | "auth_throttle_server";
 
 export const AUTH_THROTTLE_MESSAGE =
   "Too many attempts. Please wait a few minutes before trying again.";
@@ -24,26 +38,29 @@ export function isCaptchaError(error: unknown): boolean {
 // Structural subset of a Supabase client, so this package needs no dependency.
 export interface AuthThrottleClient {
   rpc(
-    fn: "auth_throttle",
+    fn: ThrottleFunction,
     args: { p_action: "check" | "fail" | "clear"; p_purpose: AuthThrottlePurpose; p_subject: string },
   ): PromiseLike<{ data: unknown; error: unknown }>;
 }
 
 async function call(
   client: AuthThrottleClient,
+  fn: ThrottleFunction,
   action: "check" | "fail" | "clear",
   purpose: AuthThrottlePurpose,
   subject: string,
 ): Promise<number> {
   try {
-    const { data, error } = await client.rpc("auth_throttle", {
+    const { data, error } = await client.rpc(fn, {
       p_action: action,
       p_purpose: purpose,
       p_subject: subject,
     });
     if (error) {
-      // Fails open: a missing migration or a network blip must not lock every
-      // user out. Supabase Auth's own limits still apply. Never log the subject.
+      // Fails open: a missing migration, a missing service key or a network
+      // blip must not lock every user out. Supabase Auth's own limits still
+      // apply. Log the action and purpose only, never the subject, so an outage
+      // can be alerted on.
       console.error("Auth throttle unavailable:", action, purpose);
       return 0;
     }
@@ -56,21 +73,24 @@ async function call(
 
 /** Seconds left while blocked, 0 when the attempt may go ahead. */
 export function checkAuthThrottle(client: AuthThrottleClient, purpose: AuthThrottlePurpose, subject: string) {
-  return call(client, "check", purpose, subject);
+  return call(client, "auth_throttle", "check", purpose, subject);
 }
 
-/** Records one wrong password/code. Returns seconds blocked after this failure. */
+/**
+ * Records one wrong password/code. Returns seconds blocked after this failure.
+ * Server-only: needs a service-role client.
+ */
 export function recordAuthFailure(client: AuthThrottleClient, purpose: AuthThrottlePurpose, subject: string) {
-  return call(client, "fail", purpose, subject);
+  return call(client, "auth_throttle_server", "fail", purpose, subject);
 }
 
-/** Resets the window after a success. */
+/** Resets the window after a success. Server-only: needs a service-role client. */
 export async function clearAuthThrottle(
   client: AuthThrottleClient,
   purpose: AuthThrottlePurpose,
   subject: string,
 ): Promise<void> {
-  await call(client, "clear", purpose, subject);
+  await call(client, "auth_throttle_server", "clear", purpose, subject);
 }
 
 // Supabase Auth answers throttling with a stable code and HTTP 429; matching

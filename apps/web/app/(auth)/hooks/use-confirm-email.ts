@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { AUTH_THROTTLE_MESSAGE, CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, checkAuthThrottle, clearAuthThrottle, getEmailCodeRequestError, getOtpAttemptError, isInvalidOtpError, parseResendWaitSeconds, recordAuthFailure } from "@repo/utils";
+import { AUTH_THROTTLE_MESSAGE, CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { verifySignupCode } from "../actions/verify-signup-code";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
 import type { CaptchaAttempt } from "@/hooks/use-captcha";
@@ -69,28 +70,18 @@ export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttemp
     setLoading(true);
     setOtpError(null);
     try {
-      const client = createClient();
-      if ((await checkAuthThrottle(client, "signup_otp", email)) > 0) {
-        setOtpError(AUTH_THROTTLE_MESSAGE);
+      // The guess limit lives on the server, so neither a refresh nor a direct
+      // call skips it. A verified code sets the session cookies in the response.
+      const verification = await verifySignupCode(email, otp);
+      if (!verification.ok) {
+        setOtpError(
+          verification.reason === "rate_limited"
+            ? AUTH_THROTTLE_MESSAGE
+            : getOtpAttemptError(attempts.recordWrongCode()),
+        );
         setOtp("");
         return;
       }
-      const { data, error } = await client.auth.verifyOtp({
-        email: email.trim(),
-        token: otp,
-        type: "signup",
-      });
-      if (error || !data.user) {
-        if (isInvalidOtpError(error)) {
-          const blockedFor = await recordAuthFailure(client, "signup_otp", email);
-          setOtpError(blockedFor > 0 ? AUTH_THROTTLE_MESSAGE : getOtpAttemptError(attempts.recordWrongCode()));
-        } else {
-          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
-        }
-        setOtp("");
-        return;
-      }
-      await clearAuthThrottle(client, "signup_otp", email);
       // Full navigation: the new session cookies must reach the server.
       window.location.assign(FINISH_PROFILE_PATH);
     } catch {

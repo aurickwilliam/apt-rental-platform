@@ -12,9 +12,10 @@ import {
   isAuthRateLimitError,
   isCaptchaError,
   recordAuthFailure,
-  type AuthThrottlePurpose,
 } from "@repo/utils";
+import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { clientIpFromHeaders, SIGN_IN_THROTTLE_MESSAGE } from "@/lib/sign-in-rate-limit";
+import { signInThrottleKeys } from "@/lib/sign-in-throttle";
 
 export interface SignInFormState {
   error: string | null;
@@ -48,21 +49,21 @@ export async function signIn(
   }
 
   // Brute-force guard: refuse with a generic message (no account enumeration)
-  // while either the email or the client-IP failure window in the database is
-  // spent. "Invalid login credentials" is the only failure that counts.
+  // while any failure window in the database is spent (email from this IP, the
+  // email's hourly ceiling, this IP). The counters are written only here, with
+  // the service role. "Invalid login credentials" is the only failure that counts.
   const requestHeaders = await headers();
   const clientIp = clientIpFromHeaders({
-    "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
+    "x-vercel-forwarded-for": requestHeaders.get("x-vercel-forwarded-for"),
     "x-real-ip": requestHeaders.get("x-real-ip"),
+    "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
   });
   const supabase = await createClient();
-  const attempts: { purpose: AuthThrottlePurpose; subject: string }[] = [
-    { purpose: "signin_email", subject: email },
-  ];
-  if (clientIp) attempts.push({ purpose: "signin_ip", subject: clientIp });
+  const throttle = getAuthThrottleClient();
+  const { guard, clearOnSuccess } = signInThrottleKeys(email, clientIp);
 
   const waits = await Promise.all(
-    attempts.map((a) => checkAuthThrottle(supabase, a.purpose, a.subject)),
+    guard.map((key) => checkAuthThrottle(throttle, key.purpose, key.subject)),
   );
   if (waits.some((seconds) => seconds > 0)) {
     return { error: SIGN_IN_THROTTLE_MESSAGE };
@@ -82,7 +83,7 @@ export async function signIn(
     if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
     // Map common Supabase auth errors to user-friendly messages
     if (error.message === "Invalid login credentials") {
-      await Promise.all(attempts.map((a) => recordAuthFailure(supabase, a.purpose, a.subject)));
+      await Promise.all(guard.map((key) => recordAuthFailure(throttle, key.purpose, key.subject)));
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
@@ -97,9 +98,10 @@ export async function signIn(
     return { error: error.message };
   }
 
-  // A good sign-in resets the email and IP windows, so a shared office IP is
-  // not punished for an attacker's earlier guesses.
-  await Promise.all(attempts.map((a) => clearAuthThrottle(supabase, a.purpose, a.subject)));
+  // A good sign-in resets this email's windows. The IP window is left to
+  // expire on its own: clearing it would let an attacker with one valid account
+  // of their own reset it between rounds of password spraying.
+  await Promise.all(clearOnSuccess.map((key) => clearAuthThrottle(throttle, key.purpose, key.subject)));
 
   // A fresh sign-in replaces any password-recovery session, so drop its marker
   // (otherwise the middleware would sign this new session out).

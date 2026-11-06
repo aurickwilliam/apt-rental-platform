@@ -28,9 +28,7 @@ import {
   CAPTCHA_PENDING_MESSAGE,
   isCaptchaError,
   checkAuthThrottle,
-  clearAuthThrottle,
   isInvalidOtpError,
-  recordAuthFailure,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
@@ -155,8 +153,9 @@ export default function OTPVerification() {
     let emailVerified = false
 
     try {
-      // Persistent guess limit per email (database), so restarting the app
-      // does not give a fresh set of attempts.
+      // Reads the per-email guess window (database). Only the web server writes
+      // it (service role), so on mobile this is a speed bump; the in-app attempt
+      // counter and Supabase's own limits are what stop guessing here.
       const throttleEmail = emailValue || data.email!
       if ((await checkAuthThrottle(supabase, 'signup_otp', throttleEmail)) > 0) {
         clearOtp()
@@ -171,10 +170,8 @@ export default function OTPVerification() {
       })
 
       if (verifyError || !authData.user) {
-        if (isInvalidOtpError(verifyError)) await recordAuthFailure(supabase, 'signup_otp', throttleEmail)
         throw verifyError ?? new Error('Verification failed')
       }
-      await clearAuthThrottle(supabase, 'signup_otp', throttleEmail)
       emailVerified = true
 
       if (isConfirmMode) {

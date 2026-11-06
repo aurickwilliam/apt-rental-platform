@@ -50,10 +50,8 @@ import {
   CAPTCHA_PENDING_MESSAGE,
   isCaptchaError,
   checkAuthThrottle,
-  clearAuthThrottle,
   isAuthRateLimitError,
   isValidEmail,
-  recordAuthFailure,
 } from "@repo/utils";
 
 export default function SignIn() {
@@ -135,9 +133,11 @@ export default function SignIn() {
     try {
       // Attempt to sign in with Supabase
       // Using email and password
-      // Persistent per-email failure window (database), on top of Supabase's
-      // own limits; the message never says whether the account exists.
-      if ((await checkAuthThrottle(supabase, "signin_email", email)) > 0) {
+      // Reads the per-email hourly failure window (database). Only the web
+      // server writes it (the counters are service-role only), so on mobile this
+      // is a speed bump: Supabase's own limits and CAPTCHA are the real
+      // protection. The message never says whether the account exists.
+      if ((await checkAuthThrottle(supabase, "signin_email_hour", email)) > 0) {
         setError(AUTH_THROTTLE_MESSAGE);
         return;
       }
@@ -154,14 +154,12 @@ export default function SignIn() {
           password,
           options: captcha.token ? { captchaToken: captcha.token } : undefined,
         });
-      if (!signInError) await clearAuthThrottle(supabase, "signin_email", email);
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
         if (isCaptchaError(signInError)) {
           setError(CAPTCHA_FAILED_MESSAGE);
         } else if (signInError.code === "invalid_credentials" || signInError.message === "Invalid login credentials") {
-          await recordAuthFailure(supabase, "signin_email", email);
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           // Sign-up was left before the email code was entered: send a fresh
