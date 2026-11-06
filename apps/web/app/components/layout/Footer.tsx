@@ -40,10 +40,10 @@ export default function Footer() {
 
           <Accordion.Panel>
             <Accordion.Body className="flex flex-col gap-2">
-              <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/faq#contact" className="text-base font-medium text-white/80 hover:text-white">
                 Contact Us
               </Link>
-              <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
                 FAQ
               </Link>
             </Accordion.Body>
@@ -83,10 +83,10 @@ export default function Footer() {
         </div>
         <div className="flex flex-col gap-3">
           <h3 className="font-semibold font-inter font-semibold text-white">Support</h3>
-          <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/faq#contact" className="text-base font-medium text-white/80 hover:text-white">
             Contact Us
           </Link>
-          <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
             FAQ
           </Link>
         </div>
