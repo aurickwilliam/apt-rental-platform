@@ -1,9 +1,14 @@
-// Moderation emails: fixed templates rendered from a queued row's params. The
-// function never sends free-form text from a request, so it cannot be used to
-// mail arbitrary content. Plain inline HTML with one small hosted logo and no
-// web fonts: emails over ~102 KB are clipped by Gmail.
+// Moderation and account-activity emails: fixed templates rendered from a queued
+// row's params. The function never sends free-form text from a request, so it
+// cannot be used to mail arbitrary content. Plain inline HTML with one small
+// hosted logo and no web fonts: emails over ~102 KB are clipped by Gmail.
 
 export type EmailTemplate =
+  | 'rent_reminder'
+  | 'payment_update'
+  | 'verification_update'
+  | 'application_update'
+  | 'maintenance_update'
   | 'lease_renewal_update'
   | 'listing_hidden'
   | 'listing_restored'
@@ -14,6 +19,11 @@ export type EmailTemplate =
   | 'report_reviewed'
 
 export const EMAIL_TEMPLATES: readonly EmailTemplate[] = [
+  'rent_reminder',
+  'payment_update',
+  'verification_update',
+  'application_update',
+  'maintenance_update',
   'lease_renewal_update',
   'listing_hidden',
   'listing_restored',
@@ -115,6 +125,72 @@ function layout({ heading, intro, callout, outro = [] }: Content): { html: strin
 
 export function renderEmail(template: EmailTemplate, params: Params): RenderedEmail {
   switch (template) {
+    case 'rent_reminder': {
+      const title = text(params.title, 'Rent reminder')
+      return {
+        subject: title,
+        ...layout({
+          heading: title,
+          intro: [text(params.body, 'There is an update about rent on your APT account.')],
+          outro: ['Open Payments in APT for the details. If this rent is already settled, you can ignore this email.'],
+        }),
+      }
+    }
+    case 'payment_update': {
+      const title = text(params.title, 'Payment update')
+      return {
+        subject: title,
+        ...layout({
+          heading: title,
+          intro: [text(params.body, 'There is an update about a payment on your APT account.')],
+          outro: ['Open Payments in APT for the details.'],
+        }),
+      }
+    }
+    case 'verification_update': {
+      const title = text(params.title, 'Verification update')
+      const reason = text(params.reason)
+      return {
+        subject: title,
+        ...layout({
+          heading: title,
+          intro: [
+            reason
+              ? 'Our team reviewed what you submitted and could not verify it.'
+              : text(params.body, 'There is an update about your verification.'),
+          ],
+          ...(reason ? { callout: { label: 'Reason', text: reason } } : {}),
+          outro: [
+            reason
+              ? 'Open APT to correct it and submit it again.'
+              : 'Open APT to see your verification status.',
+          ],
+        }),
+      }
+    }
+    case 'application_update': {
+      const title = text(params.title, 'Application update')
+      return {
+        subject: title,
+        ...layout({
+          heading: title,
+          intro: [text(params.body, 'There is an update about a rental application.')],
+          outro: ['Open APT for the application details.'],
+        }),
+      }
+    }
+    case 'maintenance_update': {
+      const title = text(params.title, 'Maintenance update')
+      return {
+        subject: title,
+        ...layout({
+          heading: title,
+          intro: ['There is an update about a maintenance request.'],
+          callout: { label: 'Request', text: text(params.body, 'Maintenance request') },
+          outro: ['Open Maintenance in APT for the details.'],
+        }),
+      }
+    }
     case 'lease_renewal_update':
       return {
         subject: text(params.title, 'Your APT lease renewal'),
