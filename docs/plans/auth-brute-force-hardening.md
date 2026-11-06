@@ -1,6 +1,6 @@
 # Auth brute-force hardening plan
 
-Status: implemented on branch `fix/auth-throttle-server-only` (not yet released). Decisions: 6-digit codes stay; Turnstile widget mode is Invisible; service-role key for the web throttle; mobile stays a speed bump; fail open and alert. Remaining before release: add `SUPABASE_SERVICE_ROLE_KEY` to Vercel and `apps/web/.env.local`, deploy web and a mobile build, then apply `20261106120000_lock_down_auth_throttle.sql`. Original proposal follows. Follows the review of `auth_throttle`
+Status: implemented on branch `fix/auth-throttle-server-only` (not yet released). Decisions: 6-digit codes stay; Turnstile widget mode is Invisible; service-role key for the web throttle; mobile stays a speed bump; fail open and alert. Remaining before release: add `SUPABASE_SERVICE_ROLE_KEY` to Vercel and `apps/web/.env.local`, deploy web and a mobile build, then apply `20261106130000_lock_down_auth_throttle.sql`. Original proposal follows. Follows the review of `auth_throttle`
 (`supabase/migrations/20261105144525_auth_attempt_throttle.sql`), `@repo/utils`
 `authThrottle.ts` and the Turnstile CAPTCHA work.
 

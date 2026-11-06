@@ -6,7 +6,7 @@ import { PGlite } from "@electric-sql/pglite";
 // Applies the original throttle migration and the lock-down on top of it, the
 // way the hosted database sees them, and checks who may read and who may write.
 const original = await readFile(new URL("../../supabase/migrations/20261105144525_auth_attempt_throttle.sql", import.meta.url), "utf8");
-const lockdown = await readFile(new URL("../../supabase/migrations/20261106120000_lock_down_auth_throttle.sql", import.meta.url), "utf8");
+const lockdown = await readFile(new URL("../../supabase/migrations/20261106130000_lock_down_auth_throttle.sql", import.meta.url), "utf8");
 
 async function database(t) {
   const db = new PGlite();

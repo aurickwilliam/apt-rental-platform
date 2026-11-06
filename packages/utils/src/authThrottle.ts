@@ -5,7 +5,7 @@
 // Reading is open: `check` goes through `public.auth_throttle`, which anyone may
 // call. Writing is server-only: `fail` and `clear` go through
 // `public.auth_throttle_server`, executable by the service role alone
-// (20261106120000_lock_down_auth_throttle.sql). Pass a service-role client to
+// (20261106130000_lock_down_auth_throttle.sql). Pass a service-role client to
 // `recordAuthFailure` / `clearAuthThrottle` (web server actions do); any other
 // client is refused and fails open, so mobile can only read the counters.
 // Supabase Auth's own limits and CAPTCHA stay the backstop for callers that talk

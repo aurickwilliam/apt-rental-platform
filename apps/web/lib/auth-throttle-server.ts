@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { AuthThrottleClient } from "@repo/utils";
 
 // The brute-force counters can only be written with the service role
-// (`public.auth_throttle_server`, 20261106120000_lock_down_auth_throttle.sql),
+// (`public.auth_throttle_server`, 20261106130000_lock_down_auth_throttle.sql),
 // so every web server action that records or clears a failure goes through this
 // client. It is server-only: SUPABASE_SERVICE_ROLE_KEY is never a NEXT_PUBLIC_
 // value and must never reach the browser, a log or a URL. It is used for the
