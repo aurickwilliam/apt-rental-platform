@@ -12,13 +12,62 @@ jest.mock('@/utils/compressImage', () => ({
   compressImage: (...args: unknown[]) => mockCompressImage(...args),
 }));
 
-jest.mock('@repo/supabase', () => ({
-  supabase: {
-    from: jest.fn(),
-    storage: { from: jest.fn() },
-    rpc: jest.fn(),
-  },
-}));
+jest.mock('@repo/supabase', () => {
+  // This suite only exercises compressChatImageAsset — nothing here calls the
+  // client. Keep every builder method chainable anyway, so a stray query
+  // chain reaching the service's import (a leak from a prior suite running on
+  // the same worker) cannot throw "Cannot read properties of undefined
+  // (reading 'select')" during this file's setup in CI.
+  const makeQueryBuilder = () => {
+    const builder: Record<string, unknown> = {};
+    for (const method of [
+      'select',
+      'insert',
+      'update',
+      'upsert',
+      'delete',
+      'eq',
+      'neq',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'is',
+      'in',
+      'like',
+      'ilike',
+      'contains',
+      'containedBy',
+      'overlaps',
+      'or',
+      'not',
+      'textSearch',
+      'order',
+      'range',
+      'limit',
+      'single',
+      'maybeSingle',
+      'abortSignal',
+    ]) {
+      builder[method] = jest.fn(() => builder);
+    }
+    return builder;
+  };
+
+  return {
+    supabase: {
+      from: jest.fn(() => makeQueryBuilder()),
+      rpc: jest.fn(() => ({ data: null, error: null })),
+      storage: {
+        from: jest.fn(() => ({
+          upload: jest.fn(async () => ({ data: { path: '' }, error: null })),
+          remove: jest.fn(async () => ({ data: [], error: null })),
+          getPublicUrl: jest.fn(() => ({ data: { publicUrl: '' } })),
+        })),
+      },
+    },
+  };
+});
 
 jest.mock('expo-file-system', () => ({
   File: class {},
