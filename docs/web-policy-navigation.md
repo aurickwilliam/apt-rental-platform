@@ -16,6 +16,19 @@ Unknown/external history never sends the policy reader off-site. Existing
 apartment callers without a fallback retain their original history-back behavior.
 The Cookie hero and registration dialogs do not gain this button.
 
+A passive window scroll subscription reveals a fixed bottom-right Back to top
+control as soon as `scrollY > 0`, anywhere in the document, and hides it at the
+top. `useSyncExternalStore` reads a boolean snapshot, so scrolling only changes
+the rendered state when crossing the top. Server rendering keeps it hidden;
+the client also handles restored scroll positions on mount. The subscription
+is removed on unmount, and no end-of-document marker or observer is needed.
+The shared HeroUI button focuses the document's own heading without an automatic
+focus-scroll, then scrolls to the page top smoothly (instantly for reduced motion).
+The heading has a programmatic focus target and visible keyboard focus, but is
+not an extra tab stop. The control uses 16px bottom/right offsets plus device safe
+areas and marks `data-fab-clearance`, so the existing notification bell resolver
+keeps its resting placement clear. It is not mounted in registration dialogs or Cookie.
+
 Portal routes pass `layout="portal"` to the shared body. Desktop Contents uses a
 16px sticky top gap there, rather than the public layout's 80px navbar clearance.
 The same offset is included in the measured-height fit check; content taller than

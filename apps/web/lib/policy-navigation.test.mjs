@@ -97,6 +97,7 @@ test("shared policy bodies retain their hero, contents and all sections without 
   for (const [component, data, path] of [["PrivacyPolicyPage", privacy, "pap"], ["TermsPolicyPage", terms, "tos"]]) {
     const page = compile(`app/components/legal/${component}.tsx`, {
       "./PolicyBackButton": { default: "PolicyBackButton" },
+      "./PolicyBackToTopButton": { default: "PolicyBackToTopButton" },
       "react/jsx-runtime": jsx,
       "@tabler/icons-react": { IconShieldCheck: "IconShieldCheck" },
       ...Object.fromEntries(["LegalBlocks", "LegalBulletList", "LegalHero", "LegalSection", "LegalTableOfContents"].map(name => [`${base}${name}`, { default: name }])),
@@ -107,10 +108,14 @@ test("shared policy bodies retain their hero, contents and all sections without 
     assert.equal(all.filter(node => node.type === "LegalTableOfContents").length, 1);
     assert.equal(all.filter(node => node.type === "LegalHero").length, 1);
     assert.equal(all.find(node => node.type === "LegalHero").props.navigation.type, "PolicyBackButton");
+    const topButton = all.find(node => node.type === "PolicyBackToTopButton");
+    assert.equal(topButton.props.headingId, all.find(node => node.type === "LegalHero").props.headingId);
+    assert.ok(all.indexOf(topButton) > all.findLastIndex(node => node.type === "LegalSection"));
     assert.equal(all.some(node => ["AppNavbar", "Footer", "AppSidebar"].includes(node.type)), false);
     assert.equal(all.find(node => node.type === "LegalTableOfContents").props.layout, "public");
     const portalBody = nodes(page({ layout: "portal" }));
     assert.equal(portalBody.find(node => node.type === "LegalTableOfContents").props.layout, "portal");
+    assert.equal(portalBody.filter(node => node.type === "PolicyBackToTopButton").length, 1);
   }
   for (const portal of ["tenant", "landlord", "admin"]) {
     const source = readFileSync(new URL(`../app/${portal}/layout.tsx`, import.meta.url), "utf8");

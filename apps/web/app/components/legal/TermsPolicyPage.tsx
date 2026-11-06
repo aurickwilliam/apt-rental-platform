@@ -9,6 +9,9 @@ import LegalTableOfContents from "@/app/(main)/components/legal/LegalTableOfCont
 
 import { LEGAL_META, SECTIONS, TOC } from "@/app/(main)/tos/data/tos-sections";
 import PolicyBackButton from "./PolicyBackButton";
+import PolicyBackToTopButton from "./PolicyBackToTopButton";
+
+const HEADING_ID = "terms-policy-heading";
 
 export const termsPolicyMetadata: Metadata = {
   title: "Terms and Conditions — APT",
@@ -20,6 +23,7 @@ export default function TermsPolicyPage({ layout = "public" }: { layout?: "publi
   return (
     <div className="min-h-screen bg-muted/30 dark:bg-background">
       <LegalHero
+        headingId={HEADING_ID}
         navigation={<PolicyBackButton />}
         eyebrow="Legal"
         title="Terms and"
@@ -49,6 +53,7 @@ export default function TermsPolicyPage({ layout = "public" }: { layout?: "publi
               ))}
             </LegalSection>
           ))}
+          <PolicyBackToTopButton headingId={HEADING_ID} />
         </article>
       </div>
     </div>

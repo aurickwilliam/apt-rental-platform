@@ -9,6 +9,9 @@ import LegalTableOfContents from "@/app/(main)/components/legal/LegalTableOfCont
 
 import { LEGAL_META, SECTIONS, TOC } from "@/app/(main)/pap/data/pap-sections";
 import PolicyBackButton from "./PolicyBackButton";
+import PolicyBackToTopButton from "./PolicyBackToTopButton";
+
+const HEADING_ID = "privacy-policy-heading";
 
 const DESCRIPTION =
   "This Privacy Policy explains how APT collects, uses, stores, discloses, and protects your personal information when you use our website and mobile application.";
@@ -22,6 +25,7 @@ export default function PrivacyPolicyPage({ layout = "public" }: { layout?: "pub
   return (
     <div className="min-h-screen bg-muted/30 dark:bg-background">
       <LegalHero
+        headingId={HEADING_ID}
         navigation={<PolicyBackButton />}
         eyebrow="Legal"
         title="Privacy"
@@ -47,6 +51,7 @@ export default function PrivacyPolicyPage({ layout = "public" }: { layout?: "pub
               <LegalBlocks blocks={section.blocks} />
             </LegalSection>
           ))}
+          <PolicyBackToTopButton headingId={HEADING_ID} />
         </article>
       </div>
     </div>

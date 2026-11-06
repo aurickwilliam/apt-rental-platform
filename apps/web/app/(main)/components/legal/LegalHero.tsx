@@ -22,6 +22,7 @@ interface LegalHeroProps {
   meta: LegalMeta;
   icon: ReactNode;
   navigation?: ReactNode;
+  headingId?: string;
 }
 
 export default function LegalHero({
@@ -32,6 +33,7 @@ export default function LegalHero({
   meta,
   icon,
   navigation,
+  headingId,
 }: LegalHeroProps) {
   return (
     <header className="border-b border-border bg-light-blue/60 dark:bg-primary/10">
@@ -49,7 +51,11 @@ export default function LegalHero({
             </Chip>
           </div>
 
-          <h1 className="font-nunito text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
+          <h1
+            id={headingId}
+            tabIndex={headingId ? -1 : undefined}
+            className="font-nunito text-4xl font-bold leading-tight tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-5xl"
+          >
             {title ? `${title} ` : ""}
             <span className="text-brand">{titleAccent}</span>
           </h1>
