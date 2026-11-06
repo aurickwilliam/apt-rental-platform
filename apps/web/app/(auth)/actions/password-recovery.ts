@@ -81,8 +81,8 @@ async function endPasswordRecovery(supabase: Supabase, scope: "local" | "global"
 }
 
 // Sends (or resends) a recovery code. auth.resend() does not support recovery
-// codes, so resend calls this again. Unknown emails are refused before any
-// code is sent ("email_not_registered").
+// codes, so resend calls this again. Unknown and Google-only emails are refused
+// before any code is sent ("email_not_registered" / "google_account").
 export async function requestPasswordRecovery(
   email: string,
   captchaToken?: string,
@@ -90,13 +90,15 @@ export async function requestPasswordRecovery(
   try {
     const normalizedEmail = normalizeRecoveryEmail(email);
     const supabase = await createClient();
-    // Only emails with a confirmed account get a code (same RPC as the sign-up
-    // duplicate check). A failed lookup is an error, never a silent "send".
-    const { data: registered, error: lookupError } = await supabase.rpc("is_email_registered", {
-      p_email: normalizedEmail,
-    });
+    // Only emails with a confirmed email/password account get a code. A failed
+    // lookup is an error, never a silent "send".
+    const { data: eligibility, error: lookupError } = await supabase.rpc(
+      "get_password_recovery_eligibility",
+      { p_email: normalizedEmail },
+    );
     if (lookupError) return { error: errorReason(lookupError, "Password recovery lookup") };
-    if (registered !== true) return { error: "email_not_registered" };
+    if (eligibility === "google_only") return { error: "google_account" };
+    if (eligibility !== "eligible") return { error: "email_not_registered" };
 
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       captchaToken: captchaToken || undefined,

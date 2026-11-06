@@ -81,7 +81,9 @@ export default function ForgotPassword() {
     } catch (err) {
       if (
         err instanceof PasswordError &&
-        (err.reason === "invalid_email" || err.reason === "email_not_registered")
+        (err.reason === "invalid_email" ||
+          err.reason === "email_not_registered" ||
+          err.reason === "google_account")
       ) {
         setEmailError(err.message);
       } else {

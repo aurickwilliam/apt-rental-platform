@@ -71,7 +71,7 @@ describe("passwordRecoveryService", () => {
     consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     mockSignOut.mockResolvedValue({ error: null });
     mockBaseUrl = "";
-    mockRpc.mockResolvedValue({ data: true, error: null });
+    mockRpc.mockResolvedValue({ data: "eligible", error: null });
   });
 
   afterEach(() => consoleError.mockRestore());
@@ -88,15 +88,23 @@ describe("passwordRecoveryService", () => {
       expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
-    it("checks the email is registered before sending a code", async () => {
+    it("checks the account can reset a password before sending a code", async () => {
       mockResetPasswordForEmail.mockResolvedValueOnce({ data: {}, error: null });
       await requestPasswordRecovery(EMAIL);
-      expect(mockRpc).toHaveBeenCalledWith("is_email_registered", { p_email: EMAIL });
+      expect(mockRpc).toHaveBeenCalledWith("get_password_recovery_eligibility", {
+        p_email: EMAIL,
+      });
     });
 
     it("refuses an unknown email without sending a code", async () => {
-      mockRpc.mockResolvedValueOnce({ data: false, error: null });
+      mockRpc.mockResolvedValueOnce({ data: "unknown", error: null });
       await expectReason(requestPasswordRecovery(EMAIL), "email_not_registered");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+    });
+
+    it("refuses a Google-only email without sending a code", async () => {
+      mockRpc.mockResolvedValueOnce({ data: "google_only", error: null });
+      await expectReason(requestPasswordRecovery(EMAIL), "google_account");
       expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
