@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { AppState, Text, View } from 'react-native';
 import { useRouter, useSegments, type Href } from 'expo-router';
 import { Button } from 'heroui-native';
-import { IconCircleCheckFilled, IconSparkles } from '@tabler/icons-react-native';
+import { IconCircleCheckFilled, IconHomeHeart } from '@tabler/icons-react-native';
 
 import {
   getTutorialSteps,
@@ -124,7 +124,7 @@ export default function TutorialHost() {
         titleLayout="centered"
         titleIllustration={
           <View className="size-24 items-center justify-center rounded-full bg-primary-light">
-            <IconSparkles size={44} color={colors.primary} />
+            <IconHomeHeart size={44} color={colors.primary} />
           </View>
         }
         footer={

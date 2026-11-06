@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { IconCircleCheck, IconSparkles } from "@tabler/icons-react";
+import { IconCircleCheck, IconHomeHeart } from "@tabler/icons-react";
 import { Button, Modal } from "@heroui/react";
 
 import {
@@ -131,7 +131,7 @@ export default function TutorialTour({ portal, profileId, accountStatus }: Tutor
           <Modal.Container placement="center" size="sm">
             <Modal.Dialog className="rounded-3xl bg-card p-6 text-center">
               <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-                {isWelcome ? <IconSparkles size={40} aria-hidden="true" /> : <IconCircleCheck size={40} aria-hidden="true" />}
+                {isWelcome ? <IconHomeHeart size={40} aria-hidden="true" /> : <IconCircleCheck size={40} aria-hidden="true" />}
               </span>
               <Modal.Heading className="mt-4 font-nunito text-2xl font-bold text-foreground">
                 {isWelcome ? "Welcome to APT" : "You're all set"}
