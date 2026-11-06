@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { getOtpAttemptError } from "@repo/utils";
+import { CAPTCHA_PENDING_MESSAGE, getOtpAttemptError } from "@repo/utils";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
+import { verifySignupCode } from "../../actions/verify-signup-code";
 import { SignUpFormData } from "../types";
 import { writeRegistrationAcceptance, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
 
@@ -21,6 +23,7 @@ interface UseOtpFlowOptions {
   formData: SignUpFormData;
   role: string;
   acceptance: RegistrationAcceptance;
+  takeCaptcha?: () => { token?: string; pending: boolean };
   showError: (msg: string) => void;
   onSuccessOpen: () => void;
   onBirthDateError: (message: string, value: string, verified?: boolean) => void;
@@ -31,6 +34,7 @@ export function useOtpFlow({
   formData,
   role,
   acceptance,
+  takeCaptcha,
   showError,
   onSuccessOpen,
   onBirthDateError,
@@ -47,6 +51,10 @@ export function useOtpFlow({
     format: formatCooldown,
   } = useResendCooldown(OTP_COOLDOWN);
   const attempts = useOtpAttempts();
+  // Attempt limit: the server reports how long the lock lasts and the modal
+  // shows it (kept across refreshes) while Verify stays disabled.
+  const lockout = useAuthLockout("signup_otp", formData.email);
+  const { lock: lockAttempts } = lockout;
 
   // Keeps handlers stable while still reading the latest values when fired.
   // Mirrored in an effect (not during render) to satisfy
@@ -64,6 +72,11 @@ export function useOtpFlow({
     setResendLoading(true);
     setOtpError(null);
     try {
+      const captcha = takeCaptcha?.();
+      if (captcha?.pending) {
+        setOtpError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
       const result = await sendEmailOtp(
         data.email,
         data.password,
@@ -71,6 +84,7 @@ export function useOtpFlow({
         data.lastName,
         data.birthDate,
         latest.current.acceptance,
+        captcha?.token,
       );
       if (result.acceptanceErrors) {
         latest.current.onAcceptanceError(result.acceptanceErrors);
@@ -92,7 +106,7 @@ export function useOtpFlow({
     } finally {
       setResendLoading(false);
     }
-  }, [startCooldown, attempts]);
+  }, [startCooldown, attempts, takeCaptcha]);
 
   const handleVerifyOtp = useCallback(async (onClose: () => void) => {
     const { formData: data, role: currentRole, showError: fail, onSuccessOpen: succeed } = latest.current;
@@ -100,20 +114,22 @@ export function useOtpFlow({
     setOtpError(null);
 
     try {
-      const { data: session, error: otpError } = await supabase.auth.verifyOtp({
-        email: data.email,
-        token: otpRef.current,
-        type: "signup",
-      });
-
-      if (otpError || !session.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+      // The guess limit lives on the server (database window written with the
+      // service role), so neither a refresh nor a direct call skips it.
+      const verification = await verifySignupCode(data.email, otpRef.current);
+      if (!verification.ok) {
+        if (verification.reason === "rate_limited") {
+          lockAttempts(verification.retryAfterSeconds, data.email);
+          setOtpError(null);
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
 
       const fd = new FormData();
-      fd.set("userId", session.user.id);
+      fd.set("userId", verification.userId);
       fd.set("email", data.email);
       fd.set("firstName", data.firstName);
       fd.set("lastName", data.lastName);
@@ -163,7 +179,7 @@ export function useOtpFlow({
     } finally {
       setLoading(false);
     }
-  }, [attempts]);
+  }, [attempts, lockAttempts]);
 
   const handleCancelOtp = useCallback(async (onClose: () => void) => {
     await supabase.auth.signOut();
@@ -182,6 +198,7 @@ export function useOtpFlow({
     resendLoading,
     loading,
     otpLocked: attempts.locked,
+    lockoutSeconds: lockout.secondsLeft,
     startCooldown,
     formatCooldown,
     handleResendOtp,

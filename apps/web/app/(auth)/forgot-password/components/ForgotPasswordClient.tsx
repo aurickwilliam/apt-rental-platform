@@ -24,15 +24,21 @@ import {
   type PasswordErrorReason,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
+  CAPTCHA_PENDING_MESSAGE,
+  formatLockoutClock,
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import CodeInput from "@/app/components/inputs/CodeInput";
+import TurnstileWidget from "@/app/components/inputs/TurnstileWidget";
+import { useCaptcha, type CaptchaAttempt } from "@/hooks/use-captcha";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "../../actions/password-recovery";
+import AuthLockoutModal from "../../components/AuthLockoutModal";
 import RecoveryHeader from "./RecoveryHeader";
 
 type Step = "email" | "code" | "google_only";
@@ -58,7 +64,15 @@ function BackToSignIn() {
 
 // Email and code steps of password recovery. The email lives only in this
 // component's state: never in the URL, storage or a shared context.
-export default function ForgotPasswordClient() {
+// `captcha` is the Turnstile widget, rendered next to the button it gates in each
+// step so a person who must tap "Verify you are human" can see it.
+function ForgotPasswordFlow({
+  takeCaptcha,
+  captcha,
+}: {
+  takeCaptcha: () => CaptchaAttempt;
+  captcha: React.ReactNode;
+}) {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("email");
@@ -73,6 +87,9 @@ export default function ForgotPasswordClient() {
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const { secondsLeft, restart: restartCooldown } = useCountdown(RECOVERY_RESEND_COOLDOWN_SECONDS);
+  // Attempt limit on the code: memory only, because this flow never lets the email
+  // (or anything derived from it) reach storage. The database still refuses.
+  const lockout = useAuthLockout("recovery_otp", email, { persist: false });
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -94,10 +111,20 @@ export default function ForgotPasswordClient() {
       return;
     }
 
+    const attempt = takeCaptcha();
+    if (attempt.pending) {
+      setError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
+
     setSending(true);
     try {
-      const { error: reason } = await requestPasswordRecovery(trimmedEmail);
-      if (reason === "invalid_email") {
+      const { error: reason } = await requestPasswordRecovery(trimmedEmail, attempt.token);
+      if (
+        reason === "invalid_email" ||
+        reason === "email_not_registered" ||
+        reason === "google_account"
+      ) {
         setEmailError(messageFor(reason));
         return;
       }
@@ -128,7 +155,7 @@ export default function ForgotPasswordClient() {
   };
 
   const handleVerify = async (value: string = code) => {
-    if (verifying || value.length < RECOVERY_CODE_LENGTH) return;
+    if (verifying || lockout.isLocked || value.length < RECOVERY_CODE_LENGTH) return;
     setVerifying(true);
     setError(null);
     setCodeError(null);
@@ -139,6 +166,10 @@ export default function ForgotPasswordClient() {
       const result = await verifyPasswordRecoveryCode(email, value);
       if (result.error) {
         setCode("");
+        if (result.error === "rate_limited" && result.retryAfterSeconds) {
+          lockout.lock(result.retryAfterSeconds, email);
+          return;
+        }
         showCodeError(result.error);
         return;
       }
@@ -159,12 +190,17 @@ export default function ForgotPasswordClient() {
 
   const handleResend = async () => {
     if (resending || secondsLeft > 0) return;
+    const attempt = takeCaptcha();
+    if (attempt.pending) {
+      setError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
     setResending(true);
     setError(null);
     setCodeError(null);
     setResendNotice(null);
     try {
-      const { error: reason } = await requestPasswordRecovery(email);
+      const { error: reason } = await requestPasswordRecovery(email, attempt.token);
       if (reason) {
         showCodeError(reason);
         return;
@@ -253,7 +289,7 @@ export default function ForgotPasswordClient() {
             onComplete={(value: string) => void handleVerify(value)}
             length={RECOVERY_CODE_LENGTH}
             isInvalid={!!codeError}
-            isDisabled={verifying}
+            isDisabled={verifying || lockout.isLocked}
             autoFocus
           />
 
@@ -262,6 +298,8 @@ export default function ForgotPasswordClient() {
               {codeError}
             </p>
           )}
+
+          {captcha}
 
           {resendNotice && (
             <p role="status" className="text-center text-sm text-foreground">
@@ -289,11 +327,21 @@ export default function ForgotPasswordClient() {
           size="lg"
           className="mt-[clamp(1.5rem,4vh,2rem)] w-full cursor-pointer"
           isPending={verifying}
-          isDisabled={verifying || code.length < RECOVERY_CODE_LENGTH}
+          isDisabled={verifying || lockout.isLocked || code.length < RECOVERY_CODE_LENGTH}
           onPress={() => void handleVerify()}
         >
-          {verifying ? "Verifying..." : "Verify Code"}
+          {lockout.isLocked
+            ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+            : verifying
+              ? "Verifying..."
+              : "Verify Code"}
         </Button>
+
+        <AuthLockoutModal
+          isOpen={lockout.modalOpen}
+          onOpenChange={lockout.setModalOpen}
+          secondsLeft={lockout.secondsLeft}
+        />
       </div>
     );
   }
@@ -327,6 +375,8 @@ export default function ForgotPasswordClient() {
           <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
           <FieldError>{emailError}</FieldError>
         </TextField>
+
+        {captcha}
 
         <Button
           className="mt-[clamp(0.75rem,2vh,1.25rem)] w-full cursor-pointer"
@@ -363,5 +413,14 @@ export default function ForgotPasswordClient() {
         </Alert>
       </div>
     </div>
+  );
+}
+
+export default function ForgotPasswordClient() {
+  const { attach, take } = useCaptcha();
+  return (
+    <>
+      <ForgotPasswordFlow takeCaptcha={take} captcha={<TurnstileWidget ref={attach} />} />
+    </>
   );
 }

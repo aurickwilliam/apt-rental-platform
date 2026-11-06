@@ -8,9 +8,13 @@ const mockVerifyOtp = jest.fn();
 const mockResend = jest.fn();
 const mockSignOut = jest.fn();
 const mockRpc = jest.fn();
+// Throttle checks also go through rpc; registration assertions ignore them.
+const registrationCalls = () => mockRpc.mock.calls.filter(([name]) => name !== 'auth_throttle');
 const mockReplace = jest.fn();
 const mockSwitchTo = jest.fn();
 const mockMissing = jest.fn();
+// "" runs the direct-Supabase path (local development); a URL runs the server route.
+let mockBaseUrl = "";
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockParams,
@@ -35,6 +39,11 @@ jest.mock("@repo/supabase", () => ({ supabase: {
   },
   rpc: (...args: unknown[]) => mockRpc(...args),
 } }));
+jest.mock("@/constants/serverAuth", () => ({
+  get SERVER_AUTH_BASE_URL() {
+    return mockBaseUrl;
+  },
+}));
 jest.mock("@/stores/usePortalStore", () => ({ usePortalStore: { getState: () => ({ switchTo: (...args: unknown[]) => mockSwitchTo(...args) }) } }));
 jest.mock("@/utils/queryClient", () => ({ clearQueryClient: jest.fn() }));
 jest.mock("@/service/auth/profileMissingService", () => ({
@@ -48,13 +57,14 @@ const profileDetails = {
   mobile_number: "09171234567", province: "Metro Manila", city: "Caloocan", barangay: "Barangay 1", postal_code: 1400, street_address: "1 Main St",
 };
 
+// Typing the sixth digit submits by itself, like the Verify button does.
 async function verify() {
   fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
-  fireEvent.press(screen.getByText(/Verify.*(Create Account|Email)/));
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockBaseUrl = "";
   delete mockParams.mode;
   mockParams.email = "a@example.test";
   useRegistrationStore.getState().reset();
@@ -72,9 +82,18 @@ it("commits signup profile and the explicitly selected revisions together after 
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
   expect(mockRpc).toHaveBeenCalledWith("complete_mobile_registration", {
     profile_details: profileDetails, requested_role: "tenant", terms_accepted: true, privacy_accepted: true,
-    terms_version: "1.1", privacy_version: "1.0", registration_source: "mobile_registration", expected_auth_id: "auth-1",
+    terms_version: "1.1", privacy_version: "1.1", registration_source: "mobile_registration", expected_auth_id: "auth-1",
   });
   expect(useRegistrationStore.getState().data).toEqual({});
+});
+
+it("submits by itself when the sixth digit is typed, without pressing Verify", async () => {
+  render(<OTPVerification />);
+  // Only the code is typed: the screen's own state is still one digit short when the input
+  // reports it is complete, so the check must use the code the input hands over.
+  fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
+  expect(mockVerifyOtp).toHaveBeenCalledWith(expect.objectContaining({ token: "123456", type: "signup" }));
 });
 
 it("blocks verification and resending if acceptance was lost", async () => {
@@ -92,7 +111,7 @@ it("does not let a different email consume the staged acceptance", async () => {
   render(<OTPVerification />);
   await verify();
   expect(mockVerifyOtp).not.toHaveBeenCalled();
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });
 
 it("retains the selections on a wrong code and on resend", async () => {
@@ -104,7 +123,7 @@ it("retains the selections on a wrong code and on resend", async () => {
   await waitFor(() => expect(mockResend).toHaveBeenCalledWith({ type: "signup", email: "a@example.test" }));
   expect(useRegistrationStore.getState().data.acceptance).toEqual(acceptance);
   expect(mockSignOut).not.toHaveBeenCalled();
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });
 
 it("signs out a verified session on stale acceptance, with inline recovery instructions and no portal entry", async () => {
@@ -125,5 +144,22 @@ it("preserves confirm-email recovery without requiring nonexistent signup data",
   render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/finish-profile"));
-  expect(mockRpc).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
+});
+
+it("shows a lock the server reports, disables Verify and never reaches the profile step", async () => {
+  mockBaseUrl = "https://apt.test";
+  global.fetch = jest.fn().mockResolvedValue({
+    status: 429,
+    json: async () => ({ ok: false, error: { code: "auth_locked", message: "Too many attempts." }, retryAfterSeconds: 700 }),
+  }) as unknown as typeof fetch;
+  render(<OTPVerification />);
+
+  await verify();
+
+  expect(await screen.findByText("Too many attempts")).toBeTruthy();
+  expect(screen.getByText(/Try again in 11:/)).toBeTruthy();
+  expect(mockVerifyOtp).not.toHaveBeenCalled();
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(registrationCalls()).toHaveLength(0);
 });

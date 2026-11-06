@@ -1,4 +1,6 @@
 export { getRelativeTime } from './getRelativeTime';
+export * from './leaseRenewal';
+export {fetchEffectiveLeaseTermsWith,type EffectiveLeaseTerms} from './effectiveLeaseTerms';
 export { emptyHistoryFilters, filterMaintenanceHistory, historyFilterCount, HISTORY_DATE_OPTIONS } from './maintenanceHistoryFilters';
 export type { HistoryDateFilter, MaintenanceHistoryFilters } from './maintenanceHistoryFilters';
 export { isReviewStayEligible } from './reviewEligibility';
@@ -50,6 +52,30 @@ export * from './landlordPayments';
 export { filterPaymentHistory } from './paymentHistory';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
+export {
+  AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isAuthRateLimitError,
+  isInvalidOtpError,
+  recordAuthFailure,
+} from './authThrottle';
+export type { AuthThrottleClient, AuthThrottlePurpose } from './authThrottle';
+export {
+  AUTH_LOCKOUT_MAX_ATTEMPTS,
+  AUTH_LOCKOUT_TITLE,
+  formatLockoutWait,
+  formatLockoutClock,
+  lockoutDescription,
+  lockoutKeyHash,
+  lockoutReminderFor,
+  lockoutReminderSecondsLeft,
+  parseLockoutReminder,
+  type LockoutReminder,
+} from './authLockout';
 export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
 export {
   MINIMUM_AGE,
@@ -94,6 +120,12 @@ export {
   extractRawNumber
 } from './formatCurrencyInput';
 export { formatPesoCompact } from './formatPesoCompact';
+export {
+  buildApartmentShareText,
+  buildApartmentShareMessage,
+  getApartmentSharePath,
+} from './apartmentShare';
+export type { ApartmentShareInput } from './apartmentShare';
 export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
@@ -332,3 +364,18 @@ export {
   trimVehicles,
   spotsForVehicles,
 } from './preferenceLinking';
+export {
+  TUTORIAL_TARGETS,
+  getTutorialSteps,
+  hasFinishedTutorial,
+  shouldAutoStartTutorial,
+} from './tutorial';
+export type {
+  TutorialPortal,
+  TutorialPlatform,
+  TutorialStep,
+  TutorialStepId,
+  TutorialContext,
+  TutorialProgressRow,
+  AutoStartInput,
+} from './tutorial';

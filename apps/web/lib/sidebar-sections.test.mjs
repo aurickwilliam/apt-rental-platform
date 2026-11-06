@@ -35,6 +35,7 @@ function render({ navItems, collapsed = false, mobile = false }) {
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: () => {} }) },
     "./SidebarLinkPending": { default: "SidebarLinkPending" },
   }, { window: { localStorage: { getItem: () => String(collapsed) } }, URLSearchParams });

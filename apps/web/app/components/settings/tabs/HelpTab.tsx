@@ -5,6 +5,7 @@ import { IconAlertCircle, IconExternalLink } from "@tabler/icons-react";
 
 import SettingsRow from "../SettingsRow";
 import ComingSoonChip from "../ComingSoonChip";
+import { policyHref, type PolicyPortal } from "@/lib/policy-routes";
 
 const faqs = [
   {
@@ -50,8 +51,10 @@ const linkClassName =
 
 export default function HelpTab({
   isAdmin = false,
+  activePortal = null,
 }: {
   isAdmin?: boolean;
+  activePortal?: PolicyPortal | null;
 }) {
   return (
     <>
@@ -90,13 +93,13 @@ export default function HelpTab({
       ) : null}
       <div className="mt-4 space-y-3">
         <Link
-          href="/tos"
+          href={policyHref("terms", activePortal)}
           className={linkClassName}
         >
           Terms and Conditions
         </Link>
         <Link
-          href="/pap"
+          href={policyHref("privacy", activePortal)}
           className={linkClassName}
         >
           Privacy Policy

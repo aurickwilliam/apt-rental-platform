@@ -5,32 +5,22 @@ import { cookies, headers } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
-import {
-  clearSignInFailures,
-  clientIpFromHeaders,
-  isSignInBlocked,
-  pruneSignInBuckets,
-  recordSignInFailure,
-  signInEmailKey,
-  signInIpKey,
-  type SignInBuckets,
-  SIGN_IN_THROTTLE_MESSAGE,
-} from "@/lib/sign-in-rate-limit";
+import { CAPTCHA_FAILED_MESSAGE, isAuthRateLimitError, isCaptchaError } from "@repo/utils";
+import { attemptSignIn, isInvalidCredentialsError } from "@/lib/auth-attempts";
+import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
+import { clientIpFromHeaders, SIGN_IN_THROTTLE_MESSAGE } from "@/lib/sign-in-rate-limit";
 
 export interface SignInFormState {
   error: string | null;
+  // Too many wrong attempts: seconds until the lock ends. The form opens the
+  // lockout modal and keeps Sign in disabled for that long.
+  lockedForSeconds?: number;
   // The password was right but the email code was never entered: the form
   // offers to send a new code and confirm it.
   needsEmailConfirmation?: boolean;
 }
 
 interface UserRolesProfile { roles: string[] }
-
-// Brute-force protection state: one in-memory failure-window store shared by
-// every sign-in request in this process. Next keeps one server process here,
-// and Supabase Auth keeps its own platform limits as the backstop; a
-// multi-instance deployment would need a shared store (documented limit).
-const signInBuckets: SignInBuckets = new Map();
 
 // Only the verification handoff may resume after login. Re-validated here
 // (never trust the client): exact /verify or /verify/mobile?token=<opaque>.
@@ -54,34 +44,40 @@ export async function signIn(
     return { error: "Email and password are required." };
   }
 
-  // Brute-force guard: refuse with a generic message (no Supabase call, no
-  // account enumeration) while either the email or the client-IP failure
-  // window is spent. "Invalid login credentials" is the only failure that
-  // counts — other errors and successes never deepen a window.
+  // Brute-force guard (shared with the mobile route, `lib/auth-attempts.ts`):
+  // refuses with a generic message (no account enumeration) while any failure
+  // window in the database is spent (email from this IP, the email's hourly
+  // ceiling, this IP). The counters are written only on the server, with the
+  // service role. "Invalid login credentials" is the only failure that counts.
   const requestHeaders = await headers();
   const clientIp = clientIpFromHeaders({
-    "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
+    "x-vercel-forwarded-for": requestHeaders.get("x-vercel-forwarded-for"),
     "x-real-ip": requestHeaders.get("x-real-ip"),
+    "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
   });
-  const attemptKeys = [signInEmailKey(email)];
-  if (clientIp) attemptKeys.push(signInIpKey(clientIp));
-  const now = Date.now();
-  pruneSignInBuckets(signInBuckets, now);
-  if (attemptKeys.some((key) => isSignInBlocked(signInBuckets, key, now).blocked)) {
-    return { error: SIGN_IN_THROTTLE_MESSAGE };
-  }
-
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  // Single-use Turnstile token from the form; Supabase rejects a missing or
+  // reused one once CAPTCHA protection is enabled for the project.
+  const captchaToken = formData.get("captchaToken");
+  const attempt = await attemptSignIn({
+    auth: supabase.auth,
+    throttle: getAuthThrottleClient(),
     email,
     password,
+    captchaToken: typeof captchaToken === "string" && captchaToken ? captchaToken : undefined,
+    clientIp,
   });
 
-  if (error) {
+  if (!attempt.ok) {
+    if (attempt.kind === "locked") {
+      return { error: SIGN_IN_THROTTLE_MESSAGE, lockedForSeconds: attempt.retryAfterSeconds };
+    }
+    const { error } = attempt;
+    // Not a wrong password, so it never counts toward the throttle.
+    if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
     // Map common Supabase auth errors to user-friendly messages
-    if (error.message === "Invalid login credentials") {
-      for (const key of attemptKeys) recordSignInFailure(signInBuckets, key, Date.now());
+    if (isInvalidCredentialsError(error)) {
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
@@ -90,15 +86,11 @@ export async function signIn(
         needsEmailConfirmation: true,
       };
     }
-    if (error.message.includes("rate limit")) {
+    if (isAuthRateLimitError(error)) {
       return { error: "Too many sign-in attempts. Please try again later." };
     }
     return { error: error.message };
   }
-
-  // A good sign-in resets the email and IP windows, so a shared office IP is
-  // not punished for an attacker's earlier guesses.
-  for (const key of attemptKeys) clearSignInFailures(signInBuckets, key);
 
   // A fresh sign-in replaces any password-recovery session, so drop its marker
   // (otherwise the middleware would sign this new session out).

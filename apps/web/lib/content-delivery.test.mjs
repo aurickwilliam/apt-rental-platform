@@ -124,6 +124,7 @@ test("Settings and Notifications download no unopened UI and retain their mounte
     const modules = {
       react: runtime.react, "react/jsx-runtime": jsxRuntime, "next/dynamic": { default: lazy.dynamic },
       "next/navigation": { useSearchParams: () => query },
+      "@/lib/tutorial-controller": { requestTutorialReplay() {} },
     };
     for (const name of kind === "settings" ? ["SettingsModal", "ChangePasswordModal", "ChangeEmailModal"] : ["NotificationDrawer"]) {
       Object.defineProperty(modules, `./${name}`, { enumerable: true, get: () => { imports++; return { default: name }; } });

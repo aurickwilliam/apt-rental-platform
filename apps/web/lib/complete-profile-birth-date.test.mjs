@@ -355,6 +355,7 @@ function formHarness(kind, role, options = {}) {
       useAuth: () => ({ role, email: "test@example.com" }),
     },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
+    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" },
     "@/app/components/inputs/PasswordRequirementList": {
       default: "PasswordRequirementList",
     },
@@ -668,7 +669,7 @@ function actionHarness(kind, options = {}) {
         },
       },
       "../sign-up-form/utils": { validateSignUpForm },
-      "@repo/utils": { getEmailCodeRequestError: (message) => message },
+      "@repo/utils": { getEmailCodeRequestError: (message) => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" },
     },
     { process: { env: { NODE_ENV: "test" } } },
   );
@@ -838,6 +839,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
             reset() {},
           }),
         },
+        "@/hooks/use-auth-lockout": { useAuthLockout: () => ({ secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} }) },
         "@repo/supabase/browser": {
           createClient: () => ({
             auth: {
@@ -846,7 +848,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
             },
           }),
         },
-        "@repo/utils": { getOtpAttemptError: () => "wrong code" },
+        "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
         "@/lib/registration-policies": policyRules,
         "../../actions/sign-up": {
           signUp: async () =>
@@ -863,6 +865,10 @@ test("OTP verification routes typed birth-date failures inline while preserving 
         },
         "../../actions/send-otp": {
           sendEmailOtp: async () => ({ success: true }),
+        },
+        // Code verification runs on the server now (see verify-signup-code.ts).
+        "../../actions/verify-signup-code": {
+          verifySignupCode: async () => ({ ok: true, userId: "caller" }),
         },
       },
       { FormData },

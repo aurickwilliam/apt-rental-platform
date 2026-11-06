@@ -40,6 +40,9 @@ import {
   validatePHMobile,
 } from "@repo/constants";
 import { sendEmailOtp } from "../../actions/send-otp";
+import TurnstileWidget from "@/app/components/inputs/TurnstileWidget";
+import { useCaptcha } from "@/hooks/use-captcha";
+import { CAPTCHA_PENDING_MESSAGE } from "@repo/utils";
 
 // Selected option: soft blue surface with a primary-blue check.
 const OPTION_CLASS =
@@ -118,7 +121,8 @@ export default function SignUpForm() {
     setAcceptance(previous => ({ ...previous, privacyAccepted: false, termsAccepted: false }));
     onClose();
   };
-  const otpFlow = useOtpFlow({ formData, role, acceptance, showError, onSuccessOpen, onBirthDateError: showBirthDateError, onAcceptanceError: showAcceptanceErrors });
+  const { attach: attachCaptcha, take: takeCaptcha } = useCaptcha();
+  const otpFlow = useOtpFlow({ formData, role, acceptance, takeCaptcha, showError, onSuccessOpen, onBirthDateError: showBirthDateError, onAcceptanceError: showAcceptanceErrors });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -143,6 +147,12 @@ export default function SignUpForm() {
     if (Object.keys(policyErrors).length) return;
     if (loading || otpFlow.loading || isOpen) return;
 
+    const attempt = takeCaptcha();
+    if (attempt.pending) {
+      showError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await sendEmailOtp(
@@ -152,6 +162,7 @@ export default function SignUpForm() {
         formData.lastName,
         formData.birthDate,
         acceptance,
+        attempt.token,
       );
       if (result.acceptanceErrors) {
         showAcceptanceErrors(result.acceptanceErrors);
@@ -357,6 +368,8 @@ export default function SignUpForm() {
         <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
           errors={acceptanceErrors} isDisabled={loading || otpFlow.loading || isOpen} />
 
+        <TurnstileWidget ref={attachCaptcha} />
+
         <Button
           variant="primary"
           className="w-full md:max-w-[300px] md:self-end rounded-full"
@@ -381,6 +394,7 @@ export default function SignUpForm() {
         formatCooldown={otpFlow.formatCooldown}
         onOtpChange={(val) => { otpFlow.setOtp(val); if (!otpFlow.otpLocked) otpFlow.setOtpError(null); }}
         locked={otpFlow.otpLocked}
+        lockoutSeconds={otpFlow.lockoutSeconds}
         onResend={otpFlow.handleResendOtp}
         onVerify={otpFlow.handleVerifyOtp}
         onCancel={otpFlow.handleCancelOtp}

@@ -4,6 +4,7 @@
 // web fonts: emails over ~102 KB are clipped by Gmail.
 
 export type EmailTemplate =
+  | 'lease_renewal_update'
   | 'listing_hidden'
   | 'listing_restored'
   | 'listing_review_declined'
@@ -13,6 +14,7 @@ export type EmailTemplate =
   | 'report_reviewed'
 
 export const EMAIL_TEMPLATES: readonly EmailTemplate[] = [
+  'lease_renewal_update',
   'listing_hidden',
   'listing_restored',
   'listing_review_declined',
@@ -113,6 +115,15 @@ function layout({ heading, intro, callout, outro = [] }: Content): { html: strin
 
 export function renderEmail(template: EmailTemplate, params: Params): RenderedEmail {
   switch (template) {
+    case 'lease_renewal_update':
+      return {
+        subject: text(params.title, 'Your APT lease renewal'),
+        ...layout({
+          heading: text(params.title, 'Your lease renewal'),
+          intro: [text(params.body, 'Your lease renewal has been updated.')],
+          outro: ['Open your rental or property in APT to review the current terms and next step. No payment or agreement is accepted automatically.'],
+        }),
+      }
     case 'listing_hidden': {
       const name = text(params.apartmentName, 'Your listing')
       const reason = text(params.reason, 'It did not meet our listing rules.')

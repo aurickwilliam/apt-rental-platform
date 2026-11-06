@@ -19,6 +19,10 @@ function compile(file, modules) {
 function database(results) {
   const calls = [];
   const client = {
+    rpc: async (name) => {
+      assert.equal(name,'get_effective_lease_terms');
+      return {data:null,error:{code:'PGRST202',message:'Renewal schema not installed'}};
+    },
     from(table) {
       const call = { table, filters: [], orders: [] };
       calls.push(call);
@@ -42,7 +46,9 @@ const active = { id: "lease-a", apartment: { id: "apt-a", name: "Unit A" }, stat
 function tenancyService(client) {
   return compile("../service/tenancyService.ts", {
     "@repo/supabase/browser": { createClient: () => client },
-    "./tenancy-context": compile("../service/tenancy-context.ts", {}),
+    "./tenancy-context": compile("../service/tenancy-context.ts", {
+      '@repo/utils':compile('../../../packages/utils/src/effectiveLeaseTerms.ts',{}),
+    }),
   });
 }
 

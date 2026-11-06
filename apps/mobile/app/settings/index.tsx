@@ -7,7 +7,7 @@ import StandardHeader from 'components/layout/StandardHeader'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
-import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard, IconRoute } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors, useThemePreference } from '@/hooks/useTheme'
@@ -15,6 +15,8 @@ import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth'
 import { usePortalStore } from '@/stores/usePortalStore'
+import { useTutorialStore } from '@/stores/useTutorialStore'
+import { portalHome } from '@/service/auth/portalPreference'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -54,7 +56,8 @@ export default function Index() {
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
   const { data: passwordSignInStatus } = usePasswordSignInStatus();
   const { data: emailChangeEligibility } = useEmailChangeEligibility();
-  const isLandlordPortal = usePortalStore((state) => state.portal) === 'landlord';
+  const portal = usePortalStore((state) => state.portal);
+  const isLandlordPortal = portal === 'landlord';
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
@@ -164,6 +167,23 @@ export default function Index() {
         },
       ],
     },
+    ...(portal
+      ? [{
+          title: 'Getting Started',
+          items: [
+            {
+              icon: IconRoute,
+              title: 'Tutorial',
+              onPress: () => {
+                // Back to the portal's tabs first; the tour starts over them.
+                router.navigate(portalHome(portal));
+                useTutorialStore.getState().start(portal, 'replay');
+              },
+              suffix: <IconChevronRight size={16} color={colors.gray500} />,
+            },
+          ],
+        }]
+      : []),
     {
       title: 'Help & Support',
       items: [

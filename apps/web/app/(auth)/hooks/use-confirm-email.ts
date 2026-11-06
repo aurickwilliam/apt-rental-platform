@@ -2,9 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { verifySignupCode } from "../actions/verify-signup-code";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
+import type { CaptchaAttempt } from "@/hooks/use-captcha";
 
 const CODE_COOLDOWN = 60;
 
@@ -15,7 +18,7 @@ const FINISH_PROFILE_PATH = "/sign-up?from=profile-missing";
 // entered (sign-in answers "Email not confirmed"). A verified code starts a
 // session, and the missing profile is then finished like any interrupted
 // sign-up. No form data is kept anywhere, so nothing is lost by refreshing.
-export function useConfirmEmail(email: string) {
+export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttempt) {
   const [isOpen, setIsOpen] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -23,15 +26,29 @@ export function useConfirmEmail(email: string) {
   const [loading, setLoading] = useState(false);
   const { cooldown, start, stop, format } = useResendCooldown(CODE_COOLDOWN);
   const attempts = useOtpAttempts();
+  // Attempt limit: the server reports how long the lock lasts; the modal shows it
+  // (kept across refreshes) and Verify stays disabled until it ends.
+  const lockout = useAuthLockout("signup_otp", email);
+  const { lock: lockAttempts } = lockout;
 
   const sendCode = useCallback(async () => {
     setResendLoading(true);
     setOtpError(null);
     try {
+      const captcha = takeCaptcha?.();
+      if (captcha?.pending) {
+        setOtpError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
       const { error } = await createClient().auth.resend({
         type: "signup",
         email: email.trim(),
+        options: captcha?.token ? { captchaToken: captcha.token } : undefined,
       });
+      if (isCaptchaError(error)) {
+        setOtpError(CAPTCHA_FAILED_MESSAGE);
+        return;
+      }
       if (error) {
         // A throttled resend means a code was sent moments ago and still works.
         const waitSeconds = parseResendWaitSeconds(error.message);
@@ -47,7 +64,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setResendLoading(false);
     }
-  }, [email, start, attempts]);
+  }, [email, start, attempts, takeCaptcha]);
 
   const open = useCallback(() => {
     setIsOpen(true);
@@ -58,13 +75,16 @@ export function useConfirmEmail(email: string) {
     setLoading(true);
     setOtpError(null);
     try {
-      const { data, error } = await createClient().auth.verifyOtp({
-        email: email.trim(),
-        token: otp,
-        type: "signup",
-      });
-      if (error || !data.user) {
-        setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+      // The guess limit lives on the server, so neither a refresh nor a direct
+      // call skips it. A verified code sets the session cookies in the response.
+      const verification = await verifySignupCode(email, otp);
+      if (!verification.ok) {
+        if (verification.reason === "rate_limited") {
+          lockAttempts(verification.retryAfterSeconds, email);
+          setOtpError(null);
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
@@ -75,7 +95,7 @@ export function useConfirmEmail(email: string) {
     } finally {
       setLoading(false);
     }
-  }, [email, otp, attempts]);
+  }, [email, otp, attempts, lockAttempts]);
 
   const cancel = useCallback(() => {
     setIsOpen(false);
@@ -94,6 +114,7 @@ export function useConfirmEmail(email: string) {
     resendLoading,
     loading,
     otpLocked: attempts.locked,
+    lockoutSeconds: lockout.secondsLeft,
     open,
     sendCode,
     verify,

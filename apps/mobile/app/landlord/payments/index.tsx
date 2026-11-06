@@ -259,7 +259,7 @@ export default function LandlordPaymentsScreen() {
             {visibleRows.map((payment) => (
               <PaymentHistoryCard
                 key={payment.id}
-                month={ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date)}
+                month={payment.billing_kind==='lease_renewal'?'Lease Renewal':ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date)}
                 amount={payment.amount ?? 0}
                 status={payment.status}
                 method={payment.method}

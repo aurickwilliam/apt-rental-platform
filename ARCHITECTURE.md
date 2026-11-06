@@ -181,6 +181,25 @@ Phase 0 admin authorization hardening: browser/mobile profile edits cannot chang
 
 ### 4.3 Web flow
 
+Standalone Terms and Privacy readers share presentation components between public
+and portal routes. Public policy pages resolve a settled session through the
+request-local identity and validated portal preference before redirecting; absent,
+incomplete or unavailable profiles stay on the public text without an onboarding
+loop. Portal pages keep their own role/suspension/onboarding authorization and
+Admin MFA. The two landlord policy routes are read-only exceptions to the
+verification wall, not exceptions to membership or suspension checks. Settings
+builds policy links from its resolved active portal, never role-priority alone.
+See `docs/web-policy-navigation.md`.
+
+Web registration policy checkboxes additionally require reaching each loaded
+document's end in its own policy modal (two fixed-document instances, no tabs).
+After content readiness, the same independent completion state locks Close/X,
+Escape and backdrop dismissal; loading/error states stay dismissible. Version-keyed
+completion stays local to that form; a document-panel IntersectionObserver
+disconnects once complete and retires queued callbacks on cleanup. This browser interaction guard does
+not prove reading or change server/database acceptance authorization. See
+`docs/web-registration-acceptance.md` for the boundary and verification.
+
 **Web policy acceptance.** Email registration (including the OTP request/resend and final profile action) and Complete Profile require independent explicit acceptance of Terms and Conditions and Privacy Policy. Versions/display metadata come from `apps/web/lib/registration-policies.ts`; a migration maintains matching authoritative revisions in `web_registration_policies`. The caller-bound `complete_web_registration` RPC atomically writes the allowed profile fields and both `policy_acceptances` rows. It is SECURITY INVOKER so existing RLS, column grants and validation triggers remain active; a narrow definer helper records only the caller's own revisions with database timestamps. The rows reference internal `users.id`, allow owner-only reads and no direct client mutations, and are unique per account/policy/version. Acceptance failure rolls back completion; retries preserve original timestamps. Existing onboarding guards therefore keep interrupted Google/email sessions out of portals without a new account-wide acceptance gate. Completed accounts remain unchanged; mobile has its own opt-in transaction described in §4.4, while older apps retain their profile-only contract. Apply `20261029120000_web_registration_policy_acceptance.sql` before deploying the web feature. See `docs/web-registration-acceptance.md` for rollout, security boundaries and local verification.
 
 ```mermaid
@@ -244,6 +263,17 @@ sequenceDiagram
 **Registration birth dates.** `@repo/utils` `birthDate.ts` owns strict date-only validation and inclusive 18–110-year anniversary bounds computed from the current Asia/Manila day (Feb 29 anniversaries clamp to Feb 28 where necessary). Web regular sign-up and Complete Profile use the same registration-only `RegistrationBirthDateField`; its calendar and input receive identical limits, refreshed at Manila midnight/resume. The OTP request validates before Auth account creation; profile insertion and completion revalidate independently before writes. Structured birth-date errors and exact known database guard exceptions map to the inline field, not the generic error modal. If verification already established a profile-less session, the existing sign-out safeguard remains and the form links to sign-in to finish setup. Complete Profile seeds saved birth dates through its existing caller-owned read. The historical database trigger's 120-year upper limit is unchanged: direct database enforcement of the stricter maximum requires a separately authorized migration. Other date pickers, Auth/role rules and address fields are unchanged.
 
 ### 4.4 Mobile flow
+
+Mobile registration policy readers mirror web's independent interaction gate:
+each fixed-document dialog tracks its native viewport, full-content size and
+trailing-marker layout through `usePolicyReadingProgress`, then unlocks only its
+own checkbox and dismissal controls at the end. Measurements stay in refs, with
+state updates only at readiness/completion. Completion is version-keyed form
+memory, not persisted evidence of reading. Close/backdrop/Android Back share one
+stable, latest-state guard because HeroUI Native's Back subscription captures
+its initial callback. Unmounting retires both reading and close callbacks;
+pending layout and render failures allow dismissal. The registration service,
+server validation, policy versions and acceptance transaction are unchanged.
 
 **Registration policy acceptance.** Email Complete Profile and signed-in Finish Profile require separate Privacy and Terms selections, initially false. Displayed revisions come from mobile's `constants/legal/` policy data (tested against web). Reading policies opens a HeroUI Native dialog over the unchanged form. The email journey stages its acceptance and normalized profile snapshot in memory until OTP verification; neither device storage, route params nor Auth metadata are proof of acceptance. `complete_mobile_registration` writes the caller's profile and both acceptance records atomically through an invoker transaction plus narrow caller-only definer helper. The expected Auth ID rejects retired-account submissions; existing profile grants, validation and Google-only onboarding-role rules remain active. Policy revisions reuse `web_registration_policies`, and `policy_acceptances.source` adds mobile-specific origins without changing the web functions. Completed-account retries preserve original timestamps; legacy completed accounts and older apps remain unaffected, with no universal acceptance trigger. The migration must precede the mobile release. See `docs/mobile-registration-acceptance.md`.
 
@@ -436,6 +466,8 @@ sequenceDiagram
 **Current implementation (hybrid, no disbursement):**
 
 Checkout offers the payment methods the tenant's landlord accepts (`landlord_payment_settings`, read through `get_landlord_accepted_methods`); there are no saved per-tenant preferences or defaults, and nothing is preselected. `@repo/utils/paymentMethods.ts` defines the method names and their database values; `acceptedPaymentMethods.ts` holds the landlord-setting helpers. The accepted list fails closed: until it has loaded, or if the read fails, no method is offered and Pay stays disabled with a retry. The old `payment_method_preferences` table was dropped (`20261102150000`).
+
+**Lease renewal (implemented locally, not yet deployed).** The `20261106090000_lease_renewals` migration adds `tenancy_lease_terms`, `lease_renewals`, versioned `lease_renewal_proposals`, `lease_renewal_agreements`, and `lease_renewal_events` without rewriting original tenancy terms or payment history. The caller-bound `act_on_lease_renewal` RPC owns the workflow: tenant request/intention, landlord approval, new immutable proposals, tenant acceptance, private agreement upload/confirmation, and server-calculated renewal payment. Verified provider/cash payment finalizes exactly once through `finish_lease_renewal`; a zero total needs no fabricated payment. Renewal rent cannot increase in this release. Deposit replenishment is landlord-declared and labelled as not independently verified by APT. `Discuss Charges` opens existing chat without accepting or changing terms. Scheduler reminders are inserted disabled; hosted rollout needs separate approval. Local contract suite: `pnpm db:renewal:test`. See `docs/plans/lease-renewal.md` for the rollout gates and remaining checks.
 
 | Piece | Status | Evidence |
 |---|---|---|
@@ -718,6 +750,10 @@ Web and mobile use the pure `isReviewStayEligible` helper in `@repo/utils`: the 
 The mobile `(tabs)` shell mounts one `ReviewUnlockGate`, keyed by Auth ID + internal profile ID, only for the selected tenant portal and matching tab group. The gate waits for foreground, focused Rentals and an idle JS turn; pushed routes and other tabs do not display it. `useReviewUnlock` loads up to ten active stays through `reviewUnlockService` (`status = 'active'` in the query and checked again by the selector), with an account-keyed React Query cache and request cancellation. Only an eligible, unreviewed, visible active listing not dismissed on that device becomes the offer. No eligible active stay means no prompt; there is never a fallback to a historical apartment. Manual review screens retain access to eligible past stays, and web popup selection is unchanged. Errors suppress the optional prompt and log a generic message, without blocking Rentals or logging personal data. It shows at most one offer per gate mount; account and portal changes retire the gate and its callbacks.
 
 Close, Back, backdrop, Maybe later and Write a Review all close immediately and save one AsyncStorage dismissal under `apt-review-unlock:v1:{authUserId}:{tenancyId}`. A failed storage write keeps the current mount dismissed. Write a Review opens the existing apartment Ratings & Reviews route; submitting successfully invalidates the exact apartment-review, tenant eligibility and account prompt keys, unless the initiating account has retired. Dismissal is a device preference, not an authorization decision and not shared with web. A development-only targeted reset is described in `docs/mobile-review-unlock.md`. Presentation reuses the shared `AppDialog`; see DESIGN.md §14.
+
+### 12.4 First-time tutorial
+
+A guided tour per portal, tracked per user and portal in `public.tutorial_progress` (`user_id` = internal `users.id`, `portal` tenant/landlord, `completed_at`, `skipped_at`; owner-only RLS, restrictive active-account policy, no client delete; migration `20261106150000_tutorial_progress.sql`, which also backfills existing finished profiles as completed). No row means unseen; completed or skipped stops the automatic prompt, and replay (Settings → Tutorial on both platforms) writes only when finished. Which steps a person sees is the pure `getTutorialSteps` in `@repo/utils` (`tutorial.ts`): it follows the same verification rules as the rest of the app (unverified landlords get no steps unless a tenancy is running, then only Payments/Maintenance; unverified tenants lose Applications and Messages), and `shouldAutoStartTutorial` fails closed while the progress read is pending or failed. Targets are stable keys (web `data-tour` on sidebar links via `tourKey`, mobile `registerTutorialTarget` in the Android `CustomTabBar`); a missing target shows a plain card. The tour never navigates on web and only switches tabs on mobile. iOS `NativeTabs` cannot be measured, so their button is estimated by splitting the bar evenly; Quick Action buttons register as targets through `QuickActionButton tourKey`. Mobile: `TutorialHost` in the `(tabs)` layout, `useTutorialStore`, `hooks/tutorial`, `service/tutorial`. Web: `TutorialTour` in the tenant and landlord layouts, `lib/tutorial-controller.ts` (replay request), `lib/tutorial-placement.ts` (pure card placement), `service/tutorialService.ts`. Apply the migration before releasing either app.
 
 ## 13. Navigation
 

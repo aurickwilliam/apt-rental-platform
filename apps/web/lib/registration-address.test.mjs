@@ -236,6 +236,7 @@ function formHarness(kind, role, initialAddress = undefined) {
   } : {
     ...shared, "../../components/AuthContext": { useAuth: () => ({ role, email: "test@example.com" }) },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
+    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" },
     "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null },

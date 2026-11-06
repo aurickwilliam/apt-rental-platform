@@ -18,7 +18,9 @@ import {
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
-import { isValidEmail, PasswordError } from "@repo/utils";
+import { CAPTCHA_PENDING_MESSAGE, isValidEmail, PasswordError } from "@repo/utils";
+
+import { useCaptcha } from "@/hooks/auth/useCaptcha";
 
 import { useColors } from "hooks/useTheme";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
@@ -28,6 +30,7 @@ import {
 
 export default function ForgotPassword() {
   const router = useRouter();
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
   const { colors } = useColors();
 
   const savedEmail = usePasswordRecoveryStore((state) => state.email);
@@ -67,11 +70,21 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      await requestPasswordRecovery(trimmedEmail);
+      const captcha = takeCaptcha();
+      if (captcha.pending) {
+        setError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
+      await requestPasswordRecovery(trimmedEmail, captcha.token);
       setRecoveryEmail(trimmedEmail);
       router.push("/forgot-password/otp-verification");
     } catch (err) {
-      if (err instanceof PasswordError && err.reason === "invalid_email") {
+      if (
+        err instanceof PasswordError &&
+        (err.reason === "invalid_email" ||
+          err.reason === "email_not_registered" ||
+          err.reason === "google_account")
+      ) {
         setEmailError(err.message);
       } else {
         setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
@@ -137,6 +150,8 @@ export default function ForgotPassword() {
       </View>
 
       <View className="flex-1" />
+
+      {captchaWidget}
 
       <Button onPress={handleSendCode} isDisabled={loading} className="mt-8">
         <Button.Label className="font-nunitoSemiBold">

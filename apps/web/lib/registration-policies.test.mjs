@@ -13,6 +13,7 @@ import { terms, privacy } from "./test-support/legal-policy-runtime.mjs";
 const accepted = { ...policies.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 const virtualJsx = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
 const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[value.props?.children].flat(Infinity).flatMap(nodes)];
+const policyIcons = { IconInfoCircle: "IconInfoCircle", IconAlertTriangle: "IconAlertTriangle" };
 
 test("acceptance is explicit and versioned, never truthy strings, metadata or a default", () => {
   assert.equal(policies.emptyRegistrationAcceptance().termsAccepted, false);
@@ -29,6 +30,7 @@ test("acceptance is explicit and versioned, never truthy strings, metadata or a 
 test("installed HeroUI renders required checkboxes and non-submitting policy dialog buttons", () => {
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: React, "react/jsx-runtime": jsx, "@heroui/react": HeroUI,
+    "@tabler/icons-react": { IconInfoCircle: () => null, IconAlertTriangle: () => null },
     "./RegistrationPoliciesModal": { default: () => null, preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
   }).default;
   const html = renderToStaticMarkup(jsx.jsx(Component, { value: policies.emptyRegistrationAcceptance(), onChange() {}, errors: policies.validateRegistrationAcceptance(policies.emptyRegistrationAcceptance()) }));
@@ -39,7 +41,7 @@ test("installed HeroUI renders required checkboxes and non-submitting policy dia
     assert.ok(html.includes(policy.label));
   }
   assert.equal((html.match(/aria-haspopup="dialog"/g) ?? []).length, 2);
-  assert.equal((html.match(/type="button"/g) ?? []).length, 2);
+  assert.equal((html.match(/type="button"/g) ?? []).length, 4);
   assert.doesNotMatch(html, /target="_blank"|href="\/(pap|tos)"/);
   assert.equal((html.match(/role="alert"/g) ?? []).length, 2);
   assert.match(html, /text-muted-foreground/);
@@ -50,33 +52,103 @@ test("installed HeroUI renders required checkboxes and non-submitting policy dia
   assert.doesNotMatch(html, /securely processed|will be banned/);
 });
 
-test("policy reading opens the requested tab and closes without changing explicit acceptance", () => {
+test("each policy opens only its own modal without changing explicit acceptance", () => {
   const runtime = hookRuntime();
   const changes = [];
   const preloads = [];
   const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
     react: { ...runtime.react, useId: () => "acceptance-test" }, "react/jsx-runtime": virtualJsx,
     "@heroui/react": { Button: "Button", Checkbox: Object.assign(() => {}, { Content: "Checkbox.Content", Control: "Checkbox.Control", Indicator: "Checkbox.Indicator" }) },
+    "@tabler/icons-react": policyIcons,
     "./RegistrationPoliciesModal": { default: "RegistrationPoliciesModal", preloadRegistrationPolicyContent: () => preloads.push(true) }, "@/lib/registration-policies": policies,
   }).default;
   const render = () => runtime.render(() => Component({ value: accepted, onChange: value => changes.push(value) }));
-  const modal = () => nodes(render()).find(node => node.type === "RegistrationPoliciesModal");
-  assert.equal(modal().props.policy, null);
-  const trigger = nodes(render()).find(node => node.type === "Button");
+  const modals = () => nodes(render()).filter(node => node.type === "RegistrationPoliciesModal");
+  const modal = policy => modals().find(node => node.props.policy === policy);
+  assert.equal(modals().length, 2);
+  assert.ok(modals().every(node => !node.props.isOpen));
+  const trigger = nodes(render()).find(node => node.type === "Button" && node.props["aria-haspopup"]);
   trigger.props.onHoverStart(); trigger.props.onFocus();
   assert.equal(preloads.length, 2);
-  assert.equal(modal().props.policy, null);
+  assert.ok(modals().every(node => !node.props.isOpen));
   assert.deepEqual(changes, []);
   for (const [index, policy] of ["privacy", "terms"].entries()) {
-    nodes(render()).filter(node => node.type === "Button")[index].props.onPress();
-    assert.equal(modal().props.policy, policy);
-    modal().props.onPolicyChange(policy === "privacy" ? "terms" : "privacy");
-    assert.equal(modal().props.policy, policy === "privacy" ? "terms" : "privacy");
-    modal().props.onClose();
-    assert.equal(modal().props.policy, null);
+    nodes(render()).filter(node => node.type === "Button" && node.props["aria-haspopup"])[index].props.onPress();
+    assert.equal(modal(policy).props.isOpen, true);
+    assert.equal(modal(policy === "privacy" ? "terms" : "privacy").props.isOpen, false);
+    modal(policy).props.onClose();
+    assert.ok(modals().every(node => !node.props.isOpen));
     assert.deepEqual(changes, []);
     assert.ok(nodes(render()).filter(node => node.props?.type === "hidden" && /Accepted$/.test(node.props.name)).every(node => node.props.value === "true"));
   }
+});
+
+test("each checkbox stays locked until its own current policy is reviewed, and reading never accepts", () => {
+  const runtime = hookRuntime();
+  const changes = [];
+  let value = policies.emptyRegistrationAcceptance();
+  let isDisabled = false;
+  const Checkbox = Object.assign(() => {}, { Content: "Content", Control: "Control", Indicator: "Indicator" });
+  const Component = compile("app/(auth)/components/RegistrationPolicyAcceptance.tsx", {
+    react: { ...runtime.react, useId: () => "read-gate" }, "react/jsx-runtime": virtualJsx,
+    "@heroui/react": { Button: "Button", Checkbox },
+    "@tabler/icons-react": policyIcons,
+    "./RegistrationPoliciesModal": { default: "Modal", preloadRegistrationPolicyContent() {} }, "@/lib/registration-policies": policies,
+  }).default;
+  const render = () => nodes(runtime.render(() => Component({ value, isDisabled, onChange: next => { value = next; changes.push(next); } })));
+  const checks = () => render().filter(node => node.type === Checkbox);
+  const modal = () => render().find(node => node.type === "Modal");
+  assert.ok(checks().every(node => node.props.isDisabled));
+  const hint = () => render().filter(node => node.props?.id === "read-gate-reading-hint");
+  assert.equal(hint().length, 1, "both checkboxes share one visible instruction");
+  assert.ok(nodes(hint()[0]).some(node => node.props?.children === "Open each policy and scroll to the end to enable its checkbox."));
+  assert.equal(hint()[0].type, "p", "instruction is plain text without an alert container");
+  assert.match(hint()[0].props.className, /text-xs/);
+  assert.ok(checks().every(node => node.props["aria-describedby"] === "read-gate-reading-hint"));
+  checks()[0].props.onChange(true);
+  assert.equal(changes.length, 0, "the handler also rejects a locked selection");
+  const lockedButtons = () => render().filter(node => node.props?.className === "registration-policy-locked-trigger");
+  lockedButtons()[0].props.onPress();
+  const warning = () => render().find(node => node.props?.id === "read-gate-reading-warning");
+  assert.equal(warning().props.role, "alert");
+  assert.equal(warning().type, "p", "warning has no panel or review button");
+  assert.doesNotMatch(warning().props.className, /pl-7/, "warning stays aligned with the checkbox, not indented beneath its label");
+  const warningIcon = nodes(warning()).find(node => node.type === "IconAlertTriangle");
+  assert.ok(warningIcon.props.className.includes("text-[#92400E] dark:text-[#FDE047]"));
+  assert.equal(nodes(warning()).some(node => node.type === "Button"), false);
+  assert.ok(JSON.stringify(warning()).includes("Privacy Policy"));
+  assert.equal(changes.length, 0, "an attempted click warns but never accepts");
+  lockedButtons()[1].props.onPress();
+  assert.ok(JSON.stringify(warning()).includes("Terms and Conditions"));
+  assert.ok(!JSON.stringify(warning()).includes("Privacy Policy"));
+  modal().props.onRead("privacy");
+  assert.equal(changes.length, 0);
+  assert.equal(checks()[0].props.isDisabled, false);
+  assert.equal(checks()[1].props.isDisabled, true);
+  assert.equal(hint().length, 1, "the shared instruction remains while either policy is locked");
+  checks()[0].props.onChange(true);
+  assert.equal(value.privacyAccepted, true);
+  assert.equal(value.termsAccepted, false);
+  modal().props.onClose();
+  assert.equal(checks()[0].props.isDisabled, false, "reopening retains completion within the form");
+  modal().props.onRead("terms");
+  assert.equal(warning(), undefined, "reviewing the requested policy clears the warning");
+  assert.equal(hint().length, 0, "the instruction disappears when both policies are unlocked");
+  checks()[1].props.onChange(true);
+  assert.equal(value.termsAccepted, true);
+  checks()[0].props.onChange(false);
+  assert.equal(value.privacyAccepted, false);
+  isDisabled = true;
+  assert.ok(checks().every(node => node.props.isDisabled));
+  checks()[0].props.onChange(true);
+  assert.equal(value.privacyAccepted, false);
+  isDisabled = false;
+  value = { ...value, privacyVersion: "another-version" };
+  assert.equal(checks()[0].props.isDisabled, true, "completion never carries to another revision");
+  isDisabled = true;
+  assert.equal(lockedButtons()[0].props.isDisabled, true);
+  lockedButtons()[0].props.onPress();
+  assert.equal(warning(), undefined, "pending forms do not respond to locked-checkbox attempts");
 });
 
 function formHarness(kind, server = {}, props = {}) {
@@ -100,7 +172,7 @@ function formHarness(kind, server = {}, props = {}) {
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "../../actions/complete-profile": { completeProfile() {} },
     "../../components/AuthContext": { useAuth: () => ({ role: "tenant", email: "test@example.com" }) },
-    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
+    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null }, "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
   };
@@ -211,7 +283,7 @@ function actionHarness(kind, options = {}) {
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/registration-policies": policies, "@/service/registrationService": service,
     "@repo/constants": { SUFFIXES: [], GENDERS: ["Male"], validatePHMobile: () => ({ formattedNumber: "09171234567" }) },
     "@/lib/birth-date": { validateBirthDate: () => null, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
-    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { getEmailCodeRequestError: message => message },
+    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { getEmailCodeRequestError: message => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" },
     "next/headers": { cookies: async () => ({ set() {} }) }, "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } },
     "@/lib/portal-preference": { PORTAL_COOKIE: "portal" },
   }, { process: { env: { NODE_ENV: "test" } } });
@@ -293,9 +365,11 @@ test("email resend/final verification carry acceptance; stale policies after ver
     react: runtime.react, "@/lib/registration-policies": policies,
     "../../hooks/use-resend-cooldown": { useResendCooldown: () => ({ cooldown: 0, start() {}, stop() {}, format() {} }) },
     "../../hooks/use-otp-attempts": { useOtpAttempts: () => ({ recordWrongCode() {}, reset() {} }) },
+    "@/hooks/use-auth-lockout": { useAuthLockout: () => ({ secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} }) },
     "@repo/supabase/browser": { createClient: () => ({ auth: { verifyOtp: async () => ({ data: { user: { id: "caller" } } }), signOut: async () => signedOut.push(true) } }) },
-    "@repo/utils": { getOtpAttemptError: () => "wrong code" },
+    "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
     "../../actions/send-otp": { sendEmailOtp: async (...args) => { resends.push(args); return { success: true }; } },
+    "../../actions/verify-signup-code": { verifySignupCode: async () => ({ ok: true, userId: "caller" }) },
     "../../actions/sign-up": { signUp: async (_, fd) => { requests.push(fd); return { acceptanceErrors: { version: "Review current policies." } }; } },
   }, { FormData });
   const hook = runtime.render(() => flow.useOtpFlow({

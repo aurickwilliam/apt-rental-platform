@@ -17,25 +17,61 @@ or a claim that direct Supabase profile writes require acceptance.
 
 See DESIGN.md §10. `RegistrationPolicyAcceptance` is shared by both web forms.
 Selections are local, initially false, and never persisted as proof. Policy-name
-buttons open `RegistrationPoliciesModal` on the corresponding tab, with both
-documents available without navigating away. The dialog's heading, tabs and Close
-controls stay outside the scrolling panel. `RegistrationPolicyContent` is loaded
+buttons open two independent instances of `RegistrationPoliciesModal`, each
+bound to one document and titled Privacy Policy or Terms and Conditions. There
+are no tabs or in-dialog switches. Each heading and Close control stays outside
+its keyboard-focusable scrolling region. `RegistrationPolicyContent` is loaded
 on intent (policy-button hover or keyboard focus) or first open and reuses the public policy data and legal components, including
-version metadata, all sections and contact details. Section IDs are namespaced
+version metadata and all sections, without a Questions/contact footer. Section IDs are namespaced
 per dialog and document; their headings are nested beneath the dialog heading.
-Reading, switching tabs and closing do not accept policies, submit registration
+Reading and closing do not accept policies, submit registration
 or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
 dismissal. Public policy URLs remain available outside registration.
+Each checkbox is disabled until the user reaches the end of its own loaded
+document in this form. An IntersectionObserver watches a final marker after the
+policy sections, rooted in the active scroll panel; loading/error fallbacks and
+inactive dialogs cannot unlock it, and cleanup rejects queued callbacks after
+dismissal. It disconnects after completion instead of updating
+React on every scroll. The footer announces when the checkbox is available;
+the form shows one shared 12px instruction with a small info icon below both
+compact rows while either policy is locked, without a panel, border, background
+or heading. Each locked checkbox references it as
+its accessible description. An accessible HeroUI button covers the locked
+checkbox's existing hit area while the checkbox itself stays natively disabled.
+Pointer/keyboard activation of that button, or a click on the introductory label,
+shows one inline, announced 12px warning with a small warning icon directly below
+that policy's acceptance row, never acceptance or a submission. The warning has
+no panel or Review policy button; the existing policy-name link opens the document.
+Pending submissions disable this warning entry point too.
+Warnings disappear when their policy is reviewed; the notice disappears when
+both are reviewed. Policy-name links still open directly without a warning. The
+20px checkbox layout slot keeps its original 8px label gap; its 44px hit area
+extends outside that slot without widening or separating the rows.
+Completion is in memory, keyed by document revision, and survives reopening
+within the same form only. Refresh starts over. Keyboard scrolling is supported;
+if the entire document fits, its visible end qualifies without artificial scrolling.
+Once the loaded document reports readiness, Close and the top X are disabled
+until that document's end is visible. HeroUI's `isDismissable` and
+`isKeyboardDismissDisabled`, plus a guarded close callback, block backdrop and
+Escape dismissal for the same interval. Completion unlocks all dismissal paths
+and only that policy's checkbox. Reopening an already reviewed document remains
+dismissible within the current form. Loading and error states always permit
+closing, so an unavailable download cannot trap the user; retry restores the
+lock only after the real content is ready. The other policy keeps its own
+independent progress. No account-wide gate is added.
+Reaching the end only unlocks selection and dismissal, never accepts automatically. This
+is a browser interaction guard, not proof of reading/comprehension or a security
+boundary against a modified client. Server validation and acceptance storage
+remain unchanged; no new database fields, migration or mobile changes are needed.
 The ordinary acceptance text is a clickable checkbox label; policy-name buttons
 remain separate and never toggle acceptance. A failed policy download offers a
 HeroUI Retry button that replaces the failed lazy loader without reloading the
 page or clearing the draft.
 The public-content import is shared across both forms; failed speculative loads
 are discarded so opening or Retry can request it again. A completed preload
-renders without a loading fallback. During one modal opening, each visited
-HeroUI tab panel stays mounted, with inactive panels hidden and inert; memoized
-policy content avoids rebuilding the section cards and preserves scroll position
-when switching back. Dismissal still releases the panels. Off-screen sections
+renders without a loading fallback. Only the open dialog mounts its memoized
+policy content; the other dialog does not render a second document. Dismissal
+releases the content, while the form retains version-keyed completion. Off-screen sections
 use browser `content-visibility` to defer layout/paint without removing policy
 text or changing the HeroUI controls.
 Submission stays disabled until both are selected;
@@ -48,6 +84,10 @@ validation. `web_registration_policies` holds database-authoritative revisions;
 version changes require a reviewed migration and a matching web configuration
 change. The database contract test checks their parity. It does not automatically
 require existing accounts to accept later revisions.
+
+The November 6, 2026 Privacy Policy revision is version 1.1. Apply its matching
+registry migration with the web/mobile release; see `docs/privacy-policy.md` for
+old-client behavior, preserved history and publication review requirements.
 
 `service/registrationService.ts` calls `complete_web_registration` once. This
 SECURITY INVOKER transaction preserves existing profile column grants, owner RLS,
@@ -133,7 +173,7 @@ Run `check-fixture.mjs` with the same output directory and
 It is not a substitute for real OAuth and email journey checks after rollout.
 
 `benchmark-fixture.mjs <fixture-directory>` uses the same temporary browser
-variables to report median first-open, hover-preloaded-open, visited-tab and
+variables to report median first-open, hover-preloaded-open, second-policy-open and
 reopen timings (3 runs, isolated development fixture, 4x CPU slowdown, 250ms
 policy response delay, 1-second hover dwell). Timings are informational, include
 browser automation overhead and are not production guarantees or CI thresholds.

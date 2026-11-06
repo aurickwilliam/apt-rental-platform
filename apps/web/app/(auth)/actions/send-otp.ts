@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import { getEmailCodeRequestError } from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, getEmailCodeRequestError, isCaptchaError } from "@repo/utils";
 import { validateBirthDate } from "@/lib/birth-date";
 import { validateRegistrationAcceptance, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
 
@@ -13,7 +13,7 @@ interface SendEmailOtpResult {
   acceptanceErrors?: AcceptanceErrors;
 }
 
-export async function sendEmailOtp(email: string, password: string, firstName: string, lastName: string, birthDate: string, acceptance: RegistrationAcceptance): Promise<SendEmailOtpResult> {
+export async function sendEmailOtp(email: string, password: string, firstName: string, lastName: string, birthDate: string, acceptance: RegistrationAcceptance, captchaToken?: string): Promise<SendEmailOtpResult> {
   const birthDateError = validateBirthDate(birthDate);
   if (birthDateError) return { birthDateError, birthDate: birthDate ?? "" };
   const acceptanceErrors = validateRegistrationAcceptance(acceptance);
@@ -25,12 +25,14 @@ export async function sendEmailOtp(email: string, password: string, firstName: s
     password,
     options: {
       emailRedirectTo: undefined,
+      captchaToken: captchaToken || undefined,
       data: {
         full_name: `${firstName} ${lastName}`,
       },
     },
   });
 
+  if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
   if (error) return { error: getEmailCodeRequestError(error.message) };
   return { success: true };
 }

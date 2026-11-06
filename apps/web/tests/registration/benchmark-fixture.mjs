@@ -21,7 +21,7 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ headless: true, ...(process.env.REGISTRATION_BROWSER_PATH ? { executablePath: process.env.REGISTRATION_BROWSER_PATH } : {}) });
-const samples = { coldOpen: [], intentOpen: [], visitedTab: [], reopen: [] };
+const samples = { coldOpen: [], intentOpen: [], secondPolicyOpen: [], reopen: [] };
 try {
   for (let run = 0; run < 3; run++) {
     for (const intent of [false, true]) {
@@ -31,8 +31,17 @@ try {
       await page.goto(`http://127.0.0.1:${server.address().port}`);
       await page.waitForLoadState("networkidle");
       const trigger = page.getByRole("form", { name: "Email registration", exact: true }).getByRole("button", { name: "Privacy Policy", exact: true });
-      const dialog = page.getByRole("dialog", { name: "Policies", exact: true });
+      const dialog = page.getByRole("dialog");
       const article = name => dialog.getByRole("article", { name, exact: true });
+      const finishReading = async () => {
+        await page.waitForFunction(element => {
+          const panel = element.querySelector("[data-registration-policy-scroll]");
+          panel.scrollTop = panel.scrollHeight;
+          return element.querySelector('[role="status"]')?.textContent.includes("You reached the end");
+        }, await dialog.elementHandle());
+        await dialog.getByRole("button", { name: "Close", exact: true }).click();
+        await dialog.waitFor({ state: "hidden" });
+      };
       const measure = async (action, ready) => {
         await page.evaluate(() => { window.policyBenchmarkStart = performance.now(); });
         await action();
@@ -48,11 +57,10 @@ try {
         await page.waitForLoadState("networkidle");
       }
       samples[intent ? "intentOpen" : "coldOpen"].push(await measure(() => trigger.click(), article("Privacy Policy")));
-      await dialog.getByRole("tab", { name: "Terms and Conditions", exact: true }).click();
-      await article("Terms and Conditions").waitFor();
-      samples.visitedTab.push(await measure(() => dialog.getByRole("tab", { name: "Privacy Policy", exact: true }).click(), article("Privacy Policy")));
-      await dialog.getByRole("button", { name: "Close", exact: true }).click();
-      await dialog.waitFor({ state: "hidden" });
+      await finishReading();
+      const termsTrigger = page.getByRole("form", { name: "Email registration", exact: true }).getByRole("button", { name: "Terms and Conditions", exact: true });
+      samples.secondPolicyOpen.push(await measure(() => termsTrigger.click(), article("Terms and Conditions")));
+      await finishReading();
       samples.reopen.push(await measure(() => trigger.click(), article("Privacy Policy")));
       await page.close();
     }

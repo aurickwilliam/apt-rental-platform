@@ -3,9 +3,12 @@
 
 export type PasswordErrorReason =
   | "invalid_email"
+  | "email_not_registered"
+  | "google_account"
   | "invalid_or_expired_code"
   | "wrong_current_password"
   | "rate_limited"
+  | "captcha_failed"
   | "same_password"
   | "weak_password"
   | "session_expired"
@@ -15,10 +18,13 @@ export type PasswordErrorReason =
 
 const PASSWORD_ERROR_MESSAGES: Record<PasswordErrorReason, string> = {
   invalid_email: "Enter a valid email address.",
+  email_not_registered: "We couldn't find an account with that email address.",
+  google_account: "This email is linked to a Google account. Sign in with Google instead.",
   invalid_or_expired_code:
     "That code is incorrect or has expired. Check the code or request a new one.",
   wrong_current_password: "Your current password is incorrect.",
   rate_limited: "Too many attempts. Please wait a minute before trying again.",
+  captcha_failed: "The security check failed. Please try again.",
   same_password: "Your new password must be different from your current password.",
   weak_password: "This password is too weak. Please choose a stronger password.",
   // Only the recovery session expires mid-flow, so the wording is recovery's.
@@ -59,6 +65,7 @@ export function toPasswordErrorReason(error: unknown): PasswordErrorReason {
   if (code && INVALID_CODE_ERRORS.has(code)) return "invalid_or_expired_code";
   if (code === "invalid_credentials") return "wrong_current_password";
   if ((code && RATE_LIMIT_ERRORS.has(code)) || status === RATE_LIMIT_STATUS) return "rate_limited";
+  if (code === "captcha_failed") return "captcha_failed";
   if (code === "same_password") return "same_password";
   if (code === "weak_password" || name === "AuthWeakPasswordError") return "weak_password";
   if (code === "reauthentication_needed") return "reauthentication_required";

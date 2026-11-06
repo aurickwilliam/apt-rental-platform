@@ -41,7 +41,7 @@ const TITLES: Record<PaymentStatus, { title: string; tone: ReceiptTone }> = {
 export function receiptData(payment: LandlordPaymentRecord): ReceiptData {
   const status = paymentStatusLabel(payment.status);
   const reference = formatReferenceId(payment.reference_id);
-  const period = payment.billing_kind === "move_in"
+  const period = payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in"
     ? "Move-in payment"
     : ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date);
   const amount = formatPesoDisplay(payment.amount ?? 0);

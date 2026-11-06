@@ -9,6 +9,10 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import AuthDivider from "./components/AuthDivider";
 import AuthButton from "./components/AuthButton";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import AuthLockoutDialog from "@/components/auth/AuthLockoutDialog";
+import { useAuthLockout } from "@/hooks/auth/useAuthLockout";
+import { useCaptcha } from "@/hooks/auth/useCaptcha";
+import { signInViaServer } from "@/service/auth/serverAuthService";
 
 import {
   Button,
@@ -43,14 +47,26 @@ import {
 
 import { profileMissingRoute } from "@/service/auth/profileMissingService";
 
-import { isValidEmail } from "@repo/utils";
+import {
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
+  formatLockoutClock,
+  isAuthRateLimitError,
+  isValidEmail,
+} from "@repo/utils";
 
 export default function SignIn() {
+  const { widget: captchaWidget, take: takeCaptcha, takeWhenReady: takeCaptchaWhenReady } = useCaptcha();
   const router = useRouter();
   const { colors } = useColors();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  // Attempt limit: the server counts wrong passwords (shared with the website) and
+  // reports a lock, which the dialog and the disabled Sign in button show. A
+  // reminder on the device keeps it visible after the app is closed.
+  const lockout = useAuthLockout("signin", email);
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -116,33 +132,59 @@ export default function SignIn() {
 
     if (!isValid) return;
 
+    if (lockout.isLocked) {
+      lockout.setDialogOpen(true);
+      return;
+    }
+
     clearQueryClient();
     setLoading(true);
     setError("");
 
     try {
-      // Attempt to sign in with Supabase
-      // Using email and password
-      const { data: authData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+      // Single-use Turnstile token; Supabase rejects a missing or reused one
+      // once CAPTCHA protection is enabled for the project.
+      const captcha = takeCaptcha();
+      if (captcha.pending) {
+        setError(CAPTCHA_PENDING_MESSAGE);
+        return;
+      }
+      // Signs in through the web server, which counts every attempt in the same
+      // database windows as the website: the limit cannot be reset from this phone
+      // and a lock set on web shows here too. The message never says whether the
+      // account exists.
+      const { data: authData, error: signInError } = await signInViaServer({
+        email: email.trim(),
+        password,
+        captchaToken: captcha.token,
+      });
+      if (!signInError) await lockout.clear();
 
       // Check if there is an error during sign-in and handle it
       if (signInError) {
-        if (signInError.message === "Invalid login credentials") {
+        if (signInError.retryAfterSeconds) {
+          // Attempt limit reached (including by this very attempt): the server says
+          // how long it lasts, and the dialog replaces the "invalid password" error.
+          lockout.lockFor(signInError.retryAfterSeconds);
+        } else if (isCaptchaError(signInError)) {
+          setError(CAPTCHA_FAILED_MESSAGE);
+        } else if (signInError.code === "invalid_credentials" || signInError.message === "Invalid login credentials") {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message === "Email not confirmed") {
           // Sign-up was left before the email code was entered: send a fresh
           // code and let the person confirm it here. A throttled resend still
           // lets them use the code they already have.
-          await supabase.auth.resend({ type: "signup", email: email.trim() });
+          const resendCaptcha = await takeCaptchaWhenReady();
+          await supabase.auth.resend({
+            type: "signup",
+            email: email.trim(),
+            options: resendCaptcha.token ? { captchaToken: resendCaptcha.token } : undefined,
+          });
           router.push({
             pathname: "/(auth)/otp-verification",
             params: { email: email.trim().toLowerCase(), mode: "confirm" },
           });
-        } else if (signInError.message.includes("rate limit")) {
+        } else if (isAuthRateLimitError(signInError)) {
           setError("Too many sign-in attempts. Please try again later.");
         } else {
           setError(signInError.message);
@@ -302,14 +344,20 @@ export default function SignIn() {
         </LinkButton.Label>
       </LinkButton>
 
+      {captchaWidget}
+
       {/* Sign In Button */}
       <View className="mt-5">
         <Button
           onPress={handleSignIn}
-          isDisabled={loading}
+          isDisabled={loading || lockout.isLocked}
         >
           <Button.Label className="font-nunitoSemiBold">
-            {loading ? "Signing In..." : "Sign In"}
+            {lockout.isLocked
+              ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+              : loading
+                ? "Signing In..."
+                : "Sign In"}
           </Button.Label>
 
           {loading && (
@@ -354,6 +402,12 @@ export default function SignIn() {
           </LinkButton>
         </View>
       </View>
+
+      <AuthLockoutDialog
+        isOpen={lockout.dialogOpen}
+        onOpenChange={lockout.setDialogOpen}
+        secondsLeft={lockout.secondsLeft}
+      />
 
       {/* Error Dialog */}
       <ErrorDialog

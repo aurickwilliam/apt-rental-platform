@@ -77,7 +77,7 @@ export default function NeedsAttentionCard({ payments, showUnit, onOpen }: Needs
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {showUnit && payment.apartment_name ? `${payment.apartment_name} · ` : ""}
-                      {payment.billing_kind === "move_in"
+                      {payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in"
                         ? "Move-in payment"
                         : ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date)}
                     </span>

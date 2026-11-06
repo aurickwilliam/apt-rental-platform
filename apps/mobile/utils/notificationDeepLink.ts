@@ -1,6 +1,7 @@
 import type { Href } from "expo-router";
 
 export interface NotificationData {
+  tenancyId?: string;
   screen?: string;
   apartmentId?: string;
   dueDate?: string;
@@ -61,6 +62,10 @@ export function buildNotificationDeepLink(
   const payload = data as NotificationData;
 
   switch (payload.screen) {
+    case "leaseRenewal":
+      return payload.tenancyId && (role === "tenant" || role === "landlord")
+        ? { pathname: "/lease-renewal/[tenancyId]", params: { tenancyId: payload.tenancyId } }
+        : null;
     case "chat": {
       const key = payload.conversationKey;
       if (!key || !currentUserId) return null;

@@ -882,6 +882,7 @@ export type Database = {
       }
       payment: {
         Row: {
+          renewal_proposal_id: string | null
           billing_kind: string | null
           rent_amount: number | null
           deposit_amount: number | null
@@ -915,6 +916,7 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date: string
@@ -938,6 +940,7 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date?: string
@@ -1216,6 +1219,7 @@ export type Database = {
       }
       tenancies: {
         Row: {
+          renewal_ended_at: string | null
           billing_version: number | null
           advance_rent: number | null
           apartment_id: string
@@ -1575,6 +1579,41 @@ export type Database = {
           },
         ]
       }
+      tutorial_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          portal: string
+          skipped_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          portal: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          portal?: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_status: string
@@ -1811,6 +1850,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      list_lease_renewals: {
+        Args: { p_before?: string | null; p_before_id?: string | null }
+        Returns: Json
+      }
+      get_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string }
+        Returns: Json
+      }
+      get_effective_lease_terms: {
+        Args: { p_tenancy_id: string }
+        Returns: Json
+      }
+      act_on_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string; p_action: string; p_expected_version: number | null; p_payload?: Json }
+        Returns: undefined
+      }
       complete_mobile_registration: {
         Args: {
           profile_details: Json;
@@ -1824,6 +1879,14 @@ export type Database = {
         };
         Returns: string;
       };
+      auth_throttle: {
+        Args: { p_action: string; p_purpose: string; p_subject: string }
+        Returns: number
+      }
+      auth_throttle_server: {
+        Args: { p_action: string; p_purpose: string; p_subject: string }
+        Returns: number
+      }
       acknowledge_signed_lease: {
         Args: { p_tenancy_id: string }
         Returns: undefined
@@ -2044,6 +2107,7 @@ export type Database = {
       }
       get_my_suspension_status: { Args: never; Returns: Json }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
+      get_password_recovery_eligibility: { Args: { p_email: string }; Returns: string }
       get_portal_conversations: {
         Args: { p_portal: string }
         Returns: {
