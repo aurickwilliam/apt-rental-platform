@@ -3,23 +3,17 @@ import type { Metadata } from "next";
 import { IconShieldCheck } from "@tabler/icons-react";
 
 import LegalBulletList from "../components/legal/LegalBulletList";
-import LegalContactCard from "../components/legal/LegalContactCard";
 import LegalHero from "../components/legal/LegalHero";
 import LegalSection from "../components/legal/LegalSection";
 import LegalTableOfContents from "../components/legal/LegalTableOfContents";
 
-import { BRAND, LEGAL_META, SECTIONS, TOC } from "./data/tos-sections";
+import { LEGAL_META, SECTIONS, TOC } from "./data/tos-sections";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions — APT",
   description:
     "The terms that govern your access to and use of APT, the rental platform for tenants and landlords in Camanava.",
 };
-
-const RELATED_POLICIES = [
-  { href: "/pap", label: "Privacy Policy" },
-  { href: "/cookies", label: "Cookie Policy" },
-];
 
 export default function TosPage() {
   return (
@@ -53,8 +47,6 @@ export default function TosPage() {
               ))}
             </LegalSection>
           ))}
-
-          <LegalContactCard brand={BRAND} related={RELATED_POLICIES} />
         </article>
       </div>
     </div>

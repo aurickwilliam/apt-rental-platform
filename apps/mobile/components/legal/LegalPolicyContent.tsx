@@ -18,12 +18,6 @@ export default function LegalPolicyContent({ policy, selectable = true }: LegalP
         {policy.sections.map((section, index) => (
           <LegalPolicySection key={section.id} section={section} number={index + 1} selectable={selectable} />
         ))}
-        <View className="gap-2">
-          <Text accessibilityRole="header" className="text-sm font-nunitoSemiBold text-foreground">Contact APT</Text>
-          <Text selectable={selectable} className="text-sm text-muted leading-6">Email: {policy.contact.email}</Text>
-          <Text selectable={selectable} className="text-sm text-muted leading-6">Address: {policy.contact.address}</Text>
-          <Text selectable={selectable} className="text-sm text-muted leading-6">Hours: {policy.contact.hours}</Text>
-        </View>
       </View>
     </View>
   );

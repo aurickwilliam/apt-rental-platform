@@ -1,8 +1,8 @@
 // Keep the database policy versions in sync through a migration when publishing
 // a revision. Never infer acceptance from Auth metadata or a remembered checkbox.
 export const REGISTRATION_POLICIES = {
-  privacy: { version: "1.0", lastUpdated: "January 15, 2026", href: "/pap", label: "Privacy Policy" },
-  terms: { version: "1.1", lastUpdated: "October 29, 2026", href: "/tos", label: "Terms and Conditions" },
+  privacy: { version: "1.1", lastUpdated: "November 6, 2026", href: "/pap", label: "Privacy Policy" },
+  terms: { version: "1.1", lastUpdated: "November 6, 2026", href: "/tos", label: "Terms and Conditions" },
 } as const;
 
 export type RegistrationPolicy = keyof typeof REGISTRATION_POLICIES;

@@ -22,14 +22,14 @@ bound to one document and titled Privacy Policy or Terms and Conditions. There
 are no tabs or in-dialog switches. Each heading and Close control stays outside
 its keyboard-focusable scrolling region. `RegistrationPolicyContent` is loaded
 on intent (policy-button hover or keyboard focus) or first open and reuses the public policy data and legal components, including
-version metadata, all sections and contact details. Section IDs are namespaced
+version metadata and all sections, without a Questions/contact footer. Section IDs are namespaced
 per dialog and document; their headings are nested beneath the dialog heading.
 Reading and closing do not accept policies, submit registration
 or reset the form. HeroUI manages keyboard focus/trapping and restores focus on
 dismissal. Public policy URLs remain available outside registration.
 Each checkbox is disabled until the user reaches the end of its own loaded
 document in this form. An IntersectionObserver watches a final marker after the
-contact details, rooted in the active scroll panel; loading/error fallbacks and
+policy sections, rooted in the active scroll panel; loading/error fallbacks and
 inactive dialogs cannot unlock it, and cleanup rejects queued callbacks after
 dismissal. It disconnects after completion instead of updating
 React on every scroll. The footer announces when the checkbox is available;
@@ -84,6 +84,10 @@ validation. `web_registration_policies` holds database-authoritative revisions;
 version changes require a reviewed migration and a matching web configuration
 change. The database contract test checks their parity. It does not automatically
 require existing accounts to accept later revisions.
+
+The November 6, 2026 Privacy Policy revision is version 1.1. Apply its matching
+registry migration with the web/mobile release; see `docs/privacy-policy.md` for
+old-client behavior, preserved history and publication review requirements.
 
 `service/registrationService.ts` calls `complete_web_registration` once. This
 SECURITY INVOKER transaction preserves existing profile column grants, owner RLS,

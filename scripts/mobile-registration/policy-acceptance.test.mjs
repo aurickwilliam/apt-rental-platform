@@ -3,9 +3,11 @@ import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
+import { REGISTRATION_POLICIES } from "../../apps/web/lib/registration-policies.ts";
 
 const migration = await readFile(new URL("../../supabase/migrations/20261031120000_mobile_registration_policy_acceptance.sql", import.meta.url), "utf8");
 const webMigration = await readFile(new URL("../../supabase/migrations/20261029120000_web_registration_policy_acceptance.sql", import.meta.url), "utf8");
+const privacyRevision = await readFile(new URL("../../supabase/migrations/20261106120000_privacy_policy_revision.sql", import.meta.url), "utf8");
 const rolesMigration = await readFile(new URL("../../supabase/migrations/20260927000003_drop_legacy_role_column.sql", import.meta.url), "utf8");
 const valuesGuard = await readFile(new URL("../../supabase/migrations/20261026120000_allow_all_ph_mobile_blocks.sql", import.meta.url), "utf8");
 const suspensionFunction = await readFile(new URL("../../supabase/migrations/20261007000300_get_my_suspension_status.sql", import.meta.url), "utf8");
@@ -50,8 +52,8 @@ function complete(db, person, options = {}) {
   return db.query("select complete_mobile_registration($1::jsonb,$2,$3,$4,$5,$6,$7,$8::uuid) as id", [
     JSON.stringify(options.details ?? details), options.role ?? "tenant",
     "terms" in options ? options.terms : true, "privacy" in options ? options.privacy : true,
-    "termsVersion" in options ? options.termsVersion : "1.1",
-    "privacyVersion" in options ? options.privacyVersion : "1.0",
+    "termsVersion" in options ? options.termsVersion : REGISTRATION_POLICIES.terms.version,
+    "privacyVersion" in options ? options.privacyVersion : REGISTRATION_POLICIES.privacy.version,
     "source" in options ? options.source : "mobile_registration", options.expectedAuthId ?? person.authId,
   ]);
 }
@@ -67,6 +69,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
   await db.exec(suspensionFunction);
   await db.exec(webMigration);
   await db.exec(migration);
+  await db.exec(privacyRevision);
 
   async function person(options = {}) {
     const authId = randomUUID(), email = `${authId}@example.test`;
@@ -92,6 +95,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
         const before = (await db.query("select * from policy_acceptances order by policy_id")).rows;
         assert.equal(before.length, 2);
         assert.ok(before.every(row => row.user_id === id && row.accepted_at && row.source === "mobile_registration"));
+        assert.equal(before.find(row => row.policy_id === "privacy").policy_version, REGISTRATION_POLICIES.privacy.version);
         await complete(db, user, { role, details: { ...details, first_name: "Never overwrite" } });
         assert.deepEqual((await db.query("select * from policy_acceptances order by policy_id")).rows, before);
         assert.equal((await db.query("select first_name from users")).rows[0].first_name, "Test");
@@ -103,7 +107,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
     const user = await person();
     await as(db, user, async () => {
       for (const options of [
-        { terms: false }, { privacy: null }, { termsVersion: "old" }, { privacyVersion: null }, { role: "admin" },
+        { terms: false }, { privacy: null }, { termsVersion: "old" }, { privacyVersion: "1.0" }, { privacyVersion: null }, { role: "admin" },
         { source: "web_registration" }, { source: null }, { expectedAuthId: randomUUID() },
         { details: { ...details, user_id: randomUUID() } }, { details: { ...details, roles: ["admin"] } },
         { details: { ...details, account_status: "verified" } }, { details: { ...details, mobile_number: "bad" } },
@@ -174,7 +178,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
       await assert.rejects(db.exec("delete from policy_acceptances"), /permission denied/);
       await assert.rejects(db.exec("update policy_acceptances set accepted_at = now()"), /permission denied/);
       await assert.rejects(db.query("insert into policy_acceptances(user_id,policy_id,policy_version,source) values($1,'terms','1.1','mobile_registration')", [randomUUID()]), /permission denied/);
-      await assert.rejects(db.exec("select record_mobile_policy_acceptance(true,true,'1.1','1.0','mobile_registration')"), /Complete your profile/);
+      await assert.rejects(db.query("select record_mobile_policy_acceptance(true,true,$1,$2,'mobile_registration')", [REGISTRATION_POLICIES.terms.version, REGISTRATION_POLICIES.privacy.version]), /Complete your profile/);
     });
     await as(db, null, async () => { await assert.rejects(complete(db, user), /permission denied/); }, "anon");
   });
@@ -182,7 +186,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
   await t.test("web registration behavior and older mobile profile-only writes stay working", async () => {
     const web = await person();
     await as(db, web, async () => {
-      await db.query("select complete_web_registration($1::jsonb,'tenant',true,true,'1.1','1.0','web_registration')", [JSON.stringify(details)]);
+      await db.query("select complete_web_registration($1::jsonb,'tenant',true,true,$2,$3,'web_registration')", [JSON.stringify(details), REGISTRATION_POLICIES.terms.version, REGISTRATION_POLICIES.privacy.version]);
       assert.ok((await db.query("select source from policy_acceptances")).rows.every(row => row.source === "web_registration"));
       await assert.rejects(complete(db, web), /Profile setup is no longer/);
     });

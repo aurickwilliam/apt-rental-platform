@@ -74,7 +74,7 @@ it("commits signup profile and the explicitly selected revisions together after 
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
   expect(mockRpc).toHaveBeenCalledWith("complete_mobile_registration", {
     profile_details: profileDetails, requested_role: "tenant", terms_accepted: true, privacy_accepted: true,
-    terms_version: "1.1", privacy_version: "1.0", registration_source: "mobile_registration", expected_auth_id: "auth-1",
+    terms_version: "1.1", privacy_version: "1.1", registration_source: "mobile_registration", expected_auth_id: "auth-1",
   });
   expect(useRegistrationStore.getState().data).toEqual({});
 });

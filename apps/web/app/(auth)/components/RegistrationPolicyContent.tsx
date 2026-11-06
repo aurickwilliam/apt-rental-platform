@@ -5,10 +5,9 @@ import { memo, useEffect } from "react";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import LegalBlocks from "../../(main)/components/legal/LegalBlocks";
 import LegalBulletList from "../../(main)/components/legal/LegalBulletList";
-import LegalContactCard from "../../(main)/components/legal/LegalContactCard";
 import LegalSection from "../../(main)/components/legal/LegalSection";
-import { BRAND as PRIVACY_BRAND, LEGAL_META as PRIVACY_META, SECTIONS as PRIVACY_SECTIONS } from "../../(main)/pap/data/pap-sections";
-import { BRAND as TERMS_BRAND, LEGAL_META as TERMS_META, SECTIONS as TERMS_SECTIONS } from "../../(main)/tos/data/tos-sections";
+import { LEGAL_META as PRIVACY_META, SECTIONS as PRIVACY_SECTIONS } from "../../(main)/pap/data/pap-sections";
+import { LEGAL_META as TERMS_META, SECTIONS as TERMS_SECTIONS } from "../../(main)/tos/data/tos-sections";
 import { REGISTRATION_POLICIES, type RegistrationPolicy } from "@/lib/registration-policies";
 import { usePolicyScrollCompletion } from "@/hooks/use-policy-scroll-completion";
 
@@ -25,7 +24,6 @@ function RegistrationPolicyContent({ policy, instanceId, active, onRead, onReady
   useEffect(() => { onReady(); }, [onReady]);
   const isPrivacy = policy === "privacy";
   const meta = isPrivacy ? PRIVACY_META : TERMS_META;
-  const brand = isPrivacy ? PRIVACY_BRAND : TERMS_BRAND;
   return (
     <article aria-label={REGISTRATION_POLICIES[policy].label}>
       <Alert status="accent" role="note" className="registration-policy-meta">
@@ -50,11 +48,6 @@ function RegistrationPolicyContent({ policy, instanceId, active, onRead, onReady
           {section.body?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </LegalSection>
       ))}
-      <LegalContactCard
-        brand={brand}
-        headingLevel={3}
-        {...(isPrivacy ? { eyebrow: "Questions about this Privacy Policy?", description: null } : {})}
-      />
       <div ref={endRef} aria-hidden="true" className="h-px" />
     </article>
   );

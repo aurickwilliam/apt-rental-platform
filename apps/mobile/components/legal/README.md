@@ -4,7 +4,8 @@
 `ScreenWrapper` and `StandardHeader`. `LegalPolicySection` presents numbered
 headings, paragraphs, lists, lettered subheadings and labelled callouts using the
 existing mobile theme tokens. Policy text is selectable, and headings are
-announced to screen readers.
+announced to screen readers. Privacy and Terms readers end after the policy
+sections, without a Questions/contact footer, including during registration.
 
 Content lives in `constants/legal/`, outside Expo Router's route directory.
 The web's `tos/data/tos-sections.ts`, `pap/data/pap-sections.ts` and

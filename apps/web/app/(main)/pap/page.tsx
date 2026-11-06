@@ -3,12 +3,11 @@ import type { Metadata } from "next";
 import { IconShieldCheck } from "@tabler/icons-react";
 
 import LegalBlocks from "../components/legal/LegalBlocks";
-import LegalContactCard from "../components/legal/LegalContactCard";
 import LegalHero from "../components/legal/LegalHero";
 import LegalSection from "../components/legal/LegalSection";
 import LegalTableOfContents from "../components/legal/LegalTableOfContents";
 
-import { BRAND, LEGAL_META, SECTIONS, TOC } from "./data/pap-sections";
+import { LEGAL_META, SECTIONS, TOC } from "./data/pap-sections";
 
 const DESCRIPTION =
   "This Privacy Policy explains how APT collects, uses, stores, discloses, and protects your personal information when you use our website and mobile application.";
@@ -17,11 +16,6 @@ export const metadata: Metadata = {
   title: "Privacy Policy — APT",
   description: DESCRIPTION,
 };
-
-const RELATED_POLICIES = [
-  { href: "/tos", label: "Terms and Conditions" },
-  { href: "/cookies", label: "Cookie Policy" },
-];
 
 export default function PapPage() {
   return (
@@ -51,13 +45,6 @@ export default function PapPage() {
               <LegalBlocks blocks={section.blocks} />
             </LegalSection>
           ))}
-
-          <LegalContactCard
-            brand={BRAND}
-            related={RELATED_POLICIES}
-            eyebrow="Questions about this Privacy Policy?"
-            description={null}
-          />
         </article>
       </div>
     </div>

@@ -108,13 +108,12 @@ const Content = compile("app/(auth)/components/RegistrationPolicyContent.tsx", {
   "@tabler/icons-react": { IconInfoCircleFilled: "IconInfoCircleFilled" },
   "../../(main)/components/legal/LegalBlocks": { default: "LegalBlocks" },
   "../../(main)/components/legal/LegalBulletList": { default: "LegalBulletList" },
-  "../../(main)/components/legal/LegalContactCard": { default: "LegalContactCard" },
   "../../(main)/components/legal/LegalSection": { default: "LegalSection" },
   "../../(main)/pap/data/pap-sections": privacy,
   "../../(main)/tos/data/tos-sections": terms,
 }).default;
 
-test("modal policy content preserves every public policy section, paragraph, list, callout and contact detail", () => {
+test("modal policy content preserves every public policy section, paragraph, list and callout without a contact card", () => {
   for (const [policy, data] of [["privacy", privacy], ["terms", terms]]) {
     const root = Content({ policy, instanceId: "first-dialog" });
     const all = nodes(root);
@@ -136,9 +135,7 @@ test("modal policy content preserves every public policy section, paragraph, lis
         if (section.list) assert.deepEqual(plain(children.find(child => child.type === "LegalBulletList").props.items), plain(section.list));
       }
     });
-    const contact = all.find(node => node.type === "LegalContactCard");
-    assert.deepEqual(plain(contact.props.brand), plain(data.BRAND));
-    assert.equal(contact.props.related, undefined);
+    assert.equal(all.some(node => node.type === "LegalContactCard"), false);
     assert.ok(JSON.stringify(root).includes(data.LEGAL_META.lastUpdated));
     const another = nodes(Content({ policy, instanceId: "second-dialog" })).find(node => node.type === "LegalSection");
     assert.notEqual(another.props.id, sections[0].props.id);

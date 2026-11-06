@@ -4,7 +4,7 @@ import { LEGAL_CONTACT } from "./types";
 // Mirror apps/web/app/(main)/tos/data/tos-sections.ts without a web runtime dependency.
 export const TERMS_POLICY: LegalPolicy = {
   title: "Terms and Conditions",
-  lastUpdated: "October 29, 2026",
+  lastUpdated: "November 6, 2026",
   version: "1.1",
   jurisdiction: "Effective in the Philippines",
   contact: LEGAL_CONTACT,

@@ -53,3 +53,18 @@ describe.each([
     expect(policy.contact).toEqual(web.BRAND);
   });
 });
+
+it("discloses the system's sensitive data, sharing limits, providers and privacy rights", () => {
+  const text = JSON.stringify(PRIVACY_POLICY.sections);
+  for (const disclosure of [
+    /household-disability/, /sensitive personal information/, /automatically attaches eligible Passport documents/,
+    /not your verification selfie/, /not administrators/, /owner-restricted/,
+    /Google Gemini/, /free-tier/, /does not automatically include your profile/,
+    /PayMongo/, /test mode/, /Expo's push service/, /Brevo/, /Cloudflare Turnstile/,
+    /password hashing/, /not represented as end-to-end encrypted/,
+    /does not promise a single fixed retention period/, /not currently provided/,
+    /National Privacy Commission/, /data portability/, /withdraw consent/,
+  ]) expect(text).toMatch(disclosure);
+  expect(text).not.toContain("consent to the collection and processing of your personal information as described herein");
+  expect(text).not.toContain("These providers are required to protect your information.");
+});

@@ -33,7 +33,7 @@ directly, and pending submissions disable these entry points. Reading never
 checks either box automatically.
 
 `usePolicyReadingProgress` keeps native viewport/content/offset measurements in
-refs. It waits for a trailing marker after the contact details as well as valid
+refs. It waits for a trailing marker after the policy sections as well as valid
 content and viewport sizes, preventing a partial first layout from unlocking a
 long document. Marker and content-size measurements must agree, including the
 16px decorative bottom padding. Offsets survive late layout callbacks, but cannot
@@ -62,6 +62,11 @@ follow-up requires no additional migration; the original acceptance migration
 below remains the prerequisite for mobile registration.
 
 ## Flow and storage
+
+Privacy Policy 1.1 (November 6, 2026) requires the matching registry migration
+before release. Earlier installed versions cannot complete new registration with
+privacy 1.0; existing completed accounts remain usable without a new global gate.
+See `docs/privacy-policy.md` for release coordination and publication review.
 
 `useRegistrationAcceptance` owns local selections/errors. Submit is disabled
 until both are selected, and hooks/services validate independently. The email

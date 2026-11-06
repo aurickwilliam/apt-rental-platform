@@ -65,16 +65,16 @@ it("guards Close, backdrop and cached Android Back callbacks until the current d
   expect(overlay()?.props.isCloseOnPress).toBe(false);
   fireEvent.press(screen.getByRole("button", { name: "Close Privacy Policy" }));
   act(() => cachedBack(false));
-  expect(screen.getByText("Last updated: January 15, 2026")).toBeTruthy();
+  expect(screen.getByLabelText("Privacy Policy document")).toBeTruthy();
   finishRegistrationPolicyReading();
   expect(screen.getByRole("button", { name: "Close Privacy Policy" })).toBeEnabled();
   expect(overlay()?.props.isCloseOnPress).toBe(true);
   act(() => cachedBack(false));
-  expect(screen.queryByText("Last updated: January 15, 2026")).toBeNull();
+  expect(screen.queryByLabelText("Privacy Policy document")).toBeNull();
   expect(checkbox("Privacy Policy")).not.toBeChecked();
   fireEvent.press(screen.getByRole("button", { name: "Read Terms and Conditions" }));
   act(() => cachedBack(false));
-  expect(screen.getByText("Last updated: October 29, 2026")).toBeTruthy();
+  expect(screen.getByLabelText("Terms and Conditions document")).toBeTruthy();
 });
 
 it("allows dismissal while layout is pending, and a reviewed reopening needs no second scroll", () => {
@@ -109,7 +109,7 @@ it("does not react to attempts or policy links while submitting", () => {
   fireEvent.press(screen.getByRole("button", { name: "Review required before accepting the Privacy Policy" }));
   fireEvent.press(screen.getByRole("button", { name: "Read Privacy Policy" }));
   expect(screen.queryByText("Please open the Privacy Policy and scroll to the end before accepting it.")).toBeNull();
-  expect(screen.queryByText("Last updated: January 15, 2026")).toBeNull();
+  expect(screen.queryByLabelText("Privacy Policy document")).toBeNull();
 });
 
 it("does not carry completion to a different policy revision", () => {
