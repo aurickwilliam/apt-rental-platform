@@ -1,5 +1,6 @@
 import { supabase } from "@repo/supabase";
 import type { TenancyBill } from "@repo/utils";
+import { fetchEffectiveLeaseTermsWith } from '@repo/utils';
 
 import { coverImageUrl, type ApartmentImageRow } from "@/service/apartments/coverImage";
 
@@ -104,12 +105,14 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
     `)
     .eq("tenant_id", tenantId)
     .eq("status", "active")
+    .order("lease_start", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (tenancyError) throw tenancyError;
   if (!tenancyData) return null;
 
-  const [{ data: bill, error: billError }, { data: paymentData, error: paymentError }] = await Promise.all([
+  const [{ data: bill, error: billError }, { data: paymentData, error: paymentError },effectiveTerms] = await Promise.all([
     supabase.rpc("get_tenancy_bill", { p_tenancy_id: tenancyData.id }),
     supabase.from("payment")
       .select("id, amount, status, period_start, period_end, due_date")
@@ -117,6 +120,7 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
       .order("period_start", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    fetchEffectiveLeaseTermsWith(supabase,tenancyData.id),
   ]);
   if (billError) throw billError;
 
@@ -129,6 +133,8 @@ export async function fetchTenancy(tenantId: string): Promise<CurrentTenancy | n
 
   return {
     ...tenancy,
+    lease_end:effectiveTerms?effectiveTerms.leaseEnd:tenancy.lease_end,
+    monthly_rent:effectiveTerms?effectiveTerms.monthlyRent:tenancy.monthly_rent,
     signed_lease_path: tenancy.signed_lease_path ?? null,
     signed_lease_uploaded_at: tenancy.signed_lease_uploaded_at ?? null,
     tenant_acknowledged_at: tenancy.tenant_acknowledged_at ?? null,

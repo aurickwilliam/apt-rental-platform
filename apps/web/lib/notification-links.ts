@@ -17,6 +17,7 @@ import { getContactConversationKey } from "./conversation-contacts";
 import type { ActivePortal } from "./notification-audience";
 
 export interface LinkNotificationData {
+  tenancyId?: unknown;
   screen?: unknown;
   apartmentId?: unknown;
   paymentId?: unknown;
@@ -85,6 +86,10 @@ export function resolveNotificationTarget(
   const verificationId = text(payload.verificationId);
 
   switch (payload.screen) {
+    case "leaseRenewal": {
+      const tenancyId=text(payload.tenancyId);
+      return target(portal!=="admin"&&tenancyId?`/${portal}/renewals/${encodeURIComponent(tenancyId)}`:null);
+    }
     case "payments":
       if (portal === "landlord") {
         return target(paymentId ? `/landlord/payments/${paymentId}` : "/landlord/payments");

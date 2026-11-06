@@ -140,18 +140,23 @@ test("visit detail has owner/id filters and unchanged resolved dates; list thumb
   assert.ok(db.calls[0].limits.some(args => args[1]?.referencedTable === "apartment.apartment_images"));
 });
 
-test("property description preserves lease dates with two reads; apartment-only pages use one; complete overview stays four reads", async () => {
+test("property description and complete overview also resolve effective renewal terms; apartment-only pages stay lightweight", async () => {
   const apartment = { id: "apt", landlord_id: "owner", name: "Home", apartment_images: [], amenities: [] };
   const tenancy = { id: "tenancy", apartment_id: "apt", status: "active", lease_start: "2026-01-01", lease_end: "2027-01-01", tenant: { id: "tenant", first_name: "Ana" } };
   const db = database({ apartments: [apartment], tenancies: [tenancy], maintenance_request: [], payment: [] });
-  const service = compile("service/landlordUnitDetailService.ts", { "@/app/tenant/payment/utils": { periodMonthLabel: () => "October" } });
+  let termReads=0;
+  db.client.rpc=async(name,args)=>{assert.equal(name,'get_effective_lease_terms');assert.equal(args.p_tenancy_id,'tenancy');termReads++;return {data:{leaseEnd:'2028-01-01',monthlyRent:15000},error:null};};
+  const service = compile("service/landlordUnitDetailService.ts", { "@/app/tenant/payment/utils": { periodMonthLabel: () => "October" },'@repo/utils': {fetchEffectiveLeaseTermsWith:async(client,id)=>{const result=await client.rpc('get_effective_lease_terms',{p_tenancy_id:id});return result.data;}} });
   const description = await service.fetchLandlordUnitDescription(db.client, "apt");
   assert.equal(db.calls.length, 2);
-  assert.deepEqual(plain(description.tenant), { leaseStart: tenancy.lease_start, leaseEnd: tenancy.lease_end });
+  assert.deepEqual(plain(description.tenant), { leaseStart: tenancy.lease_start, leaseEnd: '2028-01-01' });
+  assert.equal(termReads,1);
   await service.fetchLandlordUnitApartment(db.client, "apt");
   assert.equal(db.calls.length, 3);
+  assert.equal(termReads,1,'apartment-only reads do not resolve lease terms');
   const full = await service.fetchLandlordUnitDetail(db.client, "apt");
   assert.equal(db.calls.length, 7);
+  assert.equal(termReads,2);
   assert.deepEqual(plain(description.apartment), plain(full.apartment));
   assert.deepEqual(plain(description.tenant), { leaseStart: full.tenant.leaseStart, leaseEnd: full.tenant.leaseEnd });
 });

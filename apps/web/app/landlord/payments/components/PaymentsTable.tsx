@@ -38,6 +38,7 @@ function PaymentStatusChip({ status }: { status: PaymentStatus }) {
 }
 
 function periodTitle(payment: LandlordPaymentRecord): string {
+  if (payment.billing_kind === "lease_renewal") return "Lease Renewal";
   if (payment.billing_kind === "move_in") return "Move-in payment";
   return ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date);
 }

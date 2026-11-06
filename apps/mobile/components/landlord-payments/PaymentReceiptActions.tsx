@@ -88,7 +88,7 @@ export default function PaymentReceiptActions({
           title: status.title,
           amount,
           period:
-            payment.billing_kind === "move_in"
+            payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in"
               ? "Move-in payment"
               : ledgerPeriodLabel(payment.due_date ?? payment.period_start ?? payment.date),
           tenant: payment.tenant_name ?? "—",

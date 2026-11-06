@@ -22,6 +22,7 @@ import type {
 import DashboardCard from "./components/DashboardCard";
 import RentalHero from "./components/RentalHero";
 import SignedLeaseCard from "./components/SignedLeaseCard";
+import LeaseRenewalEntry from '@/app/components/renewals/LeaseRenewalEntry';
 import StatusChip from "@/app/components/display/StatusChip";
 import MiniCalendar from "./components/MiniCalendar";
 import ApplicationsList from "./components/ApplicationsList";
@@ -336,7 +337,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
       payment.period_start ??
       payment.period_end ??
       today.toISOString();
-    const paymentLabel = payment.billing_kind === "move_in" ? "Move-in payment"
+    const paymentLabel = payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment"
       : payment.billing_kind === "fees" ? "Maintenance fees" : "Monthly rent";
     const description = payment.period_start
       ? `${formatMonthYear(payment.period_start)} - ${paymentLabel}`
@@ -823,6 +824,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
               return revalidate();
             }}
           />
+          <LeaseRenewalEntry key={`renewal:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant"/>
         </div>
 
         <DashboardCard>
