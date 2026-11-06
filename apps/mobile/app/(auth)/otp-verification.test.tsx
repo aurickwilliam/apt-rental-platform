@@ -57,9 +57,9 @@ const profileDetails = {
   mobile_number: "09171234567", province: "Metro Manila", city: "Caloocan", barangay: "Barangay 1", postal_code: 1400, street_address: "1 Main St",
 };
 
+// Typing the sixth digit submits by itself, like the Verify button does.
 async function verify() {
   fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
-  fireEvent.press(screen.getByText(/Verify.*(Create Account|Email)/));
 }
 
 beforeEach(() => {
@@ -85,6 +85,15 @@ it("commits signup profile and the explicitly selected revisions together after 
     terms_version: "1.1", privacy_version: "1.1", registration_source: "mobile_registration", expected_auth_id: "auth-1",
   });
   expect(useRegistrationStore.getState().data).toEqual({});
+});
+
+it("submits by itself when the sixth digit is typed, without pressing Verify", async () => {
+  render(<OTPVerification />);
+  // Only the code is typed: the screen's own state is still one digit short when the input
+  // reports it is complete, so the check must use the code the input hands over.
+  fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
+  expect(mockVerifyOtp).toHaveBeenCalledWith(expect.objectContaining({ token: "123456", type: "signup" }));
 });
 
 it("blocks verification and resending if acceptance was lost", async () => {

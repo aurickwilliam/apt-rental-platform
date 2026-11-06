@@ -27,6 +27,7 @@ import {
   toPasswordErrorReason,
 } from "@repo/utils";
 
+import { logAuthLockout } from "@/lib/auth-attempts";
 import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
@@ -120,6 +121,7 @@ export async function verifyPasswordRecoveryCode(
   // accounts, so nothing is revealed.
   const blockedFor = await checkAuthThrottle(throttle, "recovery_otp", normalizedEmail);
   if (blockedFor > 0) {
+    logAuthLockout("recovery_otp");
     return { error: "rate_limited", retryAfterSeconds: blockedFor };
   }
   const cookieStore = await cookies();
@@ -142,7 +144,10 @@ export async function verifyPasswordRecoveryCode(
       if (isInvalidOtpError(error)) {
         // The failure that spends the window reports the lock right away.
         const lockedFor = await recordAuthFailure(throttle, "recovery_otp", normalizedEmail);
-        if (lockedFor > 0) return { error: "rate_limited", retryAfterSeconds: lockedFor };
+        if (lockedFor > 0) {
+          logAuthLockout("recovery_otp");
+          return { error: "rate_limited", retryAfterSeconds: lockedFor };
+        }
       }
       return { error: errorReason(error, "Password recovery verification") };
     }

@@ -139,8 +139,13 @@ export default function OTPVerification() {
 
   // Check the OTP code and create the user account,
   // then insert the user profile to the database
-  const handleVerify = async () => {
-    if (loading || otpLocked || lockout.isLocked || otp.length < 6) return
+  const handleVerify = async (completedCode?: string) => {
+    // The input reports the finished code itself when the sixth digit is typed. The
+    // `otp` state in this closure is still one digit short at that moment, so reading
+    // it would swallow the auto-submit and leave people pressing Verify. The Verify
+    // button calls this with no code and uses the state.
+    const code = typeof completedCode === 'string' ? completedCode : otp
+    if (loading || otpLocked || lockout.isLocked || code.length < 6) return
     if (!isConfirmMode) {
       try {
         requireRegistrationAcceptance(data.acceptance)
@@ -165,7 +170,7 @@ export default function OTPVerification() {
       // and a lock set on web shows here too.
       const { data: verified, error: verifyError } = await verifyCodeViaServer({
         email: emailValue || data.email!,
-        code: otp,
+        code,
         flow: 'signup',
       })
 
@@ -376,7 +381,7 @@ export default function OTPVerification() {
 
         {/* Verify Button */}
         <Button
-          onPress={handleVerify}
+          onPress={() => handleVerify()}
           isDisabled={loading || otpLocked || lockout.isLocked || otp.length < 6 || !!acceptanceError}
         >
           <Button.Label>
