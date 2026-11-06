@@ -164,7 +164,20 @@ export default function TutorialStepLayer({
         aria-labelledby="tutorial-step-title"
         aria-describedby="tutorial-step-description"
         className="fixed flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-lg motion-safe:transition-[top,left] motion-safe:duration-200"
-        style={{ top: placement.top, left: placement.left, width: placement.width }}
+        style={
+          placement.mode === "docked"
+            ? // Anchored by CSS, not a measured height, so a phone-width card can never leave the screen.
+              {
+                ...(placement.anchor === "bottom"
+                  ? { bottom: "max(1rem, env(safe-area-inset-bottom))" }
+                  : { top: "max(1rem, env(safe-area-inset-top))" }),
+                left: placement.left,
+                width: placement.width,
+                maxHeight: "calc(100% - 2rem)",
+                overflowY: "auto",
+              }
+            : { top: placement.top, left: placement.left, width: placement.width }
+        }
       >
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs font-semibold text-muted-foreground" aria-live="polite">
