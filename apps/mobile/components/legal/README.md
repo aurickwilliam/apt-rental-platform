@@ -22,5 +22,9 @@ shared content nor closing that dialog accepts a policy. See
 Keep required markers after the full linked policy names, suppressing the
 introductory Label's automatic marker without removing the checkbox's required
 state. The reader disables `Dialog.Content` swipe-to-dismiss and bounds its
-native ScrollView with explicit flex/min-height styles and Android nested
-scrolling; its title, policy switch and Close stay outside that scrolling body.
+Gesture Handler ScrollView inside a local gesture root with explicit flex/min-height
+styles, Android nested scrolling and interruption disabled. Its title, instruction
+and Close stay outside that scrolling body. Registration alone disables text
+selection to avoid competing with slow swipes; shared content defaults to selectable.
+Reading progress retains offsets across late layout callbacks and checks the end
+marker, not decorative padding, including final drag/momentum samples.

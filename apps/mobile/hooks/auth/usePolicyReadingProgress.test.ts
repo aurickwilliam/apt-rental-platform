@@ -34,6 +34,36 @@ it("recognizes an entirely visible short policy without requiring an impossible 
   expect(onRead).toHaveBeenCalledTimes(1);
 });
 
+it("unlocks on the first bottom arrival even when final content/marker layout arrives after scrolling", () => {
+  const onRead = jest.fn();
+  const { result } = renderHook(() => usePolicyReadingProgress(onRead));
+  act(() => {
+    result.current.onLayout(layout(400));
+    result.current.onContentSizeChange(300, 1200);
+    result.current.onScroll(scroll(800));
+  });
+  expect(onRead).not.toHaveBeenCalled();
+  act(() => {
+    // Final 16px padding is reported after the last scroll sample. The actual
+    // document end is already visible and must not require another gesture.
+    result.current.onContentSizeChange(300, 1216);
+    result.current.onEndLayout(layout(1, 1199));
+  });
+  expect(onRead).toHaveBeenCalledTimes(1);
+});
+
+it.each(["onScrollEndDrag", "onMomentumScrollEnd"] as const)("uses the complete %s sample if throttling missed the final scroll event", (eventName) => {
+  const onRead = jest.fn();
+  const { result } = renderHook(() => usePolicyReadingProgress(onRead));
+  act(() => {
+    result.current.onLayout(layout(400)); result.current.onContentSizeChange(300, 1200); result.current.onEndLayout(layout(1, 1183));
+    result.current.onScroll(scroll(750));
+  });
+  expect(onRead).not.toHaveBeenCalled();
+  act(() => result.current[eventName](scroll(800)));
+  expect(onRead).toHaveBeenCalledTimes(1);
+});
+
 it("uses updated viewport/content geometry after rotation or larger text", () => {
   const onRead = jest.fn();
   const { result } = renderHook(() => usePolicyReadingProgress(onRead));

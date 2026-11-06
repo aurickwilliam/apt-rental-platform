@@ -12,8 +12,10 @@ HeroUI Native controls and opens separate fixed-document instances of
 `RegistrationPoliciesDialog`: Privacy Policy and Terms and Conditions, without
 tabs or an in-dialog switch. Only the requested dialog mounts. Each reuses the
 complete `LegalPolicyContent` also used by Settings. Title, instructions and Close
-stay outside its bounded native ScrollView; swipe dismissal is disabled so it
-cannot compete with scrolling. Reading or closing never accepts a policy or
+stay outside its bounded Gesture Handler ScrollView inside a local gesture root;
+interruption and dialog swipe dismissal are disabled so they cannot compete with
+scrolling. Registration text is not selectable to avoid competing with slow swipes;
+Settings and shared content remain selectable by default. Reading or closing never accepts a policy or
 resets the form. See DESIGN.md §10. No new dependencies or native rebuild are needed.
 
 Each checkbox is disabled until that document reaches its end. The form stores
@@ -33,8 +35,12 @@ checks either box automatically.
 `usePolicyReadingProgress` keeps native viewport/content/offset measurements in
 refs. It waits for a trailing marker after the contact details as well as valid
 content and viewport sizes, preventing a partial first layout from unlocking a
-long document. The final bottom comparison tolerates two logical pixels of
-native rounding. Short documents qualify when fully visible without requiring
+long document. Marker and content-size measurements must agree, including the
+16px decorative bottom padding. Offsets survive late layout callbacks, but cannot
+be combined with a differently sized viewport after rotation. Scroll, drag-end
+and momentum-end events supply coherent position samples. The final comparison
+uses the document end marker rather than blank padding and tolerates two logical
+pixels of native rounding. Short documents qualify when fully visible without requiring
 an impossible scroll; updated layout and scroll events account for rotation and
 larger text. React state changes only for readiness/completion, not every scroll
 frame. Unmounting retires queued native events before another document can open.

@@ -1,9 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { ScrollView, View, useWindowDimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
+import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
 import { Button, Dialog } from "heroui-native";
 import { TERMS_POLICY } from "@/constants/legal/terms";
 import { PRIVACY_POLICY } from "@/constants/legal/privacy";
 import { usePolicyReadingProgress } from "@/hooks/auth/usePolicyReadingProgress";
+import { POLICY_SCROLL_BOTTOM_PADDING } from "@/utils/policyReadingProgress";
 import LegalPolicyContent from "./LegalPolicyContent";
 import RegistrationPolicyContentBoundary from "./RegistrationPolicyContentBoundary";
 
@@ -42,23 +44,30 @@ export default function RegistrationPoliciesDialog({ policy, reviewed, onRead, o
         <Dialog.Overlay isCloseOnPress={!closeLocked} />
         <Dialog.Content isSwipeable={false} style={{ height: height * 0.85 }} className="gap-3 p-5" accessibilityViewIsModal>
           <Dialog.Title className="shrink-0">{content.title}</Dialog.Title>
-          <RegistrationPolicyContentBoundary onError={onError}>
-            <ScrollView
-              style={{ flex: 1, minHeight: 0 }}
-              accessibilityLabel={`${content.title} document`}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingBottom: 16 }}
-              onLayout={progress.onLayout}
-              onContentSizeChange={progress.onContentSizeChange}
-              onScroll={progress.onScroll}
-              scrollEventThrottle={32}
-            >
-              <LegalPolicyContent policy={content} />
-              <View testID="registration-policy-end" collapsable={false} onLayout={progress.onEndLayout} style={{ height: 1 }} accessible={false} />
-            </ScrollView>
-          </RegistrationPolicyContentBoundary>
+          <GestureHandlerRootView style={{ flex: 1, minHeight: 0 }}>
+            <RegistrationPolicyContentBoundary onError={onError}>
+              <ScrollView
+                style={{ flex: 1, minHeight: 0 }}
+                accessibilityLabel={`${content.title} document`}
+                nestedScrollEnabled
+                disallowInterruption
+                shouldActivateOnStart
+                removeClippedSubviews={false}
+                showsVerticalScrollIndicator
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ paddingBottom: POLICY_SCROLL_BOTTOM_PADDING }}
+                onLayout={progress.onLayout}
+                onContentSizeChange={progress.onContentSizeChange}
+                onScroll={progress.onScroll}
+                onScrollEndDrag={progress.onScrollEndDrag}
+                onMomentumScrollEnd={progress.onMomentumScrollEnd}
+                scrollEventThrottle={16}
+              >
+                <LegalPolicyContent policy={content} selectable={false} />
+                <View testID="registration-policy-end" collapsable={false} onLayout={progress.onEndLayout} style={{ height: 1 }} accessible={false} />
+              </ScrollView>
+            </RegistrationPolicyContentBoundary>
+          </GestureHandlerRootView>
           <Dialog.Description accessibilityLiveRegion="polite" className="shrink-0 text-xs text-muted leading-5">
             {reviewed ? "You reached the end. You can now select this policy’s checkbox on the form."
               : closeLocked ? "Scroll to the end to enable Close and this policy’s checkbox. Reading does not accept it."

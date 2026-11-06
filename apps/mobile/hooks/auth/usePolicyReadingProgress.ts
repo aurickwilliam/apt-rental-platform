@@ -1,11 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { hasReachedPolicyEnd, isPolicyLayoutReady, type PolicyReadingMeasurements } from "@/utils/policyReadingProgress";
+import { hasReachedPolicyEnd, isPolicyLayoutReady, POLICY_SCROLL_TOLERANCE, type PolicyReadingMeasurements } from "@/utils/policyReadingProgress";
 
 /** One mounted document/opening. Native events update refs, not React on every frame. */
 export function usePolicyReadingProgress(onRead: () => void, enabled = true) {
   const measurements = useRef<PolicyReadingMeasurements>({ viewportHeight: 0, contentHeight: 0, endY: 0, offsetY: 0 });
-  const lifetime = useRef({ retired: false, ready: false, completed: false });
+  const lifetime = useRef({ retired: false, ready: false, completed: false, offsetViewportHeight: 0 });
   const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
@@ -21,6 +21,11 @@ export function usePolicyReadingProgress(onRead: () => void, enabled = true) {
       lifetime.current.ready = true;
       setReady(true);
     }
+    // Preserve the real offset across late size/marker callbacks, but never
+    // combine it with a differently sized viewport after rotation. A fresh
+    // scroll/drag-end/momentum-end sample supplies a coherent new position.
+    if (lifetime.current.offsetViewportHeight > 0
+      && Math.abs(lifetime.current.offsetViewportHeight - measurements.current.viewportHeight) > POLICY_SCROLL_TOLERANCE) return;
     if (hasReachedPolicyEnd(measurements.current)) {
       lifetime.current.completed = true;
       onRead();
@@ -28,15 +33,10 @@ export function usePolicyReadingProgress(onRead: () => void, enabled = true) {
   }, [enabled, onRead]);
 
   const onLayout = useCallback((event: LayoutChangeEvent) => {
-    const height = event.nativeEvent.layout.height;
-    // Rotation/keyboard/text reflow may report size before the native offset.
-    // Do not combine the new size with an offset from the previous geometry.
-    if (measurements.current.viewportHeight !== height) measurements.current.offsetY = 0;
-    measurements.current.viewportHeight = height;
+    measurements.current.viewportHeight = event.nativeEvent.layout.height;
     evaluate();
   }, [evaluate]);
   const onContentSizeChange = useCallback((_width: number, height: number) => {
-    if (measurements.current.contentHeight !== height) measurements.current.offsetY = 0;
     measurements.current.contentHeight = height;
     evaluate();
   }, [evaluate]);
@@ -51,8 +51,9 @@ export function usePolicyReadingProgress(onRead: () => void, enabled = true) {
     measurements.current.offsetY = contentOffset.y;
     measurements.current.contentHeight = contentSize.height;
     measurements.current.viewportHeight = layoutMeasurement.height;
+    lifetime.current.offsetViewportHeight = layoutMeasurement.height;
     evaluate();
   }, [evaluate]);
 
-  return { ready, onLayout, onContentSizeChange, onEndLayout, onScroll };
+  return { ready, onLayout, onContentSizeChange, onEndLayout, onScroll, onScrollEndDrag: onScroll, onMomentumScrollEnd: onScroll };
 }
