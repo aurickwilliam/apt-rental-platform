@@ -117,6 +117,31 @@ it("shows server-provided proposal charges, the active stage, and the existing a
   expect(mockAct).toHaveBeenCalledWith("accept", { proposalId: proposal.id });
 });
 
+it.each(["tenant", "landlord"] as const)("shows Proposal 1 in the %s portal for the first proposal with internal version 3", (portal) => {
+  const data = renewalContext("awaiting_tenant_confirmation");
+  data.proposals = [{ ...proposal, version: 3 }];
+  loaded(data);
+  render(<LeaseRenewalScreen tenancyId="tenancy" portal={portal} />);
+  expect(screen.getByText("Proposal 1 · 12 months")).toBeTruthy();
+  expect(screen.getByText("Proposal 1")).toBeTruthy();
+  expect(screen.getByLabelText("View saved proposal 1")).toBeTruthy();
+  expect(screen.queryByText(/Proposal 3/)).toBeNull();
+  expect(data.proposals[0].version).toBe(3);
+});
+
+it("keeps current and saved proposal labels consecutive after a revised proposal arrives", () => {
+  const data = renewalContext("awaiting_tenant_confirmation");
+  data.proposals = [{ ...proposal, id: "revision", version: 8 }, { ...proposal, version: 3 }];
+  data.renewal = { ...data.renewal!, current_proposal_id: "revision" };
+  loaded(data);
+  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  expect(screen.getByText("Proposal 2 · 12 months")).toBeTruthy();
+  expect(screen.getByLabelText("View saved proposal 1")).toBeTruthy();
+  expect(screen.getByLabelText("View saved proposal 2")).toBeTruthy();
+  fireEvent.press(screen.getByText("Accept Renewal Terms"));
+  expect(mockAct).toHaveBeenCalledWith("accept", { proposalId: "revision" });
+});
+
 it.each(["declined", "not_renewing", "requires_review"] as const)("does not show successful completed stages for %s", (status) => {
   loaded(renewalContext(status));
   render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);

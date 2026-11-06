@@ -12,7 +12,7 @@ import EmptyState from "@/components/display/EmptyState";
 import { useLeaseRenewal } from "@/hooks/tenancy/useLeaseRenewal";
 import { useColors } from "@/hooks/useTheme";
 import { buildConversationKey } from "@/service/chat/chatService";
-import { renewalDate, renewalEventLabel } from "@/utils/renewalPresentation";
+import { renewalDate, renewalEventLabel, renewalProposalNumber } from "@/utils/renewalPresentation";
 import RenewalSection from "./RenewalSection";
 import RenewalNotice from "./RenewalNotice";
 import RenewalProgress from "./RenewalProgress";
@@ -87,7 +87,7 @@ export default function LeaseRenewalScreen({ tenancyId, portal }: LeaseRenewalSc
             {allowed("decline") && <Button variant="outline" isDisabled={renewal.busy} onPress={() => setConfirm("decline")}><Button.Label>Decline Renewal</Button.Label></Button>}
           </RenewalSection>}
           {r && allowed("propose") && <RenewalProposalForm key={r.version} context={c} busy={renewal.busy} onSubmit={(draft, asset) => { Keyboard.dismiss(); renewal.propose(draft, asset); }} />}
-          {p && <RenewalProposalCard proposal={p} busy={renewal.busy} onViewEvidence={() => { if (p.evidence_path) renewal.view(p.evidence_path); }}>
+          {p && <RenewalProposalCard proposal={p} proposalNumber={renewalProposalNumber(c.proposals, p)} busy={renewal.busy} onViewEvidence={() => { if (p.evidence_path) renewal.view(p.evidence_path); }}>
             {allowed("accept") && <Button isDisabled={renewal.busy} onPress={() => void renewal.act("accept", { proposalId: p.id })}><Button.Label>Accept Renewal Terms</Button.Label></Button>}
             {allowed("discuss") && <Button variant="secondary" onPress={() => router.push({ pathname: "/chat/[conversationId]", params: {
               conversationId: buildConversationKey(c.tenantId, c.landlordId, c.apartmentId), otherUserId: portal === "tenant" ? c.landlordId : c.tenantId, apartmentId: c.apartmentId, apartmentTitle: c.apartmentName,
@@ -109,7 +109,7 @@ export default function LeaseRenewalScreen({ tenancyId, portal }: LeaseRenewalSc
           </RenewalSection>}
 
           {c.proposals.length > 0 && <RenewalSection title="Saved proposals" description="Review the recorded terms and preserved agreements." icon={IconFileText}>
-            {c.proposals.map((history) => <RenewalSavedProposal key={history.id} proposal={history} busy={renewal.busy} onView={() => { if (history.agreement_path) renewal.view(history.agreement_path); }} />)}
+            {c.proposals.map((history) => <RenewalSavedProposal key={history.id} proposal={history} proposalNumber={renewalProposalNumber(c.proposals, history)} busy={renewal.busy} onView={() => { if (history.agreement_path) renewal.view(history.agreement_path); }} />)}
           </RenewalSection>}
           <RenewalSection title="Renewal history" description="A record of requests, proposals and decisions." icon={IconHistory}>
             {c.events.length === 0 ? <EmptyState className="py-4" icon={IconHistory} title="No renewal actions yet" description="Your renewal activity will appear here." /> : c.events.map((event) => (

@@ -8,19 +8,19 @@ import { renewalDate } from "@/utils/renewalPresentation";
 import MoneyRow from "@/components/finance/MoneyRow";
 import RenewalFileButton from "./RenewalFileButton";
 
-interface RenewalSavedProposalProps { proposal: LeaseRenewalProposal; busy: boolean; onView: () => void }
+interface RenewalSavedProposalProps { proposal: LeaseRenewalProposal; proposalNumber: number; busy: boolean; onView: () => void }
 
-export default function RenewalSavedProposal({ proposal: p, busy, onView }: RenewalSavedProposalProps) {
+export default function RenewalSavedProposal({ proposal: p, proposalNumber, busy, onView }: RenewalSavedProposalProps) {
   const [expanded, setExpanded] = useState(false);
   const { colors } = useColors();
   const Chevron = expanded ? IconChevronUp : IconChevronDown;
   return (
     <View className="gap-3 rounded-2xl border border-border bg-overlay p-3">
       <View className="gap-1">
-        <Text className="font-nunitoSemiBold text-base text-foreground">Proposal {p.version}</Text>
+        <Text className="font-nunitoSemiBold text-base text-foreground">Proposal {proposalNumber}</Text>
         <Text className="font-inter text-sm text-muted">{renewalDate(p.lease_start)} – {renewalDate(p.lease_end)}</Text>
       </View>
-      <Button variant="ghost" size="sm" accessibilityLabel={`${expanded ? "Hide" : "View"} saved proposal ${p.version}`} accessibilityState={{ expanded }} onPress={() => setExpanded(!expanded)}>
+      <Button variant="ghost" size="sm" accessibilityLabel={`${expanded ? "Hide" : "View"} saved proposal ${proposalNumber}`} accessibilityState={{ expanded }} onPress={() => setExpanded(!expanded)}>
         <Button.Label>{expanded ? "Hide details" : "View details"}</Button.Label><Chevron size={18} color={colors.primaryLightForeground} />
       </Button>
       {expanded && <View className="gap-3">

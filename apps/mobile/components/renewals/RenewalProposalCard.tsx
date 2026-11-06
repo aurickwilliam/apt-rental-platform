@@ -11,14 +11,15 @@ import RenewalFileButton from "./RenewalFileButton";
 
 interface RenewalProposalCardProps {
   proposal: LeaseRenewalProposal;
+  proposalNumber: number;
   busy: boolean;
   onViewEvidence: () => void;
   children?: ReactNode;
 }
 
-export default function RenewalProposalCard({ proposal: p, busy, onViewEvidence, children }: RenewalProposalCardProps) {
+export default function RenewalProposalCard({ proposal: p, proposalNumber, busy, onViewEvidence, children }: RenewalProposalCardProps) {
   return (
-    <RenewalSection title="Proposed renewal terms" description={`Proposal ${p.version} · ${p.duration_months} months`} icon={IconCoins}>
+    <RenewalSection title="Proposed renewal terms" description={`Proposal ${proposalNumber} · ${p.duration_months} months`} icon={IconCoins}>
       <View className="gap-3 rounded-2xl bg-overlay p-3">
         <View className="flex-row"><DetailField label="Renewal period" value={`${renewalDate(p.lease_start)} – ${renewalDate(p.lease_end)}`} /></View>
         <MoneyRow label="Monthly rent" amount={p.monthly_rent} />

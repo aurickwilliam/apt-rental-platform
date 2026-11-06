@@ -1,5 +1,31 @@
 import type { RenewalStatus } from "@repo/utils";
-import { RENEWAL_STEPS, renewalDate, renewalEventLabel, renewalNextStep, renewalStage, renewalTone } from "@/utils/renewalPresentation";
+import { RENEWAL_STEPS, renewalDate, renewalEventLabel, renewalNextStep, renewalProposalNumber, renewalStage, renewalTone } from "@/utils/renewalPresentation";
+import { proposal } from "./fixtures";
+
+it("numbers the first actual proposal as 1 even when its internal version is 3", () => {
+  const first = { ...proposal, version: 3 };
+  expect(renewalProposalNumber([first], first)).toBe(1);
+  expect(first.version).toBe(3);
+});
+
+it("numbers actual revisions consecutively despite version gaps or list order", () => {
+  const first = { ...proposal, id: "first", version: 3 };
+  const second = { ...proposal, id: "second", version: 8 };
+  const third = { ...proposal, id: "third", version: 11 };
+  const proposals = [third, first, second];
+  expect([first, second, third].map((p) => renewalProposalNumber(proposals, p))).toEqual([1, 2, 3]);
+  expect(proposals.map((p) => p.id)).toEqual(["third", "first", "second"]);
+});
+
+it("restarts proposal numbering for a later renewal without counting past renewals", () => {
+  const past = { ...proposal, id: "past", version: 3, lease_start: "2025-12-01" };
+  const first = { ...proposal, id: "first", version: 3 };
+  const second = { ...proposal, id: "second", version: 4 };
+  const proposals = [second, first, past];
+  expect(renewalProposalNumber(proposals, past)).toBe(1);
+  expect(renewalProposalNumber(proposals, first)).toBe(1);
+  expect(renewalProposalNumber(proposals, second)).toBe(2);
+});
 
 it.each<[RenewalStatus, number]>([
   ["pending_landlord_review", 0], ["awaiting_payment_configuration", 1], ["awaiting_tenant_confirmation", 1],

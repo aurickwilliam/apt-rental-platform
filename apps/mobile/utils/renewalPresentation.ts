@@ -1,6 +1,12 @@
-import { formatDate, type RenewalPortal, type RenewalStatus } from "@repo/utils";
+import { formatDate, type LeaseRenewalProposal, type RenewalPortal, type RenewalStatus } from "@repo/utils";
 
 export const RENEWAL_STEPS = ["Request", "Terms", "Agreement", "Payment"] as const;
+
+export function renewalProposalNumber(proposals: readonly LeaseRenewalProposal[], proposal: LeaseRenewalProposal): number {
+  // The server fixes one start date per renewal. The context also includes past
+  // renewals, whose internal version counters restart independently.
+  return 1 + proposals.filter((previous) => previous.lease_start === proposal.lease_start && previous.version < proposal.version).length;
+}
 
 // Presentation only; eligibility and actions remain in @repo/utils and the database.
 export function renewalStage(status: RenewalStatus | null): number | null {
