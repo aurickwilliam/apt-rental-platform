@@ -25,8 +25,8 @@ import { useLeaseRenewal } from '@/hooks/use-lease-renewal';
 import { getContactConversationKey } from '@/lib/conversation-contacts';
 import StatusChip from '@/app/components/display/StatusChip';
 import RenewalProposalForm from './RenewalProposalForm';
+import RenewalFileDropbox from './RenewalFileDropbox';
 import RenewalPayment from './RenewalPayment';
-import { SIGNED_LEASE_ACCEPT } from '@/lib/signed-lease';
 
 interface LeaseRenewalClientProps { tenancyId:string;portal:RenewalPortal;authUserId:string }
 
@@ -174,7 +174,7 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
         {r?.status==='awaiting_agreement_confirmation'&&p&&<section className="grid gap-3 rounded-2xl border border-border bg-card p-5 md:p-6">
           <h2 className="font-nunito text-xl font-bold">Renewal agreement</h2>
           <p className="text-sm text-muted-foreground">Both parties must confirm the executed agreement matches the proposal above, including deposit treatment and payment conditions.</p>
-          {!c.agreement&&<><Label>Executed renewal agreement<input aria-label="Executed renewal agreement" type="file" accept={SIGNED_LEASE_ACCEPT} disabled={renewal.busy} onChange={(e)=>setFile(e.target.files?.[0]??null)}/></Label><Button isDisabled={!file||renewal.busy} onPress={()=>file&&void renewal.uploadAgreement(file)}>Upload agreement</Button></>}
+          {!c.agreement&&<><RenewalFileDropbox id="renewal-agreement-document" label="Executed renewal agreement (up to 10 MB)" file={file} busy={renewal.busy} onFileChange={setFile} /><Button isDisabled={!file||renewal.busy} onPress={()=>file&&void renewal.uploadAgreement(file)}>Upload agreement</Button></>}
           {c.agreement&&<><Button variant="outline" isDisabled={renewal.busy} onPress={()=>void renewal.view(c.agreement!.path)}>View renewal agreement</Button><Button isDisabled={!!confirmation||renewal.busy} onPress={()=>void renewal.act('confirm_agreement',{proposalId:p.id,path:c.agreement!.path})}>{confirmation?'Your agreement confirmation is saved':'I confirm this agreement matches the proposal'}</Button></>}
         </section>}
         {c.payment&&<Link className="text-sm text-primary" href="/landlord/payments">View payment: {c.payment.status}</Link>}
