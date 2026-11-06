@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useImperativeHandle, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 
 // Cloudflare Turnstile for Supabase Auth's CAPTCHA protection. Renders nothing
 // (and `TURNSTILE_ENABLED` is false) until NEXT_PUBLIC_TURNSTILE_SITE_KEY is
@@ -23,6 +23,8 @@ interface TurnstileApi {
       callback: (token: string) => void;
       "expired-callback": () => void;
       "error-callback": () => void;
+      "before-interactive-callback"?: () => void;
+      "after-interactive-callback"?: () => void;
     },
   ): string;
   reset(widgetId: string): void;
@@ -65,6 +67,9 @@ export default function TurnstileWidget({ ref }: { ref?: React.Ref<TurnstileHand
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const tokenRef = useRef<string | undefined>(undefined);
+  // The widget takes no layout space while it runs invisibly. It expands only when
+  // Cloudflare needs a tap or has an error to show, so the form has no blank gap.
+  const [visible, setVisible] = useState(false);
 
   useImperativeHandle(
     ref,
@@ -92,13 +97,18 @@ export default function TurnstileWidget({ ref }: { ref?: React.Ref<TurnstileHand
           theme: "auto",
           callback: (token) => {
             tokenRef.current = token;
+            setVisible(false);
           },
           "expired-callback": () => {
             tokenRef.current = undefined;
           },
           "error-callback": () => {
             tokenRef.current = undefined;
+            // Show Cloudflare's own failure message and retry link.
+            setVisible(true);
           },
+          "before-interactive-callback": () => setVisible(true),
+          "after-interactive-callback": () => setVisible(false),
         });
       })
       .catch(() => {
@@ -114,5 +124,12 @@ export default function TurnstileWidget({ ref }: { ref?: React.Ref<TurnstileHand
   }, []);
 
   if (!TURNSTILE_ENABLED) return null;
-  return <div ref={containerRef} className="mt-3 flex justify-center" />;
+  // Collapsed: out of the layout flow (so a flex gap adds no space) but still
+  // rendered, because Turnstile needs a live container to run its check.
+  return (
+    <div
+      ref={containerRef}
+      className={visible ? "mt-3 flex justify-center" : "absolute size-0 overflow-hidden"}
+    />
+  );
 }
