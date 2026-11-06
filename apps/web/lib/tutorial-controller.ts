@@ -27,3 +27,42 @@ function subscribe(listener: () => void) {
 export function useTutorialReplayRequest(): TutorialReplayRequest | null {
   return useSyncExternalStore(subscribe, () => request, () => null);
 }
+
+// On phone widths the nav links live in a drawer. While the tour runs, it asks
+// the portal's top bar to keep that drawer open, and draws its layer inside the
+// drawer's own overlay (a node outside a modal overlay is made inert).
+let navMenuOpen = false;
+let layerHost: HTMLElement | null = null;
+const navListeners = new Set<() => void>();
+
+function emitNav() {
+  for (const listener of navListeners) listener();
+}
+
+function subscribeNav(listener: () => void) {
+  navListeners.add(listener);
+  return () => {
+    navListeners.delete(listener);
+  };
+}
+
+export function setTutorialNavMenuOpen(open: boolean): void {
+  if (navMenuOpen === open) return;
+  navMenuOpen = open;
+  emitNav();
+}
+
+export function useTutorialNavMenuOpen(): boolean {
+  return useSyncExternalStore(subscribeNav, () => navMenuOpen, () => false);
+}
+
+/** Ref callback for the node inside the drawer overlay that hosts the tour layer. */
+export function setTutorialLayerHost(element: HTMLElement | null): void {
+  if (layerHost === element) return;
+  layerHost = element;
+  emitNav();
+}
+
+export function useTutorialLayerHost(): HTMLElement | null {
+  return useSyncExternalStore(subscribeNav, () => layerHost, () => null);
+}

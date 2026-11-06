@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@heroui/react";
 
 import type { TutorialStep } from "@repo/utils";
+import { useTutorialLayerHost } from "@/lib/tutorial-controller";
 import {
   computeTutorialPlacement,
   type TutorialBox,
@@ -12,6 +13,8 @@ import {
 
 interface TutorialStepLayerProps {
   step: TutorialStep;
+  /** Phone widths draw inside the nav drawer's overlay so the layer is not inert. */
+  useDrawerHost?: boolean;
   stepIndex: number;
   stepCount: number;
   onNext: () => void;
@@ -46,6 +49,7 @@ function readBox(element: HTMLElement): TutorialBox {
  */
 export default function TutorialStepLayer({
   step,
+  useDrawerHost = false,
   stepIndex,
   stepCount,
   onNext,
@@ -62,6 +66,9 @@ export default function TutorialStepLayer({
   const nextRef = useRef<HTMLButtonElement>(null);
   const frame = useRef(0);
   const isLast = stepIndex === stepCount - 1;
+  const drawerHost = useTutorialLayerHost();
+  // Wait for the drawer's overlay before drawing, so the layer never mounts outside it.
+  const waitingForHost = useDrawerHost && !drawerHost;
 
   const measure = useCallback(() => {
     cancelAnimationFrame(frame.current);
@@ -75,10 +82,13 @@ export default function TutorialStepLayer({
   useEffect(() => {
     if (step.targetKey) findVisibleTarget(step.targetKey)?.scrollIntoView({ block: "nearest" });
     measure();
+    // The drawer slides in, which no resize or scroll event reports.
+    const settle = [120, 300, 600].map((delay) => window.setTimeout(measure, delay));
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
       cancelAnimationFrame(frame.current);
+      settle.forEach(window.clearTimeout);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };
@@ -96,6 +106,8 @@ export default function TutorialStepLayer({
   useEffect(() => {
     nextRef.current?.focus();
   }, [step.id]);
+
+  if (waitingForHost) return null;
 
   const placement = computeTutorialPlacement({
     target,
@@ -184,7 +196,7 @@ export default function TutorialStepLayer({
 
         <div className="flex gap-2 pt-1">
           {stepIndex > 0 ? (
-            <Button variant="outline" onPress={onBack} className="min-h-10 flex-1 cursor-pointer">
+            <Button variant="outline" onPress={onBack} className="min-h-11 flex-1 cursor-pointer rounded-full">
               Back
             </Button>
           ) : null}
@@ -192,13 +204,13 @@ export default function TutorialStepLayer({
             ref={nextRef}
             variant="primary"
             onPress={onNext}
-            className="min-h-10 flex-1 cursor-pointer"
+            className="min-h-11 flex-1 cursor-pointer rounded-full"
           >
             {isLast ? "Finish" : "Next"}
           </Button>
         </div>
       </div>
     </div>,
-    document.body,
+    useDrawerHost && drawerHost ? drawerHost : document.body,
   );
 }

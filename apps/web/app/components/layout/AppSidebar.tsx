@@ -51,6 +51,7 @@ import SidebarNotificationsItem from "./SidebarNotificationsItem";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
+import { setTutorialLayerHost, useTutorialNavMenuOpen } from "@/lib/tutorial-controller";
 import { getUnreadSidebarActivity, type SidebarActivityKey } from "@/lib/sidebar-notification-activity";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
@@ -841,6 +842,8 @@ function MobileSidebarMenu({
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+  // The first-time tour keeps the drawer open so it can point at a real link.
+  const tourHoldsMenu = useTutorialNavMenuOpen();
 
   // Rows are buttons, not Links, so routes are warmed explicitly when the
   // drawer opens: the account pages and only the items that opted in.
@@ -858,8 +861,11 @@ function MobileSidebarMenu({
     [router, profileHref, favoritesHref, navItems],
   );
   const drawerState = useOverlayState({
-    isOpen: isMobileMenuOpen,
-    onOpenChange: handleMobileMenuOpenChange,
+    isOpen: isMobileMenuOpen || tourHoldsMenu,
+    onOpenChange: (value) => {
+      if (!value && tourHoldsMenu) return;
+      handleMobileMenuOpenChange(value);
+    },
   });
 
   // Settings and notifications open through shared query params (the overlays
@@ -1100,6 +1106,7 @@ function MobileSidebarMenu({
               </div>
             </Drawer.Dialog>
           </Drawer.Content>
+          <div ref={setTutorialLayerHost} data-tutorial-host />
         </Drawer.Backdrop>
       </Drawer.Root>
     </>

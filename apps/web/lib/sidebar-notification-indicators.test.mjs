@@ -66,6 +66,7 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
     }) },
     "@/components/ui/tooltip": { Tooltip: "Tooltip", TooltipContent: "TooltipContent", TooltipProvider: "TooltipProvider", TooltipTrigger: "TooltipTrigger" },
     "@/lib/sidebar-notification-activity": mapping,
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => navigation.push(href) }) },
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");

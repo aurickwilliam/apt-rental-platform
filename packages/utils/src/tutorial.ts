@@ -110,8 +110,11 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     title: "Apply or visit",
     description:
       "On a listing, apply to rent or request a visit. Track your applications and visit requests from your rental screen.",
-    requires: "verified",
-    targets: { mobile: TUTORIAL_TARGETS.mobileQuickApplications },
+    requires: "always",
+    targets: {
+      mobile: TUTORIAL_TARGETS.mobileQuickApplications,
+      web: TUTORIAL_TARGETS.webNavMyRental,
+    },
     mobileTab: "rentals",
   },
   {
@@ -119,7 +122,7 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     portal: "tenant",
     title: "Message landlords",
     description: "Ask a landlord a question about a listing or chat with your current landlord.",
-    requires: "verified",
+    requires: "always",
     targets: {
       mobile: TUTORIAL_TARGETS.mobileTabChat,
       web: TUTORIAL_TARGETS.webNavMessages,
@@ -131,7 +134,7 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     portal: "tenant",
     title: "Report a problem",
     description: "Send a maintenance request for your home and follow its progress here.",
-    requires: "active-tenancy",
+    requires: "always",
     targets: {
       mobile: TUTORIAL_TARGETS.mobileQuickRepairs,
       web: TUTORIAL_TARGETS.webNavMaintenance,
