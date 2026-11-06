@@ -205,6 +205,7 @@ export default function Index() {
               monthly_rent={apartment.monthly_rent}
               type={apartment.type}
               lease_duration={apartment.lease_duration!}
+              has_own_electricity_meter={apartment.has_own_electricity_meter}
               no_bedrooms={apartment.no_bedrooms}
               no_bathrooms={apartment.no_bathrooms}
               furnished_type={apartment.furnished_type!}

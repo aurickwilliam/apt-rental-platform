@@ -7,7 +7,7 @@ import { Button, Chip } from "@heroui/react";
 import {
   IconArrowLeft as ArrowLeft, IconFileText as FileText, IconPencil as Pencil,
   IconUpload as Upload, IconHome, IconBed, IconSparkles, IconMapPin,
-  IconCalendar, IconCurrencyPeso, IconShieldCheck, IconCreditCard,
+  IconCalendar, IconCurrencyPeso, IconShieldCheck, IconCreditCard, IconBolt,
   IconBuilding, IconArmchair, IconStairs, IconUsers, IconDimensions, IconBath,
   type Icon,
 } from "@tabler/icons-react";
@@ -140,6 +140,7 @@ export default function DescriptionClient({ detail }: { detail: LandlordUnitDesc
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
           <ReadOnlyField icon={IconBuilding} label="Type" value={apartment.type} />
           <ReadOnlyField icon={IconCalendar} label="Lease Duration" value={apartment.lease_duration} />
+          {apartment.has_own_electricity_meter === true && <ReadOnlyField icon={IconBolt} label="Electricity" value="Own meter" />}
           <ReadOnlyField icon={IconBed} label="Bedrooms" value={apartment.no_bedrooms} />
           <ReadOnlyField icon={IconBath} label="Bathrooms" value={apartment.no_bathrooms} />
           <ReadOnlyField icon={IconArmchair} label="Furnishing" value={apartment.furnished_type} />

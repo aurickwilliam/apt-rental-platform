@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "db:listing-meter:test": "node --experimental-strip-types --test scripts/listing-meter/*.test.mjs",
     "db:renewal:test": "node --experimental-strip-types --test scripts/lease-renewal/*.test.mjs",
     "db:mobile-registration:test": "node --experimental-strip-types --test scripts/mobile-registration/*.test.mjs",
     "db:web-registration:test": "node --experimental-strip-types --test scripts/web-registration/*.test.mjs",

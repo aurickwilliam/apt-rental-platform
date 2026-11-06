@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import DropdownField from "components/inputs/DropdownField";
+import ElectricityMeterConfirmation from "components/inputs/ElectricityMeterConfirmation";
 
 import { Input, Label, TextField, FieldError, Button, Separator } from "heroui-native";
 
@@ -17,6 +18,7 @@ import {
   FLOOR_LEVELS,
   FURNISHED_TYPES,
   LEASE_DURATIONS,
+  getOwnElectricityMeterError,
 } from "@repo/constants";
 
 import { supabase } from "@repo/supabase";
@@ -33,6 +35,7 @@ export default function EditSpecs() {
   const [furnishedType, setFurnishedType] = useState<string>("");
   const [floorLevel, setFloorLevel] = useState<string>("");
   const [leaseDuration, setLeaseDuration] = useState<string>("");
+  const [hasOwnElectricityMeter, setHasOwnElectricityMeter] = useState(false);
   const [bathrooms, setBathrooms] = useState<number>(1);
   const [bedrooms, setBedrooms] = useState<number>(1);
   const [maxOccupants, setMaxOccupants] = useState<number>(1);
@@ -51,7 +54,7 @@ export default function EditSpecs() {
       const { data, error } = await supabase
         .from("apartments")
         .select(
-          "type, area_sqm, furnished_type, floor_level, lease_duration, no_bathrooms, no_bedrooms, max_occupants",
+          "type, area_sqm, furnished_type, floor_level, lease_duration, has_own_electricity_meter, no_bathrooms, no_bedrooms, max_occupants",
         )
         .eq("id", id)
         .single();
@@ -65,6 +68,7 @@ export default function EditSpecs() {
         setFurnishedType(data.furnished_type ?? "");
         setFloorLevel(data.floor_level ?? "");
         setLeaseDuration(data.lease_duration ?? "");
+        setHasOwnElectricityMeter(data.has_own_electricity_meter === true);
         setBathrooms(data.no_bathrooms ?? 1);
         setBedrooms(data.no_bedrooms ?? 1);
         setMaxOccupants(data.max_occupants ?? 1);
@@ -102,6 +106,8 @@ export default function EditSpecs() {
     if (!furnishedType) newErrors.furnishedType = "Furnished type is required.";
     if (!floorLevel) newErrors.floorLevel = "Floor level is required.";
     if (!leaseDuration) newErrors.leaseDuration = "Lease duration is required.";
+    const meterError = getOwnElectricityMeterError(hasOwnElectricityMeter);
+    if (meterError) newErrors.hasOwnElectricityMeter = meterError;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -119,6 +125,7 @@ export default function EditSpecs() {
         furnished_type: furnishedType,
         floor_level: floorLevel,
         lease_duration: leaseDuration,
+        has_own_electricity_meter: hasOwnElectricityMeter,
         no_bathrooms: bathrooms,
         no_bedrooms: bedrooms,
         max_occupants: maxOccupants,
@@ -128,7 +135,7 @@ export default function EditSpecs() {
     setLoading(false);
 
     if (error) {
-      Alert.alert("Error", "Failed to save changes. Please try again.");
+      Alert.alert("Error", error.message);
       console.error(error);
       return;
     }
@@ -198,6 +205,19 @@ export default function EditSpecs() {
           value={leaseDuration}
           error={errors.leaseDuration ?? ""}
           onSelect={(val) => setLeaseDuration(val ? val : "")}
+        />
+        <ElectricityMeterConfirmation
+          isSelected={hasOwnElectricityMeter}
+          onSelectedChange={(selected) => {
+            setHasOwnElectricityMeter(selected);
+            setErrors((previous) => {
+              const next = { ...previous };
+              delete next.hasOwnElectricityMeter;
+              return next;
+            });
+          }}
+          error={errors.hasOwnElectricityMeter}
+          isDisabled={loading}
         />
       </View>
 

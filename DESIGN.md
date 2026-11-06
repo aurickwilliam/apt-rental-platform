@@ -8,6 +8,19 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 ## 1. Design Philosophy
 
+Apartment creation and editing keep the own-electricity-meter confirmation inside
+the existing property details, after Floor Level / Lease Duration (no new section
+or step). Reuse each platform's shared `ElectricityMeterConfirmation` with its
+HeroUI checkbox, required label, supporting text and inline error. New drafts start
+unchecked. Details/previews show “Electricity: Own meter” only for a confirmed
+listing. On web, the confirmation uses foreground label text, muted-foreground
+helper text and a muted-foreground checkbox border on the card surface, with a
+primary selected state and focus outline, in both themes. Scoped CSS overrides
+HeroUI defaults so the helper and unchecked control remain readable. The label is
+ordinary property information rather than an amenity or verification
+badge. Existing listings are classified confirmed by rollout policy; see
+`docs/listing-electricity-meter.md`.
+
 **Product personality:** Friendly, trustworthy, professional. APT connects tenants and landlords in Metro Manila — approachable and dependable, like a well-run local brokerage.
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).
@@ -28,9 +41,13 @@ Mobile personalization completion navigates to Rentals after preferences save su
 
 **Accessibility:** status colors never used alone (paired with text/icons); visible focus rings (`#376BF5`/15% web, `border-focus` mobile); `FieldError` + `isInvalid` on inputs; required `*` markers; muted text no lighter than `#6C757D`/`gray-500` at scale. No `prefers-reduced-motion` handling exists — keep motion minimal (§17).
 
+Web rental-budget preferences keep the four preset options. Choosing Custom range reveals a HeroUI dual-handle slider with a visible peso range, labeled minimum/maximum handles, and keyboard controls (₱5,000–₱100,000 in ₱1,000 steps). Personalization Step 2 uses the slider instead of typing boxes; Settings → Rental Preferences keeps synchronized minimum/maximum typing boxes below the same slider. Use the existing primary and surface tokens; mobile is unchanged.
+
 ---
 
 ## 2. Source of Truth
+
+The public web footer keeps About Us, Contact Us, FAQ, Search Rentals, List Your Property (the `/forowners` journey) and Sign In in both its desktop columns and small-screen accordion. It retains the address, legal links, logo and social icons, with compact spacing above the copyright row and wrapping legal links. Company, Careers, Community and unfinished support/application destinations are not footer links; their existing pages are not removed.
 
 Authority order (conflicts resolve to the lowest number):
 

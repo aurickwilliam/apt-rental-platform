@@ -365,6 +365,7 @@ Follow DESIGN.md §22 (Before Creating a New Component — Checklist) for the fu
 
 ## AI Working Rules
 
+- Do not read `.env` files or their variants (including local, production and example files). Obtain any needed public project URL from the operator instead.
 - Read existing code before writing — start with Graphify.
 - Prefer consistency over novelty.
 - Follow DESIGN.md — never redesign UI unless requested.

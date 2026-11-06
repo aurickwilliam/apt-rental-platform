@@ -26,6 +26,7 @@ export interface ApartmentFormData {
   latitude: number | null
   longitude: number | null
   leaseDuration: string
+  hasOwnElectricityMeter: boolean
 
   monthlyRent: string
   rentDueDay: string
@@ -74,6 +75,7 @@ const initialState: ApartmentFormData = {
   latitude: null,
   longitude: null,
   leaseDuration: '',
+  hasOwnElectricityMeter: false,
   monthlyRent: '',
   rentDueDay: '5',
   securityDepositMonths: 0,
