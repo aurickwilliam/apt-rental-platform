@@ -43,6 +43,9 @@ jobs:
       - name: Admin apartment activity tests (isolated PostgreSQL)
         run: pnpm db:admin-apartment-activity:test
 
+      - name: Admin role management tests (isolated PostgreSQL)
+        run: pnpm db:admin-roles:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
 

@@ -24,6 +24,7 @@ interface UserProfileHeaderProps {
   settings?: {
     verifications: UserVerificationItem[];
     activityEvents: UserActivityEvent[];
+    viewerId: string;
   };
   showBackLink?: boolean;
   headingLevel?: "h1" | "h2";
@@ -111,6 +112,7 @@ export default function UserProfileHeader({
               verifications={settings.verifications}
               activityEvents={settings.activityEvents}
               suspensionSupported={suspensionSupported}
+              viewerId={settings.viewerId}
             />
           ) : suspensionSupported ? (
             <OperationForm
