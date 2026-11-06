@@ -298,6 +298,8 @@ Mobile policy rows read “I agree to the Privacy Policy*” and “I agree to t
 
 Privacy Policy and Terms and Conditions end after their policy sections on web and mobile, including registration readers; omit the Questions/contact footer. Keep the last-updated dates aligned across platforms.
 
+Native mobile standalone Settings Terms and Privacy readers show an outline “Back to top” HeroUI Native button with a decorative Tabler arrow-up after any positive scroll offset, hiding it at the top. Position it outside the scroller at bottom-right, 16pt inside the safe areas, on a solid surface with a 44pt minimum target and a visible label. Reserve bottom content clearance so it cannot cover the final policy text. Respect the device's current reduced-motion setting when scrolling to the beginning. Registration policy dialogs remain unchanged.
+
 The web policy Contents card sticks 16px below the viewport top in desktop portal layouts, which have no public top bar; public pages keep 80px navbar clearance. Include the chosen top offset and 16px bottom clearance in the sticky-height fit check. Narrow-screen contents keep their existing accordion.
 
 Standalone web Terms and Privacy reveal a fixed bottom-right HeroUI outline “Back to top” button with a decorative Tabler arrow-up as soon as the page is scrolled below the top (`scrollY > 0`). Keep 16px plus safe-area bottom/right clearance, a solid background and 44px minimum touch height; mark it for the notification bell's clearance resolver. Keep it available throughout the document and public footer; hide it again at the top. It scrolls to the page top and moves focus to the policy heading, using no animation for reduced motion. Omit it from registration modals and the Cookie page.
