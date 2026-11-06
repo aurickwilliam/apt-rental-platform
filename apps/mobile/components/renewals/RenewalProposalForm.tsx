@@ -6,11 +6,11 @@ import type { DocumentPickerAsset } from "expo-document-picker";
 import { formatPesoDisplay, initialRenewalProposalDraft, lockedRenewalDurationMonths, RENEWAL_DEPOSIT_NOTICE, type LeaseRenewalContext, type RenewalProposalDraft } from "@repo/utils";
 import DropdownField from "@/components/inputs/DropdownField";
 import DetailField from "@/components/display/DetailField";
-import { useColors } from "@/hooks/useTheme";
 import { pickRenewalFile } from "@/service/tenancy/leaseRenewalService";
 import { renewalDate } from "@/utils/renewalPresentation";
 import RenewalSection from "./RenewalSection";
 import RenewalNotice from "./RenewalNotice";
+import RenewalFileButton from "./RenewalFileButton";
 
 interface RenewalProposalFormProps {
   context: LeaseRenewalContext;
@@ -22,7 +22,6 @@ export default function RenewalProposalForm({ context, busy, onSubmit }: Renewal
   const [draft, setDraft] = useState(() => initialRenewalProposalDraft(context));
   const [asset, setAsset] = useState<DocumentPickerAsset | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const { colors } = useColors();
   const field = (name: keyof RenewalProposalDraft, value: string) => setDraft((s) => ({ ...s, [name]: value }));
   const lockedMonths = lockedRenewalDurationMonths(context);
 
@@ -61,9 +60,9 @@ export default function RenewalProposalForm({ context, busy, onSubmit }: Renewal
       <Text className="font-nunitoBold text-base text-foreground">Supporting document</Text>
       <Text className="font-inter text-sm text-muted">Optional evidence for the proposed charges.</Text>
       {asset && <Text className="font-inter text-sm text-foreground">{asset.name}</Text>}
-      <Button variant="outline" isDisabled={busy} onPress={() => {
+      <RenewalFileButton label={asset ? "Change document" : "Add document"} icon={IconFileUpload} isDisabled={busy} onPress={() => {
         void pickRenewalFile().then((file) => { setAsset(file); setFileError(null); }).catch(() => setFileError("Could not choose the supporting document."));
-      }}><IconFileUpload size={18} color={colors.textPrimary} /><Button.Label>{asset ? "Change document" : "Add document"}</Button.Label></Button>
+      }} />
       {fileError && <Text accessibilityRole="alert" className="font-inter text-sm text-danger">{fileError}</Text>}
       <RenewalNotice>{`${RENEWAL_DEPOSIT_NOTICE} Verified applicable credit is calculated by APT before the tenant reviews the final charges.`}</RenewalNotice>
       <Button isDisabled={busy || lockedMonths === null} onPress={() => onSubmit(draft, asset)}><Button.Label>Send proposal for review</Button.Label></Button>

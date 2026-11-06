@@ -144,6 +144,20 @@ it("keeps confirmation saved and disabled while allowing the agreement to be vie
   expect(mockView).toHaveBeenCalledWith("agreement.pdf");
 });
 
+it("preserves the full document labels and their original file targets", () => {
+  loaded({ ...renewalContext("awaiting_agreement_confirmation"), agreement: { path: "agreement.pdf", tenant_confirmed_at: null, landlord_confirmed_at: null } });
+  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  fireEvent.press(screen.getByRole("button", { name: "View original agreement" }));
+  expect(mockView).toHaveBeenLastCalledWith("original.pdf", "signed-leases");
+  fireEvent.press(screen.getByRole("button", { name: "View supporting document" }));
+  expect(mockView).toHaveBeenLastCalledWith("evidence.pdf");
+  fireEvent.press(screen.getByRole("button", { name: "View renewal agreement" }));
+  expect(mockView).toHaveBeenLastCalledWith("agreement.pdf");
+  fireEvent.press(screen.getByLabelText("View saved proposal 1"));
+  fireEvent.press(screen.getByRole("button", { name: "View preserved agreement" }));
+  expect(mockView).toHaveBeenLastCalledWith("saved.pdf");
+});
+
 it("disables renewal writes while saving and keeps saved proposals collapsed until requested", () => {
   loaded(renewalContext("awaiting_tenant_confirmation"), true);
   render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);

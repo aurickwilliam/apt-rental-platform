@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
-import { Button } from "heroui-native";
 import { IconCoins } from "@tabler/icons-react-native";
 import { RENEWAL_DEPOSIT_NOTICE, type LeaseRenewalProposal } from "@repo/utils";
 import DetailField from "@/components/display/DetailField";
@@ -8,6 +7,7 @@ import MoneyRow from "@/components/finance/MoneyRow";
 import { renewalDate } from "@/utils/renewalPresentation";
 import RenewalSection from "./RenewalSection";
 import RenewalNotice from "./RenewalNotice";
+import RenewalFileButton from "./RenewalFileButton";
 
 interface RenewalProposalCardProps {
   proposal: LeaseRenewalProposal;
@@ -34,7 +34,7 @@ export default function RenewalProposalCard({ proposal: p, busy, onViewEvidence,
       <MoneyRow label="Deposit replenishment" amount={p.deposit_due} />
       {!!p.replenishment_reason && <Text selectable className="font-inter text-sm leading-5 text-foreground">{p.replenishment_reason}</Text>}
       <RenewalNotice>{RENEWAL_DEPOSIT_NOTICE}</RenewalNotice>
-      {p.evidence_path && <Button variant="outline" isDisabled={busy} onPress={onViewEvidence}><Button.Label>View supporting document</Button.Label></Button>}
+      {p.evidence_path && <RenewalFileButton label="View supporting document" isDisabled={busy} onPress={onViewEvidence} />}
       <View className="rounded-2xl bg-primary-light p-4">
         <MoneyRow label="Total renewal payment" amount={p.advance_due + p.deposit_due} emphasized />
       </View>

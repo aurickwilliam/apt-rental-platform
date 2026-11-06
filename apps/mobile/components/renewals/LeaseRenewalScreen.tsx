@@ -20,6 +20,7 @@ import RenewalProposalCard from "./RenewalProposalCard";
 import RenewalSavedProposal from "./RenewalSavedProposal";
 import RenewalProposalForm from "./RenewalProposalForm";
 import RenewalPayment from "./RenewalPayment";
+import RenewalFileButton from "./RenewalFileButton";
 
 interface LeaseRenewalScreenProps { tenancyId: string; portal: RenewalPortal }
 
@@ -63,9 +64,7 @@ export default function LeaseRenewalScreen({ tenancyId, portal }: LeaseRenewalSc
             <View className="flex-row"><DetailField label="Monthly rent" value={c.monthlyRent === null ? "Not recorded" : formatPesoDisplay(c.monthlyRent)} /></View>
             <View className="flex-row"><DetailField label="Recorded deposit target" value={c.depositTarget === null ? "Unknown" : formatPesoDisplay(c.depositTarget)} /></View>
             <RenewalNotice>The recorded deposit is not a verified remaining balance. Renewal does not end your current tenancy early.</RenewalNotice>
-            {c.originalAgreementPath && <Button variant="outline" isDisabled={renewal.busy} onPress={() => renewal.view(c.originalAgreementPath!, "signed-leases")}>
-              <IconFileText size={18} color={colors.textPrimary} /><Button.Label>View original agreement</Button.Label>
-            </Button>}
+            {c.originalAgreementPath && <RenewalFileButton label="View original agreement" isDisabled={renewal.busy} onPress={() => renewal.view(c.originalAgreementPath!, "signed-leases")} />}
           </RenewalSection>
           <RenewalProgress status={r?.status ?? null} portal={portal} start={p?.lease_start ?? null} today={c.today} />
 
@@ -96,10 +95,10 @@ export default function LeaseRenewalScreen({ tenancyId, portal }: LeaseRenewalSc
           </RenewalProposalCard>}
 
           {r?.status === "awaiting_agreement_confirmation" && p && <RenewalSection title="Renewal agreement" description="Both parties must confirm the executed agreement matches the proposal, including dates, rent, deposit treatment and payment conditions." icon={IconFileText}>
-            {!c.agreement && portal === "landlord" && <Button isDisabled={renewal.busy} onPress={renewal.uploadAgreement}><Button.Label>Upload signed agreement</Button.Label></Button>}
+            {!c.agreement && portal === "landlord" && <RenewalFileButton label="Upload signed agreement" variant="primary" isDisabled={renewal.busy} onPress={renewal.uploadAgreement} />}
             {!c.agreement && portal === "tenant" && <RenewalNotice>Waiting for the landlord to upload the signed renewal agreement.</RenewalNotice>}
             {c.agreement && <>
-              <Button variant="outline" isDisabled={renewal.busy} onPress={() => renewal.view(c.agreement!.path)}><Button.Label>View renewal agreement</Button.Label></Button>
+              <RenewalFileButton label="View renewal agreement" isDisabled={renewal.busy} onPress={() => renewal.view(c.agreement!.path)} />
               <Text className="font-inter text-sm leading-5 text-muted">By confirming, you agree that this document matches the proposal above.</Text>
               <Button isDisabled={!!ownConfirmation || renewal.busy} onPress={() => void renewal.act("confirm_agreement", { proposalId: p.id, path: c.agreement!.path })}><Button.Label>{ownConfirmation ? "Confirmation saved" : "Confirm agreement"}</Button.Label></Button>
             </>}

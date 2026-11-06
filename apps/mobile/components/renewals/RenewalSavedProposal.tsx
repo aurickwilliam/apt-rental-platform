@@ -6,6 +6,7 @@ import { formatPesoDisplay, type LeaseRenewalProposal } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import { renewalDate } from "@/utils/renewalPresentation";
 import MoneyRow from "@/components/finance/MoneyRow";
+import RenewalFileButton from "./RenewalFileButton";
 
 interface RenewalSavedProposalProps { proposal: LeaseRenewalProposal; busy: boolean; onView: () => void }
 
@@ -26,7 +27,7 @@ export default function RenewalSavedProposal({ proposal: p, busy, onView }: Rene
         <Text className="font-inter text-sm text-muted">{p.duration_months} months · {formatPesoDisplay(p.monthly_rent)} monthly</Text>
         <MoneyRow label="Advance due" amount={p.advance_due} />
         <MoneyRow label="Deposit replenishment" amount={p.deposit_due} />
-        {p.agreement_path && <Button variant="outline" isDisabled={busy} onPress={onView}><Button.Label>View preserved agreement</Button.Label></Button>}
+        {p.agreement_path && <RenewalFileButton label="View preserved agreement" isDisabled={busy} onPress={onView} />}
       </View>}
     </View>
   );
