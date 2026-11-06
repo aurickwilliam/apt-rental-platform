@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useState } from 'react';
+import { startTransition, useActionState, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 
@@ -71,7 +71,16 @@ export default function AuthForm({ next }: { next?: string }) {
 
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      // Sign-in posts through the server action; only sign-up is intercepted.
+      if (type === 'sign-in') {
+        // Dispatch the action ourselves instead of using the form's `action`: React
+        // resets a form after its action finishes, which wiped the email (and with
+        // it the sign-in lock, which is keyed by that email) after every attempt and
+        // made people retype. Same pattern as Complete Profile.
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => formAction(formData));
+        return;
+      }
       if (type !== 'sign-up') return;
 
       e.preventDefault();
@@ -112,7 +121,7 @@ export default function AuthForm({ next }: { next?: string }) {
         setCheckingEmail(false);
       }
     },
-    [type, role, router],
+    [type, role, router, formAction],
   );
 
   const busy = isPending || checkingEmail;
@@ -179,7 +188,6 @@ export default function AuthForm({ next }: { next?: string }) {
       {/* Form */}
       <Form
         className={`${visibleError ? 'mt-4' : 'mt-[clamp(1.5rem,4vh,2rem)]'} flex flex-col gap-[clamp(0.75rem,2vh,1rem)]`}
-        action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
         {/* Hidden field to pass the role to the server action */}
