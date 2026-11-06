@@ -1,67 +1,49 @@
 import { View, Text } from "react-native";
 
-import StandardHeader from "@/components/layout/StandardHeader";
+import { Accordion } from "heroui-native";
+
+import { FAQ_ITEMS } from "@/constants/faq";
+import { useColors } from "@/hooks/useTheme";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import StandardHeader from "@/components/layout/StandardHeader";
 
-const faqs = [
-  {
-    id: 1,
-    question: "How do I pay my rent?",
-    answer:
-      "You can pay your rent through the app by going to Rentals > Pay Rent and selecting your preferred payment method (GCash, Maya, or card).",
-  },
-  {
-    id: 2,
-    question: "How do I submit a maintenance request?",
-    answer:
-      "Go to your Rentals tab and tap 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
-  },
-  {
-    id: 3,
-    question: "How do I view my lease agreement?",
-    answer:
-      "Go to your Rentals tab and tap 'View Lease'. You can view and download your lease agreement from there.",
-  },
-  {
-    id: 4,
-    question: "How do I contact my landlord?",
-    answer:
-      "You can message your landlord directly through the Chat tab or by tapping 'Chat Landlord' in your Rentals quick actions.",
-  },
-  {
-    id: 5,
-    question: "How do I list my property?",
-    answer:
-      "As a landlord, go to the Units tab and tap the '+' button to add a new apartment listing. Fill in the required details across the steps.",
-  },
-  {
-    id: 6,
-    question: "How do I verify my account?",
-    answer:
-      "Go to your Profile tab and tap on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
-  },
-];
-
+// One collapsible card per question, like the application review screen:
+// standard card surface, hairline border, and the answer set off by a divider.
 export default function FAQScreen() {
+  const { colors } = useColors();
+
   return (
     <ScreenWrapper
-      header={<StandardHeader title="Frequently Asked Questions" />}
+      header={<StandardHeader title="FAQs" />}
       scrollable
+      bottomPadding={50}
       className="p-5"
     >
-      {faqs.map((faq, index) => (
-        <View
-          key={faq.id}
-          className={`mb-3 rounded-xl bg-default ${index === faqs.length - 1 ? "mb-8" : ""}`}
-        >
-          <Text className="mb-2 font-nunitoSemiBold text-foreground text-base">
-            {faq.question}
-          </Text>
-          <Text className="text-muted text-sm leading-5">
-            {faq.answer}
-          </Text>
-        </View>
-      ))}
+      <Accordion selectionMode="single" hideSeparator className="gap-3">
+        {FAQ_ITEMS.map((faq) => (
+          <Accordion.Item
+            key={faq.id}
+            value={faq.id}
+            className="bg-surface rounded-2xl border border-border"
+          >
+            <Accordion.Trigger className="px-4 py-4">
+              <Text className="flex-1 text-base font-nunitoSemiBold text-foreground">
+                {faq.question}
+              </Text>
+              <Accordion.Indicator
+                iconProps={{ size: 18, color: colors.gray500 }}
+              />
+            </Accordion.Trigger>
+            <Accordion.Content className="px-4 pb-4">
+              <View className="border-t border-border pt-3">
+                <Text className="text-sm font-inter text-muted leading-5">
+                  {faq.answer}
+                </Text>
+              </View>
+            </Accordion.Content>
+          </Accordion.Item>
+        ))}
+      </Accordion>
     </ScreenWrapper>
   );
 }

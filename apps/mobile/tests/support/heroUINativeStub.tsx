@@ -164,6 +164,18 @@ export const ListGroup = Object.assign(Passthrough, {
 export const Separator = () => null;
 export const Chip = Object.assign(Passthrough, { Label: TextStub });
 
+// Accordion: questions render always; the installed component owns the
+// expand/collapse state, so the stub leaves every panel open.
+export const Accordion = Object.assign(
+  ({ children }: ChildrenProps) => <View>{children}</View>,
+  {
+    Item: Passthrough,
+    Trigger: PressableStub,
+    Indicator: () => null,
+    Content: Passthrough,
+  },
+);
+
 // Dialogs: only mounted while open, like the installed HeroUI Portal.
 interface DialogStubProps extends ChildrenProps {
   isOpen?: boolean;
