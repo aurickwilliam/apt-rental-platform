@@ -34,6 +34,8 @@ Web rental-budget preferences keep the four preset options. Choosing Custom rang
 
 ## 2. Source of Truth
 
+The public web footer keeps About Us, Contact Us, FAQ, Search Rentals, List Your Property (the `/forowners` journey) and Sign In in both its desktop columns and small-screen accordion. It retains the address, legal links, logo and social icons, with compact spacing above the copyright row and wrapping legal links. Company, Careers, Community and unfinished support/application destinations are not footer links; their existing pages are not removed.
+
 Authority order (conflicts resolve to the lowest number):
 
 | # | Source | Authority |
