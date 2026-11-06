@@ -16,6 +16,7 @@ export interface ApplyPageData {
   apartment: ApplyApartmentContext;
   viewer: ApplyViewer;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
   /** Personal details from the profile; read-only in the form, as on mobile. */
   personalInfo: ApplicantPersonalInfo;
   /**
@@ -44,7 +45,7 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
   if (profileError) throw new Error(`Couldn't load your profile: ${profileError.message}`);
   if (!profile?.roles?.includes("tenant")) redirect("/browse");
 
-  const [apartment, pendingResult] = await Promise.all([
+  const [apartment, pendingResult, tenancyResult] = await Promise.all([
     getApplyApartmentContext(supabase, apartmentId),
     supabase
       .from("rental_application")
@@ -53,14 +54,17 @@ export async function loadApplyPage(apartmentId: string): Promise<ApplyPageData 
       .eq("apartment_id", apartmentId)
       .eq("status", "pending")
       .limit(1),
+    supabase.from("tenancies").select("id").eq("tenant_id", profile.id).eq("status", "active").limit(1),
   ]);
   if (!apartment) return null;
   if (pendingResult.error) throw new Error(`Couldn't check your applications: ${pendingResult.error.message}`);
+  if (tenancyResult.error) throw new Error(`Couldn't check your rental: ${tenancyResult.error.message}`);
 
   return {
     apartment,
     viewer: { userId: profile.id, accountStatus: profile.account_status },
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
+    hasActiveTenancy: (tenancyResult.data ?? []).length > 0,
     personalInfo: applicantPersonalInfo(profile, user.email ?? null),
     savedPreferences: parseTenantPreferences(profile.preferences),
   };

@@ -6,6 +6,9 @@ import {
   buildFillerRowSpecs,
   buildPersonalizedRowSpecs,
   hasMeaningfulPreferences,
+  isListingEligible,
+  minimumHouseholdSize,
+  recommendationReasons,
   parseBrowseRowSpec,
   rankCandidates,
   scoreListing,
@@ -68,20 +71,16 @@ describe('hasMeaningfulPreferences', () => {
 });
 
 describe('scoreListing', () => {
-  it('ranks an in-range budget above a near miss above a far miss', () => {
+  it('excludes a listing outside a chosen budget and keeps one inside it', () => {
     const p = prefs({ budgetMin: 5000, budgetMax: 14999 });
-    const inside = scoreListing(listing({ monthly_rent: 10000 }), p);
-    const near = scoreListing(listing({ monthly_rent: 17000 }), p);
-    const far = scoreListing(listing({ monthly_rent: 40000 }), p);
-    expect(inside).toBeGreaterThan(near);
-    expect(near).toBeGreaterThan(far);
+    expect(scoreListing(listing({ monthly_rent: 10000 }), p)).toBeGreaterThan(0);
+    expect(scoreListing(listing({ monthly_rent: 17000 }), p)).toBe(0);
+    expect(scoreListing(listing({ monthly_rent: 4999 }), p)).toBe(0);
+    expect(scoreListing(listing({ monthly_rent: 14999 }), p)).toBeGreaterThan(0);
   });
 
-  it('keeps the near-miss boundary strict (under 5000)', () => {
-    const p = prefs({ budgetMin: 5000, budgetMax: 14999 });
-    expect(scoreListing(listing({ monthly_rent: 19998 }), p)).toBeGreaterThan(
-      scoreListing(listing({ monthly_rent: 19999 }), p),
-    );
+  it('never gates on the default budget range', () => {
+    expect(scoreListing(listing({ monthly_rent: 250000 }), prefs())).toBeGreaterThan(0);
   });
 
   it('gates on chosen cities and gives a baseline when none are chosen', () => {
@@ -108,7 +107,8 @@ describe('scoreListing', () => {
     const parking = prefs({ hasParking: true });
     expect(scoreListing(listing({ amenities: ['parking'] }), parking)).toBeGreaterThan(scoreListing(listing(), parking));
     const smoker = prefs({ hasSmoker: true });
-    expect(scoreListing(listing({ amenities: ['nonsmoking'] }), smoker)).toBeGreaterThan(scoreListing(listing(), smoker));
+    expect(scoreListing(listing({ amenities: ['nonsmoking'] }), smoker)).toBe(0);
+    expect(scoreListing(listing(), smoker)).toBeGreaterThan(0);
   });
 
   it('scores the wheelchair amenity only where the platform has one', () => {
@@ -298,5 +298,52 @@ describe('parseBrowseRowSpec', () => {
       criteria: { cities: ['Caloocan'], priceMin: '5', priceMax: 9, verified: 'yes', evil: 1, amenities: [1] },
     });
     expect(parsed?.criteria).toEqual({ cities: ['Caloocan'], priceMax: 9 });
+  });
+});
+
+describe('isListingEligible', () => {
+  it('excludes only a capacity provably below the household', () => {
+    const family = prefs({ householdSize: '5 - 6 Persons' });
+    expect(isListingEligible(listing({ max_occupants: 4 }), family)).toBe(false);
+    expect(isListingEligible(listing({ max_occupants: 5 }), family)).toBe(true);
+    expect(isListingEligible(listing({ max_occupants: null }), family)).toBe(true);
+    expect(isListingEligible(listing({ max_occupants: 0 }), family)).toBe(true);
+  });
+
+  it('keeps a listing with no smoking policy for a smoker', () => {
+    expect(isListingEligible(listing(), prefs({ hasSmoker: true }))).toBe(true);
+    expect(isListingEligible(listing({ amenities: ['nonsmoking'] }), prefs({ hasSmoker: true }))).toBe(false);
+  });
+
+  it('ignores a malformed budget instead of excluding everything', () => {
+    expect(isListingEligible(listing({ monthly_rent: 9000 }), prefs({ budgetMin: 20000, budgetMax: 10000 }))).toBe(true);
+  });
+
+  it('never excludes for unknown pet policy', () => {
+    expect(isListingEligible(listing(), prefs({ hasPets: true }))).toBe(true);
+  });
+});
+
+describe('minimumHouseholdSize', () => {
+  it('maps saved options to their lower bound', () => {
+    expect(minimumHouseholdSize('Single')).toBe(1);
+    expect(minimumHouseholdSize('3 - 4 Persons')).toBe(3);
+    expect(minimumHouseholdSize('7+ Persons')).toBe(7);
+    expect(minimumHouseholdSize('6')).toBe(6);
+    expect(minimumHouseholdSize(null)).toBeNull();
+    expect(minimumHouseholdSize('lots')).toBeNull();
+  });
+});
+
+describe('recommendationReasons', () => {
+  it('lists only verified matches, at most two, in priority order', () => {
+    const p = prefs({ selectedCities: ['Caloocan'], budgetMin: 8000, budgetMax: 15000, bedroomCount: '1-2 Bedrooms', hasPets: true });
+    const l = listing({ city: 'Caloocan', monthly_rent: 10000, no_bedrooms: 2, amenities: ['petfriendly'] });
+    expect(recommendationReasons(l, p)).toEqual(['Preferred city', 'Within budget']);
+  });
+
+  it('adds no chip for an unanswered or unconfirmed preference', () => {
+    expect(recommendationReasons(listing({ amenities: ['petfriendly'] }), prefs())).toEqual([]);
+    expect(recommendationReasons(listing(), prefs({ hasPets: true, hasParking: true }))).toEqual([]);
   });
 });

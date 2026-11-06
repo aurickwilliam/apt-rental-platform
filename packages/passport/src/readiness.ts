@@ -10,6 +10,7 @@ export type ApplicationIssueCode =
   | 'unverified'
   | 'own-listing'
   | 'already-applied'
+  | 'active-rental'
   | 'passport-missing'
   | 'passport-expired'
 
@@ -31,6 +32,8 @@ export interface ApplicationReadinessInput<T extends PassportSlotDocument = Pass
   tenantId: string | null | undefined
   landlordId: string | null | undefined
   hasActiveApplication: boolean
+  /** The tenant already rents a place (an active tenancy); omitted means unknown/no. */
+  hasActiveTenancy?: boolean
   passportDocs: readonly T[]
   /** Unknown until the tenant picks it in step 1; income is skipped when null. */
   employmentType?: string | null
@@ -67,6 +70,13 @@ export function evaluateApplicationReadiness<T extends PassportSlotDocument>(
 
   if (input.tenantId && input.landlordId && input.tenantId === input.landlordId) {
     issues.push({ code: 'own-listing', message: 'You cannot apply to your own property.' })
+  }
+
+  if (input.hasActiveTenancy) {
+    issues.push({
+      code: 'active-rental',
+      message: 'You already have an active rental. You can apply for another apartment once it ends.',
+    })
   }
 
   if (input.hasActiveApplication) {

@@ -86,7 +86,12 @@ export default async function ApartmentDetailView({
           .eq("status", "pending").limit(1)
       : { data: null },
   );
-  const [profileResult, landlordResult, relatedResult, pendingResult, verifiedLandlordIds, acceptedMethodsResult] = await Promise.all([
+  const tenancyPromise = profilePromise.then(async ({ data: profile }) =>
+    profile?.roles?.includes("tenant")
+      ? await supabase.from("tenancies").select("id").eq("tenant_id", profile.id).eq("status", "active").limit(1)
+      : { data: null },
+  );
+  const [profileResult, landlordResult, relatedResult, pendingResult, tenancyResult, verifiedLandlordIds, acceptedMethodsResult] = await Promise.all([
     profilePromise,
     apartment.landlord_id
       ? supabase
@@ -108,6 +113,7 @@ export default async function ApartmentDetailView({
       .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
       .limit(1, { referencedTable: "apartment_images" }),
     pendingPromise,
+    tenancyPromise,
     fetchVerifiedLandlordIds(supabase, apartment.landlord_id ? [apartment.landlord_id] : []),
     // Method names only; a failed read just leaves the card out.
     supabase.rpc("get_apartment_accepted_methods", { p_apartment_id: apartmentId }),
@@ -128,6 +134,7 @@ export default async function ApartmentDetailView({
           userId: currentUser.id,
           accountStatus: currentUser.account_status,
           hasActiveApplication: (pendingApplications ?? []).length > 0,
+          hasActiveTenancy: (tenancyResult.data ?? []).length > 0,
         }
       : null;
 

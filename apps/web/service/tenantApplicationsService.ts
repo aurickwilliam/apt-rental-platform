@@ -180,6 +180,7 @@ export interface ApplicationSubmitContext {
   accountStatus: string | null;
   landlordId: string | null;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
 }
 
 /**
@@ -204,7 +205,7 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
   if (profileError) throw new Error(profileError.message);
   if (!profile) throw new Error("You must be signed in to submit an application.");
 
-  const [apartmentResult, pendingResult] = await Promise.all([
+  const [apartmentResult, pendingResult, tenancyResult] = await Promise.all([
     supabase.from("apartments").select("landlord_id").eq("id", apartmentId).maybeSingle(),
     supabase
       .from("rental_application")
@@ -213,17 +214,20 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
       .eq("apartment_id", apartmentId)
       .eq("status", "pending")
       .limit(1),
+    supabase.from("tenancies").select("id").eq("tenant_id", profile.id).eq("status", "active").limit(1),
   ]);
   if (apartmentResult.error || !apartmentResult.data) {
     throw new Error("Could not verify this apartment. Please try again.");
   }
   if (pendingResult.error) throw new Error(pendingResult.error.message);
+  if (tenancyResult.error) throw new Error(tenancyResult.error.message);
 
   return {
     tenantId: profile.id,
     accountStatus: profile.account_status,
     landlordId: apartmentResult.data.landlord_id,
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
+    hasActiveTenancy: (tenancyResult.data ?? []).length > 0,
   };
 }
 
@@ -233,18 +237,24 @@ export async function cancelTenantApplication(
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error: appError } = await supabase
+  const { data: cancelled, error: appError } = await supabase
     .from("rental_application")
     .update({ status: "cancelled" })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
 
-  if (appError) throw appError;
+  if (appError) throw new Error(appError.message);
+  if (!cancelled) throw new Error("This application is no longer pending or is unavailable. Refresh the details before trying again.");
 
   if (visitRequestId) {
-    await supabase
+    const { error: visitError } = await supabase
       .from("visit_request")
       .update({ status: "cancelled" })
       .eq("id", visitRequestId)
+      .eq("application_id", applicationId)
       .in("status", ["pending", "approved", "rescheduled"]);
+    if (visitError) console.error("Application cancelled, but the related visit update could not be confirmed.");
   }
 }

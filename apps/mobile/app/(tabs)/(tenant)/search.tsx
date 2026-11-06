@@ -171,6 +171,10 @@ export default function Search() {
 
       {showNetflix ? (
         <SearchSectionsList
+          showRecommendationNotice={
+            preferencesForSections !== null && !sections.some((section) => section.id === "for_you")
+          }
+          onUpdatePreferences={() => router.push("/settings/preferences" as any)}
           sections={sections}
           isLoading={isInitialLoading}
           isFetching={sectionsFetching}

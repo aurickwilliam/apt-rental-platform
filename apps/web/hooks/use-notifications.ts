@@ -22,13 +22,25 @@ function getFeed(key: string, userId: string): NotificationFeedStore {
     load: () => fetchNotifications(userId),
     connect: (onChange) => {
       const supabase = createClient();
+      let joined = false;
       const channel = supabase
         .channel(`notifications-live:${userId}`)
         .on("postgres_changes", {
           event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}`,
         }, onChange)
-        .subscribe();
-      return () => { void supabase.removeChannel(channel); };
+        .subscribe((status) => {
+          // A re-join may have missed events while the socket was down.
+          if (status === "SUBSCRIBED" && joined) onChange();
+          if (status === "SUBSCRIBED") joined = true;
+        });
+      // A hidden tab can miss events too: reconcile once when it is shown again.
+      const onVisible = () => { if (document.visibilityState === "visible") onChange(); };
+      const canListen = typeof document !== "undefined";
+      if (canListen) document.addEventListener("visibilitychange", onVisible);
+      return () => {
+        if (canListen) document.removeEventListener("visibilitychange", onVisible);
+        void supabase.removeChannel(channel);
+      };
     },
     onIdle: () => { if (feeds.get(key) === store) feeds.delete(key); },
     onError: (message, error) => console.error(message, error),
@@ -72,6 +84,16 @@ export function useNotifications(portal: ActivePortal | null) {
     const ids = getVisibleUnreadIds(store.getSnapshot().notifications, portal);
     await store.markRead(ids, () => markNotificationsRead(ids));
   }, [store, portal]);
+  /** Feed rows right now (not render-bound), for callers that match rows by payload identity. */
+  const getFeedRows = useCallback(() => store?.getSnapshot().notifications ?? [], [store]);
+  /**
+   * Optimistic read of exactly these rows around a caller-supplied write.
+   * Resolves true only when the write was confirmed (failures roll back).
+   */
+  const markIdsRead = useCallback(
+    async (ids: string[], write: () => Promise<void>): Promise<boolean> => (store ? store.markRead(ids, write) : false),
+    [store],
+  );
   const refresh = useCallback(async () => { await store?.refresh(); }, [store]);
 
   return {
@@ -83,5 +105,7 @@ export function useNotifications(portal: ActivePortal | null) {
     markOneRead,
     markManyRead,
     markVisibleRead,
+    getFeedRows,
+    markIdsRead,
   };
 }

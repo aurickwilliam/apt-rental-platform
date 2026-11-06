@@ -41,7 +41,7 @@ function Fixture() {
     <h1>Apartment details</h1>
     <Button onPress={() => setOpen(true)}>Apply Now</Button>
     <ApplyStartModal isOpen={open} onOpenChange={setOpen} basePath="/tenant/browse"
-      viewer={{ userId: "fixture-user", accountStatus: status(), hasActiveApplication: false }}
+      viewer={{ userId: "fixture-user", accountStatus: status(), hasActiveApplication: false, hasActiveTenancy: false }}
       apartment={{ id: "apartment-1", name: "Fixture apartment", location: "Navotas", coverUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E", landlordId: "other-user", monthlyRent: 5000, securityDeposit: 5000, advanceRent: 5000, maxOccupants: 2 }} />
   </main>;
 }

@@ -47,6 +47,14 @@ it('flags unverified accounts, own listings and duplicate applications', () => {
   expect(codes({ ...ready, hasActiveApplication: true })).toEqual(['already-applied'])
 })
 
+it('blocks a tenant who already has an active rental from applying', () => {
+  expect(codes({ ...ready, hasActiveTenancy: true })).toEqual(['active-rental'])
+  expect(codes({ ...ready, hasActiveTenancy: false })).toEqual([])
+  expect(codes(ready)).toEqual([])
+  const message = evaluateApplicationReadiness({ ...ready, hasActiveTenancy: true }).issues[0].message
+  expect(message).toMatch(/active rental/)
+})
+
 it('tells a pending account its review is under way instead of asking it to verify again', () => {
   const message = (accountStatus: string) =>
     evaluateApplicationReadiness({ ...ready, accountStatus }).issues[0].message
