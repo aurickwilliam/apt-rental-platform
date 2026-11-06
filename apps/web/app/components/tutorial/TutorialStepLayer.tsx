@@ -137,7 +137,9 @@ export default function TutorialStepLayer({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[1000] ${target ? "" : "bg-black/55 dark:bg-black/35"}`}
+      // HeroUI overlays sit at z-index 100000 and set pointer-events: none on their wrappers (inherited),
+      // so inside the drawer the layer must outrank them and opt back in, or clicks reach the menu below.
+      className={`pointer-events-auto fixed inset-0 ${useDrawerHost && drawerHost ? "z-[100001]" : "z-[1000]"} ${target ? "" : "bg-black/55 dark:bg-black/35"}`}
       onKeyDown={handleKeyDown}
       data-testid="tutorial-layer"
     >
