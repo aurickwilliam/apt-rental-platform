@@ -40,6 +40,9 @@ jobs:
       - name: Activity email tests (isolated PostgreSQL)
         run: pnpm db:activity-emails:test
 
+      - name: Admin apartment activity tests (isolated PostgreSQL)
+        run: pnpm db:admin-apartment-activity:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
 

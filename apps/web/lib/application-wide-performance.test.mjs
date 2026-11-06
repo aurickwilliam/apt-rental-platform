@@ -307,9 +307,11 @@ test("admin analytics starts current-state reads alongside all-time date resolut
   assert.equal(calls.filter(([name]) => name === "get_admin_listing_status").length, 1);
 });
 
-test("admin apartment counts start while preview reads are blocked; filters and exact-count definitions are preserved", async () => {
+test("admin apartment landlord counts start while preview reads are blocked; rental activity comes from its one admin function", async () => {
   const preview = deferred();
   const db = database({ apartments: [{ id: "apt", landlord_id: "owner", deleted_at: null }], users: [], apartment_images: [], apartment_verifications: [], tenancies: [], rental_application: [], visit_request: [], maintenance_request: [], reviews: [], admin_audit_logs: [] }, { apartment_images: preview.promise });
+  const rpcCalls = [];
+  db.client.rpc = async (name, args) => { rpcCalls.push([name, args]); return { data: null, error: null }; };
   const components = new Proxy({}, { get: (_, key) => key });
   const h = compile("app/admin/apartments/[id]/page.tsx", {
     "react/jsx-runtime": jsxRuntime,
@@ -324,11 +326,15 @@ test("admin apartment counts start while preview reads are blocked; filters and 
   const pending = h.default({ params: Promise.resolve({ id: "apt" }) });
   await settle();
   const counts = db.calls.filter(call => call.options?.head);
-  assert.equal(counts.length, 16);
-  assert.equal(counts.filter(call => call.table === "rental_application").length, 4);
-  assert.equal(counts.filter(call => call.table === "visit_request").length, 6);
-  assert.equal(counts.filter(call => call.table === "maintenance_request").length, 4);
-  for (const call of counts) assert.equal(call.options.count, "exact");
+  assert.equal(counts.length, 2);
+  assert.ok(counts.every(call => call.table === "apartments" && call.options.count === "exact"));
+  assert.equal(rpcCalls.length, 1);
+  assert.equal(rpcCalls[0][0], "get_admin_apartment_activity");
+  assert.equal(rpcCalls[0][1].p_apartment_id, "apt");
+  // Admins cannot read these tables directly, so nothing may query them.
+  for (const table of ["tenancies", "rental_application", "visit_request", "maintenance_request", "payment"]) {
+    assert.equal(db.calls.some(call => call.table === table), false, table);
+  }
   preview.resolve();
   await pending;
 });

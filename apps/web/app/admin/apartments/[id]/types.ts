@@ -60,3 +60,12 @@ export interface Summary<T> {
   counts: Record<string, number>;
   error: boolean;
 }
+
+/** What `get_admin_apartment_activity` returns for one apartment. */
+export interface ApartmentRentalActivity {
+  tenancy: Tenancy | null;
+  payment: Payment | null;
+  applications: Pick<Summary<Application>, "items" | "counts">;
+  visits: Pick<Summary<Visit>, "items" | "counts">;
+  maintenance: Pick<Summary<Maintenance>, "items" | "counts">;
+}
