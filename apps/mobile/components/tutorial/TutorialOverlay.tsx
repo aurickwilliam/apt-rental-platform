@@ -6,6 +6,7 @@ import { Button } from 'heroui-native';
 
 import type { TutorialPortal, TutorialStep } from '@repo/utils';
 
+import { useColors } from '@/hooks/useTheme';
 import { computeCalloutLayout, estimateNativeTabRect } from './calloutLayout';
 import { measureTutorialTarget, type TutorialRect } from './targetRegistry';
 
@@ -22,7 +23,9 @@ interface TutorialOverlayProps {
 const SPOTLIGHT_PADDING = 6;
 const SPOTLIGHT_RADIUS = 20;
 const MEASURE_DELAY_MS = 350;
-const DIM = 'rgba(0,0,0,0.6)';
+// Dark screens are already dark, so they need a lighter veil to keep the page readable.
+const DIM_LIGHT = 'rgba(0,0,0,0.6)';
+const DIM_DARK = 'rgba(0,0,0,0.35)';
 
 /**
  * One tour step: the screen is dimmed around the target (when it can be
@@ -40,6 +43,8 @@ export default function TutorialOverlay({
 }: TutorialOverlayProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { isDark } = useColors();
+  const DIM = isDark ? DIM_DARK : DIM_LIGHT;
   // Tagged with its step, so a measurement never outlives the step it belongs to.
   const [measured, setMeasured] = useState<{ stepId: string; rect: TutorialRect } | null>(null);
   const measuredRect = measured?.stepId === step.id ? measured.rect : null;

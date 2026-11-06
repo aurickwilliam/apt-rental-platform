@@ -125,7 +125,7 @@ export default function TutorialStepLayer({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[1000] ${target ? "" : "bg-black/55"}`}
+      className={`fixed inset-0 z-[1000] ${target ? "" : "bg-black/55 dark:bg-black/35"}`}
       onKeyDown={handleKeyDown}
       data-testid="tutorial-layer"
     >
@@ -133,7 +133,7 @@ export default function TutorialStepLayer({
         <div
           aria-hidden="true"
           data-testid="tutorial-spotlight"
-          className="pointer-events-none fixed rounded-2xl ring-2 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] motion-safe:transition-[top,left,width,height] motion-safe:duration-200"
+          className="pointer-events-none fixed rounded-2xl ring-2 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] dark:shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] motion-safe:transition-[top,left,width,height] motion-safe:duration-200"
           style={{
             top: target.top - SPOTLIGHT_PADDING,
             left: target.left - SPOTLIGHT_PADDING,
