@@ -28,6 +28,8 @@ Mobile personalization completion navigates to Rentals after preferences save su
 
 **Accessibility:** status colors never used alone (paired with text/icons); visible focus rings (`#376BF5`/15% web, `border-focus` mobile); `FieldError` + `isInvalid` on inputs; required `*` markers; muted text no lighter than `#6C757D`/`gray-500` at scale. No `prefers-reduced-motion` handling exists — keep motion minimal (§17).
 
+Web rental-budget preferences keep the four preset options. Choosing Custom range reveals a HeroUI dual-handle slider with a visible peso range, labeled minimum/maximum handles, and keyboard controls (₱5,000–₱100,000 in ₱1,000 steps). Personalization Step 2 uses the slider instead of typing boxes; Settings → Rental Preferences keeps synchronized minimum/maximum typing boxes below the same slider. Use the existing primary and surface tokens; mobile is unchanged.
+
 ---
 
 ## 2. Source of Truth
