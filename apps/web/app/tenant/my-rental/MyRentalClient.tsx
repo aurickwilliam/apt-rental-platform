@@ -824,10 +824,8 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
               return revalidate();
             }}
           />
-          <LeaseRenewalEntry key={`renewal:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant"/>
-        </div>
-
-        <DashboardCard>
+          <div className="@min-[64rem]/rental:col-start-2 @min-[64rem]/rental:row-start-2"><LeaseRenewalEntry key={`renewal:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant"/></div>
+        <DashboardCard className="@min-[64rem]/rental:col-start-1 @min-[64rem]/rental:row-start-2">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-nunito text-sm font-semibold text-card-foreground">
               Payment history
@@ -911,7 +909,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
           </Table>
           )}
         </DashboardCard>
-
+        </div>
 
       </div>
     </div>

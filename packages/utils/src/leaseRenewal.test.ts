@@ -1,7 +1,8 @@
 import {
-  calculateRenewalCharges, canRequestLeaseRenewal, canTakeRenewalAction,
-  renewalCentavos, renewalDaysRemaining, renewalReminderMilestone, renewalStatusLabel,
-  type RenewalChargeInput,
+  calculateRenewalCharges, canRequestLeaseRenewal, canTakeRenewalAction, lockedRenewalDurationMonths,
+  previousLeaseDurationMonths, renewalCentavos, renewalDaysRemaining, renewalReminderMilestone,
+  renewalProposalPayload, renewalStatusLabel,
+  type LeaseRenewalContext, type RenewalChargeInput, type RenewalProposalDraft,
 } from './leaseRenewal';
 
 const input = (changes: Partial<RenewalChargeInput> = {}): RenewalChargeInput => ({
@@ -73,5 +74,38 @@ describe('lease renewal rules', () => {
   it('rejects fractions of a cent and unsafe or nonfinite money', () => {
     expect(renewalCentavos(0.29)).toBe(29);
     for (const amount of [1.001, -1, Infinity, NaN, Number.MAX_SAFE_INTEGER]) expect(renewalCentavos(amount)).toBeNull();
+  });
+
+  const context = (over: Partial<LeaseRenewalContext> = {}): LeaseRenewalContext => ({
+    tenancyId: 't1', apartmentId: 'a1', apartmentName: 'Unit', tenantName: 'Tenant',
+    tenantId: 'tenant-1', landlordId: 'landlord-1', active: true, today: '2026-11-06',
+    leaseStart: '2026-11-01', leaseEnd: '2027-11-01', monthlyRent: 15000, depositTarget: 30000,
+    originalAgreementPath: null, renewal: {
+      id: 'r1', status: 'awaiting_payment_configuration', version: 1,
+      current_proposal_id: null, requested_start: '2027-11-02', duration_months: 12,
+    }, proposals: [], agreement: null, events: [], payment: null, ...over,
+  });
+  const draft = (): RenewalProposalDraft => ({
+    monthlyRent: '15000', retainedDeposit: '30000', advanceMonths: '1',
+    replenishmentKind: 'none', reason: '',
+  });
+
+  it('locks renewal length to the previous lease term', () => {
+    expect(previousLeaseDurationMonths('2026-11-01', '2027-11-01')).toBe(12);
+    expect(previousLeaseDurationMonths('2025-11-21', '2026-11-20')).toBe(12);
+    expect(previousLeaseDurationMonths('2026-11-01', null)).toBeNull();
+    expect(lockedRenewalDurationMonths(context())).toBe(12);
+    expect(lockedRenewalDurationMonths(context({ leaseStart: '2026-11-01', leaseEnd: null }))).toBe(12);
+    expect(lockedRenewalDurationMonths(context({
+      leaseStart: '2026-11-01', leaseEnd: null, renewal: null,
+    }))).toBeNull();
+    // Even if a stale renewal row disagrees, the previous term wins.
+    expect(lockedRenewalDurationMonths(context({
+      renewal: { id: 'r1', status: 'awaiting_payment_configuration', version: 1,
+        current_proposal_id: null, requested_start: '2027-11-02', duration_months: 6 },
+    }))).toBe(12);
+    expect(renewalProposalPayload(context(), draft(), 'proposal-1', null)).toMatchObject({ durationMonths: 12 });
+    expect(() => renewalProposalPayload(context({ leaseStart: '2026-11-01', leaseEnd: null, renewal: null }), draft(), 'proposal-1', null))
+      .toThrow(/Previous lease length is unclear/);
   });
 });

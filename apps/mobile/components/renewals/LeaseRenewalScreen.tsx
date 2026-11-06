@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Keyboard,Text,View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button,Input,Spinner,TextArea } from 'heroui-native';
-import { canRequestLeaseRenewal,canTakeRenewalAction,formatPesoDisplay,previousLeaseDurationMonths,RENEWAL_DEPOSIT_NOTICE,renewalDefaultStart,renewalStatusLabel,type RenewalPortal } from '@repo/utils';
+import { Button,Spinner,TextArea } from 'heroui-native';
+import { canRequestLeaseRenewal,canTakeRenewalAction,formatPesoDisplay,lockedRenewalDurationMonths,RENEWAL_DEPOSIT_NOTICE,renewalDefaultStart,renewalStatusLabel,type RenewalPortal } from '@repo/utils';
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
 import AppDialog from '@/components/display/AppDialog';
@@ -15,10 +15,10 @@ interface LeaseRenewalScreenProps {tenancyId:string;portal:RenewalPortal}
 
 export default function LeaseRenewalScreen({tenancyId,portal}:LeaseRenewalScreenProps) {
   const renewal=useLeaseRenewal(tenancyId,portal),router=useRouter();
-  const [confirm,setConfirm]=useState<'not_renewing'|'decline'|null>(null),[reason,setReason]=useState(''),[duration,setDuration]=useState('');
+  const [confirm,setConfirm]=useState<'not_renewing'|'decline'|null>(null),[reason,setReason]=useState('');
   const c=renewal.data,r=c?.renewal,p=c?.proposals.find((proposal)=>proposal.id===r?.current_proposal_id);
   const allowed=(action:Parameters<typeof canTakeRenewalAction>[2])=>!!r&&canTakeRenewalAction(r.status,portal,action);
-  const months=duration||String(c?previousLeaseDurationMonths(c.leaseStart,c.leaseEnd)??'':'');
+  const lockedMonths=c?lockedRenewalDurationMonths(c):null;
   const ownConfirmation=c?.agreement&&(portal==='tenant'?c.agreement.tenant_confirmed_at:c.agreement.landlord_confirmed_at);
   return <ScreenWrapper scrollable className="p-5" refreshing={renewal.isRefetching} onRefresh={async()=>{await renewal.refetch();}}>
     <StandardHeader title="Lease renewal"/>
@@ -32,9 +32,11 @@ export default function LeaseRenewalScreen({tenancyId,portal}:LeaseRenewalScreen
         {r&&<Text className="font-nunitoBold text-accent">{renewalStatusLabel(r.status,p?.lease_start??null,c.today)}</Text>}
       </View>
       {!r&&portal==='tenant'&&canRequestLeaseRenewal(c.leaseEnd,c.today,c.active)&&<View className="gap-3 rounded-3xl border border-border bg-surface p-5">
-        <Text className="text-foreground">Same duration as the previous lease (months)</Text><Input accessibilityLabel="Previous lease duration in months" value={months} onChangeText={setDuration} keyboardType="number-pad"/>
+        {lockedMonths===null
+          ? <Text accessibilityRole="alert" className="text-danger">Previous lease length is unclear. The renewal needs review.</Text>
+          : <Text className="text-foreground">Same duration as the previous lease: <Text className="font-nunitoBold">{lockedMonths} months</Text></Text>}
         <Text className="text-muted">Proposed renewal start: {renewalDefaultStart(c.leaseEnd)}. You review the landlord&apos;s end date and final charges before accepting.</Text>
-        <Button isDisabled={renewal.busy||!months} onPress={()=>{Keyboard.dismiss();renewal.act('request',{durationMonths:Number(months)});}}><Button.Label>Request Lease Renewal</Button.Label></Button>
+        <Button isDisabled={renewal.busy||lockedMonths===null} onPress={()=>{Keyboard.dismiss();renewal.act('request',{durationMonths:lockedMonths});}}><Button.Label>Request Lease Renewal</Button.Label></Button>
         <Button variant="outline" isDisabled={renewal.busy} onPress={()=>setConfirm('not_renewing')}><Button.Label>I Will Not Renew</Button.Label></Button>
         <Button variant="ghost" onPress={()=>router.back()}><Button.Label>Decide Later</Button.Label></Button>
       </View>}
@@ -68,7 +70,7 @@ export default function LeaseRenewalScreen({tenancyId,portal}:LeaseRenewalScreen
       <Button variant="outline" isDisabled={renewal.busy} onPress={()=>void renewal.refetch()}><Button.Label>Refresh renewal</Button.Label></Button>
     </>}
     </View>
-    <AppDialog isOpen={confirm!==null} onOpenChange={(open)=>{if(!open&&!renewal.isLocked())setConfirm(null);}} dismissible={!renewal.busy} title={confirm==='not_renewing'?'Confirm you will not renew':'Decline this renewal?'} footer={<View className="gap-2"><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(null);}}><Button.Label>Cancel</Button.Label></Button><Button isDisabled={renewal.busy||(confirm==='decline'&&!reason.trim())} onPress={()=>{if(confirm)void renewal.act(confirm,{reason,durationMonths:Number(months)}).then((saved)=>{if(saved)setConfirm(null);});}}><Button.Label>Confirm decision</Button.Label></Button></View>}>
+    <AppDialog isOpen={confirm!==null} onOpenChange={(open)=>{if(!open&&!renewal.isLocked())setConfirm(null);}} dismissible={!renewal.busy} title={confirm==='not_renewing'?'Confirm you will not renew':'Decline this renewal?'} footer={<View className="gap-2"><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(null);}}><Button.Label>Cancel</Button.Label></Button><Button isDisabled={renewal.busy||(confirm==='decline'&&!reason.trim())} onPress={()=>{if(confirm)void renewal.act(confirm,{reason,durationMonths:lockedMonths}).then((saved)=>{if(saved)setConfirm(null);});}}><Button.Label>Confirm decision</Button.Label></Button></View>}>
       <Text className="text-foreground">This records your decision and notifies the other party. It does not end the current tenancy.</Text>
       {confirm==='decline'&&<TextArea accessibilityLabel="Reason for declining" value={reason} onChangeText={setReason} maxLength={1000}/>}
       {renewal.actionError&&<Text accessibilityRole="alert" className="text-danger">{renewal.actionError}</Text>}

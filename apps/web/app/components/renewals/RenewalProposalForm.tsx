@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button, InputGroup, Label, TextArea } from '@heroui/react';
-import { IconCalendar, IconInfoCircle, IconPencil, IconSendFilled, IconShieldCheck, IconUpload } from "@tabler/icons-react";
-import { initialRenewalProposalDraft, RENEWAL_DEPOSIT_NOTICE, type LeaseRenewalContext, type RenewalProposalDraft } from '@repo/utils';
+import { IconInfoCircle, IconPencil, IconSendFilled, IconShieldCheck, IconUpload } from "@tabler/icons-react";
+import { initialRenewalProposalDraft, lockedRenewalDurationMonths, RENEWAL_DEPOSIT_NOTICE, type LeaseRenewalContext, type RenewalProposalDraft } from '@repo/utils';
 import SettingsSelect from '@/app/components/settings/SettingsSelect';
-import { SIGNED_LEASE_ACCEPT } from '@/lib/signed-lease';
+import { SIGNED_LEASE_ACCEPT, validateSignedLeaseFile } from '@/lib/signed-lease';
 
 interface RenewalProposalFormProps {
   context: LeaseRenewalContext;
@@ -16,7 +16,21 @@ interface RenewalProposalFormProps {
 export default function RenewalProposalForm({ context, busy, onSubmit }: RenewalProposalFormProps) {
   const [draft,setDraft] = useState(() => initialRenewalProposalDraft(context));
   const [file,setFile] = useState<File|null>(null);
+  const [fileError,setFileError] = useState<string|null>(null);
+  const [dragging,setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const field = (name: keyof RenewalProposalDraft, value: string) => setDraft((current) => ({...current,[name]:value}));
+  const lockedMonths=lockedRenewalDurationMonths(context);
+  const selectFile = (candidate: File|null) => {
+    if (!candidate) { setFile(null); setFileError(null); return; }
+    const error = validateSignedLeaseFile(candidate);
+    if (error) { setFile(null); setFileError(error); return; }
+    setFile(candidate); setFileError(null);
+  };
+  const clearFile = () => {
+    setFile(null); setFileError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
   return <form className="grid gap-4 rounded-2xl border border-border bg-card p-5 md:p-6" onSubmit={(event) => { event.preventDefault(); onSubmit(draft,file); }}>
     <div className="flex items-center gap-3">
       <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><IconPencil size={22} aria-hidden /></div>
@@ -27,7 +41,7 @@ export default function RenewalProposalForm({ context, busy, onSubmit }: Renewal
     </div>
     <div className="flex gap-2 rounded-xl bg-primary/5 p-3 text-sm">
       <IconInfoCircle size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden />
-      <p>Start: {context.renewal?.requested_start}. Rent may stay the same or decrease. For a mid-month start, the new billing rate and any advance apply to the first full calendar month. The current calendar month is not charged twice.</p>
+      <p>Start: {context.renewal?.requested_start}. Duration is the same as the previous lease and cannot be changed. Rent may stay the same or decrease. For a mid-month start, the new billing rate and any advance apply to the first full calendar month. The current calendar month is not charged twice.</p>
     </div>
     <div className="grid gap-4 md:grid-cols-2">
       <div className="flex flex-col gap-1.5">
@@ -38,11 +52,10 @@ export default function RenewalProposalForm({ context, busy, onSubmit }: Renewal
         </InputGroup>
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label>Duration (months) *</Label>
-        <InputGroup className="w-full">
-          <InputGroup.Prefix><IconCalendar size={16} className="text-muted-foreground" aria-hidden /></InputGroup.Prefix>
-          <InputGroup.Input aria-label="Renewal duration in months" type="number" min={1} max={120} placeholder="Enter duration" value={draft.durationMonths} onChange={(e)=>field('durationMonths',e.target.value)} disabled={busy}/>
-        </InputGroup>
+        <Label>Renewal duration (same as previous lease)</Label>
+        {lockedMonths===null
+          ? <p role="alert" className="text-sm text-danger">Previous lease length is unclear. The renewal needs review.</p>
+          : <p className="rounded-xl bg-muted/30 px-3 py-3 text-sm font-semibold">{lockedMonths} months</p>}
       </div>
       <div className="flex flex-col gap-1.5">
         <Label>Deposit amount you declare is still retained (₱) *</Label>
@@ -73,17 +86,30 @@ export default function RenewalProposalForm({ context, busy, onSubmit }: Renewal
     </div>
     <div className="flex flex-col gap-1.5">
       <Label>Optional supporting document (up to 10 MB)</Label>
-      <span className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border p-6 text-center">
+      <label htmlFor="renewal-supporting-document"
+        className={`flex w-full flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center transition-colors ${busy?'cursor-not-allowed opacity-60':'cursor-pointer'} ${dragging?'border-primary bg-primary/5':'border-border'} ${fileError?'border-danger/60':''} focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20`}
+        onDragOver={(e)=>{e.preventDefault();if(!busy)setDragging(true);}}
+        onDragLeave={()=>setDragging(false)}
+        onDrop={(e)=>{
+          e.preventDefault();setDragging(false);
+          if(busy)return;
+          const dropped=e.dataTransfer.files?.[0]??null;
+          selectFile(dropped);
+          if(fileInputRef.current)fileInputRef.current.value='';
+        }}>
         <IconUpload size={24} className="text-muted-foreground" aria-hidden />
-        <span className="text-sm"><span className="font-semibold text-primary">Choose File</span> or drag and drop</span>
-        <span className="text-xs text-muted-foreground">{file?file.name:'No file chosen · Up to 10 MB'}</span>
-        <input aria-label="Supporting document" type="file" accept={SIGNED_LEASE_ACCEPT} onChange={(e)=>setFile(e.target.files?.[0]??null)} disabled={busy} className="sr-only" />
-      </span>
+        <span className="text-sm"><span className="font-semibold text-primary">{file?'Choose a different file':'Choose File'}</span> or drag and drop</span>
+        <span className="max-w-full break-all text-xs text-muted-foreground">{file?file.name:'No file chosen · Up to 10 MB'}</span>
+        <input ref={fileInputRef} id="renewal-supporting-document" aria-label="Supporting document" type="file" accept={SIGNED_LEASE_ACCEPT}
+          onChange={(e)=>{selectFile(e.target.files?.[0]??null);e.target.value='';}} disabled={busy} className="sr-only" />
+      </label>
+      {fileError&&<p role="alert" className="text-sm text-danger">{fileError}</p>}
+      {file&&!busy&&<div><Button type="button" variant="outline" onPress={clearFile}>Remove file</Button></div>}
     </div>
     <div className="flex gap-2 rounded-xl bg-primary/5 p-3 text-sm">
       <IconInfoCircle size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden />
       <p>{RENEWAL_DEPOSIT_NOTICE} APT checks recorded payments before calculating applicable credit. The tenant reviews the final separate charges before acceptance.</p>
     </div>
-    <Button type="submit" className="w-full" isDisabled={busy}><IconSendFilled size={16} aria-hidden /> Send proposal for tenant review</Button>
+    <Button type="submit" className="w-full" isDisabled={busy||lockedMonths===null}><IconSendFilled size={16} aria-hidden /> Send proposal for tenant review</Button>
   </form>;
 }

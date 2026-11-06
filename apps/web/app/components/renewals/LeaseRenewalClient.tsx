@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Input, Label, Modal, Spinner, TextArea } from "@heroui/react";
+import { Button, Label, Modal, Spinner, TextArea } from "@heroui/react";
 import {
   IconArrowLeft,
   IconCalendar,
@@ -17,7 +17,7 @@ import {
   IconShieldCheck,
   IconX,
 } from "@tabler/icons-react";
-import { canRequestLeaseRenewal, canTakeRenewalAction, formatPesoDisplay, previousLeaseDurationMonths,
+import { canRequestLeaseRenewal, canTakeRenewalAction, formatPesoDisplay, lockedRenewalDurationMonths,
   RENEWAL_DEPOSIT_NOTICE, renewalDefaultStart, renewalStatusLabel, type RenewalPortal,
   type RenewalStatus } from '@repo/utils';
 import { useAuthIdentity } from '@/hooks/use-auth-identity';
@@ -71,7 +71,6 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
   const renewal=useLeaseRenewal(tenancyId,portal);
   const [reason,setReason]=useState('');
   const [confirm,setConfirm]=useState<'not_renewing'|'decline'|null>(null);
-  const [duration,setDuration]=useState('');
   const [file,setFile]=useState<File|null>(null);
   const [showProposal,setShowProposal]=useState(false);
   if(renewal.loading) return <div className="p-6" role="status"><Spinner/> Loading renewal…</div>;
@@ -84,7 +83,7 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
   const canDecline=allowed('decline');
   const peer=portal==='tenant'?c.landlordId:c.tenantId;
   const conversation=encodeURIComponent(getContactConversationKey(peer,c.apartmentId));
-  const months=duration||String(previousLeaseDurationMonths(c.leaseStart,c.leaseEnd)??'');
+  const lockedMonths=lockedRenewalDurationMonths(c);
   const confirmation=c.agreement&&(portal==='tenant'?c.agreement.tenant_confirmed_at:c.agreement.landlord_confirmed_at);
   const statusLabel=r?renewalStatusLabel(r.status,p?.lease_start??null,c.today):null;
   const statusTone=r?(r.status==='renewed'?'success':r.status==='declined'?'danger':'warning'):'neutral';
@@ -101,10 +100,10 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
   const renewalModal = (
     <Modal isOpen={confirm!==null} onOpenChange={(open)=>{if(!open&&!renewal.isLocked())setConfirm(null);}}>
       <Modal.Backdrop><Modal.Container><Modal.Dialog><Modal.Header><Modal.Heading>{confirm==='not_renewing'?'Confirm you will not renew':'Decline this renewal?'}</Modal.Heading></Modal.Header><Modal.Body>
-        <p>This records your decision and notifies the other party. It does not end the current tenancy.</p>
+        <p className="text-sm text-foreground">This records your decision and notifies the other party. It does not end the current tenancy.</p>
         {confirm==='decline'&&<Label>Reason<TextArea aria-label="Reason for declining" value={reason} maxLength={1000} onChange={(e)=>setReason(e.target.value)}/></Label>}
-        {renewal.actionError&&<p role="alert">{renewal.actionError}</p>}
-      </Modal.Body><Modal.Footer><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(null);}}>Cancel</Button><Button isDisabled={renewal.busy||(confirm==='decline'&&!reason.trim())} onPress={()=>{const action=confirm;if(action)void renewal.act(action,{durationMonths:Number(months),reason}).then((saved)=>{if(saved)setConfirm(null);});}}>Confirm decision</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
+        {renewal.actionError&&<p role="alert" className="text-sm text-danger">{renewal.actionError}</p>}
+      </Modal.Body><Modal.Footer><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(null);}}>Cancel</Button><Button isDisabled={renewal.busy||(confirm==='decline'&&!reason.trim())} onPress={()=>{const action=confirm;if(action)void renewal.act(action,{durationMonths:lockedMonths,reason}).then((saved)=>{if(saved)setConfirm(null);});}}>Confirm decision</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
     </Modal>
   );
   if (portal === "landlord") {
@@ -265,11 +264,15 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
 
         {!r&&portal==='tenant'&&canRequestLeaseRenewal(c.leaseEnd,c.today,c.active)&&<section className="grid gap-3 rounded-2xl border border-border bg-card p-5 md:p-6">
           <h2 className="font-nunito text-xl font-bold">Would you like to renew?</h2>
-          <Label>Same duration as the previous lease (months)<Input aria-label="Previous lease duration in months" type="number" min={1} max={120} value={months} onChange={(e)=>setDuration(e.target.value)}/></Label>
+          {lockedMonths===null
+            ? <p role="alert" className="text-sm text-danger">Previous lease length is unclear. The renewal needs review.</p>
+            : <p className="text-sm font-medium">Same duration as the previous lease: <span className="font-semibold">{lockedMonths} months</span></p>}
           <p className="text-sm text-muted-foreground">Proposed renewal start: {renewalDefaultStart(c.leaseEnd)}. The landlord will send the end date and charges for your review.</p>
-          <Button isDisabled={renewal.busy||!months} onPress={()=>void renewal.act('request',{durationMonths:Number(months)})}>Request Lease Renewal</Button>
-          <Button variant="outline" isDisabled={renewal.busy} onPress={()=>setConfirm('not_renewing')}>I Will Not Renew</Button>
-          <Link href="/tenant/my-rental" className="text-center text-sm text-primary">Decide Later</Link>
+          <div className="flex flex-wrap gap-3">
+            <Button className="min-w-[10rem] flex-1 justify-center" isDisabled={renewal.busy||lockedMonths===null} onPress={()=>void renewal.act('request',{durationMonths:lockedMonths})}>Request Lease Renewal</Button>
+            <Button variant="outline" className="min-w-[10rem] flex-1 justify-center" isDisabled={renewal.busy} onPress={()=>setConfirm('not_renewing')}>I Will Not Renew</Button>
+            <Link href="/tenant/my-rental" className="inline-flex h-10 min-w-[10rem] flex-1 items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-medium hover:bg-muted/50">Decide Later</Link>
+          </div>
         </section>}
         {!r&&!canRequestLeaseRenewal(c.leaseEnd,c.today,c.active)&&<p className="text-sm text-muted-foreground">Requests open during the final 30 days of an active, dated lease. Missing or expired terms need review.</p>}
         {r&&(canApprove||canPropose)&&<section className="rounded-2xl border border-border bg-card p-5 md:p-6">

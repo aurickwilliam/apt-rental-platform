@@ -117,10 +117,15 @@ export function previousLeaseDurationMonths(start: string, end: string | null): 
   return null;
 }
 
+export function lockedRenewalDurationMonths(context: LeaseRenewalContext): number | null {
+  const previous = previousLeaseDurationMonths(context.leaseStart, context.leaseEnd);
+  if (previous !== null) return previous;
+  return context.renewal?.duration_months ?? null;
+}
+
 export interface RenewalProposalDraft {
   monthlyRent: string;
   retainedDeposit: string;
-  durationMonths: string;
   advanceMonths: '0' | '1';
   replenishmentKind: RenewalChargeInput['replenishmentKind'];
   reason: string;
@@ -132,16 +137,18 @@ export function initialRenewalProposalDraft(context: LeaseRenewalContext): Renew
     monthlyRent: String(proposal?.monthly_rent ?? context.monthlyRent ?? ''),
     // Never prefill a guessed actual deposit balance; the landlord must declare it.
     retainedDeposit: '',
-    durationMonths: String(proposal?.duration_months ?? context.renewal?.duration_months ?? previousLeaseDurationMonths(context.leaseStart,context.leaseEnd) ?? ''),
     advanceMonths: String(proposal?.advance_months ?? 0) as '0' | '1',
     replenishmentKind: 'none', reason: '',
   };
 }
 
 export function renewalProposalPayload(context: LeaseRenewalContext, draft: RenewalProposalDraft, proposalId: string, evidencePath: string | null): Record<string,string|number|null> {
-  const months = Number(draft.durationMonths);
-  if (!context.renewal || !Number.isInteger(months) || months < 1 || months > 120 || draft.retainedDeposit.trim() === '') {
-    throw new Error('Confirm the duration and declare the deposit amount still retained.');
+  const months = lockedRenewalDurationMonths(context);
+  if (!context.renewal || months === null) {
+    throw new Error('Previous lease length is unclear. The renewal needs review.');
+  }
+  if (draft.retainedDeposit.trim() === '') {
+    throw new Error('Declare the deposit amount still retained.');
   }
   const result = calculateRenewalCharges({ currentMonthlyRent: context.monthlyRent ?? 0,
     monthlyRent: Number(draft.monthlyRent), depositTarget: context.depositTarget,

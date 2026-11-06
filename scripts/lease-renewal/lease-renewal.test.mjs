@@ -6,6 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 
 const readMigration = (name) => readFile(new URL(`../../supabase/migrations/${name}`, import.meta.url), 'utf8');
 const migration = await readMigration('20261106090000_lease_renewals.sql');
+const durationLock = await readMigration('20261106100000_lock_renewal_duration.sql');
 const billing = await readMigration('20261020101501_move_in_billing.sql');
 const cash = await readMigration('20261016141949_guard_cash_payment_submissions.sql');
 const reminders = await readMigration('20260826054353_rent_due_reminders.sql');
@@ -60,6 +61,7 @@ test('lease renewal SQL contract', async (t) => {
   await db.exec(reminderFunction);
   await db.exec(billing);
   await db.exec(migration);
+  await db.exec(durationLock);
   await db.exec(`grant usage on schema public,auth,app_private,storage to authenticated;
     grant select,insert,update,delete on storage.objects to authenticated;`);
   const tenant = randomUUID(), landlord = randomUUID(), outsider = randomUUID();
@@ -256,6 +258,21 @@ test('lease renewal SQL contract', async (t) => {
     assert.equal(future.monthlyRent,14000);assert.equal(future.securityDeposit,0);assert.equal(future.advanceRent,0);
     await assert.rejects(db.query("update tenancies set lease_end=lease_end+1 where id=$1",[r.tenancy]),/agreed renewal process/);
     await assert.rejects(db.query("update tenancies set status='ended' where id=$1",[r.tenancy]),/Reconcile the scheduled/);
+  });
+
+  await t.test('duration is locked to the previous lease', async () => {
+    const r=await rental();
+    await as(tenant);
+    await assert.rejects(act(r,'tenant','request',null,{durationMonths:6}),/same as the previous lease/);
+    await request(r);
+    await as(landlord);
+    let c=await context(r,'landlord');
+    await act(r,'landlord','approve',c.renewal.version);
+    c=await context(r,'landlord');
+    await assert.rejects(act(r,'landlord','propose',c.renewal.version,{
+      proposalId:randomUUID(),durationMonths:6,monthlyRent:15000,retainedDeposit:30000,
+      replenishmentKind:'none',reason:'',advanceMonths:1,leaseStart:calendar.starting,
+    }),/same as the previous lease/);
   });
 
   await t.test('scheduler retries do not duplicate notices and expiry does not end a tenancy', async () => {
