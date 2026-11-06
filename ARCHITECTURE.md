@@ -181,6 +181,16 @@ Phase 0 admin authorization hardening: browser/mobile profile edits cannot chang
 
 ### 4.3 Web flow
 
+Standalone Terms and Privacy readers share presentation components between public
+and portal routes. Public policy pages resolve a settled session through the
+request-local identity and validated portal preference before redirecting; absent,
+incomplete or unavailable profiles stay on the public text without an onboarding
+loop. Portal pages keep their own role/suspension/onboarding authorization and
+Admin MFA. The two landlord policy routes are read-only exceptions to the
+verification wall, not exceptions to membership or suspension checks. Settings
+builds policy links from its resolved active portal, never role-priority alone.
+See `docs/web-policy-navigation.md`.
+
 Web registration policy checkboxes additionally require reaching each loaded
 document's end in its own policy modal (two fixed-document instances, no tabs).
 After content readiness, the same independent completion state locks Close/X,

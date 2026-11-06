@@ -21,6 +21,7 @@ function load(file, modules) {
     "@heroui/react": { Card: Object.assign(() => {}, { Content: "Card.Content" }), Link: "HeroLink" },
     "next/link": { default: "NextLink" },
     "./data/pap-sections": privacy,
+    "@/app/(main)/pap/data/pap-sections": privacy,
     "./data/cookies-sections": cookies,
     ...modules,
   };
@@ -39,18 +40,19 @@ function nodes(element) {
 }
 
 for (const policy of policies) {
-  const pagePath = `(main)/${policy.route}/page.tsx`;
+  const pagePath = policy.route === "pap" ? "components/legal/PrivacyPolicyPage.tsx" : `(main)/${policy.route}/page.tsx`;
   const { BRAND, LEGAL_META, SECTIONS, TOC } = policy.data;
 
   test(`${policy.name} uses the Terms legal shell, server metadata and original hero metadata`, () => {
     const page = load(pagePath);
+    const metadata = page.metadata ?? page.privacyPolicyMetadata;
     const all = nodes(page.default());
     assert.doesNotMatch(page.source, /^\s*["']use client["']/);
-    assert.equal(page.metadata.title, `${policy.name} Policy — APT`);
+    assert.equal(metadata.title, `${policy.name} Policy — APT`);
     const hero = all.find(node => node.type === "LegalHero");
     assert.equal(hero.props.title, policy.name);
     assert.equal(hero.props.titleAccent, "Policy");
-    assert.equal(hero.props.description, page.metadata.description);
+    assert.equal(hero.props.description, metadata.description);
     assert.deepEqual(hero.props.meta, LEGAL_META);
     assert.match(all.find(node => node.type === "article").props.className, /max-w-4xl/);
     assert.match(all[0].props.className, /bg-muted\/30 dark:bg-background/);
@@ -89,12 +91,16 @@ for (const policy of policies) {
     assert.equal(sections[policy.warningIndex].props.callout.kind, "warning");
   });
 
-  test(`${policy.name} Contents matches all section anchors and contact links stay policy-specific`, () => {
+  test(`${policy.name} Contents matches all section anchors and only Cookie keeps its contact footer`, () => {
     assert.deepEqual(TOC.map(item => item.id), SECTIONS.map(section => section.id));
     assert(TOC.every(item => !/^\d+\./.test(item.label)));
     const all = nodes(load(pagePath).default());
     assert.deepEqual(all.find(node => node.type === "LegalTableOfContents").props.items, TOC);
     const contact = all.find(node => node.type === "LegalContactCard");
+    if (policy.route === "pap") {
+      assert.equal(contact, undefined);
+      return;
+    }
     assert.deepEqual(contact.props.brand, BRAND);
     assert.equal(contact.props.eyebrow, `Questions about this ${policy.name} Policy?`);
     assert.equal(contact.props.description, null);
