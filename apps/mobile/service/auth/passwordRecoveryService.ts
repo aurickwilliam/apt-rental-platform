@@ -59,10 +59,18 @@ export async function isPasswordRecoveryInProgress(): Promise<boolean> {
 }
 
 // Sends (or resends) a recovery code. supabase.auth.resend() does not support
-// recovery codes, so resend calls this again. Resolves the same way whether or
-// not the account exists, so callers can't reveal account existence.
+// recovery codes, so resend calls this again. Unknown emails are refused before
+// any code is sent (PasswordError "email_not_registered").
 export async function requestPasswordRecovery(email: string, captchaToken?: string): Promise<void> {
   const normalizedEmail = normalizeRecoveryEmail(email);
+  // Only emails with a confirmed account get a code (same RPC as the sign-up
+  // duplicate check). A failed lookup is an error, never a silent "send".
+  const { data: registered, error: lookupError } = await supabase.rpc("is_email_registered", {
+    p_email: normalizedEmail,
+  });
+  if (lookupError) throw toPasswordError(lookupError, "Password recovery lookup");
+  if (registered !== true) throw new PasswordError("email_not_registered");
+
   const { error } = await (captchaToken
     ? supabase.auth.resetPasswordForEmail(normalizedEmail, { captchaToken })
     : supabase.auth.resetPasswordForEmail(normalizedEmail));

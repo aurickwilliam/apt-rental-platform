@@ -3,6 +3,7 @@
 
 export type PasswordErrorReason =
   | "invalid_email"
+  | "email_not_registered"
   | "invalid_or_expired_code"
   | "wrong_current_password"
   | "rate_limited"
@@ -16,6 +17,7 @@ export type PasswordErrorReason =
 
 const PASSWORD_ERROR_MESSAGES: Record<PasswordErrorReason, string> = {
   invalid_email: "Enter a valid email address.",
+  email_not_registered: "We couldn't find an account with that email address.",
   invalid_or_expired_code:
     "That code is incorrect or has expired. Check the code or request a new one.",
   wrong_current_password: "Your current password is incorrect.",
