@@ -368,6 +368,8 @@ export default function SignUpForm() {
         <RegistrationPolicyAcceptance value={acceptance} onChange={value => { setAcceptance(value); setAcceptanceErrors({}); }}
           errors={acceptanceErrors} isDisabled={loading || otpFlow.loading || isOpen} />
 
+        <TurnstileWidget ref={attachCaptcha} />
+
         <Button
           variant="primary"
           className="w-full md:max-w-[300px] md:self-end rounded-full"
@@ -378,7 +380,6 @@ export default function SignUpForm() {
         >
           {loading ? "Creating Account..." : "Sign Up"}
         </Button>
-        <TurnstileWidget ref={attachCaptcha} />
       </Form>
 
       <OtpModal
