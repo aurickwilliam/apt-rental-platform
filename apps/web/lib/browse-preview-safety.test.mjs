@@ -18,7 +18,7 @@ function load(name, overrides = {}, globals = {}) {
     "@repo/utils": { formatPesoDisplay: value => `₱ ${value}` },
     "@tabler/icons-react": { IconFlag: "Flag", IconFileText: "File" },
     "./MaintenanceHistoryButton": { default: "Maintenance" },
-    "@/app/components/profile/ProfilePhotoErrorDialog": { default: "ErrorDialog" },
+    "@/app/components/display/ErrorDialog": { default: "ErrorDialog" },
     "@/lib/apartment-availability": { isApartmentUnavailable: () => false },
     ...overrides,
   };

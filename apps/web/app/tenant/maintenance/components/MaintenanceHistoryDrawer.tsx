@@ -8,7 +8,7 @@ import { emptyHistoryFilters, historyFilterCount, type MaintenanceHistoryFilters
 import EmptyState from "@/app/components/display/EmptyState";
 import MaintenanceHistoryFilters from "./MaintenanceHistoryFilters";
 
-interface MaintenanceHistoryModalProps {
+interface MaintenanceHistoryDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   requests: MaintenanceRequest[];
@@ -23,7 +23,7 @@ interface MaintenanceHistoryModalProps {
   renderRequest: (request: MaintenanceRequest) => ReactNode;
 }
 
-export default function MaintenanceHistoryModal({ isOpen, onOpenChange, requests, filters, onApplyFilters, loading, error, photoLoading, photoError, limitReached, onRetry, renderRequest }: MaintenanceHistoryModalProps) {
+export default function MaintenanceHistoryDrawer({ isOpen, onOpenChange, requests, filters, onApplyFilters, loading, error, photoLoading, photoError, limitReached, onRetry, renderRequest }: MaintenanceHistoryDrawerProps) {
   const activeFilterCount = historyFilterCount(filters);
   const drawerState = useOverlayState({
     isOpen,
