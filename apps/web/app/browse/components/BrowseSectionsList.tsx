@@ -125,6 +125,7 @@ const SectionRow = memo(function SectionRow({
               rating={apt.rating}
               isVerified={apt.isVerified}
               thumbnailUrl={apt.image}
+              reasons={apt.reasons}
               isFavorite={isFavorite(apt.id)}
               isFavoriteLoading={activeFavoriteId === apt.id}
               onFavoritePress={() => {

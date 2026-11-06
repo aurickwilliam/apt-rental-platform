@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   IconBell,
@@ -45,6 +45,7 @@ export default function SettingsModal({
   onClose,
   initialRoles,
   activePortal,
+  requestedRental = false,
   onChangePassword,
   onChangeEmail,
   onStartTutorial,
@@ -67,6 +68,13 @@ export default function SettingsModal({
    * client navigation apply without a full page reload.
    */
   activePortal?: "tenant" | "landlord" | "admin";
+  /**
+   * Deep-link intent from `?settingsTab=rental` (the recommendation empty
+   * state's "Update preferences" action). Owned by `SettingsOverlay`, which
+   * also clears the query when the dialog closes, so the intent can never
+   * outlive one open.
+   */
+  requestedRental?: boolean;
   onChangePassword: () => void;
   onChangeEmail: () => void;
   /** Closes Settings and replays the active portal's tutorial. */
@@ -95,7 +103,25 @@ export default function SettingsModal({
   // itself is untouched — the tab is only hidden.
   const canShowRental =
     isTenant && resolvedPortal !== "landlord" && resolvedPortal !== "admin";
-  const [tab, setTab] = useState<TabId>("general");
+  const [tab, setTab] = useState<TabId>(requestedRental ? "rental" : "general");
+  // Apply the deep-link intent once roles can see the tab. On public pages
+  // roles arrive from the client profile after the dialog opens, so watching
+  // only `open`/`requestedRental` could drop a valid intent; watching
+  // `canShowRental` too applies it as soon as it becomes possible, without
+  // overriding a later manual tab switch.
+  const [previousIntent, setPreviousIntent] = useState({
+    open,
+    requestedRental,
+    canShowRental,
+  });
+  if (
+    previousIntent.open !== open ||
+    previousIntent.requestedRental !== requestedRental ||
+    previousIntent.canShowRental !== canShowRental
+  ) {
+    setPreviousIntent({ open, requestedRental, canShowRental });
+    if (open && requestedRental && canShowRental) setTab("rental");
+  }
 
   // Rental-preferences draft lives at the modal level (not inside the tab)
   // so switching Settings tabs never discards in-progress edits. The tab
@@ -124,6 +150,25 @@ export default function SettingsModal({
     ? [...withPayments.slice(0, withPayments.length - 1), TUTORIAL_TAB, withPayments[withPayments.length - 1]]
     : withPayments;
   const activeId: TabId = visibleTabs.some((t) => t.id === tab) ? tab : "general";
+  const categoryNavRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const nav = categoryNavRef.current;
+    if (!nav) return;
+    const revealSelected = () => {
+      if (!window.matchMedia("(max-width: 767px)").matches) return;
+      nav.querySelector<HTMLButtonElement>('[aria-current="page"]')?.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: "instant",
+      });
+    };
+    revealSelected();
+    const observer = new ResizeObserver(revealSelected);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [activeId, open, canShowRental]);
 
   // Whether roles are still resolving without server-known seeds: reserve
   // the second slot (where the tenant-only tab lands) so it never pops
@@ -183,11 +228,12 @@ export default function SettingsModal({
                 Settings
               </Modal.Heading>
             </Modal.Header>
-            <Modal.Body className="mt-0! min-h-0 overflow-hidden! p-0">
+            <Modal.Body className="mx-0! mt-0! min-h-0 min-w-0 overflow-hidden! p-0">
               <div className="flex h-full min-h-0 flex-col md:flex-row">
                 <nav
+                  ref={categoryNavRef}
                   aria-label="Settings sections"
-                  className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-b-0"
+                  className="settings-category-nav flex min-w-0 shrink-0 justify-start gap-1 overflow-x-auto border-b border-border bg-muted/40 p-3 md:w-52 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-b-0"
                 >
                   {visibleTabs.map(({ id, label, icon: Icon }, index) => {
                     return (
@@ -196,10 +242,10 @@ export default function SettingsModal({
                           variant="ghost"
                           aria-current={activeId === id ? "page" : undefined}
                           onClick={() => setTab(id)}
-                          className={`button--bare flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeId === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}
+                           className={`settings-category-button button--bare flex min-h-11 shrink-0 cursor-pointer items-center justify-start gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeId === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}
                         >
                           <Icon size={18} aria-hidden="true" />
-                          {label}
+                           <span className="min-w-0">{label}</span>
                         </Button>
                         {/* Placeholder occupies the second slot (right after
                           General) while roles resolve. */}

@@ -47,6 +47,7 @@ interface ApplyClientProps {
   apartment: ApplyApartmentContext;
   viewer: ApplyViewer;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
   personalInfo: ApplicantPersonalInfo;
   savedPreferences: TenantPreferences | null;
   /** Sticky offset for the stepper; the public route sits under the navbar. */
@@ -63,6 +64,7 @@ export default function ApplyClient({
   apartment,
   viewer,
   hasActiveApplication,
+  hasActiveTenancy,
   personalInfo,
   savedPreferences,
   stepperStickyClassName,
@@ -87,6 +89,7 @@ export default function ApplyClient({
     accountStatus: viewer.accountStatus,
     landlordId: apartment.landlordId,
     hasActiveApplication,
+    hasActiveTenancy,
     // Proof of income only counts once the employment type is known.
     employmentType: form.employmentType || null,
   });

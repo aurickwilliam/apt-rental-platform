@@ -21,31 +21,32 @@ function SectionRowSkeleton() {
 export default function ApplicationDetailSkeleton() {
   return (
     <div
-      className="px-4 py-8 space-y-6"
+      className="w-full min-w-0 px-4 py-6 sm:py-8 space-y-5"
       aria-busy="true"
       aria-label="Loading application details"
     >
       <Sk className="h-8 w-20 rounded-full" />
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-2">
-          <Sk className="h-4 w-24 max-w-full rounded-lg" />
+      <div className="min-w-0 space-y-2">
+        <Sk className="h-4 w-24 max-w-full rounded-lg" />
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Sk className="h-8 w-full max-w-64 rounded-lg" />
-          <Sk className="h-4 w-full max-w-52 rounded-lg" />
+          <Sk className="h-8 w-28 max-w-full shrink-0 rounded-full" />
+          <Sk className="h-4 w-36 max-w-full rounded-lg" />
         </div>
-        <Sk className="h-8 w-28 max-w-full shrink-0 rounded-full" />
+        <Sk className="h-4 w-full max-w-52 rounded-lg" />
       </div>
 
-      <div className="grid items-start gap-6 xl:items-stretch xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="min-w-0 space-y-4">
           <div className="overflow-hidden rounded-3xl border border-border bg-card">
-            <div className="relative h-64 md:h-[360px]">
+            <div className="relative aspect-[16/10] w-full bg-muted">
               <Sk className="h-full w-full rounded-none" />
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-none">
-            <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-none sm:p-5">
+            <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0 space-y-2">
                 <Sk className="h-3 w-16 rounded-lg" />
                 <Sk className="h-4 w-full rounded-lg" />
@@ -56,14 +57,14 @@ export default function ApplicationDetailSkeleton() {
               </div>
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Sk className="h-9 flex-1 rounded-full" />
-              <Sk className="h-9 flex-1 rounded-full" />
+              <Sk className="h-11 flex-1 rounded-full" />
+              <Sk className="h-11 flex-1 rounded-full" />
             </div>
           </div>
         </div>
 
-        <div className="min-w-0 space-y-4 xl:flex xl:flex-col">
-          <div className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-none xl:flex xl:h-full xl:flex-col">
+        <div className="min-w-0 space-y-4">
+          <div className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-none">
             <div className="space-y-2">
               <Sk className="h-6 w-full max-w-48 rounded-lg" />
               <Sk className="h-4 w-full max-w-md rounded-lg" />
@@ -74,7 +75,7 @@ export default function ApplicationDetailSkeleton() {
               <SectionRowSkeleton />
               <SectionRowSkeleton />
             </div>
-            <Sk className="h-10 w-full rounded-full" />
+            <Sk className="h-11 w-44 max-w-full rounded-full" />
           </div>
         </div>
       </div>

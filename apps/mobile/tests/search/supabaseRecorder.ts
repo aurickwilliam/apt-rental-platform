@@ -91,7 +91,7 @@ export const cardRow = (id: string, overrides: Record<string, unknown> = {}) => 
 export const poolRow = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   city: "Caloocan",
-  monthly_rent: 10000,
+  monthly_rent: 20000,
   no_bedrooms: 2,
   amenities: [] as string[],
   is_verified: true,
@@ -99,4 +99,4 @@ export const poolRow = (id: string, overrides: Record<string, unknown> = {}) => 
   ...overrides,
 });
 
-export const POOL_SELECT = "id, city, monthly_rent, no_bedrooms, amenities, is_verified, average_rating";
+export const POOL_SELECT = "id, city, monthly_rent, no_bedrooms, max_occupants, amenities, is_verified, average_rating";

@@ -53,6 +53,7 @@ export default function GeneralTab() {
         <SettingsRow
           icon={<ThemeIcon size={18} />}
           title="Theme"
+          responsiveLayout="stack-control"
           description="Choose light, dark, or follow your device."
           suffix={
             <SettingsSelect
@@ -61,12 +62,14 @@ export default function GeneralTab() {
               options={THEME_OPTIONS.map(({ value, label, icon }) => ({ value, label, icon }))}
               onChange={setTheme}
               isDisabled={!mounted}
+              className="w-full min-w-0 sm:w-40"
             />
           }
         />
         <SettingsRow
           icon={<IconPlayerPause size={18} />}
           title="Reduce motion"
+          responsiveLayout="wrap"
           description="Limit animations on this browser."
           suffix={
             <ToggleSwitch

@@ -19,6 +19,7 @@ export interface ApplyStartViewer {
   userId: string;
   accountStatus: string | null;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
 }
 
 export interface ApplyStartApartment {
@@ -114,6 +115,7 @@ function ApplyStartContent({ apartment, viewer, basePath, onCancel, onOpenGuidel
     accountStatus: viewer.accountStatus,
     landlordId: apartment.landlordId,
     hasActiveApplication: viewer.hasActiveApplication,
+    hasActiveTenancy: viewer.hasActiveTenancy,
   });
 
   const totalMoveIn = apartment.monthlyRent + apartment.securityDeposit + apartment.advanceRent;

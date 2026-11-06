@@ -109,13 +109,14 @@ describe("fetchRecommendedCards", () => {
       return ["mid", "best", "low"].map((id) => cardRow(id)); // wrong order on purpose
     });
     const cards = await fetchRecommendedCards(prefs);
-    expect(cards.map((card) => card.id)).toEqual(["best", "mid", "low"]);
+    // "low" rents far above the chosen budget, so it is not recommended.
+    expect(cards.map((card) => card.id)).toEqual(["best", "mid"]);
     const poolCall = r.calls.find((call) => call.select === POOL_SELECT)!;
     expect(r.has(poolCall, "in", "city", ["Caloocan"])).toBe(true);
     expect(r.has(poolCall, "limit", 1000)).toBe(true);
     expect(poolCall.select).not.toContain("apartment_images");
     const winners = r.calls.find((call) => call !== poolCall)!;
-    expect(r.has(winners, "in", "id", ["best", "mid", "low"])).toBe(true);
+    expect(r.has(winners, "in", "id", ["best", "mid"])).toBe(true);
   });
 
   it("returns nothing, without a second read, when no listing scores", async () => {
