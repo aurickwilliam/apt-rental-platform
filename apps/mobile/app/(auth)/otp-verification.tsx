@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ErrorDialog from '@/components/display/ErrorDialog'
+import AuthLockoutDialog from '@/components/auth/AuthLockoutDialog'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
@@ -12,7 +13,9 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { useAuthLockout } from '@/hooks/auth/useAuthLockout'
 import { useCaptcha } from '@/hooks/auth/useCaptcha'
+import { verifyCodeViaServer } from '@/service/auth/serverAuthService'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
 import { completeMobileRegistration } from '@/service/auth/registrationService'
 import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '@/service/auth/registrationAcceptance'
@@ -23,14 +26,11 @@ import {
   getOtpAttemptError,
   getProfileSubmitError,
   parseResendWaitSeconds,
-  AUTH_THROTTLE_MESSAGE,
   CAPTCHA_FAILED_MESSAGE,
   CAPTCHA_PENDING_MESSAGE,
   isCaptchaError,
-  checkAuthThrottle,
-  clearAuthThrottle,
+  formatLockoutClock,
   isInvalidOtpError,
-  recordAuthFailure,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
@@ -75,6 +75,11 @@ export default function OTPVerification() {
   })
 
   const emailValue = Array.isArray(email) ? email[0] : email
+
+  // Attempt limit: the server counts wrong codes (shared with the website) and
+  // reports a lock, which the dialog and the disabled Verify button show. A
+  // reminder on the device keeps it visible after the app is closed.
+  const lockout = useAuthLockout('signup_otp', emailValue || data.email || '')
 
   const clearOtp = () => {
     setOtp('')
@@ -135,7 +140,7 @@ export default function OTPVerification() {
   // Check the OTP code and create the user account,
   // then insert the user profile to the database
   const handleVerify = async () => {
-    if (loading || otpLocked || otp.length < 6) return
+    if (loading || otpLocked || lockout.isLocked || otp.length < 6) return
     if (!isConfirmMode) {
       try {
         requireRegistrationAcceptance(data.acceptance)
@@ -155,32 +160,33 @@ export default function OTPVerification() {
     let emailVerified = false
 
     try {
-      // Persistent guess limit per email (database), so restarting the app
-      // does not give a fresh set of attempts.
-      const throttleEmail = emailValue || data.email!
-      if ((await checkAuthThrottle(supabase, 'signup_otp', throttleEmail)) > 0) {
-        clearOtp()
-        setOtpLocked(true)
-        setOtpError(AUTH_THROTTLE_MESSAGE)
-        return
-      }
-      const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
+      // Checked through the web server, which counts every wrong code in the same
+      // database windows as the website: the limit cannot be reset from this phone
+      // and a lock set on web shows here too.
+      const { data: verified, error: verifyError } = await verifyCodeViaServer({
         email: emailValue || data.email!,
-        token: otp,
-        type: 'signup',
+        code: otp,
+        flow: 'signup',
       })
 
-      if (verifyError || !authData.user) {
-        if (isInvalidOtpError(verifyError)) await recordAuthFailure(supabase, 'signup_otp', throttleEmail)
+      if (verifyError?.retryAfterSeconds) {
+        // Attempt limit reached (including by this very code): the server says how
+        // long it lasts, and the dialog replaces the inline error.
+        clearOtp()
+        lockout.lockFor(verifyError.retryAfterSeconds)
+        return
+      }
+      if (verifyError || !verified.user) {
         throw verifyError ?? new Error('Verification failed')
       }
-      await clearAuthThrottle(supabase, 'signup_otp', throttleEmail)
+      const authUser = verified.user
       emailVerified = true
+      void lockout.clear()
 
       if (isConfirmMode) {
         clearQueryClient()
-        if (await isProfileMissing(authData.user.id)) {
-          router.replace(profileMissingRoute(authData.user.email))
+        if (await isProfileMissing(authUser.id)) {
+          router.replace(profileMissingRoute(authUser.email))
         } else {
           router.replace('/')
         }
@@ -190,7 +196,7 @@ export default function OTPVerification() {
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
 
-      if (!data.profileDetails || !authData.user.email || authData.user.email.toLowerCase() !== data.email?.trim().toLowerCase()) {
+      if (!data.profileDetails || !authUser.email || authUser.email.toLowerCase() !== data.email?.trim().toLowerCase()) {
         throw new Error('Your signup details are no longer available. Please sign in to finish setting up your profile.')
       }
       requireRegistrationAcceptance(data.acceptance)
@@ -199,10 +205,10 @@ export default function OTPVerification() {
         role: userSide,
         acceptance: data.acceptance,
         source: 'mobile_registration',
-        expectedAuthId: authData.user.id,
+        expectedAuthId: authUser.id,
       })
 
-      await usePortalStore.getState().switchTo(authData.user.id, [userSide], userSide)
+      await usePortalStore.getState().switchTo(authUser.id, [userSide], userSide)
       reset()
 
       router.dismissAll()
@@ -245,6 +251,7 @@ export default function OTPVerification() {
 
         if (remaining <= 0) setOtpLocked(true)
         setOtpError(getOtpAttemptError(remaining))
+
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
@@ -307,7 +314,7 @@ export default function OTPVerification() {
               }}
               onComplete={handleVerify}
               isInvalid={!!otpError}
-              isDisabled={loading || otpLocked}
+              isDisabled={loading || otpLocked || lockout.isLocked}
               pattern={REGEXP_ONLY_DIGITS}
               inputMode="numeric"
               textInputProps={{
@@ -370,15 +377,23 @@ export default function OTPVerification() {
         {/* Verify Button */}
         <Button
           onPress={handleVerify}
-          isDisabled={loading || otpLocked || otp.length < 6 || !!acceptanceError}
+          isDisabled={loading || otpLocked || lockout.isLocked || otp.length < 6 || !!acceptanceError}
         >
           <Button.Label>
-            {loading
-              ? (isConfirmMode ? 'Verifying...' : 'Creating Account...')
-              : (isConfirmMode ? 'Verify Email' : 'Verify & Create Account')}
+            {lockout.isLocked
+              ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+              : loading
+                ? (isConfirmMode ? 'Verifying...' : 'Creating Account...')
+                : (isConfirmMode ? 'Verify Email' : 'Verify & Create Account')}
           </Button.Label>
         </Button>
       </View>
+
+      <AuthLockoutDialog
+        isOpen={lockout.dialogOpen}
+        onOpenChange={lockout.setDialogOpen}
+        secondsLeft={lockout.secondsLeft}
+      />
 
       {/* Error Dialog */}
       <ErrorDialog

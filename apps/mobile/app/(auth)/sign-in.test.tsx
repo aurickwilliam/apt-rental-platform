@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import SignIn from "./sign-in";
+import { saveServerLockout } from "@/service/auth/authLockoutStore";
 import { useSuspensionStore } from "@/stores/useSuspensionStore";
 
 const mockReplace = jest.fn();
@@ -12,6 +14,7 @@ const mockSingle = jest.fn();
 const mockRestore = jest.fn();
 const mockGetStatus = jest.fn();
 const mockErrorDialog = jest.fn();
+const mockLockoutDialog = jest.fn();
 
 jest.mock("expo-router", () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }) }));
 jest.mock("expo-image", () => ({ Image: () => null }));
@@ -24,6 +27,14 @@ jest.mock("./components/AuthDivider", () => () => null);
 jest.mock("./components/AuthButton", () => () => null);
 jest.mock("@/components/display/ErrorDialog", () => (props: unknown) => {
   mockErrorDialog(props);
+  return null;
+});
+jest.mock("@/service/auth/serverAuthService", () => ({
+  // Sign-in goes through the web server; these tests stand in for its reply.
+  signInViaServer: (...args: unknown[]) => mockSignInWithPassword(...args),
+}));
+jest.mock("@/components/auth/AuthLockoutDialog", () => (props: unknown) => {
+  mockLockoutDialog(props);
   return null;
 });
 jest.mock("@/service/auth/suspensionService", () => ({
@@ -76,8 +87,11 @@ jest.mock("heroui-native", () => {
 });
 
 describe("role-neutral mobile sign-in", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    await AsyncStorage.clear();
+    // The suspension notice lives in a shared store: a test that shows it must not leak into the next.
+    useSuspensionStore.getState().clear();
     mockSignInWithPassword.mockResolvedValue({ data: { user: { id: "account-a" } }, error: null });
     mockSingle.mockResolvedValue({ data: { roles: ["landlord", "tenant"] }, error: null });
     mockRestore.mockResolvedValue("tenant");
@@ -218,5 +232,90 @@ describe("role-neutral mobile sign-in", () => {
     );
     expect(mockSignOut).not.toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard");
+  });
+  describe("attempt limit", () => {
+    // The server counts attempts (shared with the website) and reports a lock as
+    // `retryAfterSeconds`; the screen only shows it.
+    const locked = (seconds: number) => ({
+      data: { user: null },
+      error: { code: "auth_locked", message: "Too many attempts.", retryAfterSeconds: seconds },
+    });
+
+    it("opens the lockout dialog and disables Sign in when the server reports a lock", async () => {
+      mockSignInWithPassword.mockResolvedValue(locked(900));
+      render(<SignIn />);
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
+
+      fireEvent.press(screen.getByText("Sign In"));
+
+      await waitFor(() =>
+        expect(mockLockoutDialog).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isOpen: true, secondsLeft: expect.any(Number) }),
+        ),
+      );
+      expect(mockLockoutDialog.mock.calls.at(-1)?.[0].secondsLeft).toBeGreaterThan(890);
+      // The lock dialog replaces the "invalid password" error and the generic error dialog.
+      expect(mockErrorDialog).not.toHaveBeenLastCalledWith(expect.objectContaining({ isOpen: true }));
+      expect(await screen.findByText(/Try again in 1[45]:/)).toBeTruthy();
+
+      // The button is disabled: another press never reaches the server.
+      fireEvent.press(screen.getByText(/Try again in/));
+      expect(mockSignInWithPassword).toHaveBeenCalledTimes(1);
+    });
+
+    it("still shows the ordinary error for a wrong password below the limit", async () => {
+      mockSignInWithPassword.mockResolvedValue({
+        data: { user: null },
+        error: { code: "invalid_credentials", message: "Invalid login credentials" },
+      });
+      render(<SignIn />);
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
+
+      fireEvent.press(screen.getByText("Sign In"));
+
+      await waitFor(() =>
+        expect(mockErrorDialog).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isOpen: true, message: "Invalid email or password. Please try again." }),
+        ),
+      );
+      expect(screen.queryByText(/Try again in/)).toBeNull();
+      expect(mockLockoutDialog).not.toHaveBeenLastCalledWith(expect.objectContaining({ isOpen: true }));
+    });
+
+    it("keeps Sign in disabled after the app was closed and reopened", async () => {
+      await saveServerLockout("signin", "a@example.test", 600);
+      render(<SignIn />);
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+
+      expect(await screen.findByText(/Try again in (9|10):/)).toBeTruthy();
+      fireEvent.press(screen.getByText(/Try again in/));
+      expect(mockSignInWithPassword).not.toHaveBeenCalled();
+    });
+
+    it("brings the lock back after the reminder was cleared, because the server still refuses", async () => {
+      await saveServerLockout("signin", "a@example.test", 600);
+      await AsyncStorage.clear(); // a reinstall or "clear data"
+      mockSignInWithPassword.mockResolvedValue(locked(580));
+      render(<SignIn />);
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+
+      fireEvent.press(await screen.findByText("Sign In"));
+
+      expect(await screen.findByText(/Try again in (9|10):/)).toBeTruthy();
+    });
+
+    it("does not lock a different email", async () => {
+      await saveServerLockout("signin", "someone-else@example.test", 600);
+      render(<SignIn />);
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+
+      expect(await screen.findByText("Sign In")).toBeTruthy();
+      expect(screen.queryByText(/Try again in/)).toBeNull();
+    });
   });
 });

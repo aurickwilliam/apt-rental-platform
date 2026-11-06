@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import RecoveryCodeVerification from "@/app/(auth)/forgot-password/otp-verification";
+import { RecoveryRateLimitedError } from "@/service/auth/passwordRecoveryService";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import { PasswordError, RECOVERY_RESEND_COOLDOWN_SECONDS } from "@repo/utils";
 
@@ -61,8 +63,10 @@ const serialize = (value: unknown) =>
 describe("Recovery code screen", () => {
   const consoleSpies: jest.SpyInstance[] = [];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    // The lock reminder persists in AsyncStorage: start every test clean.
+    await AsyncStorage.clear();
     usePasswordRecoveryStore.getState().setEmail(EMAIL);
     consoleSpies.push(
       jest.spyOn(console, "log").mockImplementation(() => {}),
@@ -136,6 +140,30 @@ describe("Recovery code screen", () => {
     fireEvent.press(screen.getByText("Back to Sign In"));
     expect(mockRouter.dismissTo).toHaveBeenCalledWith("/sign-in");
     expect(usePasswordRecoveryStore.getState().email).toBe("");
+  });
+
+  it("shows a lock the server reports with its countdown", async () => {
+    mockVerify.mockRejectedValueOnce(new RecoveryRateLimitedError(600));
+    render(<RecoveryCodeVerification />);
+
+    enterCode(CODE);
+
+    expect(await screen.findByText("Too many attempts")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Try again in (9|10):/ })).toBeTruthy();
+    expect(screen.queryByText(/That code is incorrect or has expired/)).toBeNull();
+  });
+
+  it("keeps a lock left by an earlier session", async () => {
+    await AsyncStorage.clear();
+    const { saveServerLockout } = jest.requireActual<typeof import("@/service/auth/authLockoutStore")>(
+      "@/service/auth/authLockoutStore",
+    );
+    await saveServerLockout("recovery_otp", EMAIL, 300);
+    render(<RecoveryCodeVerification />);
+
+    expect(await screen.findByRole("button", { name: /Try again in (4|5):/ })).toBeTruthy();
+    enterCode(CODE);
+    expect(mockVerify).not.toHaveBeenCalled();
   });
 
   it("keeps verify disabled until the code is complete", () => {

@@ -394,6 +394,7 @@ export default function SignUpForm() {
         formatCooldown={otpFlow.formatCooldown}
         onOtpChange={(val) => { otpFlow.setOtp(val); if (!otpFlow.otpLocked) otpFlow.setOtpError(null); }}
         locked={otpFlow.otpLocked}
+        lockoutSeconds={otpFlow.lockoutSeconds}
         onResend={otpFlow.handleResendOtp}
         onVerify={otpFlow.handleVerifyOtp}
         onCancel={otpFlow.handleCancelOtp}

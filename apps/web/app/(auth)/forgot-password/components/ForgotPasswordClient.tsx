@@ -25,17 +25,20 @@ import {
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
   CAPTCHA_PENDING_MESSAGE,
+  formatLockoutClock,
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import CodeInput from "@/app/components/inputs/CodeInput";
 import TurnstileWidget from "@/app/components/inputs/TurnstileWidget";
 import { useCaptcha, type CaptchaAttempt } from "@/hooks/use-captcha";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "../../actions/password-recovery";
+import AuthLockoutModal from "../../components/AuthLockoutModal";
 import RecoveryHeader from "./RecoveryHeader";
 
 type Step = "email" | "code" | "google_only";
@@ -84,6 +87,9 @@ function ForgotPasswordFlow({
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const { secondsLeft, restart: restartCooldown } = useCountdown(RECOVERY_RESEND_COOLDOWN_SECONDS);
+  // Attempt limit on the code: memory only, because this flow never lets the email
+  // (or anything derived from it) reach storage. The database still refuses.
+  const lockout = useAuthLockout("recovery_otp", email, { persist: false });
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -145,7 +151,7 @@ function ForgotPasswordFlow({
   };
 
   const handleVerify = async (value: string = code) => {
-    if (verifying || value.length < RECOVERY_CODE_LENGTH) return;
+    if (verifying || lockout.isLocked || value.length < RECOVERY_CODE_LENGTH) return;
     setVerifying(true);
     setError(null);
     setCodeError(null);
@@ -156,6 +162,10 @@ function ForgotPasswordFlow({
       const result = await verifyPasswordRecoveryCode(email, value);
       if (result.error) {
         setCode("");
+        if (result.error === "rate_limited" && result.retryAfterSeconds) {
+          lockout.lock(result.retryAfterSeconds, email);
+          return;
+        }
         showCodeError(result.error);
         return;
       }
@@ -275,7 +285,7 @@ function ForgotPasswordFlow({
             onComplete={(value: string) => void handleVerify(value)}
             length={RECOVERY_CODE_LENGTH}
             isInvalid={!!codeError}
-            isDisabled={verifying}
+            isDisabled={verifying || lockout.isLocked}
             autoFocus
           />
 
@@ -313,11 +323,21 @@ function ForgotPasswordFlow({
           size="lg"
           className="mt-[clamp(1.5rem,4vh,2rem)] w-full cursor-pointer"
           isPending={verifying}
-          isDisabled={verifying || code.length < RECOVERY_CODE_LENGTH}
+          isDisabled={verifying || lockout.isLocked || code.length < RECOVERY_CODE_LENGTH}
           onPress={() => void handleVerify()}
         >
-          {verifying ? "Verifying..." : "Verify Code"}
+          {lockout.isLocked
+            ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+            : verifying
+              ? "Verifying..."
+              : "Verify Code"}
         </Button>
+
+        <AuthLockoutModal
+          isOpen={lockout.modalOpen}
+          onOpenChange={lockout.setModalOpen}
+          secondsLeft={lockout.secondsLeft}
+        />
       </div>
     );
   }

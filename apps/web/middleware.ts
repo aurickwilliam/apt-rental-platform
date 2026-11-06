@@ -7,6 +7,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // api/auth/mobile: token endpoints for the native app. They carry no cookies,
+    // and the signed-out redirect to /sign-in would swallow their JSON.
+    '/((?!_next/static|_next/image|favicon.ico|api/auth/mobile|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

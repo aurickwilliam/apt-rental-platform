@@ -5,8 +5,11 @@ import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { readRecoveryMarker, RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import {
+  checkAuthThrottle,
+  clearAuthThrottle,
   EmailChangeError,
   getEmailChangeStatus,
+  recordAuthFailure,
   requestEmailChangeWith,
   resendEmailChangeCodesWith,
   signOutOtherSessionsAfterEmailChange,
@@ -14,6 +17,8 @@ import {
   type EmailChangeErrorReason,
   type EmailChangeInbox,
 } from "@repo/utils";
+
+import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 
 // Change email while signed in (Settings → Security), mirroring mobile.
 // The Auth steps (password check, dual-inbox confirmation, signing other
@@ -113,15 +118,38 @@ export async function verifyEmailChangeCode(
       console.error("Email change verification refused for a suspended account.");
       return { error: "suspended" };
     }
-    const verification = await verifyEmailChangeCodeWith(
-      supabase.auth,
-      inbox,
-      code,
-      typeof intendedNewEmail === "string" ? intendedNewEmail : undefined,
-    );
+
+    // Guess limit per account, written with the service role. The account is
+    // already signed in and password-checked, so this is defence in depth for
+    // the two 6-digit codes. Only a wrong or expired code counts.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "session_expired" };
+    const throttle = getAuthThrottleClient();
+    if ((await checkAuthThrottle(throttle, "email_change_otp", user.id)) > 0) {
+      return { error: "rate_limited" };
+    }
+
+    let verification: Awaited<ReturnType<typeof verifyEmailChangeCodeWith>>;
+    try {
+      verification = await verifyEmailChangeCodeWith(
+        supabase.auth,
+        inbox,
+        code,
+        typeof intendedNewEmail === "string" ? intendedNewEmail : undefined,
+      );
+    } catch (error) {
+      if (error instanceof EmailChangeError && error.reason === "invalid_or_expired_code") {
+        const blockedFor = await recordAuthFailure(throttle, "email_change_otp", user.id);
+        if (blockedFor > 0) return { error: "rate_limited" };
+      }
+      throw error;
+    }
     if (!verification.completed) {
       return { error: null, ...verification };
     }
+    await clearAuthThrottle(throttle, "email_change_otp", user.id);
 
     const { error: syncError } = await supabase.rpc("sync_my_profile_email");
     if (syncError) {

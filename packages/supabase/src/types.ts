@@ -1848,6 +1848,10 @@ export type Database = {
         Args: { p_action: string; p_purpose: string; p_subject: string }
         Returns: number
       }
+      auth_throttle_server: {
+        Args: { p_action: string; p_purpose: string; p_subject: string }
+        Returns: number
+      }
       acknowledge_signed_lease: {
         Args: { p_tenancy_id: string }
         Returns: undefined
