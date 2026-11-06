@@ -1952,6 +1952,10 @@ export type Database = {
         Args: { date_from: string; date_to: string }
         Returns: Json
       }
+      get_admin_apartment_activity: {
+        Args: { p_apartment_id: string }
+        Returns: Json
+      }
       get_admin_analytics_start_date: { Args: never; Returns: string }
       get_admin_analytics_trends: {
         Args: { p_from: string; p_to: string }
