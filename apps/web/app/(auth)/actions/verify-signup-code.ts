@@ -1,13 +1,7 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import {
-  checkAuthThrottle,
-  clearAuthThrottle,
-  isInvalidOtpError,
-  recordAuthFailure,
-} from "@repo/utils";
-
+import { attemptCodeVerification } from "@/lib/auth-attempts";
 import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 
 // Verifies the 6-digit email code of a sign-up (new account, or an account whose
@@ -21,40 +15,37 @@ import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 
 export type VerifySignupCodeResult =
   | { ok: true; userId: string }
-  | { ok: false; reason: "rate_limited" | "invalid_code" | "failed" };
+  // retryAfterSeconds: how long the guess lock lasts (the UI counts it down).
+  | { ok: false; reason: "rate_limited"; retryAfterSeconds: number }
+  | { ok: false; reason: "invalid_code" | "failed" };
 
 export async function verifySignupCode(
   email: string,
   code: string,
 ): Promise<VerifySignupCodeResult> {
   if (typeof email !== "string" || typeof code !== "string") return { ok: false, reason: "failed" };
-  const normalizedEmail = email.trim().toLowerCase();
-  const token = code.trim();
-  if (!normalizedEmail) return { ok: false, reason: "failed" };
-
-  const throttle = getAuthThrottleClient();
-  if ((await checkAuthThrottle(throttle, "signup_otp", normalizedEmail)) > 0) {
-    return { ok: false, reason: "rate_limited" };
-  }
 
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: normalizedEmail,
-      token,
-      type: "signup",
+    // The guess limit is counted on the server (`lib/auth-attempts.ts`), shared
+    // with the mobile route, so neither a refresh nor a direct call skips it.
+    const attempt = await attemptCodeVerification({
+      auth: supabase.auth,
+      throttle: getAuthThrottleClient(),
+      purpose: "signup_otp",
+      otpType: "signup",
+      email,
+      code,
     });
 
-    if (error || !data.user) {
-      if (isInvalidOtpError(error)) {
-        const blockedFor = await recordAuthFailure(throttle, "signup_otp", normalizedEmail);
-        return { ok: false, reason: blockedFor > 0 ? "rate_limited" : "invalid_code" };
-      }
-      return { ok: false, reason: "failed" };
+    if (attempt.ok) {
+      const userId = (attempt.user as { id?: string } | null)?.id;
+      return userId ? { ok: true, userId } : { ok: false, reason: "failed" };
     }
-
-    await clearAuthThrottle(throttle, "signup_otp", normalizedEmail);
-    return { ok: true, userId: data.user.id };
+    if (attempt.kind === "locked") {
+      return { ok: false, reason: "rate_limited", retryAfterSeconds: attempt.retryAfterSeconds };
+    }
+    return { ok: false, reason: attempt.kind === "invalid_code" ? "invalid_code" : "failed" };
   } catch {
     // Log the type only: a message could echo the email or the code.
     console.error("Sign-up code verification failed unexpectedly.");

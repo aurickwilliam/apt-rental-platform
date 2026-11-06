@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { AUTH_THROTTLE_MESSAGE, CAPTCHA_PENDING_MESSAGE, getOtpAttemptError } from "@repo/utils";
+import { CAPTCHA_PENDING_MESSAGE, getOtpAttemptError } from "@repo/utils";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { verifySignupCode } from "../../actions/verify-signup-code";
@@ -50,6 +51,10 @@ export function useOtpFlow({
     format: formatCooldown,
   } = useResendCooldown(OTP_COOLDOWN);
   const attempts = useOtpAttempts();
+  // Attempt limit: the server reports how long the lock lasts and the modal
+  // shows it (kept across refreshes) while Verify stays disabled.
+  const lockout = useAuthLockout("signup_otp", formData.email);
+  const { lock: lockAttempts } = lockout;
 
   // Keeps handlers stable while still reading the latest values when fired.
   // Mirrored in an effect (not during render) to satisfy
@@ -113,11 +118,12 @@ export function useOtpFlow({
       // service role), so neither a refresh nor a direct call skips it.
       const verification = await verifySignupCode(data.email, otpRef.current);
       if (!verification.ok) {
-        setOtpError(
-          verification.reason === "rate_limited"
-            ? AUTH_THROTTLE_MESSAGE
-            : getOtpAttemptError(attempts.recordWrongCode()),
-        );
+        if (verification.reason === "rate_limited") {
+          lockAttempts(verification.retryAfterSeconds, data.email);
+          setOtpError(null);
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
@@ -173,7 +179,7 @@ export function useOtpFlow({
     } finally {
       setLoading(false);
     }
-  }, [attempts]);
+  }, [attempts, lockAttempts]);
 
   const handleCancelOtp = useCallback(async (onClose: () => void) => {
     await supabase.auth.signOut();
@@ -192,6 +198,7 @@ export function useOtpFlow({
     resendLoading,
     loading,
     otpLocked: attempts.locked,
+    lockoutSeconds: lockout.secondsLeft,
     startCooldown,
     formatCooldown,
     handleResendOtp,

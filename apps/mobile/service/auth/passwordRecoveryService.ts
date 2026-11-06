@@ -2,15 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { supabase } from "@repo/supabase";
 import {
-  checkAuthThrottle,
   describeAuthError,
-  hasEmailPasswordIdentity,
   isRecoveryCodeFormat,
   normalizeRecoveryEmail,
   PasswordError,
   toPasswordError,
   toPasswordErrorReason,
 } from "@repo/utils";
+
+import { verifyCodeViaServer } from "@/service/auth/serverAuthService";
 
 // Password recovery by 6-digit email code: resetPasswordForEmail sends the
 // code (hosted `recovery` template), verifyOtp({ type: "recovery" }) turns it
@@ -74,6 +74,18 @@ export type RecoveryCodeResult = "ready" | "google_only";
 
 // Exchanges the emailed code for a recovery session. Google-only accounts are
 // signed straight back out, so the caller never holds their session.
+// A rate_limited PasswordError that also says how long the guess lock lasts, so
+// the code screen can count it down.
+export class RecoveryRateLimitedError extends PasswordError {
+  readonly retryAfterSeconds: number;
+
+  constructor(retryAfterSeconds: number) {
+    super("rate_limited");
+    this.name = "RecoveryRateLimitedError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
 export async function verifyPasswordRecoveryCode(
   email: string,
   code: string,
@@ -84,27 +96,26 @@ export async function verifyPasswordRecoveryCode(
     throw new PasswordError("invalid_or_expired_code");
   }
 
-  // Reads the per-email guess window (database). Only the web server writes it
-  // (service role), so on mobile this is a speed bump; Supabase's own limits are
-  // the real protection. A code is a 6-digit guess that ends in a full session.
-  if ((await checkAuthThrottle(supabase, "recovery_otp", normalizedEmail)) > 0) {
-    throw new PasswordError("rate_limited");
-  }
-
   // Marked before verifying so the app can't be closed between the session
   // being saved and the marker being written.
   await setRecoveryInProgress();
-  const { data, error } = await supabase.auth.verifyOtp({
+  // Checked through the web server, which counts every wrong code in the same
+  // database windows as the website: the limit cannot be reset from this phone and
+  // a lock set on web shows here too. A code is a 6-digit guess that ends in a full
+  // session, so the server hands the session over only for a code that verified.
+  const { data, error } = await verifyCodeViaServer({
     email: normalizedEmail,
-    token,
-    type: "recovery",
+    code: token,
+    flow: "recovery",
   });
-  if (error || !data.user || !data.session) {
+  if (error) {
     await clearRecoveryInProgress();
+    if (error.retryAfterSeconds) throw new RecoveryRateLimitedError(error.retryAfterSeconds);
+    if (error.code === "network_error") throw new PasswordError("network");
     throw toPasswordError(error, "Password recovery verification");
   }
 
-  if (!hasEmailPasswordIdentity(data.user)) {
+  if (data.status === "google_only") {
     await endPasswordRecovery();
     return "google_only";
   }

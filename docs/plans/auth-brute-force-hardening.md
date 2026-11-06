@@ -120,3 +120,31 @@ changing `clientIpFromHeaders`; add cases to its existing node test.
 - Mobile: option A or B?
 - Longer codes (8 digits) now or later?
 - Fail closed for server-verified code steps?
+
+
+## Industry alignment
+
+Compared with OWASP's Authentication Cheat Sheet and NIST SP 800-63B (and how Cognito and
+Auth0 behave; the provider figures are approximate):
+
+| Practice | Status |
+|---|---|
+| The server counts and decides, never the client | Done for web and mobile: mobile signs in and checks codes through `/api/auth/mobile/*`, which share the database windows with the website. |
+| Temporary lockout, not permanent | Done: 5 failures per 15 minutes for one email from one IP, 20 per hour per email, 20 per 15 minutes per IP. |
+| Limits per account and per IP, generic errors, no account enumeration | Done. |
+| CAPTCHA, hashed identifiers, nothing sensitive on the device | Done (Turnstile; the lock reminder stores a short hash). |
+| Counters cannot be reset or forged by clients | Done (service-role-only writes). |
+| Monitoring | Subject-free `Auth lockout:` and `Auth throttle unavailable:` log lines to alert on. |
+
+Gaps that remain, and why:
+
+- Direct calls to Supabase Auth skip our counters. On the Free plan that cannot be closed in
+  app code; the defenses are CAPTCHA enforced by Supabase (confirm it is on) and Supabase's own
+  per-IP limits. A password-verification hook is a Pro-plan feature.
+- Signed-in password and email changes re-check the current password with
+  `signInWithPassword` and are not counted.
+- No MFA for tenants and landlords (admins have TOTP). OWASP and NIST recommend offering it.
+- No leaked-password check (Supabase Pro).
+- No email warning to the account owner after a lockout.
+- Fixed windows rather than progressive backoff (both are accepted practice).
+- No firewall rate limit on `/api/auth/mobile/*` yet (Vercel WAF would add one).

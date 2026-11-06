@@ -11,8 +11,10 @@ import { checkEmailAvailability } from '../actions/check-email-availability';
 import { useConfirmEmail } from '../hooks/use-confirm-email';
 import TurnstileWidget from '@/app/components/inputs/TurnstileWidget';
 import { useCaptcha } from '@/hooks/use-captcha';
-import { CAPTCHA_PENDING_MESSAGE } from '@repo/utils';
+import { CAPTCHA_PENDING_MESSAGE, formatLockoutClock } from '@repo/utils';
+import { useAuthLockout } from '@/hooks/use-auth-lockout';
 import OtpModal from '../sign-up-form/components/OtpModal';
+import AuthLockoutModal from './AuthLockoutModal';
 
 import { Form, Input, Link, Button, TextField, FieldError, Label } from '@heroui/react'
 
@@ -32,13 +34,23 @@ export default function AuthForm({ next }: { next?: string }) {
   const [signUpEmailError, setSignUpEmailError] = useState<SignUpEmailError | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
+  // Attempt limit on sign-in: the server reports the lock, the modal explains it
+  // and Sign in stays disabled (kept across refreshes) until it ends.
+  const signInLockout = useAuthLockout('signin', email);
+  const { lock: lockSignIn } = signInLockout;
+
   const { attach: attachCaptcha, take: takeCaptcha } = useCaptcha();
   const [state, formAction, isPending] = useActionState(
     async (previous: SignInFormState, formData: FormData): Promise<SignInFormState> => {
       const attempt = takeCaptcha();
       if (attempt.pending) return { error: CAPTCHA_PENDING_MESSAGE };
       if (attempt.token) formData.set('captchaToken', attempt.token);
-      return signIn(previous, formData);
+      const result = await signIn(previous, formData);
+      if (result.lockedForSeconds) {
+        const submittedEmail = formData.get('email');
+        lockSignIn(result.lockedForSeconds, typeof submittedEmail === 'string' ? submittedEmail : undefined);
+      }
+      return result;
     },
     initialState,
   );
@@ -104,7 +116,11 @@ export default function AuthForm({ next }: { next?: string }) {
   );
 
   const busy = isPending || checkingEmail;
-  const visibleError = type === 'sign-in' ? state.error : signUpError;
+  const signInLocked = type === 'sign-in' && signInLockout.isLocked;
+  // A lock is explained by the modal, never by a red banner that would outlive it.
+  const visibleError = type === 'sign-in'
+    ? (state.lockedForSeconds ? null : state.error)
+    : signUpError;
   const emailError = type === 'sign-up' && signUpEmailError?.email === email.trim()
     ? signUpEmailError
     : null;
@@ -148,6 +164,15 @@ export default function AuthForm({ next }: { next?: string }) {
           }}
           verifyLabel="Verify Email"
           locked={confirmEmail.otpLocked}
+          lockoutSeconds={confirmEmail.lockoutSeconds}
+        />
+      )}
+
+      {type === 'sign-in' && (
+        <AuthLockoutModal
+          isOpen={signInLockout.modalOpen}
+          onOpenChange={signInLockout.setModalOpen}
+          secondsLeft={signInLockout.secondsLeft}
         />
       )}
 
@@ -236,11 +261,13 @@ export default function AuthForm({ next }: { next?: string }) {
           size='lg'
           type='submit'
           isPending={busy}
-          isDisabled={busy}
+          isDisabled={busy || signInLocked}
         >
-          {busy
-            ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
-            : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
+          {signInLocked
+            ? `Try again in ${formatLockoutClock(signInLockout.secondsLeft)}`
+            : busy
+              ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
+              : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
           }
         </Button>
       </Form>

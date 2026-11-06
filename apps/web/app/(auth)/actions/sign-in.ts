@@ -5,20 +5,16 @@ import { cookies, headers } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { RECOVERY_MARKER_COOKIE } from "@repo/supabase/password-recovery";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
-import {
-  CAPTCHA_FAILED_MESSAGE,
-  checkAuthThrottle,
-  clearAuthThrottle,
-  isAuthRateLimitError,
-  isCaptchaError,
-  recordAuthFailure,
-} from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, isAuthRateLimitError, isCaptchaError } from "@repo/utils";
+import { attemptSignIn, isInvalidCredentialsError } from "@/lib/auth-attempts";
 import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { clientIpFromHeaders, SIGN_IN_THROTTLE_MESSAGE } from "@/lib/sign-in-rate-limit";
-import { signInThrottleKeys } from "@/lib/sign-in-throttle";
 
 export interface SignInFormState {
   error: string | null;
+  // Too many wrong attempts: seconds until the lock ends. The form opens the
+  // lockout modal and keeps Sign in disabled for that long.
+  lockedForSeconds?: number;
   // The password was right but the email code was never entered: the form
   // offers to send a new code and confirm it.
   needsEmailConfirmation?: boolean;
@@ -48,10 +44,11 @@ export async function signIn(
     return { error: "Email and password are required." };
   }
 
-  // Brute-force guard: refuse with a generic message (no account enumeration)
-  // while any failure window in the database is spent (email from this IP, the
-  // email's hourly ceiling, this IP). The counters are written only here, with
-  // the service role. "Invalid login credentials" is the only failure that counts.
+  // Brute-force guard (shared with the mobile route, `lib/auth-attempts.ts`):
+  // refuses with a generic message (no account enumeration) while any failure
+  // window in the database is spent (email from this IP, the email's hourly
+  // ceiling, this IP). The counters are written only on the server, with the
+  // service role. "Invalid login credentials" is the only failure that counts.
   const requestHeaders = await headers();
   const clientIp = clientIpFromHeaders({
     "x-vercel-forwarded-for": requestHeaders.get("x-vercel-forwarded-for"),
@@ -59,31 +56,28 @@ export async function signIn(
     "x-forwarded-for": requestHeaders.get("x-forwarded-for"),
   });
   const supabase = await createClient();
-  const throttle = getAuthThrottleClient();
-  const { guard, clearOnSuccess } = signInThrottleKeys(email, clientIp);
-
-  const waits = await Promise.all(
-    guard.map((key) => checkAuthThrottle(throttle, key.purpose, key.subject)),
-  );
-  if (waits.some((seconds) => seconds > 0)) {
-    return { error: SIGN_IN_THROTTLE_MESSAGE };
-  }
 
   // Single-use Turnstile token from the form; Supabase rejects a missing or
   // reused one once CAPTCHA protection is enabled for the project.
   const captchaToken = formData.get("captchaToken");
-  const { error } = await supabase.auth.signInWithPassword({
+  const attempt = await attemptSignIn({
+    auth: supabase.auth,
+    throttle: getAuthThrottleClient(),
     email,
     password,
-    options: typeof captchaToken === "string" && captchaToken ? { captchaToken } : undefined,
+    captchaToken: typeof captchaToken === "string" && captchaToken ? captchaToken : undefined,
+    clientIp,
   });
 
-  if (error) {
+  if (!attempt.ok) {
+    if (attempt.kind === "locked") {
+      return { error: SIGN_IN_THROTTLE_MESSAGE, lockedForSeconds: attempt.retryAfterSeconds };
+    }
+    const { error } = attempt;
     // Not a wrong password, so it never counts toward the throttle.
     if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
     // Map common Supabase auth errors to user-friendly messages
-    if (error.message === "Invalid login credentials") {
-      await Promise.all(guard.map((key) => recordAuthFailure(throttle, key.purpose, key.subject)));
+    if (isInvalidCredentialsError(error)) {
       return { error: "Invalid email or password. Please try again." };
     }
     if (error.message === "Email not confirmed") {
@@ -97,11 +91,6 @@ export async function signIn(
     }
     return { error: error.message };
   }
-
-  // A good sign-in resets this email's windows. The IP window is left to
-  // expire on its own: clearing it would let an attacker with one valid account
-  // of their own reset it between rounds of password spraying.
-  await Promise.all(clearOnSuccess.map((key) => clearAuthThrottle(throttle, key.purpose, key.subject)));
 
   // A fresh sign-in replaces any password-recovery session, so drop its marker
   // (otherwise the middleware would sign this new session out).

@@ -62,6 +62,18 @@ export {
   recordAuthFailure,
 } from './authThrottle';
 export type { AuthThrottleClient, AuthThrottlePurpose } from './authThrottle';
+export {
+  AUTH_LOCKOUT_MAX_ATTEMPTS,
+  AUTH_LOCKOUT_TITLE,
+  formatLockoutWait,
+  formatLockoutClock,
+  lockoutDescription,
+  lockoutKeyHash,
+  lockoutReminderFor,
+  lockoutReminderSecondsLeft,
+  parseLockoutReminder,
+  type LockoutReminder,
+} from './authLockout';
 export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
 export {
   MINIMUM_AGE,

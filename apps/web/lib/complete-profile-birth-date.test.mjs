@@ -839,6 +839,7 @@ test("OTP verification routes typed birth-date failures inline while preserving 
             reset() {},
           }),
         },
+        "@/hooks/use-auth-lockout": { useAuthLockout: () => ({ secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} }) },
         "@repo/supabase/browser": {
           createClient: () => ({
             auth: {

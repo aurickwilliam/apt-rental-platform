@@ -2,10 +2,11 @@
 
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
-import { AUTH_THROTTLE_MESSAGE, CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, isCaptchaError, getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "@repo/utils";
 import { verifySignupCode } from "../actions/verify-signup-code";
 import { useResendCooldown } from "./use-resend-cooldown";
 import { useOtpAttempts } from "./use-otp-attempts";
+import { useAuthLockout } from "@/hooks/use-auth-lockout";
 import type { CaptchaAttempt } from "@/hooks/use-captcha";
 
 const CODE_COOLDOWN = 60;
@@ -25,6 +26,10 @@ export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttemp
   const [loading, setLoading] = useState(false);
   const { cooldown, start, stop, format } = useResendCooldown(CODE_COOLDOWN);
   const attempts = useOtpAttempts();
+  // Attempt limit: the server reports how long the lock lasts; the modal shows it
+  // (kept across refreshes) and Verify stays disabled until it ends.
+  const lockout = useAuthLockout("signup_otp", email);
+  const { lock: lockAttempts } = lockout;
 
   const sendCode = useCallback(async () => {
     setResendLoading(true);
@@ -74,11 +79,12 @@ export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttemp
       // call skips it. A verified code sets the session cookies in the response.
       const verification = await verifySignupCode(email, otp);
       if (!verification.ok) {
-        setOtpError(
-          verification.reason === "rate_limited"
-            ? AUTH_THROTTLE_MESSAGE
-            : getOtpAttemptError(attempts.recordWrongCode()),
-        );
+        if (verification.reason === "rate_limited") {
+          lockAttempts(verification.retryAfterSeconds, email);
+          setOtpError(null);
+        } else {
+          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+        }
         setOtp("");
         return;
       }
@@ -89,7 +95,7 @@ export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttemp
     } finally {
       setLoading(false);
     }
-  }, [email, otp, attempts]);
+  }, [email, otp, attempts, lockAttempts]);
 
   const cancel = useCallback(() => {
     setIsOpen(false);
@@ -108,6 +114,7 @@ export function useConfirmEmail(email: string, takeCaptcha?: () => CaptchaAttemp
     resendLoading,
     loading,
     otpLocked: attempts.locked,
+    lockoutSeconds: lockout.secondsLeft,
     open,
     sendCode,
     verify,
