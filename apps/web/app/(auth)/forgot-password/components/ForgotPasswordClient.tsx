@@ -61,7 +61,15 @@ function BackToSignIn() {
 
 // Email and code steps of password recovery. The email lives only in this
 // component's state: never in the URL, storage or a shared context.
-function ForgotPasswordFlow({ takeCaptcha }: { takeCaptcha: () => CaptchaAttempt }) {
+// `captcha` is the Turnstile widget, rendered next to the button it gates in each
+// step so a person who must tap "Verify you are human" can see it.
+function ForgotPasswordFlow({
+  takeCaptcha,
+  captcha,
+}: {
+  takeCaptcha: () => CaptchaAttempt;
+  captcha: React.ReactNode;
+}) {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("email");
@@ -277,6 +285,8 @@ function ForgotPasswordFlow({ takeCaptcha }: { takeCaptcha: () => CaptchaAttempt
             </p>
           )}
 
+          {captcha}
+
           {resendNotice && (
             <p role="status" className="text-center text-sm text-foreground">
               {resendNotice}
@@ -342,6 +352,8 @@ function ForgotPasswordFlow({ takeCaptcha }: { takeCaptcha: () => CaptchaAttempt
           <FieldError>{emailError}</FieldError>
         </TextField>
 
+        {captcha}
+
         <Button
           className="mt-[clamp(0.75rem,2vh,1.25rem)] w-full cursor-pointer"
           size="lg"
@@ -384,8 +396,7 @@ export default function ForgotPasswordClient() {
   const { attach, take } = useCaptcha();
   return (
     <>
-      <ForgotPasswordFlow takeCaptcha={take} />
-      <TurnstileWidget ref={attach} />
+      <ForgotPasswordFlow takeCaptcha={take} captcha={<TurnstileWidget ref={attach} />} />
     </>
   );
 }

@@ -11,6 +11,8 @@ const OPEN_WHILE_UNVERIFIED = [
   "/landlord/profile",
   "/landlord/browse",
   "/landlord/landlords",
+  "/landlord/pap",
+  "/landlord/tos",
 ] as const;
 
 /**

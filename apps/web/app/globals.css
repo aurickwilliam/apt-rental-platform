@@ -139,62 +139,13 @@
   color: var(--primary);
 }
 .registration-policies-body {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-}
-.registration-policies-tabs {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  gap: 0;
-}
-.registration-policies-tab-list {
-  flex-shrink: 0;
-  padding: 1.25rem 1.5rem 1rem;
-  background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
-}
-.registration-policies-tab-list [role="tablist"] {
-  width: 100%;
-  gap: 0;
-  padding: 0;
-  border-radius: 16px;
-  background-color: var(--muted);
-}
-.registration-policies-tab-list [role="tab"] {
-  flex: 1;
-  justify-content: center;
-  gap: 0.75rem;
-  min-height: 60px;
-  padding: 0.875rem 1rem;
-  border-radius: 16px;
-  white-space: normal;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-.registration-policies-tab-list [role="tab"][aria-selected="true"] {
-  color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
-}
-.registration-policies-tab-list [data-slot="tabs-indicator"] {
-  top: auto;
-  bottom: 0;
-  height: 3px;
-  border-radius: 0 0 16px 16px;
-  background-color: var(--primary);
-  box-shadow: none;
-}
-.registration-policies-tab-list [role="tab"] svg {
-  flex-shrink: 0;
-}
-.registration-policies-tab-list [role="tab"]:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
 }
 .registration-policy-panel {
   flex: 1;
@@ -203,11 +154,12 @@
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   overflow-wrap: anywhere;
-  padding: 0 1.5rem 1.5rem;
+  padding: 1.5rem;
   background-color: color-mix(in srgb, var(--primary) 3%, var(--card));
 }
-.registration-policy-panel[hidden] {
-  display: none;
+.registration-policy-panel:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 .registration-policies-dialog [data-legal-section] {
   content-visibility: auto;
@@ -352,7 +304,6 @@
     height: calc(100dvh - 2rem);
   }
   .registration-policies-header,
-  .registration-policies-tab-list,
   .registration-policy-panel,
   .registration-policies-footer {
     padding-inline: 1rem;
@@ -373,11 +324,6 @@
   }
   .registration-policies-header [data-slot="modal-heading"] {
     font-size: 1.5rem;
-  }
-  .registration-policies-tab-list [role="tab"] {
-    gap: 0.5rem;
-    padding-inline: 0.5rem;
-    font-size: 0.875rem;
   }
   .registration-policy-meta {
     gap: 0.75rem;
@@ -409,6 +355,43 @@
   }
 }
 
+.registration-policy-control-slot {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+}
+.registration-policy-checks .registration-policy-locked-trigger {
+  position: absolute;
+  inset-inline-start: -12px;
+  top: -4px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+.registration-policy-checks .registration-policy-locked-trigger:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.registration-policy-checks .registration-policy-locked-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.registration-policy-checks .checkbox {
+  flex-shrink: 0;
+  width: 20px;
+}
+.registration-policy-checks .checkbox__content {
+  /* Grow the hit area, not the layout slot or the gap beside the label. */
+  min-width: 44px;
+  min-height: 44px;
+  margin-inline: -12px;
+  margin-block: -4px 0;
+  justify-content: center;
+}
 .registration-policy-checks .checkbox__control {
   width: 20px;
   height: 20px;

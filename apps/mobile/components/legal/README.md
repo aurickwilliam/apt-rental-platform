@@ -4,7 +4,19 @@
 `ScreenWrapper` and `StandardHeader`. `LegalPolicySection` presents numbered
 headings, paragraphs, lists, lettered subheadings and labelled callouts using the
 existing mobile theme tokens. Policy text is selectable, and headings are
-announced to screen readers.
+announced to screen readers. Privacy and Terms readers end after the policy
+sections, without a Questions/contact footer, including during registration.
+
+Standalone Settings readers show a HeroUI Native outline “Back to top” button
+after any downward scroll and hide it at the top (including negative overscroll).
+It floats outside `ScreenWrapper` at bottom-right, 16pt inside the bottom/right
+safe areas; extra content padding keeps the final text reachable above it.
+The screen owns the `ScreenWrapperScrollRef` and uses its `scrollTo` API, checking
+the current reduced-motion preference on each press. A failed preference read
+uses no animation, and a response after unmount cannot scroll a retired screen.
+The arrow is decorative; the button has a visible label and an accessible hint.
+Registration uses `LegalPolicyContent` directly, so its dialogs never gain this
+floating control or a second scroll handler.
 
 Content lives in `constants/legal/`, outside Expo Router's route directory.
 The web's `tos/data/tos-sections.ts`, `pap/data/pap-sections.ts` and
@@ -22,5 +34,9 @@ shared content nor closing that dialog accepts a policy. See
 Keep required markers after the full linked policy names, suppressing the
 introductory Label's automatic marker without removing the checkbox's required
 state. The reader disables `Dialog.Content` swipe-to-dismiss and bounds its
-native ScrollView with explicit flex/min-height styles and Android nested
-scrolling; its title, policy switch and Close stay outside that scrolling body.
+Gesture Handler ScrollView inside a local gesture root with explicit flex/min-height
+styles, Android nested scrolling and interruption disabled. Its title, instruction
+and Close stay outside that scrolling body. Registration alone disables text
+selection to avoid competing with slow swipes; shared content defaults to selectable.
+Reading progress retains offsets across late layout callbacks and checks the end
+marker, not decorative padding, including final drag/momentum samples.

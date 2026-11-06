@@ -11,6 +11,7 @@ export interface LegalTocItem {
 
 interface LegalTableOfContentsProps {
   items: LegalTocItem[];
+  layout?: "public" | "portal";
 }
 
 const ROW_CLASS = [
@@ -26,12 +27,15 @@ const BADGE_CLASS =
 const ACTIVE_BADGE = "bg-brand/15 text-brand";
 const IDLE_BADGE =
   "bg-muted text-muted-foreground group-hover:text-foreground";
-const CONTENTS_STICKY_TOP = 80;
+const PUBLIC_CONTENTS_STICKY_TOP = 80;
+const PORTAL_CONTENTS_STICKY_TOP = 16;
 const CONTENTS_BOTTOM_CLEARANCE = 16;
 
 export default function LegalTableOfContents({
   items,
+  layout = "public",
 }: LegalTableOfContentsProps) {
+  const stickyTop = layout === "portal" ? PORTAL_CONTENTS_STICKY_TOP : PUBLIC_CONTENTS_STICKY_TOP;
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
   const [canStick, setCanStick] = useState(false);
   const desktopNavRef = useRef<HTMLElement>(null);
@@ -44,7 +48,7 @@ export default function LegalTableOfContents({
       const height = nav.getBoundingClientRect().height;
       setCanStick(
         height > 0 &&
-          height + CONTENTS_STICKY_TOP + CONTENTS_BOTTOM_CLEARANCE <=
+          height + stickyTop + CONTENTS_BOTTOM_CLEARANCE <=
             window.innerHeight,
       );
     };
@@ -56,7 +60,7 @@ export default function LegalTableOfContents({
       observer.disconnect();
       window.removeEventListener("resize", updateStickyFit);
     };
-  }, []);
+  }, [stickyTop]);
 
   useEffect(() => {
     const sections = Array.from(
@@ -140,7 +144,7 @@ export default function LegalTableOfContents({
         ref={desktopNavRef}
         aria-label="Contents"
         className={`hidden self-start lg:block${canStick ? " sticky" : ""}`}
-        style={{ top: CONTENTS_STICKY_TOP }}
+        style={{ top: stickyTop }}
       >
         <Card className="gap-0 rounded-xl border border-border bg-card p-3 shadow-none">
           <Card.Header className="px-2 pb-2">

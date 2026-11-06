@@ -5,7 +5,7 @@ import {
 
 it("starts both policies unchecked with the displayed revisions", () => {
   expect(emptyRegistrationAcceptance()).toEqual({
-    termsAccepted: false, privacyAccepted: false, termsVersion: "1.1", privacyVersion: "1.0",
+    termsAccepted: false, privacyAccepted: false, termsVersion: "1.1", privacyVersion: "1.1",
   });
 });
 

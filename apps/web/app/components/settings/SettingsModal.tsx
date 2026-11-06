@@ -204,10 +204,10 @@ export default function SettingsModal({
                   className="mr-1.5 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
-                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} /> : null}
+                  {activeId === "security" ? <SecurityTab isAdmin={isAdmin} activePortal={resolvedPortal} onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} /> : null}
                   {activeId === "language" ? <LanguageRegionTab /> : null}
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
-                  {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}
+                  {activeId === "help" ? <HelpTab isAdmin={isAdmin} activePortal={resolvedPortal} /> : null}
                   {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} /> : null}
                   {activeId === "payments" && canShowPayments ? <PaymentMethodsTab /> : null}
                 </section>
