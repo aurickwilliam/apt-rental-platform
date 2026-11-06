@@ -153,7 +153,12 @@ export default async function ApartmentDetailView({
       <div className="flex items-center justify-between gap-2">
         <BackBtn />
         <div className="flex items-center gap-2">
-          <ShareBtn />
+          <ShareBtn
+            apartmentId={apartment.id}
+            name={apartment.name}
+            city={apartment.city}
+            monthlyRent={apartment.monthly_rent}
+          />
           <FavoriteBtn apartmentId={apartment.id} />
         </div>
       </div>

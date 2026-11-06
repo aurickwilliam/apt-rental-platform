@@ -2072,6 +2072,7 @@ export type Database = {
       }
       get_my_suspension_status: { Args: never; Returns: Json }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
+      get_password_recovery_eligibility: { Args: { p_email: string }; Returns: string }
       get_portal_conversations: {
         Args: { p_portal: string }
         Returns: {

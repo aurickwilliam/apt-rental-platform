@@ -27,6 +27,7 @@ import {
   toPasswordErrorReason,
 } from "@repo/utils";
 
+import { logAuthLockout } from "@/lib/auth-attempts";
 import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
@@ -80,7 +81,8 @@ async function endPasswordRecovery(supabase: Supabase, scope: "local" | "global"
 }
 
 // Sends (or resends) a recovery code. auth.resend() does not support recovery
-// codes, so resend calls this again. Unknown accounts get the same answer.
+// codes, so resend calls this again. Unknown and Google-only emails are refused
+// before any code is sent ("email_not_registered" / "google_account").
 export async function requestPasswordRecovery(
   email: string,
   captchaToken?: string,
@@ -88,6 +90,16 @@ export async function requestPasswordRecovery(
   try {
     const normalizedEmail = normalizeRecoveryEmail(email);
     const supabase = await createClient();
+    // Only emails with a confirmed email/password account get a code. A failed
+    // lookup is an error, never a silent "send".
+    const { data: eligibility, error: lookupError } = await supabase.rpc(
+      "get_password_recovery_eligibility",
+      { p_email: normalizedEmail },
+    );
+    if (lookupError) return { error: errorReason(lookupError, "Password recovery lookup") };
+    if (eligibility === "google_only") return { error: "google_account" };
+    if (eligibility !== "eligible") return { error: "email_not_registered" };
+
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       captchaToken: captchaToken || undefined,
     });
@@ -120,6 +132,7 @@ export async function verifyPasswordRecoveryCode(
   // accounts, so nothing is revealed.
   const blockedFor = await checkAuthThrottle(throttle, "recovery_otp", normalizedEmail);
   if (blockedFor > 0) {
+    logAuthLockout("recovery_otp");
     return { error: "rate_limited", retryAfterSeconds: blockedFor };
   }
   const cookieStore = await cookies();
@@ -142,7 +155,10 @@ export async function verifyPasswordRecoveryCode(
       if (isInvalidOtpError(error)) {
         // The failure that spends the window reports the lock right away.
         const lockedFor = await recordAuthFailure(throttle, "recovery_otp", normalizedEmail);
-        if (lockedFor > 0) return { error: "rate_limited", retryAfterSeconds: lockedFor };
+        if (lockedFor > 0) {
+          logAuthLockout("recovery_otp");
+          return { error: "rate_limited", retryAfterSeconds: lockedFor };
+        }
       }
       return { error: errorReason(error, "Password recovery verification") };
     }
