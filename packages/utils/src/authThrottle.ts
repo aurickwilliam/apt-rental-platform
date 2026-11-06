@@ -10,8 +10,10 @@ export type AuthThrottlePurpose = "signin_email" | "signin_ip" | "signup_otp" | 
 export const AUTH_THROTTLE_MESSAGE =
   "Too many attempts. Please wait a few minutes before trying again.";
 
+// Shown when the Turnstile check has no token yet. Cloudflare sometimes asks for
+// a tap ("Verify you are human"), so the wording covers both waiting and tapping.
 export const CAPTCHA_PENDING_MESSAGE =
-  "Please wait a moment for the security check to finish, then try again.";
+  "Please complete the security check above (tap \"Verify you are human\" if it shows), then try again.";
 export const CAPTCHA_FAILED_MESSAGE = "The security check failed. Please try again.";
 
 /** Supabase answers a missing, expired or reused CAPTCHA token with this code. */
