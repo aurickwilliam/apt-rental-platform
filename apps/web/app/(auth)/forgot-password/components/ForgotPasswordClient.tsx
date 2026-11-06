@@ -120,7 +120,7 @@ function ForgotPasswordFlow({
     setSending(true);
     try {
       const { error: reason } = await requestPasswordRecovery(trimmedEmail, attempt.token);
-      if (reason === "invalid_email") {
+      if (reason === "invalid_email" || reason === "email_not_registered") {
         setEmailError(messageFor(reason));
         return;
       }
