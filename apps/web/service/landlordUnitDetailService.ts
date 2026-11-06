@@ -39,6 +39,7 @@ export type LandlordUnitApartment = {
   furnished_type: string | null;
   floor_level: string | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   amenities: string[];
   lease_agreement_url: string | null;
   is_verified: boolean | null;
@@ -102,6 +103,7 @@ const APARTMENT_SELECT = `
   street_address, barangay, city, province, zip_code, status,
   average_rating, no_ratings, no_bedrooms, no_bathrooms, area_sqm,
   max_occupants, furnished_type, floor_level, lease_duration,
+  has_own_electricity_meter,
   amenities, lease_agreement_url, is_verified, is_hidden_by_admin, landlord_id,
   apartment_images (id, url, url_thumb, is_cover)
 `;

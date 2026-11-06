@@ -30,6 +30,7 @@ import {
 } from "@repo/utils";
 import { toNullableNumber } from "@/service/landlordUnitDetailService";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import ElectricityMeterConfirmation from "@/app/components/inputs/ElectricityMeterConfirmation";
 
 import AmenitiesSelect from "../../../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../../../components/inputs/perks";
@@ -45,6 +46,7 @@ import {
   getBarangaysByCity,
   MAX_DESCRIPTION_LENGTH,
   getDescriptionError,
+  getOwnElectricityMeterError,
 } from "@repo/constants";
 
 import type { Property } from "../propertyTypes";
@@ -64,7 +66,8 @@ type EditErrorField =
   | "city"
   | "zip_code"
   | "latitude"
-  | "description";
+  | "description"
+  | "has_own_electricity_meter";
 
 type EditErrors = Partial<Record<EditErrorField, string>>;
 
@@ -137,6 +140,8 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved, 
 
   const validate = (): EditErrors => {
     const next: EditErrors = {};
+    const meterError = getOwnElectricityMeterError(form.has_own_electricity_meter);
+    if (meterError) next.has_own_electricity_meter = meterError;
 
     if (pricingChanged) {
       const pricingErrors = validateApartmentPricing({
@@ -227,6 +232,7 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved, 
           furnished_type: form.furnished_type ?? undefined,
           floor_level: form.floor_level ?? undefined,
           lease_duration: form.lease_duration ?? undefined,
+          has_own_electricity_meter: form.has_own_electricity_meter,
           latitude: form.latitude ?? null,
           longitude: form.longitude ?? null,
           amenities: form.amenities ?? undefined,
@@ -473,6 +479,15 @@ export default function EditPropertyModal({ isOpen, property, onClose, onSaved, 
                           </ListBox>
                         </Select.Popover>
                       </Select>
+
+                      <div className="col-span-full">
+                        <ElectricityMeterConfirmation
+                          isSelected={form.has_own_electricity_meter === true}
+                          onChange={(selected) => updateForm("has_own_electricity_meter", selected)}
+                          error={errors.has_own_electricity_meter}
+                          isDisabled={saving}
+                        />
+                      </div>
 
                       <TextField>
                         <Label>

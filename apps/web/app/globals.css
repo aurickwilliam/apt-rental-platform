@@ -425,6 +425,43 @@
   border-color: var(--destructive);
 }
 
+/* The multi-line meter declaration aligns with its control, not its text block's centre. */
+.electricity-meter-confirmation .checkbox__content {
+  align-items: flex-start;
+  min-height: 44px;
+}
+.electricity-meter-confirmation [data-slot="label"] {
+  color: var(--foreground);
+}
+.electricity-meter-confirmation [data-slot="description"] {
+  color: var(--muted-foreground);
+}
+.electricity-meter-confirmation [data-slot="field-error"] {
+  color: var(--destructive);
+}
+.electricity-meter-confirmation .checkbox__control {
+  border: 1px solid var(--muted-foreground);
+  background-color: var(--card);
+  box-shadow: none;
+}
+.electricity-meter-confirmation[data-selected="true"] .checkbox__control {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+.electricity-meter-confirmation .checkbox__control::before {
+  background-color: var(--primary);
+}
+.electricity-meter-confirmation [data-slot="checkbox-default-indicator--checkmark"] {
+  color: var(--primary-foreground);
+}
+.electricity-meter-confirmation:has(input:focus-visible) .checkbox__control {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.electricity-meter-confirmation[data-invalid="true"] .checkbox__control {
+  border-color: var(--destructive);
+}
+
 /* Registration-only: date segments are not text inputs, so the browser draws
    no caret. A blinking bar on the active segment shows where typing lands.
    Invalid segments keep the danger color through currentColor. */

@@ -729,6 +729,7 @@ export type ManageApartmentDescription = {
   floor_level: string | null;
   max_occupants: number | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   amenities: string[];
   lease_agreement_url: string | null;
   landlord: {
@@ -767,7 +768,7 @@ export async function fetchManageApartmentDescription(
         street_address, barangay, city, province,
         no_bedrooms, no_bathrooms, area_sqm,
         furnished_type, floor_level, max_occupants,
-        lease_duration, amenities, lease_agreement_url,
+        lease_duration, has_own_electricity_meter, amenities, lease_agreement_url,
         security_deposit, advance_rent,
         landlord:landlord_id (
           first_name,

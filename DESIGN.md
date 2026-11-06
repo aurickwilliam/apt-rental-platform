@@ -8,6 +8,19 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 ## 1. Design Philosophy
 
+Apartment creation and editing keep the own-electricity-meter confirmation inside
+the existing property details, after Floor Level / Lease Duration (no new section
+or step). Reuse each platform's shared `ElectricityMeterConfirmation` with its
+HeroUI checkbox, required label, supporting text and inline error. New drafts start
+unchecked. Details/previews show “Electricity: Own meter” only for a confirmed
+listing. On web, the confirmation uses foreground label text, muted-foreground
+helper text and a muted-foreground checkbox border on the card surface, with a
+primary selected state and focus outline, in both themes. Scoped CSS overrides
+HeroUI defaults so the helper and unchecked control remain readable. The label is
+ordinary property information rather than an amenity or verification
+badge. Existing listings are classified confirmed by rollout policy; see
+`docs/listing-electricity-meter.md`.
+
 **Product personality:** Friendly, trustworthy, professional. APT connects tenants and landlords in Metro Manila — approachable and dependable, like a well-run local brokerage.
 
 **UX goals:** rental discovery/application/payment/management feel simple and low-risk; trust through verification (Verified chips, shield icons everywhere); money is always explicit (prices, move-in breakdowns).

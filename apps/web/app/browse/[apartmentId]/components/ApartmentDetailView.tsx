@@ -5,6 +5,7 @@ import RatingSection from "./RatingsSection";
 import MapLocation from "./MapLocation";
 
 import { Separator } from "@heroui/react";
+import { OWN_ELECTRICITY_METER_DETAIL } from "@repo/constants";
 
 import { fetchVerifiedLandlordIds } from "@/lib/verified-landlord";
 
@@ -17,6 +18,7 @@ import {
   IconBuilding,
   IconCalendar,
   IconArmchair,
+  IconBolt,
 } from "@tabler/icons-react";
 
 import ApartmentReviewsPreview from "./ApartmentReviewsPreview";
@@ -229,6 +231,14 @@ export default async function ApartmentDetailView({
                 {apartment.furnished_type}
               </h2>
             </div>
+            {apartment.has_own_electricity_meter === true && (
+              <div className="flex gap-2 items-center min-w-0">
+                <IconBolt size={22} className="text-muted-foreground shrink-0" aria-hidden="true" />
+                <p className="text-sm sm:text-base font-medium text-muted-foreground min-w-0 break-words">
+                  {OWN_ELECTRICITY_METER_DETAIL}
+                </p>
+              </div>
+            )}
           </div>
 
           <Separator className="my-6 sm:my-8" />

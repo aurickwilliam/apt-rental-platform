@@ -179,6 +179,7 @@ export type Database = {
           description: string
           floor_level: string | null
           furnished_type: string | null
+          has_own_electricity_meter: boolean
           hidden_at: string | null
           hidden_by: string | null
           hidden_reason: string | null
@@ -218,6 +219,7 @@ export type Database = {
           description: string
           floor_level?: string | null
           furnished_type?: string | null
+          has_own_electricity_meter?: boolean
           hidden_at?: string | null
           hidden_by?: string | null
           hidden_reason?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           description?: string
           floor_level?: string | null
           furnished_type?: string | null
+          has_own_electricity_meter?: boolean
           hidden_at?: string | null
           hidden_by?: string | null
           hidden_reason?: string | null

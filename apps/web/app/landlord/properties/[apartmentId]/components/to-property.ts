@@ -31,6 +31,7 @@ export function toProperty(apartment: LandlordUnitApartment): Property {
     furnished_type: apartment.furnished_type,
     floor_level: apartment.floor_level,
     lease_duration: apartment.lease_duration,
+    has_own_electricity_meter: apartment.has_own_electricity_meter,
     latitude: null,
     longitude: null,
     amenities: apartment.amenities,
