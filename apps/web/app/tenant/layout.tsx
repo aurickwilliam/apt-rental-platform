@@ -4,6 +4,7 @@ import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
 import ReviewUnlockGate from "./components/ReviewUnlockGate";
+import TutorialTour from "../components/tutorial/TutorialTour";
 import { getServerIdentity } from "@/lib/server-identity";
 
 import { canViewPassport } from "@/lib/passport-access";
@@ -12,11 +13,11 @@ const PASSPORT_HREF = "/tenant/passport";
 const FAVORITES_HREF = "/tenant/favorites";
 
 const TENANT_NAV = [
-  { href: "/tenant/browse", label: "Browse", icon: "Search" },
-  { href: "/tenant/my-rental", label: "My Rental", icon: "Home", activityKey: "rental" },
-  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool", activityKey: "maintenance" },
+  { href: "/tenant/browse", label: "Browse", icon: "Search", tourKey: "nav-browse" },
+  { href: "/tenant/my-rental", label: "My Rental", icon: "Home", activityKey: "rental", tourKey: "nav-my-rental" },
+  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool", activityKey: "maintenance", tourKey: "nav-maintenance" },
   { href: PASSPORT_HREF, label: "APT Passport", icon: "FileCheck", activityKey: "passport" },
-  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages" },
+  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages", tourKey: "nav-messages" },
 ] as const;
 
 export default async function TenantLayout({
@@ -29,6 +30,7 @@ export default async function TenantLayout({
   let userRoles: string[] = ["tenant"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
+  let profileId: string | null = null;
 
   try {
     const { user, profile } = await getServerIdentity();
@@ -39,6 +41,7 @@ export default async function TenantLayout({
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
       accountStatus = profile?.account_status ?? null;
+      profileId = profile?.id ?? null;
     }
   } catch {
     // fallback to defaults — layout remains server-renderable
@@ -86,6 +89,9 @@ export default async function TenantLayout({
       <Suspense fallback={null}>
         <NotificationsOverlay activePortal="tenant" />
       </Suspense>
+      {profileId ? (
+        <TutorialTour portal="tenant" profileId={profileId} accountStatus={accountStatus} />
+      ) : null}
       <ReviewUnlockGate />
     </div>
   );

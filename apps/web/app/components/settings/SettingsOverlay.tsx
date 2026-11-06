@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { requestTutorialReplay } from "@/lib/tutorial-controller";
 
 const SettingsModal = dynamic(() => import("./SettingsModal"), {
   loading: () => <span role="status" className="sr-only">Opening settings…</span>,
@@ -52,6 +53,12 @@ export default function SettingsOverlay({
     setChangeEmailOpen(true);
   };
 
+  // Settings closes first; the tour then starts over the portal page.
+  const startTutorial = (portal: "tenant" | "landlord") => {
+    close();
+    requestTutorialReplay(portal);
+  };
+
   return (
     <>
       <SettingsModal
@@ -61,6 +68,7 @@ export default function SettingsOverlay({
         activePortal={activePortal}
         onChangePassword={openChangePassword}
         onChangeEmail={openChangeEmail}
+        onStartTutorial={startTutorial}
       />
       <ChangePasswordModal isOpen={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <ChangeEmailModal isOpen={changeEmailOpen} onOpenChange={setChangeEmailOpen} />

@@ -8,6 +8,7 @@ import {
   IconGlobe,
   IconHelpCircle,
   IconHome,
+  IconRoute,
   IconSettings,
   IconShieldLock,
   IconSun,
@@ -23,8 +24,9 @@ import NotificationsTab from "./tabs/NotificationsTab";
 import HelpTab from "./tabs/HelpTab";
 import RentalPreferencesTab from "./tabs/RentalPreferencesTab";
 import PaymentMethodsTab from "./tabs/PaymentMethodsTab";
+import TutorialTab from "./tabs/TutorialTab";
 
-type TabId = "general" | "security" | "language" | "notifications" | "help" | "rental" | "payments";
+type TabId = "general" | "security" | "language" | "notifications" | "help" | "rental" | "payments" | "tutorial";
 
 const TAB_META = [
   { id: "general", label: "General", icon: IconSun },
@@ -36,6 +38,7 @@ const TAB_META = [
 
 const RENTAL_TAB = { id: "rental", label: "Rental Preferences", icon: IconHome } as const;
 const PAYMENTS_TAB = { id: "payments", label: "Payment Methods", icon: IconCreditCard } as const;
+const TUTORIAL_TAB = { id: "tutorial", label: "Tutorial", icon: IconRoute } as const;
 
 export default function SettingsModal({
   open,
@@ -44,6 +47,7 @@ export default function SettingsModal({
   activePortal,
   onChangePassword,
   onChangeEmail,
+  onStartTutorial,
 }: {
   open: boolean;
   onClose: () => void;
@@ -65,6 +69,8 @@ export default function SettingsModal({
   activePortal?: "tenant" | "landlord" | "admin";
   onChangePassword: () => void;
   onChangeEmail: () => void;
+  /** Closes Settings and replays the active portal's tutorial. */
+  onStartTutorial: (portal: "tenant" | "landlord") => void;
 }) {
   const { profile, loading: profileLoading } = useUser();
   const pathname = usePathname();
@@ -105,7 +111,18 @@ export default function SettingsModal({
     : TAB_META;
   // Payment Methods (which methods tenants may use) is landlord-portal-only.
   const canShowPayments = isLandlord && resolvedPortal === "landlord";
-  const visibleTabs = canShowPayments ? [...baseTabs.slice(0, 2), PAYMENTS_TAB, ...baseTabs.slice(2)] : baseTabs;
+  const withPayments = canShowPayments ? [...baseTabs.slice(0, 2), PAYMENTS_TAB, ...baseTabs.slice(2)] : baseTabs;
+  // The tutorial belongs to the tenant and landlord portals (the account must
+  // hold that portal's role); admin and neutral pages never list it.
+  const tutorialPortal =
+    resolvedPortal === "tenant" && isTenant
+      ? "tenant"
+      : resolvedPortal === "landlord" && isLandlord
+        ? "landlord"
+        : null;
+  const visibleTabs = tutorialPortal
+    ? [...withPayments.slice(0, withPayments.length - 1), TUTORIAL_TAB, withPayments[withPayments.length - 1]]
+    : withPayments;
   const activeId: TabId = visibleTabs.some((t) => t.id === tab) ? tab : "general";
 
   // Whether roles are still resolving without server-known seeds: reserve
@@ -210,6 +227,9 @@ export default function SettingsModal({
                   {activeId === "help" ? <HelpTab isAdmin={isAdmin} activePortal={resolvedPortal} /> : null}
                   {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} /> : null}
                   {activeId === "payments" && canShowPayments ? <PaymentMethodsTab /> : null}
+                  {activeId === "tutorial" && tutorialPortal ? (
+                    <TutorialTab portal={tutorialPortal} onStart={() => onStartTutorial(tutorialPortal)} />
+                  ) : null}
                 </section>
               </div>
             </Modal.Body>

@@ -362,3 +362,18 @@ export {
   trimVehicles,
   spotsForVehicles,
 } from './preferenceLinking';
+export {
+  TUTORIAL_TARGETS,
+  getTutorialSteps,
+  hasFinishedTutorial,
+  shouldAutoStartTutorial,
+} from './tutorial';
+export type {
+  TutorialPortal,
+  TutorialPlatform,
+  TutorialStep,
+  TutorialStepId,
+  TutorialContext,
+  TutorialProgressRow,
+  AutoStartInput,
+} from './tutorial';
