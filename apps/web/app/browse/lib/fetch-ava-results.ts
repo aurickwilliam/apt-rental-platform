@@ -22,14 +22,21 @@ export async function fetchAvaResults(
   params: Record<string, string>,
   limit = AVA_RESULT_LIMIT,
   excludeIds: string[] = [],
+  options: { light?: boolean; ids?: string[] } = {},
 ): Promise<AvaFound<BrowseApartment>[]> {
+  const columns = `id, name, barangay, city, monthly_rent, average_rating,
+        no_bedrooms, no_bathrooms, area_sqm, is_verified,
+        latitude, longitude, amenities`;
+  // Pools of candidates (up to hundreds of rows) skip the photo rows; the few
+  // listings shown are read again by id with their photos.
+  const withImages = !options.light;
   let query = supabase
     .from("apartments")
     .select(
-      `id, name, barangay, city, monthly_rent, average_rating,
-        no_bedrooms, no_bathrooms, area_sqm, is_verified,
-        latitude, longitude, amenities,
-        apartment_images(url, url_thumb, is_cover, created_at)`,
+      withImages
+        ? `${columns},
+        apartment_images(url, url_thumb, is_cover, created_at)`
+        : columns,
     )
     .is("deleted_at", null)
     .eq("is_hidden_by_admin", false)
@@ -38,10 +45,18 @@ export async function fetchAvaResults(
   if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
   // Cards only read the cover image: covers first, one image row per listing.
-  query = query
-    .order("is_cover", { foreignTable: "apartment_images", ascending: false })
-    .order("created_at", { foreignTable: "apartment_images", ascending: true })
-    .limit(1, { foreignTable: "apartment_images" });
+  if (withImages) {
+    query = query
+      .order("is_cover", { foreignTable: "apartment_images", ascending: false })
+      .order("created_at", { foreignTable: "apartment_images", ascending: true })
+      .limit(1, { foreignTable: "apartment_images" });
+  }
+
+  if (options.ids) {
+    const { data, error } = await query.in("id", options.ids).limit(options.ids.length);
+    if (error) throw new Error(error.message);
+    return toFound((data ?? []) as unknown as AvaApartmentRow[]);
+  }
 
   query = applyBrowseFilters(query, params);
   // Browse cannot filter a bedroom range ("one or two bedrooms"), so Ava adds it here.
@@ -55,7 +70,11 @@ export async function fetchAvaResults(
   const { data, error } = await query.limit(limit);
   if (error) throw new Error(error.message);
 
-  return ((data ?? []) as unknown as AvaApartmentRow[]).map((row) => ({
+  return toFound((data ?? []) as unknown as AvaApartmentRow[]);
+}
+
+const toFound = (rows: AvaApartmentRow[]): AvaFound<BrowseApartment>[] =>
+  rows.map((row) => ({
     card: toBrowseApartment(row),
     candidate: {
       id: row.id,
@@ -67,7 +86,6 @@ export async function fetchAvaResults(
       city: row.city,
     },
   }));
-}
 
 /**
  * Re-reads listings Ava showed in a saved chat, by id, with the same

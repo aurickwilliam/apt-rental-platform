@@ -1,6 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { IconTrash } from "@tabler/icons-react-native";
+import { IconHistory, IconTrash } from "@tabler/icons-react-native";
 import { BottomSheet, Button, PressableFeedback } from "heroui-native";
 
 import {
@@ -9,6 +9,7 @@ import {
   type AvaSavedChat,
 } from "@repo/utils";
 
+import EmptyState from "@/components/display/EmptyState";
 import { useColors } from "@/hooks/useTheme";
 
 const GROUP_LABELS: Record<AvaHistoryGroupLabel, string> = {
@@ -51,9 +52,12 @@ export default function AvaHistorySheet({
             </BottomSheet.Title>
 
             {chats.length === 0 ? (
-              <Text className="py-8 text-center font-inter text-sm text-muted">
-                Your conversations with Ava will show up here.
-              </Text>
+              <EmptyState
+                icon={IconHistory}
+                title="No conversations yet"
+                description="Your conversations with Ava will show up here."
+                className="pt-6"
+              />
             ) : (
               <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="gap-4 pb-2">
                 {groupAvaChatsByAge(chats).map((group) => (

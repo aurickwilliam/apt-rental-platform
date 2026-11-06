@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createClient } from "@repo/supabase/browser";
 import {
@@ -11,10 +11,11 @@ import {
   avaConversationLanguage,
   avaFallbackAnswer,
   buildAvaRequest,
-  hasAvaQuestion,
+  hasAvaPreferences,
   isBrowseExpressible,
   readAvaResponse,
   removeAvaChat,
+  shouldAskAvaModel,
   upsertAvaChat,
   type AvaAnswer,
   type AvaSavedChat,
@@ -28,6 +29,7 @@ import { fetchAvaListingsByIds, fetchAvaResults } from "@/app/browse/lib/fetch-a
 import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useUser } from "@/hooks/use-user";
 import { loadAvaChats, saveAvaChats } from "@/lib/ava-history";
+import { parseTenantPreferences } from "@/lib/tenant-preferences";
 
 export interface AvaChatMessage {
   id: string;
@@ -83,15 +85,31 @@ const fromSavedMessage = (message: AvaSavedMessage): AvaChatMessage => ({
 const detectedLanguage = (messages: AvaChatMessage[], latest: string) =>
   avaConversationLanguage([...toTurns(messages), { role: "user", text: latest }]);
 
+// The sign-in can expire while the page stays open (or another tab can rotate
+// the refresh token), which the function answers with a 401. Refresh once and
+// retry before giving up.
+const isUnauthorized = (error: unknown) =>
+  (error as { context?: { status?: number } } | null)?.context?.status === 401;
+
 async function askAva(
   supabase: ReturnType<typeof createClient>,
   turns: AvaTurn[],
 ): Promise<AvaAnswer> {
-  if (!hasAvaQuestion(turns)) return avaFallbackAnswer(turns);
+  // Questions about the saved preferences are answered on the device, never sent.
+  if (!shouldAskAvaModel(turns)) return avaFallbackAnswer(turns);
 
-  const { data, error } = await supabase.functions.invoke("ai-search", {
-    body: buildAvaRequest(turns),
-  });
+  const body = buildAvaRequest(turns);
+  let { data, error } = await supabase.functions.invoke("ai-search", { body });
+
+  if (error && isUnauthorized(error)) {
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (!refreshError) ({ data, error } = await supabase.functions.invoke("ai-search", { body }));
+    if (error && isUnauthorized(error)) {
+      console.error("Ava request failed: the session expired.");
+      return avaFallbackAnswer(turns, "session");
+    }
+  }
+
   if (error || !data) {
     console.error("Ava request failed:", error?.message ?? "empty response");
     return avaFallbackAnswer(turns);
@@ -111,8 +129,14 @@ interface UseAvaChatOptions {
 // in this browser per account (`lib/ava-history.ts`); listings are saved as ids
 // and re-read when a chat is opened.
 export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
-  const { user } = useUser();
+  const { user, profile } = useUser();
   const authUserId = user?.id;
+  // Saved rental preferences stay in the browser: Ava summarises them or starts a
+  // search from them, and never sends them to the model.
+  const preferences = useMemo(() => {
+    const parsed = parseTenantPreferences(profile?.preferences);
+    return hasAvaPreferences(parsed) ? parsed : null;
+  }, [profile?.preferences]);
 
   const loadChats = useCallback(async () => loadAvaChats(authUserId), [authUserId]);
   const {
@@ -141,7 +165,11 @@ export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
         updatedAt: Date.now(),
         messages: chatMessages.map(toSavedMessage),
       };
-      const next = upsertAvaChat(chatsRef.current, saved);
+      // Start from what is stored, not only from memory: a reply can land before the
+      // history has loaded, and saving just the new chat would overwrite the rest.
+      const stored = loadAvaChats(authUserId);
+      const held = chatsRef.current.filter((chat) => !stored.some((item) => item.id === chat.id));
+      const next = upsertAvaChat([...stored, ...held], saved);
       chatsRef.current = next;
       setChats(next);
       saveAvaChats(authUserId, next);
@@ -186,7 +214,10 @@ export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
               aiFiltersToBrowseParams(request.filters),
               request.limit,
               request.excludeIds,
+              { light: request.light, ids: request.ids },
             ),
+            undefined,
+            { preferences },
           );
         } catch (err) {
           console.error("Ava listings failed:", err);
@@ -218,7 +249,7 @@ export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
         if (isCurrentChat()) setIsLoading(false);
       }
     },
-    [activeChatId, input, isLoading, messages, persist],
+    [activeChatId, input, isLoading, messages, persist, preferences],
   );
 
   /** Starts an empty chat. The current one stays in the history. */
@@ -301,6 +332,7 @@ export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
     activeChatId,
     openChat,
     deleteChat,
+    hasPreferences: preferences !== null,
   };
 }
 

@@ -7,6 +7,7 @@ import {
   avaConversationLanguage,
   removeAvaChat,
   upsertAvaChat,
+  type AvaPreferences,
   type AvaSavedChat,
   type AvaSavedMessage,
   type AvaSearchState,
@@ -68,11 +69,12 @@ const toTurns = (messages: AIChatMessage[]): AvaTurn[] =>
   }));
 
 /**
- * Ava's chat. With an `authUserId` each conversation is also saved on the
+ * Ava's chat. `preferences` are the saved rental preferences (kept on the device,
+ * never sent to the model). With an `authUserId` each conversation is also saved on the
  * device (history list); without one the chat is memory-only. Listings are
  * saved as ids and re-read when a chat is opened.
  */
-export function useAIChat(authUserId?: string | null) {
+export function useAIChat(authUserId?: string | null, preferences?: AvaPreferences | null) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,19 +84,28 @@ export function useAIChat(authUserId?: string | null) {
   // Bumped by resetChat/openChat so a reply still in flight never lands in another chat.
   const chatGenerationRef = useRef(0);
 
+  // Saving waits for the stored history to be read: a reply can land first, and
+  // writing just the new chat would overwrite the older ones.
+  const historyReadyRef = useRef<Promise<void> | null>(null);
+  const historyLoadedRef = useRef(false);
+
   useEffect(() => {
     let active = true;
     if (!authUserId) return;
-    void loadAvaChats(authUserId).then((stored) => {
+    historyLoadedRef.current = false;
+    const ready = loadAvaChats(authUserId).then((stored) => {
       if (!active) return;
       // A chat saved before storage answered stays on top.
       const merged = chatsRef.current.reduce((list, chat) => upsertAvaChat(list, chat), stored);
       chatsRef.current = merged;
+      historyLoadedRef.current = true;
       setChats(merged);
     });
+    historyReadyRef.current = ready;
     return () => {
       active = false;
       chatsRef.current = [];
+      historyReadyRef.current = null;
     };
   }, [authUserId]);
 
@@ -107,10 +118,14 @@ export function useAIChat(authUserId?: string | null) {
         updatedAt: Date.now(),
         messages: chatMessages.map(toSavedMessage),
       };
-      const next = upsertAvaChat(chatsRef.current, saved);
-      chatsRef.current = next;
-      setChats(next);
-      void saveAvaChats(authUserId, next);
+      const write = () => {
+        const next = upsertAvaChat(chatsRef.current, saved);
+        chatsRef.current = next;
+        setChats(next);
+        void saveAvaChats(authUserId, next);
+      };
+      if (historyLoadedRef.current || !historyReadyRef.current) write();
+      else void historyReadyRef.current.then(write);
     },
     [authUserId],
   );
@@ -162,7 +177,12 @@ export function useAIChat(authUserId?: string | null) {
         let outcome: Awaited<ReturnType<typeof answerAva<ApartmentCardProps>>>;
         try {
           outcome = await answerAva<ApartmentCardProps>(answer, turns, (request) =>
-            fetchAvaListings(request.filters, request.limit, request.excludeIds),
+            fetchAvaListings(request.filters, request.limit, request.excludeIds, {
+              light: request.light,
+              ids: request.ids,
+            }),
+            undefined,
+            { preferences },
           );
         } catch (err) {
           console.error("Ava listings failed:", err);
@@ -185,7 +205,7 @@ export function useAIChat(authUserId?: string | null) {
         if (isCurrentChat()) setIsLoading(false);
       }
     },
-    [activeChatId, input, isLoading, messages, persist],
+    [activeChatId, input, isLoading, messages, persist, preferences],
   );
 
   /** Starts an empty chat. The current one stays in the history. */

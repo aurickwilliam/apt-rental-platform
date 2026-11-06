@@ -35,7 +35,10 @@ interface AvaChatViewProps {
  * shared by the drawer and the full-page view so both behave the same.
  */
 export default function AvaChatView({ chat, basePath, onNavigate, variant = "drawer" }: AvaChatViewProps) {
-  const { input, setInput, messages, isLoading, sendMessage } = chat;
+  const { input, setInput, messages, isLoading, sendMessage, hasPreferences } = chat;
+  const starters = hasPreferences
+    ? [{ label: "Based on my preferences", message: "Find apartments based on my preferences" }, ...STARTER_SUGGESTIONS]
+    : STARTER_SUGGESTIONS;
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [favoriteLoadingId, setFavoriteLoadingId] = useState<string | null>(null);
@@ -132,7 +135,7 @@ export default function AvaChatView({ chat, basePath, onNavigate, variant = "dra
         <div className={`${column} flex flex-col gap-2`}>
           {messages.length === 0 && (
             <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
-              {STARTER_SUGGESTIONS.map((suggestion) => (
+              {starters.map((suggestion) => (
                 <Button
                   key={suggestion.message}
                   size="sm"

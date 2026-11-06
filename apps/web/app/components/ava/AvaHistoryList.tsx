@@ -1,8 +1,9 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { IconTrash } from "@tabler/icons-react";
+import { IconHistory, IconTrash } from "@tabler/icons-react";
 
+import EmptyState from "@/app/components/display/EmptyState";
 import { groupAvaChatsByAge, type AvaHistoryGroupLabel, type AvaSavedChat } from "@repo/utils";
 
 const GROUP_LABELS: Record<AvaHistoryGroupLabel, string> = {
@@ -23,9 +24,12 @@ interface AvaHistoryListProps {
 export default function AvaHistoryList({ chats, activeChatId, onOpen, onDelete }: AvaHistoryListProps) {
   if (chats.length === 0) {
     return (
-      <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-        Your conversations with Ava will show up here.
-      </p>
+      <EmptyState
+        icon={IconHistory}
+        title="No conversations yet"
+        description="Your conversations with Ava will show up here."
+        className="py-8"
+      />
     );
   }
 
@@ -45,14 +49,14 @@ export default function AvaHistoryList({ chats, activeChatId, onOpen, onDelete }
                   isActive ? "bg-muted" : "hover:bg-muted/60"
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => onOpen(chat.id)}
+                <Button
+                  variant="ghost"
+                  onPress={() => onOpen(chat.id)}
                   aria-current={isActive ? "true" : undefined}
-                  className="min-w-0 flex-1 cursor-pointer truncate rounded-xl px-3 py-2 text-left text-sm text-foreground focus-visible:outline-2 focus-visible:outline-[#376BF5]"
+                  className="h-auto min-w-0 flex-1 cursor-pointer justify-start truncate rounded-xl px-3 py-2 text-left text-sm font-normal text-foreground"
                 >
-                  {chat.title}
-                </button>
+                  <span className="truncate">{chat.title}</span>
+                </Button>
                 <Button
                   isIconOnly
                   size="sm"

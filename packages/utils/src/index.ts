@@ -340,6 +340,8 @@ export {
   readAvaResponse,
   shouldSearchForAva,
   composeAvaReply,
+  avaSourceNote,
+  shouldAskAvaModel,
   wantsMoreResults,
   avaConversationLanguage,
 } from './avaChat';
@@ -359,6 +361,15 @@ export {
   formatDistance,
   type ProximityScenario,
 } from './avaProximity';
+export { smallTalkKind, type AvaSmallTalkKind } from './avaSmallTalk';
+export {
+  asksAboutPreferences,
+  describePreferences,
+  hasAvaPreferences,
+  preferencesToFilters,
+  type AvaPreferences,
+  type AvaPreferenceIntent,
+} from './avaPreferences';
 export {
   AVA_PROXIMITY_POOL,
   answerAva,

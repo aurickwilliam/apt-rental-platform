@@ -17,7 +17,7 @@ const TAGALOG_WORDS = new Set([
   'kumusta', 'magandang', 'umaga', 'hapon', 'gabi', 'ilan', 'tayo', 'natin', 'namin', 'nila',
   'akin', 'amin', 'siya', 'sila', 'kayo', 'ikaw', 'bakit', 'nasaan', 'nasa', 'galing', 'papunta',
   'lumipat', 'lilipat', 'titira', 'tumira', 'sakayan', 'alaga', 'aso', 'pusa', 'bata', 'babae',
-  'lalaki', 'mag-isa', 'magkasama', 'kasama', 'pamilya', 'trabaho', 'opisina', 'eskuwela', 'kapitbahay',
+  'kumain', 'kain', 'kana', 'busog', 'paalam', 'ingat', 'salamat', 'musta', 'lalaki', 'mag-isa', 'magkasama', 'kasama', 'pamilya', 'trabaho', 'opisina', 'eskuwela', 'kapitbahay',
 ]);
 
 const WORD_PATTERN = /[a-zñ-]+/g;

@@ -21,6 +21,8 @@ import ScrollToBottomButton from "./components/ScrollToBottomButton";
 import { useAIChat, type AIChatMessage } from "hooks/chat";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useProfile } from "@/hooks/auth/useProfile";
+import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
+import { hasAvaPreferences } from "@repo/utils";
 
 const STARTER_SUGGESTIONS: readonly StarterSuggestion[] = [
   { label: "2BR under ₱15k", message: "2BR under ₱15k" },
@@ -34,8 +36,10 @@ const SCROLL_BOTTOM_THRESHOLD = 150;
 export default function AISearchScreen() {
   const router = useRouter();
   const { profile } = useProfile();
+  const { preferences } = useUserPreferences();
+  const avaPreferences = hasAvaPreferences(preferences) ? preferences : null;
   const { input, setInput, messages, isLoading, sendMessage, resetChat, chats, activeChatId, openChat, deleteChat } =
-    useAIChat(profile?.user_id);
+    useAIChat(profile?.user_id, avaPreferences);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const { isFavorite } = useFavorites();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
@@ -156,7 +160,11 @@ export default function AISearchScreen() {
           {/* Starters only before the chat starts; Ava's replies bring their own chips */}
           {messages.length === 0 && (
             <StarterSuggestions
-              suggestions={STARTER_SUGGESTIONS}
+              suggestions={
+                avaPreferences
+                  ? [{ label: "Based on my preferences", message: "Find apartments based on my preferences" }, ...STARTER_SUGGESTIONS]
+                  : STARTER_SUGGESTIONS
+              }
               onSelect={handleSuggestionPress}
             />
           )}

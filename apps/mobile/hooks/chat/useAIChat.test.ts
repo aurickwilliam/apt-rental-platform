@@ -69,7 +69,7 @@ describe("useAIChat", () => {
     await act(() => result.current.sendMessage("studio sa Malabon"));
 
     expect(mockAskAva).toHaveBeenCalledWith([expect.objectContaining({ role: "user", text: "studio sa Malabon" })]);
-    expect(mockFetchAvaListings).toHaveBeenCalledWith(MALABON, 5, []);
+    expect(mockFetchAvaListings).toHaveBeenCalledWith(MALABON, 5, [], { light: undefined, ids: undefined });
     const [user, assistant] = result.current.messages;
     expect(user).toMatchObject({ role: "user", text: "studio sa Malabon" });
     expect(assistant).toMatchObject({
@@ -85,11 +85,11 @@ describe("useAIChat", () => {
     mockAskAva.mockResolvedValue(answer({ source: "gemini", reply: "Saan po?", quickReplies: [], filters: EMPTY_AI_SEARCH_FILTERS }));
 
     const { result } = renderHook(() => useAIChat());
-    await act(() => result.current.sendMessage("Hi"));
+    await act(() => result.current.sendMessage("I need a place to rent"));
     await act(() => result.current.sendMessage("Malabon"));
 
     expect(mockAskAva).toHaveBeenLastCalledWith([
-      { role: "user", text: "Hi" },
+      { role: "user", text: "I need a place to rent" },
       { role: "assistant", text: "Saan po?" },
       { role: "user", text: "Malabon" },
     ].map((turn) => expect.objectContaining(turn)));
@@ -189,7 +189,7 @@ describe("useAIChat", () => {
     mockFetchAvaListings.mockResolvedValue([]);
     await act(() => result.current.sendMessage("Show me more."));
 
-    expect(mockFetchAvaListings).toHaveBeenLastCalledWith(MALABON, 5, ["apt-1"]);
+    expect(mockFetchAvaListings).toHaveBeenLastCalledWith(MALABON, 5, ["apt-1"], { light: undefined, ids: undefined });
     expect(result.current.messages[3].text).toMatch(/everything I have/);
   });
 
@@ -241,6 +241,23 @@ describe("useAIChat", () => {
       act(() => result.current.deleteChat(chatId));
       expect(result.current.chats).toEqual([]);
       expect(result.current.messages).toEqual([]);
+    });
+
+    it("never overwrites older chats when a reply lands before the history has loaded", async () => {
+      let resolveLoad: (chats: unknown[]) => void = () => {};
+      mockLoadChats.mockReturnValue(new Promise((resolve) => { resolveLoad = resolve; }));
+      mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
+      mockFetchAvaListings.mockResolvedValue([FOUND]);
+      const older = { id: "old-chat", title: "Older", updatedAt: 1, messages: [{ id: "m", role: "user", text: "hi" }] };
+
+      const { result } = renderHook(() => useAIChat("auth-1"));
+      await act(() => result.current.sendMessage("apartments in Malabon"));
+      expect(mockSaveChats).not.toHaveBeenCalled();
+
+      await act(async () => { resolveLoad([older]); });
+      const saved = mockSaveChats.mock.calls.at(-1)?.[1] as { id: string }[];
+      expect(saved.map((chat) => chat.id)).toContain("old-chat");
+      expect(saved).toHaveLength(2);
     });
 
     it("does not save anything without an account", async () => {

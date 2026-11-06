@@ -14,7 +14,7 @@
 //
 // Responses (always HTTP 200 once the caller is authorized):
 //   { source: 'gemini', reply, quickReplies, noResultsReply,
-//     noResultsQuickReplies, filters, landmark, wantsMore }
+//     noResultsQuickReplies, filters, landmark, offTopic }
 // The app shows noResultsReply instead of reply when the search finds
 // nothing, because Gemini answers before the app searches.
 //   { source: 'fallback' }  Gemini unset, rate-limited, slow or invalid.
@@ -86,12 +86,11 @@ How to talk:
 - "noResultsReply": what to say instead if the search finds nothing, in the reply language. One or two short sentences: say kindly that nothing matches yet and suggest loosening the search (another area, a higher budget, a different type, or dropping a must-have). Do not ask them to add more requirements.
 - "noResultsQuickReplies": 2 to 4 short taps that loosen the search, in the reply language.
 - Places: when the tenant names a landmark or establishment (a mall, city hall, school, hospital, market, church, station or a circle like Monumento), put its name in "landmark" exactly as they said it, without a city if they gave none, and do NOT put it in "keyword" or "cities". The app finds its real location and ranks real listings by distance. Never state distances, coordinates or how many listings exist.
-- "wantsMore": true only when the tenant asks for more results of the same search ("show me more", "ipakita pa", "any others?").
 - Follow-ups use "Current search" as the starting point. "Cheaper" means sort price_asc and a lower priceMax; "what if my budget is 8k" sets priceMax 8000 and keeps everything else; "closer to it" keeps the landmark, but a message that names no place and does not point back at one ("with parking?") is a new search: leave "landmark" null. Return the full updated filters every time, not only what changed. If they say any area or any type, clear that filter.
 - If they ask for something you cannot search (a quiet street, a view, a specific landlord), say kindly that you cannot filter by that yet and search with what you can.
 - If they ask about a place outside CAMANAVA, explain that APT only has listings in Caloocan, Malabon, Navotas and Valenzuela.
 - Do not ask for or repeat personal details (full name, phone number, email, address). Never claim to remember anything that is not in this conversation.
-- If the message is not about finding a place to rent, gently bring the conversation back to apartment search.
+- If the message is not about finding a place to rent (small talk, a general question, a joke), answer it briefly and warmly with a little personality, in one or two sentences, set "offTopic" to true, leave "filters" empty and "landmark" null, and end by inviting them back to apartment hunting ("Now, let's get back to finding your apartment!" / "Balik tayo sa paghahanap ng apartment mo!"). Never give medical, legal or financial advice and never help with anything harmful; decline kindly and steer back. A message about apartments, areas, budgets, listings or follow-ups to the search is never off-topic.
 
 Filters (use the whole conversation; keep earlier details unless the tenant changes them; use null or [] when unknown):
 - cities: from ${CITIES.join(', ')}.
@@ -135,9 +134,9 @@ const RESPONSE_SCHEMA = {
       required: ['cities', 'types', 'furnishing', 'amenities', 'verifiedOnly'],
     },
     landmark: nullable('STRING'),
-    wantsMore: { type: 'BOOLEAN' },
+    offTopic: { type: 'BOOLEAN' },
   },
-  required: ['reply', 'quickReplies', 'noResultsReply', 'noResultsQuickReplies', 'filters', 'wantsMore'],
+  required: ['reply', 'quickReplies', 'noResultsReply', 'noResultsQuickReplies', 'filters', 'offTopic'],
 }
 
 const dbClient = createClient(
@@ -168,7 +167,7 @@ type AvaAnswer = {
   noResultsQuickReplies: string[]
   filters: Record<string, unknown>
   landmark: string | null
-  wantsMore: boolean
+  offTopic: boolean
 }
 
 // What the app says the conversation already settled. Untrusted: it only
@@ -309,7 +308,7 @@ function readAnswer(payload: unknown): AvaAnswer | null {
       typeof answer.landmark === 'string' && answer.landmark.trim() !== ''
         ? answer.landmark.trim().slice(0, 80)
         : null,
-    wantsMore: answer.wantsMore === true,
+    offTopic: answer.offTopic === true,
   }
 }
 

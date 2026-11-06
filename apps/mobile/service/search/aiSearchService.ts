@@ -4,8 +4,8 @@ import {
   AVA_RESULT_LIMIT,
   avaFallbackAnswer,
   buildAvaRequest,
-  hasAvaQuestion,
   readAvaResponse,
+  shouldAskAvaModel,
   type AiSearchFilters,
   type AvaAnswer,
   type AvaFound,
@@ -26,6 +26,9 @@ import {
 
 // The card columns plus what the distance ranking and captions need.
 const AVA_LISTING_SELECT = `latitude, longitude, amenities, ${APARTMENT_CARD_SELECT}`;
+// Large candidate pools skip the photo rows; shown listings are re-read by id.
+const AVA_LIGHT_SELECT = `id, name, barangay, city, average_rating, monthly_rent, no_bedrooms,
+  no_bathrooms, area_sqm, is_verified, latitude, longitude, amenities`;
 
 interface AvaListingRow extends ApartmentCardRow {
   latitude: number | null;
@@ -33,12 +36,26 @@ interface AvaListingRow extends ApartmentCardRow {
   amenities: string[] | null;
 }
 
-export async function askAva(turns: AvaTurn[]): Promise<AvaAnswer> {
-  if (!hasAvaQuestion(turns)) return avaFallbackAnswer(turns);
+// The sign-in can expire while the screen stays open, which the function
+// answers with a 401. Refresh once and retry before giving up.
+const isUnauthorized = (error: unknown) =>
+  (error as { context?: { status?: number } } | null)?.context?.status === 401;
 
-  const { data, error } = await supabase.functions.invoke("ai-search", {
-    body: buildAvaRequest(turns),
-  });
+export async function askAva(turns: AvaTurn[]): Promise<AvaAnswer> {
+  // Questions about the saved preferences are answered on the device, never sent.
+  if (!shouldAskAvaModel(turns)) return avaFallbackAnswer(turns);
+
+  const body = buildAvaRequest(turns);
+  let { data, error } = await supabase.functions.invoke("ai-search", { body });
+
+  if (error && isUnauthorized(error)) {
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (!refreshError) ({ data, error } = await supabase.functions.invoke("ai-search", { body }));
+    if (error && isUnauthorized(error)) {
+      console.error("Ava request failed: the session expired.");
+      return avaFallbackAnswer(turns, "session");
+    }
+  }
 
   if (error || !data) {
     console.error("Ava request failed:", error?.message ?? "empty response");
@@ -52,17 +69,25 @@ export async function fetchAvaListings(
   filters: AiSearchFilters,
   limit: number = AVA_RESULT_LIMIT,
   excludeIds: string[] = [],
+  options: { light?: boolean; ids?: string[] } = {},
 ): Promise<AvaFound<ApartmentCardProps>[]> {
   // Same visibility guards as the search tab (`useSearchLogic`).
   let query = supabase
     .from("apartments")
-    .select(AVA_LISTING_SELECT)
+    .select((options.light ? AVA_LIGHT_SELECT : AVA_LISTING_SELECT) as string)
     .is("deleted_at", null)
     .eq("is_hidden_by_admin", false)
     .in("status", ["available", "unverified"])
     .range(0, limit - 1);
 
   if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
+
+  // Exactly these listings, in full: the filters below do not apply.
+  if (options.ids) {
+    const { data, error } = await query.in("id", options.ids);
+    if (error) throw error;
+    return toFound((data ?? []) as unknown as AvaListingRow[]);
+  }
 
   const cities = filters.cities.length > 0 ? filters.cities : [...CAMANAVA_CITIES];
   query = query.in("city", cities);
@@ -110,7 +135,10 @@ export async function fetchAvaListings(
   const { data, error } = await query;
   if (error) throw error;
 
-  const rows = (data ?? []) as unknown as AvaListingRow[];
+  return toFound((data ?? []) as unknown as AvaListingRow[]);
+}
+
+function toFound(rows: AvaListingRow[]): AvaFound<ApartmentCardProps>[] {
   const cards = toApartmentCards(rows);
   return rows.map((row, index) => ({
     card: cards[index],

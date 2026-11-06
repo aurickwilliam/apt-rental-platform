@@ -7,21 +7,25 @@
 // listing that does not exist.
 
 import {
+  EMPTY_AI_SEARCH_FILTERS,
   countAiSearchFilters,
   mergeAiFilters,
+  parseSearchKeywords,
   wantsAnyArea,
   type AiSearchFilters,
 } from './aiSearch';
 import {
   AVA_RESULT_LIMIT,
   avaConversationLanguage,
+  avaSourceNote,
   composeAvaReply,
   type AvaAnswer,
   type AvaReply,
   type AvaSearchState,
   type AvaTurn,
 } from './avaChat';
-import type { AvaLanguage } from './avaLanguage';
+import { detectReplyLanguage, type AvaLanguage } from './avaLanguage';
+import { CAMANAVA_CITIES } from '@repo/constants';
 import {
   findMentionedCity,
   resolveLandmark,
@@ -29,7 +33,15 @@ import {
   type LandmarkResolution,
   type LandmarkTarget,
 } from './avaLandmarks';
+import {
+  asksAboutPreferences,
+  describePreferences,
+  hasAvaPreferences,
+  preferencesToFilters,
+  type AvaPreferences,
+} from './avaPreferences';
 import { formatDistance, rankByProximity } from './avaProximity';
+import { smallTalkKind } from './avaSmallTalk';
 import { AVA_STRINGS } from './avaStrings';
 
 /** How many nearby listings are read to rank by distance (CAMANAVA is small). */
@@ -56,6 +68,10 @@ export interface AvaFetchRequest {
   filters: AiSearchFilters;
   limit: number;
   excludeIds: string[];
+  /** Candidates only: the platform may skip photos (used for large pools). */
+  light?: boolean;
+  /** Read exactly these listings, in full (filters are ignored). */
+  ids?: string[];
 }
 
 export type AvaListingFetcher<T> = (request: AvaFetchRequest) => Promise<AvaFound<T>[]>;
@@ -181,6 +197,138 @@ export function describeSearch(
 
 const withSummary = (reply: AvaReply, summary: string): AvaReply =>
   summary ? { ...reply, text: `${reply.text}\n${summary}` } : reply;
+
+
+/**
+ * Filters with the soft requirements dropped (area, budget, bedrooms, amenities):
+ * the pool to look for the closest match in. The unit type, furnishing, verified
+ * and keyword requirements stay, because closeness cannot measure them and a
+ * "closest" listing must never silently break one.
+ */
+function relaxedFilters(filters: AiSearchFilters): AiSearchFilters {
+  return {
+    ...filters,
+    cities: [],
+    priceMin: null,
+    priceMax: null,
+    bedrooms: null,
+    bedroomsMax: null,
+    amenities: [],
+  };
+}
+
+interface Mismatches {
+  area: string | null;
+  budget: number;
+  bedrooms: number | null;
+  amenities: string[];
+}
+
+/** How a listing differs from what was asked, dimension by dimension. */
+function mismatchesOf(candidate: AvaCandidate, filters: AiSearchFilters): Mismatches {
+  const rent = candidate.monthlyRent;
+  let budget = 0;
+  if (filters.priceMax !== null && rent > filters.priceMax) budget = rent - filters.priceMax;
+  else if (filters.priceMin !== null && rent < filters.priceMin) budget = rent - filters.priceMin;
+
+  let bedrooms: number | null = null;
+  if (filters.bedrooms !== null && candidate.bedrooms !== null) {
+    const min = filters.bedrooms === '4+' ? 4 : Number(filters.bedrooms);
+    const max = filters.bedrooms === '4+' ? Infinity : (filters.bedroomsMax ?? min);
+    if (candidate.bedrooms < min) bedrooms = min - candidate.bedrooms;
+    else if (candidate.bedrooms > max) bedrooms = candidate.bedrooms - max;
+  }
+
+  return {
+    area:
+      filters.cities.length > 0 && candidate.city !== null && !filters.cities.includes(candidate.city)
+        ? candidate.city
+        : null,
+    budget,
+    bedrooms,
+    amenities: filters.amenities.filter((id) => !candidate.amenities.includes(id)),
+  };
+}
+
+/** Lower is closer to the request. The area counts most, then the budget, bedrooms and amenities. */
+function closenessScore(candidate: AvaCandidate, filters: AiSearchFilters): number {
+  const mismatch = mismatchesOf(candidate, filters);
+  const limit = filters.priceMax ?? filters.priceMin ?? 0;
+  const budgetShare = limit > 0 ? Math.abs(mismatch.budget) / limit : 0;
+  return (
+    (mismatch.area ? 3 : 0) +
+    (mismatch.budget !== 0 ? 1 + budgetShare * 4 : 0) +
+    (mismatch.bedrooms ?? 0) * 1.5 +
+    mismatch.amenities.length
+  );
+}
+
+/** The listings closest to the request, nearest first (cheapest breaks a tie). */
+function rankByCloseness<T>(
+  pool: AvaFound<T>[],
+  filters: AiSearchFilters,
+  limit: number,
+  exclude: readonly string[],
+): AvaFound<T>[] {
+  return pool
+    .filter((entry) => !exclude.includes(entry.candidate.id))
+    .map((entry) => ({ entry, score: closenessScore(entry.candidate, filters) }))
+    .sort((a, b) => a.score - b.score || a.entry.candidate.monthlyRent - b.entry.candidate.monthlyRent)
+    .slice(0, limit)
+    .map(({ entry }) => entry);
+}
+
+/** The caption lines for what differs from the request ("₱1,500 over your budget"). */
+function mismatchNotes(candidate: AvaCandidate, filters: AiSearchFilters, language: AvaLanguage): string[] {
+  const strings = AVA_STRINGS[language];
+  const mismatch = mismatchesOf(candidate, filters);
+  const notes: string[] = [];
+  if (mismatch.area) notes.push(strings.outsideArea(mismatch.area));
+  if (mismatch.budget > 0) notes.push(strings.overBudget(`₱${withThousands(mismatch.budget)}`));
+  if (mismatch.budget < 0) notes.push(strings.underBudget(`₱${withThousands(-mismatch.budget)}`));
+  if (mismatch.bedrooms !== null && candidate.bedrooms !== null) {
+    notes.push(strings.bedroomsDiffer(candidate.bedrooms));
+  }
+  for (const id of mismatch.amenities) {
+    const label = shortAmenity(id);
+    if (label) notes.push(strings.missingAmenity(label));
+  }
+  return notes;
+}
+
+/** Which kinds of difference the shown listings have, in words ("budget, bedrooms"). */
+function differenceSummary<T>(shown: AvaFound<T>[], filters: AiSearchFilters, language: AvaLanguage): string {
+  const labels = AVA_STRINGS[language].differenceLabels;
+  const kinds = new Set<string>();
+  for (const { candidate } of shown) {
+    const mismatch = mismatchesOf(candidate, filters);
+    if (mismatch.area) kinds.add(labels.area);
+    if (mismatch.budget !== 0) kinds.add(labels.budget);
+    if (mismatch.bedrooms !== null) kinds.add(labels.bedrooms);
+    if (mismatch.amenities.length > 0) kinds.add(labels.amenities);
+  }
+  return [...kinds].join(', ');
+}
+
+/**
+ * Pool reads skip photos (hundreds of rows would carry their image rows); the
+ * few listings actually shown are read again in full, by id, with the same
+ * visibility rules. A listing that vanished in between keeps its photo-less card.
+ */
+async function withCards<T>(
+  entries: AvaFound<T>[],
+  fetchListings: AvaListingFetcher<T>,
+): Promise<AvaFound<T>[]> {
+  if (entries.length === 0) return entries;
+  const full = await fetchListings({
+    filters: EMPTY_AI_SEARCH_FILTERS,
+    limit: entries.length,
+    excludeIds: [],
+    ids: entries.map((entry) => entry.candidate.id),
+  });
+  const byId = new Map(full.map((entry) => [entry.candidate.id, entry]));
+  return entries.map((entry) => byId.get(entry.candidate.id) ?? entry);
+}
 
 interface AvaContext {
   previous: AvaSearchState | null;
@@ -322,23 +470,91 @@ function clarification(
  * newest message; `answer` is what the model (or the keyword reader) made of it.
  */
 export async function answerAva<T>(
-  answer: AvaAnswer,
+  rawAnswer: AvaAnswer,
   turns: AvaTurn[],
   fetchListings: AvaListingFetcher<T>,
   limit: number = AVA_RESULT_LIMIT,
+  options: { preferences?: AvaPreferences | null } = {},
 ): Promise<AvaOutcome<T>> {
   const language = avaConversationLanguage(turns);
   const strings = AVA_STRINGS[language];
   const { previous, shownIds } = deriveAvaContext(turns);
   const latest = latestUserText(turns);
-  const filters = chooseFilters(answer, previous, latest);
+
+  // The tenant's saved preferences stay on the device. Asking what they are is
+  // answered here; asking to search with them starts from them, and the model's
+  // own wording (it never saw them) is not used for that reply.
+  const preferenceIntent = asksAboutPreferences(latest);
+  const preferences = hasAvaPreferences(options.preferences) ? options.preferences : null;
+  if (preferenceIntent && !preferences) {
+    return {
+      reply: { text: strings.noPreferences, quickReplies: [...CAMANAVA_CITIES] },
+      listings: [],
+      notes: {},
+      state: previous,
+      shownIds: [],
+      filters: null,
+      language,
+    };
+  }
+  if (preferenceIntent === 'summarize' && preferences) {
+    return {
+      reply: {
+        text: `${describePreferences(preferences, language)}\n${strings.preferencesFollowUp}`,
+        quickReplies: [strings.searchWithPreferences],
+      },
+      listings: [],
+      notes: {},
+      state: previous,
+      shownIds: [],
+      filters: null,
+      language,
+    };
+  }
+
+  // Not about renting at all: answer it (small talk on the device, anything else
+  // with the model's reply), then steer back, and never run a leftover search.
+  // The model's flag is only believed when the message carries no search detail.
+  const talk = smallTalkKind(latest);
+  const hasSearchSignals =
+    countAiSearchFilters(parseSearchKeywords(latest)) > 0 ||
+    resolveLandmark(latest).status !== 'none' ||
+    rawAnswer.wantsMore;
+  const modelOffTopic = rawAnswer.source === 'gemini' && rawAnswer.offTopic && !hasSearchSignals;
+  if (talk || modelOffTopic) {
+    const modelReply =
+      rawAnswer.reply !== null && (detectReplyLanguage(rawAnswer.reply) ?? language) === language
+        ? rawAnswer.reply
+        : null;
+    const text = talk ? strings.smallTalk[talk] : (modelReply ?? strings.offTopicFallback);
+    const asksForDetails = talk === 'greeting' || talk === 'howAreYou' || talk === 'who' || !talk;
+    return {
+      reply: { text, quickReplies: asksForDetails ? [...CAMANAVA_CITIES] : undefined },
+      listings: [],
+      notes: {},
+      state: previous,
+      shownIds: [],
+      filters: null,
+      language,
+    };
+  }
+
+  const usingPreferences = preferenceIntent === 'apply' && preferences !== null;
+  const answer: AvaAnswer = usingPreferences
+    ? { ...rawAnswer, reply: null, quickReplies: [], noResultsReply: null, noResultsQuickReplies: [], wantsMore: false }
+    : rawAnswer;
+
+  const filters = usingPreferences
+    ? mergeAiFilters(preferencesToFilters(preferences), parseSearchKeywords(latest), latest)
+    : chooseFilters(answer, previous, latest);
   const { resolution, target } = chooseTarget(answer, latest, filters, previous);
 
   const ask = clarification(resolution, language, previous, filters);
   if (ask) return ask;
 
   const excludeIds = answer.wantsMore ? shownIds : [];
-  const prefix = answer.source === 'limit' ? `${strings.limitNote} ` : '';
+  const prefix =
+    avaSourceNote(answer.source, language) + (usingPreferences ? `${strings.usingPreferences} ` : '');
 
   if (!target) {
     if (countAiSearchFilters(filters) === 0) {
@@ -355,9 +571,44 @@ export async function answerAva<T>(
 
     const found = await fetchListings({ filters, limit, excludeIds });
     const summary = describeSearch(filters, null, language);
+
+    // Nothing matches exactly: show the closest listings and say how they differ,
+    // rather than an empty "no results".
+    if (found.length === 0 && !answer.wantsMore) {
+      const pool = await fetchListings({ filters: relaxedFilters(filters), limit: AVA_PROXIMITY_POOL, excludeIds: [], light: true });
+      const closest = await withCards(rankByCloseness(pool, filters, limit, []), fetchListings);
+      if (closest.length > 0) {
+        const sourceNote = avaSourceNote(answer.source, language);
+        const using = usingPreferences ? `${strings.usingPreferences} ` : '';
+        const differences = differenceSummary(closest, filters, language);
+        return {
+          reply: withSummary(
+            { text: `${sourceNote}${using}${differences ? strings.relaxedReply(differences) : strings.relaxedIntro}` },
+            summary,
+          ),
+          listings: closest.map((entry) => entry.card),
+          notes: Object.fromEntries(
+            closest.map((entry) => [
+              entry.candidate.id,
+              [...mismatchNotes(entry.candidate, filters, language), describeListing(entry.candidate, filters, language)]
+                .filter(Boolean)
+                .join(' · '),
+            ]),
+          ),
+          state: noMatchState(filters, null),
+          shownIds: closest.map((entry) => entry.candidate.id),
+          filters,
+          language,
+        };
+      }
+    }
     const base = composeAvaReply(answer, found.length, language);
-    const reply =
-      answer.wantsMore && found.length === 0
+    const sourceNote = avaSourceNote(answer.source, language);
+    const reply = usingPreferences
+      ? found.length > 0
+        ? { text: `${sourceNote}${strings.usingPreferences}` }
+        : { text: sourceNote + strings.noResults, quickReplies: strings.loosenQuickReplies }
+      : answer.wantsMore && found.length === 0
         ? { text: prefix + strings.noMoreReply, quickReplies: strings.loosenQuickReplies }
         : answer.wantsMore && answer.reply === null
           ? { ...base, text: prefix + strings.moreReply }
@@ -379,7 +630,12 @@ export async function answerAva<T>(
   // Landmark search: read the matching listings anywhere in CAMANAVA and rank
   // them by real distance, widening the radius only as far as needed.
   const searched = proximityFilters(filters);
-  const pool = await fetchListings({ filters: searched, limit: AVA_PROXIMITY_POOL, excludeIds: [] });
+  let pool = await fetchListings({ filters: searched, limit: AVA_PROXIMITY_POOL, excludeIds: [], light: true });
+  // Nothing matches every filter: rank everything by distance and say what differs.
+  const relaxed = pool.length === 0 && !answer.wantsMore;
+  if (relaxed) {
+    pool = await fetchListings({ filters: relaxedFilters(searched), limit: AVA_PROXIMITY_POOL, excludeIds: [], light: true });
+  }
   const byId = new Map(pool.map((entry) => [entry.candidate.id, entry]));
   const summary = describeSearch(filters, target, language);
   const ranking = rankByProximity(
@@ -387,12 +643,12 @@ export async function answerAva<T>(
     target,
     { limit: AVA_PROXIMITY_POOL, excludeIds },
   );
-  // "Cheapest first" reorders the listings that are close enough; far ones keep
-  // their distance order so a cheap listing across town is never called near.
-  const byPrice =
-    filters.sort === 'price_asc' || filters.sort === 'price_desc'
-      ? (ranking.scenario === 'near' || ranking.scenario === 'nearby')
-      : false;
+  // "Cheapest first" orders what is shown. Near and nearby listings are all
+  // within 5 km, so the cheapest of them are chosen; when everything is far, the
+  // closest few are shown and then ordered by price, so the order always matches
+  // what Ava says.
+  const byPrice = filters.sort === 'price_asc' || filters.sort === 'price_desc';
+  if (ranking.scenario === 'farther') ranking.items = ranking.items.slice(0, limit);
   if (byPrice) {
     const direction = filters.sort === 'price_asc' ? 1 : -1;
     ranking.items.sort(
@@ -404,7 +660,10 @@ export async function answerAva<T>(
 
   if (ranking.scenario === 'unlocated') {
     const sameCity = pool.filter((entry) => !target.city || entry.candidate.city === target.city);
-    const shown = sameCity.filter((entry) => !excludeIds.includes(entry.candidate.id)).slice(0, limit);
+    const shown = await withCards(
+      sameCity.filter((entry) => !excludeIds.includes(entry.candidate.id)).slice(0, limit),
+      fetchListings,
+    );
     if (shown.length > 0) {
       return {
         reply: withSummary({ text: prefix + strings.unlocatedReply(target.label) }, summary),
@@ -441,28 +700,34 @@ export async function answerAva<T>(
     ranking.scenario === 'near'
       ? answer.wantsMore
         ? strings.moreReply
-        : strings.nearReply(target.label)
+        : strings.nearReply(target.label, byPrice)
       : answer.wantsMore
         ? strings.moreFartherReply(target.label, nearest)
         : ranking.scenario === 'nearby'
           ? strings.nearbyReply(target.label, nearest)
-          : strings.fartherReply(target.label, nearest);
+          : strings.fartherReply(target.label, nearest, byPrice);
 
-  const entries = ranking.items.map(({ item, distanceKm }) => ({
-    found: byId.get(item.id) as AvaFound<T>,
-    distanceKm,
-  }));
+  const hydrated = await withCards(
+    ranking.items.map(({ item }) => byId.get(item.id) as AvaFound<T>),
+    fetchListings,
+  );
+  const entries = ranking.items.map(({ distanceKm }, index) => ({ found: hydrated[index], distanceKm }));
 
   return {
-    reply: withSummary({ text: prefix + text }, summary),
+    reply: withSummary({ text: prefix + (relaxed ? `${strings.relaxedIntro} ` : '') + text }, summary),
     listings: entries.map((entry) => entry.found.card),
     notes: Object.fromEntries(
       entries.map((entry) => [
         entry.found.candidate.id,
-        describeListing(entry.found.candidate, searched, language, {
-          km: entry.distanceKm,
-          place: target.label,
-        }),
+        [
+          ...(relaxed ? mismatchNotes(entry.found.candidate, searched, language) : []),
+          describeListing(entry.found.candidate, searched, language, {
+            km: entry.distanceKm,
+            place: target.label,
+          }),
+        ]
+          .filter(Boolean)
+          .join(' · '),
       ]),
     ),
     state,

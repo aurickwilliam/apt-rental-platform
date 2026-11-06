@@ -301,20 +301,3 @@ export function resolveLandmark(
 
   return { status: 'none' };
 }
-
-/**
- * True when the message points at a named place ("near Sampaguita School") even
- * though it is not a known landmark, so Ava can say so instead of ignoring it.
- */
-export function mentionsUnknownPlace(message: string): string | null {
-  const text = message.trim();
-  const match = text.match(
-    /\b(?:near|around|close to|next to|malapit sa|malapit kay|malapit|katabi ng)\s+(?:the\s+|ang\s+)?([A-Z][\w.'&-]*(?:\s+[A-Z][\w.'&-]*){0,4})/,
-  );
-  if (!match) return null;
-  const place = match[1].trim();
-  // City and barangay names are handled by the normal city/keyword filters.
-  const normalized = normalizeForMatch(place);
-  if (!normalized || findMentionedCity(place)) return null;
-  return place.slice(0, 60);
-}

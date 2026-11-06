@@ -1,6 +1,7 @@
 import { EMPTY_AI_SEARCH_FILTERS, mergeAiFilters, parseSearchKeywords, type AiSearchFilters } from './aiSearch';
-import { avaFallbackAnswer, wantsMoreResults, type AvaAnswer, type AvaTurn } from './avaChat';
+import { avaFallbackAnswer, readAvaResponse, wantsMoreResults, type AvaAnswer, type AvaTurn } from './avaChat';
 import { detectConversationLanguage, detectMessageLanguage } from './avaLanguage';
+import { smallTalkKind } from './avaSmallTalk';
 import { resolveLandmark, targetFromKey } from './avaLandmarks';
 import { haversineKm, rankByProximity } from './avaProximity';
 import { answerAva, type AvaCandidate, type AvaFound, type AvaListingFetcher } from './avaSearch';
@@ -34,8 +35,10 @@ const listing = (
 
 const fetcherFor =
   (rows: AvaFound<{ id: string }>[]): AvaListingFetcher<{ id: string }> =>
-  async ({ excludeIds, limit }) =>
-    rows.filter((row) => !excludeIds.includes(row.candidate.id)).slice(0, limit);
+  async ({ excludeIds, limit, ids }) =>
+    ids
+      ? rows.filter((row) => ids.includes(row.candidate.id))
+      : rows.filter((row) => !excludeIds.includes(row.candidate.id)).slice(0, limit);
 
 describe('language detection', () => {
   it('answers in English by default', () => {
@@ -299,7 +302,7 @@ describe('answerAva', () => {
     const answered = turnsFor('Navotas City Hall', history);
     let requested: AiSearchFilters | null = null;
     const outcome = await answerAva(answerFor(answered), answered, async (request) => {
-      requested = request.filters;
+      requested ??= request.filters;
       return [listing('n1', 14.6582, 120.9478, { city: 'Navotas' })];
     });
     expect(requested).toMatchObject({ priceMax: 9000 });
@@ -348,7 +351,7 @@ describe('answerAva', () => {
       const turns = afterSearch('any budget is fine', state({ cities: ['Caloocan'], priceMax: 8000 }));
       let requested: AiSearchFilters | null = null;
       await answerAva(gemini({ cities: ['Caloocan'], bedrooms: '2' }), turns, async (request) => {
-        requested = request.filters;
+        requested ??= request.filters;
         return [];
       });
       expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: null, bedrooms: '2' });
@@ -395,6 +398,56 @@ describe('answerAva', () => {
       expect(dropped.reply.text).not.toContain('Monumento');
     });
 
+    it("does not trust the model's wantsMore flag for an ordinary question", () => {
+      const turns: AvaTurn[] = [{ role: 'user', text: 'Are there any apartments with parking?' }];
+      const answer = readAvaResponse(
+        { source: 'gemini', reply: 'Sure!', quickReplies: [], filters: {}, wantsMore: true },
+        turns,
+      );
+      expect(answer.wantsMore).toBe(false);
+      const more = readAvaResponse(
+        { source: 'gemini', reply: 'Sure!', quickReplies: [], filters: {}, wantsMore: false },
+        [{ role: 'user', text: 'Show me more options, but prioritize the cheapest ones.' }],
+      );
+      expect(more.wantsMore).toBe(true);
+    });
+
+    it('orders far listings by price too when asked for the cheapest, and says so', async () => {
+      const turns = afterSearch('Show me more options, but prioritize the cheapest ones.', state({ sort: null }, 'monumento'), ['gone']);
+      const outcome = await answerAva(
+        gemini({ sort: 'price_asc' }, { wantsMore: true }),
+        turns,
+        fetcherFor([
+          listing('gone', 14.6575, 120.984),
+          listing('a', 14.71, 121.0, { monthlyRent: 8000 }),
+          listing('b', 14.73, 121.0, { monthlyRent: 4000 }),
+          listing('c', 14.75, 121.02, { monthlyRent: 5000 }),
+        ]),
+      );
+      expect(outcome.listings.map((card) => card.id)).toEqual(['b', 'c', 'a']);
+      const far = await answerAva(
+        gemini({ sort: 'price_asc' }),
+        afterSearch('cheapest near monumento', state({}, null)),
+        fetcherFor([listing('a', 14.71, 121.0, { monthlyRent: 8000 }), listing('b', 14.73, 121.0, { monthlyRent: 4000 })]),
+      );
+      expect(far.reply.text).toContain('cheapest first');
+      expect(far.reply.text).not.toContain('nearest first');
+    });
+
+    it('tells the tenant when the session expired and still searches', async () => {
+      const turns: AvaTurn[] = [{ role: 'user', text: 'apartments in Malabon under 9k' }];
+      const outcome = await answerAva(
+        avaFallbackAnswer(turns, 'session'),
+        turns,
+        fetcherFor([listing('m', 14.66, 120.95, { city: 'Malabon' })]),
+      );
+      expect(outcome.reply.text).toContain('your session expired');
+      expect(outcome.listings).toHaveLength(1);
+      const tagalog: AvaTurn[] = [{ role: 'user', text: 'May apartment ba sa Malabon hanggang 9k?' }];
+      const tl = await answerAva(avaFallbackAnswer(tagalog, 'session'), tagalog, fetcherFor([]));
+      expect(tl.reply.text).toContain('nag-expire ang session');
+    });
+
     it('says what it remembered', async () => {
       const turns = afterSearch('Can you recommend apartments near SM Grand Central?', state({ priceMax: 8000, bedrooms: '2' }));
       const outcome = await answerAva(gemini({}), turns, fetcherFor([listing('a', 14.6555, 120.985)]));
@@ -411,6 +464,176 @@ describe('answerAva', () => {
       expect(outcome.language).toBe('en');
       expect(outcome.reply.text.startsWith('Here are places that match what you told me.')).toBe(true);
       expect(outcome.reply.quickReplies).toBeUndefined();
+    });
+  });
+
+  describe('no exact match', () => {
+    it('suggests the closest listings and says how they differ', async () => {
+      const turns = turnsFor('2 bedroom pet friendly in Malabon under 9k');
+      const calls: AiSearchFilters[] = [];
+      const outcome = await answerAva(answerFor(turns), turns, async (request) => {
+        calls.push(request.filters);
+        // Nothing matches the strict search; the loosened pool has three listings.
+        if (calls.length === 1) return [];
+        return [
+          listing('far-city', 14.65, 120.98, { monthlyRent: 8500, bedrooms: 2, city: 'Valenzuela', amenities: ['petfriendly'] }),
+          listing('over', 14.66, 120.95, { monthlyRent: 10500, bedrooms: 2, city: 'Malabon', amenities: ['petfriendly'] }),
+          listing('nopets', 14.66, 120.95, { monthlyRent: 8800, bedrooms: 2, city: 'Malabon', amenities: [] }),
+        ];
+      });
+      expect(calls[1]).toMatchObject({ cities: [], priceMax: null, bedrooms: null, amenities: [] });
+      // Same area beats a different area; the nearest miss on budget or amenities comes first.
+      expect(outcome.listings.map((card) => card.id)).toEqual(['nopets', 'over', 'far-city']);
+      expect(outcome.reply.text).toContain("couldn't find an exact match");
+      expect(outcome.reply.text).toContain('budget');
+      expect(outcome.notes.over).toContain('₱1,500 over your budget');
+      expect(outcome.notes.nopets).toContain('no pets allowed listed');
+      expect(outcome.notes['far-city']).toContain('in Valenzuela, outside your area');
+      // The remembered search stays what was asked, not the loosened one.
+      expect(outcome.state?.filters).toMatchObject({ cities: ['Malabon'], priceMax: 9000, bedrooms: '2' });
+    });
+
+    it('still says so when there is nothing at all', async () => {
+      const turns = turnsFor('2 bedroom in Malabon under 9k');
+      const outcome = await answerAva(answerFor(turns), turns, async () => []);
+      expect(outcome.listings).toEqual([]);
+      expect(outcome.reply.text).toContain("couldn't find a match yet");
+    });
+
+    it('loosens a landmark search and keeps ranking by distance', async () => {
+      const turns = turnsFor('2 bedroom under 5k near Monumento');
+      let calls = 0;
+      const outcome = await answerAva(answerFor(turns), turns, async () => {
+        calls += 1;
+        return calls === 1 ? [] : [listing('a', 14.6575, 120.984, { monthlyRent: 9000, bedrooms: 1 })];
+      });
+      expect(outcome.reply.text).toContain('loosened your filters');
+      expect(outcome.notes.a).toContain('over your budget');
+      expect(outcome.listings).toHaveLength(1);
+    });
+
+    it('speaks Tagalog when asked in Tagalog', async () => {
+      const turns = turnsFor('May apartment ba sa Malabon hanggang 5k?');
+      let calls = 0;
+      const outcome = await answerAva(answerFor(turns), turns, async () => {
+        calls += 1;
+        return calls === 1 ? [] : [listing('a', 14.66, 120.95, { monthlyRent: 7000, city: 'Malabon' })];
+      });
+      expect(outcome.reply.text).toContain('Wala akong nahanap na eksaktong tugma');
+      expect(outcome.notes.a).toContain('sobra sa budget mo');
+    });
+  });
+
+  describe('off-topic messages', () => {
+    const remembered = (text: string): AvaTurn[] => [
+      { role: 'user', text: 'first' },
+      {
+        role: 'assistant',
+        text: 'ok',
+        search: { filters: { ...EMPTY_AI_SEARCH_FILTERS, cities: ['Malabon'], amenities: ['near_hospital'], sort: 'price_asc' as const }, landmarkKey: null },
+        shownIds: [],
+      },
+      { role: 'user', text },
+    ];
+    const never = async () => {
+      throw new Error('must not search');
+    };
+
+    it('recognises small talk and nothing that asks for a place', () => {
+      expect(smallTalkKind('Kumain kana ba?')).toBe('howAreYou');
+      expect(smallTalkKind('Hi Ava!')).toBe('greeting');
+      expect(smallTalkKind('thank you po')).toBe('thanks');
+      expect(smallTalkKind('Who are you?')).toBe('who');
+      expect(smallTalkKind('thanks, now find me a 2BR in Malabon')).toBeNull();
+      expect(smallTalkKind('2BR in Malabon')).toBeNull();
+    });
+
+    it('answers "Kumain kana ba?" in Tagalog with personality and does not rerun the old search', async () => {
+      const turns = remembered('Kumain kana ba?');
+      const outcome = await answerAva(answerFor(turns), turns, never);
+      expect(outcome.language).toBe('tl');
+      expect(outcome.reply.text).toContain('kumain ka na ba');
+      expect(outcome.reply.text).toContain('Balik na tayo sa paghahanap ng apartment');
+      expect(outcome.listings).toEqual([]);
+      expect(outcome.state?.filters.cities).toEqual(['Malabon']);
+    });
+
+    it("uses the model's own answer to a general question, then steers back", async () => {
+      const turns = remembered('What is the capital of France?');
+      const answer: AvaAnswer = {
+        ...answerFor(turns),
+        source: 'gemini',
+        reply: "Paris, of course! Now, let's get back to finding your apartment.",
+        offTopic: true,
+      };
+      const outcome = await answerAva(answer, turns, never);
+      expect(outcome.reply.text).toContain('Paris');
+      expect(outcome.listings).toEqual([]);
+    });
+
+    it("does not believe the model's offTopic flag when the message has search details", async () => {
+      const turns = remembered('apartments in Navotas under 9k');
+      const answer: AvaAnswer = { ...answerFor(turns), source: 'gemini', reply: 'Chatting!', offTopic: true };
+      let searched = false;
+      await answerAva(answer, turns, async () => {
+        searched = true;
+        return [listing('a', 14.66, 120.94, { city: 'Navotas' })];
+      });
+      expect(searched).toBe(true);
+    });
+
+    it('falls back to its own line when the model reply is in the wrong language', async () => {
+      const turns = [{ role: 'user' as const, text: 'Tell me a joke about clowns' }];
+      const answer: AvaAnswer = { ...answerFor(turns), source: 'gemini', reply: 'Hehe, ito ay isang biro para sa iyo po.', offTopic: true };
+      const outcome = await answerAva(answer, turns, never);
+      expect(outcome.reply.text).toContain('apartments are my thing');
+    });
+  });
+
+  describe('review fixes', () => {
+    it('keeps the unit type when loosening, so a closest match is never the wrong type', async () => {
+      const turns = turnsFor('studio in Malabon under 9k');
+      const requests: AiSearchFilters[] = [];
+      await answerAva(answerFor(turns), turns, async (request) => {
+        requests.push(request.filters);
+        return [];
+      });
+      expect(requests[1]).toMatchObject({ types: ['Studio'], cities: [], priceMax: null });
+    });
+
+    it('reads photos only for the listings it shows', async () => {
+      const turns = turnsFor('apartments near Monumento');
+      const calls: { light?: boolean; ids?: string[] }[] = [];
+      await answerAva(answerFor(turns), turns, async (request) => {
+        calls.push({ light: request.light, ids: request.ids });
+        return [listing('a', 14.6575, 120.984), listing('b', 14.658, 120.985)];
+      });
+      expect(calls[0]).toMatchObject({ light: true });
+      expect(calls[1].ids).toEqual(['a', 'b']);
+    });
+
+    it('does not treat "sige po" as goodbye', () => {
+      expect(smallTalkKind('Sige po')).toBeNull();
+      expect(smallTalkKind('bye')).toBe('bye');
+    });
+
+    it('searches from the preferences, not from earlier messages in the chat', async () => {
+      const turns: AvaTurn[] = [
+        { role: 'user', text: 'apartments in Navotas under 6k' },
+        { role: 'assistant', text: 'ok' },
+        { role: 'user', text: 'Search with my preferences' },
+      ];
+      let requested: AiSearchFilters | null = null;
+      await answerAva(avaFallbackAnswer(turns), turns, async (request) => {
+        requested ??= request.filters;
+        return [];
+      }, 5, {
+        preferences: {
+          selectedCities: ['Caloocan'], budgetMin: 5000, budgetMax: 20000, bedroomCount: null, householdSize: null,
+          hasPets: false, hasParking: false, hasSmoker: false, hasDisability: false,
+        },
+      });
+      expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: 20000 });
     });
   });
 });

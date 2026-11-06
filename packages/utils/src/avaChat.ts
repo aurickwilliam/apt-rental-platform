@@ -15,12 +15,15 @@ import {
   type AiSearchFilters,
 } from './aiSearch';
 import { detectConversationLanguage, detectReplyLanguage, type AvaLanguage } from './avaLanguage';
+import { asksAboutPreferences } from './avaPreferences';
+import { smallTalkKind } from './avaSmallTalk';
 import { AVA_STRINGS } from './avaStrings';
 
 /** Listings shown under one of Ava's replies. */
 export const AVA_RESULT_LIMIT = 5;
 
-export type AvaSource = 'gemini' | 'fallback' | 'limit';
+/** `session`: the sign-in expired, so the function could not be called. */
+export type AvaSource = 'gemini' | 'fallback' | 'limit' | 'session';
 
 /** What a search settled on, remembered so follow-ups can build on it. */
 export interface AvaSearchState {
@@ -48,6 +51,8 @@ export interface AvaAnswer {
   filters: AiSearchFilters;
   /** A place the tenant named (Gemini's reading); resolved against the landmark list. */
   landmark: string | null;
+  /** The model judged the message not to be about renting (small talk, a general question). */
+  offTopic: boolean;
   /** The tenant asked for more results of the same search. */
   wantsMore: boolean;
 }
@@ -69,6 +74,17 @@ const CITY_QUICK_REPLIES = [...CAMANAVA_CITIES];
 const toStringList = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 
+/**
+ * Whether to ask the model at all. Not when there is no question, nor when the
+ * message is about the tenant's saved preferences: those are answered on the
+ * device and never sent to the model.
+ */
+export function shouldAskAvaModel(turns: AvaTurn[]): boolean {
+  if (!hasAvaQuestion(turns)) return false;
+  const latest = [...turns].reverse().find((turn) => turn.role === 'user')?.text ?? '';
+  return asksAboutPreferences(latest) === null && smallTalkKind(latest) === null;
+}
+
 /** True when the conversation has at least one message from the tenant. */
 export function hasAvaQuestion(turns: AvaTurn[]): boolean {
   return turns.some((turn) => turn.role === 'user' && turn.text.trim() !== '');
@@ -84,6 +100,14 @@ const MORE_PATTERNS = [
 export function wantsMoreResults(message: string): boolean {
   const text = message.toLowerCase().replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
   return text !== '' && MORE_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/** The note Ava puts before a reply when the model was not used (daily limit, expired sign-in). */
+export function avaSourceNote(source: AvaSource, language: AvaLanguage): string {
+  const strings = AVA_STRINGS[language];
+  if (source === 'limit') return `${strings.limitNote} `;
+  if (source === 'session') return `${strings.sessionNote} `;
+  return '';
 }
 
 const userTexts = (turns: AvaTurn[]) =>
@@ -110,6 +134,7 @@ export function avaFallbackAnswer(turns: AvaTurn[], source: AvaSource = 'fallbac
     noResultsQuickReplies: [],
     filters,
     landmark: null,
+    offTopic: false,
     wantsMore: messages.length > 0 && wantsMoreResults(messages[messages.length - 1]),
   };
 }
@@ -134,9 +159,11 @@ export function readAvaResponse(data: unknown, turns: AvaTurn[]): AvaAnswer {
       typeof response.landmark === 'string' && response.landmark.trim() !== ''
         ? response.landmark.trim().slice(0, 80)
         : null,
-    wantsMore:
-      response.wantsMore === true ||
-      wantsMoreResults(userTexts(turns).slice(-1)[0] ?? ''),
+    offTopic: response.offTopic === true,
+    // Read from the message itself: the model's flag was sometimes true for an
+    // ordinary question ("any apartments with parking?"), which silently
+    // re-applied the previous search and skipped the listings already shown.
+    wantsMore: wantsMoreResults(userTexts(turns).slice(-1)[0] ?? ''),
   };
 }
 
@@ -155,7 +182,7 @@ export function composeAvaReply(
   language: AvaLanguage = 'en',
 ): AvaReply {
   const strings = AVA_STRINGS[language];
-  const prefix = answer.source === 'limit' ? `${strings.limitNote} ` : '';
+  const prefix = avaSourceNote(answer.source, language);
 
   // The model sometimes answers in the other language (it once wrote Tagalog to
   // an English question). Text in the wrong language is replaced by Ava's own
