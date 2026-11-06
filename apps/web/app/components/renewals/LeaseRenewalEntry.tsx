@@ -28,10 +28,10 @@ export default function LeaseRenewalEntry({tenancyId,portal}:{tenancyId:string;p
   const promptModal = (
     <Modal isOpen={eligible&&dismissedFor!==key&&seen!== 'seen'} onOpenChange={(open)=>{if(!open)close();}}>
       <Modal.Backdrop><Modal.Container><Modal.Dialog><Modal.Header><Modal.Heading>{confirm?'Confirm you will not renew':'Your lease is ending soon'}</Modal.Heading></Modal.Header><Modal.Body>
-        <p className="text-sm text-foreground">{c.apartmentName} · Current lease expires {c.leaseEnd}.</p>
-        <p className="text-sm text-foreground">{confirm?'This notifies the landlord but does not end your current tenancy.':'You can request renewal or return to these options from My Rental.'}</p>
-        {renewal.actionError&&<p role="alert" className="text-sm text-danger">{renewal.actionError}</p>}
-      </Modal.Body><Modal.Footer>{confirm?<><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(false);}}>Go back</Button><Button isDisabled={renewal.busy} onPress={()=>void renewal.act('not_renewing').then((saved)=>{if(saved)close();})}>Confirm I will not renew</Button></>:<><Link href={href} onClick={close} className="text-primary">Request Lease Renewal</Link><Button variant="outline" onPress={()=>setConfirm(true)}>I Will Not Renew</Button><Button variant="outline" onPress={close}>Decide Later</Button></>}</Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
+        <p className="text-sm text-foreground!">{c.apartmentName} · Current lease expires {c.leaseEnd}.</p>
+        <p className="text-sm text-foreground!">{confirm?'This notifies the landlord but does not end your current tenancy.':'You can request renewal or return to these options from My Rental.'}</p>
+        {renewal.actionError&&<p role="alert" className="text-sm text-danger!">{renewal.actionError}</p>}
+      </Modal.Body><Modal.Footer>{confirm?<><Button variant="outline" className="flex-1 justify-center" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(false);}}>Go back</Button><Button className="flex-1 justify-center" isDisabled={renewal.busy} onPress={()=>void renewal.act('not_renewing').then((saved)=>{if(saved)close();})}>Confirm I will not renew</Button></>:<><Link href={href} onClick={close} className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-white hover:opacity-90">Request Lease Renewal</Link><Button variant="outline" className="flex-1 justify-center" onPress={()=>setConfirm(true)}>I Will Not Renew</Button><Button variant="outline" className="flex-1 justify-center" onPress={close}>Decide Later</Button></>}</Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
     </Modal>
   );
   if (portal === "landlord") {

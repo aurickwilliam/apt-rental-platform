@@ -18,7 +18,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { canRequestLeaseRenewal, canTakeRenewalAction, formatPesoDisplay, lockedRenewalDurationMonths,
-  RENEWAL_DEPOSIT_NOTICE, renewalDefaultStart, renewalStatusLabel, type RenewalPortal,
+  renewalDefaultStart, renewalStatusLabel, type RenewalPortal,
   type RenewalStatus } from '@repo/utils';
 import { useAuthIdentity } from '@/hooks/use-auth-identity';
 import { useLeaseRenewal } from '@/hooks/use-lease-renewal';
@@ -27,6 +27,7 @@ import StatusChip from '@/app/components/display/StatusChip';
 import RenewalProposalForm from './RenewalProposalForm';
 import RenewalFileDropbox from './RenewalFileDropbox';
 import RenewalPayment from './RenewalPayment';
+import ProposalCard from './ProposalCard';
 
 interface LeaseRenewalClientProps { tenancyId:string;portal:RenewalPortal;authUserId:string }
 
@@ -100,9 +101,9 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
   const renewalModal = (
     <Modal isOpen={confirm!==null} onOpenChange={(open)=>{if(!open&&!renewal.isLocked())setConfirm(null);}}>
       <Modal.Backdrop><Modal.Container><Modal.Dialog><Modal.Header><Modal.Heading>{confirm==='not_renewing'?'Confirm you will not renew':'Decline this renewal?'}</Modal.Heading></Modal.Header><Modal.Body>
-        <p className="text-sm text-foreground">This records your decision and notifies the other party. It does not end the current tenancy.</p>
+        <p className="text-sm text-foreground!">This records your decision and notifies the other party. It does not end the current tenancy.</p>
         {confirm==='decline'&&<Label>Reason<TextArea aria-label="Reason for declining" value={reason} maxLength={1000} onChange={(e)=>setReason(e.target.value)}/></Label>}
-        {renewal.actionError&&<p role="alert" className="text-sm text-danger">{renewal.actionError}</p>}
+        {renewal.actionError&&<p role="alert" className="text-sm text-danger!">{renewal.actionError}</p>}
       </Modal.Body><Modal.Footer><Button variant="outline" isDisabled={renewal.busy} onPress={()=>{if(!renewal.isLocked())setConfirm(null);}}>Cancel</Button><Button isDisabled={renewal.busy||(confirm==='decline'&&!reason.trim())} onPress={()=>{const action=confirm;if(action)void renewal.act(action,{durationMonths:lockedMonths,reason}).then((saved)=>{if(saved)setConfirm(null);});}}>Confirm decision</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop>
     </Modal>
   );
@@ -160,17 +161,9 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
         </section>}
         {r&&canPropose&&<RenewalProposalForm key={r.version} context={c} busy={renewal.busy} onSubmit={(draft,evidence)=>void renewal.propose(draft,evidence)}/>}
         {r&&canDecline&&<div><Button variant="outline" className="rounded-full" isDisabled={renewal.busy} onPress={()=>setConfirm('decline')}><IconX size={16} aria-hidden /> Decline Renewal</Button></div>}
-        {p&&<section className="grid gap-2 rounded-2xl border border-border bg-card p-5 md:p-6">
-          <h2 className="font-nunito text-xl font-bold">Proposal {p.version}</h2>
-          <p>{p.lease_start} – {p.lease_end} · {p.duration_months} months</p><p>Monthly rent: {formatPesoDisplay(p.monthly_rent)}</p>
-          <p>Advance rent covering {p.advance_period}: {formatPesoDisplay(p.monthly_rent*p.advance_months)}</p>
-          <p>Verified applicable credit: −{formatPesoDisplay(p.advance_credit)}</p><p>Advance due: {formatPesoDisplay(p.advance_due)}</p>
-          <p>Declared retained deposit: {formatPesoDisplay(p.retained_deposit)}</p><p>Deposit replenishment: {formatPesoDisplay(p.deposit_due)}</p>
-          {p.replenishment_reason&&<p>{p.replenishment_reason}</p>}<p className="text-sm text-muted-foreground">{RENEWAL_DEPOSIT_NOTICE}</p>
-          {p.evidence_path&&<Button variant="outline" onPress={()=>void renewal.view(p.evidence_path!)} isDisabled={renewal.busy}>View supporting document</Button>}
-          <p className="font-bold">Total renewal payment: {formatPesoDisplay(p.advance_due+p.deposit_due)}</p>
-          {allowed('discuss')&&<Link className="text-sm text-primary" href={`/landlord/messages?conversation=${conversation}`}>Discuss Charges — message tenant</Link>}
-        </section>}
+        {p&&<ProposalCard proposal={p} onViewEvidence={()=>p.evidence_path&&void renewal.view(p.evidence_path)} evidenceBusy={renewal.busy} actions={
+          allowed('discuss')&&<Link className="text-sm text-primary" href={`/landlord/messages?conversation=${conversation}`}>Discuss Charges — message tenant</Link>
+        }/>}
         {r?.status==='awaiting_agreement_confirmation'&&p&&<section className="grid gap-3 rounded-2xl border border-border bg-card p-5 md:p-6">
           <h2 className="font-nunito text-xl font-bold">Renewal agreement</h2>
           <p className="text-sm text-muted-foreground">Both parties must confirm the executed agreement matches the proposal above, including deposit treatment and payment conditions.</p>
@@ -290,18 +283,10 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
           <p className="mt-1 text-sm text-muted-foreground">The landlord is configuring the renewal terms. You&apos;ll review the proposal here once it&apos;s ready.</p>
           {canDecline&&<Button variant="outline" className="mt-4" isDisabled={renewal.busy} onPress={()=>setConfirm('decline')}>Decline Renewal</Button>}
         </section>}
-        {p&&<section className="grid gap-2 rounded-2xl border border-border bg-card p-5 md:p-6">
-          <h2 className="font-nunito text-xl font-bold">Proposal {p.version}</h2>
-          <p>{p.lease_start} – {p.lease_end} · {p.duration_months} months</p><p>Monthly rent: {formatPesoDisplay(p.monthly_rent)}</p>
-          <p>Advance rent covering {p.advance_period}: {formatPesoDisplay(p.monthly_rent*p.advance_months)}</p>
-          <p>Verified applicable credit: −{formatPesoDisplay(p.advance_credit)}</p><p>Advance due: {formatPesoDisplay(p.advance_due)}</p>
-          <p>Declared retained deposit: {formatPesoDisplay(p.retained_deposit)}</p><p>Deposit replenishment: {formatPesoDisplay(p.deposit_due)}</p>
-          {p.replenishment_reason&&<p>{p.replenishment_reason}</p>}<p className="text-sm text-muted-foreground">{RENEWAL_DEPOSIT_NOTICE}</p>
-          {p.evidence_path&&<Button variant="outline" onPress={()=>void renewal.view(p.evidence_path!)} isDisabled={renewal.busy}>View supporting document</Button>}
-          <p className="font-bold">Total renewal payment: {formatPesoDisplay(p.advance_due+p.deposit_due)}</p>
+        {p&&<ProposalCard proposal={p} onViewEvidence={()=>p.evidence_path&&void renewal.view(p.evidence_path)} evidenceBusy={renewal.busy} actions={<>
           {allowed('accept')&&<Button isDisabled={renewal.busy} onPress={()=>void renewal.act('accept',{proposalId:p.id})}>Accept Renewal Terms</Button>}
           {allowed('discuss')&&<Link className="text-sm text-primary" href={`/${portal}/messages?conversation=${conversation}`}>Discuss Charges — message {portal==='tenant'?'landlord':'tenant'}</Link>}
-        </section>}
+        </>}/>}
         {r?.status==='awaiting_agreement_confirmation'&&p&&<section className="grid gap-3 rounded-2xl border border-border bg-card p-5 md:p-6">
           <h2 className="font-nunito text-xl font-bold">Renewal agreement</h2>
           <p className="text-sm text-muted-foreground">Both parties must confirm the executed agreement matches the proposal above, including deposit treatment and payment conditions.</p>
