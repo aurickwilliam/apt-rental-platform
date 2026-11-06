@@ -1,4 +1,21 @@
-# Privacy Policy revision 1.1
+# Privacy Policy revisions
+
+## Revision 1.2
+
+The November 7, 2026 revision adds one disclosure: Brevo now also delivers account
+activity emails (rent dues and overdues, payments, verification, applications and
+maintenance), which carry amounts, apartment names, a tenant's name, rejection
+reasons and maintenance titles. It also says the per-type notification settings
+stop those emails, while sign-in codes and security, moderation and lease renewal
+emails continue. Terms remain version 1.1.
+
+Release it with `20261107130000_activity_emails.sql`, in the same coordinated way
+as below: apply `20261107140000_privacy_policy_activity_emails.sql` together with
+the web deployment and a mobile OTA update. Installed apps still showing 1.1 are
+refused at registration completion until they update. The legal review in step 1
+below applies to this wording too.
+
+## Revision 1.1
 
 The November 6, 2026 revision describes APT's existing processing. It does not
 add data collection, change permissions, implement erasure, or certify compliance.
@@ -20,7 +37,7 @@ Terms remain version 1.1 with their existing wording.
   collection or landlord disbursement; credentials are entered on hosted checkout.
 - Notifications: `supabase/functions/push-notify/index.ts` and
   `supabase/functions/email-notify/index.ts`; Expo push and configured Brevo
-  moderation emails process delivery data and content.
+  moderation and account activity emails process delivery data and content.
 - Permissions: `apps/mobile/app.config.js`; describe feature-specific camera,
   media, location and notification use without claiming whole-library uploads.
 - Device storage and optional CAPTCHA follow their existing feature contracts;

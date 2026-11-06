@@ -18,6 +18,7 @@
     "db:landlord-gate:test": "node --experimental-strip-types --test scripts/verified-landlord/*.test.mjs",
     "db:application-guard:test": "node --experimental-strip-types --test scripts/application-active-tenancy/*.test.mjs",
     "db:maintenance:test": "node --experimental-strip-types --test scripts/maintenance-authorization/*.test.mjs",
+    "db:activity-emails:test": "node --experimental-strip-types --test scripts/activity-emails/*.test.mjs",
     "web": "pnpm --filter web dev",
     "mobile": "pnpm --filter mobile start",
     "db:populate": "node --experimental-strip-types --import ./scripts/db-populate/register.mjs scripts/db-populate.mjs",
