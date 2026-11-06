@@ -1,4 +1,4 @@
-import { View, FlatList } from "react-native";
+import { View, FlatList, Text } from "react-native";
 import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import { Button } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
@@ -21,6 +21,9 @@ type Props = {
   onToggleFavorite: (id: string) => void | Promise<void>;
   onPressApartment: (id: string) => void;
   cityLabel?: string;
+  /** Saved preferences are set but Recommended for You has nothing to show. */
+  showRecommendationNotice?: boolean;
+  onUpdatePreferences?: () => void;
 };
 
 export default function SearchSectionsList({
@@ -33,6 +36,8 @@ export default function SearchSectionsList({
   onToggleFavorite,
   onPressApartment,
   cityLabel = "CAMANAVA",
+  showRecommendationNotice = false,
+  onUpdatePreferences,
 }: Props) {
   const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<FlatList>();
 
@@ -117,7 +122,25 @@ export default function SearchSectionsList({
       // Only while refreshing: even an empty header gets a wrapper view, and the
       // list's gap would then put 16pt of space above the first section.
       ListHeaderComponent={
-        isFetching && !isLoading ? <PullToRefreshIndicator refreshing /> : null
+        isFetching && !isLoading || showRecommendationNotice ? (
+          <>
+            {isFetching && !isLoading ? <PullToRefreshIndicator refreshing /> : null}
+            {showRecommendationNotice ? (
+              <View className="mx-5 rounded-xl border border-border bg-surface p-4">
+                <Text className="text-foreground font-nunitoSemiBold text-base">No recommendations right now</Text>
+                <Text className="mt-1 text-muted font-inter text-[13px]">
+                  Nothing fits your saved city, budget, household size and smoking choices at the moment. Update your
+                  preferences to widen the search.
+                </Text>
+                {onUpdatePreferences ? (
+                  <Button className="mt-3 self-start" size="sm" variant="secondary" onPress={onUpdatePreferences}>
+                    <Button.Label>Update preferences</Button.Label>
+                  </Button>
+                ) : null}
+              </View>
+            ) : null}
+          </>
+        ) : null
       }
     />
   );

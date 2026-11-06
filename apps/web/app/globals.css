@@ -1288,6 +1288,33 @@ body[data-scroll-locked] [role="option"] {
   pointer-events: auto !important;
 }
 
+/* Mobile portal navigation only: override HeroUI's centered, single-line
+   button defaults once for page, account, theme and logout rows. */
+.mobile-sidebar-row.button {
+  justify-content: flex-start;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.mobile-sidebar-row.button > svg {
+  flex: 0 0 20px;
+}
+
+/* Notification counts and the theme switch retain their trailing slots. */
+.mobile-sidebar-row.button > span {
+  flex-shrink: 0;
+}
+
+/* Browse search: below sm the native long placeholder is hidden and the short
+   in-pill overlay takes over, so a narrow field never shows clipped hint text.
+   Desktop keeps the full native placeholder. */
+@media (max-width: 639.98px) {
+  .browse-search-pill input::placeholder {
+    color: transparent;
+  }
+}
+
 /* Listing typography stays local to the wizard and its portaled confirmation.
    Shared preview sections inherit these roles without changing browse pages. */
 .create-listing-flow {
@@ -1814,6 +1841,68 @@ body[data-scroll-locked] [role="option"] {
 
 .payment-preference-checks .checkbox:has([data-slot="checkbox-content"][data-focus-visible="true"]) .checkbox__control {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* Tenant application details: quiet destructive action and wrapping accordions. */
+.tenant-application-cancel.button {
+  color: var(--danger);
+  border-color: color-mix(in oklab, var(--danger) 45%, transparent);
+  background: transparent;
+}
+
+.tenant-application-cancel.button:hover {
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+}
+
+.tenant-application-details [data-slot="accordion-trigger"] {
+  min-width: 0;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.tenant-application-details [data-slot="accordion-trigger"] > span {
+  min-width: 0;
+  white-space: normal;
+}
+
+/* Settings category navigation: preserve the desktop rail and the compact
+   mobile scroll strip, without inheriting HeroUI's centered button content. */
+.settings-category-nav {
+  scroll-padding-inline: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+.settings-category-button.button {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.settings-category-button.button > svg {
+  flex: 0 0 18px;
+}
+
+.settings-row-responsive {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+@media (max-width: 639.98px) {
+  .settings-row-stack-control {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+  }
+
+  .settings-row-stack-control > :last-child {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+}
+
+@media (min-width: 768px) {
+  .settings-category-button.button {
+    height: auto;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Settings dropdown menus: bluish hover/focus and a retained blue

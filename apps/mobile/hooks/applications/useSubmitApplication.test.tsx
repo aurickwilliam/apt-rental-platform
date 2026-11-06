@@ -9,6 +9,7 @@ const mockUseProfile = jest.fn()
 const mockSetIsSubmitting = jest.fn()
 const mockResetForm = jest.fn()
 const mockFetchPassport = jest.fn()
+const mockHasActiveRental = jest.fn()
 
 jest.mock('@repo/supabase', () => ({
   supabase: { from: (...args: unknown[]) => mockFrom(...args) },
@@ -21,6 +22,10 @@ jest.mock('hooks/auth', () => ({
 jest.mock('@/service/passport/passportService', () => ({
   ...jest.requireActual('@/service/passport/passportService'),
   fetchPassportDocumentsWithVerification: (...args: unknown[]) => mockFetchPassport(...args),
+}))
+
+jest.mock('@/service/applications/activeRentalService', () => ({
+  fetchHasActiveRentalAsTenant: (...args: unknown[]) => mockHasActiveRental(...args),
 }))
 
 const mockStoreState = {
@@ -119,6 +124,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockUseProfile.mockReturnValue({ profile: { id: 'tenant-1', account_status: 'verified' } })
   mockFetchPassport.mockResolvedValue([govId, billing])
+  mockHasActiveRental.mockResolvedValue(false)
 })
 
 it('attaches passport documents by reference without uploading', async () => {
@@ -245,6 +251,16 @@ it('rejects an own-property application', async () => {
     success: false,
     error: 'You cannot apply to your own property.',
   })
+  expect(insert).not.toHaveBeenCalled()
+})
+
+it('blocks a tenant who already has an active rental', async () => {
+  mockHasActiveRental.mockResolvedValue(true)
+  const insert = mockApartment('landlord-1')
+
+  const submission = await submitApplication()
+  expect(submission?.success).toBe(false)
+  expect(submission?.error).toMatch(/active rental/)
   expect(insert).not.toHaveBeenCalled()
 })
 

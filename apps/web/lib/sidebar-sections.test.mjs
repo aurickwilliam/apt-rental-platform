@@ -109,6 +109,35 @@ function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pu
   return Object.assign(button, { tooltip: content?.props.children, tooltipDisabled: !content });
 }
 
+test("every mobile page, account, theme and logout row shares left alignment without changing desktop", () => {
+  const mobile = render({ navItems: sectioned, mobile: true });
+  const rows = mobile.filter(node => node.type === "Button" && node.props.className?.includes("button--bare"));
+  assert.ok(rows.length >= sectioned.length + 5);
+  for (const row of rows) {
+    assert.match(row.props.className, /mobile-sidebar-row/);
+    assert.match(row.props.className, /items-center justify-start gap-3/);
+    assert.match(row.props.className, /min-h-11.*px-3/);
+  }
+  assert.ok(rows.some(row => row.props["aria-current"] === "page" && row.props.className.includes("bg-primary/10")));
+  assert.ok(rows.some(row => row.props.className.includes("text-danger")));
+  const desktop = render({ navItems: sectioned });
+  assert.equal(desktop.some(node => node.props?.className?.includes("mobile-sidebar-row")), false);
+  for (const portal of ["tenant", "landlord", "admin"]) {
+    assert.match(readFileSync(new URL(`../app/${portal}/layout.tsx`, import.meta.url), "utf8"), /<MobileSidebarNavigation/);
+  }
+});
+
+test("mobile row CSS overrides HeroUI centering and preserves icon/trailing-control widths", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const row = css.match(/\.mobile-sidebar-row\.button\s*\{([^}]+)\}/)?.[1];
+  assert.ok(row);
+  for (const rule of ["justify-content: flex-start", "height: auto", "white-space: normal", "overflow-wrap: anywhere"]) {
+    assert.ok(row.includes(rule), rule);
+  }
+  assert.match(css, /\.mobile-sidebar-row\.button > svg\s*\{\s*flex: 0 0 20px;/);
+  assert.match(css, /\.mobile-sidebar-row\.button > span\s*\{\s*flex-shrink: 0;/);
+});
+
 test("Notifications tab is hidden while the floating bell is the chosen entry point", () => {
   assert.equal(renderNotificationsItem({ entry: "bell", unreadCount: 3 }), null);
 });
