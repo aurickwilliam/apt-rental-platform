@@ -9,6 +9,10 @@ import { usePortalStore } from '@/stores/usePortalStore';
 import { createCashPayment } from '@/service/payments/paymentService';
 import { createCheckoutSession,getCheckoutSessionStatus,cancelCheckoutSession } from '@/service/payments/paymongoService';
 import PaymentMethodSelector from '@/app/tenant/payment/components/PaymentMethodSelector';
+import { IconCreditCard } from '@tabler/icons-react-native';
+import MoneyRow from '@/components/finance/MoneyRow';
+import RenewalSection from './RenewalSection';
+import RenewalNotice from './RenewalNotice';
 
 interface RenewalPaymentProps {context:LeaseRenewalContext;busy:boolean;run:(operation:(isCurrent:()=>boolean)=>Promise<unknown>)=>Promise<boolean>}
 
@@ -38,15 +42,15 @@ export default function RenewalPayment({context:c,busy,run}:RenewalPaymentProps)
       method:map[method],...(bank?{bankCode:bank}:{})});
     if(isCurrent()&&usePortalStore.getState().authUserId===authId)await Linking.openURL(session.checkoutUrl);
   }
-  return <View className="gap-3 rounded-3xl border border-border bg-surface p-5">
-    <Text className="text-xl font-nunitoBold text-foreground">Lease renewal payment</Text>
-    {c.payment?.status==='pending'?<><Text className="text-muted">Awaiting payment verification. Do not submit another payment.</Text>
+  return <RenewalSection title="Lease renewal payment" description="Pay using a method accepted by your landlord." icon={IconCreditCard}>
+    <View className="rounded-2xl bg-primary-light p-4"><MoneyRow label="Total renewal payment" amount={total} emphasized /></View>
+    {c.payment?.status==='pending'?<><RenewalNotice>Awaiting payment verification. Do not submit another payment.</RenewalNotice>
       {session?<><Button isDisabled={busy} onPress={()=>run(()=>getCheckoutSessionStatus(session))}><Button.Label>Check payment</Button.Label></Button>
-        <Button variant="outline" isDisabled={busy} onPress={()=>run(()=>cancelCheckoutSession(session))}><Button.Label>Cancel unfinished online payment</Button.Label></Button></>
-        :<Text className="text-muted">Cash awaits landlord confirmation. An online attempt without a provider reference needs reconciliation before retry.</Text>}</>
-      :<><PaymentMethodSelector selectedMethod={method} onPaymentMethodChange={setMethod} cashPaymentDate={date} onCashPaymentDateChange={setDate}
+         <Button variant="outline" isDisabled={busy} onPress={()=>run(()=>cancelCheckoutSession(session))}><Button.Label>Cancel online payment</Button.Label></Button></>
+         :<Text className="font-inter text-sm leading-5 text-muted">Cash awaits landlord confirmation. An online attempt without a provider reference needs reconciliation before retry.</Text>}</>
+       :<><PaymentMethodSelector description="Choose how to pay the renewal charges shown above." selectedMethod={method} onPaymentMethodChange={setMethod} cashPaymentDate={date} onCashPaymentDateChange={setDate}
         acceptedMethods={methods.acceptedMethods} methodsLoading={methods.loading} methodsError={methods.error}
         onRetryMethods={()=>void methods.refetch()} amount={total} selectedBank={bank} onBankChange={setBank}/>
       <Button isDisabled={busy||!method||methods.loading||!!methods.error||!methods.acceptedMethods.includes(method)} onPress={()=>run(pay)}><Button.Label>Pay renewal</Button.Label></Button></>}
-  </View>;
+   </RenewalSection>;
 }
