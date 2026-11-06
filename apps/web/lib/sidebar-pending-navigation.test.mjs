@@ -39,6 +39,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 2 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set(["messages"]) },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref, navigate: href => { pushes.push(href); pendingHref = href; } }) },
     "./SidebarLinkPending": pending,
   }, { window: { localStorage: { getItem: () => String(collapsed) } }, URLSearchParams });

@@ -51,6 +51,7 @@ import SidebarNotificationsItem from "./SidebarNotificationsItem";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
+import { setTutorialLayerHost, useTutorialNavMenuOpen } from "@/lib/tutorial-controller";
 import { getUnreadSidebarActivity, type SidebarActivityKey } from "@/lib/sidebar-notification-activity";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
@@ -841,6 +842,8 @@ function MobileSidebarMenu({
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+  // The first-time tour keeps the drawer open so it can point at a real link.
+  const tourHoldsMenu = useTutorialNavMenuOpen();
 
   // Rows are buttons, not Links, so routes are warmed explicitly when the
   // drawer opens: the account pages and only the items that opted in.
@@ -858,8 +861,11 @@ function MobileSidebarMenu({
     [router, profileHref, favoritesHref, navItems],
   );
   const drawerState = useOverlayState({
-    isOpen: isMobileMenuOpen,
-    onOpenChange: handleMobileMenuOpenChange,
+    isOpen: isMobileMenuOpen || tourHoldsMenu,
+    onOpenChange: (value) => {
+      if (!value && tourHoldsMenu) return;
+      handleMobileMenuOpenChange(value);
+    },
   });
 
   // Settings and notifications open through shared query params (the overlays
@@ -926,13 +932,17 @@ function MobileSidebarMenu({
       </header>
 
       <Drawer.Root state={drawerState}>
-        <Drawer.Backdrop>
+        {/* While the tour holds the menu it is not dismissable: the overlay's outside-press handler would swallow presses on the tour card. */}
+        <Drawer.Backdrop isDismissable={!tourHoldsMenu} isKeyboardDismissDisabled={tourHoldsMenu}>
           <Drawer.Content placement="left">
             <Drawer.Dialog
               aria-label={menuLabel}
               className="flex h-full w-[calc(100vw-3rem)] max-w-xs flex-col rounded-r-3xl p-0 font-nunito"
             >
-              <div className="flex items-center justify-between gap-2 border-b border-divider px-4 py-3">
+              {/* During the tour the menu is only something to point at: its rows are inert
+                  (no Log Out). The tour layer's host must stay inside this dialog, because the
+                  overlay marks everything outside the dialog inert. */}
+              <div inert={tourHoldsMenu} className="flex items-center justify-between gap-2 border-b border-divider px-4 py-3">
                 <Link
                   href={navItems[0]?.href ?? "/"}
                   onClick={closeMobileMenu}
@@ -959,6 +969,7 @@ function MobileSidebarMenu({
 
               <nav
                 aria-label={navLabel}
+                inert={tourHoldsMenu}
                 className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 py-3"
               >
                 {navGroups.map((group, groupIndex) => (
@@ -1085,7 +1096,7 @@ function MobileSidebarMenu({
                 </div>
               </nav>
 
-              <div className="border-t border-divider px-3 py-3">
+              <div inert={tourHoldsMenu} className="border-t border-divider px-3 py-3">
                 <Button
                   variant="ghost"
                   onClick={() => {
@@ -1098,6 +1109,7 @@ function MobileSidebarMenu({
                   Log Out
                 </Button>
               </div>
+              <div ref={setTutorialLayerHost} data-tutorial-host />
             </Drawer.Dialog>
           </Drawer.Content>
         </Drawer.Backdrop>

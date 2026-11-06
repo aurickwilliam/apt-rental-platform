@@ -1,7 +1,7 @@
 // Where the tutorial card sits relative to the highlighted element. Pure so
 // it can be tested without a browser: the card goes beside the target when it
 // fits (sidebar targets, so usually to the right), then below, then above;
-// narrow screens dock it at the bottom, and a missing target centers it.
+// narrow screens dock it at the top (the bottom when the target is up there), and a missing target centers it.
 
 export interface TutorialBox {
   top: number;
@@ -25,6 +25,8 @@ export interface TutorialPlacement {
   top: number;
   left: number;
   width: number;
+  /** Docked cards only: which screen edge the card hugs. */
+  anchor?: "top" | "bottom";
 }
 
 /** Below this viewport width the card docks to the bottom of the screen. */
@@ -50,7 +52,17 @@ export function computeTutorialPlacement({
   const maxTop = viewport.height - card.height - margin;
 
   if (viewport.width < TUTORIAL_NARROW_VIEWPORT) {
-    return { mode: "docked", top: Math.max(margin, maxTop), left: margin, width: maxWidth };
+    // The card hugs the top, away from the bottom-of-menu actions (Log Out), and
+    // only drops to the bottom when it would cover the highlighted element.
+    const coversTarget = target !== null && target.top < margin + card.height + gap;
+    const anchor = coversTarget ? "bottom" : "top";
+    return {
+      mode: "docked",
+      anchor,
+      top: anchor === "top" ? margin : Math.max(margin, maxTop),
+      left: margin,
+      width: maxWidth,
+    };
   }
 
   if (!target) {
