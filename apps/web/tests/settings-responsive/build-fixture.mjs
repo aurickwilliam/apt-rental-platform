@@ -12,6 +12,7 @@ const require = createRequire(path.join(web, "package.json"));
 const { build } = require(process.env.BROWSE_ESBUILD_PATH);
 const ts = require("typescript");
 const transports = path.join(here, "fixture-transports.jsx");
+const FIXTURE_TABS = ["SecurityTab", "LanguageRegionTab", "NotificationsTab", "HelpTab", "RentalPreferencesTab"];
 await mkdir(output, { recursive: true });
 await build({
   entryPoints: [path.join(here, "fixture-app.jsx")], outfile: path.join(output, "fixture.js"),
@@ -22,10 +23,15 @@ await build({
     plugin.onResolve({ filter: /^next\/(navigation|link)$/ }, () => ({ path: transports }));
     plugin.onResolve({ filter: /^@\/hooks\/(use-user|use-rental-preferences-form)$/ }, () => ({ path: transports }));
     plugin.onResolve({ filter: /^\.\/tabs\/(SecurityTab|LanguageRegionTab|NotificationsTab|HelpTab|RentalPreferencesTab)$/ }, ({ path: source }) => ({ path: source, namespace: "fixture-tab" }));
-    plugin.onLoad({ filter: /.*/, namespace: "fixture-tab" }, ({ path: source }) => ({
-      contents: `import {createElement} from 'react'; export default function Tab(){return createElement('h2',{},${JSON.stringify(source.split("/").at(-1))})}`,
-      loader: "js", resolveDir: here,
-    }));
+    plugin.onLoad({ filter: /.*/, namespace: "fixture-tab" }, ({ path: source }) => {
+      // The stub's name comes from this fixed list, never from the path itself.
+      const name = FIXTURE_TABS.find(tab => source.endsWith(`/${tab}`));
+      if (!name) throw new Error(`Unexpected fixture tab ${source}`);
+      return {
+        contents: `import {createElement} from 'react'; export default function Tab(){return createElement('h2',{},'${name}')}`,
+        loader: "js", resolveDir: here,
+      };
+    });
     plugin.onResolve({ filter: /^@\// }, ({ path: source }) => {
       const base = path.join(web, source.slice(2));
       const resolved = [base, `${base}.ts`, `${base}.tsx`].find(file => existsSync(file));
