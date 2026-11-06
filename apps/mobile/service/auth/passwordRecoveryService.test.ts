@@ -12,6 +12,7 @@ import {
 import { PasswordError } from "@repo/utils";
 import { RecoveryRateLimitedError } from "./passwordRecoveryService";
 
+const mockRpc = jest.fn();
 const mockResetPasswordForEmail = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateUser = jest.fn();
@@ -24,6 +25,7 @@ const mockFetch = jest.fn();
 
 jest.mock("@repo/supabase", () => ({
   supabase: {
+    rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {
       resetPasswordForEmail: (...args: unknown[]) => mockResetPasswordForEmail(...args),
       verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
@@ -69,6 +71,7 @@ describe("passwordRecoveryService", () => {
     consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     mockSignOut.mockResolvedValue({ error: null });
     mockBaseUrl = "";
+    mockRpc.mockResolvedValue({ data: true, error: null });
   });
 
   afterEach(() => consoleError.mockRestore());
@@ -85,12 +88,25 @@ describe("passwordRecoveryService", () => {
       expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
-    it("resolves the same way for an unknown account", async () => {
-      mockResetPasswordForEmail.mockResolvedValueOnce({
+    it("checks the email is registered before sending a code", async () => {
+      mockResetPasswordForEmail.mockResolvedValueOnce({ data: {}, error: null });
+      await requestPasswordRecovery(EMAIL);
+      expect(mockRpc).toHaveBeenCalledWith("is_email_registered", { p_email: EMAIL });
+    });
+
+    it("refuses an unknown email without sending a code", async () => {
+      mockRpc.mockResolvedValueOnce({ data: false, error: null });
+      await expectReason(requestPasswordRecovery(EMAIL), "email_not_registered");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+    });
+
+    it("sends nothing when the lookup fails", async () => {
+      mockRpc.mockResolvedValueOnce({
         data: null,
-        error: authError({ code: "user_not_found", status: 404 }),
+        error: authError({ name: "AuthRetryableFetchError", status: 0 }),
       });
-      await expect(requestPasswordRecovery(EMAIL)).resolves.toBeUndefined();
+      await expectReason(requestPasswordRecovery(EMAIL), "network");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
     it("surfaces the email rate limit (also used for resend)", async () => {

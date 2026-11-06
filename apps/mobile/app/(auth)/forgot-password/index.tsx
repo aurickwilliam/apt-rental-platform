@@ -79,7 +79,10 @@ export default function ForgotPassword() {
       setRecoveryEmail(trimmedEmail);
       router.push("/forgot-password/otp-verification");
     } catch (err) {
-      if (err instanceof PasswordError && err.reason === "invalid_email") {
+      if (
+        err instanceof PasswordError &&
+        (err.reason === "invalid_email" || err.reason === "email_not_registered")
+      ) {
         setEmailError(err.message);
       } else {
         setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
