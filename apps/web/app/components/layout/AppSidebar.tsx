@@ -185,6 +185,8 @@ type NavItem = {
   activityKey?: SidebarActivityKey;
   /** Warm this route on hover/focus and when the mobile menu opens. */
   prefetchOnIntent?: boolean;
+  /** Stable `data-tour` key the first-time tutorial highlights (see `TUTORIAL_TARGETS` in `@repo/utils`). */
+  tourKey?: string;
   /** Name of the group this item belongs to; consecutive items sharing it sit together under a separator. */
   section?: string;
 };
@@ -468,7 +470,7 @@ export function AppSidebar({
             className={`flex flex-col ${collapsed ? "gap-1" : "gap-1.5"}`}
           >
             {groupIndex > 0 ? <Separator className={collapsed ? "my-1" : "my-1.5"} /> : null}
-            {group.items.map(({ label, href, icon, activityKey, prefetchOnIntent }) => {
+            {group.items.map(({ label, href, icon, activityKey, prefetchOnIntent, tourKey }) => {
           const active = isActive(pathname, href);
           const hasActivity = !!activityKey && activity.has(activityKey);
           const Icon =
@@ -480,6 +482,7 @@ export function AppSidebar({
               <RailTooltipTrigger asChild>
             <Link
               href={href}
+              data-tour={tourKey}
               onMouseEnter={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               onFocus={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               aria-current={active ? "page" : undefined}
@@ -966,7 +969,7 @@ function MobileSidebarMenu({
                     className="flex flex-col gap-1"
                   >
                     {groupIndex > 0 ? <Separator className="my-1.5" /> : null}
-                    {group.items.map(({ href, label, icon, activityKey }) => {
+                    {group.items.map(({ href, label, icon, activityKey, tourKey }) => {
                       const Icon = iconFor(icon);
                       const active = isActive(pathname, href);
                       const hasActivity = !!activityKey && activity.has(activityKey);
@@ -974,6 +977,7 @@ function MobileSidebarMenu({
                         <Button
                           variant="ghost"
                           key={href}
+                          data-tour={tourKey}
                           onClick={() => go(href)}
                           aria-current={active ? "page" : undefined}
                           aria-label={hasActivity ? `${label}, Unread activity` : undefined}
