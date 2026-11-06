@@ -319,6 +319,9 @@ export {
   countAiSearchFilters,
   parseSearchKeywords,
   aiFiltersToBrowseParams,
+  mergeAiFilters,
+  isBrowseExpressible,
+  wantsAnyArea,
 } from './aiSearch';
 export {
   AVA_RESULT_LIMIT,
@@ -331,6 +334,7 @@ export {
   AVA_LOOSEN_QUICK_REPLIES,
   type AvaSource,
   type AvaTurn,
+  type AvaSearchState,
   type AvaAnswer,
   type AvaReply,
   hasAvaQuestion,
@@ -338,7 +342,61 @@ export {
   readAvaResponse,
   shouldSearchForAva,
   composeAvaReply,
+  avaSourceNote,
+  shouldAskAvaModel,
+  wantsMoreResults,
+  avaConversationLanguage,
 } from './avaChat';
+export { detectMessageLanguage, detectReplyLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+export { AVA_STRINGS, type AvaStrings } from './avaStrings';
+export {
+  resolveLandmark,
+  targetFromKey,
+  type LandmarkResolution,
+  type LandmarkTarget,
+} from './avaLandmarks';
+export {
+  AVA_NEAR_KM,
+  AVA_NEARBY_KM,
+  haversineKm,
+  rankByProximity,
+  formatDistance,
+  type ProximityScenario,
+} from './avaProximity';
+export { smallTalkKind, type AvaSmallTalkKind } from './avaSmallTalk';
+export {
+  asksAboutPreferences,
+  describePreferences,
+  hasAvaPreferences,
+  preferencesToFilters,
+  type AvaPreferences,
+  type AvaPreferenceIntent,
+} from './avaPreferences';
+export {
+  AVA_PROXIMITY_POOL,
+  answerAva,
+  buildAvaRequest,
+  describeListing,
+  deriveAvaContext,
+  type AvaCandidate,
+  type AvaFound,
+  type AvaFetchRequest,
+  type AvaListingFetcher,
+  type AvaOutcome,
+} from './avaSearch';
+export {
+  AVA_MAX_SAVED_CHATS,
+  AVA_MAX_SAVED_MESSAGES,
+  avaChatTitle,
+  upsertAvaChat,
+  removeAvaChat,
+  parseSavedAvaChats,
+  groupAvaChatsByAge,
+  type AvaSavedChat,
+  type AvaSavedMessage,
+  type AvaHistoryGroup,
+  type AvaHistoryGroupLabel,
+} from './avaHistory';
 export * from './browseRows';
 export * from './rangeInput';
 export * from './applicationPreferences';

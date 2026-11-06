@@ -6,7 +6,7 @@ import { IMAGES } from "constants/images";
 export default function EmptyChatState() {
   return (
     <View className="items-center gap-3 px-8">
-      <View className="size-20">
+      <View className="size-36">
         <Image
           source={IMAGES.aiIcon}
           style={{ width: "100%", height: "100%" }}

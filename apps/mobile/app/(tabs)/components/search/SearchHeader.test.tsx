@@ -13,7 +13,6 @@ jest.mock("@tabler/icons-react-native", () => ({
   IconLayoutGrid: () => null,
   IconLayoutRows: () => null,
   IconMap: () => null,
-  IconSparkles: () => null,
 }));
 jest.mock("hooks/useTheme", () => ({ useColors: () => ({ colors: { gray500: "#888" } }) }));
 
