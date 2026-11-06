@@ -28,7 +28,18 @@ export interface AvaStrings {
   clarifyReply: (label: string) => string;
   unknownPlaceReply: (place: string) => string;
   moreReply: string;
+  /** "Show me more" when the remaining listings are farther than the near radius. */
+  moreFartherReply: (place: string, distance: string) => string;
   noMoreReply: string;
+
+  /** The one-line summary of what Ava is searching with. */
+  searching: string;
+  nearPlace: (place: string) => string;
+  upTo: (amount: string) => string;
+  fromAmount: (amount: string) => string;
+  cheapestFirst: string;
+  priciestFirst: string;
+  verifiedOnly: string;
 
   /** Caption lines under a listing. */
   distanceNote: (distance: string, place: string) => string;
@@ -66,7 +77,17 @@ export const AVA_STRINGS: Record<AvaLanguage, AvaStrings> = {
     unknownPlaceReply: (place) =>
       `I can't pinpoint ${place} yet. Tell me the city or barangay and I'll search there.`,
     moreReply: 'Here are more options.',
+    moreFartherReply: (place, distance) =>
+      `Here are more options. The closest remaining one is about ${distance} from ${place} in a straight line.`,
     noMoreReply: "That's everything I have for this search. Want to adjust the budget or area?",
+
+    searching: 'Searching',
+    nearPlace: (place) => `near ${place}`,
+    upTo: (amount) => `up to ${peso(amount)}`,
+    fromAmount: (amount) => `from ${peso(amount)}`,
+    cheapestFirst: 'cheapest first',
+    priciestFirst: 'highest price first',
+    verifiedOnly: 'verified only',
 
     distanceNote: (distance, place) => `${distance} from ${place} (straight-line)`,
     withinBudget: (amount) => `within your ${peso(amount)} budget`,
@@ -99,7 +120,17 @@ export const AVA_STRINGS: Record<AvaLanguage, AvaStrings> = {
     unknownPlaceReply: (place) =>
       `Hindi ko pa matukoy kung nasaan ang ${place}. Sabihin mo ang lungsod o barangay at doon ako maghahanap.`,
     moreReply: 'Narito ang iba pang mapagpipilian.',
+    moreFartherReply: (place, distance) =>
+      `Narito ang iba pang mapagpipilian. Ang pinakamalapit na natitira ay mga ${distance} mula sa ${place} (tuwid na linya).`,
     noMoreReply: 'Iyan na ang lahat ng mayroon ako para sa search na ito. Gusto mo bang baguhin ang budget o lugar?',
+
+    searching: 'Hinahanap',
+    nearPlace: (place) => `malapit sa ${place}`,
+    upTo: (amount) => `hanggang ${peso(amount)}`,
+    fromAmount: (amount) => `mula ${peso(amount)}`,
+    cheapestFirst: 'pinakamura muna',
+    priciestFirst: 'pinakamahal muna',
+    verifiedOnly: 'verified lang',
 
     distanceNote: (distance, place) => `${distance} mula sa ${place} (tuwid na linya)`,
     withinBudget: (amount) => `pasok sa ${peso(amount)} mong budget`,

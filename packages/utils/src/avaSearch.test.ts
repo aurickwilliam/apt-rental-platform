@@ -1,4 +1,4 @@
-import { EMPTY_AI_SEARCH_FILTERS, mergeAiFilters, parseSearchKeywords } from './aiSearch';
+import { EMPTY_AI_SEARCH_FILTERS, mergeAiFilters, parseSearchKeywords, type AiSearchFilters } from './aiSearch';
 import { avaFallbackAnswer, wantsMoreResults, type AvaAnswer, type AvaTurn } from './avaChat';
 import { detectConversationLanguage, detectMessageLanguage } from './avaLanguage';
 import { resolveLandmark, targetFromKey } from './avaLandmarks';
@@ -216,7 +216,7 @@ describe('answerAva', () => {
     expect(outcome.reply.quickReplies).toContain('Navotas City Hall');
   });
 
-  it('keeps the landmark and applies a new budget on follow-ups', async () => {
+  it('keeps the budget but drops the landmark when a message names no place', async () => {
     const first = turnsFor('apartments near Monumento');
     const firstOutcome = await answerAva(answerFor(first), first, fetcherFor([listing('a', 14.6555, 120.985)]));
     const history: AvaTurn[] = [
@@ -230,7 +230,7 @@ describe('answerAva', () => {
       return [listing('b', 14.6556, 120.985, { monthlyRent: 7500 })];
     });
     expect(requested).toBe(8000);
-    expect(outcome.state?.landmarkKey).toBe('monumento');
+    expect(outcome.state?.landmarkKey).toBeNull();
     expect(outcome.state?.filters.priceMax).toBe(8000);
   });
 
@@ -251,10 +251,166 @@ describe('answerAva', () => {
     expect(outcome.listings.map((card) => card.id)).toEqual(['b']);
   });
 
+  it('searches a bedroom range instead of picking one number', async () => {
+    const turns = turnsFor("I'm looking for an apartment in Caloocan. My budget is ₱8,000 per month, with one or two bedrooms.");
+    let requested: AiSearchFilters | null = null;
+    const outcome = await answerAva(answerFor(turns), turns, async (request) => {
+      requested = request.filters;
+      return [listing('c1', 14.65, 120.98, { bedrooms: 1, city: 'Caloocan' })];
+    });
+    expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: 8000, bedrooms: '1', bedroomsMax: 2 });
+    expect(outcome.reply.text).toContain('Searching: Caloocan · up to ₱8,000 · 1–2 bedrooms');
+  });
+
   it('searches by filters when no place is named', async () => {
     const turns = turnsFor('2 bedroom sa Malabon hanggang 12k');
     const outcome = await answerAva(answerFor(turns), turns, fetcherFor([listing('m', 14.66, 120.95, { bedrooms: 2, city: 'Malabon' })]));
-    expect(outcome.reply.text).toBe('Narito ang mga tugma sa sinabi mo.');
+    expect(outcome.reply.text.startsWith('Narito ang mga tugma sa sinabi mo.')).toBe(true);
+    expect(outcome.reply.text).toContain('Hinahanap: Malabon · hanggang ₱12,000 · 2 bedroom');
     expect(outcome.notes.m).toContain('pasok sa ₱12,000 mong budget');
+  });
+
+  it("does not read a city in a long request as a landmark, and searches by the stated filters", async () => {
+    const message =
+      "Hi Ava! I'm looking for an apartment in Caloocan. My budget is ₱8,000 per month, preferably with one or two bedrooms.";
+    expect(resolveLandmark(message).status).toBe('none');
+
+    const turns = turnsFor(message);
+    let requested: AiSearchFilters | null = null;
+    const outcome = await answerAva(answerFor(turns), turns, async (request) => {
+      requested = request.filters;
+      return [listing('c1', 14.65, 120.98, { monthlyRent: 7500 })];
+    });
+    expect(outcome.reply.text).not.toMatch(/Which/);
+    expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: 8000 });
+    expect(outcome.state?.landmarkKey).toBeNull();
+  });
+
+  it('remembers the budget and area while it asks which place, then uses them', async () => {
+    const ambiguous = turnsFor('I need something under 9k near the city hall');
+    const askOutcome = await answerAva(answerFor(ambiguous), ambiguous, fetcherFor([]));
+    expect(askOutcome.reply.text).toBe('Which city hall do you mean?');
+    expect(askOutcome.state?.filters.priceMax).toBe(9000);
+
+    const history: AvaTurn[] = [
+      ...ambiguous,
+      { role: 'assistant', text: askOutcome.reply.text, search: askOutcome.state!, shownIds: [] },
+    ];
+    const answered = turnsFor('Navotas City Hall', history);
+    let requested: AiSearchFilters | null = null;
+    const outcome = await answerAva(answerFor(answered), answered, async (request) => {
+      requested = request.filters;
+      return [listing('n1', 14.6582, 120.9478, { city: 'Navotas' })];
+    });
+    expect(requested).toMatchObject({ priceMax: 9000 });
+    expect(outcome.state?.landmarkKey).toBe('navotas-city-hall');
+  });
+
+  it('still forgives typos when the message points at a place', () => {
+    expect(resolveLandmark('apartments near monumnto').status).toBe('found');
+    expect(resolveLandmark('near grand sentral').status).toBe('found');
+    expect(resolveLandmark('monumnto').status).toBe('found');
+  });
+
+  describe('consistency across a conversation', () => {
+    const state = (filters: Partial<AiSearchFilters>, landmarkKey: string | null = null) => ({
+      filters: { ...EMPTY_AI_SEARCH_FILTERS, ...filters },
+      landmarkKey,
+    });
+    const afterSearch = (text: string, search: ReturnType<typeof state>, shownIds: string[] = []): AvaTurn[] => [
+      { role: 'user', text: 'first' },
+      { role: 'assistant', text: 'ok', search, shownIds },
+      { role: 'user', text },
+    ];
+    const gemini = (filters: Partial<AiSearchFilters>, extra: Partial<AvaAnswer> = {}): AvaAnswer => ({
+      source: 'gemini',
+      reply: 'Sure, searching.',
+      quickReplies: [],
+      noResultsReply: null,
+      noResultsQuickReplies: [],
+      filters: { ...EMPTY_AI_SEARCH_FILTERS, ...filters },
+      landmark: null,
+      wantsMore: false,
+      ...extra,
+    });
+
+    it('keeps the budget and area even when the model drops them', async () => {
+      const turns = afterSearch('Are there any apartments with parking?', state({ cities: ['Caloocan'], priceMax: 8000 }));
+      let requested: AiSearchFilters | null = null;
+      await answerAva(gemini({ amenities: ['parking'] }), turns, async (request) => {
+        requested = request.filters;
+        return [listing('a', 14.65, 120.98)];
+      });
+      expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: 8000, amenities: ['parking'] });
+    });
+
+    it('lets an explicit "any budget" clear it', async () => {
+      const turns = afterSearch('any budget is fine', state({ cities: ['Caloocan'], priceMax: 8000 }));
+      let requested: AiSearchFilters | null = null;
+      await answerAva(gemini({ cities: ['Caloocan'], bedrooms: '2' }), turns, async (request) => {
+        requested = request.filters;
+        return [];
+      });
+      expect(requested).toMatchObject({ cities: ['Caloocan'], priceMax: null, bedrooms: '2' });
+    });
+
+    it('orders nearby listings by price when asked for the cheapest', async () => {
+      const turns = afterSearch('Show me the cheapest ones near it', state({}, 'monumento'));
+      const outcome = await answerAva(
+        gemini({ sort: 'price_asc' }),
+        turns,
+        fetcherFor([
+          listing('pricey', 14.6575, 120.984, { monthlyRent: 30000 }),
+          listing('cheap', 14.66, 120.985, { monthlyRent: 5000 }),
+          listing('mid', 14.658, 120.984, { monthlyRent: 12000 }),
+        ]),
+      );
+      expect(outcome.listings.map((card) => card.id)).toEqual(['cheap', 'mid', 'pricey']);
+      expect(outcome.reply.text).toContain('cheapest first');
+    });
+
+    it('does not say nothing is close when "more" runs out of nearby listings', async () => {
+      const turns = afterSearch('Show me more options', state({}, 'monumento'), ['shown']);
+      const outcome = await answerAva(
+        gemini({}, { wantsMore: true }),
+        turns,
+        fetcherFor([listing('shown', 14.6575, 120.984), listing('later', 14.7, 121.0)]),
+      );
+      expect(outcome.listings.map((card) => card.id)).toEqual(['later']);
+      expect(outcome.reply.text).toContain('Here are more options.');
+      expect(outcome.reply.text).not.toContain('no listings close');
+    });
+
+    it('keeps the landmark only when the tenant points back at it', async () => {
+      const rows = [listing('a', 14.6575, 120.984)];
+      const kept = await answerAva(gemini({}), afterSearch('Anything closer to it?', state({}, 'monumento')), fetcherFor(rows));
+      expect(kept.state?.landmarkKey).toBe('monumento');
+      const dropped = await answerAva(
+        gemini({ amenities: ['parking'] }),
+        afterSearch('Are there any apartments with parking?', state({ priceMax: 8000 }, 'monumento')),
+        fetcherFor(rows),
+      );
+      expect(dropped.state?.landmarkKey).toBeNull();
+      expect(dropped.state?.filters).toMatchObject({ priceMax: 8000, amenities: ['parking'] });
+      expect(dropped.reply.text).not.toContain('Monumento');
+    });
+
+    it('says what it remembered', async () => {
+      const turns = afterSearch('Can you recommend apartments near SM Grand Central?', state({ priceMax: 8000, bedrooms: '2' }));
+      const outcome = await answerAva(gemini({}), turns, fetcherFor([listing('a', 14.6555, 120.985)]));
+      expect(outcome.reply.text).toContain('Searching: near SM City Grand Central · up to ₱8,000 · 2 bedrooms');
+    });
+
+    it('replaces a reply in the wrong language with its own wording', async () => {
+      const turns: AvaTurn[] = [{ role: 'user', text: "I'm looking for an apartment in Caloocan under 8000" }];
+      const outcome = await answerAva(
+        gemini({ cities: ['Caloocan'], priceMax: 8000 }, { reply: 'Hinahanap ko po ang apartment sa Caloocan na hanggang ₱8,000.', quickReplies: ['May parking po ba?', 'Kahit studio na lang'] }),
+        turns,
+        fetcherFor([listing('a', 14.65, 120.98)]),
+      );
+      expect(outcome.language).toBe('en');
+      expect(outcome.reply.text.startsWith('Here are places that match what you told me.')).toBe(true);
+      expect(outcome.reply.quickReplies).toBeUndefined();
+    });
   });
 });

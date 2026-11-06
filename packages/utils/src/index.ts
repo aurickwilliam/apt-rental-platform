@@ -318,6 +318,7 @@ export {
   parseSearchKeywords,
   aiFiltersToBrowseParams,
   mergeAiFilters,
+  isBrowseExpressible,
   wantsAnyArea,
 } from './aiSearch';
 export {
@@ -342,7 +343,7 @@ export {
   wantsMoreResults,
   avaConversationLanguage,
 } from './avaChat';
-export { detectMessageLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+export { detectMessageLanguage, detectReplyLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
 export { AVA_STRINGS, type AvaStrings } from './avaStrings';
 export {
   resolveLandmark,
@@ -370,6 +371,19 @@ export {
   type AvaListingFetcher,
   type AvaOutcome,
 } from './avaSearch';
+export {
+  AVA_MAX_SAVED_CHATS,
+  AVA_MAX_SAVED_MESSAGES,
+  avaChatTitle,
+  upsertAvaChat,
+  removeAvaChat,
+  parseSavedAvaChats,
+  groupAvaChatsByAge,
+  type AvaSavedChat,
+  type AvaSavedMessage,
+  type AvaHistoryGroup,
+  type AvaHistoryGroupLabel,
+} from './avaHistory';
 export * from './browseRows';
 export * from './rangeInput';
 export * from './applicationPreferences';

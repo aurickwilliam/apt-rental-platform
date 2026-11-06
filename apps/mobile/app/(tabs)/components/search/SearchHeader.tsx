@@ -1,15 +1,16 @@
 import { Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 import {
   IconHeart,
   IconLayoutGrid,
   IconLayoutRows,
   IconMap,
-  IconSparkles,
 } from '@tabler/icons-react-native';
 
 import { Button } from 'heroui-native';
 
+import { IMAGES } from 'constants/images';
 import { useColors } from 'hooks/useTheme';
 
 type SearchHeaderProps = {
@@ -53,7 +54,12 @@ export default function SearchHeader({
             accessibilityLabel="Ask Ava, the APT Virtual Assistant"
             accessibilityRole="button"
           >
-            <IconSparkles size={24} color={colors.primary} />
+            <Image
+              source={IMAGES.aiIcon}
+              style={{ width: 30, height: 30 }}
+              contentFit='contain'
+              accessibilityIgnoresInvertColors
+            />
           </Button>
         )}
 

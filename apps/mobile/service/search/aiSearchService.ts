@@ -71,7 +71,11 @@ export async function fetchAvaListings(
   if (filters.priceMax !== null) query = query.lte("monthly_rent", filters.priceMax);
   if (filters.types.length > 0) query = query.in("type", filters.types);
 
-  if (filters.bedrooms === "4+") query = query.gte("no_bedrooms", 4);
+  if (filters.bedrooms !== null && filters.bedroomsMax !== null) {
+    // "One or two bedrooms": a range, not a single count.
+    const min = filters.bedrooms === "4+" ? 4 : Number(filters.bedrooms);
+    query = query.gte("no_bedrooms", min).lte("no_bedrooms", filters.bedroomsMax);
+  } else if (filters.bedrooms === "4+") query = query.gte("no_bedrooms", 4);
   else if (filters.bedrooms !== null) query = query.eq("no_bedrooms", Number(filters.bedrooms));
 
   if (filters.bathrooms === "4+") query = query.gte("no_bathrooms", 4);
@@ -120,4 +124,28 @@ export async function fetchAvaListings(
       city: row.city,
     },
   }));
+}
+
+/**
+ * Re-reads listings Ava showed in a saved chat, by id, with the same visibility
+ * rules as a fresh search. Listings that were deleted, hidden or taken are
+ * absent, so a reopened chat never shows a stale listing.
+ */
+export async function fetchAvaListingsByIds(
+  ids: string[],
+): Promise<Map<string, ApartmentCardProps>> {
+  if (ids.length === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from("apartments")
+    .select(APARTMENT_CARD_SELECT)
+    .in("id", ids)
+    .is("deleted_at", null)
+    .eq("is_hidden_by_admin", false)
+    .in("status", ["available", "unverified"]);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as ApartmentCardRow[];
+  const cards = toApartmentCards(rows);
+  return new Map(rows.map((row, index) => [row.id, cards[index]]));
 }

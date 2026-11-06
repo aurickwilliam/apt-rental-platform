@@ -1,15 +1,21 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   AVA_STRINGS,
   answerAva,
+  avaChatTitle,
   avaConversationLanguage,
+  removeAvaChat,
+  upsertAvaChat,
+  type AvaSavedChat,
+  type AvaSavedMessage,
   type AvaSearchState,
   type AvaTurn,
 } from "@repo/utils";
 
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
-import { askAva, fetchAvaListings } from "@/service/search/aiSearchService";
+import { loadAvaChats, saveAvaChats } from "@/service/chat/avaHistoryStore";
+import { askAva, fetchAvaListings, fetchAvaListingsByIds } from "@/service/search/aiSearchService";
 
 export type AIChatMessage = {
   id: string;
@@ -28,6 +34,30 @@ export type AIChatMessage = {
 
 let messageSequence = 0;
 const nextMessageId = () => `${Date.now()}-${(messageSequence += 1)}`;
+const nextChatId = () => `ava-chat-${Date.now()}-${(messageSequence += 1)}`;
+
+const toSavedMessage = (message: AIChatMessage): AvaSavedMessage => ({
+  id: message.id,
+  role: message.role,
+  text: message.text,
+  quickReplies: message.quickReplies,
+  notes: message.notes,
+  search: message.search,
+  shownIds: message.shownIds,
+  listingIds: message.listings?.map((listing) => listing.id),
+});
+
+// A saved message without its listings, which are re-read when the chat opens.
+const fromSavedMessage = (message: AvaSavedMessage): AIChatMessage => ({
+  id: message.id,
+  role: message.role,
+  text: message.text,
+  timestamp: Date.now(),
+  quickReplies: message.quickReplies,
+  notes: message.notes,
+  search: message.search,
+  shownIds: message.shownIds,
+});
 
 const toTurns = (messages: AIChatMessage[]): AvaTurn[] =>
   messages.map((message) => ({
@@ -37,17 +67,61 @@ const toTurns = (messages: AIChatMessage[]): AvaTurn[] =>
     shownIds: message.shownIds,
   }));
 
-export function useAIChat() {
+/**
+ * Ava's chat. With an `authUserId` each conversation is also saved on the
+ * device (history list); without one the chat is memory-only. Listings are
+ * saved as ids and re-read when a chat is opened.
+ */
+export function useAIChat(authUserId?: string | null) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  // Bumped by resetChat so a reply still in flight never lands in the new chat.
+  const [chats, setChats] = useState<AvaSavedChat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const chatsRef = useRef<AvaSavedChat[]>([]);
+  // Bumped by resetChat/openChat so a reply still in flight never lands in another chat.
   const chatGenerationRef = useRef(0);
+
+  useEffect(() => {
+    let active = true;
+    if (!authUserId) return;
+    void loadAvaChats(authUserId).then((stored) => {
+      if (!active) return;
+      // A chat saved before storage answered stays on top.
+      const merged = chatsRef.current.reduce((list, chat) => upsertAvaChat(list, chat), stored);
+      chatsRef.current = merged;
+      setChats(merged);
+    });
+    return () => {
+      active = false;
+      chatsRef.current = [];
+    };
+  }, [authUserId]);
+
+  const persist = useCallback(
+    (chatId: string, chatMessages: AIChatMessage[]) => {
+      if (!authUserId || chatMessages.length === 0) return;
+      const saved: AvaSavedChat = {
+        id: chatId,
+        title: avaChatTitle(chatMessages),
+        updatedAt: Date.now(),
+        messages: chatMessages.map(toSavedMessage),
+      };
+      const next = upsertAvaChat(chatsRef.current, saved);
+      chatsRef.current = next;
+      setChats(next);
+      void saveAvaChats(authUserId, next);
+    },
+    [authUserId],
+  );
 
   const sendMessage = useCallback(
     async (text?: string) => {
       const trimmed = (text ?? input).trim();
       if (!trimmed || isLoading) return;
+
+      const chatId = activeChatId ?? nextChatId();
+      if (!activeChatId) setActiveChatId(chatId);
 
       const userMessage: AIChatMessage = {
         id: nextMessageId(),
@@ -55,8 +129,9 @@ export function useAIChat() {
         text: trimmed,
         timestamp: Date.now(),
       };
+      const base = [...messages, userMessage];
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages(base);
       setInput("");
       setIsLoading(true);
 
@@ -68,19 +143,18 @@ export function useAIChat() {
         extra: Pick<AIChatMessage, "quickReplies" | "listings" | "notes" | "search" | "shownIds"> = {},
       ) => {
         if (!isCurrentChat()) return;
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: nextMessageId(),
-            role: "assistant",
-            text: replyText,
-            timestamp: Date.now(),
-            ...extra,
-          },
-        ]);
+        const assistant: AIChatMessage = {
+          id: nextMessageId(),
+          role: "assistant",
+          text: replyText,
+          timestamp: Date.now(),
+          ...extra,
+        };
+        setMessages([...base, assistant]);
+        persist(chatId, [...base, assistant]);
       };
 
-      const turns = toTurns([...messages, userMessage]);
+      const turns = toTurns(base);
       let language = avaConversationLanguage(turns);
       try {
         const answer = await askAva(turns);
@@ -111,15 +185,69 @@ export function useAIChat() {
         if (isCurrentChat()) setIsLoading(false);
       }
     },
-    [input, isLoading, messages],
+    [activeChatId, input, isLoading, messages, persist],
   );
 
+  /** Starts an empty chat. The current one stays in the history. */
   const resetChat = useCallback(() => {
     chatGenerationRef.current += 1;
+    setActiveChatId(null);
     setMessages([]);
     setInput("");
     setIsLoading(false);
   }, []);
 
-  return { input, setInput, messages, isLoading, sendMessage, resetChat };
+  /** Opens a saved chat; its listings are re-read so none is stale or no longer visible. */
+  const openChat = useCallback(async (chatId: string) => {
+    const saved = chatsRef.current.find((chat) => chat.id === chatId);
+    if (!saved) return;
+
+    chatGenerationRef.current += 1;
+    const generation = chatGenerationRef.current;
+    setActiveChatId(chatId);
+    setInput("");
+    setIsLoading(false);
+    setMessages(saved.messages.map(fromSavedMessage));
+
+    const ids = [...new Set(saved.messages.flatMap((message) => message.listingIds ?? []))];
+    if (ids.length === 0) return;
+    try {
+      const found = await fetchAvaListingsByIds(ids);
+      if (generation !== chatGenerationRef.current) return;
+      setMessages(
+        saved.messages.map((message) => ({
+          ...fromSavedMessage(message),
+          listings: (message.listingIds ?? [])
+            .map((id) => found.get(id))
+            .filter((listing): listing is ApartmentCardProps => listing !== undefined),
+        })),
+      );
+    } catch (err) {
+      console.error("Ava history listings failed:", err);
+    }
+  }, []);
+
+  const deleteChat = useCallback(
+    (chatId: string) => {
+      const next = removeAvaChat(chatsRef.current, chatId);
+      chatsRef.current = next;
+      setChats(next);
+      if (authUserId) void saveAvaChats(authUserId, next);
+      if (chatId === activeChatId) resetChat();
+    },
+    [activeChatId, authUserId, resetChat],
+  );
+
+  return {
+    input,
+    setInput,
+    messages,
+    isLoading,
+    sendMessage,
+    resetChat,
+    chats,
+    activeChatId,
+    openChat,
+    deleteChat,
+  };
 }

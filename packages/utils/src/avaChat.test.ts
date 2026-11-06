@@ -90,14 +90,14 @@ describe('shouldSearchForAva', () => {
 
 describe('composeAvaReply', () => {
   it("uses Gemini's reply and quick replies when listings were found", () => {
-    expect(composeAvaReply(GEMINI, 3)).toEqual({
+    expect(composeAvaReply(GEMINI, 3, 'tl')).toEqual({
       text: GEMINI.reply,
       quickReplies: ['May parking'],
     });
   });
 
   it("uses Gemini's no-results reply when nothing matched", () => {
-    expect(composeAvaReply(GEMINI, 0)).toEqual({
+    expect(composeAvaReply(GEMINI, 0, 'tl')).toEqual({
       text: 'Wala pa pong 2-bedroom sa Malabon.',
       quickReplies: ['Ibang lugar'],
     });

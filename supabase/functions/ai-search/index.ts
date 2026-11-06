@@ -87,7 +87,7 @@ How to talk:
 - "noResultsQuickReplies": 2 to 4 short taps that loosen the search, in the reply language.
 - Places: when the tenant names a landmark or establishment (a mall, city hall, school, hospital, market, church, station or a circle like Monumento), put its name in "landmark" exactly as they said it, without a city if they gave none, and do NOT put it in "keyword" or "cities". The app finds its real location and ranks real listings by distance. Never state distances, coordinates or how many listings exist.
 - "wantsMore": true only when the tenant asks for more results of the same search ("show me more", "ipakita pa", "any others?").
-- Follow-ups use "Current search" as the starting point. "Cheaper" means sort price_asc and a lower priceMax; "what if my budget is 8k" sets priceMax 8000 and keeps everything else; "closer to it" keeps the landmark. Return the full updated filters every time, not only what changed. If they say any area or any type, clear that filter.
+- Follow-ups use "Current search" as the starting point. "Cheaper" means sort price_asc and a lower priceMax; "what if my budget is 8k" sets priceMax 8000 and keeps everything else; "closer to it" keeps the landmark, but a message that names no place and does not point back at one ("with parking?") is a new search: leave "landmark" null. Return the full updated filters every time, not only what changed. If they say any area or any type, clear that filter.
 - If they ask for something you cannot search (a quiet street, a view, a specific landlord), say kindly that you cannot filter by that yet and search with what you can.
 - If they ask about a place outside CAMANAVA, explain that APT only has listings in Caloocan, Malabon, Navotas and Valenzuela.
 - Do not ask for or repeat personal details (full name, phone number, email, address). Never claim to remember anything that is not in this conversation.
@@ -95,6 +95,7 @@ How to talk:
 
 Filters (use the whole conversation; keep earlier details unless the tenant changes them; use null or [] when unknown):
 - cities: from ${CITIES.join(', ')}.
+- bedroomsMax: only for a range such as "one or two bedrooms" or "1-2BR": set bedrooms to the smaller number ("1") and bedroomsMax to the larger (2). Never pick just one number of a range. For a single count leave bedroomsMax null.
 - priceMin / priceMax: monthly rent in pesos. "15k" or "15 libo" means 15000. "Under 15k" sets only priceMax.
 - bedrooms / bathrooms: one of ${ROOMS.join(', ')}. "Studio" sets types to Studio, not bedrooms.
 - types: from ${TYPES.join(', ')}. Only set it when the tenant names a type; the word "apartment" alone is just a general word for a place to rent.
@@ -122,6 +123,7 @@ const RESPONSE_SCHEMA = {
         priceMin: nullable('NUMBER'),
         priceMax: nullable('NUMBER'),
         bedrooms: nullable('STRING', stringEnum(ROOMS)),
+        bedroomsMax: nullable('NUMBER'),
         bathrooms: nullable('STRING', stringEnum(ROOMS)),
         types: stringList(TYPES),
         furnishing: stringList(FURNISHING),
@@ -220,7 +222,7 @@ function readTurns(body: unknown): ChatTurn[] | null {
 }
 
 const FILTER_KEYS = [
-  'cities', 'priceMin', 'priceMax', 'bedrooms', 'bathrooms', 'types',
+  'cities', 'priceMin', 'priceMax', 'bedrooms', 'bedroomsMax', 'bathrooms', 'types',
   'furnishing', 'amenities', 'verifiedOnly', 'sort', 'keyword',
 ]
 const MAX_CONTEXT_LENGTH = 1200

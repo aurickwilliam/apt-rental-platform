@@ -1,24 +1,33 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createClient } from "@repo/supabase/browser";
 import {
   AVA_STRINGS,
   aiFiltersToBrowseParams,
   answerAva,
+  avaChatTitle,
   avaConversationLanguage,
   avaFallbackAnswer,
   buildAvaRequest,
   hasAvaQuestion,
+  isBrowseExpressible,
   readAvaResponse,
+  removeAvaChat,
+  upsertAvaChat,
   type AvaAnswer,
+  type AvaSavedChat,
+  type AvaSavedMessage,
   type AvaSearchState,
   type AvaTurn,
 } from "@repo/utils";
 
 import type { BrowseApartment } from "@/app/browse/lib/browse-apartment";
-import { fetchAvaResults } from "@/app/browse/lib/fetch-ava-results";
+import { fetchAvaListingsByIds, fetchAvaResults } from "@/app/browse/lib/fetch-ava-results";
+import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useUser } from "@/hooks/use-user";
+import { loadAvaChats, saveAvaChats } from "@/lib/ava-history";
 
 export interface AvaChatMessage {
   id: string;
@@ -38,6 +47,7 @@ export interface AvaChatMessage {
 
 let messageSequence = 0;
 const nextMessageId = () => `ava-${Date.now()}-${(messageSequence += 1)}`;
+const nextChatId = () => `ava-chat-${Date.now()}-${(messageSequence += 1)}`;
 
 const toTurns = (messages: AvaChatMessage[]): AvaTurn[] =>
   messages.map((message) => ({
@@ -46,6 +56,28 @@ const toTurns = (messages: AvaChatMessage[]): AvaTurn[] =>
     search: message.search,
     shownIds: message.shownIds,
   }));
+
+const toSavedMessage = (message: AvaChatMessage): AvaSavedMessage => ({
+  id: message.id,
+  role: message.role,
+  text: message.text,
+  quickReplies: message.quickReplies,
+  notes: message.notes,
+  search: message.search,
+  shownIds: message.shownIds,
+  listingIds: message.listings?.map((listing) => listing.id),
+});
+
+// The messages of a saved chat; listings are filled in by `hydrateListings`.
+const fromSavedMessage = (message: AvaSavedMessage): AvaChatMessage => ({
+  id: message.id,
+  role: message.role,
+  text: message.text,
+  quickReplies: message.quickReplies,
+  notes: message.notes,
+  search: message.search,
+  shownIds: message.shownIds,
+});
 
 // The language to use for an error before the answer is read.
 const detectedLanguage = (messages: AvaChatMessage[], latest: string) =>
@@ -67,25 +99,67 @@ async function askAva(
   return readAvaResponse(data, turns);
 }
 
-// Ava, the APT Virtual Assistant (web). The conversation stays in component
-// state and is never stored; each reply remembers the search it ran, so
-// follow-ups ("show me more", "what if my budget is 8k?") build on it. Reading
+interface UseAvaChatOptions {
+  /** A saved chat to open once the history has loaded (the full-page view's `?chat=`). */
+  initialChatId?: string | null;
+}
+
+// Ava, the APT Virtual Assistant (web). Each reply remembers the search it ran,
+// so follow-ups ("show me more", "what if my budget is 8k?") build on it. Reading
 // Gemini's answer, language, landmarks, distance ranking and what Ava says come
-// from `@repo/utils` (`answerAva`), shared with mobile.
-export function useAvaChat() {
+// from `@repo/utils` (`answerAva`), shared with mobile. Conversations are saved
+// in this browser per account (`lib/ava-history.ts`); listings are saved as ids
+// and re-read when a chat is opened.
+export function useAvaChat({ initialChatId = null }: UseAvaChatOptions = {}) {
+  const { user } = useUser();
+  const authUserId = user?.id;
+
+  const loadChats = useCallback(async () => loadAvaChats(authUserId), [authUserId]);
+  const {
+    data: chats,
+    loading: historyLoading,
+    setData: setChats,
+  } = useAsyncResource<AvaSavedChat[]>(loadChats, [], "Unable to load your chat history.");
+  const chatsRef = useRef<AvaSavedChat[]>([]);
+  useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
+
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AvaChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  // Bumped by resetChat so a reply still in flight never lands in the new chat.
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  // Bumped by resetChat/openChat so a reply still in flight never lands in another chat.
   const chatGenerationRef = useRef(0);
+
+  const persist = useCallback(
+    (chatId: string, chatMessages: AvaChatMessage[]) => {
+      if (!authUserId || chatMessages.length === 0) return;
+      const saved: AvaSavedChat = {
+        id: chatId,
+        title: avaChatTitle(chatMessages),
+        updatedAt: Date.now(),
+        messages: chatMessages.map(toSavedMessage),
+      };
+      const next = upsertAvaChat(chatsRef.current, saved);
+      chatsRef.current = next;
+      setChats(next);
+      saveAvaChats(authUserId, next);
+    },
+    [authUserId, setChats],
+  );
 
   const sendMessage = useCallback(
     async (text?: string) => {
       const trimmed = (text ?? input).trim();
       if (!trimmed || isLoading) return;
 
+      const chatId = activeChatId ?? nextChatId();
+      if (!activeChatId) setActiveChatId(chatId);
+
       const userMessage: AvaChatMessage = { id: nextMessageId(), role: "user", text: trimmed };
-      setMessages((prev) => [...prev, userMessage]);
+      const base = [...messages, userMessage];
+      setMessages(base);
       setInput("");
       setIsLoading(true);
 
@@ -93,13 +167,15 @@ export function useAvaChat() {
       const isCurrentChat = () => generation === chatGenerationRef.current;
       const reply = (message: Omit<AvaChatMessage, "id" | "role">) => {
         if (!isCurrentChat()) return;
-        setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", ...message }]);
+        const assistant: AvaChatMessage = { id: nextMessageId(), role: "assistant", ...message };
+        setMessages([...base, assistant]);
+        persist(chatId, [...base, assistant]);
       };
 
       let language = detectedLanguage(messages, trimmed);
       try {
         const supabase = createClient();
-        const turns = toTurns([...messages, userMessage]);
+        const turns = toTurns(base);
         const answer = await askAva(supabase, turns);
 
         let outcome: Awaited<ReturnType<typeof answerAva<BrowseApartment>>>;
@@ -128,7 +204,10 @@ export function useAvaChat() {
           shownIds: outcome.shownIds,
           // "See all results" opens plain Browse, which cannot rank by distance.
           browseParams:
-            outcome.filters && !isDistanceSearch && outcome.listings.length > 0
+            outcome.filters &&
+            !isDistanceSearch &&
+            isBrowseExpressible(outcome.filters) &&
+            outcome.listings.length > 0
               ? aiFiltersToBrowseParams(outcome.filters)
               : undefined,
         });
@@ -139,15 +218,90 @@ export function useAvaChat() {
         if (isCurrentChat()) setIsLoading(false);
       }
     },
-    [input, isLoading, messages],
+    [activeChatId, input, isLoading, messages, persist],
   );
 
+  /** Starts an empty chat. The current one stays in the history. */
   const resetChat = useCallback(() => {
     chatGenerationRef.current += 1;
+    setActiveChatId(null);
     setMessages([]);
     setInput("");
     setIsLoading(false);
   }, []);
 
-  return { input, setInput, messages, isLoading, sendMessage, resetChat };
+  /** Opens a saved chat; its listings are re-read so none is stale or no longer visible. */
+  const openChat = useCallback(async (chatId: string) => {
+    const saved = chatsRef.current.find((chat) => chat.id === chatId);
+    if (!saved) return;
+
+    chatGenerationRef.current += 1;
+    const generation = chatGenerationRef.current;
+    setActiveChatId(chatId);
+    setInput("");
+    setIsLoading(false);
+    setMessages(saved.messages.map(fromSavedMessage));
+
+    const ids = [...new Set(saved.messages.flatMap((message) => message.listingIds ?? []))];
+    if (ids.length === 0) return;
+    try {
+      const found = await fetchAvaListingsByIds(createClient(), ids);
+      if (generation !== chatGenerationRef.current) return;
+      setMessages(
+        saved.messages.map((message) => {
+          const listings = (message.listingIds ?? [])
+            .map((id) => found.get(id))
+            .filter((listing): listing is BrowseApartment => listing !== undefined);
+          const isDistanceSearch = message.search?.landmarkKey != null;
+          return {
+            ...fromSavedMessage(message),
+            listings,
+            browseParams:
+              message.search &&
+              !isDistanceSearch &&
+              isBrowseExpressible(message.search.filters) &&
+              listings.length > 0
+                ? aiFiltersToBrowseParams(message.search.filters)
+                : undefined,
+          };
+        }),
+      );
+    } catch (err) {
+      console.error("Ava history listings failed:", err);
+    }
+  }, []);
+
+  const deleteChat = useCallback(
+    (chatId: string) => {
+      const next = removeAvaChat(chatsRef.current, chatId);
+      chatsRef.current = next;
+      setChats(next);
+      saveAvaChats(authUserId, next);
+      if (chatId === activeChatId) resetChat();
+    },
+    [activeChatId, authUserId, resetChat, setChats],
+  );
+
+  // The full-page view opens the chat named in its URL once the history is in.
+  const openedInitialRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialChatId || historyLoading || openedInitialRef.current === initialChatId) return;
+    openedInitialRef.current = initialChatId;
+    void Promise.resolve().then(() => openChat(initialChatId));
+  }, [historyLoading, initialChatId, openChat]);
+
+  return {
+    input,
+    setInput,
+    messages,
+    isLoading,
+    sendMessage,
+    resetChat,
+    chats,
+    activeChatId,
+    openChat,
+    deleteChat,
+  };
 }
+
+export type AvaChatState = ReturnType<typeof useAvaChat>;

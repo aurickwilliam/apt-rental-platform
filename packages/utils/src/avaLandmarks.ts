@@ -82,8 +82,8 @@ function editDistance(a: string, b: string, limit: number): number {
 
 /** Typos allowed for a phrase of this length: none for short words, one or two for longer ones. */
 function typoBudget(length: number): number {
-  if (length < 6) return 0;
-  return length < 11 ? 1 : 2;
+  // One typo per six letters, at most two: "monumnto" passes, "in caloocan" for "sm caloocan" does not.
+  return Math.min(2, Math.floor(length / 6));
 }
 
 interface AliasEntry {
@@ -172,11 +172,18 @@ function matchAlias(normalized: string): CamanavaLandmark[] {
   }
   if (matched.size > 0) return [...matched.values()];
 
-  // Minor spelling mistakes: compare every phrase window to every alias.
+  // Minor spelling mistakes. Only when the message points at a place ("near
+  // monumnto") or is short, so ordinary words in a long request ("an apartment
+  // in Caloocan") are never read as a landmark.
+  if (!mentionsNearbyIntent(normalized) && words.length > 4) return [];
+
   let best: { distance: number; landmarks: CamanavaLandmark[] } | null = null;
   for (const window of phraseWindows(words, 5)) {
-    if (window.length < 6) continue;
+    if (window.length < 7) continue;
+    const windowWords = window.split(' ').length;
     for (const { alias, landmark } of ALIASES) {
+      // Same number of words, so "in caloocan" can never stand for "sm caloocan".
+      if (alias.split(' ').length !== windowWords) continue;
       const budget = typoBudget(Math.min(window.length, alias.length));
       if (budget === 0) continue;
       const distance = editDistance(window, alias, budget);
@@ -220,6 +227,15 @@ function namePrecedingKind(normalized: string, kindWords: string[]): string | nu
   return null;
 }
 
+/** What to call several possible places: "city hall" when all are, otherwise just "place". */
+function ambiguityLabel(options: CamanavaLandmark[]): string {
+  const kinds = new Set(options.map((option) => option.kind));
+  if (kinds.size === 1) {
+    return KIND_WORDS.find((entry) => entry.kind === options[0].kind)?.label ?? 'place';
+  }
+  return 'place';
+}
+
 function mentionsNearbyIntent(normalized: string): boolean {
   return NEARBY_WORDS.some((word) => normalized.includes(normalizeForMatch(word)));
 }
@@ -247,7 +263,7 @@ export function resolveLandmark(
   const named = matchAlias(normalized);
   if (named.length === 1) return { status: 'found', target: landmarkToTarget(named[0]) };
   if (named.length > 1) {
-    return { status: 'ambiguous', options: named, label: named[0].name };
+    return { status: 'ambiguous', options: named, label: ambiguityLabel(named) };
   }
 
   const kindMeta = KIND_WORDS.find((entry) => entry.words.some((word) => hasWord(normalized, normalizeForMatch(word))));

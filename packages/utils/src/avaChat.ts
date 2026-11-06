@@ -14,7 +14,7 @@ import {
   sanitizeAiFilters,
   type AiSearchFilters,
 } from './aiSearch';
-import { detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+import { detectConversationLanguage, detectReplyLanguage, type AvaLanguage } from './avaLanguage';
 import { AVA_STRINGS } from './avaStrings';
 
 /** Listings shown under one of Ava's replies. */
@@ -156,11 +156,20 @@ export function composeAvaReply(
 ): AvaReply {
   const strings = AVA_STRINGS[language];
   const prefix = answer.source === 'limit' ? `${strings.limitNote} ` : '';
-  const quickReplies = answer.quickReplies.length > 0 ? answer.quickReplies : undefined;
+
+  // The model sometimes answers in the other language (it once wrote Tagalog to
+  // an English question). Text in the wrong language is replaced by Ava's own
+  // wording, so the conversation never mixes the two.
+  const fits = (text: string | null): text is string =>
+    text !== null && (detectReplyLanguage(text) ?? language) === language;
+  const quickRepliesFor = (replies: string[]): string[] | undefined =>
+    replies.length > 0 && fits(replies.join('. ')) ? replies : undefined;
+
+  const quickReplies = quickRepliesFor(answer.quickReplies);
 
   if (foundCount === null) {
     return {
-      text: prefix + (answer.reply ?? strings.askForDetails),
+      text: prefix + (fits(answer.reply) ? answer.reply : strings.askForDetails),
       quickReplies: quickReplies ?? CITY_QUICK_REPLIES,
     };
   }
@@ -169,15 +178,13 @@ export function composeAvaReply(
     // Gemini wrote its main reply before the search; its no-results reply keeps
     // the message in the tenant's language and suggests loosening the search.
     return {
-      text: prefix + (answer.noResultsReply ?? strings.noResults),
+      text: prefix + (fits(answer.noResultsReply) ? answer.noResultsReply : strings.noResults),
       quickReplies:
-        answer.noResultsQuickReplies.length > 0
-          ? answer.noResultsQuickReplies
-          : strings.loosenQuickReplies,
+        quickRepliesFor(answer.noResultsQuickReplies) ?? strings.loosenQuickReplies,
     };
   }
 
-  return { text: prefix + (answer.reply ?? strings.found), quickReplies };
+  return { text: prefix + (fits(answer.reply) ? answer.reply : strings.found), quickReplies };
 }
 
 /** The language of the conversation so far, from the tenant's own messages. */

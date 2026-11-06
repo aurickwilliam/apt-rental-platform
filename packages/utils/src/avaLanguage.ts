@@ -56,3 +56,24 @@ export function detectConversationLanguage(userMessages: string[]): AvaLanguage 
   }
   return 'en';
 }
+
+const ENGLISH_WORDS = new Set([
+  'the', 'is', 'are', 'and', 'to', 'you', 'your', 'for', 'with', 'in', 'of', 'a', 'an', 'i',
+  'it', 'that', 'this', 'there', 'here', 'what', 'which', 'any', 'have', 'can', 'will', 'me',
+  'my', 'on', 'at', 'or', 'not', 'nothing', 'matches', 'budget', 'try', 'kindly',
+]);
+
+/**
+ * The language of text Ava is about to show (usually the model's reply), or
+ * `null` when unsure. Stricter than `detectMessageLanguage`: only clear
+ * Tagalog or clear English counts, because a Tagalog sentence with words
+ * outside the word list must not be mistaken for English and thrown away.
+ */
+export function detectReplyLanguage(text: string): AvaLanguage | null {
+  const words = text.toLowerCase().match(WORD_PATTERN) ?? [];
+  if (words.length < 3) return null;
+  const tagalog = words.filter((word) => TAGALOG_WORDS.has(word)).length;
+  if (tagalog >= 2 || (tagalog >= 1 && tagalog / words.length >= 0.25)) return 'tl';
+  const english = words.filter((word) => ENGLISH_WORDS.has(word)).length;
+  return tagalog === 0 && english >= 2 ? 'en' : null;
+}

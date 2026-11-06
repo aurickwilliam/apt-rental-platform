@@ -6,9 +6,18 @@ import { useAIChat } from "./useAIChat";
 const mockAskAva = jest.fn();
 const mockFetchAvaListings = jest.fn();
 
+const mockFetchByIds = jest.fn();
+const mockLoadChats = jest.fn();
+const mockSaveChats = jest.fn();
+
 jest.mock("@/service/search/aiSearchService", () => ({
   askAva: (...args: unknown[]) => mockAskAva(...args),
   fetchAvaListings: (...args: unknown[]) => mockFetchAvaListings(...args),
+  fetchAvaListingsByIds: (...args: unknown[]) => mockFetchByIds(...args),
+}));
+jest.mock("@/service/chat/avaHistoryStore", () => ({
+  loadAvaChats: (...args: unknown[]) => mockLoadChats(...args),
+  saveAvaChats: (...args: unknown[]) => mockSaveChats(...args),
 }));
 
 const MALABON: AiSearchFilters = { ...EMPTY_AI_SEARCH_FILTERS, cities: ["Malabon"] };
@@ -42,6 +51,9 @@ describe("useAIChat", () => {
   beforeEach(() => {
     mockAskAva.mockReset();
     mockFetchAvaListings.mockReset();
+    mockFetchByIds.mockReset();
+    mockLoadChats.mockReset().mockResolvedValue([]);
+    mockSaveChats.mockReset().mockResolvedValue(undefined);
   });
 
   it("shows Ava's reply with real listings", async () => {
@@ -187,5 +199,59 @@ describe("useAIChat", () => {
 
     expect(mockAskAva).not.toHaveBeenCalled();
     expect(result.current.messages).toEqual([]);
+  });
+
+  describe("history", () => {
+    it("saves each conversation per account and re-reads its listings when reopened", async () => {
+      mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
+      mockFetchAvaListings.mockResolvedValue([FOUND]);
+
+      const { result } = renderHook(() => useAIChat("auth-1"));
+      await act(async () => {});
+      await act(() => result.current.sendMessage("apartments in Malabon"));
+
+      expect(result.current.chats).toHaveLength(1);
+      expect(result.current.chats[0].title).toBe("apartments in Malabon");
+      expect(result.current.chats[0].messages[1].listingIds).toEqual(["apt-1"]);
+      expect(mockSaveChats).toHaveBeenLastCalledWith("auth-1", result.current.chats);
+
+      const chatId = result.current.chats[0].id;
+      act(() => result.current.resetChat());
+      expect(result.current.messages).toEqual([]);
+
+      mockFetchByIds.mockResolvedValue(new Map([["apt-1", { id: "apt-1", name: "Fresh Name" }]]));
+      await act(() => result.current.openChat(chatId));
+      expect(result.current.messages[1].listings).toEqual([{ id: "apt-1", name: "Fresh Name" }]);
+    });
+
+    it("drops a listing that is no longer visible and can delete a chat", async () => {
+      mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
+      mockFetchAvaListings.mockResolvedValue([FOUND]);
+
+      const { result } = renderHook(() => useAIChat("auth-1"));
+      await act(async () => {});
+      await act(() => result.current.sendMessage("apartments in Malabon"));
+      const chatId = result.current.chats[0].id;
+      act(() => result.current.resetChat());
+
+      mockFetchByIds.mockResolvedValue(new Map());
+      await act(() => result.current.openChat(chatId));
+      expect(result.current.messages[1].listings).toEqual([]);
+
+      act(() => result.current.deleteChat(chatId));
+      expect(result.current.chats).toEqual([]);
+      expect(result.current.messages).toEqual([]);
+    });
+
+    it("does not save anything without an account", async () => {
+      mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
+      mockFetchAvaListings.mockResolvedValue([FOUND]);
+
+      const { result } = renderHook(() => useAIChat());
+      await act(() => result.current.sendMessage("apartments in Malabon"));
+
+      expect(mockSaveChats).not.toHaveBeenCalled();
+      expect(result.current.chats).toEqual([]);
+    });
   });
 });
