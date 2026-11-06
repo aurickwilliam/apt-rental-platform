@@ -298,6 +298,10 @@ Mobile policy rows read “I agree to the Privacy Policy*” and “I agree to t
 
 Privacy Policy and Terms and Conditions end after their policy sections on web and mobile, including registration readers; omit the Questions/contact footer. Keep the last-updated dates aligned across platforms.
 
+The web policy Contents card sticks 16px below the viewport top in desktop portal layouts, which have no public top bar; public pages keep 80px navbar clearance. Include the chosen top offset and 16px bottom clearance in the sticky-height fit check. Narrow-screen contents keep their existing accordion.
+
+Standalone web Terms and Privacy heroes place a visible arrow-left “Back” outline button beside the Legal badge, Back on the left, vertically centred in one row with a 12px gap and aligned with the title. Reuse HeroUI Button and the Tabler icon; keep the label visible and the arrow decorative. Return within APT where history is known, otherwise use the current portal's home (or `/` for public readers). Do not add this control to registration dialogs or the Cookie page.
+
 Web Terms and Privacy pages reuse the same hero, contents navigation and sections in both shells. Signed-out `/tos` and `/pap` use the public top navigation/footer. Settled signed-in accounts read them inside their existing tenant, landlord or admin shell (`/{portal}/tos`, `/{portal}/pap`), with the sidebar and responsive portal menu, never the public top navigation/footer. Settings links preserve the current portal even for mixed-role accounts. Do not add policy items to the main sidebar or change registration dialogs. Unverified landlords retain read access; onboarding and unavailable-profile states keep public policy access.
 
 The web registration policy warning triangle uses the existing warning-text colors: amber `#92400E` in light mode and `#FDE047` in dark mode. Only the icon is colored; message text and layout remain unchanged.

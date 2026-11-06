@@ -5,5 +5,5 @@ export const metadata = privacyPolicyMetadata;
 
 export default async function AdminPrivacyPage() {
   await requireAdmin();
-  return <PrivacyPolicyPage />;
+  return <PrivacyPolicyPage layout="portal" />;
 }

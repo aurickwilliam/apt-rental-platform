@@ -81,7 +81,9 @@ test("each public/portal route uses the same policy body and preserves its own a
         "@/lib/server-identity": { requirePortalViewer: authorize },
         "@/app/admin/_lib/require-admin": { requireAdmin: authorize },
       });
-      assert.equal((await pageModule.default()).type, component);
+      const body = await pageModule.default();
+      assert.equal(body.type, component);
+      assert.equal(body.props.layout, portal === null ? undefined : "portal");
       assert.deepEqual(calls, [portal === null ? [policy] : portal === "admin" ? [] : portal === "landlord" ? [portal, true] : [portal]]);
       assert.equal(pageModule.metadata.title, policy);
       denied = true;
@@ -94,6 +96,7 @@ test("shared policy bodies retain their hero, contents and all sections without 
   const base = "@/app/(main)/components/legal/";
   for (const [component, data, path] of [["PrivacyPolicyPage", privacy, "pap"], ["TermsPolicyPage", terms, "tos"]]) {
     const page = compile(`app/components/legal/${component}.tsx`, {
+      "./PolicyBackButton": { default: "PolicyBackButton" },
       "react/jsx-runtime": jsx,
       "@tabler/icons-react": { IconShieldCheck: "IconShieldCheck" },
       ...Object.fromEntries(["LegalBlocks", "LegalBulletList", "LegalHero", "LegalSection", "LegalTableOfContents"].map(name => [`${base}${name}`, { default: name }])),
@@ -103,7 +106,11 @@ test("shared policy bodies retain their hero, contents and all sections without 
     assert.equal(all.filter(node => node.type === "LegalSection").length, data.SECTIONS.length);
     assert.equal(all.filter(node => node.type === "LegalTableOfContents").length, 1);
     assert.equal(all.filter(node => node.type === "LegalHero").length, 1);
+    assert.equal(all.find(node => node.type === "LegalHero").props.navigation.type, "PolicyBackButton");
     assert.equal(all.some(node => ["AppNavbar", "Footer", "AppSidebar"].includes(node.type)), false);
+    assert.equal(all.find(node => node.type === "LegalTableOfContents").props.layout, "public");
+    const portalBody = nodes(page({ layout: "portal" }));
+    assert.equal(portalBody.find(node => node.type === "LegalTableOfContents").props.layout, "portal");
   }
   for (const portal of ["tenant", "landlord", "admin"]) {
     const source = readFileSync(new URL(`../app/${portal}/layout.tsx`, import.meta.url), "utf8");

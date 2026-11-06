@@ -6,6 +6,22 @@ The content, metadata, hero, section IDs and responsive contents navigation are
 the same in each shell. The registration dialogs still use the policy data
 directly; neither they nor native mobile routes are changed.
 
+Both standalone policy heroes include a labelled Back button beside the Legal
+badge (Back on the left, vertically centred with a 12px gap), reusing the
+apartment page's HeroUI `BackBtn`. With the optional fallback,
+it uses same-origin previous history (the browser Navigation API where available,
+otherwise a same-origin referrer), or replaces the route with the current portal
+home: tenant My Rental, landlord/admin Dashboard, or `/` for public readers.
+Unknown/external history never sends the policy reader off-site. Existing
+apartment callers without a fallback retain their original history-back behavior.
+The Cookie hero and registration dialogs do not gain this button.
+
+Portal routes pass `layout="portal"` to the shared body. Desktop Contents uses a
+16px sticky top gap there, rather than the public layout's 80px navbar clearance.
+The same offset is included in the measured-height fit check; content taller than
+the available viewport remains non-sticky. Public readers (including Cookie)
+keep the default 80px offset, and the narrow-screen accordion stays unchanged.
+
 | Viewer | Terms | Privacy | Shell |
 | --- | --- | --- | --- |
 | Signed out | `/tos` | `/pap` | Public top navigation and footer |

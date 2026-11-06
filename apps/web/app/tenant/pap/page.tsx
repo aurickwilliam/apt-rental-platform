@@ -5,5 +5,5 @@ export const metadata = privacyPolicyMetadata;
 
 export default async function TenantPrivacyPage() {
   await requirePortalViewer("tenant");
-  return <PrivacyPolicyPage />;
+  return <PrivacyPolicyPage layout="portal" />;
 }

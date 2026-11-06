@@ -8,6 +8,7 @@ import LegalSection from "@/app/(main)/components/legal/LegalSection";
 import LegalTableOfContents from "@/app/(main)/components/legal/LegalTableOfContents";
 
 import { LEGAL_META, SECTIONS, TOC } from "@/app/(main)/tos/data/tos-sections";
+import PolicyBackButton from "./PolicyBackButton";
 
 export const termsPolicyMetadata: Metadata = {
   title: "Terms and Conditions — APT",
@@ -15,10 +16,11 @@ export const termsPolicyMetadata: Metadata = {
     "The terms that govern your access to and use of APT, the rental platform for tenants and landlords in Camanava.",
 };
 
-export default function TermsPolicyPage() {
+export default function TermsPolicyPage({ layout = "public" }: { layout?: "public" | "portal" } = {}) {
   return (
     <div className="min-h-screen bg-muted/30 dark:bg-background">
       <LegalHero
+        navigation={<PolicyBackButton />}
         eyebrow="Legal"
         title="Terms and"
         titleAccent="Conditions"
@@ -28,7 +30,7 @@ export default function TermsPolicyPage() {
       />
 
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-8 lg:pt-10">
-        <LegalTableOfContents items={TOC} />
+        <LegalTableOfContents items={TOC} layout={layout} />
 
         <article className="min-w-0 max-w-4xl">
           {SECTIONS.map((section) => (

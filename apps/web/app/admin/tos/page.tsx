@@ -5,5 +5,5 @@ export const metadata = termsPolicyMetadata;
 
 export default async function AdminTermsPage() {
   await requireAdmin();
-  return <TermsPolicyPage />;
+  return <TermsPolicyPage layout="portal" />;
 }

@@ -5,5 +5,5 @@ export const metadata = termsPolicyMetadata;
 
 export default async function TenantTermsPage() {
   await requirePortalViewer("tenant");
-  return <TermsPolicyPage />;
+  return <TermsPolicyPage layout="portal" />;
 }
