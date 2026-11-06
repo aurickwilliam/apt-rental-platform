@@ -33,6 +33,7 @@ function load(file, extra = {}) {
     "@/app/components/settings/ToggleSwitch": { default: "ToggleSwitch" },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "./PropertiesHeader": loadPropertiesHeader(),
     "./components/PropertiesSkeleton": { default: () => load("landlord/properties/components/PropertiesSkeleton.tsx").default() },
     "./components/PropertyDetailSkeleton": { default: () => load("landlord/properties/[apartmentId]/components/PropertyDetailSkeleton.tsx").default() },

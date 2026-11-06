@@ -32,10 +32,18 @@ test("a missing target centers the card", () => {
   assert.equal(result.left, (viewport.width - card.width) / 2);
 });
 
-test("narrow screens dock the card across the bottom", () => {
+test("narrow screens dock the card across the top, or the bottom when the target is up there", () => {
   const narrow = { width: TUTORIAL_NARROW_VIEWPORT - 1, height: 700 };
   const result = computeTutorialPlacement({ target: { top: 10, left: 10, width: 40, height: 40 }, viewport: narrow, card });
   assert.equal(result.mode, "docked");
+  assert.equal(result.anchor, "bottom");
   assert.equal(result.left, 16);
   assert.equal(result.width, narrow.width - 32);
+});
+
+test("a narrow-screen card hugs the top when the target is further down", () => {
+  const narrow = { width: TUTORIAL_NARROW_VIEWPORT - 1, height: 700 };
+  const result = computeTutorialPlacement({ target: { top: 400, left: 10, width: 40, height: 40 }, viewport: narrow, card });
+  assert.equal(result.anchor, "top");
+  assert.equal(result.top, 16);
 });

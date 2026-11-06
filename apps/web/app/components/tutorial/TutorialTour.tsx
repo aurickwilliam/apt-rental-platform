@@ -11,7 +11,8 @@ import {
 } from "@repo/utils";
 
 import { useAsyncResource } from "@/hooks/use-async-resource";
-import { useTutorialReplayRequest } from "@/lib/tutorial-controller";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { setTutorialNavMenuOpen, useTutorialReplayRequest } from "@/lib/tutorial-controller";
 import {
   fetchTutorialState,
   saveTutorialOutcome,
@@ -116,6 +117,14 @@ export default function TutorialTour({ portal, profileId, accountStatus }: Tutor
       });
   };
 
+  // Phone widths keep the nav links in a drawer: hold it open during the steps.
+  const isPhone = useIsMobile();
+  const inSteps = session?.stage === "steps";
+  useEffect(() => {
+    setTutorialNavMenuOpen(isPhone && inSteps);
+    return () => setTutorialNavMenuOpen(false);
+  }, [isPhone, inSteps]);
+
   if (!session || steps.length === 0) return null;
 
   if (session.stage === "welcome" || session.stage === "done") {
@@ -129,34 +138,42 @@ export default function TutorialTour({ portal, profileId, accountStatus }: Tutor
       >
         <Modal.Backdrop>
           <Modal.Container placement="center" size="sm">
-            <Modal.Dialog className="rounded-3xl bg-card p-6 text-center">
-              <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-                {isWelcome ? <IconHomeHeart size={40} aria-hidden="true" /> : <IconCircleCheck size={40} aria-hidden="true" />}
+            <Modal.Dialog className="items-center rounded-3xl bg-card p-6 text-center sm:p-8">
+              <span className="flex size-24 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                {isWelcome ? <IconHomeHeart size={44} aria-hidden="true" /> : <IconCircleCheck size={44} aria-hidden="true" />}
               </span>
-              <Modal.Heading className="mt-4 font-nunito text-2xl font-bold text-foreground">
+              <Modal.Heading className="mt-5 font-nunito text-2xl font-bold text-foreground">
                 {isWelcome ? "Welcome to APT" : "You're all set"}
               </Modal.Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">
                 {isWelcome
                   ? WELCOME_COPY[portal]
                   : "You can replay this tour anytime from Settings → Tutorial."}
               </p>
-              <div className="mt-5 flex flex-col gap-2">
+              <div className="mt-6 flex w-full flex-col gap-2">
                 {isWelcome ? (
                   <>
                     <Button
                       variant="primary"
-                      className="min-h-11 cursor-pointer"
+                      className="min-h-12 w-full cursor-pointer rounded-full"
                       onPress={() => setSession({ ...session, stage: "steps", stepIndex: 0 })}
                     >
                       Start Tutorial
                     </Button>
-                    <Button variant="outline" className="min-h-11 cursor-pointer" onPress={() => finish("skipped")}>
+                    <Button
+                      variant="outline"
+                      className="min-h-12 w-full cursor-pointer rounded-full"
+                      onPress={() => finish("skipped")}
+                    >
                       Skip
                     </Button>
                   </>
                 ) : (
-                  <Button variant="primary" className="min-h-11 cursor-pointer" onPress={() => finish("completed")}>
+                  <Button
+                    variant="primary"
+                    className="min-h-12 w-full cursor-pointer rounded-full"
+                    onPress={() => finish("completed")}
+                  >
                     Get started
                   </Button>
                 )}
@@ -172,6 +189,7 @@ export default function TutorialTour({ portal, profileId, accountStatus }: Tutor
   return (
     <TutorialStepLayer
       key={step.id}
+      useDrawerHost={isPhone}
       step={step}
       stepIndex={session.stepIndex}
       stepCount={steps.length}

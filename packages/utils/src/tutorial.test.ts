@@ -3,19 +3,12 @@ import { getTutorialSteps, hasFinishedTutorial, shouldAutoStartTutorial } from "
 const ids = (steps: { id: string }[]) => steps.map((step) => step.id);
 
 describe("getTutorialSteps", () => {
-  it("shows a verified tenant every core step but maintenance without a tenancy", () => {
-    const steps = getTutorialSteps("tenant", { platform: "web", accountStatus: "verified", hasActiveTenancy: false });
-    expect(ids(steps)).toEqual(["tenant-rentals", "tenant-explore", "tenant-applications", "tenant-messages"]);
-  });
-
-  it("adds maintenance when the tenant has a running tenancy", () => {
-    const steps = getTutorialSteps("tenant", { platform: "web", accountStatus: "verified", hasActiveTenancy: true });
-    expect(ids(steps)).toContain("tenant-maintenance");
-  });
-
-  it("limits an unverified tenant to browsing and their rental", () => {
-    const steps = getTutorialSteps("tenant", { platform: "mobile", accountStatus: "unverified", hasActiveTenancy: false });
-    expect(ids(steps)).toEqual(["tenant-rentals", "tenant-explore"]);
+  it("shows every tenant step, whatever their verification or tenancy", () => {
+    const all = ["tenant-rentals", "tenant-explore", "tenant-applications", "tenant-messages", "tenant-maintenance"];
+    for (const [accountStatus, hasActiveTenancy] of [["verified", false], ["unverified", false], ["pending", true]] as const) {
+      const steps = getTutorialSteps("tenant", { platform: "web", accountStatus, hasActiveTenancy });
+      expect(ids(steps)).toEqual(all);
+    }
   });
 
   it("shows a verified landlord every landlord step", () => {
