@@ -19,6 +19,16 @@ Every architectural claim in this document was verified against the repository a
 
 ## 1. System Overview
 
+Apartment electricity-meter eligibility is stored in
+`apartments.has_own_electricity_meter`: dedicated provider meters only, not shared
+meters or submeters. Both clients share confirmation wording/validation through
+`@repo/constants`; a database trigger requires explicit true on insert and prevents
+clearing it. Migration `20261106210000_apartment_own_electricity_meter.sql`
+classifies existing rows true by product decision without updating their other
+fields; new rows default false and must explicitly confirm. Existing RLS and
+column-scoped writes remain authoritative. See `docs/listing-electricity-meter.md`
+for release compatibility and tests.
+
 APT is a rental management platform for the Philippine market (CAMANAVA area focus). It connects **tenants** (students and renters) with **landlords** (property owners): tenants browse listings, apply, visit, chat, pay rent, and file maintenance requests; landlords publish units, manage applications, visits, payments, and maintenance. The web admin portal reviews account/property verifications, moderates account access and listing visibility, and reports aggregate metrics. Admin promotion remains a trusted database-operator action.
 
 Admin operations run through server actions and constrained database functions, with the Auth ban/unban performed by a service-role Edge Function. Account suspension revokes refreshable sessions; restrictive table/storage RLS blocks data access from already-issued JWTs until expiry. Listing visibility is independent of apartment availability and deletion; tenant discovery filters hidden listings while owner/admin reads and existing tenancy records remain accessible. See `docs/plans/phase-2-admin-portal.md` for the rollout and acceptance matrix; Phase 2's migration and Edge Function require an approved production deployment.

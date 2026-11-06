@@ -433,6 +433,7 @@ export default function PropertyDetailsSheet({
                           <ReadOnlyField label="Furnishing" value={selected.furnished_type} />
                           <ReadOnlyField label="Floor Level" value={selected.floor_level} />
                           <ReadOnlyField label="Lease Duration" value={selected.lease_duration} />
+                          {selected.has_own_electricity_meter === true && <ReadOnlyField label="Electricity" value="Own meter" />}
                         </div>
                       </section>
 

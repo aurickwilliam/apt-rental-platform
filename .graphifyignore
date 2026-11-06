@@ -1,2 +1,4 @@
 .agents/skills/
 .claude/
+.env*
+**/.env*

@@ -425,6 +425,12 @@
   border-color: var(--destructive);
 }
 
+/* The multi-line meter declaration aligns with its control, not its text block's centre. */
+.electricity-meter-confirmation .checkbox__content {
+  align-items: flex-start;
+  min-height: 44px;
+}
+
 /* Registration-only: date segments are not text inputs, so the browser draws
    no caret. A blinking bar on the active segment shows where typing lands.
    Invalid segments keep the danger color through currentColor. */

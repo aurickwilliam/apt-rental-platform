@@ -13,11 +13,13 @@ import {
   IconUsers,
   IconBuilding,
   IconShieldCheck,
+  IconBolt,
 } from '@tabler/icons-react-native'
 
 import { useColors } from 'hooks/useTheme'
 
 import { formatAddress, formatPesoDisplay } from '@repo/utils'
+import { OWN_ELECTRICITY_METER_DETAIL } from '@repo/constants'
 
 type ApartmentImage = {
   id: string
@@ -36,6 +38,7 @@ type Props = {
   monthly_rent: number
   type: string
   lease_duration: string
+  has_own_electricity_meter: boolean
   no_bedrooms: number
   no_bathrooms: number
   furnished_type: string
@@ -56,6 +59,7 @@ export default function PropertyOverview({
   monthly_rent,
   type,
   lease_duration,
+  has_own_electricity_meter,
   no_bedrooms,
   no_bathrooms,
   furnished_type,
@@ -147,6 +151,12 @@ export default function PropertyOverview({
       </View>
 
       {/* Specs Grid */}
+      {has_own_electricity_meter === true && (
+        <View className="flex-row items-center gap-2">
+          <IconBolt size={24} color={colors.gray500} />
+          <Text className="flex-1 text-foreground font-nunitoSemiBold text-base">{OWN_ELECTRICITY_METER_DETAIL}</Text>
+        </View>
+      )}
       <View className="flex-row flex-wrap">
         <View className="flex-row w-1/2 gap-2 items-center justify-start">
           <IconHome size={24} color={colors.gray500} />

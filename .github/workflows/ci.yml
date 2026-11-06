@@ -28,6 +28,9 @@ jobs:
       - name: Move-in billing database tests
         run: pnpm db:billing:test
 
+      - name: Listing meter database tests
+        run: pnpm db:listing-meter:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
 

@@ -329,6 +329,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               <DetailField label="Furnishing" value={apartment.furnished_type} />
               <DetailField label="Floor Level" value={apartment.floor_level} />
               <DetailField label="Lease Duration" value={apartment.lease_duration} />
+              {apartment.has_own_electricity_meter === true && <DetailField label="Electricity" value="Own meter" />}
             </div>
             <div className="rounded-2xl bg-muted px-4 py-3 flex items-center justify-between gap-2">
               <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">

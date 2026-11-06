@@ -1,5 +1,6 @@
 export * from "./address";
 export * from "./apartment";
+export * from "./apartment/electricity-meter";
 export * from "./user";
 
 export { COLORS, STATUS_COLORS } from "./colors";
