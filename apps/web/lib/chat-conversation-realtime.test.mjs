@@ -119,6 +119,10 @@ function createHarness(overrides = {}) {
               record.eq.push([column, value]);
               return chain;
             },
+            // Mirrors `.select("id")` after an update: a thenable result.
+            select: () => ({
+              then: (resolve) => resolve({ data: [{ id: record.eq[0]?.[1] }], error: null }),
+            }),
           };
           return chain;
         },
@@ -265,6 +269,43 @@ test("incoming inserts merge once, mark read and clear the contact badge", async
   insert.callback({ new: chatRow({ id: "m2", apartment_id: "apt-2" }) });
   insert.callback({ new: chatRow({ id: "m3", receiver_id: "user-c" }) });
   assert.deepEqual(ids(h), ["m1"]);
+});
+
+test("a visible incoming message reports its timestamp so its notification can follow", async () => {
+  const synced = [];
+  const h = createHarness({ onIncomingMessageRead: (createdAt) => synced.push(createdAt) });
+  h.run();
+  await flush();
+  const insert = h.created[0].bindings.find((b) => b.filter?.event === "INSERT");
+  insert.callback({ new: chatRow({ created_at: "2026-01-01T10:05:00.000Z" }) });
+  await flush();
+  assert.deepEqual(synced, ["2026-01-01T10:05:00.000Z"]);
+});
+
+test("a hidden tab keeps the message and its notification unread until it is shown", async () => {
+  const synced = [];
+  const h = createHarness({ onIncomingMessageRead: (createdAt) => synced.push(createdAt) });
+  h.run();
+  await flush();
+  h.setVisibility("hidden");
+  const insert = h.created[0].bindings.find((b) => b.filter?.event === "INSERT");
+  insert.callback({ new: chatRow() });
+  await flush();
+  assert.deepEqual(ids(h), ["m1"], "still shown in the thread");
+  assert.equal(h.updates.length, 0, "no read write while hidden");
+  assert.equal(h.reads.length, 0);
+  assert.deepEqual(synced, []);
+});
+
+test("an inquiry thread ignores messages about a listing", async () => {
+  const h = createHarness({ apartmentId: null });
+  h.run();
+  await flush();
+  const insert = h.created[0].bindings.find((b) => b.filter?.event === "INSERT");
+  insert.callback({ new: chatRow({ id: "listing", apartment_id: "apt-9" }) });
+  insert.callback({ new: chatRow({ id: "inquiry", apartment_id: null }) });
+  assert.deepEqual(ids(h), ["inquiry"]);
+  assert.equal(h.updates.length, 1);
 });
 
 test("read receipts patch the matching sent message and ignore strays", async () => {
