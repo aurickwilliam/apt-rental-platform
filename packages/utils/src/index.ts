@@ -119,6 +119,12 @@ export {
 } from './formatCurrencyInput';
 export { formatPesoCompact } from './formatPesoCompact';
 export {
+  buildApartmentShareText,
+  buildApartmentShareMessage,
+  getApartmentSharePath,
+} from './apartmentShare';
+export type { ApartmentShareInput } from './apartmentShare';
+export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
   EMPTY_THIS_MONTH,
