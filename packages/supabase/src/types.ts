@@ -1921,6 +1921,14 @@ export type Database = {
         Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
         Returns: undefined
       }
+      admin_grant_admin_role: {
+        Args: { p_reason: string; p_target_id: string }
+        Returns: undefined
+      }
+      admin_revoke_admin_role: {
+        Args: { p_reason: string; p_target_id: string }
+        Returns: undefined
+      }
       admin_set_user_access: {
         Args: {
           p_reason: string

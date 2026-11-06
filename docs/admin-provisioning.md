@@ -7,7 +7,21 @@ Apply `supabase/migrations/20260923071226_harden_user_roles_and_onboarding.sql` 
 3. In a database transaction, promote the known profile ID with `UPDATE public.users SET roles = array(select distinct unnest(roles || 'admin')), updated_at = now() WHERE user_id = '<verified auth UUID>' AND not ('admin' = any(roles)) RETURNING id, roles;`. Confirm exactly one row was returned before committing. Promotion keeps the account's existing `tenant`/`landlord` role, and per `20261017070948_allow_mixed_role_tenant_transactions` a mixed admin/tenant profile keeps full tenant access (mixed admin/landlord keeps landlord access). For an admin-only operator account, replace the array instead: `SET roles = '{admin}'` — the account then has no consumer portal.
 4. Confirm a normal account cannot update `roles`/`account_status` or insert an admin profile, and that the promoted account signs in on web through the existing sign-in tabs. To revoke admin access, use the same trusted connection to restore a normal role or roles and terminate that account's active sessions through Supabase Auth.
 
-Never expose a database operator credential or service-role key to web/mobile clients. Do not use client-facing Server Actions or user-editable auth metadata to promote admins. Audit any pre-existing `admin` profiles before enabling the portal: they may have been created while client `users` writes were unrestricted.
+Never expose a database operator credential or service-role key to web/mobile clients. Never promote admins through user-editable auth metadata, a direct `roles` update or a Server Action that bypasses the functions below. Audit any pre-existing `admin` profiles before enabling the portal: they may have been created while client `users` writes were unrestricted.
+
+## Adding and removing admins from the portal
+
+Once the first admin exists, other admins can be managed at **Users → (person) → Manage account → Account actions**, without a database connection. Apply `supabase/migrations/20261107150000_admin_role_management.sql` before releasing the web change.
+
+Only `admin_grant_admin_role()` and `admin_revoke_admin_role()` do this, and the database enforces every rule:
+
+- The caller is an active admin with a verified second step (`aal2`) **and** entered an authenticator code in the last 5 minutes (the `totp` entry of the token's `amr` claim). The web action asks for a new code each time.
+- A reason is required, and each change writes `ADMIN_ROLE_GRANTED` or `ADMIN_ROLE_REVOKED` to the audit log.
+- Nobody can change their own admin access. The caller therefore stays an admin, so the last admin can never be removed. A lock runs these changes one at a time, so two admins cannot remove each other at the same moment.
+- A new admin must be a verified, non-suspended account with a mobile number. They keep their tenant or landlord role and must set up two-step login before they can use the portal. Still confirm who they are out of band first.
+- Removing admin keeps the tenant or landlord role and ends all of that person's sessions. An admin-only account has no role to fall back on, so it stays an operator change (steps above).
+
+The operator steps above are still how the first admin is created, and they remain the fallback when no admin can sign in.
 
 ## Two-step login (authenticator app)
 
