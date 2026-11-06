@@ -1637,6 +1637,15 @@ body[data-scroll-locked] [role="option"] {
    forms: unchecked gets a visible gray ring on white, checked gets solid
    APT blue (#376BF5) with a white check via --accent/--accent-foreground.
    Shape/width need property overrides (higher specificity, same scope). */
+.preference-budget-slider {
+  --accent: var(--primary);
+  --accent-foreground: #ffffff;
+}
+
+.preference-budget-slider .slider__output {
+  color: var(--foreground);
+}
+
 .rental-prefs-checks {
   --accent: #376BF5;
   --accent-foreground: #ffffff;
