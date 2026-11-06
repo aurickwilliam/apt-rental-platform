@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
 import {
+  fetchEffectiveLeaseTermsWith,
   formatAddress,
   getMaintenanceFeeError,
   normalizeMaintenanceFeeStatus,
@@ -247,7 +248,7 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status, method, reference_id, due_date")
+      .select("id, amount, date, status, method, reference_id, due_date, billing_kind")
       .eq("apartment_id", apartmentId)
       .in("status", ["paid", "pending"])
       .order("date", { ascending: false })
@@ -279,6 +280,7 @@ export async function fetchLandlordTenancy(
     | null;
 
   if (tenancyData?.tenant) {
+    const effectiveTerms=await fetchEffectiveLeaseTermsWith(supabase,tenancyData.id);
     const t = tenancyData.tenant;
     tenant = {
       id: t.id,
@@ -287,7 +289,7 @@ export async function fetchLandlordTenancy(
       mobileNumber: t.mobile_number,
       avatarUrl: t.avatar_url,
       leaseStart: tenancyData.lease_start,
-      leaseEnd: tenancyData.lease_end,
+      leaseEnd: effectiveTerms?effectiveTerms.leaseEnd:tenancyData.lease_end,
       tenancyId: tenancyData.id,
       signedLeasePath: tenancyData.signed_lease_path ?? null,
       signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at ?? null,
@@ -314,7 +316,7 @@ export async function fetchLandlordTenancy(
     const d = new Date(p.date);
     return {
       id: p.id,
-      month: periodMonthLabel(p.due_date ?? p.date),
+      month: p.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(p.due_date ?? p.date),
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,

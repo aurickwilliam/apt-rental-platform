@@ -882,6 +882,7 @@ export type Database = {
       }
       payment: {
         Row: {
+          renewal_proposal_id: string | null
           billing_kind: string | null
           rent_amount: number | null
           deposit_amount: number | null
@@ -915,6 +916,7 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date: string
@@ -938,6 +940,7 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date?: string
@@ -1216,6 +1219,7 @@ export type Database = {
       }
       tenancies: {
         Row: {
+          renewal_ended_at: string | null
           billing_version: number | null
           advance_rent: number | null
           apartment_id: string
@@ -1846,6 +1850,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      list_lease_renewals: {
+        Args: { p_before?: string | null; p_before_id?: string | null }
+        Returns: Json
+      }
+      get_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string }
+        Returns: Json
+      }
+      get_effective_lease_terms: {
+        Args: { p_tenancy_id: string }
+        Returns: Json
+      }
+      act_on_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string; p_action: string; p_expected_version: number | null; p_payload?: Json }
+        Returns: undefined
+      }
       complete_mobile_registration: {
         Args: {
           profile_details: Json;

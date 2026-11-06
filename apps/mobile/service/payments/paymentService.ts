@@ -115,6 +115,7 @@ export async function fetchPaymentByReferenceId(referenceId: string): Promise<Pa
 }
 
 export type CreateCashPaymentParams = {
+  renewalProposalId?: string
   referenceId: string
   amount: number
   date: string
@@ -130,6 +131,7 @@ export async function createCashPayment(params: CreateCashPaymentParams): Promis
   const { data, error } = await supabase
     .from('payment')
     .insert({
+      ...(params.renewalProposalId ? { renewal_proposal_id: params.renewalProposalId } : {}),
       method: 'cash',
       status: 'pending',
       date: params.date,

@@ -37,7 +37,7 @@ export default function ReceiptView({ payment }: { payment: PaymentRecord }) {
         referenceNumber={formatReferenceId(payment.reference_id)}
         status={status}
         breakdown={paymentBreakdown(payment)}
-        paymentLabel={payment.billing_kind === "move_in" ? "Move-in payment" : undefined}
+        paymentLabel={payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment" : undefined}
         periodLabel={periodLabel}
         backgroundColor="#376BF5"
       />

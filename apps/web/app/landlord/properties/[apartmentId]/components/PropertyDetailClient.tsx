@@ -39,6 +39,7 @@ import {
 import { toProperty } from "./to-property";
 import { useLeaseViewer } from "./use-lease-viewer";
 import SignedLeaseModal from "./SignedLeaseModal";
+import LeaseRenewalEntry from '@/app/components/renewals/LeaseRenewalEntry';
 import PropertyPhotoGallery from "./PropertyPhotoGallery";
 import { STATUS_COLOR } from "../../components/propertyConstants";
 import { PERKS } from "@/app/components/inputs/perks";
@@ -419,6 +420,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                     <DetailField label="Lease End" value={formatLeaseDate(tenant.leaseEnd)} />
                   </div>
 
+                  <LeaseRenewalEntry key={`renewal:${tenant.tenancyId}`} tenancyId={tenant.tenancyId} portal="landlord"/>
                   {/* Executed contract: private bucket, one file per tenancy. */}
                   <div className="flex flex-col gap-2 rounded-2xl border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
@@ -492,7 +494,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
-                      Recent Rent Payments
+                      Recent Payments
                     </p>
                     <Link href={`/landlord/properties/${apartment.id}/payment-history`} className="text-xs font-medium text-primary hover:underline no-underline">
                       View all

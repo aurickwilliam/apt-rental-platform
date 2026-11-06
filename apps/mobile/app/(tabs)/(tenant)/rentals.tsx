@@ -14,6 +14,7 @@ import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceSection from '../components/rentals/MaintenanceSection';
 import TenantSignedLeaseCard from '@/components/tenancy/TenantSignedLeaseCard';
+import LeaseRenewalEntry from '@/components/renewals/LeaseRenewalEntry';
 import RentalHero, { useRentalHeroHeight } from '../components/rentals/RentalHero';
 import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
 import {
@@ -374,6 +375,7 @@ export default function Rentals() {
           />
         </View>
         <View className="mt-3">
+          <LeaseRenewalEntry key={`renewal:${profile?.user_id}:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant"/>
           <TenantSignedLeaseCard
             key={`${profile?.user_id}:${tenancy.id}:${tenancy.signed_lease_path ?? 'none'}`}
             tenancyId={tenancy.id}

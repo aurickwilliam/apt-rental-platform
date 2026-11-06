@@ -46,6 +46,7 @@ const METHODS: Record<PaymentMethod, {
 }
 
 interface PaymentMethodSelectorProps {
+  description?: string
   selectedMethod: PaymentMethod | null
   onPaymentMethodChange: (method: PaymentMethod) => void
   cashPaymentDate: Date | null
@@ -64,6 +65,7 @@ interface PaymentMethodSelectorProps {
 }
 
 export default function PaymentMethodSelector({
+  description = "Select how you'd like to pay this month's rent.",
   selectedMethod,
   onPaymentMethodChange,
   cashPaymentDate,
@@ -87,7 +89,7 @@ export default function PaymentMethodSelector({
           Choose Payment Method
         </Text>
         <Text className='text-gray-500 text-base font-inter'>
-          Select how you&apos;d like to pay this month&apos;s rent.
+          {description}
         </Text>
       </View>
 
