@@ -4,15 +4,16 @@ import { useCallback, useRef, useState } from "react";
 
 import { createClient } from "@repo/supabase/browser";
 import {
-  AVA_GENERIC_ERROR,
-  AVA_LISTINGS_ERROR,
+  AVA_STRINGS,
   aiFiltersToBrowseParams,
+  answerAva,
+  avaConversationLanguage,
   avaFallbackAnswer,
-  composeAvaReply,
+  buildAvaRequest,
   hasAvaQuestion,
   readAvaResponse,
-  shouldSearchForAva,
   type AvaAnswer,
+  type AvaSearchState,
   type AvaTurn,
 } from "@repo/utils";
 
@@ -26,15 +27,29 @@ export interface AvaChatMessage {
   quickReplies?: string[];
   /** Real listings found with the filters Ava understood. */
   listings?: BrowseApartment[];
-  /** The Browse query for those listings, for "See all results". */
+  /** The Browse query for those listings, for "See all results" (not set for distance searches). */
   browseParams?: Record<string, string>;
+  /** Why each listing is recommended (distance, budget fit, amenities), by listing id. */
+  notes?: Record<string, string>;
+  /** The search this reply ran, remembered so follow-ups build on it. */
+  search?: AvaSearchState;
+  shownIds?: string[];
 }
 
 let messageSequence = 0;
 const nextMessageId = () => `ava-${Date.now()}-${(messageSequence += 1)}`;
 
 const toTurns = (messages: AvaChatMessage[]): AvaTurn[] =>
-  messages.map((message) => ({ role: message.role, text: message.text }));
+  messages.map((message) => ({
+    role: message.role,
+    text: message.text,
+    search: message.search,
+    shownIds: message.shownIds,
+  }));
+
+// The language to use for an error before the answer is read.
+const detectedLanguage = (messages: AvaChatMessage[], latest: string) =>
+  avaConversationLanguage([...toTurns(messages), { role: "user", text: latest }]);
 
 async function askAva(
   supabase: ReturnType<typeof createClient>,
@@ -43,7 +58,7 @@ async function askAva(
   if (!hasAvaQuestion(turns)) return avaFallbackAnswer(turns);
 
   const { data, error } = await supabase.functions.invoke("ai-search", {
-    body: { messages: turns },
+    body: buildAvaRequest(turns),
   });
   if (error || !data) {
     console.error("Ava request failed:", error?.message ?? "empty response");
@@ -53,8 +68,10 @@ async function askAva(
 }
 
 // Ava, the APT Virtual Assistant (web). The conversation stays in component
-// state and is never stored. Reading Gemini's answer, the keyword fallback and
-// what Ava says come from `@repo/utils` (`avaChat.ts`), shared with mobile.
+// state and is never stored; each reply remembers the search it ran, so
+// follow-ups ("show me more", "what if my budget is 8k?") build on it. Reading
+// Gemini's answer, language, landmarks, distance ranking and what Ava says come
+// from `@repo/utils` (`answerAva`), shared with mobile.
 export function useAvaChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<AvaChatMessage[]>([]);
@@ -79,29 +96,45 @@ export function useAvaChat() {
         setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", ...message }]);
       };
 
+      let language = detectedLanguage(messages, trimmed);
       try {
         const supabase = createClient();
-        const answer = await askAva(supabase, toTurns([...messages, userMessage]));
+        const turns = toTurns([...messages, userMessage]);
+        const answer = await askAva(supabase, turns);
 
-        if (!shouldSearchForAva(answer)) {
-          reply(composeAvaReply(answer, null));
-          return;
-        }
-
-        const browseParams = aiFiltersToBrowseParams(answer.filters);
-        let listings: BrowseApartment[];
+        let outcome: Awaited<ReturnType<typeof answerAva<BrowseApartment>>>;
         try {
-          listings = await fetchAvaResults(supabase, browseParams);
+          outcome = await answerAva<BrowseApartment>(answer, turns, (request) =>
+            fetchAvaResults(
+              supabase,
+              aiFiltersToBrowseParams(request.filters),
+              request.limit,
+              request.excludeIds,
+            ),
+          );
         } catch (err) {
           console.error("Ava listings failed:", err);
-          reply({ text: AVA_LISTINGS_ERROR });
+          reply({ text: AVA_STRINGS[language].listingsError });
           return;
         }
 
-        reply({ ...composeAvaReply(answer, listings.length), listings, browseParams });
+        language = outcome.language;
+        const isDistanceSearch = outcome.state?.landmarkKey != null;
+        reply({
+          ...outcome.reply,
+          listings: outcome.listings,
+          notes: outcome.notes,
+          search: outcome.state ?? undefined,
+          shownIds: outcome.shownIds,
+          // "See all results" opens plain Browse, which cannot rank by distance.
+          browseParams:
+            outcome.filters && !isDistanceSearch && outcome.listings.length > 0
+              ? aiFiltersToBrowseParams(outcome.filters)
+              : undefined,
+        });
       } catch (err) {
         console.error("Ava chat failed:", err);
-        reply({ text: AVA_GENERIC_ERROR });
+        reply({ text: AVA_STRINGS[language].genericError });
       } finally {
         if (isCurrentChat()) setIsLoading(false);
       }

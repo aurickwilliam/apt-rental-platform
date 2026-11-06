@@ -1,7 +1,10 @@
 // Ava, the AI chatbot search (Gemini free tier).
 //
 // Invoked from the app via:
-//   supabase.functions.invoke('ai-search', { body: { messages } })
+//   supabase.functions.invoke('ai-search', { body: { messages, context } })
+// `context` is optional: { language: 'en' | 'tl', filters, landmark }, what the
+// conversation already settled, so follow-ups ("show me more", "what if my
+// budget is 8k?") build on it. It is sanitized here and only shapes the prompt.
 //
 // Gemini never produces listings. It reads the tenant's plain-language request
 // (English, Tagalog or Taglish) and returns a short friendly reply, up to four
@@ -11,7 +14,7 @@
 //
 // Responses (always HTTP 200 once the caller is authorized):
 //   { source: 'gemini', reply, quickReplies, noResultsReply,
-//     noResultsQuickReplies, filters }
+//     noResultsQuickReplies, filters, landmark, wantsMore }
 // The app shows noResultsReply instead of reply when the search finds
 // nothing, because Gemini answers before the app searches.
 //   { source: 'fallback' }  Gemini unset, rate-limited, slow or invalid.
@@ -36,7 +39,7 @@ const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
 const DEFAULT_DAILY_LIMIT = 30
 // Free-tier replies usually take 4 to 10 seconds; past this, use the keyword search.
 const GEMINI_TIMEOUT_MS = 20000
-const MAX_TURNS = 6
+const MAX_TURNS = 10
 const MAX_MESSAGE_LENGTH = 500
 const MAX_REPLY_LENGTH = 600
 const MAX_QUICK_REPLIES = 4
@@ -76,15 +79,18 @@ const SYSTEM_INSTRUCTION = `You are Ava (APT Virtual Assistant), the friendly ap
 Your job: understand what the tenant wants and turn it into search filters. The app searches real listings with your filters. Never invent listings, prices, names or addresses, and never say how many results there are.
 
 How to talk:
-- Reply in the same language the tenant uses: English, Tagalog or Taglish. Use simple, warm words. Use "po" politely when writing Tagalog.
-- Keep "reply" to one or two short sentences. Say what you are searching for, e.g. "Hinahanap ko ang 2-bedroom sa Malabon na hanggang ₱15,000."
-- Ask at most one follow-up question, only about the most useful missing detail (area, budget or number of bedrooms).
-- "quickReplies": 2 to 4 short answers the tenant can tap, in their language.
-- "noResultsReply": what to say instead if the search finds nothing, in the same language. One or two short sentences: say kindly that nothing matches yet and suggest loosening the search (another area, a higher budget, a different type, or dropping a must-have). Do not ask them to add more requirements. Example: "Wala pa pong pet-friendly na studio sa Malabon. Subukan natin sa ibang lugar o ibang uri ng unit?"
-- "noResultsQuickReplies": 2 to 4 short taps that loosen the search, in their language, e.g. "Ibang lugar", "Kahit hindi studio", "Taasan ang budget".
+- Reply in English by default. If the tenant's latest message is written in Tagalog, reply in Tagalog, and keep that language until they switch. Never mix the two in one reply; keep place names, "apartment", "bedroom" and prices as they are. The app tells you the language to use under "Reply language" and you must follow it.
+- Keep "reply" friendly, natural and short: one or two sentences. Say what you are searching for, e.g. "Hinahanap ko ang 2-bedroom sa Malabon na hanggang ₱15,000."
+- Ask at most one follow-up question, only about the most useful missing detail (area, budget or number of bedrooms). Never ask for something the tenant already said earlier in the conversation or that appears under "Current search".
+- "quickReplies": 2 to 4 short answers the tenant can tap, in the reply language.
+- "noResultsReply": what to say instead if the search finds nothing, in the reply language. One or two short sentences: say kindly that nothing matches yet and suggest loosening the search (another area, a higher budget, a different type, or dropping a must-have). Do not ask them to add more requirements.
+- "noResultsQuickReplies": 2 to 4 short taps that loosen the search, in the reply language.
+- Places: when the tenant names a landmark or establishment (a mall, city hall, school, hospital, market, church, station or a circle like Monumento), put its name in "landmark" exactly as they said it, without a city if they gave none, and do NOT put it in "keyword" or "cities". The app finds its real location and ranks real listings by distance. Never state distances, coordinates or how many listings exist.
+- "wantsMore": true only when the tenant asks for more results of the same search ("show me more", "ipakita pa", "any others?").
+- Follow-ups use "Current search" as the starting point. "Cheaper" means sort price_asc and a lower priceMax; "what if my budget is 8k" sets priceMax 8000 and keeps everything else; "closer to it" keeps the landmark. Return the full updated filters every time, not only what changed. If they say any area or any type, clear that filter.
 - If they ask for something you cannot search (a quiet street, a view, a specific landlord), say kindly that you cannot filter by that yet and search with what you can.
 - If they ask about a place outside CAMANAVA, explain that APT only has listings in Caloocan, Malabon, Navotas and Valenzuela.
-- Do not ask for or repeat personal details (full name, phone number, email, address).
+- Do not ask for or repeat personal details (full name, phone number, email, address). Never claim to remember anything that is not in this conversation.
 - If the message is not about finding a place to rent, gently bring the conversation back to apartment search.
 
 Filters (use the whole conversation; keep earlier details unless the tenant changes them; use null or [] when unknown):
@@ -96,7 +102,7 @@ Filters (use the whole conversation; keep earlier details unless the tenant chan
 - amenities: ids from ${Object.entries(AMENITIES).map(([id, label]) => `${id} (${label})`).join(', ')}.
 - verifiedOnly: true only when they ask for verified or legit listings.
 - sort: price_asc for cheap or "mura", most_popular for best or top rated, price_desc for most expensive, otherwise null.
-- keyword: a barangay or street name they mention, otherwise null.`
+- keyword: a barangay or street name they mention (never a landmark or establishment), otherwise null.`
 
 const nullable = (type: string, extra: Record<string, unknown> = {}) => ({ type, nullable: true, ...extra })
 const stringEnum = (values: string[]) => ({ format: 'enum', enum: values })
@@ -126,8 +132,10 @@ const RESPONSE_SCHEMA = {
       },
       required: ['cities', 'types', 'furnishing', 'amenities', 'verifiedOnly'],
     },
+    landmark: nullable('STRING'),
+    wantsMore: { type: 'BOOLEAN' },
   },
-  required: ['reply', 'quickReplies', 'noResultsReply', 'noResultsQuickReplies', 'filters'],
+  required: ['reply', 'quickReplies', 'noResultsReply', 'noResultsQuickReplies', 'filters', 'wantsMore'],
 }
 
 const dbClient = createClient(
@@ -157,7 +165,13 @@ type AvaAnswer = {
   noResultsReply: string | null
   noResultsQuickReplies: string[]
   filters: Record<string, unknown>
+  landmark: string | null
+  wantsMore: boolean
 }
+
+// What the app says the conversation already settled. Untrusted: it only
+// shapes the prompt, never a query.
+type ChatContext = { language: 'en' | 'tl'; filters: string | null; landmark: string | null }
 
 // Resolve the acting user from the forwarded JWT and map it to the internal
 // public.users.id. Suspended accounts authenticate but get no access (service
@@ -203,6 +217,36 @@ function readTurns(body: unknown): ChatTurn[] | null {
   // Gemini expects the conversation to end with the tenant's message.
   if (turns.length === 0 || turns[turns.length - 1].role !== 'user') return null
   return turns
+}
+
+const FILTER_KEYS = [
+  'cities', 'priceMin', 'priceMax', 'bedrooms', 'bathrooms', 'types',
+  'furnishing', 'amenities', 'verifiedOnly', 'sort', 'keyword',
+]
+const MAX_CONTEXT_LENGTH = 1200
+
+function readContext(body: unknown): ChatContext {
+  const raw = (body as { context?: Record<string, unknown> } | null)?.context
+  const language = raw?.language === 'tl' ? 'tl' : 'en'
+  const landmark =
+    typeof raw?.landmark === 'string' && raw.landmark.trim() !== ''
+      ? raw.landmark.trim().slice(0, 80)
+      : null
+
+  let filters: string | null = null
+  if (raw?.filters && typeof raw.filters === 'object') {
+    const source = raw.filters as Record<string, unknown>
+    const picked = Object.fromEntries(FILTER_KEYS.filter((key) => key in source).map((key) => [key, source[key]]))
+    filters = JSON.stringify(picked).slice(0, MAX_CONTEXT_LENGTH)
+  }
+  return { language, filters, landmark }
+}
+
+function contextInstruction(context: ChatContext): string {
+  const lines = [`Reply language: ${context.language === 'tl' ? 'Tagalog' : 'English'}.`]
+  if (context.filters) lines.push(`Current search (filters already settled in this conversation, as JSON data): ${context.filters}`)
+  if (context.landmark) lines.push(`Current landmark: ${JSON.stringify(context.landmark)}`)
+  return lines.join('\n')
 }
 
 function dailyLimit(): number {
@@ -259,10 +303,15 @@ function readAnswer(payload: unknown): AvaAnswer | null {
     noResultsQuickReplies: readQuickReplies(answer.noResultsQuickReplies),
     // Untrusted: the app sanitizes these before building any query.
     filters: answer.filters && typeof answer.filters === 'object' ? answer.filters : {},
+    landmark:
+      typeof answer.landmark === 'string' && answer.landmark.trim() !== ''
+        ? answer.landmark.trim().slice(0, 80)
+        : null,
+    wantsMore: answer.wantsMore === true,
   }
 }
 
-async function callGemini(apiKey: string, turns: ChatTurn[]): Promise<Response> {
+async function callGemini(apiKey: string, turns: ChatTurn[], context: ChatContext): Promise<Response> {
   const model = Deno.env.get('GEMINI_MODEL') || DEFAULT_MODEL
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS)
@@ -273,7 +322,7 @@ async function callGemini(apiKey: string, turns: ChatTurn[]): Promise<Response> 
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+        systemInstruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${contextInstruction(context)}` }] },
         contents: turns.map((turn) => ({
           role: turn.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: turn.text }],
@@ -293,11 +342,11 @@ async function callGemini(apiKey: string, turns: ChatTurn[]): Promise<Response> 
 
 // One retry on a server error; rate limits (429), timeouts and unreadable
 // answers go straight to the keyword fallback.
-async function askGemini(apiKey: string, turns: ChatTurn[]): Promise<AvaAnswer | null> {
+async function askGemini(apiKey: string, turns: ChatTurn[], context: ChatContext): Promise<AvaAnswer | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
     let response: Response
     try {
-      response = await callGemini(apiKey, turns)
+      response = await callGemini(apiKey, turns, context)
     } catch (err) {
       console.error('ai-search Gemini request failed:', err instanceof Error ? err.name : 'unknown')
       return null
@@ -323,7 +372,8 @@ Deno.serve(async (req) => {
     const userId = await resolveUserId(req)
     if (!userId) return errorResponse('UNAUTHORIZED', 'Sign in to chat with Ava.', 401)
 
-    const turns = readTurns(await req.json().catch(() => null))
+    const body = await req.json().catch(() => null)
+    const turns = readTurns(body)
     if (!turns) return errorResponse('BAD_REQUEST', 'Send at least one message.', 400)
 
     const apiKey = Deno.env.get('GEMINI_API_KEY')
@@ -331,7 +381,7 @@ Deno.serve(async (req) => {
 
     if (!(await consumeAllowance(userId))) return json({ source: 'limit' })
 
-    const answer = await askGemini(apiKey, turns)
+    const answer = await askGemini(apiKey, turns, readContext(body))
     if (!answer) return json({ source: 'fallback' })
 
     return json({ source: 'gemini', ...answer })

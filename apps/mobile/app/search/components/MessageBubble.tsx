@@ -52,14 +52,20 @@ export default function MessageBubble({
           accessibilityLabel="Matching apartments"
         >
           {message.listings.map((listing) => (
-            <ApartmentCard
-              key={listing.id}
-              {...listing}
-              fixedWidth={LISTING_CARD_WIDTH}
-              isFavorite={isFavorite(listing.id)}
-              onPress={() => onListingPress(listing.id)}
-              onPressFavorite={() => onToggleFavorite(listing.id)}
-            />
+            <View key={listing.id} style={{ width: LISTING_CARD_WIDTH }}>
+              <ApartmentCard
+                {...listing}
+                fixedWidth={LISTING_CARD_WIDTH}
+                isFavorite={isFavorite(listing.id)}
+                onPress={() => onListingPress(listing.id)}
+                onPressFavorite={() => onToggleFavorite(listing.id)}
+              />
+              {message.notes?.[listing.id] ? (
+                <Text className="mt-1.5 text-xs font-inter leading-5 text-muted">
+                  {message.notes[listing.id]}
+                </Text>
+              ) : null}
+            </View>
           ))}
         </ScrollView>
       )}

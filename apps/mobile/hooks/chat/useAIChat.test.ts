@@ -13,6 +13,18 @@ jest.mock("@/service/search/aiSearchService", () => ({
 
 const MALABON: AiSearchFilters = { ...EMPTY_AI_SEARCH_FILTERS, cities: ["Malabon"] };
 const LISTING = { id: "apt-1", name: "Sunny Studio" };
+const FOUND = {
+  card: LISTING,
+  candidate: {
+    id: "apt-1",
+    monthlyRent: 9000,
+    bedrooms: 1,
+    amenities: [],
+    latitude: 14.66,
+    longitude: 120.95,
+    city: "Malabon",
+  },
+};
 
 const answer = (overrides: Record<string, unknown>) => ({
   source: "gemini",
@@ -21,6 +33,8 @@ const answer = (overrides: Record<string, unknown>) => ({
   noResultsReply: null,
   noResultsQuickReplies: [],
   filters: EMPTY_AI_SEARCH_FILTERS,
+  landmark: null,
+  wantsMore: false,
   ...overrides,
 });
 
@@ -37,13 +51,13 @@ describe("useAIChat", () => {
       quickReplies: ["Hanggang 10k"],
       filters: MALABON,
     }));
-    mockFetchAvaListings.mockResolvedValue({ listings: [LISTING], total: 1 });
+    mockFetchAvaListings.mockResolvedValue([FOUND]);
 
     const { result } = renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("studio sa Malabon"));
 
-    expect(mockAskAva).toHaveBeenCalledWith([{ role: "user", text: "studio sa Malabon" }]);
-    expect(mockFetchAvaListings).toHaveBeenCalledWith(MALABON);
+    expect(mockAskAva).toHaveBeenCalledWith([expect.objectContaining({ role: "user", text: "studio sa Malabon" })]);
+    expect(mockFetchAvaListings).toHaveBeenCalledWith(MALABON, 5, []);
     const [user, assistant] = result.current.messages;
     expect(user).toMatchObject({ role: "user", text: "studio sa Malabon" });
     expect(assistant).toMatchObject({
@@ -66,7 +80,7 @@ describe("useAIChat", () => {
       { role: "user", text: "Hi" },
       { role: "assistant", text: "Saan po?" },
       { role: "user", text: "Malabon" },
-    ]);
+    ].map((turn) => expect.objectContaining(turn)));
   });
 
   it("asks for details and offers cities when nothing searchable was understood", async () => {
@@ -82,7 +96,7 @@ describe("useAIChat", () => {
 
   it("explains the daily limit and still searches", async () => {
     mockAskAva.mockResolvedValue(answer({ source: "limit", reply: null, quickReplies: [], filters: MALABON }));
-    mockFetchAvaListings.mockResolvedValue({ listings: [LISTING], total: 1 });
+    mockFetchAvaListings.mockResolvedValue([FOUND]);
 
     const { result } = renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Malabon"));
@@ -99,7 +113,7 @@ describe("useAIChat", () => {
       noResultsQuickReplies: ["Ibang lugar", "Taasan ang budget"],
       filters: MALABON,
     }));
-    mockFetchAvaListings.mockResolvedValue({ listings: [], total: 0 });
+    mockFetchAvaListings.mockResolvedValue([]);
 
     const { result } = renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("murang studio na pet friendly"));
@@ -112,7 +126,7 @@ describe("useAIChat", () => {
 
   it("says when no listing matches", async () => {
     mockAskAva.mockResolvedValue(answer({ source: "fallback", reply: null, quickReplies: [], filters: MALABON }));
-    mockFetchAvaListings.mockResolvedValue({ listings: [], total: 0 });
+    mockFetchAvaListings.mockResolvedValue([]);
 
     const { result } = renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Malabon"));
@@ -149,6 +163,22 @@ describe("useAIChat", () => {
 
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it("remembers the search and asks for the next page with 'show me more'", async () => {
+    mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
+    mockFetchAvaListings.mockResolvedValue([FOUND]);
+
+    const { result } = renderHook(() => useAIChat());
+    await act(() => result.current.sendMessage("apartments in Malabon"));
+    expect(result.current.messages[1].shownIds).toEqual(["apt-1"]);
+
+    mockAskAva.mockResolvedValue(answer({ reply: "More!", filters: EMPTY_AI_SEARCH_FILTERS, wantsMore: true }));
+    mockFetchAvaListings.mockResolvedValue([]);
+    await act(() => result.current.sendMessage("Show me more."));
+
+    expect(mockFetchAvaListings).toHaveBeenLastCalledWith(MALABON, 5, ["apt-1"]);
+    expect(result.current.messages[3].text).toMatch(/everything I have/);
   });
 
   it("ignores blank messages", async () => {

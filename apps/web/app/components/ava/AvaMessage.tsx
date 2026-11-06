@@ -64,6 +64,11 @@ export default function AvaMessage({
                   onPress={() => onOpenListing(listing.id)}
                   sizes="200px"
                 />
+                {message.notes?.[listing.id] && (
+                  <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                    {message.notes[listing.id]}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

@@ -27,3 +27,4 @@ export {
   type BankCode,
   type BankTransferBank,
 } from "./bankTransfer";
+export { CAMANAVA_LANDMARKS, type CamanavaLandmark, type LandmarkKind } from "./camanava-landmarks";

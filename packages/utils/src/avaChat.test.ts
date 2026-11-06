@@ -27,6 +27,8 @@ const GEMINI: AvaAnswer = {
   noResultsReply: 'Wala pa pong 2-bedroom sa Malabon.',
   noResultsQuickReplies: ['Ibang lugar'],
   filters: { ...EMPTY_AI_SEARCH_FILTERS, cities: ['Malabon'] },
+  landmark: null,
+  wantsMore: false,
 };
 
 describe('hasAvaQuestion', () => {

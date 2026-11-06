@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 
 import {
-  AVA_GENERIC_ERROR,
-  AVA_LISTINGS_ERROR,
-  composeAvaReply,
-  shouldSearchForAva,
+  AVA_STRINGS,
+  answerAva,
+  avaConversationLanguage,
+  type AvaSearchState,
   type AvaTurn,
 } from "@repo/utils";
 
@@ -19,13 +19,23 @@ export type AIChatMessage = {
   quickReplies?: string[];
   /** Real listings found with the filters Ava understood. */
   listings?: ApartmentCardProps[];
+  /** Why each listing is recommended (distance, budget fit, amenities), by listing id. */
+  notes?: Record<string, string>;
+  /** The search this reply ran, remembered so follow-ups build on it. */
+  search?: AvaSearchState;
+  shownIds?: string[];
 };
 
 let messageSequence = 0;
 const nextMessageId = () => `${Date.now()}-${(messageSequence += 1)}`;
 
 const toTurns = (messages: AIChatMessage[]): AvaTurn[] =>
-  messages.map((message) => ({ role: message.role, text: message.text }));
+  messages.map((message) => ({
+    role: message.role,
+    text: message.text,
+    search: message.search,
+    shownIds: message.shownIds,
+  }));
 
 export function useAIChat() {
   const [input, setInput] = useState("");
@@ -55,7 +65,7 @@ export function useAIChat() {
 
       const reply = (
         replyText: string,
-        extra: Pick<AIChatMessage, "quickReplies" | "listings"> = {},
+        extra: Pick<AIChatMessage, "quickReplies" | "listings" | "notes" | "search" | "shownIds"> = {},
       ) => {
         if (!isCurrentChat()) return;
         setMessages((prev) => [
@@ -70,29 +80,33 @@ export function useAIChat() {
         ]);
       };
 
+      const turns = toTurns([...messages, userMessage]);
+      let language = avaConversationLanguage(turns);
       try {
-        const answer = await askAva(toTurns([...messages, userMessage]));
+        const answer = await askAva(turns);
 
-        if (!shouldSearchForAva(answer)) {
-          const { text: replyText, quickReplies } = composeAvaReply(answer, null);
-          reply(replyText, { quickReplies });
-          return;
-        }
-
-        let found: Awaited<ReturnType<typeof fetchAvaListings>>;
+        let outcome: Awaited<ReturnType<typeof answerAva<ApartmentCardProps>>>;
         try {
-          found = await fetchAvaListings(answer.filters);
+          outcome = await answerAva<ApartmentCardProps>(answer, turns, (request) =>
+            fetchAvaListings(request.filters, request.limit, request.excludeIds),
+          );
         } catch (err) {
           console.error("Ava listings failed:", err);
-          reply(AVA_LISTINGS_ERROR);
+          reply(AVA_STRINGS[language].listingsError);
           return;
         }
 
-        const { text: replyText, quickReplies } = composeAvaReply(answer, found.listings.length);
-        reply(replyText, { quickReplies, listings: found.listings });
+        language = outcome.language;
+        reply(outcome.reply.text, {
+          quickReplies: outcome.reply.quickReplies,
+          listings: outcome.listings,
+          notes: outcome.notes,
+          search: outcome.state ?? undefined,
+          shownIds: outcome.shownIds,
+        });
       } catch (err) {
         console.error("Ava chat failed:", err);
-        reply(AVA_GENERIC_ERROR);
+        reply(AVA_STRINGS[language].genericError);
       } finally {
         if (isCurrentChat()) setIsLoading(false);
       }

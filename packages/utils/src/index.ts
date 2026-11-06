@@ -317,6 +317,8 @@ export {
   countAiSearchFilters,
   parseSearchKeywords,
   aiFiltersToBrowseParams,
+  mergeAiFilters,
+  wantsAnyArea,
 } from './aiSearch';
 export {
   AVA_RESULT_LIMIT,
@@ -329,6 +331,7 @@ export {
   AVA_LOOSEN_QUICK_REPLIES,
   type AvaSource,
   type AvaTurn,
+  type AvaSearchState,
   type AvaAnswer,
   type AvaReply,
   hasAvaQuestion,
@@ -336,7 +339,37 @@ export {
   readAvaResponse,
   shouldSearchForAva,
   composeAvaReply,
+  wantsMoreResults,
+  avaConversationLanguage,
 } from './avaChat';
+export { detectMessageLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+export { AVA_STRINGS, type AvaStrings } from './avaStrings';
+export {
+  resolveLandmark,
+  targetFromKey,
+  type LandmarkResolution,
+  type LandmarkTarget,
+} from './avaLandmarks';
+export {
+  AVA_NEAR_KM,
+  AVA_NEARBY_KM,
+  haversineKm,
+  rankByProximity,
+  formatDistance,
+  type ProximityScenario,
+} from './avaProximity';
+export {
+  AVA_PROXIMITY_POOL,
+  answerAva,
+  buildAvaRequest,
+  describeListing,
+  deriveAvaContext,
+  type AvaCandidate,
+  type AvaFound,
+  type AvaFetchRequest,
+  type AvaListingFetcher,
+  type AvaOutcome,
+} from './avaSearch';
 export * from './browseRows';
 export * from './rangeInput';
 export * from './applicationPreferences';

@@ -3,10 +3,12 @@ import { CAMANAVA_CITIES } from "@repo/constants";
 import {
   AVA_RESULT_LIMIT,
   avaFallbackAnswer,
+  buildAvaRequest,
   hasAvaQuestion,
   readAvaResponse,
   type AiSearchFilters,
   type AvaAnswer,
+  type AvaFound,
   type AvaTurn,
 } from "@repo/utils";
 
@@ -22,16 +24,20 @@ import {
 // `@repo/utils` (`avaChat.ts`); this service only makes the calls. Listings
 // are searched here with the app's own client, so RLS decides what appears.
 
-export interface AvaListings {
-  listings: ApartmentCardProps[];
-  total: number;
+// The card columns plus what the distance ranking and captions need.
+const AVA_LISTING_SELECT = `latitude, longitude, amenities, ${APARTMENT_CARD_SELECT}`;
+
+interface AvaListingRow extends ApartmentCardRow {
+  latitude: number | null;
+  longitude: number | null;
+  amenities: string[] | null;
 }
 
 export async function askAva(turns: AvaTurn[]): Promise<AvaAnswer> {
   if (!hasAvaQuestion(turns)) return avaFallbackAnswer(turns);
 
   const { data, error } = await supabase.functions.invoke("ai-search", {
-    body: { messages: turns },
+    body: buildAvaRequest(turns),
   });
 
   if (error || !data) {
@@ -45,15 +51,18 @@ export async function askAva(turns: AvaTurn[]): Promise<AvaAnswer> {
 export async function fetchAvaListings(
   filters: AiSearchFilters,
   limit: number = AVA_RESULT_LIMIT,
-): Promise<AvaListings> {
+  excludeIds: string[] = [],
+): Promise<AvaFound<ApartmentCardProps>[]> {
   // Same visibility guards as the search tab (`useSearchLogic`).
   let query = supabase
     .from("apartments")
-    .select(APARTMENT_CARD_SELECT, { count: "estimated" })
+    .select(AVA_LISTING_SELECT)
     .is("deleted_at", null)
     .eq("is_hidden_by_admin", false)
     .in("status", ["available", "unverified"])
     .range(0, limit - 1);
+
+  if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
   const cities = filters.cities.length > 0 ? filters.cities : [...CAMANAVA_CITIES];
   query = query.in("city", cities);
@@ -94,9 +103,21 @@ export async function fetchAvaListings(
   }
   query = query.order("id", { ascending: true });
 
-  const { data, error, count } = await query;
+  const { data, error } = await query;
   if (error) throw error;
 
-  const rows = (data ?? []) as unknown as ApartmentCardRow[];
-  return { listings: toApartmentCards(rows), total: count ?? rows.length };
+  const rows = (data ?? []) as unknown as AvaListingRow[];
+  const cards = toApartmentCards(rows);
+  return rows.map((row, index) => ({
+    card: cards[index],
+    candidate: {
+      id: row.id,
+      monthlyRent: row.monthly_rent,
+      bedrooms: row.no_bedrooms,
+      amenities: row.amenities ?? [],
+      latitude: row.latitude,
+      longitude: row.longitude,
+      city: row.city,
+    },
+  }));
 }

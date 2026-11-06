@@ -181,7 +181,9 @@ function parseBudget(text: string): Pick<AiSearchFilters, 'priceMin' | 'priceMax
     return { priceMin: toBudget(low), priceMax: toBudget(high) };
   }
 
-  const max = text.match(new RegExp(`(?:${MAX_WORDS})\\s*${AMOUNT}`));
+  const max = text.match(
+    new RegExp(`(?:${MAX_WORDS})(?:\\s+(?:is|ay|na|of|around|about|mga))?\\s*${AMOUNT}`),
+  );
   if (max) return { priceMin: null, priceMax: toBudget(parseAmount(max[1], max[2])) };
 
   const min = text.match(new RegExp(`(?:${MIN_WORDS})\\s*${AMOUNT}`));
@@ -267,6 +269,46 @@ export function parseSearchKeywords(message: string): AiSearchFilters {
     ).map((amenity) => amenity.id),
     verifiedOnly: hasPhrase(text, 'verified') || hasPhrase(text, 'legit'),
     sort: parseSort(text),
+  };
+}
+
+const ANY_AREA_PHRASES = ['any area', 'anywhere', 'any city', 'kahit saan', 'kahit anong lugar', 'ibang lugar', 'other areas'];
+const ANY_TYPE_PHRASES = ['any unit type', 'any type', 'kahit anong uri', 'kahit anong klase'];
+
+/** True when the tenant widens the area ("any area in CAMANAVA", "kahit saan"). */
+export function wantsAnyArea(message: string): boolean {
+  const text = message.toLowerCase();
+  return ANY_AREA_PHRASES.some((phrase) => hasPhrase(text, phrase)) || hasPhrase(text, 'any area in camanava');
+}
+
+/**
+ * Applies a new message's filters on top of what the conversation already
+ * settled. What the tenant says now wins; what they did not mention stays, so
+ * "2 bedrooms" after "sa Malabon" keeps Malabon. "Any area" and "any unit type"
+ * clear the city and type.
+ */
+export function mergeAiFilters(base: AiSearchFilters, next: AiSearchFilters, message = ''): AiSearchFilters {
+  const text = message.toLowerCase();
+  let priceMin = next.priceMin ?? base.priceMin;
+  const priceMax = next.priceMax ?? base.priceMax;
+  if (priceMin !== null && priceMax !== null && priceMin > priceMax) priceMin = null;
+
+  return {
+    cities: wantsAnyArea(message) ? [] : next.cities.length > 0 ? next.cities : base.cities,
+    priceMin,
+    priceMax,
+    bedrooms: next.bedrooms ?? base.bedrooms,
+    bathrooms: next.bathrooms ?? base.bathrooms,
+    types: ANY_TYPE_PHRASES.some((phrase) => hasPhrase(text, phrase))
+      ? []
+      : next.types.length > 0
+        ? next.types
+        : base.types,
+    furnishing: next.furnishing.length > 0 ? next.furnishing : base.furnishing,
+    amenities: [...new Set([...base.amenities, ...next.amenities])],
+    verifiedOnly: base.verifiedOnly || next.verifiedOnly,
+    sort: next.sort ?? base.sort,
+    keyword: next.keyword ?? base.keyword,
   };
 }
 
