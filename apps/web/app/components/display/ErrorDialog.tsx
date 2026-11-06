@@ -3,17 +3,23 @@
 import { Button, Modal } from "@heroui/react";
 import { IconAlertCircle } from "@tabler/icons-react";
 
-interface ProfilePhotoErrorDialogProps {
+interface ErrorDialogProps {
   message: string | null;
   onClose: () => void;
   title?: string;
 }
 
-export default function ProfilePhotoErrorDialog({
+/**
+ * Shared crucial-error dialog (mobile `components/display/ErrorDialog.tsx`
+ * parity, Web). Used only for errors that must not be missed — a failed
+ * payment, a failed submission. Field-level and secondary errors stay as
+ * inline `ErrorBanner` / `FieldError` next to the control.
+ */
+export default function ErrorDialog({
   message,
   onClose,
-  title = "Photo upload failed",
-}: ProfilePhotoErrorDialogProps) {
+  title = "Something went wrong",
+}: ErrorDialogProps) {
   return (
     <Modal
       isOpen={message !== null}

@@ -33,12 +33,12 @@ const all = nodes(tree);
 
 test("both web footer layouts keep useful links and direct owners to the existing journey", () => {
   const links = all.filter(node => node.type === "Link");
-  const expected = [["/about", "About Us"], ["/#contact", "Contact Us"], ["/#faqs", "FAQ"], ["/browse", "Search Rentals"], ["/forowners", "List Your Property"], ["/sign-in", "Sign In"]];
+  const expected = [["/about", "About Us"], ["/faq#contact", "Contact Us"], ["/faq", "FAQ"], ["/browse", "Search Rentals"], ["/forowners", "List Your Property"], ["/sign-in", "Sign In"]];
   assert.equal(links.length, expected.length * 2);
   for (const [href, label] of expected) {
     assert.equal(links.filter(node => node.props.href === href && node.props.children === label).length, 2);
   }
-  for (const removed of ["/company", "/careers", "/community", "/help", "/safety", "/apply", "/list-property"]) {
+  for (const removed of ["/company", "/careers", "/community", "/help", "/safety", "/apply", "/list-property", "/#faqs", "/#contact"]) {
     assert.equal(all.some(node => node.props?.href === removed), false);
   }
 });

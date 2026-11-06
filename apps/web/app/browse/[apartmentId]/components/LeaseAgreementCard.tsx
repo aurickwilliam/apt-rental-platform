@@ -9,7 +9,7 @@ import { IconFileText } from "@tabler/icons-react";
 
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
-import ProfilePhotoErrorDialog from "@/app/components/profile/ProfilePhotoErrorDialog";
+import ErrorDialog from "@/app/components/display/ErrorDialog";
 
 interface LeaseAgreementCardProps {
   leaseDetailsUrl: string;
@@ -106,7 +106,7 @@ export default function LeaseAgreementCard({ leaseDetailsUrl, localFile, classNa
           </p>
         )}
       </Card.Content>
-      <ProfilePhotoErrorDialog
+      <ErrorDialog
         title="Unable to open lease agreement"
         message={viewError}
         onClose={() => setViewError(null)}

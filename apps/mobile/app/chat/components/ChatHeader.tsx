@@ -1,4 +1,4 @@
-import { View, Text, Alert, Linking } from "react-native";
+import { View, Text, Alert, Linking, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,6 +16,7 @@ interface ChatHeaderProps {
   onBackPress?: () => void;
   phoneNumber?: string;
   apartmentTitle?: string;
+  onViewProfile?: () => void;
 }
 
 export default function ChatHeader({
@@ -24,6 +25,7 @@ export default function ChatHeader({
   onBackPress,
   phoneNumber,
   apartmentTitle,
+  onViewProfile,
 }: ChatHeaderProps) {
   const { colors } = useColors();
   const router = useRouter();
@@ -50,6 +52,48 @@ export default function ChatHeader({
     }
   };
 
+  // The other person's identity block; shared by the plain and tappable layouts.
+  const titleContent = (
+    <>
+      <Avatar size="sm" className="mr-3 border border-white rounded-full overflow-hidden">
+        <Avatar.Image
+          source={
+            profilePicture
+              ? { uri: profilePicture }
+              : DEFAULT_IMAGES.defaultProfilePicture
+          }
+        />
+        <Avatar.Fallback delayMs={200} className="rounded-full">
+          {name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase()}
+        </Avatar.Fallback>
+      </Avatar>
+
+      <View className="shrink">
+        <Text
+          className="text-base text-secondary-foreground font-nunitoSemiBold"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {name}
+        </Text>
+        {apartmentTitle && (
+          <Text
+            className="text-xs text-secondary-foreground/70 font-inter"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {apartmentTitle}
+          </Text>
+        )}
+      </View>
+    </>
+  );
+
   return (
     <View
       className="flex-row items-center justify-between bg-accent px-4"
@@ -69,45 +113,22 @@ export default function ChatHeader({
         </Button>
       </View>
 
-      {/* Center (Title) */}
-      <View className="flex-1 flex-row items-center justify-start ml-2">
-        <Avatar size="sm" className="mr-3 border border-white rounded-full overflow-hidden">
-          <Avatar.Image
-            source={
-              profilePicture
-                ? { uri: profilePicture }
-                : DEFAULT_IMAGES.defaultProfilePicture
-            }
-          />
-          <Avatar.Fallback delayMs={200} className="rounded-full">
-            {name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .slice(0, 2)
-              .toUpperCase()}
-          </Avatar.Fallback>
-        </Avatar>
-
-        <View className="shrink">
-          <Text
-            className="text-base text-secondary-foreground font-nunitoSemiBold"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {name}
-          </Text>
-          {apartmentTitle && (
-            <Text
-              className="text-xs text-secondary-foreground/70 font-inter"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {apartmentTitle}
-            </Text>
-          )}
+      {/* Center (Title) — tapping it opens the other person's profile */}
+      {onViewProfile ? (
+        <Pressable
+          onPress={onViewProfile}
+          accessibilityRole="button"
+          accessibilityLabel={`View ${name}'s profile`}
+          className="flex-1 flex-row items-center justify-start ml-2"
+          style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+        >
+          {titleContent}
+        </Pressable>
+      ) : (
+        <View className="flex-1 flex-row items-center justify-start ml-2">
+          {titleContent}
         </View>
-      </View>
+      )}
 
       {/* Right Side Call Button */}
       <View className="w-10 items-end justify-center">

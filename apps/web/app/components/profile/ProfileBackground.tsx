@@ -13,7 +13,7 @@ import {
   uploadBackground,
   validateAvatarFile,
 } from "@/lib/avatar-upload";
-import ProfilePhotoErrorDialog from "./ProfilePhotoErrorDialog";
+import ErrorDialog from "../display/ErrorDialog";
 
 type ProfileBackgroundProps = {
   authUserId: string;
@@ -103,7 +103,7 @@ export default function ProfileBackground({
       ) : null}
 
       {error ? (
-        <ProfilePhotoErrorDialog message={error} onClose={() => setError(null)} />
+        <ErrorDialog title="Photo upload failed" message={error} onClose={() => setError(null)} />
       ) : null}
 
       <Button

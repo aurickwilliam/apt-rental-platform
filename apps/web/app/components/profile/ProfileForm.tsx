@@ -52,7 +52,7 @@ import {
 } from "@/lib/avatar-upload";
 import ProfileAvatar from "./ProfileAvatar";
 import ProfileBackground from "./ProfileBackground";
-import ProfilePhotoErrorDialog from "./ProfilePhotoErrorDialog";
+import ErrorDialog from "../display/ErrorDialog";
 import ProfileSaveSuccessDialog from "./ProfileSaveSuccessDialog";
 
 export type ProfileInitial = {
@@ -649,7 +649,8 @@ export default function ProfileForm({
         onClose={handleSuccessClose}
       />
       {photoError ? (
-        <ProfilePhotoErrorDialog
+        <ErrorDialog
+          title="Photo upload failed"
           message={photoError}
           onClose={() => setPhotoError(null)}
         />

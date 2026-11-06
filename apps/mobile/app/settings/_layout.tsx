@@ -8,7 +8,6 @@ export default function _layout() {
       }}
     >
       <Stack.Screen name="index"/>
-      <Stack.Screen name="language-region"/>
       <Stack.Screen name="notifications"/>
       <Stack.Screen name="preferences"/>
       <Stack.Screen name="change-password"/>

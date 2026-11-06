@@ -340,12 +340,12 @@ test("Contact uses only the verified office address, Facebook page, and the FAQ 
   assert.doesNotMatch(source, /support@apt-rental\.ph|Monday|9:00 AM|contact form/i);
 });
 
-test("the shared footer points FAQ and Contact at the landing sections instead of dead routes", () => {
+test("the shared footer points FAQ and Contact at the dedicated FAQ page, not at the signed-in landing redirect", () => {
   const footer = readFileSync(new URL("../app/components/layout/Footer.tsx", import.meta.url), "utf8");
-  assert.equal((footer.match(/href="\/#faqs"/g) ?? []).length, 2);
-  assert.equal((footer.match(/href="\/#contact"/g) ?? []).length, 2);
-  assert.doesNotMatch(footer, /href="\/faq"/);
-  assert.doesNotMatch(footer, /href="\/contact"/);
+  assert.equal((footer.match(/href="\/faq"/g) ?? []).length, 2);
+  assert.equal((footer.match(/href="\/faq#contact"/g) ?? []).length, 2);
+  assert.doesNotMatch(footer, /href="\/#faqs"/);
+  assert.doesNotMatch(footer, /href="\/#contact"/);
 });
 
 test("APT Mobile streams the Android download action behind a skeleton", () => {
