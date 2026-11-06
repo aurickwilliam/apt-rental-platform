@@ -612,6 +612,13 @@ describe('answerAva', () => {
       expect(calls[1].ids).toEqual(['a', 'b']);
     });
 
+    it('stays fast on long repeated input and still accepts "Hi Ava po"', () => {
+      const started = Date.now();
+      expect(smallTalkKind(`hi${' ava po'.repeat(3)}`)).toBe('greeting');
+      expect(smallTalkKind(`hi${' ava po'.repeat(40)}x`)).toBeNull();
+      expect(Date.now() - started).toBeLessThan(200);
+    });
+
     it('does not treat "sige po" as goodbye', () => {
       expect(smallTalkKind('Sige po')).toBeNull();
       expect(smallTalkKind('bye')).toBe('bye');

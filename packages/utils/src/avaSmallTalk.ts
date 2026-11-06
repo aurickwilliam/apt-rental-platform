@@ -9,11 +9,13 @@ export type AvaSmallTalkKind = 'greeting' | 'howAreYou' | 'thanks' | 'who' | 'by
 
 const MAX_WORDS = 8;
 
+// Alternatives inside a repeated group must not overlap ("ava" and "ava po" did, which
+// let a long run of "ava po" backtrack exponentially); "ava po" is just "ava" then "po".
 const PATTERNS: { kind: AvaSmallTalkKind; pattern: RegExp }[] = [
   {
     kind: 'greeting',
     pattern:
-      /^(?:hi|hello|hey|yo|hola|good (?:morning|afternoon|evening)|kumusta|musta|magandang (?:umaga|hapon|gabi|tanghali))(?: (?:there|po|ava|ava po|everyone|kuya|ate))*$/,
+      /^(?:hi|hello|hey|yo|hola|good (?:morning|afternoon|evening)|kumusta|musta|magandang (?:umaga|hapon|gabi|tanghali))(?: (?:there|po|ava|everyone|kuya|ate))*$/,
   },
   {
     kind: 'howAreYou',
