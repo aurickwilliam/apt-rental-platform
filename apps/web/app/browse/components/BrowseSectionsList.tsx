@@ -12,11 +12,16 @@ import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
+import { useCardPreferenceRules } from "@/hooks/use-card-preference-rules";
+import { cardPreferenceMatches } from "@/lib/card-preference-matches";
+import type { BrowseRowSpec } from "@repo/utils";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import type { BrowseSection } from "../lib/fetch-browse-sections";
+import { RECOMMENDED_SECTION_ID } from "../lib/recommended-section";
 import { BrowseFilterRailSkeleton, BrowseResultsGridSkeleton } from "./BrowsePageSkeleton";
 import {
   previewPosition,
+  previewAnchor,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
@@ -34,9 +39,11 @@ interface SectionRowProps {
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (apartmentId: string) => void;
   onPressApartment: (apartmentId: string) => void;
-  onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect) => void;
+  onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect, sectionId?: string) => void;
   onLeaveCard: () => void;
   activeFavoriteId: string | null;
+  preferenceRules: BrowseRowSpec[];
+  onFavoriteInteraction: () => void;
 }
 
 // Memoized like the grid items: hover-preview state at the list root must
@@ -52,6 +59,8 @@ const SectionRow = memo(function SectionRow({
   onHoverCard,
   onLeaveCard,
   activeFavoriteId,
+  preferenceRules,
+  onFavoriteInteraction,
 }: SectionRowProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -107,19 +116,13 @@ const SectionRow = memo(function SectionRow({
           <div
             key={apt.id}
             className="w-44 shrink-0 sm:w-56"
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              onHoverCard(apt, {
-                left: rect.left,
-                top: rect.top,
-                width: rect.width,
-                height: rect.height,
-              });
-            }}
-            onMouseLeave={onLeaveCard}
           >
             <ApartmentCard
               name={apt.name}
+              matchLabels={section.id === RECOMMENDED_SECTION_ID ? cardPreferenceMatches(apt, preferenceRules) : []}
+              onPreviewHover={(element) => onHoverCard(apt, previewAnchor(element), section.id)}
+              onPreviewLeave={onLeaveCard}
+              onFavoriteInteraction={onFavoriteInteraction}
               location={apt.location}
               price={apt.price}
               rating={apt.rating}
@@ -170,6 +173,7 @@ const SectionRow = memo(function SectionRow({
 
 export default function BrowseSectionsList({ sections, basePath = "/browse" }: BrowseSectionsListProps) {
   const router = useRouter();
+  const preferenceRules = useCardPreferenceRules();
   const { isFavorite, toggleFavorite } = useFavorites();
   const rememberRecentApartment = useRememberRecentApartment();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -252,7 +256,7 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
+    <div data-browse-preview-bounds className="flex min-w-0 flex-col gap-6 sm:gap-8">
       {sections.map((section, sectionIndex) => (
         <section key={section.id} aria-label={section.title} className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
@@ -293,6 +297,8 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
             onHoverCard={handleHoverCard}
             onLeaveCard={handleLeaveCard}
             activeFavoriteId={activeFavoriteId}
+            preferenceRules={preferenceRules}
+            onFavoriteInteraction={dismissPreview}
           />
         </section>
       ))}
@@ -309,6 +315,8 @@ export default function BrowseSectionsList({ sections, basePath = "/browse" }: B
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
           onMouseLeave={handleLeaveCard}
+          onDismiss={dismissPreview}
+          matchLabels={preview.sectionId === RECOMMENDED_SECTION_ID ? cardPreferenceMatches(preview.apartment, preferenceRules) : []}
         />
       )}
 

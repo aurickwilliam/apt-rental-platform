@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
 import { sortVehicles, spotsForVehicles, trimPetKinds, trimVehicles } from "@repo/utils";
@@ -13,6 +13,7 @@ import {
   type TenantPreferences,
 } from "@/lib/tenant-preferences";
 import { saveTenantPreferences } from "@/app/(onboarding)/tenant/personalize/actions";
+import { notifyPreferencesSaved } from "./use-user";
 
 function prefsEqual(a: TenantPreferences, b: TenantPreferences): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -60,6 +61,7 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
   const [hasDisability, setHasDisability] = useState(baseline.hasDisability);
 
   const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   if (prevServerJson !== serverJson) {
@@ -215,17 +217,20 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
     setSaveError(null);
   }, [baseline]);
 
-  const save = useCallback(async (): Promise<boolean> => {
-    const clientError = validateTenantPreferences(currentPrefs);
+  const save = useCallback(async (committedBudget?: Pick<TenantPreferences, "budgetMin" | "budgetMax">): Promise<boolean> => {
+    // A synchronous lock covers repeated presses before React paints isSaving.
+    if (savingRef.current) return false;
+    const submittedPrefs = committedBudget ? { ...currentPrefs, ...committedBudget } : currentPrefs;
+    const clientError = validateTenantPreferences(submittedPrefs);
     if (clientError) {
       setSaveError(clientError);
       return false;
     }
-    if (isSaving) return false;
+    savingRef.current = true;
     setIsSaving(true);
     setSaveError(null);
     try {
-      const result = await saveTenantPreferences(currentPrefs);
+      const result = await saveTenantPreferences(submittedPrefs);
       if (!result.ok) {
         // Draft preserved: baseline untouched so the tenant can retry.
         setSaveError(result.error);
@@ -234,7 +239,8 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       }
       // Saved: the draft becomes the new baseline, and server-rendered
       // consumers (Recommended for You) re-read on refresh.
-      setBaseline(currentPrefs);
+      setBaseline(submittedPrefs);
+      notifyPreferencesSaved();
       toast.success("Rental preferences saved.");
       router.refresh();
       return true;
@@ -243,9 +249,10 @@ export function useRentalPreferencesForm(profilePreferences: unknown) {
       toast.danger("Couldn't save your preferences. Please try again.");
       return false;
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
-  }, [currentPrefs, isSaving, router]);
+  }, [currentPrefs, router]);
 
   return {
     selectedCities,

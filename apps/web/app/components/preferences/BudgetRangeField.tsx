@@ -67,7 +67,7 @@ export function PreferenceOptionCard({
 
 export interface BudgetRangeFieldHandle {
   /** Flush pending typed drafts into the range. False when invalid. */
-  commit: () => boolean;
+  commit: (onCommit?: (min: number, max: number) => void) => boolean;
 }
 
 interface BudgetRangeFieldProps {
@@ -115,7 +115,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
     // valid value — so an invalid entry can never reach preferences or a
     // save. Min and max resolve against each other, so the minimum can
     // never exceed the maximum.
-    const commitBudgetDrafts = (): boolean => {
+    const commitBudgetDrafts = (onCommit?: (min: number, max: number) => void): boolean => {
       const resolveDraft = (draft: string | null, fallback: number): number => {
         if (draft === null || draft.trim() === "") return fallback;
         const parsed = parseBudgetDraftAmount(draft);
@@ -131,6 +131,9 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
       setBudgetError(null);
       const [orderedMin, orderedMax] = orderBudgetRange(min, max);
       onRangeChange(orderedMin, orderedMax);
+      // A submit in this same event needs these resolved values, not the
+      // caller's previous render. Numeric parsing/preset semantics stay unchanged.
+      onCommit?.(orderedMin, orderedMax);
       setMinDraft(null);
       setMaxDraft(null);
       return true;

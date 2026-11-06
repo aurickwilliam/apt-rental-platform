@@ -24,6 +24,7 @@ import { canCopyImageMessage, copyChatImage } from "@/app/components/chat/copyIm
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
+import useViewedConversationRead from "@/app/components/chat/useViewedConversationRead";
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import useScrollToLatestOnOpen from "@/app/components/chat/useScrollToLatestOnOpen";
 import type { ChatMessage } from "@/app/components/chat/types";
@@ -36,7 +37,7 @@ interface ConversationViewProps {
   portal: "landlord" | "tenant";
   activeContact: ConversationContact | null;
   currentUserId: string;
-  onConversationRead?: (contactId: string) => void;
+  onConversationRead?: (contactId: string, remaining?: number, through?: string) => void;
   apartmentId?: string | null;
   /** Shows the back-to-contacts control in the header (mobile only). */
   onBack?: () => void;
@@ -178,6 +179,16 @@ export default function ConversationView({
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(isLoadingEarlierMessages);
   const messageCount = messages.length;
   const latestOutgoingId = latestOutgoingMessageId(messages, currentUserId, activeContact?.id ?? null);
+  const applyViewedReads = useCallback((ids: string[]) => {
+    const selected = new Set(ids);
+    setMessages(previous => previous.map(message => selected.has(message.id) && !message.is_read
+      ? { ...message, is_read: true, read_at: new Date().toISOString() } : message));
+  }, [setMessages]);
+  const readSync = useViewedConversationRead({
+    supabase, portal, currentUserId, contactId: activeContact?.id ?? null,
+    apartmentId: apartmentId ?? null, conversationKey: activeContact?.conversationKey ?? null,
+    messages, loading: messagesLoading, scrollRef, onRead: onConversationRead, applyRead: applyViewedReads,
+  });
   const replyNavigation = useReplyNavigation({
     conversationKey: activeContact ? `${currentUserId}:${activeContact.conversationKey}` : null,
     scrollRef,
@@ -186,33 +197,6 @@ export default function ConversationView({
     pauseFollowing: () => { nearBottomRef.current = false; setIsNearBottom(false); },
   });
 
-
-  // Mark incoming messages as read when this conversation is opened
-  useEffect(() => {
-    if (!activeContact) return;
-
-    const markAsRead = async () => {
-      let query = supabase
-        .from("chat")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .select("id")
-        .eq("sender_id", activeContact.id)
-        .eq("receiver_id", currentUserId)
-        .eq("is_read", false);
-
-      if (apartmentId) {
-        query = query.eq("apartment_id", apartmentId);
-      }
-
-      const { data, error } = await query;
-
-      if (!error && (data?.length ?? 0) > 0) {
-        onConversationRead?.(activeContact.conversationKey);
-      }
-    };
-
-    void markAsRead();
-  }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
   /**
    * Owns the "follow the bottom" flag. Sampled on scroll, and again
@@ -462,6 +446,12 @@ export default function ConversationView({
       {isBlocked ? <ChatBlockedNotice otherUserName={activeContact.name} blockedByMe={blockedByMe} /> : null}
       </div>
 
+      {readSync.error ? (
+        <div className="px-4">
+          <ErrorBanner message={readSync.error} />
+          <Button variant="ghost" size="sm" onPress={readSync.retry}>Retry read updates</Button>
+        </div>
+      ) : null}
       {sendError?.key === activeContact.conversationKey && !isBlocked ? (
         <div className="px-4">
           <ErrorBanner message={sendError.message} />

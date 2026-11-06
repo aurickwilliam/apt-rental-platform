@@ -72,8 +72,10 @@ function ControlRow({
 
 export default function RentalPreferencesTab({
   form,
+  onSaved,
 }: {
   form: RentalPreferencesForm;
+  onSaved: () => void;
 }) {
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
   const petsError = validatePets(form);
@@ -81,19 +83,19 @@ export default function RentalPreferencesTab({
   const handleSave = async () => {
     // Flush any in-progress custom-range typing first; an invalid entry
     // blocks the save with its own inline error.
-    if (!(budgetRef.current?.commit() ?? true)) return;
-    await form.save();
+    let committedBudget: { budgetMin: number; budgetMax: number } | undefined;
+    if (!(budgetRef.current?.commit((budgetMin, budgetMax) => { committedBudget = { budgetMin, budgetMax }; }) ?? true)) {
+      form.setSaveError("Enter a valid budget amount before saving.");
+      return;
+    }
+    if (await form.save(committedBudget)) onSaved();
   };
 
   return (
-    // Single scroll context: the modal section itself scrolls, so the
-    // scrollbar docks at the panel's right edge instead of squeezing this
-    // form. The footer sticks to the bottom of that viewport with a solid
-    // panel background. Other tabs render normally in the same section.
-    <div className="flex min-h-full flex-col">
-      {/* Bottom clearance lets the last rows scroll fully above the
-        floating save button instead of passing beneath it. */}
-      <div className="pb-28">
+    // Only the fields scroll. The footer occupies its own flex row so no
+    // control can pass behind Save, including when an error makes it taller.
+    <div className="flex h-full min-h-0 flex-col">
+      <div data-settings-preferences-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
         <h2 className="font-nunito text-lg font-bold text-primary">Rental Preferences</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage what matters most in your next home. Changes apply to your recommendations after saving.
@@ -323,18 +325,9 @@ export default function RentalPreferencesTab({
           </div>
         </section>
 
-        {/* Closing divider lives in the content flow: it scrolls away
-          instead of sticking to the button. */}
-        <div aria-hidden="true" className="mt-10 border-t border-border" />
       </div>
 
-      {/* Save bar: sticks to the bottom of the section viewport. The z-20
-        is structural, not arbitrary: HeroUI checkbox indicators paint at
-        z-10 (to sit above their own fill layer), so the footer must stack
-        above z-10 or selected checkmarks render over the button. Opaque
-        panel background keeps scrolled content from showing through; the
-        pb-28 clearance above lets the last rows scroll fully into view. */}
-      <div className="sticky bottom-0 z-20 pt-3">
+      <div data-settings-save-footer className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-5">
         {form.saveError && (
           <p role="alert" className="mb-2 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm text-foreground">
             {form.saveError}

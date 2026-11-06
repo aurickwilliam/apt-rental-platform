@@ -4,7 +4,7 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { createClient } from "@repo/supabase/browser";
 
 import { useUser } from "@/hooks/use-user";
-import { fetchNotifications, markNotificationRead, markNotificationsRead } from "@/service/notificationService";
+import { fetchNotificationFeed, markNotificationRead, markNotificationsRead } from "@/service/notificationService";
 import {
   getVisibleUnreadIds,
   isNotificationVisibleInPortal,
@@ -18,20 +18,56 @@ const feeds = new Map<string, NotificationFeedStore>();
 function getFeed(key: string, userId: string): NotificationFeedStore {
   const existing = feeds.get(key);
   if (existing) return existing;
+  let announce = () => {};
   const store = new NotificationFeedStore({
-    load: () => fetchNotifications(userId),
+    load: () => fetchNotificationFeed(userId),
     connect: (onChange) => {
       const supabase = createClient();
+      let joined = false;
       const channel = supabase
         .channel(`notifications-live:${userId}`)
         .on("postgres_changes", {
           event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}`,
         }, onChange)
-        .subscribe();
-      return () => { void supabase.removeChannel(channel); };
+        .subscribe(status => {
+          if (status === "SUBSCRIBED") {
+            if (joined) onChange();
+            joined = true;
+          }
+        });
+      const visible = () => { if (typeof document === "undefined" || document.visibilityState === "visible") onChange(); };
+      const broadcast = typeof window !== "undefined" && typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel(`apt-notifications:${key}`) : null;
+      if (broadcast) broadcast.onmessage = () => onChange();
+      const storageKey = `apt-notifications-read:${key}`;
+      const storage = (event: StorageEvent) => { if (event.key === storageKey) onChange(); };
+      announce = () => {
+        if (broadcast) broadcast.postMessage("read");
+        else if (typeof window !== "undefined") {
+          try { window.localStorage.setItem(storageKey, `${Date.now()}:${Math.random()}`); } catch { /* Refocus/Realtime still reconcile when storage is unavailable. */ }
+        }
+      };
+      if (typeof window !== "undefined") {
+        window.addEventListener("focus", visible);
+        window.addEventListener("online", visible);
+        window.addEventListener("storage", storage);
+        document.addEventListener("visibilitychange", visible);
+      }
+      return () => {
+        announce = () => {};
+        broadcast?.close();
+        if (typeof window !== "undefined") {
+          window.removeEventListener("focus", visible);
+          window.removeEventListener("online", visible);
+          window.removeEventListener("storage", storage);
+          document.removeEventListener("visibilitychange", visible);
+        }
+        void supabase.removeChannel(channel);
+      };
     },
     onIdle: () => { if (feeds.get(key) === store) feeds.delete(key); },
-    onError: (message, error) => console.error(message, error),
+    onError: message => console.error(message),
+    onWrite: () => announce(),
   });
   feeds.set(key, store);
   return store;
@@ -61,20 +97,29 @@ export function useNotifications(portal: ActivePortal | null) {
     [snapshot.notifications, portal],
   );
   const markOneRead = useCallback(async (id: string) => {
-    await store?.markRead([id], () => markNotificationRead(id));
-  }, [store]);
+    const row = store?.getSnapshot().notifications.find(row => row.id === id && row.user_id === userId && portal && isNotificationVisibleInPortal(row, portal));
+    if (!row || !store || !userId) return false;
+    if (row.is_read) return true;
+    return store.markRead([id], () => markNotificationRead(id, userId));
+  }, [portal, store, userId]);
   const markManyRead = useCallback(async (ids: string[]) => {
-    if (ids.length === 0) return;
-    await store?.markRead(ids, () => markNotificationsRead(ids));
-  }, [store]);
+    if (!store || !userId || !portal) return false;
+    const allowed = new Set(getVisibleUnreadIds(store.getSnapshot().notifications, portal));
+    const eligible = [...new Set(ids)].filter(id => allowed.has(id));
+    if (!eligible.length) return true;
+    return store.markRead(eligible, () => markNotificationsRead(eligible, userId));
+  }, [portal, store, userId]);
   const markVisibleRead = useCallback(async () => {
-    if (!store || !portal) return;
+    if (!store || !portal || !userId) return false;
     const ids = getVisibleUnreadIds(store.getSnapshot().notifications, portal);
-    await store.markRead(ids, () => markNotificationsRead(ids));
-  }, [store, portal]);
+    if (!ids.length) return true;
+    return store.markRead(ids, () => markNotificationsRead(ids, userId));
+  }, [store, portal, userId]);
   const refresh = useCallback(async () => { await store?.refresh(); }, [store]);
 
   return {
+    ownerKey: authUserId && userId ? `${authUserId}:${userId}` : null,
+    viewerId: userId,
     notifications: visible,
     unreadCount: unreadIds.length,
     loading: !!portal && (profileLoading || snapshot.loading),

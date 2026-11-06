@@ -205,9 +205,17 @@ export function useConversationActions(portal: "tenant" | "landlord", onMarkedRe
   /** Opening a chat clears a manual "mark as unread" (the way mobile does). */
   const onConversationOpened = useCallback(
     (contact: ConversationContact) => {
-      if (contact.markedUnread) void markRead(contact);
+      if (!contact.markedUnread) return;
+      // Clear only the manual preference here. Real incoming messages are
+      // acknowledged by the visible thread, never by list selection.
+      patch(contact.conversationKey, { markedUnread: false });
+      void setConversationPreference(supabase, { otherUserId: contact.id, apartmentId: contact.apartmentId }, { markedUnread: false })
+        .catch(error => {
+          patch(contact.conversationKey, { markedUnread: true });
+          failed("Couldn't update this chat", error);
+        });
     },
-    [markRead]
+    [failed, patch, supabase]
   );
 
   return { withOverlay, onMenuAction, onConversationOpened, dialogs };

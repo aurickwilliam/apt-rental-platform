@@ -15,6 +15,7 @@ interface NotificationFeedDependencies {
   connect: (onChange: () => void) => () => void;
   onIdle: () => void;
   onError: (message: string, error: unknown) => void;
+  onWrite?: () => void;
 }
 
 /** One account's latest-50 feed, shared by every display (not by portal). */
@@ -27,6 +28,7 @@ export class NotificationFeedStore {
   private generation = 0;
   private inFlight: Promise<void> | null = null;
   private refreshAgain = false;
+  private hasLoaded = false;
   private pendingReads = new Map<symbol, Set<string>>();
   // Keep successful optimistic flags until an authoritative read confirms them.
   // A fetch begun before the write must not resurrect an unread dot.
@@ -59,6 +61,7 @@ export class NotificationFeedStore {
         this.disconnect = null;
         this.inFlight = null;
         this.refreshAgain = false;
+        this.hasLoaded = false;
         this.rows = [];
         this.pendingReads.clear();
         this.confirmedReads.clear();
@@ -94,7 +97,7 @@ export class NotificationFeedStore {
     if (!this.active) return Promise.resolve();
     if (this.inFlight) return this.inFlight;
     const generation = this.generation;
-    this.publish(true, null);
+    this.publish(!this.hasLoaded, null);
     const request = Promise.resolve().then(async () => {
       do {
         this.refreshAgain = false;
@@ -102,6 +105,7 @@ export class NotificationFeedStore {
           const rows = await this.dependencies.load();
           if (!this.active || generation !== this.generation) return;
           this.rows = rows;
+          this.hasLoaded = true;
           const byId = new Map(rows.map(row => [row.id, row]));
           for (const id of this.confirmedReads) {
             if (!byId.has(id) || byId.get(id)?.is_read) this.confirmedReads.delete(id);
@@ -120,8 +124,8 @@ export class NotificationFeedStore {
     return request;
   };
 
-  markRead = async (ids: string[], write: () => Promise<void>): Promise<void> => {
-    if (!this.active || ids.length === 0) return;
+  markRead = async (ids: string[], write: () => Promise<void>): Promise<boolean> => {
+    if (!this.active || ids.length === 0) return false;
     const generation = this.generation;
     const operation = Symbol("mark-read");
     this.pendingReads.set(operation, new Set(ids));
@@ -129,18 +133,20 @@ export class NotificationFeedStore {
     let failed = false;
     try {
       await write();
-      if (!this.active || generation !== this.generation) return;
+      if (!this.active || generation !== this.generation) return false;
       for (const id of ids) this.confirmedReads.add(id);
     } catch (error) {
-      if (!this.active || generation !== this.generation) return;
+      if (!this.active || generation !== this.generation) return false;
       failed = true;
       this.dependencies.onError("Couldn't mark notifications read.", error);
     } finally {
       if (this.active && generation === this.generation) {
         this.pendingReads.delete(operation);
         this.publish();
+        this.dependencies.onWrite?.();
       }
     }
     if (failed) this.onRealtime();
+    return !failed;
   };
 }

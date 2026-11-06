@@ -127,17 +127,18 @@ test("empty, error and loading states offer the right next step without a false 
   assert.ok(nodes(skeleton.type(skeleton.props)).some(node => node.props["aria-busy"] === "true"));
 });
 
-test("shared apartment card keyboard handling opens only the card, not its nested favorite control", () => {
+test("shared apartment card uses separate native navigation and Favorite buttons", () => {
   let opened = 0;
-  let prevented = 0;
+  let saved = 0;
   const Card = loadComponent("components/ui/ApartmentCard.tsx");
-  const tree = Card({ name: apartment.name, location: "Malanday, Valenzuela", price: 15000, rating: 5, thumbnailUrl: "/photo.jpg", onPress: () => opened++ });
-  assert.equal(tree.props.tabIndex, 0);
-  const target = {};
-  for (const key of ["Enter", " "]) tree.props.onKeyDown({ key, target, currentTarget: target, preventDefault: () => prevented++ });
-  tree.props.onKeyDown({ key: "Enter", target: {}, currentTarget: target, preventDefault: () => prevented++ });
-  assert.equal(opened, 2);
-  assert.equal(prevented, 2);
+  const tree = Card({ name: apartment.name, location: "Malanday, Valenzuela", price: 15000, rating: 5, thumbnailUrl: "/photo.jpg", onPress: () => opened++, onFavoritePress: () => saved++ });
+  assert.equal(tree.props.role, undefined, "no interactive parent containing another button");
+  const buttons = nodes(tree).filter(node => node.type === "Button");
+  buttons.find(node => node.props["aria-label"] === `View ${apartment.name}`).props.onPress();
+  assert.equal(opened, 1);
+  buttons.find(node => node.props["aria-label"] === "Save to favorites").props.onPress();
+  assert.equal(opened, 1);
+  assert.equal(saved, 1);
 });
 
 test("warm/background refreshes retain cards; failed background refresh offers Retry without a full-page error or skeleton", () => {

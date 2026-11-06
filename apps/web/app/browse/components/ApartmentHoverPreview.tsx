@@ -20,6 +20,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 import type { PreviewPlacement } from "./use-hover-preview";
+import PreferenceMatchChips from "@/app/components/ui/PreferenceMatchChips";
 
 interface ApartmentHoverPreviewProps {
   apartment: BrowseApartment;
@@ -32,13 +33,15 @@ interface ApartmentHoverPreviewProps {
   onViewDetails: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onDismiss: () => void;
+  matchLabels?: string[];
 }
 
 // One icon size, stroke and gap for every stat, so bed, bath and area read as a set.
 function Stat({ icon: StatIcon, label }: { icon: Icon; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <StatIcon size={16} stroke={1.75} aria-hidden="true" className="shrink-0" />
+      <StatIcon size={14} stroke={1.75} aria-hidden="true" className="shrink-0" />
       {label}
     </span>
   );
@@ -54,6 +57,8 @@ export default function ApartmentHoverPreview({
   onViewDetails,
   onMouseEnter,
   onMouseLeave,
+  onDismiss,
+  matchLabels = [],
 }: ApartmentHoverPreviewProps) {
   const { fromScale, ...position } = style;
   const hasStats =
@@ -67,27 +72,32 @@ export default function ApartmentHoverPreview({
     <div
       role="dialog"
       aria-label={`Quick preview of ${apartment.name}`}
-      className="apt-hover-preview fixed z-50 hidden md:block"
+      className="apt-hover-preview fixed z-50"
       data-closing={isClosing ? "true" : undefined}
       style={{ ...position, "--hover-from-scale": fromScale } as CSSProperties}
       onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseLeave={(event) => {
+        // Pointer-over on the next card runs before mouse-leave on this overlay.
+        // Do not cancel that card's newly started dwell timer.
+        if ((event.relatedTarget as Element | null)?.closest?.("[data-preview-card]")) return;
+        onMouseLeave();
+      }}
+      onFocusCapture={onMouseEnter}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onMouseLeave();
+      }}
+      onPointerMove={(event) => {
+        // Fixed overlays can cover a source/neighbor heart. Yield to the real
+        // control at this coordinate, not a raised z-index or an invisible proxy.
+        if (document.elementsFromPoint(event.clientX, event.clientY).some(
+          (element) => !event.currentTarget.contains(element) && element.closest("[data-apartment-favorite]"),
+        )) onDismiss();
+      }}
     >
       <div
-        className="cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        role="button"
-        tabIndex={0}
-        aria-label={`View details of ${apartment.name}`}
-        onClick={onViewDetails}
-        onKeyDown={(event) => {
-          if (event.target !== event.currentTarget) return;
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onViewDetails();
-          }
-        }}
+        className="rounded-xl"
       >
-        <Card className="relative overflow-hidden rounded-xl border border-divider bg-surface p-0 shadow-xl transition-colors duration-200 hover:border-primary">
+        <Card className="relative max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-xl border border-divider bg-surface p-0 shadow-xl transition-colors duration-200 hover:border-primary">
           <Image
             src={apartment.image}
             alt=""
@@ -99,7 +109,7 @@ export default function ApartmentHoverPreview({
           />
 
           {apartment.isVerified ? (
-            <StatusChip tone="success" size="sm" className="absolute top-2 left-2">
+            <StatusChip tone="success" size="sm" className="pointer-events-none absolute top-2 left-2">
               <span className="flex items-center gap-1">
                 <IconShieldCheckFilled size={14} aria-hidden="true" />
                 Verified
@@ -107,7 +117,7 @@ export default function ApartmentHoverPreview({
             </StatusChip>
           ) : null}
 
-          <span className="absolute top-2 right-2" onClick={(event) => event.stopPropagation()}>
+          <span className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
             <Button
               variant="ghost"
               className="bg-white/75"
@@ -128,26 +138,33 @@ export default function ApartmentHoverPreview({
             </Button>
           </span>
 
-          <div className="flex flex-col gap-1.5 p-3">
-            <h4 className="truncate text-base font-semibold">{apartment.name}</h4>
-            <p className="truncate text-xs text-default-500">{apartment.location}</p>
+          <div className="p-4">
+            <h4 className="line-clamp-2 break-words font-nunito text-lg leading-6 font-semibold text-foreground">{apartment.name}</h4>
+            <p className="mt-0.5 truncate text-[13px] leading-5 text-muted-foreground">{apartment.location}</p>
+
+            <div className="mt-3 flex items-end justify-between gap-2">
+              <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                <span className="font-nunito text-2xl leading-8 font-semibold tabular-nums text-primary">{formatPesoDisplay(apartment.price)}</span>
+                <span className="text-xs text-muted-foreground">/ month</span>
+              </p>
+              <p className="flex shrink-0 items-center gap-1 pb-1 text-xs text-muted-foreground">
+                <IconStarFilled size={14} className="text-yellow-400" />
+                {apartment.rating === 0 ? "-" : apartment.rating}
+              </p>
+            </div>
 
             {hasStats ? (
-              <div className="mt-0.5 flex items-center gap-4 text-xs text-default-500">
+              <div className="mt-2.5 flex items-center gap-3 text-xs leading-4 text-muted-foreground">
                 {apartment.bedrooms !== undefined && <Stat icon={IconBed} label={`${apartment.bedrooms} BR`} />}
                 {apartment.bathrooms !== undefined && <Stat icon={IconBath} label={`${apartment.bathrooms} BA`} />}
                 {apartment.areaSqm !== undefined && <Stat icon={IconMaximize} label={`${apartment.areaSqm} sqm`} />}
               </div>
             ) : null}
 
-            <div className="mt-1.5 flex items-center justify-between">
-              <p className="text-xl font-semibold text-primary">{formatPesoDisplay(apartment.price)}</p>
-              <p className="flex items-center gap-1 text-sm">
-                <IconStarFilled size={16} className="text-yellow-400" />
-                {apartment.rating === 0 ? "-" : apartment.rating}
-              </p>
-            </div>
+            <PreferenceMatchChips labels={matchLabels} summary />
           </div>
+          <Button variant="ghost" data-preview-navigation className="apartment-card-navigation button--bare"
+            aria-label={`View details of ${apartment.name}`} onPress={onViewDetails} />
         </Card>
       </div>
     </div>

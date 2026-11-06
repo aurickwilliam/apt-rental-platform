@@ -73,6 +73,9 @@ test("See All shows the filtered results skeleton while its navigation is pendin
     "@/app/components/ui/AuthPromptModal": { default: "AuthPromptModal" },
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
     "@/hooks/use-recent-apartment-searches": { useRememberRecentApartment: () => () => {} },
+    "@/hooks/use-card-preference-rules": { useCardPreferenceRules: () => [] },
+    "@/lib/card-preference-matches": { cardPreferenceMatches: () => [] },
+    "../lib/recommended-section": { RECOMMENDED_SECTION_ID: "for_you" },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
     "./BrowsePageSkeleton": { BrowseResultsGridSkeleton: "ResultsSkeleton", BrowseFilterRailSkeleton: "RailSkeleton" },
   };

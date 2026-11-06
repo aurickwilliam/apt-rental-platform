@@ -14,6 +14,7 @@ import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
   previewPosition,
+  previewAnchor,
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
@@ -45,6 +46,7 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
   onHoverCard,
   onLeaveCard,
   priority,
+  onFavoriteInteraction,
 }: {
   apt: BrowseApartment;
   isFavorite: (id: string) => boolean;
@@ -54,23 +56,17 @@ const ApartmentGridItem = memo(function ApartmentGridItem({
   onHoverCard: (apartment: BrowseApartment, rect: HoveredCardRect) => void;
   onLeaveCard: () => void;
   priority: boolean;
+  onFavoriteInteraction: () => void;
 }) {
   return (
     <div
       className="min-w-0"
-      onMouseEnter={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        onHoverCard(apt, {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        });
-      }}
-      onMouseLeave={onLeaveCard}
     >
       <ApartmentCard
         name={apt.name}
+        onPreviewHover={(element) => onHoverCard(apt, previewAnchor(element))}
+        onPreviewLeave={onLeaveCard}
+        onFavoriteInteraction={onFavoriteInteraction}
         location={apt.location}
         price={apt.price}
         rating={apt.rating}
@@ -130,6 +126,7 @@ export default function RenderApartments({
   } = useHoverPreview();
 
   const handlePageChange = (newPage: number) => {
+    dismissPreview();
     const current = new URLSearchParams(searchParams.toString());
     current.set("page", String(newPage));
     router.push(`${basePath}?${current.toString()}`);
@@ -187,7 +184,7 @@ export default function RenderApartments({
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div data-browse-preview-bounds className="flex min-w-0 flex-col gap-4">
       {apartment.length === 0 ? (
         <EmptyState
           icon={IconSearch}
@@ -207,6 +204,7 @@ export default function RenderApartments({
               onHoverCard={handleHoverCard}
               onLeaveCard={handleLeaveCard}
               priority={page === 1 && i < 4}
+              onFavoriteInteraction={dismissPreview}
             />
           ))}
         </div>
@@ -271,6 +269,7 @@ export default function RenderApartments({
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
           onMouseLeave={handleLeaveCard}
+          onDismiss={dismissPreview}
         />
       )}
 

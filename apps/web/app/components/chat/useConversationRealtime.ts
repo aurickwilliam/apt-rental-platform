@@ -159,25 +159,15 @@ export default function useConversationRealtime({
           },
           (payload: { new: Record<string, unknown> }) => {
             const incoming = payload.new as unknown as ChatMessage;
-            if (
-              apartmentRef.current &&
-              incoming.apartment_id !== apartmentRef.current
-            ) {
+            if ((incoming.apartment_id ?? null) !== (apartmentRef.current ?? null)) {
               return;
             }
             if (incoming.receiver_id !== currentUserId) return;
 
             setMessages((prev) => mergeIncomingMessage(prev, incoming));
 
-            void supabase
-              .from("chat")
-              .update({ is_read: true, read_at: new Date().toISOString() })
-              .eq("id", incoming.id)
-              .eq("receiver_id", currentUserId)
-              .eq("is_read", false);
-
-            const key = conversationKeyRef.current;
-            if (key) onReadRef.current?.(key);
+            // Rendering/visibility owns reads. A mounted background thread is
+            // not evidence that this incoming row was actually viewed.
           }
         )
         // Read receipts: rows this user sent — their receiver is the active

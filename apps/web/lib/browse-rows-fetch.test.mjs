@@ -20,6 +20,8 @@ const personalized = compile("app/browse/lib/fetch-personalized-sections.ts", {
   "./browse-apartment": browseApartment,
   "./browse-query": browseQuery,
   "./browse-row-drawer": drawer,
+  "./recommended-section": compile("app/browse/lib/recommended-section.ts", {}),
+  "./recommendation-ranking": compile("app/browse/lib/recommendation-ranking.ts", { "@repo/utils": shared }),
 });
 const discovery = compile("app/browse/lib/fetch-browse-discovery.ts", {
   "@repo/supabase/server": {},
@@ -177,9 +179,9 @@ test("Recommended scores light columns, then fetches only the winners with photo
   ];
   const client = mockClient({
     answer: (call) => {
-      if (call.select === POOL_COLUMNS) return pool;
+      if (call.select === POOL_COLUMNS) return pool.filter(row => row.monthly_rent >= 5000 && row.monthly_rent <= 20000);
       // The card read has no order, so answer in the wrong order on purpose.
-      return ["mid", "best", "low"].map(card);
+      return ["mid", "best"].map(card);
     },
   });
   const result = await personalized.fetchPersonalizedSections(
@@ -194,7 +196,11 @@ test("Recommended scores light columns, then fetches only the winners with photo
   assert.ok(!poolCall.select.includes("apartment_images"), "the pool reads no photos");
   const winners = client.calls.find((call) => call.select !== POOL_COLUMNS && call.ops.some((op) => op[0] === "in" && op[1] === "id"));
   assert.ok(winners, "the winners are fetched by id");
-  assert.deepEqual(plain(winners.ops.find((op) => op[0] === "in" && op[1] === "id")[2]), ["best", "mid", "low"]);
+  assert.deepEqual(plain(winners.ops.find((op) => op[0] === "in" && op[1] === "id")[2]), ["best", "mid"]);
+  for (const call of [poolCall, winners]) {
+    assert.ok(client.has(call, "gte", "monthly_rent", 5000));
+    assert.ok(client.has(call, "lte", "monthly_rent", 20000));
+  }
 });
 
 test("a failed row is dropped without hiding the others", async () => {

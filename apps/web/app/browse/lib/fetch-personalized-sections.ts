@@ -4,7 +4,6 @@ import {
   BROWSE_ROW_LIMIT,
   buildPersonalizedRowSpecs,
   hasMeaningfulPreferences,
-  rankCandidates,
   type BrowseRowSpec,
 } from "@repo/utils";
 
@@ -20,10 +19,12 @@ import {
 } from "./browse-query";
 import { toDrawerRow } from "./browse-row-drawer";
 import type { BrowseSection } from "./fetch-browse-sections";
+import { RECOMMENDED_SECTION_ID } from "./recommended-section";
+import { rankRecommendationCandidates } from "./recommendation-ranking";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
-export const RECOMMENDED_SECTION_ID = "for_you";
+export { RECOMMENDED_SECTION_ID } from "./recommended-section";
 export const RECOMMENDED_SECTION_TITLE = "Recommended for You";
 export const RECOMMENDED_SECTION_SUBTITLE = "Based on your rental preferences.";
 
@@ -107,9 +108,17 @@ async function fetchRecommendedRow(
   supabase: ServerSupabaseClient,
   prefs: TenantPreferences,
 ): Promise<BrowseSection | null> {
-  let poolQuery = applyVisibleListings(supabase.from("apartments").select(POOL_COLUMNS));
-  // Chosen cities are a hard gate in scoreListing, so only pull those cities.
-  if (prefs.selectedCities.length > 0) poolQuery = poolQuery.in("city", prefs.selectedCities);
+  // Web-only eligibility, before the bounded candidate read. Shared scoring
+  // stays unchanged (mobile still uses its existing soft budget behavior).
+  // The default/full budget is unanswered in the existing preference contract.
+  const budget = buildPersonalizedRowSpecs(prefs).find((spec) => spec.id === "budget")?.criteria;
+  const constrain = <Q extends BrowseQuery<Q>>(query: Q): Q => {
+    if (prefs.selectedCities.length > 0) query = query.in("city", prefs.selectedCities);
+    if (budget?.priceMin !== undefined) query = query.gte("monthly_rent", budget.priceMin);
+    if (budget?.priceMax !== undefined) query = query.lte("monthly_rent", budget.priceMax);
+    return query;
+  };
+  const poolQuery = constrain(applyVisibleListings(supabase.from("apartments").select(POOL_COLUMNS)));
 
   const { data: pool, error } = await poolQuery
     .order("id", { ascending: true })
@@ -119,10 +128,12 @@ async function fetchRecommendedRow(
     return null;
   }
 
-  const ids = rankCandidates(pool ?? [], prefs, BROWSE_ROW_LIMIT).map((s) => s.candidate.id);
+  const ids = rankRecommendationCandidates(pool ?? [], prefs).map((s) => s.candidate.id);
   if (ids.length === 0) return null;
 
-  const { data: cards, error: cardError } = await cardQuery(supabase).in("id", ids);
+  // Recheck eligibility when reading the winners: a listing's price/city may
+  // have changed after the pool read. Do not replace lost winners with outsiders.
+  const { data: cards, error: cardError } = await constrain(cardQuery(supabase)).in("id", ids);
   if (cardError) {
     console.error(cardError);
     return null;

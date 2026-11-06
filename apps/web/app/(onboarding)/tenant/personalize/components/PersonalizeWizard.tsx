@@ -31,6 +31,7 @@ import BudgetRangeField, {
   type BudgetRangeFieldHandle,
 } from "@/app/components/preferences/BudgetRangeField";
 import { saveTenantPreferences } from "../actions";
+import { notifyPreferencesSaved } from "@/hooks/use-user";
 
 const STEP_HEADINGS = [
   "Where would you like to live?",
@@ -100,6 +101,7 @@ export default function PersonalizeWizard({ initial }: { initial: unknown }) {
         setError(result.error);
         return;
       }
+      notifyPreferencesSaved();
       router.replace("/tenant/my-rental");
     } catch {
       setError("Couldn't save your preferences. Check your connection and try again.");

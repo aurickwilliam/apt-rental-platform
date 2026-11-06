@@ -91,6 +91,14 @@ const snapshots = new RequestCache<Snapshot>(fetchSnapshot, {
   staleTimeMs: SNAPSHOT_TTL_MS,
 });
 
+const PREFERENCES_SAVED_EVENT = "apt:preferences-saved";
+
+/** Invalidate once before notifying consumers, so their reloads share one request. */
+export function notifyPreferencesSaved() {
+  snapshots.invalidate();
+  window.dispatchEvent(new Event(PREFERENCES_SAVED_EVENT));
+}
+
 async function loadSnapshot(userId: string | null): Promise<Snapshot> {
   try {
     return await snapshots.get(keyFor(userId));
@@ -178,8 +186,22 @@ export function useUser() {
       })();
     });
 
+    const onPreferencesSaved = () => {
+      void (async () => {
+        try {
+          const userId = await currentSessionUserId(supabase);
+          const snap = await loadForUser(supabase, userId);
+          if (!cancelled && snap) applySnapshot(snap);
+        } catch {
+          // No speculative saved values: the next profile load retries.
+        }
+      })();
+    };
+    window.addEventListener(PREFERENCES_SAVED_EVENT, onPreferencesSaved);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(PREFERENCES_SAVED_EVENT, onPreferencesSaved);
       subscription.unsubscribe();
     };
   }, [applySnapshot, loadForUser]);

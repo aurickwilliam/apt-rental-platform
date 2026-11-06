@@ -2,6 +2,8 @@ export interface BrowseApartment {
   id: string;
   name: string;
   location: string;
+  city?: string;
+  amenities?: string[];
   price: number;
   rating: number;
   isVerified: boolean;
@@ -13,7 +15,7 @@ export interface BrowseApartment {
 
 /** Columns a Browse card needs; every card read selects exactly these. */
 export const BROWSE_CARD_COLUMNS = `id, name, barangay, city, monthly_rent, average_rating,
-  no_bedrooms, no_bathrooms, area_sqm, is_verified,
+  no_bedrooms, no_bathrooms, area_sqm, is_verified, amenities,
   apartment_images(url, url_thumb, is_cover, created_at)`;
 
 export interface BrowseApartmentRow {
@@ -21,6 +23,7 @@ export interface BrowseApartmentRow {
   name: string;
   barangay: string | null;
   city: string | null;
+  amenities?: string[] | null;
   monthly_rent: number;
   average_rating: number | null;
   no_bedrooms: number | null;
@@ -37,6 +40,8 @@ export function toBrowseApartment(apt: BrowseApartmentRow): BrowseApartment {
     id: apt.id,
     name: apt.name,
     location: [apt.barangay, apt.city].filter((v): v is string => Boolean(v)).join(", "),
+    city: apt.city ?? undefined,
+    amenities: apt.amenities ?? undefined,
     price: apt.monthly_rent,
     rating: apt.average_rating ?? 0,
     isVerified: apt.is_verified ?? false,

@@ -136,6 +136,13 @@ export default function SettingsModal({
     onClose();
   };
 
+  const savedAndClose = () => {
+    setShowDiscardConfirm(false);
+    // Success is authoritative. Do not route through requestClose: its render
+    // may still contain the saving/dirty state from before the awaited write.
+    onClose();
+  };
+
   return (
     <>
       <Modal
@@ -154,6 +161,7 @@ export default function SettingsModal({
           <Modal.Dialog className="h-[calc(100dvh-2rem)] w-full max-w-5xl! overflow-hidden rounded-3xl bg-card p-0 md:h-[85dvh]">
             <Modal.CloseTrigger
               aria-label="Close settings"
+              isDisabled={canShowRental && rentalForm.isSaving}
               className="text-foreground"
             />
             <Modal.Header className="shrink-0 border-b border-border px-5 py-4 pr-12">
@@ -201,14 +209,16 @@ export default function SettingsModal({
                 <section
                   key={activeId}
                   aria-label={visibleTabs.find(({ id }) => id === activeId)?.label}
-                  className="mr-1.5 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"
+                  className={activeId === "rental"
+                    ? "mr-1.5 min-h-0 min-w-0 flex-1 overflow-hidden"
+                    : "mr-1.5 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5"}
                 >
                   {activeId === "general" ? <GeneralTab /> : null}
                   {activeId === "security" ? <SecurityTab isAdmin={isAdmin} onChangePassword={onChangePassword} onChangeEmail={onChangeEmail} /> : null}
                   {activeId === "language" ? <LanguageRegionTab /> : null}
                   {activeId === "notifications" ? <NotificationsTab isAdmin={isAdmin} /> : null}
                   {activeId === "help" ? <HelpTab isAdmin={isAdmin} /> : null}
-                  {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} /> : null}
+                  {activeId === "rental" && canShowRental ? <RentalPreferencesTab form={rentalForm} onSaved={savedAndClose} /> : null}
                   {activeId === "payments" && canShowPayments ? <PaymentMethodsTab /> : null}
                 </section>
               </div>

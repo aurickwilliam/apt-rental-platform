@@ -60,12 +60,17 @@ export async function saveTenantPreferences(
   type PreferencesColumn =
     Database["public"]["Tables"]["users"]["Update"]["preferences"];
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("users")
     .update({ preferences: prefs as unknown as PreferencesColumn })
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle<{ id: string }>();
   if (error) {
     return { ok: false, error: "Couldn't save your preferences. Please try again." };
+  }
+  if (updated?.id !== profile.id) {
+    return { ok: false, error: "Couldn't confirm your preferences were saved. Please try again." };
   }
 
   return { ok: true };

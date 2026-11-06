@@ -77,6 +77,7 @@ test("public card and rental hero preserve source selection, geometry, null fall
     "next/image": { default: "Image" }, "next/link": { default: "Link" },
     "@/lib/public-apartment-image": policy,
     "@/app/components/display/StatusChip": { default: "StatusChip" },
+    "./PreferenceMatchChips": { default: "PreferenceMatchChips" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => String(value) },
     "@heroui/react": { Card: { Footer: "Card.Footer" }, Button: "Button" },
