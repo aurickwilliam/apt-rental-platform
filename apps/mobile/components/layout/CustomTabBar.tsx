@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 
 import { useColors } from 'hooks/useTheme';
+import { registerTutorialTarget } from '@/components/tutorial/targetRegistry';
 
 import { useTabBarVisibility } from './TabBarVisibilityContext';
 import {
@@ -350,6 +351,7 @@ function TabItem({ config, isFocused, onPress, colors }: TabItemProps) {
 
   return (
     <Pressable
+      ref={(view) => registerTutorialTarget(`tab-${config.name}`, view)}
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityLabel={accessibilityLabel}

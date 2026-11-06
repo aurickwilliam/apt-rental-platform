@@ -624,6 +624,10 @@ Sidebar unread activity uses a solid 8px dot, never a numbered section badge: `b
 
 ---
 
+## 15a. First-time tutorial
+
+Simple and quiet: a dimmed page with a primary-colour (`#376BF5`) ring around the highlighted control and one card (card background, `rounded-2xl` on web / `rounded-3xl` on mobile, no heavy shadow). The card shows "Step n of N", a thin progress bar, a Nunito title, a short Inter description, **Back / Next / Finish** and a muted **Skip Tutorial**. The welcome and completion screens are a centered dialog with a soft-primary circle icon. Motion is a short position transition, off under reduced motion. Web: card beside the target, then below or above, centered with no target, docked at the bottom under 640px; focus moves into the card, Tab stays inside, Esc skips. Mobile: card on the half opposite the spotlight; Android Back skips. Replay lives in Settings → Tutorial.
+
 ## 16. Images
 
 - **Thumbnails:** square (mobile `aspect-square`; `w-20 h-20` rows), `object-cover`/`contentFit="cover"`, `cachePolicy="disk"` (expo-image), gray placeholder `bg-gray-200` + icon
