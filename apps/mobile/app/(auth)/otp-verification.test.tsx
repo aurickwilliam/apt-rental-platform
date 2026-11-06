@@ -13,6 +13,8 @@ const registrationCalls = () => mockRpc.mock.calls.filter(([name]) => name !== '
 const mockReplace = jest.fn();
 const mockSwitchTo = jest.fn();
 const mockMissing = jest.fn();
+// "" runs the direct-Supabase path (local development); a URL runs the server route.
+let mockBaseUrl = "";
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockParams,
@@ -37,6 +39,11 @@ jest.mock("@repo/supabase", () => ({ supabase: {
   },
   rpc: (...args: unknown[]) => mockRpc(...args),
 } }));
+jest.mock("@/constants/serverAuth", () => ({
+  get SERVER_AUTH_BASE_URL() {
+    return mockBaseUrl;
+  },
+}));
 jest.mock("@/stores/usePortalStore", () => ({ usePortalStore: { getState: () => ({ switchTo: (...args: unknown[]) => mockSwitchTo(...args) }) } }));
 jest.mock("@/utils/queryClient", () => ({ clearQueryClient: jest.fn() }));
 jest.mock("@/service/auth/profileMissingService", () => ({
@@ -57,6 +64,7 @@ async function verify() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockBaseUrl = "";
   delete mockParams.mode;
   mockParams.email = "a@example.test";
   useRegistrationStore.getState().reset();
@@ -127,5 +135,22 @@ it("preserves confirm-email recovery without requiring nonexistent signup data",
   render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/finish-profile"));
+  expect(registrationCalls()).toHaveLength(0);
+});
+
+it("shows a lock the server reports, disables Verify and never reaches the profile step", async () => {
+  mockBaseUrl = "https://apt.test";
+  global.fetch = jest.fn().mockResolvedValue({
+    status: 429,
+    json: async () => ({ ok: false, error: { code: "auth_locked", message: "Too many attempts." }, retryAfterSeconds: 700 }),
+  }) as unknown as typeof fetch;
+  render(<OTPVerification />);
+
+  await verify();
+
+  expect(await screen.findByText("Too many attempts")).toBeTruthy();
+  expect(screen.getByText(/Try again in 11:/)).toBeTruthy();
+  expect(mockVerifyOtp).not.toHaveBeenCalled();
+  expect(mockReplace).not.toHaveBeenCalled();
   expect(registrationCalls()).toHaveLength(0);
 });

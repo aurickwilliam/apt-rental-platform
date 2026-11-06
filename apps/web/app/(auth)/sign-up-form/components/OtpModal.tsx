@@ -1,6 +1,7 @@
 import { Modal, Button, Link as HeroLink } from "@heroui/react";
 import { IconMail as Mail } from "@tabler/icons-react";
 import CodeInput from "@/app/components/inputs/CodeInput";
+import AuthLockoutNotice from "../../components/AuthLockoutNotice";
 
 interface OtpModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ interface OtpModalProps {
   verifyLabel?: string;
   // Too many wrong codes: verifying stays off until a new code is sent.
   locked?: boolean;
+  // Attempt limit reached: seconds left on the lock. Shows the lock notice in
+  // place of the code error and keeps verifying off until it ends.
+  lockoutSeconds?: number;
 }
 
 export default function OtpModal({
@@ -37,7 +41,9 @@ export default function OtpModal({
   onCancel,
   verifyLabel = "Verify & Create Account",
   locked = false,
+  lockoutSeconds = 0,
 }: OtpModalProps) {
+  const lockedOut = lockoutSeconds > 0;
   return (
     <Modal>
       <Modal.Backdrop
@@ -70,13 +76,16 @@ export default function OtpModal({
                       length={6}
                       value={otp}
                       onChange={onOtpChange}
-                      isInvalid={!!otpError}
+                      isInvalid={!!otpError && !lockedOut}
+                      isDisabled={lockedOut}
                       autoFocus
                     />
                   </div>
 
-                  {otpError && (
-                    <p className="text-center text-sm text-danger">{otpError}</p>
+                  {lockedOut ? (
+                    <AuthLockoutNotice secondsLeft={lockoutSeconds} />
+                  ) : (
+                    otpError && <p className="text-center text-sm text-danger">{otpError}</p>
                   )}
 
                   {/* HeroUI Link without href: an action styled as a link (mobile's LinkButton). */}
@@ -103,7 +112,7 @@ export default function OtpModal({
                     variant="primary"
                     size="lg"
                     className="w-full"
-                    isDisabled={otp.length < 6 || loading || locked}
+                    isDisabled={otp.length < 6 || loading || locked || lockedOut}
                     isPending={loading}
                     onPress={() => onVerify(close)}
                   >

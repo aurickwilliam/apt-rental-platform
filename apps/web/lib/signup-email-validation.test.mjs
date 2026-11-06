@@ -32,7 +32,9 @@ function harness(options = {}) {
     "next/navigation": { useRouter: () => router },
     "next/link": { default: options.realUI ? NextLink : "NextLink" },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
-    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" },
+    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending", formatLockoutClock: seconds => String(seconds) },
+    "@/hooks/use-auth-lockout": { useAuthLockout: () => options.lockout ?? { secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} } },
+    "./AuthLockoutModal": { default: "AuthLockoutModal" },
     "./AuthContext": { useAuth: () => context },
     "../actions/sign-in": { signIn: () => {} },
     "../actions/check-email-availability": { checkEmailAvailability: async email => {
@@ -197,4 +199,47 @@ test("the existing auth footer remains a separate sign-in link", () => {
   const source = readFileSync(new URL("../app/(auth)/components/BottomLinks.tsx", import.meta.url), "utf8");
   assert.match(source, /Already have an account/);
   assert.match(source, /\/sign-in/);
+});
+
+test("sign-in: a lock disables Sign in with a countdown and opens the lockout modal", () => {
+  const h = harness({
+    type: "sign-in",
+    lockout: { secondsLeft: 125, isLocked: true, lock() {}, modalOpen: true, setModalOpen() {} },
+  });
+  const tree = nodes(h.render());
+  const button = tree.find(node => node.type === "Button");
+  assert.equal(button.props.isDisabled, true);
+  assert.equal(text(button.props.children), "Try again in 125");
+  const modal = tree.find(node => node.type === "AuthLockoutModal");
+  assert.equal(modal.props.isOpen, true);
+  assert.equal(modal.props.secondsLeft, 125);
+});
+
+test("sign-in: without a lock the button works and the modal stays closed", () => {
+  const h = harness({ type: "sign-in" });
+  const tree = nodes(h.render());
+  const button = tree.find(node => node.type === "Button");
+  assert.equal(button.props.isDisabled, false);
+  assert.equal(text(button.props.children), "Sign In");
+  assert.equal(tree.find(node => node.type === "AuthLockoutModal").props.isOpen, false);
+});
+
+test("sign-in: a lock is explained by the modal, never by a red banner", () => {
+  const h = harness({
+    type: "sign-in",
+    signInState: { error: "Too many sign-in attempts. Please try again in a few minutes.", lockedForSeconds: 900 },
+  });
+  assert.ok(!text(h.render()).includes("Too many sign-in attempts"));
+  const plain = harness({ type: "sign-in", signInState: { error: "Invalid email or password. Please try again." } });
+  assert.ok(text(plain.render()).includes("Invalid email or password"));
+});
+
+test("the sign-up lock never touches the sign-up form", () => {
+  const h = harness({
+    type: "sign-up",
+    lockout: { secondsLeft: 125, isLocked: true, lock() {}, modalOpen: true, setModalOpen() {} },
+  });
+  const button = nodes(h.render()).find(node => node.type === "Button");
+  assert.equal(text(button.props.children), "Sign Up");
+  assert.equal(button.props.isDisabled, false);
 });
