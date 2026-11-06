@@ -45,7 +45,10 @@ describe("getTutorialSteps", () => {
     const mobile = getTutorialSteps("landlord", { platform: "mobile", accountStatus: "verified", hasActiveTenancy: false });
     expect(web.find((s) => s.id === "landlord-properties")?.targetKey).toBe("nav-properties");
     expect(mobile.find((s) => s.id === "landlord-properties")?.targetKey).toBe("tab-units");
-    expect(mobile.find((s) => s.id === "landlord-applications")?.targetKey).toBeNull();
+    expect(mobile.find((s) => s.id === "landlord-applications")?.targetKey).toBe("quick-tenant-applications");
+    expect(web.find((s) => s.id === "landlord-applications")?.targetKey).toBe("nav-applications");
+    const tenantMobile = getTutorialSteps("tenant", { platform: "mobile", accountStatus: "verified", hasActiveTenancy: false });
+    expect(tenantMobile.find((s) => s.id === "tenant-messages")?.targetKey).toBe("tab-chat");
   });
 });
 

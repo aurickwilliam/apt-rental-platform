@@ -63,6 +63,10 @@ export const TUTORIAL_TARGETS = {
   mobileTabChat: "tab-chat",
   mobileTabDashboard: "tab-dashboard",
   mobileTabUnits: "tab-units",
+  mobileQuickApplications: "quick-applications",
+  mobileQuickRepairs: "quick-repairs",
+  mobileQuickTenantApplications: "quick-tenant-applications",
+  mobileQuickPayments: "quick-payments",
   webNavBrowse: "nav-browse",
   webNavMyRental: "nav-my-rental",
   webNavMaintenance: "nav-maintenance",
@@ -107,7 +111,7 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     description:
       "On a listing, apply to rent or request a visit. Track your applications and visit requests from your rental screen.",
     requires: "verified",
-    targets: {},
+    targets: { mobile: TUTORIAL_TARGETS.mobileQuickApplications },
     mobileTab: "rentals",
   },
   {
@@ -128,7 +132,10 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     title: "Report a problem",
     description: "Send a maintenance request for your home and follow its progress here.",
     requires: "active-tenancy",
-    targets: { web: TUTORIAL_TARGETS.webNavMaintenance },
+    targets: {
+      mobile: TUTORIAL_TARGETS.mobileQuickRepairs,
+      web: TUTORIAL_TARGETS.webNavMaintenance,
+    },
     mobileTab: "rentals",
   },
   {
@@ -162,8 +169,11 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     title: "Review applications",
     description: "Look through tenant applications and approve or decline them.",
     requires: "verified",
-    targets: { web: TUTORIAL_TARGETS.webNavApplications },
-    mobileTab: "dashboard",
+    targets: {
+      mobile: TUTORIAL_TARGETS.mobileQuickTenantApplications,
+      web: TUTORIAL_TARGETS.webNavApplications,
+    },
+    mobileTab: "units",
   },
   {
     id: "landlord-messages",
@@ -184,8 +194,11 @@ const STEP_DEFINITIONS: readonly TutorialStepDefinition[] = [
     description:
       "Confirm rent payments, handle maintenance requests and keep track of your tenants.",
     requires: "active-tenancy",
-    targets: { web: TUTORIAL_TARGETS.webNavPayments },
-    mobileTab: "dashboard",
+    targets: {
+      mobile: TUTORIAL_TARGETS.mobileQuickPayments,
+      web: TUTORIAL_TARGETS.webNavPayments,
+    },
+    mobileTab: "units",
   },
 ];
 

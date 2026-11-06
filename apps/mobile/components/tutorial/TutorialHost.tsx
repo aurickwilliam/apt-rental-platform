@@ -170,6 +170,7 @@ export default function TutorialHost() {
 
   return (
     <TutorialOverlay
+      portal={portal}
       step={step}
       stepIndex={stepIndex}
       stepCount={steps.length}

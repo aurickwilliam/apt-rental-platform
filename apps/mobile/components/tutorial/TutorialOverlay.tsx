@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Modal, Platform, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Defs, Mask, Rect } from 'react-native-svg';
 import { Button } from 'heroui-native';
 
-import type { TutorialStep } from '@repo/utils';
+import type { TutorialPortal, TutorialStep } from '@repo/utils';
 
+import { computeCalloutLayout, estimateNativeTabRect } from './calloutLayout';
 import { measureTutorialTarget, type TutorialRect } from './targetRegistry';
 
 interface TutorialOverlayProps {
+  portal: TutorialPortal;
   step: TutorialStep;
   stepIndex: number;
   stepCount: number;
@@ -27,6 +30,7 @@ const DIM = 'rgba(0,0,0,0.6)';
  * that is off screen, shows the card alone; it never blocks the tour.
  */
 export default function TutorialOverlay({
+  portal,
   step,
   stepIndex,
   stepCount,
@@ -38,7 +42,13 @@ export default function TutorialOverlay({
   const insets = useSafeAreaInsets();
   // Tagged with its step, so a measurement never outlives the step it belongs to.
   const [measured, setMeasured] = useState<{ stepId: string; rect: TutorialRect } | null>(null);
-  const rect = measured?.stepId === step.id ? measured.rect : null;
+  const measuredRect = measured?.stepId === step.id ? measured.rect : null;
+  // iOS tabs are native and cannot be measured: point at the estimated button.
+  const nativeRect =
+    Platform.OS === 'ios' && step.targetKey?.startsWith('tab-')
+      ? estimateNativeTabRect(portal, step.mobileTab, { width, height }, insets)
+      : null;
+  const rect = measuredRect ?? nativeRect;
 
   useEffect(() => {
     let active = true;
@@ -68,8 +78,11 @@ export default function TutorialOverlay({
         height: rect.height + SPOTLIGHT_PADDING * 2,
       }
     : null;
-  // The card sits on the opposite half from the spotlight.
-  const cardAtTop = hole ? hole.top > height / 2 : false;
+  const callout = computeCalloutLayout({
+    hole: hole ? { x: hole.left, y: hole.top, width: hole.width, height: hole.height } : null,
+    window: { width, height },
+    insets,
+  });
   const isLast = stepIndex === stepCount - 1;
 
   return (
@@ -84,10 +97,22 @@ export default function TutorialOverlay({
       <View style={{ flex: 1 }} pointerEvents="box-none">
         {hole ? (
           <>
-            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: Math.max(0, hole.top), backgroundColor: DIM }} />
-            <View style={{ position: 'absolute', left: 0, right: 0, top: hole.top + hole.height, bottom: 0, backgroundColor: DIM }} />
-            <View style={{ position: 'absolute', left: 0, width: Math.max(0, hole.left), top: hole.top, height: hole.height, backgroundColor: DIM }} />
-            <View style={{ position: 'absolute', left: hole.left + hole.width, right: 0, top: hole.top, height: hole.height, backgroundColor: DIM }} />
+            <Svg width={width} height={height} style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
+              <Defs>
+                <Mask id="tutorial-cutout">
+                  <Rect width={width} height={height} fill="white" />
+                  <Rect
+                    x={hole.left}
+                    y={hole.top}
+                    width={hole.width}
+                    height={hole.height}
+                    rx={SPOTLIGHT_RADIUS}
+                    fill="black"
+                  />
+                </Mask>
+              </Defs>
+              <Rect width={width} height={height} fill={DIM} mask="url(#tutorial-cutout)" />
+            </Svg>
             <View
               pointerEvents="none"
               testID="tutorial-spotlight"
@@ -103,10 +128,29 @@ export default function TutorialOverlay({
         )}
 
         <View
-          className="absolute left-4 right-4 rounded-3xl bg-surface p-5 gap-3"
-          style={cardAtTop ? { top: insets.top + 16 } : { bottom: Math.max(insets.bottom, 16) + 8 }}
+          testID="tutorial-card"
+          className="absolute rounded-3xl bg-surface p-5 gap-3"
+          style={{
+            left: callout.left,
+            width: callout.width,
+            top: callout.top,
+            bottom: callout.bottom,
+          }}
           accessibilityViewIsModal
         >
+          {callout.arrowCenter !== null ? (
+            <View
+              pointerEvents="none"
+              testID="tutorial-arrow"
+              className="absolute size-4 bg-surface"
+              style={{
+                left: callout.arrowCenter - 8,
+                ...(callout.placement === 'above' ? { bottom: -6 } : { top: -6 }),
+                transform: [{ rotate: '45deg' }],
+                borderRadius: 3,
+              }}
+            />
+          ) : null}
           <View className="flex-row items-center justify-between">
             <Text className="text-xs font-nunitoSemiBold text-muted" accessibilityLiveRegion="polite">
               Step {stepIndex + 1} of {stepCount}

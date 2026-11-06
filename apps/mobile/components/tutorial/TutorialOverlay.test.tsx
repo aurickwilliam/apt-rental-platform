@@ -30,7 +30,7 @@ const step = {
 
 function setup(overrides: Partial<React.ComponentProps<typeof TutorialOverlay>> = {}) {
   const handlers = { onNext: jest.fn(), onBack: jest.fn(), onSkip: jest.fn() };
-  render(<TutorialOverlay step={step} stepIndex={1} stepCount={4} {...handlers} {...overrides} />);
+  render(<TutorialOverlay portal="tenant" step={step} stepIndex={1} stepCount={4} {...handlers} {...overrides} />);
   return handlers;
 }
 
