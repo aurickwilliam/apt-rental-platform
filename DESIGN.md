@@ -13,7 +13,11 @@ the existing property details, after Floor Level / Lease Duration (no new sectio
 or step). Reuse each platform's shared `ElectricityMeterConfirmation` with its
 HeroUI checkbox, required label, supporting text and inline error. New drafts start
 unchecked. Details/previews show “Electricity: Own meter” only for a confirmed
-listing, as ordinary property information rather than an amenity or verification
+listing. On web, the confirmation uses foreground label text, muted-foreground
+helper text and a muted-foreground checkbox border on the card surface, with a
+primary selected state and focus outline, in both themes. Scoped CSS overrides
+HeroUI defaults so the helper and unchecked control remain readable. The label is
+ordinary property information rather than an amenity or verification
 badge. Existing listings are classified confirmed by rollout policy; see
 `docs/listing-electricity-meter.md`.
 

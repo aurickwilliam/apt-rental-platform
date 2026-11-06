@@ -14,6 +14,22 @@ import {
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
+test("meter confirmation uses readable theme colors and a visible checkbox border", () => {
+  const css = read("../app/globals.css");
+  const rule = (selector) => {
+    const start = css.indexOf(`${selector} {`);
+    assert.notEqual(start, -1, `Missing scoped rule: ${selector}`);
+    return css.slice(start, css.indexOf("}", start) + 1);
+  };
+  assert.match(rule('.electricity-meter-confirmation [data-slot="label"]'), /color: var\(--foreground\)/);
+  assert.match(rule('.electricity-meter-confirmation [data-slot="description"]'), /color: var\(--muted-foreground\)/);
+  assert.match(rule('.electricity-meter-confirmation [data-slot="field-error"]'), /color: var\(--destructive\)/);
+  assert.match(rule('.electricity-meter-confirmation .checkbox__control'), /border: 1px solid var\(--muted-foreground\)/);
+  assert.match(rule('.electricity-meter-confirmation .checkbox__control'), /background-color: var\(--card\)/);
+  assert.match(rule('.electricity-meter-confirmation[data-selected="true"] .checkbox__control'), /background-color: var\(--primary\)/);
+  assert.match(rule('.electricity-meter-confirmation:has(input:focus-visible) .checkbox__control'), /outline: 2px solid var\(--primary\)/);
+});
+
 test("installed HeroUI exposes a required labeled checkbox and its error", () => {
   const Component = compile("app/components/inputs/ElectricityMeterConfirmation.tsx", {
     "react/jsx-runtime": jsx, "@heroui/react": HeroUI, "@repo/constants": meterRules,
