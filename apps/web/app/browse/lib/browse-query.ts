@@ -46,6 +46,16 @@ export const MAX_BUDGET = 50000;
 const MIN_SIZE = 10;
 const MAX_SIZE = 300;
 
+/**
+ * A contains-pattern for `.or()`. The text is quoted so commas and brackets
+ * are not read as filter syntax, and `%` / `_` match literally.
+ */
+export function searchPattern(text: string): string {
+  const likeSafe = text.replace(/[\\%_]/g, (char) => `\\${char}`);
+  const quoted = `%${likeSafe}%`.replace(/[\\"]/g, (char) => `\\${char}`);
+  return `"${quoted}"`;
+}
+
 export function applyBrowseFilters<Q extends BrowseQuery<Q>>(
   initial: Q,
   params: Record<string, string>,
@@ -116,8 +126,9 @@ export function applyBrowseFilters<Q extends BrowseQuery<Q>>(
 
   // Text search by name or location
   if (params.search) {
+    const pattern = searchPattern(params.search);
     query = query.or(
-      `name.ilike.%${params.search}%,city.ilike.%${params.search}%,barangay.ilike.%${params.search}%`,
+      `name.ilike.${pattern},city.ilike.${pattern},barangay.ilike.${pattern}`,
     );
   }
 
@@ -139,7 +150,8 @@ export function applyBrowseSort<Q extends BrowseQuery<Q>>(
       query = query.order("monthly_rent", { ascending: false });
       break;
     case "most_popular":
-      query = query.order('average_rating', { ascending: false });
+      // Unrated listings go last; descending order would put them first.
+      query = query.order("average_rating", { ascending: false, nullsFirst: false });
       break;
     default:
       query = query.order("created_at", { ascending: false });
