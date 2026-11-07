@@ -8,12 +8,12 @@ Status markers: ✅ **Canonical** (follow) · 🚧 **Transitional** (token-corre
 
 ## 1. Design Philosophy
 
-Apartment creation and editing keep the own-electricity-meter confirmation inside
+Apartment creation and editing keep the own-meter (electricity and water) confirmation inside
 the existing property details, after Floor Level / Lease Duration (no new section
 or step). Reuse each platform's shared `ElectricityMeterConfirmation` with its
 HeroUI checkbox, required label, supporting text and inline error. New drafts start
-unchecked. Details/previews show “Electricity: Own meter” only for a confirmed
-listing. On web, the confirmation uses foreground label text, muted-foreground
+unchecked. Details/previews show “Own meter (electricity and water)” only for a confirmed
+listing; landlord property views label it “Utility meters”. On web, the confirmation uses foreground label text, muted-foreground
 helper text and a muted-foreground checkbox border on the card surface, with a
 primary selected state and focus outline, in both themes. Scoped CSS overrides
 HeroUI defaults so the helper and unchecked control remain readable. The label is

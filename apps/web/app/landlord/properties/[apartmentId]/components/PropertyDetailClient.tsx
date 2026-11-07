@@ -18,6 +18,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconFileUpload as FileUp, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
+import { OWN_ELECTRICITY_METER_DETAIL, OWN_ELECTRICITY_METER_FIELD_LABEL } from "@repo/constants";
 import { tenantProfileHref } from "@/lib/public-profile";
 import { createClient } from "@repo/supabase/browser";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -329,7 +330,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               <DetailField label="Furnishing" value={apartment.furnished_type} />
               <DetailField label="Floor Level" value={apartment.floor_level} />
               <DetailField label="Lease Duration" value={apartment.lease_duration} />
-              {apartment.has_own_electricity_meter === true && <DetailField label="Electricity" value="Own meter" />}
+              {apartment.has_own_electricity_meter === true && <DetailField label={OWN_ELECTRICITY_METER_FIELD_LABEL} value={OWN_ELECTRICITY_METER_DETAIL} />}
             </div>
             <div className="rounded-2xl bg-muted px-4 py-3 flex items-center justify-between gap-2">
               <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">

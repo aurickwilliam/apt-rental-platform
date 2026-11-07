@@ -129,6 +129,7 @@ function descriptionHarness({ tenant = { leaseStart: "2026-10-20", leaseEnd: "20
     react: { useState: initial => { const index = stateIndex++; return [initial, value => updates.push({ index, value })]; } },
     "next/navigation": { useRouter: () => ({ push: () => {}, prefetch: () => {} }) },
     "@repo/utils": { formatPesoDisplay: value => `PHP ${value}` },
+    "@repo/constants": { OWN_ELECTRICITY_METER_DETAIL: "Own meter (electricity and water)", OWN_ELECTRICITY_METER_FIELD_LABEL: "Utility meters" },
     "@/app/tenant/payment/utils": { formatLeaseDate: value => value ?? "—" },
     "../../components/to-property": { toProperty: apartment => ({ ...apartment, thumbnail: "/cover.jpg" }) },
     "../../components/use-lease-viewer": { useLeaseViewer: () => ({ viewing: false, viewLease: async path => { viewed.push(path); return null; } }) },
