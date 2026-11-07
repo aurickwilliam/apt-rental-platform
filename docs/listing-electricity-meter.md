@@ -1,8 +1,16 @@
-# Own electricity meter requirement
+# Own meter requirement (electricity and water)
 
-APT accepts only units with a dedicated electricity-provider meter. Shared
-meters and landlord submeters are not accepted. This says nothing about whether
-electricity is included in rent or who pays the provider.
+APT accepts only units with their own dedicated electricity and water meters.
+Shared meters and landlord submeters are not accepted for either utility. This
+says nothing about whether utilities are included in rent or who pays the provider.
+
+The stored flag keeps its original name, `apartments.has_own_electricity_meter`,
+so older clients and rows keep working; it now means "own electricity and water
+meters". Migration `20261107170000_own_meter_electricity_and_water.sql` only
+replaces the refusal message and the column comment (no rows are rewritten).
+Listings classified true by the earlier rollout policy are therefore shown with the
+new wording; that extends the same policy decision to the water meter and implies
+no inspection.
 
 ## Forms and display
 
@@ -13,8 +21,10 @@ after Floor Level / Lease Duration; no new section or step is added. Edit forms
 load the saved confirmation and cannot save it unchecked. Publishing independently
 checks it again before uploading anything.
 
-Listing details and previews show **Electricity: Own meter** only for a true
-`apartments.has_own_electricity_meter`. Landlord property details also show it.
+Listing details and previews show **Own meter (electricity and water)** only for a true
+`apartments.has_own_electricity_meter`. Landlord property details show it under the
+"Utility meters" label (`OWN_ELECTRICITY_METER_FIELD_LABEL`). All wording and
+`getOwnElectricityMeterDetail` live in the shared constants file.
 The confirmation is a landlord declaration, not an APT verification badge.
 
 ## Database and existing listings

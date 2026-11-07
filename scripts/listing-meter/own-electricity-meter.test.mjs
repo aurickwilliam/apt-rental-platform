@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { OWN_ELECTRICITY_METER_ERROR } from "../../packages/constants/src/apartment/electricity-meter.ts";
 
 const migration = await readFile(new URL("../../supabase/migrations/20261106210000_apartment_own_electricity_meter.sql", import.meta.url), "utf8");
+const waterMigration = await readFile(new URL("../../supabase/migrations/20261107170000_own_meter_electricity_and_water.sql", import.meta.url), "utf8");
 
 test("own electricity meters: backfill, explicit consent, grants and RLS", async (t) => {
   const db = new PGlite();
@@ -29,8 +30,9 @@ test("own electricity meters: backfill, explicit consent, grants and RLS", async
     grant insert (id, name, landlord_id), update (name) on public.apartments to authenticated;
   `);
   await db.exec(migration);
+  await db.exec(waterMigration);
 
-  await t.test("existing rows gain the label without changing timestamps", async () => {
+  await t.test("existing rows gain the label without changing timestamps, even after the water-wording migration", async () => {
     const result = await db.query("select has_own_electricity_meter, updated_at from apartments where id=1");
     assert.equal(result.rows[0].has_own_electricity_meter, true);
     assert.equal(new Date(result.rows[0].updated_at).toISOString(), "2026-01-01T00:00:00.000Z");
@@ -66,8 +68,8 @@ test("own electricity meters: backfill, explicit consent, grants and RLS", async
       await db.exec("insert into apartments(id,landlord_id,name,has_own_electricity_meter) values (2,'owner','Confirmed',true)");
       await db.exec("update apartments set name='Renamed' where id=2");
       await db.exec("update apartments set has_own_electricity_meter=true where id=2");
-      await assert.rejects(db.exec("update apartments set has_own_electricity_meter=false where id=2"), /dedicated electricity meter/);
-      await assert.rejects(db.exec("update apartments set has_own_electricity_meter=null where id=2"), /dedicated electricity meter/);
+      await assert.rejects(db.exec("update apartments set has_own_electricity_meter=false where id=2"), /electricity and water meters/);
+      await assert.rejects(db.exec("update apartments set has_own_electricity_meter=null where id=2"), /electricity and water meters/);
     });
   });
 

@@ -16,6 +16,7 @@ import StatusChip from "@/app/components/display/StatusChip";
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
+import { OWN_ELECTRICITY_METER_DETAIL, OWN_ELECTRICITY_METER_FIELD_LABEL } from "@repo/constants";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
@@ -433,7 +434,7 @@ export default function PropertyDetailsSheet({
                           <ReadOnlyField label="Furnishing" value={selected.furnished_type} />
                           <ReadOnlyField label="Floor Level" value={selected.floor_level} />
                           <ReadOnlyField label="Lease Duration" value={selected.lease_duration} />
-                          {selected.has_own_electricity_meter === true && <ReadOnlyField label="Electricity" value="Own meter" />}
+                          {selected.has_own_electricity_meter === true && <ReadOnlyField label={OWN_ELECTRICITY_METER_FIELD_LABEL} value={OWN_ELECTRICITY_METER_DETAIL} />}
                         </div>
                       </section>
 

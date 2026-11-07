@@ -7,9 +7,12 @@ import * as HeroUI from "@heroui/react";
 import * as meterRules from "../../../packages/constants/src/apartment/electricity-meter.ts";
 import { compile } from "./test-support/hook-runtime.mjs";
 import {
+  getOwnElectricityMeterDetail,
   getOwnElectricityMeterError,
-  OWN_ELECTRICITY_METER_ERROR,
+  OWN_ELECTRICITY_METER_CONFIRMATION,
   OWN_ELECTRICITY_METER_DETAIL,
+  OWN_ELECTRICITY_METER_ERROR,
+  OWN_ELECTRICITY_METER_FIELD_LABEL,
 } from "../../../packages/constants/src/apartment/electricity-meter.ts";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
@@ -51,7 +54,31 @@ test("only explicit true confirms a dedicated meter", () => {
   for (const value of [false, undefined, null, "true", 1, {}]) {
     assert.equal(getOwnElectricityMeterError(value), OWN_ELECTRICITY_METER_ERROR);
   }
-  assert.equal(OWN_ELECTRICITY_METER_DETAIL, "Electricity: Own meter");
+});
+
+test("meter wording says electricity and water everywhere it is shown", () => {
+  assert.equal(OWN_ELECTRICITY_METER_DETAIL, "Own meter (electricity and water)");
+  assert.equal(OWN_ELECTRICITY_METER_FIELD_LABEL, "Utility meters");
+  for (const text of [OWN_ELECTRICITY_METER_CONFIRMATION, OWN_ELECTRICITY_METER_ERROR]) {
+    assert.match(text, /electricity and water meters/);
+  }
+  assert.equal(getOwnElectricityMeterDetail(true), OWN_ELECTRICITY_METER_DETAIL);
+  for (const value of [false, undefined, null, "true", 1]) {
+    assert.equal(getOwnElectricityMeterDetail(value), null);
+  }
+});
+
+test("landlord views reuse the shared wording instead of hard-coded text", () => {
+  for (const path of [
+    "../app/landlord/properties/[apartmentId]/components/PropertyDetailClient.tsx",
+    "../app/landlord/properties/components/PropertyDetailsSheet.tsx",
+    "../app/landlord/properties/[apartmentId]/description/components/DescriptionClient.tsx",
+  ]) {
+    const source = read(path);
+    assert.doesNotMatch(source, /value="Own meter"|label="Electricity"/);
+    assert.match(source, /value=\{OWN_ELECTRICITY_METER_DETAIL\}/);
+    assert.match(source, /label=\{OWN_ELECTRICITY_METER_FIELD_LABEL\}/);
+  }
 });
 
 test("web creation starts unchecked, validates and submits the declaration", () => {

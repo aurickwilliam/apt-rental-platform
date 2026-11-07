@@ -5,11 +5,13 @@ import ApartmentDetailsSection from "@/app/apartment/[apartmentId]/components/se
 import type { ApartmentDetails } from "@/service/apartments/apartmentDetailsService";
 import { useApartmentFormStore } from "@/stores/useApartmentFormStore";
 import {
+  getOwnElectricityMeterDetail,
   getOwnElectricityMeterError,
   OWN_ELECTRICITY_METER_CONFIRMATION,
   OWN_ELECTRICITY_METER_DESCRIPTION,
   OWN_ELECTRICITY_METER_DETAIL,
   OWN_ELECTRICITY_METER_ERROR,
+  OWN_ELECTRICITY_METER_FIELD_LABEL,
 } from "@repo/constants";
 
 jest.mock("hooks/useTheme", () => ({ useColors: () => ({ colors: { gray500: "#626B73" } }) }));
@@ -77,4 +79,14 @@ it("shows the same label for a confirmed existing listing or preview, never unco
   expect(screen.queryByText(OWN_ELECTRICITY_METER_DETAIL)).toBeNull();
   screen.rerender(<ApartmentDetailsSection apartment={null} />);
   expect(screen.queryByText(OWN_ELECTRICITY_METER_DETAIL)).toBeNull();
+});
+
+it("words the meter as electricity and water, and only for confirmed data", () => {
+  expect(OWN_ELECTRICITY_METER_DETAIL).toBe("Own meter (electricity and water)");
+  expect(OWN_ELECTRICITY_METER_FIELD_LABEL).toBe("Utility meters");
+  expect(getOwnElectricityMeterDetail(true)).toBe(OWN_ELECTRICITY_METER_DETAIL);
+  for (const value of [false, undefined, null, "true", 1]) {
+    expect(getOwnElectricityMeterDetail(value)).toBeNull();
+  }
+  expect(OWN_ELECTRICITY_METER_CONFIRMATION).toMatch(/electricity and water meters/);
 });

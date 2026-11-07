@@ -19,13 +19,15 @@ Every architectural claim in this document was verified against the repository a
 
 ## 1. System Overview
 
-Apartment electricity-meter eligibility is stored in
+Apartment own-meter eligibility (electricity and water; the column keeps its
+original name) is stored in
 `apartments.has_own_electricity_meter`: dedicated provider meters only, not shared
 meters or submeters. Both clients share confirmation wording/validation through
 `@repo/constants`; a database trigger requires explicit true on insert and prevents
 clearing it. Migration `20261106210000_apartment_own_electricity_meter.sql`
 classifies existing rows true by product decision without updating their other
-fields; new rows default false and must explicitly confirm. Existing RLS and
+fields (`20261107170000_own_meter_electricity_and_water.sql` only rewords the
+refusal message and column comment for water); new rows default false and must explicitly confirm. Existing RLS and
 column-scoped writes remain authoritative. See `docs/listing-electricity-meter.md`
 for release compatibility and tests.
 
