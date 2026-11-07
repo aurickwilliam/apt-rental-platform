@@ -15,7 +15,7 @@ function orderOf(source, start) {
     .map(([name]) => name);
 }
 
-test("web and mobile filters list their sections in the same order (web adds Location after Verified)", () => {
+test("web and mobile filters list their sections in the same order (both put Location after Verified)", () => {
   const webStart = web.indexOf('return (\n    <div className="flex min-h-0 flex-1 flex-col text-foreground">');
   assert.ok(webStart > 0);
   const webPanel = web.slice(webStart);
@@ -29,6 +29,9 @@ test("web and mobile filters list their sections in the same order (web adds Loc
   assert.deepEqual(webOrder.filter((name) => name !== "Location"), SECTIONS);
   assert.equal(webOrder[0], "Location", "Location comes right after the Verified switch, before Budget");
   assert.deepEqual(orderOf(mobilePanel, 0), SECTIONS);
+  const locationAt = mobilePanel.indexOf("{/* Location */}");
+  assert.ok(locationAt > 0 && locationAt < mobilePanel.indexOf("{/* Budget */}"), "mobile Location comes before Budget");
+  assert.match(mobile, /CAMANAVA_CITIES\.map/, "mobile offers the same four cities as web");
 });
 
 test("the apply button says Apply Filters on both, and the old label is gone", () => {

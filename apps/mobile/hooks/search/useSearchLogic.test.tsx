@@ -255,6 +255,100 @@ describe("useSearchLogic", () => {
     unmount();
   });
 
+  it("filters by the cities picked in the sheet instead of the city chip", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "account-a" } } });
+    await AsyncStorage.setItem(
+      "apt-search:account-a",
+      JSON.stringify({
+        city: "Caloocan",
+        committedSearch: "",
+        filters: { locations: ["Malabon", "Navotas"] },
+        isGridView: true,
+      }),
+    );
+
+    let query: Record<string, jest.Mock>;
+    let orderCallCount = 0;
+    query = {
+      select: jest.fn(() => query),
+      is: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      in: jest.fn(() => query),
+      or: jest.fn(() => query),
+      range: jest.fn(() => query),
+      order: jest.fn(() => {
+        orderCallCount += 1;
+        return orderCallCount % 2 === 1
+          ? query
+          : Promise.resolve({ data: [], error: null, count: 0 });
+      }),
+    };
+    mockFrom.mockReturnValue(query);
+
+    const { result, unmount } = renderHook(() => useSearchLogic());
+
+    await waitFor(() =>
+      expect(query.in).toHaveBeenCalledWith("city", ["Malabon", "Navotas"]),
+    );
+    expect(query.eq).not.toHaveBeenCalledWith("city", "Caloocan");
+    expect(result.current.activeFilterCount).toBe(1);
+
+    unmount();
+  });
+
+  it("keeps the city chips and the sheet's cities in step", async () => {
+    let query: Record<string, jest.Mock>;
+    let orderCallCount = 0;
+    query = {
+      select: jest.fn(() => query),
+      is: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      in: jest.fn(() => query),
+      or: jest.fn(() => query),
+      range: jest.fn(() => query),
+      order: jest.fn(() => {
+        orderCallCount += 1;
+        return orderCallCount % 2 === 1
+          ? query
+          : Promise.resolve({ data: [], error: null, count: 0 });
+      }),
+    };
+    mockFrom.mockReturnValue(query);
+
+    const { result, unmount } = renderHook(() => useSearchLogic());
+    await waitFor(() => expect(result.current.resultCount).toBe(0));
+
+    // A chip tap shows up in the sheet.
+    act(() => result.current.selectCity("Malabon"));
+    expect(result.current.sheetFilters.locations).toEqual(["Malabon"]);
+
+    // Several cities in the sheet leave no chip highlighted.
+    act(() =>
+      result.current.handleApplyFilters({
+        ...result.current.sheetFilters,
+        locations: ["Malabon", "Navotas"],
+      }),
+    );
+    expect(result.current.chipCity).toBe("");
+    expect(result.current.selectedCity).toBe("CAMANAVA");
+
+    // One city in the sheet selects that chip.
+    act(() =>
+      result.current.handleApplyFilters({
+        ...result.current.sheetFilters,
+        locations: ["Navotas"],
+      }),
+    );
+    expect(result.current.chipCity).toBe("Navotas");
+
+    // Clearing the sheet goes back to all cities.
+    act(() => result.current.handleClearFilters());
+    expect(result.current.chipCity).toBe("CAMANAVA");
+    expect(result.current.sheetFilters.locations).toHaveLength(4);
+
+    unmount();
+  });
+
   it("persists committed browse inputs under the account key", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "account-a" } } });
     let query: {
