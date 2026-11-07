@@ -20,6 +20,7 @@ import { statusChipColor } from "../lib/application-status";
 import { applicationStatusLabel } from "../lib/application-list";
 import ApplicationDetailSection from "./components/ApplicationDetailSection";
 import ApplicationDetailSkeleton from "./components/ApplicationDetailSkeleton";
+import ApplicantRatingsSection from "./components/ApplicantRatingsSection";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
@@ -200,6 +201,8 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
           </div>
         </ApplicationDetailSection>
       </div>
+
+      <ApplicantRatingsSection tenantId={app.tenant_id} tenantName={app.tenant_name} />
 
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
         <ApplicationDetailSection title="Documents" subtitle="Private supporting documents attached to this application." icon={FileText}>

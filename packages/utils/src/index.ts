@@ -13,6 +13,8 @@ export {
   validateTenantReview,
   hasTenantReviewErrors,
   summarizeTenantReviews,
+  describeTenantRatingSummary,
+  APPLICANT_RATINGS_PREVIEW_LIMIT,
   prepareTenantReview,
   toTenantReviewRecords,
 } from './tenantReview';
