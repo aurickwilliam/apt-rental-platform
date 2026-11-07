@@ -12,7 +12,7 @@ import {
   IconFiles,
   IconFileDescription,
   IconListDetails,
-  IconMessage, IconFileText } from '@tabler/icons-react-native';
+  IconMessage, IconFileText, IconStar } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
@@ -24,6 +24,7 @@ import ApplicationDecisionBar from './components/ApplicationDecisionBar';
 import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
 import ErrorDialog from '@/components/display/ErrorDialog';
 import RejectDialog from '../../../components/display/RejectDialog';
+import ApplicantRatings from '@/components/ratings/ApplicantRatings';
 
 import { describeApplicationPreferences, formatPesoDisplay, formatDate } from '@repo/utils';
 
@@ -213,6 +214,13 @@ export default function TenantApplicationDetails() {
               <DetailField label="Name" value={orDash(application.prev_landlord_name)} />
               <DetailField label="Contact" value={orDash(application.prev_landlord_contact)} />
             </View>
+          </DetailSection>
+
+          <DetailSection title="Landlord Ratings" icon={IconStar}>
+            <ApplicantRatings
+              tenantId={application.tenant_id}
+              tenantName={application.tenant_name}
+            />
           </DetailSection>
 
           <DetailSection title="Documents" icon={IconFiles}>

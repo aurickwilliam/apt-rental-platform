@@ -71,6 +71,7 @@ function harness(options = {}) {
       "./components/ApplicationDetailSection": { default: loadSection },
       "./ApplicationDetailSection": { default: loadSection },
       "./components/ApplicationDetailSkeleton": { default: loadSkeleton },
+      "./components/ApplicantRatingsSection": { default: "ApplicantRatingsSection" },
       "./components/ApplicationDetailShell": { default: loadShell },
       "./ApplicationDetailShell": { default: loadShell },
       "@/app/components/display/RouteLoadingStatus": { default: "RouteLoadingStatus" },
@@ -117,6 +118,16 @@ test("Application details use one responsive set of cards, retain every field an
   back.props.onHoverStart(); back.props.onFocus(); back.props.onPress();
   assert.deepEqual(h.prefetched, ["/landlord/applications", "/landlord/applications"]);
   assert.deepEqual(h.pushed, ["/landlord/applications"]);
+});
+
+test("The applicant's landlord ratings sit beside the decision buttons and never replace them", () => {
+  const elements = harness().render();
+  const ratings = elements.find(element => element.type === "ApplicantRatingsSection");
+  assert.ok(ratings);
+  assert.equal(ratings.props.tenantId, "tenant-one");
+  assert.equal(ratings.props.tenantName, "Sample Tenant");
+  assert.ok(button(elements, "Approve"));
+  assert.ok(button(elements, "Reject"));
 });
 
 test("Documents and message share equal desktop columns in the page and loading skeleton", () => {
