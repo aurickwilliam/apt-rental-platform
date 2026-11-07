@@ -4,9 +4,7 @@ import { Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import FilterBottomSheet, {
-  DEFAULT_FILTERS,
-} from "@/app/(tabs)/components/search/FilterBottomSheet";
+import FilterBottomSheet from "@/app/(tabs)/components/search/FilterBottomSheet";
 import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
@@ -40,7 +38,6 @@ export default function Search() {
     cities,
     error,
     fetchApartments,
-    filters,
     isFilterSheetOpen,
     setIsFilterSheetOpen,
     handleApplyFilters,
@@ -57,10 +54,12 @@ export default function Search() {
     committedSearch,
     commitSearch,
     clearSearch,
+    chipCity,
+    selectCity,
     selectedCity,
     setIsGridView,
     setSearchDraft,
-    setSelectedCity,
+    sheetFilters,
   } = useSearchLogic({ initialCity });
 
   const isDefaultBrowse =
@@ -117,7 +116,7 @@ export default function Search() {
   const handleClearAll = () => {
     clearSearch();
     handleClearFilters();
-    if (selectedCity !== initialCity) setSelectedCity(initialCity);
+    if (selectedCity !== initialCity) selectCity(initialCity);
   };
 
   const handleSubmitSearch = () => {
@@ -165,7 +164,7 @@ export default function Search() {
         onFocusChange={setIsSearchFocused}
         onFieldBottomChange={setFieldBottom}
         belowField={
-          <CityChips cities={cities} selectedCity={selectedCity} onSelectCity={setSelectedCity} />
+          <CityChips cities={cities} selectedCity={chipCity} onSelectCity={selectCity} />
         }
       />
 
@@ -219,7 +218,7 @@ export default function Search() {
         isOpen={isFilterSheetOpen}
         onOpenChange={setIsFilterSheetOpen}
         resultCount={resultCount}
-        initialFilters={filters ?? DEFAULT_FILTERS}
+        initialFilters={sheetFilters}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />

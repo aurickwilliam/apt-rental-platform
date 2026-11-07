@@ -14,6 +14,7 @@ import {
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_CITIES,
   FURNISHED_TYPES,
   FLOOR_LEVELS,
   LEASE_DURATIONS,
@@ -22,44 +23,22 @@ import {
 import { PERKS } from "@/constants/perks";
 import RangeInputFields from "@/components/inputs/RangeInputFields";
 
+import {
+  DEFAULT_FILTERS,
+  MAX_BUDGET,
+  MAX_SIZE,
+  MIN_BUDGET,
+  MIN_SIZE,
+  type FilterState,
+} from "@/service/search/searchFilters";
+
 import { useColors } from "hooks/useTheme";
 
 import { IconShieldCheck } from "@tabler/icons-react-native";
 
-const MAX_SIZE = 300;
-const MIN_BUDGET = 1000;
-const MAX_BUDGET = 50000;
-const MIN_SIZE = 10;
-
 const ROOM_OPTS = ["Any", "1", "2", "3", "4+"];
 
-export type FilterState = {
-  budget: [number, number];
-  unitTypes: string[];
-  sortBy: "newest" | "price_asc" | "price_desc" | "most_popular";
-  bedrooms: string;
-  bathrooms: string;
-  sizeRange: [number, number];
-  furnishing: string[];
-  floorLevel: string[];
-  leaseDuration: string[];
-  amenities: string[];
-  verifiedOnly: boolean;
-};
-
-export const DEFAULT_FILTERS: FilterState = {
-  budget: [MIN_BUDGET, MAX_BUDGET],
-  sizeRange: [MIN_SIZE, MAX_SIZE],
-  unitTypes: APARTMENT_TYPES,
-  sortBy: "newest",
-  bedrooms: "Any",
-  bathrooms: "Any",
-  furnishing: FURNISHED_TYPES,
-  floorLevel: FLOOR_LEVELS,
-  leaseDuration: LEASE_DURATIONS,
-  amenities: [],
-  verifiedOnly: false,
-};
+export { DEFAULT_FILTERS, type FilterState };
 
 type Props = {
   isOpen: boolean;
@@ -197,6 +176,26 @@ export default function FilterBottomSheet({
               />
               <Chip.Label>Verified listings only</Chip.Label>
             </Chip>
+
+            <Separator className="my-4" />
+
+            {/* Location */}
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
+              Location
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.locations)}
+              onSelectionChange={handleMultiSelect("locations")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {CAMANAVA_CITIES.map((city) => (
+                  <TagGroup.Item key={city} id={city}>
+                    {city}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
 
             <Separator className="my-4" />
 
