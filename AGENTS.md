@@ -23,8 +23,9 @@ Authority order — when sources conflict, the highest-ranked source wins.
 | Engineering | 1. AGENTS.md | 2. Source code · 3. Graphify |
 | Design | 1. DESIGN.md | 2. design-tokens.json |
 | Database | 1. Supabase schema | 2. Migrations |
+| Security | 1. SECURITY.md | 2. AGENTS.md · ARCHITECTURE.md · docs/ detail |
 
-- Engineering decisions belong in AGENTS.md; visual decisions belong in DESIGN.md.
+- Engineering decisions belong in AGENTS.md; visual decisions belong in DESIGN.md; security boundaries, defenses and the disclosure policy belong in SECURITY.md.
 - Never duplicate design documentation — cross-reference DESIGN.md instead.
 - DESIGN.md is the single source of truth for UI (status markers: ✅ canonical · 🚧 transitional · ⚠ legacy).
 
@@ -441,6 +442,7 @@ When introducing new architecture:
 - Update AGENTS.md if engineering conventions change.
 - Update DESIGN.md if UI changes.
 - Update design-tokens.json if tokens change.
+- Update SECURITY.md when a change moves a security boundary, defense, secret or the disclosure policy.
 - Document new shared components.
 
 ## Future-Proofing
