@@ -7,12 +7,12 @@ export const LOCALE_COOKIE = LOCALE_STORAGE_KEY;
 export const DEFAULT_LANGUAGE: LanguageCode = "en";
 
 /**
- * Rollout gate. Filipino stays unreachable until the shared chrome, auth,
- * settings and tenant surfaces are translated (end of Phase 2). Flipping
- * this to `true` enables detection and the language switchers together, so
- * no one is ever dropped into a half-translated app.
+ * Rollout gate. Filipino is enabled once the shared chrome, auth, settings and
+ * tenant surfaces are translated; flipping this to `true` enables detection and
+ * the language switchers together, so no one is dropped into a
+ * half-translated app.
  */
-export const ALLOW_FILIPINO = false;
+export const ALLOW_FILIPINO = true;
 
 export function isLanguageCode(value: unknown): value is LanguageCode {
   return APP_LANGUAGES.some(({ code }) => code === value);
